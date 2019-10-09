@@ -10,6 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
+import type {subscriber} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -23,22 +24,12 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
+import MagmaV1API from '../../common/MagmaV1API';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-
-export type Subscriber = {
-  id: string,
-  lte: {
-    state: string,
-    auth_key: string,
-    auth_opc?: ?string,
-  },
-  sub_profile: string,
-};
 
 const styles = {
   input: {
@@ -50,7 +41,7 @@ const styles = {
 
 type EditingSubscriber = {
   imsiID: string,
-  lteState: string,
+  lteState: 'ACTIVE' | 'INACTIVE',
   authKey: string,
   authOpc: string,
   subProfile: string,
@@ -62,7 +53,7 @@ type Props = ContextRouter &
     onClose: () => void,
     onSave: (subscriberID: string) => void,
     onSaveError: (reason: any) => void,
-    editingSubscriber: ?Subscriber,
+    editingSubscriber: ?subscriber,
     subProfiles: Array<string>,
   };
 
@@ -102,7 +93,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
       lteState: editingSubscriber.lte.state,
       authKey,
       authOpc,
-      subProfile: editingSubscriber.sub_profile,
+      subProfile: editingSubscriber.lte.sub_profile,
     };
   }
 
@@ -189,9 +180,9 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
         state: this.state.editingSubscriber.lteState,
         auth_algo: 'MILENAGE', // default auth algo
         auth_key: this.state.editingSubscriber.authKey,
-        auth_opc: this.state.editingSubscriber.authOpc || null,
+        auth_opc: this.state.editingSubscriber.authOpc || undefined,
+        sub_profile: this.state.editingSubscriber.subProfile,
       },
-      sub_profile: this.state.editingSubscriber.subProfile,
     };
     if (data.lte.auth_key && isValidHex(data.lte.auth_key)) {
       data.lte.auth_key = hexToBase64(data.lte.auth_key);
@@ -200,20 +191,25 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
       data.lte.auth_opc = hexToBase64(data.lte.auth_opc);
     }
     if (this.props.editingSubscriber) {
-      axios
-        .put(MagmaAPIUrls.subscriber(this.props.match, data.id), data)
+      MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
+        networkId: nullthrows(this.props.match.params.networkId),
+        subscriberId: data.id,
+        subscriber: data,
+      })
         .then(() => this.props.onSave(data.id))
         .catch(this.props.onSaveError);
     } else {
-      axios
-        .post(MagmaAPIUrls.subscribers(this.props.match), data)
-        .then(response => this.props.onSave(response.data))
+      MagmaV1API.postLteByNetworkIdSubscribers({
+        networkId: this.props.match.params.networkId || '',
+        subscriber: data,
+      })
+        .then(this.props.onSave)
         .catch(this.props.onSaveError);
     }
   };
 
   fieldChangedHandler = (
-    field: 'imsiID' | 'lteState' | 'authKey' | 'authOpc' | 'subProfile',
+    field: 'imsiID' | 'authKey' | 'authOpc' | 'subProfile',
   ) => event =>
     this.setState({
       editingSubscriber: {
@@ -223,7 +219,13 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
     });
 
   imsiChanged = this.fieldChangedHandler('imsiID');
-  lteStateChanged = this.fieldChangedHandler('lteState');
+  lteStateChanged = event =>
+    this.setState({
+      editingSubscriber: {
+        ...this.state.editingSubscriber,
+        lteState: event.target.value === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+      },
+    });
   authKeyChanged = this.fieldChangedHandler('authKey');
   authOpcChanged = this.fieldChangedHandler('authOpc');
   subProfileChanged = this.fieldChangedHandler('subProfile');

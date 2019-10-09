@@ -94,7 +94,7 @@
 #include "emm_fsm.h"
 #include "emm_regDef.h"
 #include "esm_data.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
 #include "dynamic_memory_check.h"
@@ -293,8 +293,10 @@ int emm_proc_attach_request(
   /*
    * Get the UE's EMM context if it exists
    */
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
+        ue_id);
   // if is_mm_ctx_new==TRUE then ue_mm_context should always be not NULL
 
   // Actually uplink_nas_transport is sent from S1AP task to NAS task without passing by the MME_APP task...
@@ -303,7 +305,7 @@ int emm_proc_attach_request(
   // Search UE context using GUTI -
   if (ies->guti) { // no need for  && (is_native_guti)
     guti_ue_mm_ctx =
-      mme_ue_context_exists_guti(&mme_app_desc.mme_ue_contexts, ies->guti);
+      mme_ue_context_exists_guti(&mme_app_desc_p->mme_ue_contexts, ies->guti);
     if (guti_ue_mm_ctx) {
       /*
          * This implies either UE or eNB has not sent S-TMSI in initial UE message even though UE has old GUTI.
@@ -321,7 +323,7 @@ int emm_proc_attach_request(
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
-      mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+      mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
     if (imsi_ue_mm_ctx) {
       old_ue_id = imsi_ue_mm_ctx->mme_ue_s1ap_id;
       fsm_state = emm_fsm_get_state(&imsi_ue_mm_ctx->emm_context);
@@ -606,25 +608,23 @@ int emm_proc_attach_request(
 int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t *ue_mm_context = NULL;
   int rc = RETURNerror;
 
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
-  if (ue_mm_context) {
-    if (is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
+  if (emm_ctx) {
+    if (is_nas_specific_procedure_attach_running(emm_ctx)) {
       nas_emm_attach_proc_t *attach_proc =
-        (nas_emm_attach_proc_t *) (ue_mm_context->emm_context.emm_procedures
+        (nas_emm_attach_proc_t *) (emm_ctx->emm_procedures
                                      ->emm_specific_proc);
       attach_proc->emm_cause = emm_cause;
 
       // TODO could be in callback of attach procedure triggered by EMMREG_ATTACH_REJ
       rc = _emm_attach_reject(
-        &ue_mm_context->emm_context, (struct nas_base_proc_s *) attach_proc);
+        emm_ctx, (struct nas_base_proc_s *) attach_proc);
       emm_sap_t emm_sap = {0};
       emm_sap.primitive = EMMREG_ATTACH_REJ;
       emm_sap.u.emm_reg.ue_id = ue_id;
-      emm_sap.u.emm_reg.ctx = &ue_mm_context->emm_context;
+      emm_sap.u.emm_reg.ctx = emm_ctx;
       emm_sap.u.emm_reg.notify = false;
       emm_sap.u.emm_reg.free_proc = true;
       emm_sap.u.emm_reg.u.attach.proc = attach_proc;
@@ -635,9 +635,9 @@ int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
       no_attach_proc.emm_cause = emm_cause;
       no_attach_proc.esm_msg_out = NULL;
       rc = _emm_attach_reject(
-      &ue_mm_context->emm_context, (struct nas_base_proc_s *) &no_attach_proc);
+      emm_ctx, (struct nas_base_proc_s *) &no_attach_proc);
     }
-    unlock_ue_contexts(ue_mm_context);
+    emm_context_unlock(emm_ctx);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -682,8 +682,9 @@ int emm_proc_attach_complete(
   /*
    * Get the UE context
    */
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
 
   if (ue_mm_context) {
     if (is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {

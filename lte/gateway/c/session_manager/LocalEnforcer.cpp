@@ -54,11 +54,13 @@ LocalEnforcer::LocalEnforcer(
   std::shared_ptr<SessionCloudReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
+  std::shared_ptr<SpgwServiceClient> spgw_client,
   std::shared_ptr<aaa::AAAClient> aaa_client,
   long session_force_termination_timeout_ms):
   reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
+  spgw_client_(spgw_client),
   aaa_client_(aaa_client),
   session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
 {
@@ -177,16 +179,49 @@ void LocalEnforcer::terminate_service(
 {
   pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
 
-  // tell AAA service to terminate radius session if necessary
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
-    MLOG(MWARNING) << "Could not find session with IMSI " << imsi;
-  } else if (it->second->is_radius_cwf_session()) {
+    MLOG(MWARNING) << "Could not find session with IMSI " << imsi
+                   << " to terminate";
+    return;
+  }
+
+  it->second->start_termination([this](SessionTerminateRequest term_req) {
+    // report to cloud
+    reporter_->report_terminate_session(
+      term_req,
+      [&term_req](Status status, SessionTerminateResponse response) {
+        if (!status.ok()) {
+          MLOG(MERROR)
+            << "Failed to terminate service in controller for subscriber "
+            << term_req.sid() << ": " << status.error_message();
+        } else {
+          MLOG(MDEBUG)
+            << "Termination successful in controller for subscriber "
+            << term_req.sid();
+        }
+      }
+    );
+  });
+
+  // tell AAA service to terminate radius session if necessary
+  if (it->second->is_radius_cwf_session()) {
     MLOG(MDEBUG) << "Asking AAA service to terminate session with "
                  << "Radius ID: " << it->second->get_radius_session_id()
                  << ", IMSI: " << imsi;
     aaa_client_->terminate_session(it->second->get_radius_session_id(), imsi);
   }
+
+  std::string session_id = it->second->get_session_id();
+  // The termination should be completed when aggregated usage record no longer
+  // includes the imsi. If this has not occurred after the timeout, force
+  // terminate the session.
+  evb_->runAfterDelay(
+    [this, imsi, session_id] {
+      MLOG(MDEBUG) << "Forced service termination for IMSI " << imsi;
+      complete_termination(imsi, session_id);
+    },
+    session_force_termination_timeout_ms_);
 }
 
 // TODO: make session_manager.proto and policydb.proto to use common field
@@ -596,14 +631,16 @@ void LocalEnforcer::complete_termination(
 
 void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
 {
-  for (const auto &response : response.responses()) {
-    auto it = session_map_.find(response.sid());
+  for (const auto &credit_update_resp : response.responses()) {
+    auto it = session_map_.find(credit_update_resp.sid());
     if (it == session_map_.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI " << response.sid()
-                   << " during update";
+      MLOG(MERROR) << "Could not find session for IMSI "
+                   << credit_update_resp.sid() << " during update";
       return;
     }
-    it->second->get_charging_pool().receive_credit(response);
+    if (credit_update_resp.success()) {
+        it->second->get_charging_pool().receive_credit(credit_update_resp);
+    }
   }
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     if (revalidation_required(usage_monitor_resp.event_triggers())) {
@@ -731,6 +768,9 @@ void LocalEnforcer::init_policy_reauth(
       rules_to_activate.dynamic_rules);
   }
 
+  create_bearer(
+    activate_success, it->second, request, rules_to_activate.dynamic_rules);
+
   // Treat activate/deactivate as all-or-nothing when reporting rule failures
   answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
   mark_rule_failures(activate_success, deactivate_success, request, answer_out);
@@ -846,6 +886,30 @@ void LocalEnforcer::schedule_revalidation(
       }),
       delta);
   });
+}
+
+void LocalEnforcer::create_bearer(
+  const bool &activate_success,
+  const std::unique_ptr<SessionState> &session,
+  const PolicyReAuthRequest &request,
+  const std::vector<PolicyRule> &dynamic_rules)
+{
+  if (!activate_success || session->is_radius_cwf_session() ||
+    !session->qos_enabled() || !request.has_qos_info()) {
+    MLOG(MDEBUG) << "Not creating bearer";
+    return;
+  }
+
+  auto default_qci = QCI(session->get_qci());
+  if (request.qos_info().qci() != default_qci) {
+    MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
+    spgw_client_->create_dedicated_bearer(
+      request.imsi(),
+      session->get_subscriber_ip_addr(),
+      session->get_bearer_id(),
+      dynamic_rules);
+  }
+  return;
 }
 
 void LocalEnforcer::check_usage_for_reporting()

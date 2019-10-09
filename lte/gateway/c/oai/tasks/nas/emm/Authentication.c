@@ -51,7 +51,7 @@
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "s6a_messages_types.h"
 #include "nas/securityDef.h"
@@ -632,8 +632,9 @@ int emm_proc_authentication_failure(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   // Get the UE context
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
   emm_context_t *emm_ctx = NULL;
   int rc = RETURNerror;
 
@@ -928,9 +929,11 @@ int emm_proc_authentication_complete(
     LOG_NAS_EMM,
     "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
     ue_id);
+
   // Get the UE context
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
   emm_context_t *emm_ctx = NULL;
 
   if (!ue_mm_context) {
@@ -1279,8 +1282,9 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     /*
      * TODO: check for pointer validity
      */
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, auth_proc->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, auth_proc->ue_id);
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {

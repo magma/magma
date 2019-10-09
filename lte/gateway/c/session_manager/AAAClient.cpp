@@ -49,7 +49,10 @@ bool AsyncAAAClient::terminate_session(
   auto req = create_deactivate_req(radius_session_id, imsi);
   terminate_session_rpc(req, [radius_session_id, imsi](
     Status status, acct_resp resp) {
-    if (!status.ok()) {
+    if (status.ok()) {
+      MLOG(MDEBUG) << "Terminated session for Radius ID:"
+                   << radius_session_id << ", IMSI: " << imsi;
+    } else {
       MLOG(MERROR) << "Could not add terminate session. Radius ID:"
                    << radius_session_id << ", IMSI: " << imsi
                    << ", Error: " << status.error_message();

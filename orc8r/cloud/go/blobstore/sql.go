@@ -292,9 +292,13 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 	// Sort keys for deterministic behavior in tests
 	for _, blobID := range getSortedTypeAndKeys(blobsToChange) {
 		change := blobsToChange[blobID]
+		updatedVersion := change.old.Version + 1
+		if change.new.Version != 0 {
+			updatedVersion = change.new.Version
+		}
 		_, err := store.builder.Update(store.tableName).
 			Set(valCol, change.new.Value).
-			Set(verCol, change.old.Version+1).
+			Set(verCol, updatedVersion).
 			Where(
 				// Use explicit sq.And to preserve ordering of WHERE clause items
 				sq.And{
@@ -314,9 +318,9 @@ func (store *sqlBlobStorage) updateExistingBlobs(networkID string, blobsToChange
 
 func (store *sqlBlobStorage) insertNewBlobs(networkID string, blobs []Blob) error {
 	insertBuilder := store.builder.Insert(store.tableName).
-		Columns(nidCol, typeCol, keyCol, valCol)
+		Columns(nidCol, typeCol, keyCol, valCol, verCol)
 	for _, blob := range blobs {
-		insertBuilder = insertBuilder.Values(networkID, blob.Type, blob.Key, blob.Value)
+		insertBuilder = insertBuilder.Values(networkID, blob.Type, blob.Key, blob.Value, blob.Version)
 	}
 	_, err := insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {

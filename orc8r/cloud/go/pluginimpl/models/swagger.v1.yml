@@ -415,10 +415,10 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of all gateways inside the network
+          description: Map of all gateways inside the network by gatewayID
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/magmad_gateway'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'

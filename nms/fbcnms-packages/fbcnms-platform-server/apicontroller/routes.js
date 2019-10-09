@@ -30,6 +30,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
+  timeout: 5000,
   proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
     return {
       ...proxyReqOpts,
@@ -152,7 +153,24 @@ router.use(
 );
 
 router.use(
+  '/magma/v1/lte/:networkID',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: networkIdFilter,
+    userResDecorator: auditLoggingDecorator,
+  }),
+);
+
+router.use(
   '/magma/channels/:channel',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
+router.use(
+  '/magma/v1/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: (req, _res) => req.method === 'GET',

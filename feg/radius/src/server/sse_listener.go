@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -29,6 +30,7 @@ import (
 	"fbc/lib/go/radius/ruckus"
 
 	"github.com/mitchellh/mapstructure"
+	"go.opencensus.io/tag"
 
 	"github.com/donovanhide/eventsource"
 	"go.uber.org/zap"
@@ -44,6 +46,7 @@ type (
 		ShutdownSignal   chan bool
 		ShutdownComplete chan bool
 		EventSource      *eventsource.Stream
+		Counters         monitoring.ListenerCounters
 		ready            chan bool
 	}
 
@@ -80,6 +83,7 @@ func (l *SSEListener) Init(
 	server *Server,
 	serverConfig config.ServerConfig,
 	listenerConfig config.ListenerConfig,
+	ctrs monitoring.ListenerCounters,
 ) error {
 	// Parse configuration
 	var cfg SSEListenerExtraConfig
@@ -91,6 +95,7 @@ func (l *SSEListener) Init(
 	l.Server = server
 	l.Logger = server.logger
 	l.Config = listenerConfig
+	l.Counters = ctrs
 	l.Extra = cfg
 	l.ShutdownSignal = make(chan bool)
 	l.ShutdownComplete = make(chan bool)
@@ -180,8 +185,13 @@ func (l *SSEListener) Shutdown(ctx context.Context) error {
 func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 	// Get SSE Event
 	var sseEvent SSEEvent
+	unmarshalCounter := monitoring.NewOperation(
+		"sse_unmarshal",
+		tag.Upsert(monitoring.ListenerTag, "sse"),
+	)
 	if err := json.Unmarshal([]byte(evt.Data()), &sseEvent); err != nil {
 		l.Logger.Error("Failed to unmarshal request", zap.String("payload", evt.Data()))
+		unmarshalCounter.Failure("unmarshal")
 		return
 	}
 
@@ -192,8 +202,12 @@ func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 			"Got invalid CoA radius code (expected: 43 CoA-Request or 40 Disconnect-Request)",
 			zap.Int("value", sseEvent.Code),
 		)
+		unmarshalCounter.Failure("invalid_radius_code")
 		return
 	}
+	unmarshalCounter.Success()
+
+	requestCounter := l.Counters.StartRequest(radius.Code(sseEvent.Code))
 
 	// Convert to RADIUS request
 	correlationField := zap.Uint32("correlation", rand.Uint32())
@@ -222,12 +236,14 @@ func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 	radiusResponse, err := l.HandleRequest(c, r)
 	if err != nil {
 		l.Logger.Error("failed to handle SSE event", zap.Error(err))
+		requestCounter.Failure("handling")
 		return
 	}
 	l.Logger.Debug("CoA request handled successfully")
 
 	if radiusResponse == nil {
 		l.Logger.Warn("Got null response from handler. Dropping packet")
+		requestCounter.Failure("nil_response")
 		return
 	}
 
@@ -237,6 +253,7 @@ func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 	})
 	if err != nil {
 		l.Logger.Error("failed to serialize response body", zap.Error(err))
+		requestCounter.Failure("marshal")
 		return
 	}
 
@@ -245,19 +262,22 @@ func (l *SSEListener) handleCoaRequest(evt eventsource.Event) {
 		l.Extra.ResponseURL,
 		bytes.NewReader(responseJSON),
 	)
-	httpRequest.Header.Set("radius-packet-encoding", "application/json")
 	if err != nil {
 		l.Logger.Error("failed to serialize response body", zap.Error(err))
+		requestCounter.Failure("create_request")
 		return
 	}
 
+	httpRequest.Header.Set("radius-packet-encoding", "application/json")
 	client := &http.Client{}
 	httpResponse, err := client.Do(httpRequest)
 	if err != nil {
 		l.Logger.Error("failed sending CoA Response to AAA", zap.Error(err))
+		requestCounter.Failure("send_response")
 		return
 	}
 
+	requestCounter.GotResponse(radiusResponse.Code)
 	defer httpResponse.Body.Close()
 }
 

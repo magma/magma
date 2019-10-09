@@ -10,10 +10,7 @@ package config
 
 import (
 	"encoding/json"
-	"fbc/cwf/radius/counters"
-	"fbc/cwf/radius/counters/census"
-	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/scuba"
+	"fbc/cwf/radius/monitoring/census"
 	"io/ioutil"
 )
 
@@ -23,8 +20,8 @@ const LiveTier = "live"
 type (
 	// ModuleDescriptor a descriptor for loading a single module
 	ModuleDescriptor struct {
-		Name   string               `json:"name"`
-		Config modules.ModuleConfig `json:"config"`
+		Name   string                 `json:"name"`
+		Config map[string]interface{} `json:"config"`
 	}
 
 	// ListenerConfig for a single listener (server has a listerner per each port)
@@ -78,9 +75,9 @@ type (
 
 	// MonitoringConfig ...
 	MonitoringConfig struct {
-		Census *census.Config      `json:"census"`
-		Ods    *counters.OdsConfig `json:"ods"`
-		Scuba  *scuba.Config       `json:"scuba"`
+		Census *census.Config `json:"census"`
+		Ods    *Ods           `json:"ods"`
+		Scuba  *Scuba         `json:"scuba"`
 	}
 
 	// RadiusConfig the configuration file format

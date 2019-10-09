@@ -12,9 +12,9 @@ import (
 	"context"
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/protos"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 	"fmt"
 	"math/rand"
@@ -55,6 +55,7 @@ func (l *GRPCListener) Init(
 	server *Server,
 	serverConfig config.ServerConfig,
 	listenerConfig config.ListenerConfig,
+	_ monitoring.ListenerCounters,
 ) error {
 	if server == nil {
 		return errors.New("cannot initialize GRPC listener with null server")
@@ -184,7 +185,7 @@ func (s *authorizationServer) handleCoaRequest(ctx *protos.Context, request *rad
 	state.NextCoAIdentifier = (state.NextCoAIdentifier + 1) % 0xFF
 
 	// Handle
-	counter := counters.NewOperation("handle_grpc").Start()
+	counter := monitoring.NewOperation("handle_grpc").Start()
 	res, err := s.Listener.HandleRequest(&requestContext, request)
 	if err != nil {
 		requestContext.Logger.Error("failed to handle request", zap.Error(err))

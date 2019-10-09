@@ -119,6 +119,16 @@ const arrayConfigs = [
     title: 'Documents Site',
     enabledByDefault: true,
   },
+  {
+    id: 'services',
+    title: 'Services',
+    enabledByDefault: false,
+  },
+  {
+    id: 'coverage_maps',
+    title: 'Coverage Maps',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

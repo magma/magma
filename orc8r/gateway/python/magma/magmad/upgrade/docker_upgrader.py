@@ -86,11 +86,20 @@ class DockerUpgrader(Upgrader2):
 
         gw_module = self.service.config["upgrader_factory"].get("gateway_module")
 
+        # Update any mounted static configs
+        await run_command("cp -TR {}/magma/{}/gateway/configs /etc/magma".
+                          format(MAGMA_GITHUB_PATH, gw_module),
+                          shell=True, check=True)
+        # Update any mounted template configs
+        await run_command("cp -TR {}/magma/orc8r/gateway/configs/templates "
+                          "/etc/magma/templates".format(MAGMA_GITHUB_PATH),
+                          shell=True, check=True)
         # Copy updated docker-compose
         await run_command("cp {}/magma/{}/gateway/docker/docker-compose.yml "
                           "/var/opt/magma/docker".format(MAGMA_GITHUB_PATH,
                                                          gw_module),
                           shell=True, check=True)
+
 
     async def upgrade(self, version: VersionT, path_to_image: pathlib.Path) -> None:
         """Upgrade is a no-op as an external process (e.g. cron) must
@@ -128,6 +137,8 @@ class DockerUpgrader(Upgrader2):
             sed_args = "sed -i s/IMAGE_VERSION={}/IMAGE_VERSION={}/g " \
                        "var/opt/magma/docker/.env".format(current_version,
                                                           upgrade_tag)
+            logging.info("Successfully downloaded version %s! Awaiting docker "
+                         "container recreation...", upgrade_tag)
             await run_command(sed_args, shell=True, check=True)
         else:
             logging.info(
@@ -152,7 +163,6 @@ async def download_update(
                       format(control_proxy_config['rootca_cert']), shell=True,
                       check=True)
     await run_command("update-ca-certificates", shell=True, check=True)
-
     git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
         control_proxy_config['bootstrap_address'],
         control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,

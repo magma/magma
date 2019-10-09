@@ -42,6 +42,7 @@ Description Defines the ESM Service Access Point that provides EPS
 
 #include "bstrlib.h"
 #include "emm_data.h"
+#include "3gpp_29.274.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -153,7 +154,7 @@ typedef struct esm_eps_dedicated_bearer_context_activate_s {
   bitrate_t mbr_dl;
   traffic_flow_template_t *tft;
   protocol_configuration_options_t *pco;
-  teid_t gtp_teid;
+  fteid_t sgw_fteid;
 } esm_eps_dedicated_bearer_context_activate_t;
 
 /*

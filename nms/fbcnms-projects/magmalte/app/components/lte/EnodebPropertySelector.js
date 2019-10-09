@@ -17,7 +17,7 @@ import Select from '@material-ui/core/Select';
 type Props = {
   titleLabel: string,
   value: number | string,
-  valueOptionsByKey: {[string]: number | string},
+  valueOptionsByKey: {+[string]: number | string},
   onChange: (SyntheticInputEvent<>) => void,
   className: string,
 };

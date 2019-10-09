@@ -1,0 +1,126 @@
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the Apache License, Version 2.0  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+#pragma once
+extern "C" {
+#include "mme_app_desc.h"
+#include "mme_app_ue_context.h"
+}
+
+#include <sstream>
+#include "mme_nas_state.pb.h"
+#include "state_converter.h"
+
+/******************************************************************************
+ * This is a helper class to encapsulate all functions for converting in-memory
+ * state of MME and NAS task to/from proto for persisting UE state in data
+ * store. The class does not have any member variables. The class does not
+ * allocate any memory, but calls NAS state converter, which dynamically
+ * allocates memory for EMM procedures. All the allocated memory is cleared by
+ * the caller class MmeNasStateManager
+******************************************************************************/
+namespace magma {
+namespace lte {
+
+class MmeNasStateConverter : StateConverter {
+ public:
+  // Constructor
+  MmeNasStateConverter();
+
+  // Destructor
+  ~MmeNasStateConverter();
+
+  // Serialize mme_app_desc_t to MmeNasState proto
+  static void mme_nas_state_to_proto(
+    mme_app_desc_t* mme_nas_state_p,
+    MmeNasState* state_proto);
+
+  // Deserialize mme_app_desc_t from MmeNasState proto
+  static void mme_nas_proto_to_state(
+    MmeNasState* state_proto,
+    mme_app_desc_t* mme_nas_state_p);
+
+ private:
+  /***********************************************************
+    *                 Hashtable <-> Proto
+    * Functions to serialize/deserialize in-memory hashtables
+    * for MME task. Only MME task inserts/removes elements in
+    * the hashtables, so these calls are thread-safe.
+    * We only need to lock the UE context structure as it can
+    * also be accessed by the NAS task. If hashtable is empty
+    * the proto field is also empty
+    ***********************************************************/
+
+  static void hashtable_ts_to_proto(
+    hash_table_ts_t* state_htbl,
+    google::protobuf::Map<unsigned long, UeContext>* proto_map);
+  static void proto_to_hashtable_ts(
+    const google::protobuf::Map<unsigned long, UeContext>& proto_map,
+    hash_table_ts_t* state_htbl);
+
+  static void hashtable_uint64_ts_to_proto(
+    hash_table_uint64_ts_t* htbl,
+    google::protobuf::Map<unsigned long, unsigned long>* proto_map,
+    const std::string& table_name);
+  static void proto_to_hashtable_uint64_ts(
+    const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
+    hash_table_uint64_ts_t* state_htbl,
+    const std::string& table_name);
+
+  static void guti_table_to_proto(
+    const obj_hash_table_uint64_t* guti_htbl,
+    google::protobuf::Map<std::string, unsigned long>* proto_map);
+  static void proto_to_guti_table(
+    const google::protobuf::Map<std::string, unsigned long>& proto_map,
+    obj_hash_table_uint64_t* guti_htbl);
+
+  /**********************************************************
+    *                 UE Context <-> Proto                    *
+    *  Functions to serialize/desearialize UE context         *
+    *  The caller needs to acquire a lock on UE context       *
+    **********************************************************/
+
+  static void mme_app_timer_to_proto(
+    mme_app_timer_t* state_mme_timer,
+    Timer* timer_proto);
+
+  static void proto_to_mme_app_timer(
+    const Timer& timer_proto,
+    mme_app_timer_t* state_mme_app_timer);
+
+  static void sgs_context_to_proto(
+    sgs_context_t* state_sgs_context,
+    SgsContext* sgs_context_proto);
+
+  static void proto_to_sgs_context(
+    const SgsContext& sgs_context_proto,
+    sgs_context_t* state_sgs_context);
+
+  static void ue_context_to_proto(
+    ue_mm_context_t* ue_ctxt,
+    UeContext* ue_ctxt_proto);
+
+  static void proto_to_ue_mm_context(
+    const UeContext* ue_context_proto,
+    ue_mm_context_t* state_ue_mm_context);
+};
+} // namespace lte
+} // namespace magma

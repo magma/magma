@@ -1,5 +1,11 @@
 FROM debian:stretch AS %%PKG%%
 
+RUN %%INSTALL%% curl gnupg apt-transport-https
+
+RUN curl https://packages.fluentbit.io/fluentbit.key | apt-key add -
+RUN echo 'deb https://packages.fluentbit.io/debian/stretch stretch main' >> \
+         /etc/apt/sources.list
+
 RUN %%INSTALL%% %%DEPS%%
 RUN %%INSTALL%% procps strace sudo vim gdb curl valgrind
 
@@ -11,7 +17,7 @@ RUN pip3 install /tmp/orc8r
 COPY --from=%%DOCKER_REGISTRY%%/firstparty /build/python/gen /usr/local/lib/python3.5/dist-packages/
 
 COPY symphony-agent/files/configs/ /etc/magma
-COPY symphony-agent/files/magma_system_prepare /bin/
+COPY symphony-agent/files/bin/ /bin/
 
 RUN mkdir -p /var/opt/magma/configs/
 
@@ -23,8 +29,8 @@ COPY --from=%%DOCKER_REGISTRY%%/devmand /etc/snmp /etc/snmp
 
 ENV MIBDIRS /usr/share/mibs
 
-COPY symphony-agent/files/devmand.service /etc/systemd/system/devmand.service
-COPY symphony-agent/files/magmad.service /etc/systemd/system/magmad.service
+COPY symphony-agent/files/services/ /etc/systemd/system/
+RUN /bin/rm -f /lib/systemd/system/td-agent-bit.service
 
 # TODO do we really need these?
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

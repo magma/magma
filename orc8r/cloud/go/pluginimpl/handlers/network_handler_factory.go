@@ -16,6 +16,7 @@ import (
 
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
@@ -25,7 +26,7 @@ import (
 // NetworkModel describes models that represent a certain type of network.
 // For example, an LTE network, that can be read/updated/deleted
 type NetworkModel interface {
-	ValidatableModel
+	serde.ValidatableModel
 	// GetEmptyNetwork creates a new instance of the typed NetworkModel.
 	// It should be empty
 	GetEmptyNetwork() NetworkModel
@@ -42,7 +43,7 @@ type NetworkModel interface {
 // PartialNetworkModel describe models that represents a portion of network
 // that can be read, updated, and deleted.
 type PartialNetworkModel interface {
-	ValidatableModel
+	serde.ValidatableModel
 	// GetFromNetwork grabs the desired model from the configurator network.
 	// Returns nil if it is not there.
 	GetFromNetwork(network configurator.Network) interface{}

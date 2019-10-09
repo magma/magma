@@ -183,7 +183,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			updatePrepare.WillBeClosed()
 
 			mock.ExpectExec("INSERT INTO network_table").
-				WithArgs("network", "t2", "k2", []byte("world")).
+				WithArgs("network", "t2", "k2", []byte("world"), 1000).
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
 
@@ -191,7 +191,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			err := store.CreateOrUpdate(
 				"network",
 				[]blobstore.Blob{
-					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
+					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
 			)
@@ -215,7 +215,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 
 			updatePrepare := mock.ExpectPrepare("UPDATE network_table")
 			updatePrepare.ExpectExec().
-				WithArgs([]byte("goodbye"), 43, "network", "t1", "k1").
+				WithArgs([]byte("goodbye"), 100, "network", "t1", "k1").
 				WillReturnResult(sqlmock.NewResult(1, 1))
 			updatePrepare.ExpectExec().
 				WithArgs([]byte("foo"), 44, "network", "t2", "k2").
@@ -228,7 +228,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 				"network",
 				[]blobstore.Blob{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
-					{Type: "t2", Key: "k2", Value: []byte("foo"), Version: 1000},
+					{Type: "t2", Key: "k2", Value: []byte("foo"), Version: 0},
 				},
 			)
 			return nil, err
@@ -248,8 +248,8 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 
 			mock.ExpectExec("INSERT INTO network_table").
 				WithArgs(
-					"network", "t1", "k1", []byte("hello"),
-					"network", "t2", "k2", []byte("world"),
+					"network", "t1", "k1", []byte("hello"), 0,
+					"network", "t2", "k2", []byte("world"), 1000,
 				).
 				WillReturnResult(sqlmock.NewResult(1, 1))
 		},
@@ -258,7 +258,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			err := store.CreateOrUpdate(
 				"network",
 				[]blobstore.Blob{
-					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 100},
+					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
 			)
@@ -290,7 +290,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			err := store.CreateOrUpdate(
 				"network",
 				[]blobstore.Blob{
-					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
+					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
 			)
@@ -318,7 +318,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			updatePrepare.WillBeClosed()
 
 			mock.ExpectExec("INSERT INTO network_table").
-				WithArgs("network", "t2", "k2", []byte("world")).
+				WithArgs("network", "t2", "k2", []byte("world"), 1000).
 				WillReturnError(errors.New("Mock query error"))
 		},
 
@@ -326,7 +326,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			err := store.CreateOrUpdate(
 				"network",
 				[]blobstore.Blob{
-					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
+					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
 			)

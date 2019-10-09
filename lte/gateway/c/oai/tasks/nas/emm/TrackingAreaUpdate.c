@@ -53,7 +53,7 @@
 #include "emm_regDef.h"
 #include "esm_data.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
 
@@ -164,8 +164,9 @@ int emm_proc_tracking_area_update_request(
    * Get the UE's EMM context if it exists
    */
 
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
   if (ue_mm_context) {
     emm_context = &ue_mm_context->emm_context;
   }
@@ -174,7 +175,7 @@ int emm_proc_tracking_area_update_request(
   if (!ue_mm_context) {
     if (INVALID_M_TMSI != ies->old_guti.m_tmsi) {
       ue_mm_context = mme_ue_context_exists_guti(
-        &mme_app_desc.mme_ue_contexts, &ies->old_guti);
+        &mme_app_desc_p->mme_ue_contexts, &ies->old_guti);
 
       if (ue_mm_context) {
         emm_context = &ue_mm_context->emm_context;
@@ -322,6 +323,14 @@ int emm_proc_tracking_area_update_request(
     if (!tau_proc) {
       tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
       if (tau_proc) {
+        // Store the received voice domain pref & UE usage setting IE
+        if (ies->voicedomainpreferenceandueusagesetting) {
+          memcpy(
+            &emm_context->volte_params.
+            voice_domain_preference_and_ue_usage_setting,
+            ies->voicedomainpreferenceandueusagesetting,
+            sizeof(voice_domain_preference_and_ue_usage_setting_t));
+        }
         rc = _emm_tracking_area_update_accept(tau_proc);
         if (rc != RETURNok) {
           OAILOG_ERROR(
@@ -499,8 +508,9 @@ static int _emm_tracking_area_update_reject(
   /*
    * Setup EPS NAS security data
    */
-  ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
   if (ue_mm_context) {
     emm_context = &ue_mm_context->emm_context;
   }
@@ -584,9 +594,10 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
   ue_mm_context_t *ue_mm_context = NULL;
   emm_context_t *emm_context = NULL;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   if ((tau_proc) && (tau_proc->ies)) {
     ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, tau_proc->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, tau_proc->ue_id);
     if (ue_mm_context) {
       emm_context = &ue_mm_context->emm_context;
     } else {
@@ -628,7 +639,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
       emm_sap.u.emm_as.u.establish.equivalent_plmns = NULL;
       emm_sap.u.emm_as.u.establish.emergency_number_list = NULL;
 
-      emm_sap.u.emm_as.u.establish.eps_network_feature_support = NULL;
+      emm_sap.u.emm_as.u.establish.eps_network_feature_support =
+        &_emm_data.conf.eps_network_feature_support;
       emm_sap.u.emm_as.u.establish.additional_update_result = NULL;
       emm_sap.u.emm_as.u.establish.t3412_extended = NULL;
       emm_sap.u.emm_as.u.establish.nas_msg =
@@ -733,6 +745,9 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
         emm_as->eps_bearer_context_status =
           tau_proc->ies->eps_bearer_context_status;
       }
+
+      emm_as->eps_network_feature_support =
+        &_emm_data.conf.eps_network_feature_support;
 
       /*If CSFB is enabled,store LAI,Mobile Identity and
       * Additional Update type to be sent in TAU accept to S1AP

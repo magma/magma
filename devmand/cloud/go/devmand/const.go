@@ -14,7 +14,8 @@ const ModuleName = "devmand"
 
 const (
 	SymphonyNetworkType = "symphony"
-	SymphonyAgentType   = "agent"
+	SymphonyAgentType   = "symphony_agent"
+	SymphonyDeviceType  = "symphony_device"
 
 	// DevmandGatewayType is the type for DevmandGateway
 	DevmandGatewayType = "devmand_gateway"

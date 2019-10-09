@@ -13,6 +13,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import type {lte_gateway} from '../../common/__generated__/MagmaAPIBindings';
 
 import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '../../common/__generated__/MagmaAPIBindings';
@@ -21,26 +22,30 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
-const OFFLINE_GATEWAY = {
-  config: {
-    cellular_gateway: {
-      epc: {
-        ip_block: '192.168.0.1/32',
-        nat_enabled: true,
-      },
-      non_eps_service: {},
-      ran: {},
+const OFFLINE_GATEWAY: lte_gateway = {
+  connected_enodeb_serials: [],
+  cellular: {
+    epc: {
+      ip_block: '192.168.0.1/32',
+      nat_enabled: true,
     },
-    magmad_gateway: {
-      autoupgrade_enabled: true,
-      autoupgrade_poll_interval: 300,
-      checkin_interval: 60,
-      tier: 'tier2',
+    ran: {
+      pci: 620,
+      transmit_enabled: true,
     },
   },
-  gateway_id: 'murt_usa',
+  magmad: {
+    autoupgrade_enabled: true,
+    autoupgrade_poll_interval: 300,
+    checkin_interval: 60,
+    checkin_timeout: 100,
+    tier: 'tier2',
+  },
+  id: 'murt_usa',
   name: 'murt_test',
-  record: {
+  description: 'hello I am a gateway',
+  tier: 'default',
+  device: {
     hardware_id: 'a935dd3f-efaa-435a-bcb6-8168d0caf333',
     key: {
       key:
@@ -51,11 +56,11 @@ const OFFLINE_GATEWAY = {
   status: {
     checkin_time: 0,
     meta: {
-      gps_latitude: 0,
-      gps_longitude: 0,
-      gps_connected: 0,
-      enodeb_connected: 0,
-      mme_connected: 0,
+      gps_latitude: '0',
+      gps_longitude: '0',
+      gps_connected: '0',
+      enodeb_connected: '0',
+      mme_connected: '0',
     },
   },
 };
@@ -82,6 +87,9 @@ describe('<Gateways />', () => {
     axiosMock.get.mockResolvedValueOnce({
       data: [OFFLINE_GATEWAY],
     });
+    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValueOnce({
+      murt_usa: OFFLINE_GATEWAY,
+    });
   });
 
   afterEach(() => {
@@ -93,7 +101,7 @@ describe('<Gateways />', () => {
 
     await wait();
 
-    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
     expect(getByText('Configure Gateways')).toBeInTheDocument();
     expect(getByText('Hardware UUID')).toBeInTheDocument();
     expect(getByText('murt_test')).toBeInTheDocument();

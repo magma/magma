@@ -1,1 +1,1 @@
-../docs/readmes/feg/README.md
+../docs/readmes/feg/legacy/README.md

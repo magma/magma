@@ -15,7 +15,7 @@ from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder, \
-    UDPPacketBuilder
+    UDPPacketBuilder, ARPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
@@ -124,6 +124,12 @@ class UEMacAddressTest(unittest.TestCase):
             .set_ip_layer('151.42.41.122', '1.1.1.1') \
             .set_udp_layer(53, 32795) \
             .build()
+        arp_packet = ARPPacketBuilder() \
+            .set_arp_layer('151.42.41.122') \
+            .set_arp_hwdst(self.UE_MAC_1) \
+            .set_arp_src(other_mac, '1.1.1.1') \
+            .build()
+
 
         # Check if these flows were added (queries should return flows)
         flow_queries = [
@@ -132,17 +138,17 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 8 flows installed for ue_mac table (3 pkts matched)
+        # Verify 9 flows installed for ue_mac table (3 pkts matched)
         #        4 flows installed for inout (3 pkts matched)
-        #        2 fliws installed (2 pkts matches)
+        #        2 flows installed (2 pkts matches)
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 3, 8),
+                                   self.testing_controller), 4, 9),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
-                                   self.testing_controller), 3, 4),
+                                   self.testing_controller), 4, 4),
                 FlowTest(FlowQuery(self._egress_tbl_num,
-                                   self.testing_controller), 2, 2),
+                                   self.testing_controller), 3, 2),
                 FlowTest(flow_queries[0], 3, 4),
             ], lambda: wait_after_send(self.testing_controller))
 
@@ -153,6 +159,7 @@ class UEMacAddressTest(unittest.TestCase):
             pkt_sender.send(downlink_packet1)
             pkt_sender.send(dhcp_packet)
             pkt_sender.send(dns_packet)
+            pkt_sender.send(arp_packet)
 
         flow_verifier.verify()
 

@@ -42,9 +42,9 @@ type PolicyClient interface {
 // Although Gy and Gx both send Credit Control Requests, their Application IDs,
 // allowed AVPs, and purposes are different
 type GxClient struct {
-	diamClient      *diameter.Client
-	pcrf91Compliant bool // to support PCRF which is 29.212 release 9.1 compliant
-	useEUIIpIfEmpty bool // Use MAC derived EUI-64 IPv6 address for CCR if IP is not provided
+	diamClient          *diameter.Client
+	pcrf91Compliant     bool // to support PCRF which is 29.212 release 9.1 compliant
+	dontUseEUIIpIfEmpty bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
 }
 
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
@@ -56,9 +56,9 @@ func NewConnectedGxClient(
 	registerReAuthHandler(reAuthHandler, diamClient)
 
 	return &GxClient{
-		diamClient:      diamClient,
-		pcrf91Compliant: *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
-		useEUIIpIfEmpty: *useEUIIPv6IfNoIP || isThruthy(os.Getenv(UseEUIIPv6IfNoIPEnv)),
+		diamClient:          diamClient,
+		pcrf91Compliant:     *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
+		dontUseEUIIpIfEmpty: *disableEUIIpIfEmpty || isThruthy(os.Getenv(DisableEUIIPv6IfNoIPEnv)),
 	}
 
 }
@@ -208,14 +208,18 @@ func (gxClient *GxClient) createCreditControlMessage(
 	}
 	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(5))
 	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(1004))
+
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
 		if iplen := len(ip); iplen == net.IPv4len {
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ip))
-		} else if iplen == net.IPv6len {
-			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.IPv6(ip))
+		} else if iplen > net.IPv4len && iplen <= net.IPv6len {
+			m.NewAVP(
+				avp.FramedIPv6Prefix, avp.Mbit,
+				0,
+				datatype.OctetString(append([]byte{0, byte(iplen) * 8}, []byte(ip)...)))
 		}
-	} else if gxClient.useEUIIpIfEmpty && len(request.HardwareAddr) >= 6 {
-		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.IPv6(Ipv6FromMAC(request.HardwareAddr)))
+	} else if (!gxClient.dontUseEUIIpIfEmpty) && len(request.HardwareAddr) >= 6 {
+		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
 	}
 
 	if len(request.Apn) > 0 {
@@ -384,31 +388,31 @@ func ipNotZeros(p net.IP) bool {
 }
 
 var (
-	prefix = []byte{0xfd, 0xfa, 0xce, 0xb0, 0x0c, 0xab, 0xcd, 0xef}
-	_, _   = rand.Read(prefix[4:])
+	prefix = []byte{0, 0x80, 0xfd, 0xfa, 0xce, 0xb0, 0x0c, 0xab, 0xcd, 0xef}
+	_, _   = rand.Read(prefix[6:])
 )
 
-// Ipv6FromMAC creates a unique local EUI-64 based IPv6 address from given MAC address
+// Ipv6PrefixFromMAC creates a unique local EUI-64 based IPv6 address from given MAC address
 // see: https://www.rfc-editor.org/rfc/rfc4193.html
-func Ipv6FromMAC(mac net.HardwareAddr) net.IP {
-	ip := make(net.IP, 16)
+func Ipv6PrefixFromMAC(mac net.HardwareAddr) []byte {
+	ip := make([]byte, net.IPv6len+2)
 	// Copy prefix directly into first 8 bytes of IP address
-	copy(ip[0:8], prefix)
+	copy(ip[0:10], prefix)
 
 	// If MAC is in EUI-48 form, split first three bytes and last three bytes,
 	// and inject 0xff and 0xfe between them
 	if len(mac) == 6 {
-		copy(ip[8:11], mac[0:3])
+		copy(ip[10:13], mac[0:3])
 		// Flip 7th bit
-		ip[8] ^= 0x02
-		ip[11] = 0xff
-		ip[12] = 0xfe
-		copy(ip[13:16], mac[3:6])
+		ip[10] ^= 0x02
+		ip[13] = 0xff
+		ip[14] = 0xfe
+		copy(ip[15:18], mac[3:6])
 	} else if len(mac) == 8 {
 		// If MAC is in EUI-64 form, directly copy it into output IP address
-		copy(ip[8:16], mac)
+		copy(ip[10:18], mac)
 		// Flip 7th bit
-		ip[8] ^= 0x02
+		ip[10] ^= 0x02
 	}
 	return ip
 }

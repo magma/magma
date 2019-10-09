@@ -12,6 +12,10 @@ type SvgIconExports = {
   viewBox?: string
 };
 
+declare module "@material-ui/icons/CloudUploadOutlined" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/AcUnit" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }

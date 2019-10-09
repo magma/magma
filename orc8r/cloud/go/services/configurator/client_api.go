@@ -474,6 +474,10 @@ func ListEntityKeys(networkID string, entityType string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
+	networkExists, _ := DoesNetworkExist(networkID)
+	if !networkExists {
+		return []string{}, merrors.ErrNotFound
+	}
 
 	resp, err := client.LoadEntities(
 		context.Background(),

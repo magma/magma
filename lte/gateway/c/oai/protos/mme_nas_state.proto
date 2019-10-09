@@ -35,7 +35,7 @@ message UeContext {
 
   Tai serving_cell_tai = 20;
   TaiList tai_list = 21;
-  bytes tai_last_tau = 22; // tai_t is 5 bytes long
+  Tai tai_last_tau = 22;
   Ecgi e_utran_cgi = 23;
   uint64 cell_age = 24;
 

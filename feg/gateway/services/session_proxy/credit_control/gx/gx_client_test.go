@@ -168,10 +168,10 @@ func TestGxClient(t *testing.T) {
 
 	hwaddr, err := net.ParseMAC("00:00:5e:00:53:01")
 	assert.NoError(t, err)
-	ipv6addr := gx.Ipv6FromMAC(hwaddr)
-	assert.Equal(t, ipv6addr[:4], net.IP([]byte{0xfd, 0xfa, 0xce, 0xb0}))
-	assert.NotEqual(t, ipv6addr[4:8], []byte{0x0c, 0xab, 0xcd, 0xef})
-	assert.Equal(t, ipv6addr[8:], net.IP([]byte{0x2, 0x0, 0x5e, 0xff, 0xfe, 0x0, 0x53, 0x1}))
+	ipv6addr := gx.Ipv6PrefixFromMAC(hwaddr)
+	assert.Equal(t, ipv6addr[:6], []byte{0, 0x80, 0xfd, 0xfa, 0xce, 0xb0})
+	assert.NotEqual(t, ipv6addr[6:10], []byte{0x0c, 0xab, 0xcd, 0xef})
+	assert.Equal(t, ipv6addr[10:], []byte{0x2, 0x0, 0x5e, 0xff, 0xfe, 0x0, 0x53, 0x1})
 
 }
 

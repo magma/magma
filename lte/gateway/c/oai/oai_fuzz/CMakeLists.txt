@@ -30,7 +30,8 @@ target_link_libraries(oai_fuzz
         ${MSC_LIB} ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
-    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore ${SERVICE303_LIB}
+    ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls fdproto fdcore
+    ${SERVICE303_LIB} ${SERVICE_REGISTRY}
     prometheus-cpp grpc grpc++
 )
 

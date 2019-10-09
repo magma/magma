@@ -137,7 +137,7 @@ cp -R "$INSTALL_DIR"/magma/orc8r/gateway/configs/templates /etc/magma
 cp rootCA.pem /var/opt/magma/certs/
 
 # Copy control_proxy override
-cp control_proxy.yml /etc/magma/
+cp control_proxy.yml /var/opt/magma/configs/
 
 # Copy docker files
 cp docker-compose.yml /var/opt/magma/docker/

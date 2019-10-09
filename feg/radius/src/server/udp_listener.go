@@ -11,8 +11,8 @@ package server
 import (
 	"context"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 	"fbc/lib/go/radius"
 	"fmt"
 	"math/rand"
@@ -22,6 +22,7 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 	"github.com/patrickmn/go-cache"
+	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 )
 
@@ -49,6 +50,7 @@ func (l *UDPListener) Init(
 	server *Server,
 	serverConfig config.ServerConfig,
 	listenerConfig config.ListenerConfig,
+	ctrs monitoring.ListenerCounters,
 ) error {
 	// Parse configuration
 	var cfg UDPListenerExtraConfig
@@ -60,7 +62,7 @@ func (l *UDPListener) Init(
 	// Create packet server
 	l.Server = &radius.PacketServer{
 		Handler: radius.HandlerFunc(
-			generatePacketHandler(l, server),
+			generatePacketHandler(l, server, ctrs),
 		),
 		SecretSource: radius.StaticSecretSource([]byte(serverConfig.Secret)),
 		Addr:         fmt.Sprintf(":%d", cfg.Port),
@@ -109,14 +111,20 @@ func (l *UDPListener) SetConfig(c config.ListenerConfig) {
 }
 
 // generatePacketHandler A generic handler method to incoming RADIUS packets
-func generatePacketHandler(l ListenerInterface, server *Server) func(radius.ResponseWriter, *radius.Request) {
+func generatePacketHandler(
+	l ListenerInterface,
+	server *Server,
+	ctrs monitoring.ListenerCounters,
+) func(radius.ResponseWriter, *radius.Request) {
 	server.logger.Debug(
 		"Registering handler for listener",
 		zap.String("listener", l.GetConfig().Name),
 	)
 	return func(w radius.ResponseWriter, r *radius.Request) {
 		// Make sure no duplicate packet
-		dedupOperation := counters.DedupPacket.Start()
+		dedupOperation := server.counters.DedupPacket.Start(
+			tag.Upsert(monitoring.ListenerTag, l.GetConfig().Name),
+		)
 		requestKey := fmt.Sprintf("%s_%d", r.RemoteAddr, r.Identifier)
 
 		if _, found := server.dedupSet.Get(requestKey); found {
@@ -144,35 +152,35 @@ func generatePacketHandler(l ListenerInterface, server *Server) func(radius.Resp
 			SessionStorage: session.NewSessionStorage(server.multiSessionStorage, sessionID),
 		}
 
-		server.logger.Debug(
-			"Received RADIUS message on listener...",
-			zap.String("listener", l.GetConfig().Name),
-			correlationField,
-		)
-
 		// Execute filters
-		filterProcessCounter := counters.NewOperation("filter_process").Start()
+		filterProcessCounter := monitoring.NewOperation("filter_process").Start()
 		for _, filter := range server.filters {
 			err := filter.Code.Process(&requestContext, l.GetConfig().Name, r)
 			if err != nil {
 				server.logger.Error("Failed to process reqeust by filter", zap.Error(err), correlationField)
-				filterProcessCounter.SetTag(counters.FilterTag, filter.Name).Failure("filter_failed")
+				filterProcessCounter.Failure(
+					"filter_failed",
+					tag.Upsert(monitoring.FilterTag, filter.Name),
+				)
 				return
 			}
 		}
 		filterProcessCounter.Success()
 
 		// Execute modules
-		listenerHandleCounter := counters.NewOperation("listener_handle").
-			SetTag(counters.ListenerTag, l.GetConfig().Name).
-			Start()
+		listenerHandleCounter := ctrs.StartRequest(r.Code)
 		response, err := l.GetHandleRequest()(&requestContext, r)
 		if err != nil {
 			server.logger.Error("Failed to handle reqeust by listener", zap.Error(err), correlationField)
 			listenerHandleCounter.Failure("handle_failed")
 			return
 		}
-		listenerHandleCounter.Success()
+		if response == nil {
+			server.logger.Error("Got nil response from handler. Response will not be sent", correlationField)
+			listenerHandleCounter.Failure("nil_response")
+			return
+		}
+		listenerHandleCounter.GotResponse(response.Code)
 
 		if response == nil {
 			server.logger.Warn(

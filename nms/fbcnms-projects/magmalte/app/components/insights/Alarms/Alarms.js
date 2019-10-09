@@ -8,20 +8,19 @@
  * @format
  */
 
-import type {FiringMagmaAlarm} from './AlarmAPIType';
-
 import AddEditAlert from './AddEditAlert';
 import AlarmsHeader from './AlarmsHeader';
 import AlarmsTable from './AlarmsTable';
 import Button from '@material-ui/core/Button';
 import EditAllAlerts from './EditAllAlerts';
+import MagmaV1API from '../../../common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 
-import {MagmaAlarmAPIUrls} from './AlarmAPI';
+import useMagmaAPI from '../../../common/useMagmaAPI';
 import {Route, Switch} from 'react-router-dom';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 export default function Alarms() {
@@ -59,11 +58,11 @@ function FiringAlerts() {
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const {isLoading, error, response} = useAxios<null, Array<FiringMagmaAlarm>>({
-    method: 'get',
-    url: MagmaAlarmAPIUrls.viewFiringAlerts(match),
-    cacheCounter: lastRefreshTime,
-  });
+  const {isLoading, error, response} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdAlerts,
+    {networkId: match.params.networkId},
+    lastRefreshTime,
+  );
 
   if (error) {
     enqueueSnackbar(
@@ -74,8 +73,7 @@ function FiringAlerts() {
     );
   }
 
-  const alerts = response?.data || [];
-
+  const alerts = response || [];
   const alertData = alerts.map(alert => {
     return {
       name: alert.labels?.alertname,
@@ -90,7 +88,8 @@ function FiringAlerts() {
         title="Firing Alerts"
         isLoading={isLoading}
         lastRefreshTime={lastRefreshTime}
-        onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}>
+        onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}
+        data-testid="firing-alerts">
         <NestedRouteLink to={'/edit_alerts'}>
           <Button variant="contained" color="secondary">
             Edit Alerts

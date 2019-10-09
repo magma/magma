@@ -156,7 +156,8 @@ typedef struct emm_tau_request_ies_s {
   supported_codec_list_t *supported_codecs;
   additional_update_type_t *additional_updatetype;
   guti_type_t *old_guti_type;
-
+  voice_domain_preference_and_ue_usage_setting_t
+    *voicedomainpreferenceandueusagesetting;
   nas_message_decode_status_t decode_status;
 } emm_tau_request_ies_t;
 /****************************************************************************/

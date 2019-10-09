@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {TimeRange} from './AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -20,6 +19,7 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
@@ -27,10 +27,10 @@ import TimeRangeSelector from './TimeRangeSelector';
 import Typography from '@material-ui/core/Typography';
 import {Route} from 'react-router-dom';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {find} from 'lodash';
+import useMagmaAPI from '../../common/useMagmaAPI';
+import {find, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -112,26 +112,22 @@ function Metrics(props: {
   const selectedGateway = match.params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const {error, isLoading, response: response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-  });
+  const {error, isLoading, response: gateways} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdGateways,
+    {networkId: match.params.networkId},
+  );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
 
-  if (error || isLoading || !response || !response.data) {
+  if (error || isLoading || !gateways) {
     return <LoadingFiller />;
   }
 
-  const data: Array<CheckindGateway> = response.data;
-
-  const gateways = data.filter(state => state.record);
   const defaultGateway = find(
     gateways,
     gateway => gateway.status?.hardware_id !== null,
   );
-  const selectedGatewayOrDefault =
-    selectedGateway || defaultGateway?.gateway_id;
+  const selectedGatewayOrDefault = selectedGateway || defaultGateway?.id;
 
   return (
     <>
@@ -142,8 +138,8 @@ function Metrics(props: {
             inputProps={{id: 'devices'}}
             value={selectedGatewayOrDefault}
             onChange={props.onGatewaySelectorChange}>
-            {gateways.map(device => (
-              <MenuItem value={device.gateway_id} key={device.gateway_id}>
+            {map(gateways, device => (
+              <MenuItem value={device.id} key={device.id}>
                 {device.name}
               </MenuItem>
             ))}

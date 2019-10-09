@@ -9,11 +9,9 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/loader"
-	"fbc/cwf/radius/scuba"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
@@ -42,9 +40,9 @@ func main() {
 	}
 
 	// Initialize monitoring
-	logger, err = initMonitoring(config.Monitoring, logger)
+	logger, err = monitoring.Init(config.Monitoring, logger)
 	if err != nil {
-		logger.Error("Failed initializing monitoring", zap.Error(err))
+		fmt.Println("Failed initializing monitoring", zap.Error(err))
 		return
 	}
 
@@ -96,32 +94,4 @@ func getHostIdentifier() string {
 
 	// Just a random, unstable identifer
 	return fmt.Sprintf("random:%d", rand.Intn(9999999))
-}
-
-func initMonitoring(config *config.MonitoringConfig, logger *zap.Logger) (*zap.Logger, error) {
-	var result *zap.Logger = logger
-	var err error
-
-	// Init default configuration values
-	if config == nil {
-		return nil, errors.New("Could not find 'monitoring' section in configuration")
-	}
-
-	if config.Census != nil {
-		counters.Init(*config.Census, logger)
-	}
-
-	if config.Ods != nil {
-		counters.InitODS(config.Ods, logger)
-	}
-
-	if config.Scuba != nil {
-		scuba.Initialize(config.Scuba, logger)
-		result, err = scuba.NewLogger("goradius")
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return result, nil
 }

@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {$AxiosError} from 'axios';
+
 import Admin from './admin/Admin';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -15,6 +17,7 @@ import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import NetworkContext from './context/NetworkContext';
 import NetworkSelector from './NetworkSelector.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React, {useContext} from 'react';
 import SectionLinks from './layout/SectionLinks';
 import SectionRoutes from './layout/SectionRoutes';
@@ -25,7 +28,7 @@ import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {getProjectLinks} from '../common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {sortBy} from 'lodash';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
+import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -43,7 +46,7 @@ const useStyles = makeStyles(theme => ({
 // These won't be considered networkIds
 const ROOT_PATHS = new Set(['network']);
 
-function Index() {
+function Index(props: {noAccess: boolean}) {
   const classes = useStyles();
   const {match} = useRouter();
   const {user, tabs} = useContext(AppContext);
@@ -61,16 +64,43 @@ function Index() {
           user={user}
         />
         <AppContent>
-          <SectionRoutes />
+          {props.noAccess ? <NoNetworksMessage /> : <SectionRoutes />}
         </AppContent>
       </div>
     </NetworkContext.Provider>
   );
 }
 
+function NetworkError({error}: {error: $AxiosError<string>}) {
+  const classes = useStyles();
+  const {user, tabs} = useContext(AppContext);
+  let errorMessage = error.message;
+  if (error.response && error.response.status >= 400) {
+    errorMessage = error.response?.statusText;
+  }
+  useSnackbar(
+    'Unable to communicate with magma controller: ' + errorMessage,
+    {variant: 'error'},
+    !!error,
+  );
+  return (
+    <div className={classes.root}>
+      <AppSideBar
+        mainItems={[]}
+        secondaryItems={[]}
+        projects={getProjectLinks(tabs, user)}
+        user={user}
+      />
+      <AppContent>
+        <div />
+      </AppContent>
+    </div>
+  );
+}
+
 function Main() {
   const {match} = useRouter();
-  const {response, error} = useAxios({
+  const {response, error, isLoading} = useAxios({
     method: 'get',
     url: MagmaAPIUrls.networks(),
   });
@@ -83,13 +113,20 @@ function Main() {
     networkIds,
   };
 
+  if (error) {
+    return (
+      <ApplicationMain appContext={appContext}>
+        <NetworkError error={error} />
+      </ApplicationMain>
+    );
+  }
+
   if (networkIds.length > 0 && !match.params.networkId) {
     return <Redirect to={`/nms/${networkIds[0]}/map/`} />;
   }
 
   if (
     response &&
-    !error &&
     networkIds.length === 0 &&
     window.CONFIG.appData.user.isSuperUser &&
     match.params.networkId !== 'network'
@@ -99,7 +136,7 @@ function Main() {
 
   return (
     <ApplicationMain appContext={appContext}>
-      <Index />
+      <Index noAccess={!isLoading && networkIds.length === 0} />
     </ApplicationMain>
   );
 }

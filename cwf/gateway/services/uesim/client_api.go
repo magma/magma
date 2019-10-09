@@ -65,3 +65,14 @@ func Authenticate(id *cwfprotos.AuthenticateRequest) (*cwfprotos.AuthenticateRes
 	}
 	return cli.Authenticate(context.Background(), id)
 }
+
+// GenTraffic triggers traffic generation for the UE with the specified IMSI.
+// Input: The IMSI of the UE to simulate traffic for
+func GenTraffic(req *cwfprotos.GenTrafficRequest) error {
+	cli, err := getUESimClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.GenTraffic(context.Background(), req)
+	return err
+}

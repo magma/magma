@@ -44,7 +44,15 @@ export default function useSnackbar(
         setSnackbarKey(k);
       }
     }
-  }, [enqueueSnackbar, message, show, stringConfig]);
+  }, [
+    closeSnackbar,
+    dismissPrevious,
+    enqueueSnackbar,
+    message,
+    show,
+    snackbarKey,
+    stringConfig,
+  ]);
 }
 
 export function useEnqueueSnackbar() {

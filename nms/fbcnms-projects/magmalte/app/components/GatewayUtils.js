@@ -10,6 +10,7 @@
 
 import type {CellularConfig, MagmadConfig} from '../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
+import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
 
 import {withStyles} from '@material-ui/core/styles';
 
@@ -19,7 +20,7 @@ export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';
 };
 
-export type Gateway = {
+type GatewaySharedFields = {
   hardware_id: string,
   name: string,
   logicalID: string,
@@ -45,11 +46,22 @@ export type Gateway = {
   nonEPSService: {
     control: number,
     csfbRAT: number,
-    csfbMCC: ?number,
-    csfbMNC: ?number,
+    csfbMCC: ?string,
+    csfbMNC: ?string,
     lac: ?number,
   },
+};
+
+// Gateway will be removed once we get rid of all v0
+// Introducing GatewayV1 to wrap the new strictly typed gateway type from v1 API
+export type Gateway = {
+  ...GatewaySharedFields,
   rawGateway: GatewayPayload,
+};
+
+export type GatewayV1 = {
+  ...GatewaySharedFields,
+  rawGateway: lte_gateway,
 };
 
 const styles = {

@@ -52,10 +52,7 @@
 #include "emm_asDef.h"
 #include "emm_data.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
-
-extern mme_app_desc_t mme_app_desc;
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

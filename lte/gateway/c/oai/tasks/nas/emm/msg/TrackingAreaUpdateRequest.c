@@ -35,7 +35,9 @@ int decode_tracking_area_update_request(
   uint32_t decoded = 0;
   int decoded_result = 0;
 
-  // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
+  /* Check if we got a NULL pointer and if buffer length is >=
+   * minimum length expected for the message.
+   */
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
     buffer, TRACKING_AREA_UPDATE_REQUEST_MINIMUM_LENGTH, len);
 
@@ -390,17 +392,44 @@ int decode_tracking_area_update_request(
         break;
 
       case TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE_IEI:
-        //Not decoding as we do not use this IE in CSFB
+        if (
+          (decoded_result = decode_voice_domain_preference_and_ue_usage_setting
+          (
+          &tracking_area_update_request->voicedomainpreferenceandueusagesetting
+          , true,
+          buffer + decoded, len - decoded)) <= 0) {
+            OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
 
-        decoded += 3; //IEI,Length and Usage setting flag
+        decoded += decoded_result;
+
         /*
        * Set corresponding mask to 1 in presencemask
        */
         tracking_area_update_request->presencemask |=
-          TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE;
+          TRACKING_AREA_UPDATE_REQUEST_VOICE_DOMAIN_PREFERENCE_PRESENT;
         break;
 
-      default: errorCodeDecoder = TLV_UNEXPECTED_IEI; return TLV_UNEXPECTED_IEI;
+      case TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI:
+        if (
+          (decoded_result = decode_ms_network_feature_support_ie(
+          &tracking_area_update_request->msnetworkfeaturesupport,
+          TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_IEI,
+          buffer + decoded,
+          len - decoded)) <= 0) {
+            //return decoded_result;
+            OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /* Set corresponding mask to 1 in presencemask */
+        tracking_area_update_request->presencemask |=
+            TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT;
+        break;
+
+
+      default: errorCodeDecoder = TLV_UNEXPECTED_IEI;
+        return TLV_UNEXPECTED_IEI;
     }
   }
 

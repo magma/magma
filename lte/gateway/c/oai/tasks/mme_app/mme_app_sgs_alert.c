@@ -83,7 +83,7 @@ static int _mme_app_send_sgsap_alert_ack(
  **                                                                        **
  ***************************************************************************/
 
-int mme_app_handle_sgsap_alert_request(
+int mme_app_handle_sgsap_alert_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_alert_request_t *const sgsap_alert_req_pP)
 {
   uint64_t imsi64 = 0;
@@ -100,7 +100,7 @@ int mme_app_handle_sgsap_alert_request(
     imsi64);
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS-ALERT REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT "\n",

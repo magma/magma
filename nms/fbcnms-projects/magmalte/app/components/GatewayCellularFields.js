@@ -9,7 +9,7 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway} from './GatewayUtils';
+import type {GatewayV1} from './GatewayUtils';
 import type {WithStyles} from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
@@ -18,14 +18,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
+import MagmaV1API from '../common/MagmaV1API';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 
-import {merge} from 'lodash';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {toString} from './GatewayUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -47,7 +46,7 @@ type Props = ContextRouter &
   WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
-    gateway: Gateway,
+    gateway: GatewayV1,
   };
 
 type State = {
@@ -198,33 +197,53 @@ class GatewayCellularFields extends React.Component<Props, State> {
 
   onSave = () => {
     const id = this.props.gateway.logicalID;
-    const data = merge(
-      (this.props.gateway.rawGateway.config || {}).cellular_gateway || {},
-      {
-        epc: {
-          nat_enabled: this.state.natEnabled,
-          ip_block: this.state.ipBlock,
-        },
-        ran: {
-          pci: parseInt(this.state.pci),
-          transmit_enabled: this.state.transmitEnabled,
-        },
-        non_eps_service: {
-          non_eps_service_control: this.state.nonEPSServiceControl,
-          csfb_rat: this.state.csfbRAT,
-          csfb_mcc: this.state.mcc,
-          csfb_mnc: this.state.mnc,
-          lac: parseInt(this.state.lac),
-        },
+    const {cellular} = this.props.gateway.rawGateway;
+    const {nonEPSServiceControl, csfbRAT} = this.state;
+
+    // these conditions should never be true since these values are coming from
+    // a selector, but they're needed for Flow
+    if (
+      nonEPSServiceControl !== 0 &&
+      nonEPSServiceControl !== 1 &&
+      nonEPSServiceControl !== 2
+    ) {
+      return;
+    }
+
+    if (csfbRAT !== 1 && csfbRAT !== 0) {
+      return;
+    }
+
+    const config = {
+      ...cellular,
+      epc: {
+        ...cellular.epc,
+        nat_enabled: this.state.natEnabled,
+        ip_block: this.state.ipBlock,
       },
-    );
-    // Override the registered eNodeB devices with new values
-    data['attached_enodeb_serials'] = this.state.attachedEnodebSerials;
+      ran: {
+        ...cellular.ran,
+        pci: parseInt(this.state.pci),
+        transmit_enabled: this.state.transmitEnabled,
+      },
+      non_eps_service: {
+        ...cellular.non_eps_service,
+        non_eps_service_control: nonEPSServiceControl,
+        csfb_rat: csfbRAT,
+        csfb_mcc: this.state.mcc,
+        csfb_mnc: this.state.mnc,
+        lac: parseInt(this.state.lac),
+      },
+      // Override the registered eNodeB devices with new values
+      attached_enodeb_serials: this.state.attachedEnodebSerials,
+    };
 
     const {match} = this.props;
-    axios
-      .put(MagmaAPIUrls.gatewayConfigsForType(match, id, 'cellular'), data)
-      .then(() => this.props.onSave(id));
+    MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: id,
+      config,
+    }).then(() => this.props.onSave(id));
   };
 
   natEnabledChanged = ({target}) => this.setState({natEnabled: !!target.value});

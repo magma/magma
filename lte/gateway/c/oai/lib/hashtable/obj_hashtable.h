@@ -43,6 +43,13 @@
 #include "hashtable.h"
 #include "bstrlib.h"
 
+#define FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_ptr)                            \
+  do {                                                                         \
+    AssertFatal(key_array_ptr, "Trying to free a NULL array pointer");         \
+    free(*key_array_ptr);                                                      \
+    free(key_array_ptr);                                                       \
+  } while(0) /*Free the list of keys of an object hash table */
+
 typedef struct obj_hash_node_s {
   int key_size;
   void *key;

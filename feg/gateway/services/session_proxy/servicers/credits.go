@@ -286,6 +286,7 @@ func getInitialCreditResponsesFromCCA(
 			Sid:         addSidPrefix(request.IMSI),
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
+			ResultCode:  credit.ResultCode,
 		}
 		responses = append(responses, response)
 	}
