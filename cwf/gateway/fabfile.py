@@ -57,7 +57,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_run_unit_tests)
     execute(_set_cwag_configs)
     cwag_host_to_mac = execute(_get_cwag_br_mac)
-    cwag_br_mac = cwag_host_to_mac[env.host_string]
+    host = env.hosts[0]
+    cwag_br_mac = cwag_host_to_mac[host]
     execute(_start_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
