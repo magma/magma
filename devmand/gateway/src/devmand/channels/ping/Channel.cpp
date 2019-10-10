@@ -28,22 +28,25 @@ namespace channels {
 namespace ping {
 
 Channel::Channel(folly::EventBase& _eventBase, folly::IPAddress target_)
-    : eventBase(_eventBase), target(target_) {
+    : folly::EventHandler(&_eventBase), eventBase(_eventBase), target(target_) {
+  // TODO this socket needs to be moved to an engine...
   icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
   if (icmpSocket < 0) {
     throw std::system_error(errno, std::generic_category());
   }
 
-  /*
   if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
     throw std::system_error(errno, std::generic_category());
   }
-  */
+
+  folly::EventHandler::changeHandlerFD(
+      folly::NetworkSocket::fromFd(icmpSocket));
+
+  registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
 }
 
-// TODO first pass sync
 folly::Future<Rtt> Channel::ping() {
-  auto hdr = makeIcmpPacket();
+  icmphdr hdr = makeIcmpPacket();
 
   LOG(INFO) << "Sending ping to " << target.str() << " with sequence "
             << hdr.un.echo.sequence;
@@ -56,62 +59,45 @@ folly::Future<Rtt> Channel::ping() {
   }
   destination.sin_family = AF_INET;
 
-  auto start = utils::Time::now();
-  auto result = sendto(
-      icmpSocket,
-      &hdr,
-      sizeof(hdr),
-      0,
-      reinterpret_cast<sockaddr*>(&destination),
-      sizeof(destination));
-  if (result <= 0) {
-    switch (result) {
-      case EAGAIN:
-        // case EWOULDBLOCK:
-        // TODO if the ping fail because of a kernel buffer I'm not going to
-        // implement retry logic as something is filling up the buffers. We
-        // should probably alarm if this is the case.
-        LOG(ERROR) << "Buffer full so ping failed to " << target.str();
-        break;
-      default:
-        // TODO BOOTCAMP get errno string from syserror
-        LOG(ERROR) << "Failed to send packet with errno " << errno;
-        break;
-    }
-    return folly::makeFuture<Rtt>(0);
-  }
-
-  sockaddr_in retAddr;
-  unsigned int addrLen = static_cast<unsigned int>(sizeof(retAddr));
-  if (recvfrom(
-          icmpSocket,
-          &hdr,
-          sizeof(hdr),
-          0,
-          reinterpret_cast<sockaddr*>(&retAddr),
-          &addrLen) <= 0) {
-    LOG(ERROR) << "Packet receive failed!";
-    return folly::makeFuture<Rtt>(0);
-  } else {
-    if (not(hdr.type == 0 and hdr.code == 0)) {
-      LOG(ERROR) << "Packet received with ICMP type "
-                 << static_cast<int>(hdr.type) << " code "
-                 << static_cast<int>(hdr.code);
+  auto request = outstandingRequests.emplace(
+      std::piecewise_construct,
+      std::forward_as_tuple(hdr.un.echo.sequence),
+      std::forward_as_tuple(Request{}));
+  if (request.second) {
+    request.first->second.start = utils::Time::now();
+    auto result = sendto(
+        icmpSocket,
+        &hdr,
+        sizeof(hdr),
+        0,
+        reinterpret_cast<sockaddr*>(&destination),
+        sizeof(destination));
+    if (result <= 0) {
+      switch (result) {
+        case EAGAIN: // case EWOULDBLOCK:
+          // TODO if the ping fail because of a kernel buffer I'm not going to
+          // implement retry logic as something is filling up the buffers. We
+          // should probably alarm if this is the case.
+          LOG(ERROR) << "Buffer full so ping failed to " << target.str();
+          break;
+        default:
+          // TODO BOOTCAMP get errno string from syserror
+          LOG(ERROR) << "Failed to send packet with errno " << errno;
+          break;
+      }
+      outstandingRequests.erase(request.first);
+      return folly::makeFuture<Rtt>(0);
     } else {
-      auto end = utils::Time::now();
-      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
-      LOG(INFO) << "Received ICMP response after " << duration.count()
-          << " microseconds";
-      return folly::makeFuture<Rtt>(static_cast<Rtt>(duration.count()));
+      return request.first->second.promise.getFuture();
     }
+  } else {
+    LOG(ERROR) << "ICMP Echo Id rollover with outstanding requests";
+    return folly::makeFuture<Rtt>(0);
   }
-
-  // TODO setup promise
-
-  return folly::makeFuture<Rtt>(0);
+  // TODO implement timeout
 }
 
-uint16_t Channel::getSequence() {
+RequestId Channel::getSequence() {
   return ++sequence;
 }
 
@@ -122,6 +108,28 @@ icmphdr Channel::makeIcmpPacket() {
   hdr.un.echo.sequence = getSequence();
   // hdr.checksum = 0; // Let the kernel fill in the checksum
   return hdr;
+}
+
+void Channel::handlerReady(uint16_t) noexcept {
+  // TODO end time isn't really precise here as we don't have a kernel time
+  // need to implement kernel timestamping
+  utils::TimePoint end = utils::Time::now();
+  icmphdr hdr;
+  while (recv(icmpSocket, &hdr, sizeof(hdr), 0) > 0) {
+    LOG(INFO) << "Packet received with ICMP type " << static_cast<int>(hdr.type)
+              << " code " << static_cast<int>(hdr.code);
+
+    if (hdr.type == 0 and hdr.code == 0) {
+      auto request = outstandingRequests.find(hdr.un.echo.sequence);
+      if (request != outstandingRequests.end()) {
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
+            end - request->second.start);
+        LOG(INFO) << "Received ICMP response after " << duration.count()
+                  << " microseconds";
+        request->second.promise.setValue(duration.count());
+      }
+    }
+  }
 }
 
 } // namespace ping
