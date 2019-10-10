@@ -32,7 +32,9 @@ std::string toString(const TimePoint& time) {
 } // namespace utils
 } // namespace devmand
 
-std::ostream& operator<<(std::ostream& stream, const devmand::utils::TimePoint& time) {
+std::ostream& operator<<(
+    std::ostream& stream,
+    const devmand::utils::TimePoint& time) {
   std::time_t epoch =
       std::chrono::duration_cast<std::chrono::seconds>(time.time_since_epoch())
           .count();
