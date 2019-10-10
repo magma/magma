@@ -8,11 +8,12 @@
  * @format
  */
 
-import type {FormFieldContextValue} from './FormField/FormFieldContext';
+import type {FormFieldContextValue} from '../FormField/FormFieldContext';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
-import FormFieldContext from './FormField/FormFieldContext';
+import FormFieldContext from '../FormField/FormFieldContext';
+import InputContext from './InputContext';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -58,6 +59,12 @@ const styles = ({symphony}) => ({
       color: symphony.palette.D400,
     },
   },
+  prefix: {
+    display: 'flex',
+    alignItems: 'center',
+    marginRight: '7px',
+    marginLeft: '4px',
+  },
 });
 
 type Props = {
@@ -69,6 +76,7 @@ type Props = {
   autoFocus?: boolean,
   disabled?: boolean,
   hasError?: boolean,
+  prefix?: React.Node,
   onChange?: (e: SyntheticInputEvent<HTMLInputElement>) => void,
   onFocus?: () => void,
   onBlur?: () => void,
@@ -119,6 +127,8 @@ class TextInput extends React.Component<Props, State> {
       className,
       hasError: hasErrorProp,
       disabled: disabledProp,
+      prefix,
+      value,
       ...rest
     } = this.props;
     const {hasFocus} = this.state;
@@ -135,12 +145,20 @@ class TextInput extends React.Component<Props, State> {
           },
           className,
         )}>
+        {prefix && (
+          <div className={classes.prefix}>
+            <InputContext.Provider value={{disabled, value}}>
+              {prefix}
+            </InputContext.Provider>
+          </div>
+        )}
         <input
           className={classes.input}
           disabled={disabled}
           onFocus={this._onInputFocused}
           onBlur={this._onInputBlurred}
           onChange={this._onChange}
+          value={value}
           {...rest}
         />
       </div>

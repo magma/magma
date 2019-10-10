@@ -10,7 +10,7 @@
 
 import FormField from '../../components/design-system/FormField/FormField.react';
 import React, {useState} from 'react';
-import TextInput from '../../components/design-system/TextInput.react';
+import TextInput from '../../components/design-system/Input/TextInput.react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
