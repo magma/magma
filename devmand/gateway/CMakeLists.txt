@@ -51,6 +51,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/Time.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
 )
 
