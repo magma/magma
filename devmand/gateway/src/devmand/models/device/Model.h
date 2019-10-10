@@ -9,6 +9,8 @@
 
 #include <folly/dynamic.h>
 
+#include <devmand/channels/ping/Engine.h>
+
 namespace devmand {
 namespace models {
 namespace device {
@@ -24,6 +26,13 @@ class Model {
 
  public:
   static void init(folly::dynamic& state);
+
+  static void addLatency(
+      folly::dynamic& state,
+      const std::string& type,
+      const std::string& src,
+      const std::string& dst,
+      channels::ping::Rtt rtt);
 };
 
 } // namespace device

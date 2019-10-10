@@ -165,7 +165,7 @@ void Engine::handlerReady(uint16_t) noexcept {
       });
     }
 
-    if (not processed ) {
+    if (not processed) {
       LOG(INFO) << "Packet received with ICMP type "
                 << static_cast<int>(pkt.hdr.type) << " code "
                 << static_cast<int>(pkt.hdr.code);

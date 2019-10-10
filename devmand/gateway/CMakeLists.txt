@@ -41,6 +41,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/Factory.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/EchoDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/FrinxDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/PingDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
