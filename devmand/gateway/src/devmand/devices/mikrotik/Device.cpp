@@ -83,8 +83,8 @@ std::shared_ptr<State> Device::getState() {
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
               [&geol, this](const channels::snmp::Exception&) {
-                auto v = lookup(
-                    "fbc-symphony-device:system/geo-location/longitude");
+                auto v =
+                    lookup("fbc-symphony-device:system/geo-location/longitude");
                 if (not v.isNull()) {
                   geol["longitude"] = v.asString();
                 }
