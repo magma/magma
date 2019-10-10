@@ -72,13 +72,11 @@ std::shared_ptr<State> Device::getState() {
   auto state = Snmpv2Device::getState();
 
   // fbc-symphony-device ######################################################
-  devmand::models::device::Model::init(state->update());
-
   auto& geol = state->update()["fbc-symphony-device:system"]["geo-location"];
 
   // TODO check units and make conversions for all of these.
   state->addRequest(
-      Mib::getLongtitude(channel)
+      Mib::getLongtitude(snmpChannel)
           .thenValue([&geol](auto v) { geol["longitude"] = v; })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
@@ -90,7 +88,7 @@ std::shared_ptr<State> Device::getState() {
                 }
               }));
   state->addRequest(
-      Mib::getLatitude(channel)
+      Mib::getLatitude(snmpChannel)
           .thenValue([&geol](auto v) { geol["latitude"] = v; })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
@@ -102,7 +100,7 @@ std::shared_ptr<State> Device::getState() {
                 }
               }));
   state->addRequest(
-      Mib::getAltitude(channel)
+      Mib::getAltitude(snmpChannel)
           .thenValue([&geol](auto v) { geol["height"] = v; })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
@@ -132,24 +130,29 @@ std::shared_ptr<State> Device::getState() {
   // just using uptime snmp success to indicate if the device is up.
   japt["opstate"] = "openconfig-wifi-types:DOWN";
 
+  state->addRequest(Mib::getBaseMac(snmpChannel)
+                        .thenValue([&pap, &papc, &papt, &japt](auto v) {
+                          auto hex = StringUtils::asHexString(v, ":");
+                          pap["mac"] = hex;
+                          papc["mac"] = hex;
+                          papt["mac"] = hex;
+                          japt["mac"] = hex;
+                        }));
   state->addRequest(
-      Mib::getBaseMac(channel).thenValue([&pap, &papc, &papt, &japt](auto v) {
-        auto hex = StringUtils::asHexString(v, ":");
-        pap["mac"] = hex;
-        papc["mac"] = hex;
-        papt["mac"] = hex;
-        japt["mac"] = hex;
+      Mib::getFirmwareVersion(snmpChannel).thenValue([&japt](auto v) {
+        japt["software-version"] = v;
       }));
-  state->addRequest(Mib::getFirmwareVersion(channel).thenValue(
-      [&japt](auto v) { japt["software-version"] = v; }));
-  state->addRequest(Mib::getSerialNumber(channel).thenValue(
-      [&japt](auto v) { japt["serial"] = v; }));
-  state->addRequest(Mib::getUpTime(channel).thenValue([&japt](auto v) {
+  state->addRequest(
+      Mib::getSerialNumber(snmpChannel).thenValue([&japt](auto v) {
+        japt["serial"] = v;
+      }));
+  state->addRequest(Mib::getUpTime(snmpChannel).thenValue([&japt](auto v) {
     japt["uptime"] = v;
     japt["opstate"] = "openconfig-wifi-types:UP";
   }));
-  state->addRequest(
-      Mib::getModel(channel).thenValue([&japt](auto v) { japt["model"] = v; }));
+  state->addRequest(Mib::getModel(snmpChannel).thenValue([&japt](auto v) {
+    japt["model"] = v;
+  }));
 
   state->addFinally([state, &papc, &papt, &jap, &japt]() {
     auto* field = state->update().get_ptr("ietf-system:system");
@@ -162,10 +165,11 @@ std::shared_ptr<State> Device::getState() {
     }
   });
 
-  state->addRequest(Mib::getIpv4Address(channel).thenValue(
-      [&japt](auto v) { japt["ipv4"] = v; }));
+  state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([&japt](auto v) {
+    japt["ipv4"] = v;
+  }));
 
-  state->addRequest(Mib::getIpv6Address(channel).thenValue([&japt](auto v) {
+  state->addRequest(Mib::getIpv6Address(snmpChannel).thenValue([&japt](auto v) {
     japt["ipv6"] =
         folly::IPAddress::fromBinary(
             folly::ByteRange(
