@@ -21,6 +21,7 @@
 #include <folly/GLog.h>
 
 #include <devmand/channels/ping/Channel.h>
+#include <devmand/utils/Time.h>
 
 namespace devmand {
 namespace channels {
@@ -55,6 +56,7 @@ folly::Future<Rtt> Channel::ping() {
   }
   destination.sin_family = AF_INET;
 
+  auto start = utils::Time::now();
   auto result = sendto(
       icmpSocket,
       &hdr,
@@ -96,7 +98,11 @@ folly::Future<Rtt> Channel::ping() {
                  << static_cast<int>(hdr.type) << " code "
                  << static_cast<int>(hdr.code);
     } else {
-      LOG(INFO) << "got!";
+      auto end = utils::Time::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end-start);
+      LOG(INFO) << "Received ICMP response after " << duration.count()
+          << " microseconds";
+      return folly::makeFuture<Rtt>(static_cast<Rtt>(duration.count()));
     }
   }
 
