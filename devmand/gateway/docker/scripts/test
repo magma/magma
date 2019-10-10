@@ -7,3 +7,11 @@ docker run \
   --sysctl net.ipv4.ping_group_range="0 0" \
   devmand-built \
   make test
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ] ; then
+  echo "You have gotten a CI failure in devmand's unit tests."
+  echo "If you are sure your changes did not cause the issue or if you"
+  echo "need help please reach out to the south poll symphony oncall."
+  exit ${EXIT_CODE}
+fi
