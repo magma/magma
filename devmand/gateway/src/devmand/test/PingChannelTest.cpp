@@ -23,13 +23,15 @@ class PingChannelTest : public EventBaseTest {
 
 TEST_F(PingChannelTest, checkPing) {
   folly::IPAddress address("127.0.0.1");
-  auto channel = std::make_shared<channels::ping::Channel>(eventBase, address);
+  channels::ping::Engine engine(eventBase);
+  auto channel = std::make_shared<channels::ping::Channel>(engine, address);
   EXPECT_NE(0, channel->ping().get());
 }
 
 TEST_F(PingChannelTest, checkPingGoogle) {
   folly::IPAddress address("127.0.0.2");
-  auto channel = std::make_shared<channels::ping::Channel>(eventBase, address);
+  channels::ping::Engine engine(eventBase);
+  auto channel = std::make_shared<channels::ping::Channel>(engine, address);
   EXPECT_NE(0, channel->ping().get());
 }
 
