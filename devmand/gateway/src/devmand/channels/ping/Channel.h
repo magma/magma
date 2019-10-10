@@ -5,6 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <map>
 #include <string>
 
 #include <netinet/ip_icmp.h>
@@ -13,6 +14,7 @@
 #include <folly/io/async/AsyncSocket.h>
 
 #include <devmand/channels/Channel.h>
+#include <devmand/utils/Time.h>
 
 namespace devmand {
 namespace channels {
@@ -20,7 +22,16 @@ namespace ping {
 
 using Rtt = uint64_t;
 
-class Channel : public channels::Channel {
+struct Request {
+  utils::TimePoint start;
+  folly::Promise<Rtt> promise;
+};
+
+using RequestId = uint16_t;
+
+using OutstandingRequests = std::map<RequestId, Request>;
+
+class Channel : public channels::Channel, public folly::EventHandler {
  public:
   Channel(folly::EventBase& _eventBase, folly::IPAddress target_);
   Channel() = delete;
@@ -34,15 +45,18 @@ class Channel : public channels::Channel {
   folly::Future<Rtt> ping();
 
  private:
-  uint16_t getSequence();
+  RequestId getSequence();
   icmphdr makeIcmpPacket();
+
+  virtual void handlerReady(uint16_t events) noexcept override;
 
  private:
   folly::EventBase& eventBase;
+  OutstandingRequests outstandingRequests;
   folly::IPAddress target;
   int icmpSocket{-1};
-  // TODO BOOTCAMP make this randomly initilized to prevent collisions.
-  uint16_t sequence{0};
+  // TODO BOOTCAMP make this randomly initilized to minimize collisions.
+  RequestId sequence{0};
 };
 
 } // namespace ping
