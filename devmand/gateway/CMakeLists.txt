@@ -32,6 +32,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/mikrotik/WriteTask.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/packet/Engine.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Channel.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Engine.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/Config.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/CambiumDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/DemoDevice.cpp
