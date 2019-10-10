@@ -2466,7 +2466,7 @@ void mme_app_handle_create_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
 #if EMBEDDED_SGW
     OAILOG_INFO(
       LOG_MME_APP,
-      "Sending Activate Dedicated bearer Response to SPGW: " MME_UE_S1AP_ID_FMT
+      "Sending Activate Dedicated bearer Reject to SPGW: " MME_UE_S1AP_ID_FMT
       "\n",
       create_dedicated_bearer_rej->ue_id);
     _send_pcrf_bearer_actv_rsp(
