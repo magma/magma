@@ -16,6 +16,9 @@
 namespace devmand {
 namespace test {
 
+static constexpr const char* yamlDeviceConfig = "/tmp/deviceConfig.yml";
+static constexpr const char* mconfigDeviceConfig = "/tmp/deviceConfig.mconfig";
+
 const char* yamlTemplate = R"template(devices:
 {})template";
 
@@ -142,10 +145,6 @@ class DevConfTest : public EventBaseTest {
   unsigned int expectedNumDel = 0;
   std::list<cartography::DeviceConfig> adds;
   std::list<cartography::DeviceConfig> dels;
-
-  static constexpr const char* yamlDeviceConfig = "/tmp/deviceConfig.yml";
-  static constexpr const char* mconfigDeviceConfig =
-      "/tmp/deviceConfig.mconfig";
 
   template <typename... Args>
   static std::string formatYaml(Args... args) {
