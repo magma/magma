@@ -33,9 +33,11 @@ Channel::Channel(folly::EventBase& _eventBase, folly::IPAddress target_)
     throw std::system_error(errno, std::generic_category());
   }
 
+  /*
   if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
     throw std::system_error(errno, std::generic_category());
   }
+  */
 }
 
 // TODO first pass sync
@@ -75,6 +77,27 @@ folly::Future<Rtt> Channel::ping() {
         break;
     }
     return folly::makeFuture<Rtt>(0);
+  }
+
+  sockaddr_in retAddr;
+  unsigned int addrLen = static_cast<unsigned int>(sizeof(retAddr));
+  if (recvfrom(
+          icmpSocket,
+          &hdr,
+          sizeof(hdr),
+          0,
+          reinterpret_cast<sockaddr*>(&retAddr),
+          &addrLen) <= 0) {
+    LOG(ERROR) << "Packet receive failed!";
+    return folly::makeFuture<Rtt>(0);
+  } else {
+    if (not(hdr.type == 0 and hdr.code == 0)) {
+      LOG(ERROR) << "Packet received with ICMP type "
+                 << static_cast<int>(hdr.type) << " code "
+                 << static_cast<int>(hdr.code);
+    } else {
+      LOG(INFO) << "got!";
+    }
   }
 
   // TODO setup promise
