@@ -47,21 +47,22 @@ Engine::Engine(folly::EventBase& _eventBase)
 
 folly::Future<Rtt> Engine::ping(
     const icmphdr& hdr,
-    const sockaddr_in& destination) {
-  // TODO key needs to be on seq and ip
+    const folly::IPAddress& destination) {
   auto request = outstandingRequests.emplace(
       std::piecewise_construct,
-      std::forward_as_tuple(hdr.un.echo.sequence),
+      std::forward_as_tuple(std::make_pair(destination, hdr.un.echo.sequence)),
       std::forward_as_tuple(Request{}));
   if (request.second) {
+    sockaddr_storage dst;
+    destination.toSockaddrStorage(&dst);
     request.first->second.start = utils::Time::now();
     auto result = sendto(
         icmpSocket,
         &hdr,
         sizeof(hdr),
         0,
-        reinterpret_cast<const sockaddr*>(&destination),
-        sizeof(destination));
+        reinterpret_cast<const sockaddr*>(&dst),
+        sizeof(dst));
     if (result <= 0) {
       switch (result) {
         case EAGAIN: // case EWOULDBLOCK:
@@ -92,12 +93,22 @@ void Engine::handlerReady(uint16_t) noexcept {
   // need to implement kernel timestamping
   utils::TimePoint end = utils::Time::now();
   icmphdr hdr;
-  while (recv(icmpSocket, &hdr, sizeof(hdr), 0) > 0) {
+  sockaddr_storage src;
+  socklen_t srcLen = sizeof(sockaddr_storage);
+  while (recvfrom(
+             icmpSocket,
+             &hdr,
+             sizeof(hdr),
+             0,
+             reinterpret_cast<sockaddr*>(&src),
+             &srcLen) > 0) {
     LOG(INFO) << "Packet received with ICMP type " << static_cast<int>(hdr.type)
               << " code " << static_cast<int>(hdr.code);
 
     if (hdr.type == 0 and hdr.code == 0) {
-      auto request = outstandingRequests.find(hdr.un.echo.sequence);
+      auto request = outstandingRequests.find(std::make_pair(
+          folly::IPAddress(reinterpret_cast<sockaddr*>(&src)),
+          hdr.un.echo.sequence));
       if (request != outstandingRequests.end()) {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
             end - request->second.start);
