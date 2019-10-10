@@ -41,6 +41,24 @@ magma-gen-meta:
       filename: enodeb_state_swaggergen.go
     - go-struct-name: SubProfile
       filename: sub_profile_swaggergen.go
+    - go-struct-name: FlowDescription
+      filename: flow_description_swaggergen.go
+    - go-struct-name: FlowMatch
+      filename: flow_match_swaggergen.go
+    - go-struct-name: FlowQos
+      filename: flow_qos_swaggergen.go
+    - go-struct-name: PolicyRule
+      filename: policy_rule_swaggergen.go
+    - go-struct-name: RedirectInformation
+      filename: redirect_information_swaggergen.go
+    - go-struct-name: BaseNameRecord
+      filename: base_name_record_swaggergen.go
+    - go-struct-name: BaseName
+      filename: base_name_swaggergen.go
+    - go-struct-name: RuleID
+      filename: rule_id_swaggergen.go
+    - go-struct-name: RuleNames
+      filename: rule_names_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -1799,3 +1817,167 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+
+  rule_id:
+    # A unique human readable identifier for labeling a policy rule
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: All ICMP
+
+  flow_description:
+    type: object
+    required:
+      - action
+      - match
+    properties:
+      action:
+        type: string
+        enum:
+        - PERMIT
+        - DENY
+        default: PERMIT
+      match:
+        $ref: '#/definitions/flow_match'
+
+  flow_qos:
+    type: object
+    required:
+      - max_req_bw_ul
+      - max_req_bw_dl
+    properties:
+      max_req_bw_ul:
+        type: integer
+        format: uint32
+      max_req_bw_dl:
+        type: integer
+        format: uint32
+
+  redirect_information:
+    type: object
+    required:
+      - support
+      - address_type
+      - server_address
+    properties:
+      support:
+        type: string
+        enum:
+        - DISABLED
+        - ENABLED
+      address_type:
+        type: string
+        enum:
+        - IPv4
+        - IPv6
+        - URL
+        - SIP_URI
+      server_address:
+        type: string
+
+  policy_rule:
+    # A traffic match template and a identifier that is
+    # used to labelling usage records
+    type: object
+    required:
+      - id
+      - flow_list
+      - priority
+    properties:
+      id:
+        type: string
+        example: 'All ICMP'
+        x-go-custom-tag: 'magma_alt_name:"Id"'
+      flow_list:
+        type: array
+        items:
+          $ref: '#/definitions/flow_description'
+      priority:
+        type: integer
+        format: uint32
+        default: 10
+      rating_group:
+        type: integer
+        format: uint32
+      monitoring_key:
+        type: string
+      tracking_type:
+        type: string
+        enum:
+        - ONLY_OCS
+        - ONLY_PCRF
+        - OCS_AND_PCRF
+        - NO_TRACKING
+      qos:
+        $ref: '#/definitions/flow_qos'
+      redirect:
+        $ref: '#/definitions/redirect_information'
+
+  base_name:
+    type: string
+    minLength: 1
+    x-nullable: false
+
+  rule_names:
+    type: array
+    items:
+      type: string
+      x-nullable: false
+
+  base_name_record:
+    type: object
+    required:
+      - name
+      - rule_names
+    properties:
+      name:
+        $ref: '#/definitions/base_name'
+      rule_names:
+        $ref: '#/definitions/rule_names'
+
+  flow_match:
+    # A template for matching traffic to meter
+    type: object
+    required:
+      - ip_proto
+      - direction
+    properties:
+      ip_proto:
+        type: string
+        enum:
+        - IPPROTO_IP
+        - IPPROTO_TCP
+        - IPPROTO_UDP
+        - IPPROTO_ICMP
+        default: IPPROTO_IP
+      ipv4_src:
+        type: string
+        format: ip-address
+        example: "192.168.0.1/24"
+        x-go-custom-tag: 'magma_alt_name:"Ipv4Src"'
+      ipv4_dst:
+        type: string
+        format: ip-address
+        example: "0.0.0.0/0"
+        x-go-custom-tag: 'magma_alt_name:"Ipv4Dst"'
+      tcp_src:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"TcpSrc"'
+      tcp_dst:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"TcpDst"'
+      udp_src:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"UdpSrc"'
+      udp_dst:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"UdpDst"'
+      direction:
+        type: string
+        enum:
+        - UPLINK
+        - DOWNLINK
