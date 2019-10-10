@@ -13,6 +13,7 @@
 #include <folly/futures/Future.h>
 #include <folly/io/async/AsyncSocket.h>
 
+#include <devmand/EventBaseUtils.h>
 #include <devmand/channels/Engine.h>
 #include <devmand/utils/Time.h>
 
@@ -32,11 +33,23 @@ using RequestId = uint16_t;
 using OutstandingRequests =
     std::map<std::pair<folly::IPAddress, RequestId>, Request>;
 
+struct IcmpPacket {
+  bool success;
+  icmphdr hdr{};
+  sockaddr_storage src{};
+  socklen_t srcLen{sizeof(sockaddr_storage)};
+};
+
 class Engine : public channels::Engine, public folly::EventHandler {
  public:
-  Engine(folly::EventBase& _eventBase);
+  Engine(
+      folly::EventBase& _eventBase,
+      const std::chrono::milliseconds& pingTimeout_ =
+          std::chrono::milliseconds(5000),
+      const std::chrono::milliseconds& timeoutFrequency_ =
+          std::chrono::milliseconds(10000));
   Engine() = delete;
-  ~Engine() override = default;
+  ~Engine() override;
   Engine(const Engine&) = delete;
   Engine& operator=(const Engine&) = delete;
   Engine(Engine&&) = delete;
@@ -47,13 +60,21 @@ class Engine : public channels::Engine, public folly::EventHandler {
       const icmphdr& hdr,
       const folly::IPAddress& destination);
 
+  // NOTE this must be called after the event base is running.
+  void start();
+
  private:
   virtual void handlerReady(uint16_t events) noexcept override;
 
+  void timeout();
+  IcmpPacket read();
+
  private:
   folly::EventBase& eventBase;
-  OutstandingRequests outstandingRequests;
+  folly::Synchronized<OutstandingRequests> sharedOutstandingRequests;
   int icmpSocket{-1};
+  std::chrono::milliseconds pingTimeout;
+  std::chrono::milliseconds timeoutFrequency;
 };
 
 } // namespace ping
