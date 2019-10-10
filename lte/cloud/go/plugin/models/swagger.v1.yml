@@ -1206,6 +1206,168 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/policies/rules:
+    get:
+      summary: List policy rules
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of policy rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new policy rule
+      tags:
+        - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: Policy rule
+        description: Policy rule to add
+        required: true
+        schema:
+          $ref: '#/definitions/policy_rule'
+      responses:
+        '201':
+          description: Rule id
+          schema:
+            $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/rules/{rule_id}:
+    get:
+      summary: Get policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      responses:
+        '200':
+          description: Policy rule on success
+          schema:
+            $ref: '#/definitions/policy_rule'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      - in: body
+        name: Policy rule
+        description: Policy rule
+        required: true
+        schema:
+          $ref: '#/definitions/policy_rule'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/base_names:
+    get:
+      summary: List Charging Rule Base Names
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of Charging Rule Base Names
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: Charging Rule Base Name
+        description: Charging Rule Base Name to add
+        required: true
+        schema:
+          $ref: '#/definitions/base_name_record'
+      responses:
+        '201':
+          description: Charging Rule Base Name
+          schema:
+            $ref: '#/definitions/base_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/base_names/{base_name}:
+    get:
+      summary: Get Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      responses:
+        '200':
+          description: Charging Rule Base Name on success
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      - in: body
+        name: Charging Rule Base Name
+        description: Charging Rule Base Name
+        required: true
+        schema:
+          $ref: '#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   enodeb_serial:
     in: path
@@ -1218,6 +1380,20 @@ parameters:
     in: path
     name: subscriber_id
     description: Subscriber ID
+    required: true
+    type: string
+
+  rule_id:
+    in: path
+    name: rule_id
+    description: Rule Id
+    required: true
+    type: string
+
+  base_name:
+    in: path
+    name: base_name
+    description: Charging Rule Base Name
     required: true
     type: string
 
