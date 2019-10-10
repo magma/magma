@@ -47,6 +47,7 @@ python-pip
 python-setuptools
 python3-setuptools
 scons
+strace
 valgrind
 vim
 virtualenv
