@@ -24,15 +24,7 @@ folly::Future<Rtt> Channel::ping() {
   LOG(INFO) << "Sending ping to " << target.str() << " with sequence "
             << hdr.un.echo.sequence;
 
-  // TODO BOOTCAMP this handles ipv4 only we should support ipv6 as well.
-  sockaddr_in destination;
-  if (inet_pton(AF_INET, target.str().c_str(), &destination.sin_addr) != 1) {
-    LOG(ERROR) << "Invalid IPv4 Address " << target.str();
-    return folly::makeFuture<Rtt>(0);
-  }
-  destination.sin_family = AF_INET;
-
-  return engine.ping(hdr, destination);
+  return engine.ping(hdr, target);
 }
 
 RequestId Channel::getSequence() {
