@@ -19,19 +19,31 @@ class PingChannelTest : public EventBaseTest {
   PingChannelTest& operator=(const PingChannelTest&) = delete;
   PingChannelTest(PingChannelTest&&) = delete;
   PingChannelTest& operator=(PingChannelTest&&) = delete;
+
+ protected:
+  folly::IPAddress local{"127.0.0.1"};
+  folly::IPAddress google{"127.0.0.2"};
 };
 
 TEST_F(PingChannelTest, checkPing) {
-  folly::IPAddress address("127.0.0.1");
   channels::ping::Engine engine(eventBase);
-  auto channel = std::make_shared<channels::ping::Channel>(engine, address);
+  auto channel = std::make_shared<channels::ping::Channel>(engine, local);
   EXPECT_NE(0, channel->ping().get());
 }
 
 TEST_F(PingChannelTest, checkPingGoogle) {
-  folly::IPAddress address("127.0.0.2");
   channels::ping::Engine engine(eventBase);
-  auto channel = std::make_shared<channels::ping::Channel>(engine, address);
+  auto channel = std::make_shared<channels::ping::Channel>(engine, google);
+  EXPECT_NE(0, channel->ping().get());
+}
+
+TEST_F(PingChannelTest, checkMultiPing) {
+  channels::ping::Engine engine(eventBase);
+  auto channel = std::make_shared<channels::ping::Channel>(engine, local);
+  auto channel2 = std::make_shared<channels::ping::Channel>(engine, google);
+  EXPECT_NE(0, channel->ping().get());
+  EXPECT_NE(0, channel2->ping().get());
+  EXPECT_NE(0, channel2->ping().get());
   EXPECT_NE(0, channel->ping().get());
 }
 
