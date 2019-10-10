@@ -29,7 +29,8 @@ struct Request {
 
 using RequestId = uint16_t;
 
-using OutstandingRequests = std::map<RequestId, Request>;
+using OutstandingRequests =
+    std::map<std::pair<folly::IPAddress, RequestId>, Request>;
 
 class Engine : public channels::Engine, public folly::EventHandler {
  public:
@@ -42,7 +43,9 @@ class Engine : public channels::Engine, public folly::EventHandler {
   Engine& operator=(Engine&&) = delete;
 
  public:
-  folly::Future<Rtt> ping(const icmphdr& hdr, const sockaddr_in& destination);
+  folly::Future<Rtt> ping(
+      const icmphdr& hdr,
+      const folly::IPAddress& destination);
 
  private:
   virtual void handlerReady(uint16_t events) noexcept override;
