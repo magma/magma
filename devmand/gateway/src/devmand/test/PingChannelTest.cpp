@@ -23,20 +23,13 @@ class PingChannelTest : public EventBaseTest {
 
  protected:
   folly::IPAddress local{"127.0.0.1"};
-  folly::IPAddress google{"127.0.0.2"};
+  folly::IPAddress local2{"127.0.0.2"};
   folly::IPAddress dne{"203.0.113.0"};
 };
 
 TEST_F(PingChannelTest, checkPing) {
   channels::ping::Engine engine(eventBase);
   auto channel = std::make_shared<channels::ping::Channel>(engine, local);
-  EXPECT_NE(0, channel->ping().get());
-  stop();
-}
-
-TEST_F(PingChannelTest, checkPingGoogle) {
-  channels::ping::Engine engine(eventBase);
-  auto channel = std::make_shared<channels::ping::Channel>(engine, google);
   EXPECT_NE(0, channel->ping().get());
   stop();
 }
@@ -65,7 +58,7 @@ TEST_F(PingChannelTest, checkPingTimeout) {
 TEST_F(PingChannelTest, checkMultiPing) {
   channels::ping::Engine engine(eventBase);
   auto channel = std::make_shared<channels::ping::Channel>(engine, local);
-  auto channel2 = std::make_shared<channels::ping::Channel>(engine, google);
+  auto channel2 = std::make_shared<channels::ping::Channel>(engine, local2);
   EXPECT_NE(0, channel->ping().get());
   EXPECT_NE(0, channel2->ping().get());
   EXPECT_NE(0, channel2->ping().get());

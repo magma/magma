@@ -57,6 +57,13 @@ Engine::~Engine() {
 }
 
 void Engine::start() {
+  // TODO I implement a very simple type of timeout here where ever n
+  // milliseconds we walk the pending requests and timeout ones that have
+  // exceeded their time. This is neither the most efficient (we walk the entire
+  // list) or the most accurate (we only guarentee and eventual timeout not a
+  // precise timeout). Given this usecase I dont think either of these are that
+  // important but I'm making this note so we know in the future we could
+  // improve this by using one of the nice timeout queues that exist.
   EventBaseUtils::scheduleEvery(
       eventBase, [this]() { timeout(); }, timeoutFrequency);
 }
