@@ -48,6 +48,7 @@ Description Implements the API used by the NAS layer running in the MME
 #include "3gpp_36.401.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "mme_config.h"
 
 struct mme_config_s;
 
@@ -83,13 +84,17 @@ typedef enum {
   UE_REGISTERED,
 } mm_state_t;
 
+typedef struct gummei_list_s{
+  uint8_t num_gummei;
+  gummei_t gummei[MAX_GUMMEI];
+}gummei_list_t;
 /*
  * EPS Mobility Management configuration data
  * ------------------------------------------
  */
 typedef struct mme_api_emm_config_s {
   mme_api_feature_t features; /* Supported features           */
-  gummei_t gummei;            /* EPS Globally Unique MME Identity */
+  gummei_list_t gummei; /* EPS Globally Unique MME Identity List*/
   uint8_t prefered_integrity_algorithm
     [8]; // choice in NAS_SECURITY_ALGORITHMS_EIA0, etc
   uint8_t prefered_ciphering_algorithm
