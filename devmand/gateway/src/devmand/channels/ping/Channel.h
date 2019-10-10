@@ -18,7 +18,7 @@ namespace devmand {
 namespace channels {
 namespace ping {
 
-using Rtt = uint32_t;
+using Rtt = uint64_t;
 
 class Channel : public channels::Channel {
  public:
@@ -41,6 +41,7 @@ class Channel : public channels::Channel {
   folly::EventBase& eventBase;
   folly::IPAddress target;
   int icmpSocket{-1};
+  // TODO BOOTCAMP make this randomly initilized to prevent collisions.
   uint16_t sequence{0};
 };
 
