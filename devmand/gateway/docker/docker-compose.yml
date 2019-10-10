@@ -25,7 +25,7 @@ services:
       - SYS_ADMIN
       - NET_ADMIN
     sysctls:
-      - net.ipv4.ping_group_range="0 0"
+      - net.ipv4.ping_group_range=0 0
     stdin_open: true
     tty: true
     privileged: true

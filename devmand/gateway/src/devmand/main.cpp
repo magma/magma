@@ -19,12 +19,14 @@
 #include <devmand/devices/DemoDevice.h>
 #include <devmand/devices/EchoDevice.h>
 #include <devmand/devices/FrinxDevice.h>
+#include <devmand/devices/PingDevice.h>
 #include <devmand/devices/Snmpv2Device.h>
 #include <devmand/devices/mikrotik/Device.h>
 #include <devmand/magma/DevConf.h>
 #include <devmand/magma/Service.h>
 
 int main(int argc, char* argv[]) {
+  // TODO Work around for magma issue. Get rid of this...
   std::this_thread::sleep_for(std::chrono::seconds(10));
 
   folly::init(&argc, &argv);
@@ -34,17 +36,25 @@ int main(int argc, char* argv[]) {
   // Add services which export the shared view
   app.add(std::make_unique<devmand::magma::Service>(app));
 
-  // Add platforms/device drivers
-  app.addPlatform("Cambium", devmand::devices::CambiumDevice::createDevice);
-  app.addPlatform("Dcsg", devmand::devices::DcsgDevice::createDevice);
-  app.addPlatform("Demo", devmand::devices::DemoDevice::createDevice);
-  app.addPlatform("Echo", devmand::devices::EchoDevice::createDevice);
-  app.addPlatform(
-      "Cisco Catalyst 3750", devmand::devices::FrinxDevice::createDevice);
-  app.addPlatform(
-      "Unifi Switch 16", devmand::devices::FrinxDevice::createDevice);
-  app.addPlatform("MikroTik", devmand::devices::mikrotik::Device::createDevice);
-  app.addPlatform("Snmp", devmand::devices::Snmpv2Device::createDevice);
+  // Add Demo Platforms
+  {
+    app.addPlatform("Cambium", devmand::devices::CambiumDevice::createDevice);
+    app.addPlatform("Dcsg", devmand::devices::DcsgDevice::createDevice);
+    app.addPlatform(
+        "Cisco Catalyst 3750", devmand::devices::FrinxDevice::createDevice);
+    app.addPlatform(
+        "Unifi Switch 16", devmand::devices::FrinxDevice::createDevice);
+  }
+
+  // Add Production Ready Platforms
+  {
+    app.addPlatform("Demo", devmand::devices::DemoDevice::createDevice);
+    app.addPlatform("Echo", devmand::devices::EchoDevice::createDevice);
+    app.addPlatform(
+        "MikroTik", devmand::devices::mikrotik::Device::createDevice);
+    app.addPlatform("Ping", devmand::devices::PingDevice::createDevice);
+    app.addPlatform("Snmp", devmand::devices::Snmpv2Device::createDevice);
+  }
 
   app.setDefaultPlatform(devmand::devices::Snmpv2Device::createDevice);
 
