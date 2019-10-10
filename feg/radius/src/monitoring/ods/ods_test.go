@@ -9,14 +9,16 @@ LICENSE file in the root directory of this source tree.
 package ods
 
 import (
+	"context"
+	"fbc/cwf/radius/config"
 	"io/ioutil"
 	"net/http"
 	"testing"
 	"time"
 
-	"fbc/cwf/radius/monitoring/counters"
-
 	"github.com/stretchr/testify/require"
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
 	"go.uber.org/zap"
 )
@@ -25,13 +27,24 @@ import (
 func TestSendOdsCounters(t *testing.T) {
 	// Arrange
 	logger, _ := zap.NewDevelopment()
-	Init(&Config{
-		ReportingPeriod: time.Duration(time.Second),
+	Init(&config.Ods{
+		ReportingPeriod: config.Duration{time.Second},
 		GraphURL:        "http://127.0.0.1:1234/ods",
 		Entity:          "entity",
 		Category:        "123",
 		Prefix:          "lalala",
 	}, logger)
+
+	tg, _ := tag.NewKey("test")
+	ctr := stats.Int64("ctr", "Counter", stats.UnitDimensionless)
+	view.Register(
+		&view.View{
+			Name:        "ctr_view",
+			Measure:     ctr,
+			Description: "Counter View",
+			Aggregation: view.Count(),
+		},
+	)
 
 	var gotMetrics = make(chan bool, 1)
 
@@ -53,10 +66,11 @@ func TestSendOdsCounters(t *testing.T) {
 	}()
 
 	// Act
-	tg, _ := tag.NewKey("test")
-	op := counters.NewOperation("test", tg)
-	op.Start()
-	op.Success()
+	stats.RecordWithTags(
+		context.Background(),
+		[]tag.Mutator{tag.Upsert(tg, "test")},
+		ctr.M(1),
+	)
 	time.Sleep(time.Duration(time.Second))
 
 	// Assert

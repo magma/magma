@@ -59,6 +59,8 @@ class StateConverter {
 
   static void ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi *ecgi_proto);
 
+  static void proto_to_ecgi(const Ecgi &ecgi_proto, ecgi_t *state_ecgi);
+
   /**
    * Function that converts hashtable struct to protobuf Map instance, using
    * a conversion function to convert each node of the hashtable, memory
@@ -97,6 +99,32 @@ class StateConverter {
           "Key %u not found on %s hashtable",
           ht_keys->keys[i],
           state_ht->name->data);
+      }
+    }
+  }
+
+  template<typename ProtoMessage, typename NodeType>
+  static void proto_to_hashtable_ts(
+    const google::protobuf::Map<unsigned int, ProtoMessage> &proto_map,
+    hash_table_ts_t *state_ht,
+    std::function<void(const ProtoMessage &, NodeType *)> conversion_callable,
+    log_proto_t log_task_level)
+  {
+    for (const auto &entry : proto_map) {
+      auto proto = entry.second;
+      NodeType *node_type;
+      node_type = (NodeType *) calloc(1, sizeof(NodeType));
+      conversion_callable(proto, node_type);
+      auto ht_rc = hashtable_ts_insert(state_ht, entry.first, node_type);
+      if (ht_rc != HASH_TABLE_OK) {
+        if (ht_rc == HASH_TABLE_INSERT_OVERWRITTEN_DATA) {
+          OAILOG_INFO(LOG_SPGW_APP, "Overwriting data on key: %i", entry.first);
+        } else {
+          OAILOG_ERROR(
+            log_task_level,
+            "Failed to insert node on hashtable %s",
+            state_ht->name->data);
+        }
       }
     }
   }

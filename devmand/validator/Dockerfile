@@ -4,7 +4,10 @@ RUN apt-get -q -y update && apt-get -q -y install \
   clang \
   cmake \
   libpcre3-dev \
-  git
+  git \
+  python-pip
+
+RUN pip install pyang
 
 RUN git clone https://github.com/CESNET/libyang
 RUN mkdir -p libyang/build

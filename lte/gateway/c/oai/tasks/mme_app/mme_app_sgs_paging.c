@@ -48,7 +48,7 @@
 #include "emm_data.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
@@ -134,8 +134,9 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -209,8 +210,9 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt)
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -742,8 +744,9 @@ int sgs_handle_null_paging_request(const sgs_fsm_t *evt)
     LOG_MME_APP,
     "Handle paging request in Null state for ue-id :%u \n",
     evt->ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, evt->ue_id);
   if (!ue_context_p) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -910,7 +913,7 @@ static int _sgsap_handle_paging_request_without_lai(
  **                                                                        **
  ***************************************************************************/
 
-int mme_app_handle_sgsap_paging_request(
+int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -929,7 +932,7 @@ int mme_app_handle_sgsap_paging_request(
     imsi64);
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS-PAGING REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT

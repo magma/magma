@@ -9,12 +9,11 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
+import MagmaV1API from '../../common/MagmaV1API';
 import React from 'react';
-import axios from 'axios';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -106,7 +105,6 @@ const COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'black'];
 
 interface DatabaseHelper<T> {
   getLegendLabel(data: T, tagSets: Array<{[string]: string}>): string;
-  queryFunction: (networkID: string) => string;
   datapointFieldName: string;
 }
 
@@ -142,7 +140,6 @@ class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
       : `${metric['__name__']} (${tags.join(', ')})`;
   }
 
-  queryFunction = MagmaAPIUrls.prometheusQueryRange;
   datapointFieldName = 'values';
 }
 
@@ -194,23 +191,18 @@ function useDatasetsFetcher(props: Props) {
   const dbHelper = useMemo(() => new PrometheusHelper(), []);
 
   useEffect(() => {
-    const queries = JSON.parse(stringedQueries);
+    const queries = props.queries;
     const requests = queries.map(async (query, index) => {
       try {
-        const response = await axios.get(
-          dbHelper.queryFunction(props.networkId || match),
+        const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
           {
-            params: {
-              query,
-              ...{
-                start: startEnd.start,
-                end: startEnd.end,
-                step: startEnd.step,
-              },
-            },
+            networkId: props.networkId || match.params.networkId,
+            start: startEnd.start,
+            end: startEnd.end,
+            step: startEnd.step,
+            query,
           },
         );
-
         const label = props.legendLabels ? props.legendLabels[index] : null;
         return {response, label};
       } catch (error) {
@@ -224,8 +216,10 @@ function useDatasetsFetcher(props: Props) {
     Promise.all(requests).then(allResponses => {
       let index = 0;
       const datasets = [];
-      allResponses.filter(Boolean).forEach(({response, label}) => {
-        const result = response.data?.data?.result;
+      allResponses.filter(Boolean).forEach(r => {
+        const response = r.response;
+        const label = r.label;
+        const result = response.data.result;
         if (result) {
           const tagSets = result.map(it => it.metric);
           result.map(it =>

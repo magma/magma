@@ -11,6 +11,7 @@ package scuba
 import (
 	"encoding/json"
 	"errors"
+	"fbc/cwf/radius/config"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -26,18 +27,9 @@ import (
 // for more details
 const ANY_SCUBA_CATEGORY string = "xwf_json_to_any_scuba"
 
-// Config scuba logger config for the service
-type Config struct {
-	MessageQueueSize int    `json:"message_queue_size" default:"2000"`
-	FlushIntervalSec int    `json:"flush_interval_sec" default:"2"`
-	BatchSize        int    `json:"batch_size" default:"15"`
-	GraphURL         string `json:"graph_url" default:"https://graph.facebook.com/scribe_logs"`
-	AccessToken      string
-}
-
 type scubaWriteSyncer struct {
 	disabled bool
-	config   *Config
+	config   *config.Scuba
 	url      url.URL
 	table    string
 	msgQ     chan string
@@ -125,7 +117,7 @@ func (s *scubaWriteSyncer) serve() {
 			strings.NewReader(form.Encode()),
 		)
 		if err != nil {
-			fmt.Printf("ERROR sending %d log(s) to Scuba: %s\n", len(messages), err.Error())
+			fmt.Printf("ERROR sending %d log(s) to Scuba: %s (target: %s)\n", len(messages), err.Error(), s.config.GraphURL)
 			continue
 		}
 
@@ -152,7 +144,7 @@ func (s *scubaWriteSyncer) serve() {
 }
 
 // Initialize ...
-func Initialize(config *Config, logger *zap.Logger) {
+func Initialize(config *config.Scuba, logger *zap.Logger) {
 	zap.RegisterSink(
 		"scuba",
 		func(url *url.URL) (zap.Sink, error) {

@@ -189,7 +189,8 @@ void mme_ue_context_update_ue_sgs_vlr_reliable(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,
   bool vlr_reliable);
 
-bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
+bool mme_ue_context_get_ue_sgs_neaf(
+  mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_neaf(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,

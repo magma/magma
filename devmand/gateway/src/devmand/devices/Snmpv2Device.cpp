@@ -208,6 +208,16 @@ std::shared_ptr<State> Snmpv2Device::getState() {
               for (auto result : results) {
                 IModel::updateInterface(
                     state->update(), result.index, path, result.value);
+                // TODO: instead of doing this per device type, move to
+                //   traversing the resulting device model and creating metrics
+                //   in a more general fashion
+                state->setGauge(
+                    folly::sformat(
+                        "/{}/interface[ifindex={}]/{}",
+                        "openconfig-interfaces:interface",
+                        result.index,
+                        path),
+                    folly::to<float>(result.value));
               }
             }));
   };

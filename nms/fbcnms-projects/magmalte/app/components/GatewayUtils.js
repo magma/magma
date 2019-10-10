@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {CellularConfig, MagmadConfig} from '../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
 import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
 
@@ -109,7 +108,6 @@ export const GatewayStatus = withStyles(styles)(GatewayStatusElement);
 
 export type GatewayPayload = {
   gateway_id: GatewayId,
-  config?: Config,
   status?: GatewayStatusPayload,
   record?: AccessGatewayRecord,
   name?: GatewayName,
@@ -194,11 +192,6 @@ type ChallengeKey = {
 type AccessGatewayRecord = {hardware_id: string, key: ChallengeKey};
 
 type GatewayId = string;
-
-type Config = {
-  cellular_gateway: ?CellularConfig,
-  magmad_gateway: ?MagmadConfig,
-};
 
 // TODO: strip out devmand related fields and put them into a separate file
 type GatewayMeta = {

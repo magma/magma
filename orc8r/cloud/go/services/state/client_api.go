@@ -34,6 +34,7 @@ type State struct {
 	// Cert expiration TimeMs
 	CertExpirationTime int64
 	ReportedState      interface{}
+	Version            uint64
 }
 
 // SerializedStateWithMeta includes reported operational states and additional info
@@ -42,6 +43,7 @@ type SerializedStateWithMeta struct {
 	TimeMs                  uint64
 	CertExpirationTime      int64
 	SerializedReportedState []byte
+	Version                 uint64
 }
 
 // StateID contains the identifying information of a state
@@ -121,7 +123,6 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 	if err != nil {
 		return nil, err
 	}
-
 	idToValue := map[StateID]State{}
 	for _, pState := range res.States {
 		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
@@ -207,6 +208,7 @@ func toState(pState *protos.State) (State, error) {
 		TimeMs:             serialized.TimeMs,
 		CertExpirationTime: serialized.CertExpirationTime,
 		ReportedState:      iReportedState,
+		Version:            pState.Version,
 	}
 	return state, err
 }

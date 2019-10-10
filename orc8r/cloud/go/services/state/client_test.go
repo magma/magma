@@ -11,6 +11,7 @@ package state_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
@@ -31,14 +32,17 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	typeName   = "typeName"
-	testAgHwId = "Test-AGW-Hw-Id"
-)
+const testAgHwId = "Test-AGW-Hw-Id"
 
 type stateBundle struct {
 	state *protos.State
 	ID    state.StateID
+}
+
+func makeVersionedStateBundle(typeVal string, key string, value interface{}, version uint64) stateBundle {
+	stateBundle := makeStateBundle(typeVal, key, value)
+	stateBundle.state.Version = version
+	return stateBundle
 }
 
 func makeStateBundle(typeVal string, key string, value interface{}) stateBundle {
@@ -54,7 +58,7 @@ func TestStateService(t *testing.T) {
 	// Set up test networkID, hwID, and encode into context
 	stateTestInit.StartTestService(t)
 	err := serde.RegisterSerdes(
-		&Serde{},
+		state.NewStateSerde("test-serde", &Name{}),
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models2.GatewayDevice{}))
 	assert.NoError(t, err)
 
@@ -68,9 +72,9 @@ func TestStateService(t *testing.T) {
 	value0 := Name{Name: "name0"}
 	value1 := Name{Name: "name1"}
 	value2 := NameAndAge{Name: "name2", Age: 20}
-	bundle0 := makeStateBundle(typeName, "key0", value0)
-	bundle1 := makeStateBundle(typeName, "key1", value1)
-	bundle2 := makeStateBundle(typeName, "key2", value2)
+	bundle0 := makeStateBundle("test-serde", "key0", value0)
+	bundle1 := makeVersionedStateBundle("test-serde", "key1", value1, 10)
+	bundle2 := makeVersionedStateBundle("test-serde", "key2", value2, 12)
 
 	// Check contract for empty network
 	states, err := state.GetStates(networkID, []state.StateID{bundle0.ID})
@@ -83,6 +87,28 @@ func TestStateService(t *testing.T) {
 	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
+	assert.Equal(t, uint64(0), states[bundle0.ID].Version)
+	assert.Equal(t, uint64(10), states[bundle1.ID].Version)
+
+	// Update states, ensuring version is set properly
+	bundle1.state.Version = 15
+	_, err = reportStates(ctx, bundle0, bundle1)
+	assert.NoError(t, err)
+	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID})
+	assert.NoError(t, err)
+	testGetStatesResponse(t, states, bundle0, bundle1)
+	assert.Equal(t, uint64(1), states[bundle0.ID].Version)
+	assert.Equal(t, uint64(15), states[bundle1.ID].Version)
+
+	// Sync states
+	bundle0.state.Version = 1  // synced
+	bundle1.state.Version = 20 // unsynced
+	res, err := syncStates(ctx, bundle0, bundle1)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(res.GetUnsyncedStates()))
+	assert.Equal(t, bundle1.ID.DeviceID, res.GetUnsyncedStates()[0].Id.DeviceID)
+	assert.Equal(t, bundle1.ID.Type, res.GetUnsyncedStates()[0].Id.Type)
+	assert.Equal(t, uint64(15), res.GetUnsyncedStates()[0].Version)
 
 	// Report a state with fields the corresponding serde does not expect
 	_, err = reportStates(ctx, bundle2)
@@ -90,6 +116,7 @@ func TestStateService(t *testing.T) {
 	states, err = state.GetStates(networkID, []state.StateID{bundle2.ID})
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle2)
+	assert.Equal(t, uint64(12), states[bundle2.ID].Version)
 
 	// Delete and read back
 	err = state.DeleteStates(networkID, []state.StateID{bundle0.ID, bundle2.ID})
@@ -101,10 +128,13 @@ func TestStateService(t *testing.T) {
 
 	// Send a valid state and a state with no corresponding serde
 	unserializableBundle := makeStateBundle("nonexistent-serde", "key3", value0)
-	resp, err := reportStates(ctx, bundle0, unserializableBundle)
+	invalidBundle := makeStateBundle("test-serde", "key1", Name{Name: "BADNAME"})
+	resp, err := reportStates(ctx, bundle0, unserializableBundle, invalidBundle)
 	assert.NoError(t, err)
 	assert.Equal(t, "nonexistent-serde", resp.UnreportedStates[0].Type)
 	assert.Equal(t, "No Serde found for type nonexistent-serde", resp.UnreportedStates[0].Error)
+	assert.Equal(t, "test-serde", resp.UnreportedStates[1].Type)
+	assert.Equal(t, "This name: BADNAME is not allowed!", resp.UnreportedStates[1].Error)
 	// Valid state should still be reported
 	states, err = state.GetStates(networkID, []state.StateID{bundle0.ID, bundle1.ID, bundle2.ID})
 	assert.NoError(t, err)
@@ -124,26 +154,31 @@ type Name struct {
 	Name string `json:"name"`
 }
 
-type Serde struct {
-}
-
-func (*Serde) GetDomain() string {
+func (*Name) GetDomain() string {
 	return state.SerdeDomain
 }
 
-func (*Serde) GetType() string {
-	return typeName
+func (*Name) GetType() string {
+	return "test-serde"
 }
 
-func (*Serde) Serialize(in interface{}) ([]byte, error) {
-	return json.Marshal(in)
+func (m *Name) MarshalBinary() ([]byte, error) {
+	return json.Marshal(m)
 
 }
 
-func (*Serde) Deserialize(message []byte) (interface{}, error) {
+func (m *Name) UnmarshalBinary(message []byte) error {
 	res := Name{}
 	err := json.Unmarshal(message, &res)
-	return res, err
+	*m = res
+	return err
+}
+
+func (m *Name) ValidateModel() error {
+	if m.Name == "BADNAME" {
+		return fmt.Errorf("This name: %s is not allowed!", m.Name)
+	}
+	return nil
 }
 
 func getClient() (protos.StateServiceClient, error) {
@@ -165,6 +200,15 @@ func reportStates(ctx context.Context, bundles ...stateBundle) (*protos.ReportSt
 	return response, err
 }
 
+func syncStates(ctx context.Context, bundles ...stateBundle) (*protos.SyncStatesResponse, error) {
+	client, err := getClient()
+	if err != nil {
+		return nil, err
+	}
+	response, err := client.SyncStates(ctx, makeSyncStatesRequest(bundles))
+	return response, err
+}
+
 func testGetStatesResponse(t *testing.T, states map[state.StateID]state.State, bundles ...stateBundle) {
 	for _, bundle := range bundles {
 		value := states[bundle.ID]
@@ -177,6 +221,23 @@ func testGetStatesResponse(t *testing.T, states map[state.StateID]state.State, b
 func makeReportStatesRequest(bundles []stateBundle) *protos.ReportStatesRequest {
 	res := protos.ReportStatesRequest{}
 	res.States = makeStates(bundles)
+	return &res
+}
+
+func makeSyncStatesRequest(bundles []stateBundle) *protos.SyncStatesRequest {
+	res := protos.SyncStatesRequest{}
+	states := []*protos.IDAndVersion{}
+	for _, bundle := range bundles {
+		state := &protos.IDAndVersion{
+			Id: &protos.StateID{
+				Type:     bundle.ID.Type,
+				DeviceID: bundle.ID.DeviceID,
+			},
+			Version: bundle.state.Version,
+		}
+		states = append(states, state)
+	}
+	res.States = states
 	return &res
 }
 

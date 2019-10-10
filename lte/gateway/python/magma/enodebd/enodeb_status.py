@@ -246,8 +246,12 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
-    enb_serial = enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
-    rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    try:
+        enb_serial =\
+            enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+        rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    except (KeyError, ConfigurationError):
+        rf_tx_desired = False
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
     gps_connected = _get_gps_status_as_bool(enodeb)
     ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
@@ -280,18 +284,23 @@ def get_single_enb_status(
     # Get IP info
     ip = state_machine_manager.get_ip_of_serial(device_serial)
 
+    def get_status_property(status: bool) -> SingleEnodebStatus.StatusProperty:
+        if status:
+            return SingleEnodebStatus.StatusProperty.Value('ON')
+        return SingleEnodebStatus.StatusProperty.Value('OFF')
+
     # Build the message to return through gRPC
     enb_status = SingleEnodebStatus()
     enb_status.device_serial = device_serial
     enb_status.ip_address = ip
-    enb_status.connected = status.enodeb_connected
-    enb_status.configured = status.enodeb_configured
-    enb_status.opstate_enabled = status.opstate_enabled
-    enb_status.rf_tx_on = status.rf_tx_on
-    enb_status.rf_tx_desired = status.rf_tx_desired
-    enb_status.gps_connected = status.gps_connected
-    enb_status.ptp_connected = status.ptp_connected
-    enb_status.mme_connected = status.mme_connected
+    enb_status.connected = get_status_property(status.enodeb_connected)
+    enb_status.configured = get_status_property(status.enodeb_configured)
+    enb_status.opstate_enabled = get_status_property(status.opstate_enabled)
+    enb_status.rf_tx_on = get_status_property(status.rf_tx_on)
+    enb_status.rf_tx_desired = get_status_property(status.rf_tx_desired)
+    enb_status.gps_connected = get_status_property(status.gps_connected)
+    enb_status.ptp_connected = get_status_property(status.ptp_connected)
+    enb_status.mme_connected = get_status_property(status.mme_connected)
     enb_status.gps_longitude = status.gps_longitude
     enb_status.gps_latitude = status.gps_latitude
     enb_status.fsm_state = status.fsm_state

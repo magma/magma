@@ -165,8 +165,8 @@ export default function AlarmsTable(props: Props) {
       <Table>
         <TableHead>
           <TableRow>
-            {columnNames.map(column => (
-              <HeadTableCell>{column}</HeadTableCell>
+            {columnNames.map((column, i) => (
+              <HeadTableCell key={i}>{column}</HeadTableCell>
             ))}
           </TableRow>
         </TableHead>

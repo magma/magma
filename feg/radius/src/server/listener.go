@@ -12,6 +12,7 @@ import (
 	"context"
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 )
 
 // ListenerInterface encapsulates runtime for concreate listeners
@@ -36,6 +37,7 @@ type ListenerInterface interface {
 		server *Server,
 		serverConfig config.ServerConfig,
 		listenerConfig config.ListenerConfig,
+		counters monitoring.ListenerCounters,
 	) error
 
 	// Shutdown Blocking call to shutting down a listener

@@ -9,5 +9,7 @@
  */
 
 export const STORY_CATEGORIES = {
-  MUI_COMPONENTS: 'MUI Components',
+  FOUNDATION: '1. Foundation',
+  INPUTS: '2. Inputs',
+  MUI_COMPONENTS: '3. MUI Components',
 };

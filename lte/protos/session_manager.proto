@@ -316,6 +316,7 @@ message CreditUpdateResponse {
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   ResponseType type = 5;
+  uint32 result_code = 6;
 }
 
 // PCRF USAGE MONITORING
@@ -363,6 +364,7 @@ message UsageMonitoringUpdateResponse {
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
+  uint32 result_code = 7;
 }
 
 

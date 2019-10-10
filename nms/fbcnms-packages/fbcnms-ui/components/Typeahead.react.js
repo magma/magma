@@ -104,6 +104,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
+  margin?: ?string,
   required: ?boolean,
   suggestions: Array<Suggestion>,
   onEntitySelected: Suggestion => void,
@@ -133,6 +134,7 @@ const Typeahead = (props: Props) => {
     value,
     variant,
     displayText,
+    margin,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
@@ -156,6 +158,7 @@ const Typeahead = (props: Props) => {
               },
             }}
             InputProps={{
+              margin,
               classes: {
                 root: classes.outlinedInput,
                 input: variant === 'small' ? classes.smallSuggest : '',
@@ -213,6 +216,7 @@ const Typeahead = (props: Props) => {
             required: !!required,
             placeholder: displayText ?? 'Search...',
             value: searchTerm,
+            margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
           }}
           highlightFirstSuggestion={true}

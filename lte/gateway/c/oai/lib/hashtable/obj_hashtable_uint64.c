@@ -42,6 +42,7 @@
 #include <pthread.h>
 #include <stdint.h>
 
+#include "assertions.h"
 #include "bstrlib.h"
 #include "obj_hashtable.h"
 #include "dynamic_memory_check.h"

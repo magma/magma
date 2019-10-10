@@ -63,6 +63,9 @@
           "METERING",
           "DPI",
           "ENFORCEMENT"
+        ],
+        "allowedUes": [
+         {"ip": "1.1.1.1", "key":123}
         ]
       },
       "subscriberdb": {

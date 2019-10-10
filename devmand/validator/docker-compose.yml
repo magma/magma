@@ -15,4 +15,3 @@ services:
       dockerfile: ./validator/Dockerfile
     volumes:
       - $PWD/validate.json:/validate.json:ro
-      - $PWD/validate.yang:/validate.yang:ro

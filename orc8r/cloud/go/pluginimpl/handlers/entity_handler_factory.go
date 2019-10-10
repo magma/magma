@@ -13,6 +13,7 @@ import (
 
 	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/labstack/echo"
@@ -21,13 +22,13 @@ import (
 // PartialEntityModel describe models that represents a portion of network
 // entity that can be read and updated.
 type PartialEntityModel interface {
-	ValidatableModel
+	serde.ValidatableModel
 	// FromBackendModels the same PartialEntityModel from the configurator
 	// entities attached to the networkID and key.
 	FromBackendModels(networkID string, key string) error
 	// ToUpdateCriteria returns a EntityUpdateCriteria needed to apply
 	// the change in the model.
-	ToUpdateCriteria(networkID string, key string) (configurator.EntityUpdateCriteria, error)
+	ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error)
 }
 
 // GetPartialEntityHandlers returns both GET and PUT handlers for modifying the portion of a
@@ -106,11 +107,11 @@ func GetPartialUpdateEntityHandler(path string, paramName string, model PartialE
 				return nerr
 			}
 
-			update, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(networkID, key)
+			updates, err := requestedUpdate.(PartialEntityModel).ToUpdateCriteria(networkID, key)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntity(networkID, update)
+			_, err = configurator.UpdateEntities(networkID, updates)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

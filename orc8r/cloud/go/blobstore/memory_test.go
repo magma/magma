@@ -52,6 +52,15 @@ func TestMemoryBlobStorageStorage_CreateOrUpdate(t *testing.T) {
 	version2 := blob.Version
 
 	assert.True(t, version2 > version1)
+
+	// update blob version
+	blob1.Version = 10
+	assert.NoError(t, store.CreateOrUpdate(network1, []blobstore.Blob{blob1}))
+	blob, err = store.Get(network1, storage.TypeAndKey{Type: type1, Key: key1})
+	assert.Equal(t, err, nil)
+	assert.True(t, blobEqual(blob1, blob))
+
+	assert.True(t, blob.Version > version2)
 }
 
 func TestMemoryBlobStorage_Rollback(t *testing.T) {

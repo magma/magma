@@ -12,7 +12,8 @@ create_proto_dir("lte/gateway/c/oai" STATE_OUT_DIR)
 generate_cpp_protos("${SPGW_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
         "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 
-include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${STATE_OUT_DIR})
 
 add_library(TASK_SGW
     spgw_config.c
@@ -32,6 +33,7 @@ add_library(TASK_SGW
     spgw_state.cpp
     spgw_state_manager.cpp
     spgw_service_handler.c
+    spgw_state_converter.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

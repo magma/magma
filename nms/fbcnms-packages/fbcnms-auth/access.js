@@ -79,9 +79,14 @@ export const access = (level: AccessRoleLevel) => {
       req.originalUrl,
     );
     res.redirect(
-      addQueryParamsToUrl(req.access.loginUrl, {
-        to: req.originalUrl,
-      }),
+      // if there is a logged in user, we shouldn't redirect to login page
+      // because it would create an infinite loop since the login page redirects
+      // back if ther user is logged in
+      req.user
+        ? '/'
+        : addQueryParamsToUrl(req.access.loginUrl, {
+            to: req.originalUrl,
+          }),
     );
   };
 };

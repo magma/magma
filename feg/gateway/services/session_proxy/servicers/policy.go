@@ -279,10 +279,11 @@ func getSingleUsageMonitorResponseFromCCA(
 	request *gx.CreditControlRequest,
 ) *protos.UsageMonitoringUpdateResponse {
 	res := &protos.UsageMonitoringUpdateResponse{
-		Success:   answer.ResultCode == diameter.SuccessCode,
-		SessionId: request.SessionID,
-		Sid:       addSidPrefix(request.IMSI)}
-
+		Success:    answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+		SessionId:  request.SessionID,
+		Sid:        addSidPrefix(request.IMSI),
+		ResultCode: answer.ResultCode,
+	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
 		res.Credit =

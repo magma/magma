@@ -252,7 +252,7 @@ int esm_sap_send(esm_sap_t *msg)
           bearer_activate->mbr_ul,
           bearer_activate->tft,
           bearer_activate->pco,
-          bearer_activate->gtp_teid,
+          &bearer_activate->sgw_fteid,
           &esm_cause);
         if (rc != RETURNok) {
           break;

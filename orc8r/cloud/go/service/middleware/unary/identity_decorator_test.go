@@ -62,6 +62,12 @@ func (srv *testStateServer) DeleteStates(ctx context.Context, req *protos.Delete
 	return &protos.Void{}, nil
 }
 
+func (srv *testStateServer) SyncStates(ctx context.Context, req *protos.SyncStatesRequest) (*protos.SyncStatesResponse, error) {
+	srv.lastClientIdentity = proto.Clone(protos.GetClientIdentity(ctx)).(*protos.Identity)
+	srv.lastClientCertExpTime = protos.GetClientCertExpiration(ctx)
+	return &protos.SyncStatesResponse{UnsyncedStates: []*protos.IDAndVersion{}}, nil
+}
+
 func TestIdentityInjector(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)

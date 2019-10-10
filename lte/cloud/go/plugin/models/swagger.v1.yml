@@ -503,7 +503,7 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of all LTE gateways inside the network
+          description: Map of all LTE gateways inside the network by gatewayID
           schema:
             type: object
             additionalProperties:

@@ -8,10 +8,10 @@
  * @format
  */
 
-import type {CellularNetworkConfig} from '../../common/MagmaAPIType';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {network_cellular_configs} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
@@ -22,16 +22,16 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import VisibilityIcon from '@material-ui/icons/Visibility';
 import VisibilityOffIcon from '@material-ui/icons/VisibilityOff';
-import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {get, merge} from 'lodash';
 import {withRouter} from 'react-router-dom';
@@ -58,7 +58,7 @@ const styles = theme => ({
 });
 
 type State = {
-  config: ?CellularNetworkConfig,
+  config: ?network_cellular_configs,
   isLoading: boolean,
   lteAuthOpHex: string,
   showLteAuthOP: boolean,
@@ -75,13 +75,14 @@ class DataPlanConfig extends React.Component<Props, State> {
   };
 
   componentDidMount() {
-    axios
-      .get(MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'))
+    MagmaV1API.getLteByNetworkIdCellular({
+      networkId: nullthrows(this.props.match.params.networkId),
+    })
       .then(response =>
         this.setState({
-          config: response.data,
+          config: response,
           isLoading: false,
-          lteAuthOpHex: base64ToHex(response.data.epc.lte_auth_op),
+          lteAuthOpHex: base64ToHex(response.epc.lte_auth_op),
         }),
       )
       .catch(error => {
@@ -100,11 +101,13 @@ class DataPlanConfig extends React.Component<Props, State> {
       if (!this.state.config) {
         return;
       }
-      const newConfig = merge({}, this.state.config, {
+      const newConfig = {
+        ...this.state.config,
         [epcOrRan]: {
+          ...this.state.config[epcOrRan],
           [field]: evt.target.value,
         },
-      });
+      };
       this.setState({config: newConfig});
     };
   };
@@ -123,14 +126,9 @@ class DataPlanConfig extends React.Component<Props, State> {
       }),
     });
   };
-  handleEarfcndlChanged = this.updateNetworkConfigField('ran', 'earfcndl');
   handleMccChanged = this.updateNetworkConfigField('epc', 'mcc');
   handleMncChanged = this.updateNetworkConfigField('epc', 'mnc');
   handleTacChanged = this.updateNetworkConfigField('epc', 'tac');
-  handleUploadDownloadRatioChanged = this.updateNetworkConfigField(
-    'ran',
-    'ul_dl_ratio',
-  );
 
   handleMouseDownPassword = event => {
     event.preventDefault();
@@ -182,16 +180,6 @@ class DataPlanConfig extends React.Component<Props, State> {
           />
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
-          <TextField
-            required
-            label="EARFCNDL"
-            margin="normal"
-            className={classes.textField}
-            value={config.ran.earfcndl}
-            onChange={this.handleEarfcndlChanged}
-          />
-        </FormGroup>
-        <FormGroup row className={classes.formGroup}>
           <FormControl
             className={classes.textField}
             error={!isValidHex(lteAuthOpHex)}>
@@ -229,15 +217,6 @@ class DataPlanConfig extends React.Component<Props, State> {
               <MenuItem value={20}>20</MenuItem>
             </Select>
           </FormControl>
-          <FormControl className={classes.select}>
-            <InputLabel htmlFor="">DL:UL Ratio</InputLabel>
-            <Select
-              value={config.ran.ul_dl_ratio || 2}
-              onChange={this.handleUploadDownloadRatioChanged}>
-              <MenuItem value={2}>3:1</MenuItem>
-              <MenuItem value={1}>1:1</MenuItem>
-            </Select>
-          </FormControl>
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
           <Button
@@ -254,12 +233,17 @@ class DataPlanConfig extends React.Component<Props, State> {
   }
 
   handleSave = () => {
-    const {config} = this.state;
-    axios
-      .put(
-        MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-        config,
-      )
+    const config = nullthrows(this.state.config);
+    MagmaV1API.putLteByNetworkIdCellular({
+      networkId: nullthrows(this.props.match.params.networkId),
+      config: {
+        ...config,
+        epc: {
+          ...config.epc,
+          tac: parseInt(config.epc.tac),
+        },
+      },
+    })
       .then(_resp => {
         this.props.alert('Saved successfully');
       })

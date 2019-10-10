@@ -8,13 +8,16 @@
             "category_id": "958",
             "prefix": "goradius",
             "access_token": "$MONITORING_ACCESS_TOKEN",
-            "entity": "goradius",
+            "entity": "goradius.$PARTNER_SHORT_NAME",
             "graph_url": "https://graph.facebook.com/ods_metrics",
             "unique_entity": true
         },
         "scuba": {
             "access_token": "$MONITORING_ACCESS_TOKEN",
-            
+            "graph_url": "https://graph.facebook.com/scribe_logs",
+            "batch_size": 15,
+            "flush_interval_sec": 2,
+            "message_queue_size": 2000            
         }
     },
     "server": {

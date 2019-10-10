@@ -32,6 +32,14 @@ func ValidateDeleteStatesRequest(req *protos.DeleteStatesRequest) error {
 	return nil
 }
 
+// ValidateSyncStatesRequest checks that all required fields exist
+func ValidateSyncStatesRequest(req *protos.SyncStatesRequest) error {
+	if req.GetStates() == nil || len(req.GetStates()) == 0 {
+		return errors.New("States value must be specified and non-empty")
+	}
+	return nil
+}
+
 // PartitionStatesBySerializability checks that each state is deserializable.
 // If a state is not deserializable, we will send back the states type, key, and error.
 func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*protos.State, []*protos.IDAndError, error) {
@@ -43,15 +51,25 @@ func PartitionStatesBySerializability(req *protos.ReportStatesRequest) ([]*proto
 		return nil, nil, errors.New("States value must be specified and non-empty")
 	}
 	for _, state := range states {
-		_, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
+		model, err := serde.Deserialize(stateservice.SerdeDomain, state.GetType(), state.GetValue())
 		if err != nil {
 			stateAndError := &protos.IDAndError{
 				Type:     state.Type,
 				DeviceID: state.DeviceID,
-				Error:    err.Error(),
+				Error:    err.Error(), // deserialization error
 			}
 			invalidStates = append(invalidStates, stateAndError)
 		} else {
+			if err := model.(serde.ValidateableBinaryConvertible).ValidateModel(); err != nil {
+				stateAndError := &protos.IDAndError{
+					Type:     state.Type,
+					DeviceID: state.DeviceID,
+					Error:    err.Error(), // validation error
+				}
+				invalidStates = append(invalidStates, stateAndError)
+				continue
+			}
+
 			validatedStates = append(validatedStates, state)
 		}
 	}
