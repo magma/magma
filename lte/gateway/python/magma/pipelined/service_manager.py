@@ -29,6 +29,7 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
+from concurrent.futures import Future
 from collections import namedtuple, OrderedDict
 from typing import List
 
@@ -48,6 +49,7 @@ from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
@@ -194,6 +196,7 @@ class ServiceManager:
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
+    STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -236,12 +239,17 @@ class ServiceManager:
         RYU_REST_SERVICE_NAME: [
             App(name='ryu_rest_app', module='ryu.app.ofctl_rest'),
         ],
+        STARTUP_FLOWS_RECIEVER_CONTROLLER: [
+            App(name=StartupFlows.APP_NAME,
+                module=StartupFlows.__module__),
+        ]
     }
 
     # Some apps do not use a table, so they need to be excluded from table
     # allocation.
     STATIC_SERVICE_WITH_NO_TABLE = [
         RYU_REST_SERVICE_NAME,
+        STARTUP_FLOWS_RECIEVER_CONTROLLER,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -313,6 +321,7 @@ class ServiceManager:
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop
         contexts['service_manager'] = self
+        contexts['app_futures'] = {'startup_flows': Future()}
 
         records_chan = ServiceRegistry.get_rpc_channel(
             'meteringd_records', ServiceRegistry.CLOUD)
