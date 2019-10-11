@@ -473,7 +473,6 @@ func TestCwfGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-
 	// Test DeleteGateway
 	tc = tests.Test{
 		Method:         "DELETE",

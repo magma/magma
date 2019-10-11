@@ -15,6 +15,7 @@ import platform
 import time
 import netifaces
 from typing import NamedTuple, List, Any, Dict, Optional, Tuple
+from collections import KeysView
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,
@@ -23,12 +24,8 @@ from magma.common.misc_utils import (
     IpPreference,
 )
 from magma.common.service import MagmaService
-from magma.magmad.check.machine_check.cpu_info import (
-    get_cpu_info,
-)
-from magma.magmad.check.network_check.routing_table import (
-    get_routing_table,
-)
+from magma.magmad.check.machine_check.cpu_info import get_cpu_info
+from magma.magmad.check.network_check.routing_table import get_routing_table
 from magma.magmad.check.kernel_check.kernel_versions import (
     get_kernel_versions_async,
 )
@@ -87,11 +84,6 @@ NetworkInterface = NamedTuple(
      ('ip_addresses', List[str]), ('status', str),
      ('ipv6_addresses', List[str])])
 
-Route = NamedTuple(
-    'Route',
-    [('destination_ip', str), ('gateway_ip', str),
-     ('genmask', str), ('network_interface_id', str)])
-
 
 class KernelVersionsPoller(Job):
     """
@@ -107,7 +99,7 @@ class KernelVersionsPoller(Job):
         self._kernel_versions_installed = []
 
     def get_kernel_versions_installed(self) -> List[str]:
-        """ returns the latest list of kernel versions gathered from _run"""
+        """ returns the latest list of kernel versions gathered from _run """
         return self._kernel_versions_installed
 
     async def _run(self):
@@ -122,9 +114,9 @@ class KernelVersionsPoller(Job):
 class GatewayStatusFactory:
     """
     GatewayStatusFactory is used to generate an object with information about
-    the gateway. get_serialized_status is the public interface used to generate the
-    gateway status object. The object mimics the swagger spec for GatewayStatus
-    defined in the orc8r.
+    the gateway. get_serialized_status is the public interface used to generate
+    the gateway status object. The object mimics the swagger spec for
+    GatewayStatus defined in the orc8r.
     """
     def __init__(self, service: MagmaService,
                  service_poller: ServicePoller,
@@ -163,12 +155,14 @@ class GatewayStatusFactory:
         )
         gw_status, meta_services = self._fill_in_meta(gw_status)
 
-        has_required_service_meta = self._meta_has_required_services(meta_services)
-        return json.dumps(gw_status._asdict()), has_required_service_meta
+        has_required_service_meta = \
+            self._meta_has_required_services(meta_services)
+        return json.dumps(gw_status._asdict(), default=str), \
+               has_required_service_meta
 
     def _fill_in_meta(
         self, gw_status: GatewayStatus
-    ) -> Tuple[GatewayStatus, List[str]]:
+    ) -> Tuple[GatewayStatus, KeysView]:
         service_status_meta = self._gather_service_status_meta()
         for statusmeta in service_status_meta.values():
             gw_status.meta.update(statusmeta)
@@ -295,14 +289,6 @@ class GatewayStatusFactory:
                     ipv6_addresses=ipv6_addresses,
                 )
 
-        def make_route(route) -> Route:
-            return Route(
-                destination_ip=route.destination,
-                gateway_ip=route.gateway,
-                genmask=route.genmask,
-                network_interface_id=route.interface,
-            )
-
         routing_cmd_result = get_routing_table()
         if routing_cmd_result.error is not None:
             logging.error("Failed to get routing table: %s",
@@ -312,9 +298,7 @@ class GatewayStatusFactory:
             network_interfaces=[
                 network_interface._asdict() for network_interface in
                 network_interface_gen()],
-            routing_table=[
-                make_route(route)._asdict() for
-                route in routing_cmd_result.routing_table],
+            routing_table=routing_cmd_result.routing_table,
         )
         return network_info
 
