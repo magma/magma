@@ -65,6 +65,12 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
 			SubProfile: "default",
 		},
+		{
+			Sid:        &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI},
+			Lte:        &protos.LTESubscription{State: protos.LTESubscription_INACTIVE},
+			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
 	}
 	expected := funk.Map(
 		expectedProtos,
