@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// AllowedUe allowed ue
-// swagger:model allowed_ue
-type AllowedUe struct {
+// AllowedGrePeer allowed gre peer
+// swagger:model allowed_gre_peer
+type AllowedGrePeer struct {
 
 	// ip
 	// Required: true
@@ -27,8 +27,8 @@ type AllowedUe struct {
 	Key uint32 `json:"key"`
 }
 
-// Validate validates this allowed ue
-func (m *AllowedUe) Validate(formats strfmt.Registry) error {
+// Validate validates this allowed gre peer
+func (m *AllowedGrePeer) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateIP(formats); err != nil {
@@ -45,7 +45,7 @@ func (m *AllowedUe) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AllowedUe) validateIP(formats strfmt.Registry) error {
+func (m *AllowedGrePeer) validateIP(formats strfmt.Registry) error {
 
 	if err := validate.Required("ip", "body", strfmt.IPv4(m.IP)); err != nil {
 		return err
@@ -58,7 +58,7 @@ func (m *AllowedUe) validateIP(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AllowedUe) validateKey(formats strfmt.Registry) error {
+func (m *AllowedGrePeer) validateKey(formats strfmt.Registry) error {
 
 	if err := validate.Required("key", "body", uint32(m.Key)); err != nil {
 		return err
@@ -68,7 +68,7 @@ func (m *AllowedUe) validateKey(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *AllowedUe) MarshalBinary() ([]byte, error) {
+func (m *AllowedGrePeer) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -76,8 +76,8 @@ func (m *AllowedUe) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *AllowedUe) UnmarshalBinary(b []byte) error {
-	var res AllowedUe
+func (m *AllowedGrePeer) UnmarshalBinary(b []byte) error {
+	var res AllowedGrePeer
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
