@@ -64,7 +64,7 @@
           "DPI",
           "ENFORCEMENT"
         ],
-        "allowedUes": [
+        "allowedGrePeers": [
          {"ip": "1.1.1.1", "key":123}
         ]
       },
