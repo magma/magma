@@ -19,7 +19,7 @@ from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 
 from magma.pipelined.app.base import MagmaController
-from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.policy_mixin import PolicyMixin, global_epoch
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.imsi import decode_imsi, encode_imsi
@@ -31,7 +31,6 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
-global_epoch = int(time.time())
 
 
 class RelayDisabledException(Exception):
