@@ -33,7 +33,7 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
 from magma.pipelined.tests.pipelined_test_util import FlowVerifier, \
     create_service_manager, get_enforcement_stats, start_ryu_app_thread, \
     stop_ryu_app_thread, wait_after_send, wait_for_enforcement_stats, \
-    FlowTest, SnapshotVerifier
+    FlowTest, SnapshotVerifier, fake_controller_setup
 from scapy.all import IP
 
 
@@ -79,15 +79,18 @@ class EnforcementStatsTest(unittest.TestCase):
 
         test_setup = TestSetup(
             apps=[PipelinedController.Enforcement,
+                  PipelinedController.Enforcement_stats,
                   PipelinedController.Testing,
-                  PipelinedController.Enforcement_stats],
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.Enforcement_stats:
-                    enf_stat_ref
+                    enf_stat_ref,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'bridge_name': self.BRIDGE,
@@ -96,6 +99,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
+                'clean_restart': True,
             },
             mconfig=PipelineD(
                 relay_enabled=True,
@@ -144,6 +148,8 @@ class EnforcementStatsTest(unittest.TestCase):
             DOWNLINK policy matches 256 packets (*34 = 8704 bytes)
             No other stats are reported
         """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.74'
         num_pkts_tx_match = 128
@@ -231,6 +237,8 @@ class EnforcementStatsTest(unittest.TestCase):
         Assert:
             1 Packet is matched and reported
         """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.enforcement_controller._redirect_manager._dns_cache.get(
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
@@ -294,6 +302,8 @@ class EnforcementStatsTest(unittest.TestCase):
             Policy classification flows installed in enforcement
             Policy match flows installed in enforcement_stats
         """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.74'
 
@@ -356,6 +366,8 @@ class EnforcementStatsTest(unittest.TestCase):
             Flows are deleted
             No other stats are reported
         """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.74'
         num_pkts_tx_match = 128
@@ -455,6 +467,8 @@ class EnforcementStatsTest(unittest.TestCase):
             New flows are installed
             No other stats are reported
         """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.74'
         num_pkts_tx_match = 128
