@@ -4,6 +4,20 @@ else ()
   set(GCOV_LIB "")
 endif ()
 
+# compile the needed protos
+set(COMMON_CPP_PROTOS  common_types)
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/gateway/c/oai/protos")
+generate_cpp_protos("${COMMON_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
+
+message("Proto_srcs are ${PROTO_SRCS}")
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${LTE_OUT_DIR})
+
+
 ###############################################################################
 # Core Network Utils
 ###############################################################################
@@ -26,6 +40,9 @@ set(COMMON_SRC
   pid_file.c
   shared_ts_log.c
   log.c
+  state_converter.cpp
+  ${PROTO_SRCS}
+  ${PROTO_HDRS}
 )
 
 add_subdirectory(glogwrapper)

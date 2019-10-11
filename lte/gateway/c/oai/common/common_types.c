@@ -80,8 +80,27 @@ bstring fteid_ip_address_to_bstring(const struct fteid_s *const fteid)
   return bstr;
 }
 
+void get_fteid_ip_address(
+  const struct fteid_s *const fteid,
+  ip_address_t *const ip_address)
+{
+  if (fteid->ipv4) {
+    ip_address->pdn_type = IPv4;
+    memcpy(&ip_address->address.ipv4_address, &fteid->ipv4_address, 4);
+  }
+
+  if (fteid->ipv6) {
+    ip_address->pdn_type = IPv6;
+    memcpy(&ip_address->address.ipv6_address, &fteid->ipv6_address, 16);
+  }
+
+  if (fteid->ipv4 && fteid->ipv6) {
+    ip_address->pdn_type = IPv4_AND_v6;
+  }
+}
+
 //------------------------------------------------------------------------------
-bstring ip_address_to_bstring(ip_address_t *ip_address)
+bstring ip_address_to_bstring(const ip_address_t *ip_address)
 {
   bstring bstr = NULL;
   switch (ip_address->pdn_type) {
@@ -133,7 +152,7 @@ void copy_paa(paa_t *paa_dst, paa_t *paa_src)
 }
 
 //------------------------------------------------------------------------------
-bstring paa_to_bstring(paa_t *paa)
+bstring paa_to_bstring(const paa_t *paa)
 {
   bstring bstr = NULL;
   switch (paa->pdn_type) {
@@ -156,4 +175,26 @@ bstring paa_to_bstring(paa_t *paa)
     default:;
   }
   return bstr;
+}
+
+void bstring_to_paa(const bstring bstr, paa_t *paa)
+{
+  if (bstr) {
+    switch (blength(bstr)) {
+      case 4:
+        paa->pdn_type = IPv4;
+        memcpy(&paa->ipv4_address, bstr->data, blength(bstr));
+        break;
+      case 8:
+        paa->pdn_type = IPv6;
+        memcpy(&paa->ipv6_address, bstr->data, blength(bstr));
+        break;
+      case 12:
+        paa->pdn_type = IPv4_AND_v6;
+        memcpy(&paa->ipv4_address, bstr->data, 4);
+        memcpy(&paa->ipv6_address, &bstr->data[4], 8);
+        break;
+      default: break;
+    }
+  }
 }

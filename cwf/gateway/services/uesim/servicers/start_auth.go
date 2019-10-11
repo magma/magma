@@ -32,5 +32,5 @@ func (srv *UESimServer) CreateEAPIdentityRequest(imsi string) (radius.Packet, er
 	}
 
 	// Set packet Identifier to 0.
-	return EapToRadius(eapReponse, 0)
+	return srv.EapToRadius(eapReponse, imsi, 0)
 }

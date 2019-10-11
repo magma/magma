@@ -8,35 +8,31 @@
  * @format
  */
 
-import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {MagmaFeatureCollection} from '../../common/GeoJSON';
+import type {magmad_gateway} from '../../common/__generated__/MagmaAPIBindings';
 
 import Alert from '@fbcnms/ui/components/Alert/Alert';
 import GatewayMapMarker from './GatewayMapMarker';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaTopBar from '../MagmaTopBar';
+import MagmaV1API from '../../common/MagmaV1API';
 import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {get} from 'lodash';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
+import {map} from 'lodash';
+import {useEffect, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-function buildGeoJson(gateways): MagmaFeatureCollection {
+function buildGeoJson(gateways: Array<magmad_gateway>): MagmaFeatureCollection {
   const features = (gateways || [])
     .map((gateway, i) => {
-      let longitude =
-        parseFloat(get(gateway, 'status.meta.gps_longitude', '0')) || 0;
+      let longitude = parseFloat(gateway.status?.meta?.gps_longitude || 0);
       if (longitude > 1000000 || longitude < -1000000) {
         // There's a bug in the enodeb that doesn't include the decimal point.
         // This is the best fix we can do for now.
         longitude = longitude / 1000000;
       }
-      const latitude =
-        parseFloat(get(gateway, 'status.meta.gps_latitude', '0')) || 0;
-
+      const latitude = parseFloat(gateway.status?.meta?.gps_latitude || 0);
       // exclude gateways without valid coordinates
       // TODO: enable this after development is done
       // if (longitude === 0 && latitude === 0) {
@@ -64,15 +60,18 @@ function buildGeoJson(gateways): MagmaFeatureCollection {
   };
 }
 
-function Insights() {
+export default function Insights() {
   const {match} = useRouter();
   const networkId = match.params.networkId || '';
 
   const [showDialog, setShowDialog] = useState(false);
-  const {error, isLoading, response} = useAxios<null, CheckindGateway[]>({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(networkId, true),
-  });
+  const [gateways, setGateways] = useState<?Array<magmad_gateway>>();
+  const [error, setError] = useState();
+  useEffect(() => {
+    MagmaV1API.getNetworksByNetworkIdGateways({networkId})
+      .then(response => setGateways(map(response, g => g)))
+      .catch(error => setError(error));
+  }, [networkId]);
 
   if (error) {
     return (
@@ -84,22 +83,16 @@ function Insights() {
       />
     );
   }
-  if (isLoading || !response) {
+
+  if (!gateways) {
     return (
       <Paper elevation={2}>
         <LoadingFiller />
       </Paper>
     );
   }
-  const gateways = response.data.filter(state => state.record);
+
   return (
     <MapView geojson={buildGeoJson(gateways)} MapMarker={GatewayMapMarker} />
   );
 }
-
-export default () => (
-  <>
-    <MagmaTopBar />
-    <Insights />
-  </>
-);

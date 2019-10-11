@@ -91,7 +91,7 @@ class TestEnbPartialReset(unittest.TestCase):
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
-        reset_req.u = s1ap_types.U()
+        #reset_req.u = s1ap_types.U()
         reset_req.u.partialRst = s1ap_types.PartialReset()
         reset_req.u.partialRst.numOfConn = num_ues
         reset_req.u.partialRst.ueIdLst = \

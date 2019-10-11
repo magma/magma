@@ -1047,6 +1047,7 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
                 <rule avp="Proxy-Info" required="false" max="1"/>
                 <rule avp="Route-Record" required="false" max="1"/>
                 <rule avp="Framed-IP-Address" required="false" max="1"/>
+                <rule avp="Framed-IPv6-Prefix" required="false"/>
                 <rule avp="IP-CAN-Type" required="false" max="1"/>
                 <rule avp="Called-Station-Id" required="false" max="1"/>
                 <rule avp="RAT-Type" required="false" max="1"/>
@@ -2691,6 +2692,11 @@ var tgpprorfXML = `<?xml version="1.0" encoding="UTF-8"?>
 		</avp>
 
 		<avp name="Bearer-Capability" code="3412" must="V,M" may="P" must-not="-" may-encrypt="N" vendor-id="10415">
+			<data type="OctetString"/>
+		</avp>
+
+		<avp name="Bearer-Identifier" code="1020" must="V,M" may="P" must-not="-" may-encrypt="Y" vendor-id="10415">
+			<!-- 3GPP TS 29.212 section 5.3.20 -->
 			<data type="OctetString"/>
 		</avp>
 

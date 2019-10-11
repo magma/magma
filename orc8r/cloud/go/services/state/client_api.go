@@ -29,19 +29,21 @@ import (
 type State struct {
 	// ID of the entity reporting the state (hwID, cert serial number, etc)
 	ReporterID string
-	// Checkin Time
-	Time uint64
-	// Cert expiration Time
+	// TimeMs received in millisecond
+	TimeMs uint64
+	// Cert expiration TimeMs
 	CertExpirationTime int64
 	ReportedState      interface{}
+	Version            uint64
 }
 
 // SerializedStateWithMeta includes reported operational states and additional info
 type SerializedStateWithMeta struct {
 	ReporterID              string
-	Time                    uint64
+	TimeMs                  uint64
 	CertExpirationTime      int64
 	SerializedReportedState []byte
+	Version                 uint64
 }
 
 // StateID contains the identifying information of a state
@@ -54,7 +56,7 @@ type StateID struct {
 var connSingleton = (*grpc.ClientConn)(nil)
 var connGuard = sync.Mutex{}
 
-func getStateClient() (protos.StateServiceClient, error) {
+func GetStateClient() (protos.StateServiceClient, error) {
 	if connSingleton == nil {
 		// Reading the conn optimistically to avoid unnecessary overhead
 		connGuard.Lock()
@@ -75,7 +77,7 @@ func getStateClient() (protos.StateServiceClient, error) {
 
 // GetState returns the state specified by the networkID, typeVal, and hwID
 func GetState(networkID string, typeVal string, hwID string) (State, error) {
-	client, err := getStateClient()
+	client, err := GetStateClient()
 	if err != nil {
 		return State{}, err
 	}
@@ -103,7 +105,11 @@ func GetState(networkID string, typeVal string, hwID string) (State, error) {
 
 // GetStates returns a map of states specified by the networkID and a list of type and key
 func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) {
-	client, err := getStateClient()
+	if len(stateIDs) == 0 {
+		return map[StateID]State{}, nil
+	}
+
+	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +123,6 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 	if err != nil {
 		return nil, err
 	}
-
 	idToValue := map[StateID]State{}
 	for _, pState := range res.States {
 		stateID := StateID{Type: pState.Type, DeviceID: pState.DeviceID}
@@ -132,7 +137,7 @@ func GetStates(networkID string, stateIDs []StateID) (map[StateID]State, error) 
 
 // DeleteStates deletes states specified by the networkID and a list of type and key
 func DeleteStates(networkID string, stateIDs []StateID) error {
-	client, err := getStateClient()
+	client, err := GetStateClient()
 	if err != nil {
 		return err
 	}
@@ -177,7 +182,7 @@ func fillInGatewayStatusState(state State) *models.GatewayStatus {
 	}
 
 	gwStatus := state.ReportedState.(*models.GatewayStatus)
-	gwStatus.CheckinTime = state.Time
+	gwStatus.CheckinTime = state.TimeMs
 	gwStatus.CertExpirationTime = state.CertExpirationTime
 	gwStatus.HardwareID = state.ReporterID
 	return gwStatus
@@ -200,9 +205,10 @@ func toState(pState *protos.State) (State, error) {
 	iReportedState, err := serde.Deserialize(SerdeDomain, pState.Type, serialized.SerializedReportedState)
 	state := State{
 		ReporterID:         serialized.ReporterID,
-		Time:               serialized.Time,
+		TimeMs:             serialized.TimeMs,
 		CertExpirationTime: serialized.CertExpirationTime,
 		ReportedState:      iReportedState,
+		Version:            pState.Version,
 	}
 	return state, err
 }

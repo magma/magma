@@ -35,17 +35,17 @@ feg:
     url: https://github.com/facebookincubator/magma/
     branch: master
   bind:
-    S6A_LOCAL_PORT: 3868
-    S6A_HOST_PORT: 3869
+    S6A_LOCAL_PORT: 3871
+    S6A_HOST_PORT: 3871
     S6A_NETWORK: sctp
     SWX_LOCAL_PORT: 3868
     SWX_HOST_PORT: 3868
     SWX_NETWORK: sctp
-    GX_LOCAL_PORT: 3907
-    GX_HOST_PORT: 0
+    GX_LOCAL_PORT: 3870
+    GX_HOST_PORT: 3870
     GX_NETWORK: tcp
-    GY_LOCAL_PORT: 3906
-    GY_HOST_PORT: 0
+    GY_LOCAL_PORT: 3869
+    GY_HOST_PORT: 3869
     GY_NETWORK: tcp
 
 ## Key Values for VM running using virtlet runtime
@@ -72,7 +72,6 @@ pod:
       limits:
         memory: "4096Mi"
         cpu: "2000m"
-
 service:
   type: LoadBalancer
   ports:

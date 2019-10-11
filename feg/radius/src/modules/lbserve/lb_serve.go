@@ -23,12 +23,12 @@ const errMissingRequiredUpstreamHostText = "session state required field upstrea
 var errMissingRequiredUpstreamHost = errors.New(errMissingRequiredUpstreamHostText)
 
 // Init module interface implementation
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
-	return nil
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	return nil, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
 	state, err := c.SessionStorage.Get()
 	if err != nil {
 		c.Logger.Error(

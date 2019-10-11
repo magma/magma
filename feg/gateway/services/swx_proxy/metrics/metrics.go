@@ -8,7 +8,21 @@ LICENSE file in the root directory of this source tree.
 
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"fmt"
+	"strings"
+
+	mconfigprotos "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/registry"
+	service_health_metrics "magma/feg/gateway/service_health/metrics"
+	"magma/orc8r/gateway/mconfig"
+
+	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
+)
+
+const DefaultRequestFailureThreshold = 0.50
+const DefaultMinimumRequiredRequests = 1
 
 // Prometheus counters are monotonically increasing
 // Counters reset to zero on service restart
@@ -93,4 +107,107 @@ func init() {
 		SARSendFailures, SwxTimeouts, SwxUnparseableMsg, SwxInvalidSessions,
 		SwxResultCodes, SwxExperimentalResultCodes, UnauthorizedAuthAttempts,
 		MARLatency, SARLatency, AuthLatency, RegisterLatency, DeregisterLatency)
+}
+
+type SwxHealthMetrics struct {
+	MarTotal        int64
+	MarSendFailures int64
+	SarTotal        int64
+	SarSendFailures int64
+	Timeouts        int64
+	UnparseableMsg  int64
+}
+
+type SwxHealthTracker struct {
+	Metrics                 *SwxHealthMetrics
+	RequestFailureThreshold float32
+	MinimumRequestThreshold uint32
+}
+
+func NewSwxHealthTracker() *SwxHealthTracker {
+	initMetrics := &SwxHealthMetrics{
+		MarTotal:        0,
+		MarSendFailures: 0,
+		SarTotal:        0,
+		SarSendFailures: 0,
+		Timeouts:        0,
+		UnparseableMsg:  0,
+	}
+	defaultHealthTracker := &SwxHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: float32(DefaultRequestFailureThreshold),
+		MinimumRequestThreshold: uint32(DefaultMinimumRequiredRequests),
+	}
+	swxCfg := &mconfigprotos.SwxConfig{}
+	err := mconfig.GetServiceConfigs(strings.ToLower(registry.SWX_PROXY), swxCfg)
+	if err != nil {
+		return defaultHealthTracker
+	}
+	reqFailureThreshold := swxCfg.GetRequestFailureThreshold()
+	minReqThreshold := swxCfg.GetMinimumRequestThreshold()
+	if reqFailureThreshold == 0 {
+		glog.Info("Request failure threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	if minReqThreshold == 0 {
+		glog.Info("Minimum request threshold cannot be 0; Using default health parameters...")
+		return defaultHealthTracker
+	}
+	return &SwxHealthTracker{
+		Metrics:                 initMetrics,
+		RequestFailureThreshold: reqFailureThreshold,
+		MinimumRequestThreshold: minReqThreshold,
+	}
+}
+
+func GetCurrentHealthMetrics() (*SwxHealthMetrics, error) {
+	marTotal, err := service_health_metrics.GetInt64("mar_requests_total")
+	if err != nil {
+		return nil, err
+	}
+	marSendFailures, err := service_health_metrics.GetInt64("mar_send_failures_total")
+	if err != nil {
+		return nil, err
+	}
+	sarTotal, err := service_health_metrics.GetInt64("sar_requests_total")
+	if err != nil {
+		return nil, err
+	}
+	sarSendFailures, err := service_health_metrics.GetInt64("sar_send_failures_total")
+	if err != nil {
+		return nil, err
+	}
+	timeouts, err := service_health_metrics.GetInt64("swx_timeouts_total")
+	if err != nil {
+		return nil, err
+	}
+	unparseable, err := service_health_metrics.GetInt64("swx_unparseable_msg_total")
+	if err != nil {
+		return nil, err
+	}
+	return &SwxHealthMetrics{
+		MarTotal:        marTotal,
+		MarSendFailures: marSendFailures,
+		SarTotal:        sarTotal,
+		SarSendFailures: sarSendFailures,
+		Timeouts:        timeouts,
+		UnparseableMsg:  unparseable,
+	}, nil
+}
+
+func (prevMetrics *SwxHealthMetrics) GetDelta(currentMetrics *SwxHealthMetrics) (*SwxHealthMetrics, error) {
+	if currentMetrics == nil {
+		return nil, fmt.Errorf("Nil current swxHealthMetrics struct provided")
+	}
+	deltaMetrics := &SwxHealthMetrics{
+		MarTotal:        currentMetrics.MarTotal - prevMetrics.MarTotal,
+		MarSendFailures: currentMetrics.MarSendFailures - prevMetrics.MarSendFailures,
+		SarTotal:        currentMetrics.SarTotal - prevMetrics.SarTotal,
+		SarSendFailures: currentMetrics.SarSendFailures - prevMetrics.SarSendFailures,
+		Timeouts:        currentMetrics.Timeouts - prevMetrics.Timeouts,
+		UnparseableMsg:  currentMetrics.UnparseableMsg - prevMetrics.UnparseableMsg,
+	}
+	// Update stored counts to current metric totals
+	*prevMetrics = *currentMetrics
+	return deltaMetrics, nil
 }

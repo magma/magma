@@ -8,6 +8,7 @@
  * @format
  */
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout.react';
@@ -15,7 +16,9 @@ import ProfileIcon from '../icons/ProfileIcon.react';
 import React, {useState} from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
+import {Events, GeneralLogger} from '@fbcnms/ui/utils/Logging';
 import {makeStyles} from '@material-ui/styles';
+import {useFeatureFlag} from '@fbcnms/ui/hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -76,6 +79,7 @@ const ProfileButton = (props: Props) => {
   const {relativeUrl, history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
+  const showDocs = useFeatureFlag(AppContext, 'documents_site');
 
   return (
     <Popout
@@ -89,6 +93,7 @@ const ProfileButton = (props: Props) => {
             classes={{gutters: classes.itemGutters}}
             button
             onClick={() => {
+              GeneralLogger.info(Events.SETTINGS_CLICKED);
               toggleProfileMenu(false);
               history.push(relativeUrl('/settings'));
             }}
@@ -97,6 +102,20 @@ const ProfileButton = (props: Props) => {
               Settings
             </Typography>
           </ListItem>
+          {showDocs && (
+            <ListItem
+              classes={{gutters: classes.itemGutters}}
+              button
+              href={'/docs/docs/inventory-intro.html'}
+              onClick={() =>
+                GeneralLogger.info(Events.DOCUMENTATION_LINK_CLICKED)
+              }
+              component="a">
+              <Typography className={classes.profileItemText}>
+                Documentation
+              </Typography>
+            </ListItem>
+          )}
           <ListItem
             classes={{gutters: classes.itemGutters}}
             button

@@ -1,2 +1,4 @@
 [ovs_build]
-$YOURHOSTNAME_OR_IP ansible_ssh_port=22 ansible_ssh_user=vagrant ansible_ssh_private_key_file=~/.vagrant.d/insecure_private_key
+10.0.2.1 ansible_ssh_port=22 ansible_ssh_user=magma ansible_ssh_private_key_file=~/.ssh/id_rsa
+[ovs_deploy]
+10.0.2.1 ansible_ssh_port=22 ansible_ssh_user=magma ansible_ssh_private_key_file=~/.ssh/id_rsa

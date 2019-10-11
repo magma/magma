@@ -45,8 +45,22 @@ message DeleteStatesRequest {
     repeated StateID ids = 2;
 }
 
+message SyncStatesRequest {
+   repeated IDAndVersion states = 1;
+}
+
+message IDAndVersion {
+    StateID id = 1;
+    uint64 version = 2;
+}
+
+message SyncStatesResponse {
+    repeated IDAndVersion unsyncedStates = 1;
+}
+
 service StateService {
     rpc GetStates (GetStatesRequest) returns (GetStatesResponse) {}
     rpc ReportStates(ReportStatesRequest) returns (ReportStatesResponse) {}
     rpc DeleteStates(DeleteStatesRequest) returns (Void) {}
+    rpc SyncStates(SyncStatesRequest) returns (SyncStatesResponse) {}
 }

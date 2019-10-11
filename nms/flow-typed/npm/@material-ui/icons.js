@@ -12,6 +12,10 @@ type SvgIconExports = {
   viewBox?: string
 };
 
+declare module "@material-ui/icons/CloudUploadOutlined" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/AcUnit" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -1944,6 +1948,10 @@ declare module "@material-ui/icons/List" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/ListAlt" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/LiveHelp" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -3117,6 +3125,10 @@ declare module "@material-ui/icons/SignalCellular3Bar" {
 }
 
 declare module "@material-ui/icons/SignalCellular4Bar" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/SignalCellularAlt" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
@@ -4356,6 +4368,7 @@ declare module "@material-ui/icons" {
       Link: $Exports<"@material-ui/icons/Link">,
       LinkedCamera: $Exports<"@material-ui/icons/LinkedCamera">,
       List: $Exports<"@material-ui/icons/List">,
+      ListAlt: $Exports<"@material-ui/icons/ListAlt">,
       LiveHelp: $Exports<"@material-ui/icons/LiveHelp">,
       LiveTv: $Exports<"@material-ui/icons/LiveTv">,
       LocalActivity: $Exports<"@material-ui/icons/LocalActivity">,
@@ -4650,6 +4663,7 @@ declare module "@material-ui/icons" {
       SignalCellular2Bar: $Exports<"@material-ui/icons/SignalCellular2Bar">,
       SignalCellular3Bar: $Exports<"@material-ui/icons/SignalCellular3Bar">,
       SignalCellular4Bar: $Exports<"@material-ui/icons/SignalCellular4Bar">,
+      SignalCellularAlt: $Exports<"@material-ui/icons/SignalCellularAlt">,
       SignalCellularConnectedNoInternet0Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet0Bar">,
       SignalCellularConnectedNoInternet1Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet1Bar">,
       SignalCellularConnectedNoInternet2Bar: $Exports<"@material-ui/icons/SignalCellularConnectedNoInternet2Bar">,

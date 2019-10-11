@@ -70,7 +70,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 		Key:  "default",
 		Config: &models.Tier{
 			Name:    "default",
-			Version: swag.String("1.0.0-0"),
+			Version: "1.0.0-0",
 			Images: []*models.TierImage{
 				{Name: swag.String("Image1"), Order: swag.Int64(42)},
 				{Name: swag.String("Image2"), Order: swag.Int64(1)},

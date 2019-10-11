@@ -92,54 +92,56 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - check
-    - libconfig8-dev
-    - libgtest-dev
-    - liblfds710
-    - google-mock
-    - libssl-dev
-    - libsctp-dev
-    - libtspi-dev
-    - oai-asn1c
-    - oai-nettle
-    - oai-gnutls
-    - oai-freediameter
-    - prometheus-cpp-dev
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - check
+      - libconfig8-dev
+      - libgtest-dev
+      - liblfds710
+      - google-mock
+      - libssl-dev
+      - libsctp-dev
+      - libtspi-dev
+      - oai-asn1c
+      - oai-nettle
+      - oai-gnutls
+      - oai-freediameter
+      - prometheus-cpp-dev
   when: preburn
 
 - name: Overwrite linux 4.9 GTP module with patched module
-  apt: pkg={{ item }} state=present update_cache=yes dpkg_options=force-overwrite
-  with_items:
-    - oai-gtp-4.9.0-8-amd64
+  apt: pkg=oai-gtp-4.9.0-8-amd64 state=present update_cache=yes dpkg_options=force-overwrite
   when: preburn
 
 - name: Install Magma dependencies
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    # install prometheus
-    - prometheus-cpp-dev
-    # install openvswitch
-    - openvswitch-datapath-module-4.9.0-8-amd64
-    - openvswitch-switch
-    - openvswitch-test
-    - python-openvswitch
-    - magma-libfluid
-    # install lxml
-    - python3-lxml
-    - bridge-utils
-    # install yaml parser
-    - libyaml-cpp-dev
-    - libgoogle-glog-dev
-    # folly deps
-    - libfolly-dev
-    - libdouble-conversion-dev
-    - libboost-chrono-dev
-    - nlohmann-json-dev
-    - redis-server
-    - python-redis
-    - magma-cpp-redis
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      # install prometheus
+      - prometheus-cpp-dev
+      # install openvswitch
+      - openvswitch-datapath-module-4.9.0-8-amd64
+      - openvswitch-switch
+      - openvswitch-test
+      - python-openvswitch
+      - magma-libfluid
+      # install lxml
+      - python3-lxml
+      - bridge-utils
+      # install yaml parser
+      - libyaml-cpp-dev
+      - libgoogle-glog-dev
+      # folly deps
+      - libfolly-dev
+      - libdouble-conversion-dev
+      - libboost-chrono-dev
+      - nlohmann-json-dev
+      - redis-server
+      - python-redis
+      - magma-cpp-redis
   when: preburn
 
 - name: Copy the gtp interface initialization definition
@@ -165,19 +167,15 @@
   when: full_provision
 
 - name: Specific Magma dependencies from backports
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - cmake
+  apt: pkg=cmake state=present update_cache=yes
   when: preburn
 
 - name: Install C code coverage analysis dependencies
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - lcov
+  apt: pkg=lcov state=present update_cache=yes
   when: preburn
 
 - name: Install gmock and gtest for C++ testing
-  sudo: yes
+  become: yes
   shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
   args:
     chdir: /usr/src/{{ item }}
@@ -187,9 +185,7 @@
   when: preburn
 
 - name: Install dnsmasq
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - dnsmasq
+  apt: pkg=dnsmasq state=present update_cache=yes
   when: preburn
 
 - name: Stop dnsmasq service
@@ -197,9 +193,7 @@
   when: preburn
 
 - name: Install lighttpd
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    - lighttpd
+  apt: pkg=lighttpd state=present update_cache=yes
   when: preburn
 
 - name: Stop lighttpd service

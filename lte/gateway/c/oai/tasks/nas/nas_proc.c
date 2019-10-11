@@ -59,7 +59,7 @@
 #include "emm_data.h"
 #include "hashtable.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "service303.h"
 
@@ -149,7 +149,7 @@ void nas_proc_cleanup(void)
  ** Inputs:  ueid:      UE identifier                              **
  **      tac:       The code of the tracking area the initia-  **
  **             ting UE belongs to                         **
- **      data:      The initial NAS message transfered within  **
+ **      data:      The initial NAS message transferred within  **
  **             the message                                **
  **      len:       The length of the initial NAS message      **
  **      Others:    None                                       **
@@ -303,7 +303,7 @@ int nas_proc_dl_transfer_rej(
  **      ved from the network                                      **
  **                                                                        **
  ** Inputs:  ueid:      UE identifier                              **
- **      data:      The transfered NAS message                 **
+ **      data:      The transferred NAS message                 **
  **      len:       The length of the NAS message              **
  **      Others:    None                                       **
  **                                                                        **
@@ -366,8 +366,9 @@ int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
 
   OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_imsi(
-    &mme_app_desc.mme_ue_contexts, (const hash_key_t) imsi64);
+    &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
   if (ue_mm_context) {
     ctxt = &ue_mm_context->emm_context;
   }
@@ -557,6 +558,19 @@ int nas_proc_create_dedicated_bearer(
 }
 
 //------------------------------------------------------------------------------
+int nas_proc_delete_dedicated_bearer(
+  emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
+  emm_sap.primitive = _EMMCN_DEACTIVATE_BEARER_REQ;
+  emm_sap.u.emm_cn.u.deactivate_dedicated_bearer_req = emm_cn_deactivate;
+  rc = emm_sap_send(&emm_sap);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
 int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id)
 {
   int rc = RETURNerror;
@@ -581,7 +595,8 @@ int nas_proc_nw_initiated_detach_ue_request(
   emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id =
     nw_initiated_detach_p->ue_id;
 
-  if (nw_initiated_detach_p->detach_type == HSS_INITIATED_EPS_DETACH) {
+  if ((nw_initiated_detach_p->detach_type == HSS_INITIATED_EPS_DETACH) ||
+    (nw_initiated_detach_p->detach_type == MME_INITIATED_EPS_DETACH)) {
     emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
       NW_DETACH_TYPE_RE_ATTACH_NOT_REQUIRED;
   } else if (nw_initiated_detach_p->detach_type == SGS_INITIATED_IMSI_DETACH) {

@@ -14,16 +14,16 @@ import (
 	filtlballocate "fbc/cwf/radius/filters/lballocate"
 	filtlbcanary "fbc/cwf/radius/filters/lbcanary"
 	"fbc/cwf/radius/modules"
-	modadaptruckus "fbc/cwf/radius/modules/adapt_ruckus"
+	modadaptruckus "fbc/cwf/radius/modules/adaptruckus"
 	modmsisdn "fbc/cwf/radius/modules/addmsisdn"
-	modalwaysaccept "fbc/cwf/radius/modules/always_accept"
+	modalwaysaccept "fbc/cwf/radius/modules/alwaysaccept"
 	modan "fbc/cwf/radius/modules/analytics"
-	modcoadynamic "fbc/cwf/radius/modules/coa_dynamic"
-	modcoafixed "fbc/cwf/radius/modules/coa_fixed_ip"
-	modcoanas "fbc/cwf/radius/modules/coa_nas"
+	modcoadynamic "fbc/cwf/radius/modules/coadynamic"
+	modcoafixed "fbc/cwf/radius/modules/coafixedip"
+	modcoanas "fbc/cwf/radius/modules/coanas"
 	modeap "fbc/cwf/radius/modules/eap"
 	modlbserve "fbc/cwf/radius/modules/lbserve"
-	modmagmaacct "fbc/cwf/radius/modules/magma_acct"
+	modmagmaacct "fbc/cwf/radius/modules/magmaacct"
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
 	modxwfv3 "fbc/cwf/radius/modules/xwfv3"
@@ -125,12 +125,12 @@ type module struct {
 	handle modules.ModuleHandleFunc
 }
 
-func (m module) Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func (m module) Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	return m.init(logger, config)
 }
 
-func (m module) Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
-	return m.handle(c, r, next)
+func (m module) Handle(x modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	return m.handle(x, c, r, next)
 }
 
 // NewModule create a new module interface

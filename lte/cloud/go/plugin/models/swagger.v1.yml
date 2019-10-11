@@ -27,10 +27,38 @@ magma-gen-meta:
       filename: gateway_non_eps_configs_swaggergen.go
     - go-struct-name: LteGateway
       filename: lte_gateway_swaggergen.go
+    - go-struct-name: MutableLteGateway
+      filename: mutable_lte_gateway_swaggergen.go
     - go-struct-name: Enodeb
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: Subscriber
+      filename: subscriber_swaggergen.go
+    - go-struct-name: LteSubscription
+      filename: lte_subscription_swaggergen.go
+    - go-struct-name: EnodebState
+      filename: enodeb_state_swaggergen.go
+    - go-struct-name: SubProfile
+      filename: sub_profile_swaggergen.go
+    - go-struct-name: FlowDescription
+      filename: flow_description_swaggergen.go
+    - go-struct-name: FlowMatch
+      filename: flow_match_swaggergen.go
+    - go-struct-name: FlowQos
+      filename: flow_qos_swaggergen.go
+    - go-struct-name: PolicyRule
+      filename: policy_rule_swaggergen.go
+    - go-struct-name: RedirectInformation
+      filename: redirect_information_swaggergen.go
+    - go-struct-name: BaseNameRecord
+      filename: base_name_record_swaggergen.go
+    - go-struct-name: BaseName
+      filename: base_name_swaggergen.go
+    - go-struct-name: RuleID
+      filename: rule_id_swaggergen.go
+    - go-struct-name: RuleNames
+      filename: rule_names_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -48,7 +76,7 @@ tags:
     description: Endpoints related to LTE gateway management
 
 paths:
-  /ltenetworks:
+  /lte:
     get:
       summary: List all LTE network IDs
       tags:
@@ -82,7 +110,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}:
+  /lte/{network_id}:
     get:
       summary: Describe an LTE network
       tags:
@@ -125,7 +153,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/name:
+  /lte/{network_id}/name:
     get:
       summary: Get name of an LTE network
       tags:
@@ -157,7 +185,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/description:
+  /lte/{network_id}/description:
     get:
       summary: Get description of an LTE network
       tags:
@@ -189,7 +217,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular:
+  /lte/{network_id}/cellular:
     get:
       summary: Get cellular configuration of LTE network
       tags:
@@ -221,7 +249,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/epc:
+  /lte/{network_id}/cellular/epc:
     get:
       summary: Get EPC configuration of LTE network
       tags:
@@ -253,7 +281,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/ran:
+  /lte/{network_id}/cellular/ran:
     get:
       summary: Get RAN configuration of LTE network
       tags:
@@ -285,7 +313,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/cellular/feg_network_id:
+  /lte/{network_id}/cellular/feg_network_id:
     get:
       summary: Get Federation Gateway network ID for the network
       tags:
@@ -319,7 +347,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns:
+  /lte/{network_id}/dns:
     get:
       summary: Get DNS configuration of LTE network
       tags:
@@ -351,7 +379,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns/records:
+  /lte/{network_id}/dns/records:
     get:
       summary: Get the DNS config records for the LTE network
       tags:
@@ -388,7 +416,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/dns/records/{domain}:
+  /lte/{network_id}/dns/records/{domain}:
     get:
       summary: Get the DNS config record for a specific domain
       tags:
@@ -452,7 +480,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/features:
+  /lte/{network_id}/features:
     get:
       summary: Get feature flags for LTE network
       tags:
@@ -484,7 +512,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways:
+  /lte/{network_id}/gateways:
     get:
       summary: List all gateways for an LTE network
       tags:
@@ -493,10 +521,10 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of all LTE gateways inside the network
+          description: Map of all LTE gateways inside the network by gatewayID
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/lte_gateway'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -511,14 +539,14 @@ paths:
           description: Full desired configuration of the gateway
           required: true
           schema:
-            $ref: '#/definitions/lte_gateway'
+            $ref: '#/definitions/mutable_lte_gateway'
       responses:
         '201':
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}:
+  /lte/{network_id}/gateways/{gateway_id}:
     get:
       summary: Get a specific LTE gateway
       tags:
@@ -545,7 +573,7 @@ paths:
           description: Full desired configuration of the gateway
           required: true
           schema:
-            $ref: '#/definitions/lte_gateway'
+            $ref: '#/definitions/mutable_lte_gateway'
       responses:
         '204':
           description: Success
@@ -564,7 +592,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/name:
+  /lte/{network_id}/gateways/{gateway_id}/name:
     get:
       summary: Get the name of an LTE gateway
       tags:
@@ -597,7 +625,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/description:
+  /lte/{network_id}/gateways/{gateway_id}/description:
     get:
       summary: Get the description of an LTE gateway
       tags:
@@ -630,7 +658,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/device:
+  /lte/{network_id}/gateways/{gateway_id}/device:
     get:
       summary: Get the physical device for an LTE gateway
       tags:
@@ -664,7 +692,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/magmad:
+  /lte/{network_id}/gateways/{gateway_id}/magmad:
     get:
       summary: Get magmad agent configuration
       tags:
@@ -698,7 +726,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular:
+  /lte/{network_id}/gateways/{gateway_id}/cellular:
     get:
       summary: Get gateway cellular configuration
       tags:
@@ -732,7 +760,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/ran:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/ran:
     get:
       summary: Get gateway RAN configuration
       tags:
@@ -766,7 +794,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/epc:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/epc:
     get:
       summary: Get gateway EPC configuration
       tags:
@@ -800,7 +828,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/cellular/non_eps:
+  /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps:
     get:
       summary: Get gateway Non-EPS configuration
       tags:
@@ -834,7 +862,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
+  /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
     get:
       summary: Get the SNs of all enodeBs connected to a gateway
       tags:
@@ -905,7 +933,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/tier:
+  /lte/{network_id}/gateways/{gateway_id}/tier:
     get:
       summary: Get the ID of the upgrade tier a gateway belongs to
       tags:
@@ -938,7 +966,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/gateways/{gateway_id}/status:
+  /lte/{network_id}/gateways/{gateway_id}/status:
     get:
       summary: Get the status of a gateway
       tags:
@@ -954,7 +982,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/enodebs:
+  /lte/{network_id}/enodebs:
     get:
       summary: List all enodeBs in the network
       tags:
@@ -988,7 +1016,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /ltenetworks/{network_id}/enodebs/{enodeb_serial}:
+  /lte/{network_id}/enodebs/{enodeb_serial}:
     get:
       summary: Retrieve a specific enodeB configuration
       tags:
@@ -1034,11 +1062,338 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/enodebs/{enodeb_serial}/state:
+    get:
+      summary: Retrieve reported state from enodeb device
+      tags:
+        - EnodeBs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/enodeb_serial'
+      responses:
+        '200':
+          description: The requested enodeB's configuration
+          schema:
+            $ref: '#/definitions/enodeb_state'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers:
+    get:
+      summary: List subscribers in the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all the subscribers in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/subscriber'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new subscriber to the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: subscriber
+          description: Subscriber that needs to be added
+          required: true
+          schema:
+            $ref: '#/definitions/subscriber'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers/{subscriber_id}:
+    get:
+      summary: Retrieve the subscriber info
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: Subscriber Info
+          schema:
+            $ref: '#/definitions/subscriber'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify subscriber info
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+        - in: body
+          name: subscriber
+          description: Subscriber Info
+          required: true
+          schema:
+            $ref: '#/definitions/subscriber'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove a subscriber from the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers/{subscriber_id}/lte/sub_profile:
+    put:
+      summary: Change a subscriber's data profile
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+        - in: body
+          name: profile_name
+          description: New profile name
+          required: true
+          schema:
+            $ref: '#/definitions/sub_profile'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers/{subscriber_id}/activate:
+    post:
+      summary: Activate a subscriber
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers/{subscriber_id}/deactivate:
+    post:
+      summary: Deactivate a subscriber
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/rules:
+    get:
+      summary: List policy rules
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of policy rules
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new policy rule
+      tags:
+        - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: Policy rule
+        description: Policy rule to add
+        required: true
+        schema:
+          $ref: '#/definitions/policy_rule'
+      responses:
+        '201':
+          description: Rule id
+          schema:
+            $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/rules/{rule_id}:
+    get:
+      summary: Get policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      responses:
+        '200':
+          description: Policy rule on success
+          schema:
+            $ref: '#/definitions/policy_rule'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      - in: body
+        name: Policy rule
+        description: Policy rule
+        required: true
+        schema:
+          $ref: '#/definitions/policy_rule'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a policy rule
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/base_names:
+    get:
+      summary: List Charging Rule Base Names
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of Charging Rule Base Names
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: body
+        name: Charging Rule Base Name
+        description: Charging Rule Base Name to add
+        required: true
+        schema:
+          $ref: '#/definitions/base_name_record'
+      responses:
+        '201':
+          description: Charging Rule Base Name
+          schema:
+            $ref: '#/definitions/base_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/policies/base_names/{base_name}:
+    get:
+      summary: Get Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      responses:
+        '200':
+          description: Charging Rule Base Name on success
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      - in: body
+        name: Charging Rule Base Name
+        description: Charging Rule Base Name
+        required: true
+        schema:
+          $ref: '#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a Charging Rule Base Name
+      tags:
+      - LTE Networks
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: '#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   enodeb_serial:
     in: path
     name: enodeb_serial
     description: EnodeB serial number
+    required: true
+    type: string
+
+  subscriber_id:
+    in: path
+    name: subscriber_id
+    description: Subscriber ID
+    required: true
+    type: string
+
+  rule_id:
+    in: path
+    name: rule_id
+    description: Rule Id
+    required: true
+    type: string
+
+  base_name:
+    in: path
+    name: base_name
+    description: Charging Rule Base Name
     required: true
     type: string
 
@@ -1090,6 +1445,10 @@ definitions:
     type: object
     minLength: 1
     required:
+      # fdd/tdd config is a one-of, not supported by swagger spec so leaving
+      # out of required fields
+      # Technically fdd/tdd operation is determined by earfcndl value
+      # See lte_bands.go for an incomplete mapping
       - bandwidth_mhz
     properties:
       bandwidth_mhz:
@@ -1153,8 +1512,6 @@ definitions:
     type: object
     minLength: 1
     required:
-      - cloud_subscriberdb_enabled
-      - default_rule_id
       - lte_auth_amf
       - lte_auth_op
       - mcc
@@ -1314,6 +1671,36 @@ definitions:
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
 
+  mutable_lte_gateway:
+    type: object
+    description: LTE gateway object with read-only fields omitted
+    required:
+      - device
+      - id
+      - name
+      - description
+      - magmad
+      - tier
+      - cellular
+      - connected_enodeb_serials
+    properties:
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      cellular:
+        $ref: '#/definitions/gateway_cellular_configs'
+      connected_enodeb_serials:
+        $ref: '#/definitions/enodeb_serials'
+
   gateway_cellular_configs:
     type: object
     description: Cellular configuration for LTE gateway
@@ -1453,31 +1840,28 @@ definitions:
     required:
       - cell_id
       - device_class
+      - transmit_enabled
     properties:
       earfcndl:
         type: integer
         format: uint32
         example: 44590
-        x-nullable: false
       subframe_assignment:
         type: integer
         format: uint32
         example: 2
         maximum: 6
-        x-nullable: false
       special_subframe_pattern:
         type: integer
         format: uint32
         example: 7
         maximum: 9
-        x-nullable: false
       pci:
         type: integer
         format: uint32
         minimum: 0
         exclusiveMinimum: true
         maximum: 503
-        x-nullable: false
         example: 260
       bandwidth_mhz:
         type: integer
@@ -1495,7 +1879,6 @@ definitions:
         minimum: 1
         maximum: 65535
         example: 1
-        x-nullable: false
       transmit_enabled:
         type: boolean
         example: true
@@ -1510,5 +1893,267 @@ definitions:
         enum:
           - 'Baicells Nova-233 G2 OD FDD'
           - 'Baicells Nova-243 OD TDD'
+          - 'Baicells Neutrino 224 ID FDD'
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
+        x-nullable: false
+
+  subscriber:
+    type: object
+    required:
+      - id
+      - lte
+    properties:
+      id:
+        type: string
+        pattern: '^(IMSI\d{10,15})$'
+        example: IMSI208950000000010
+        x-nullable: false
+      lte:
+        $ref: '#/definitions/lte_subscription'
+
+  lte_subscription:
+    type: object
+    required:
+      - state
+      - auth_algo
+      - auth_key
+      - sub_profile
+    properties:
+      state:
+        type: string
+        enum:
+          - INACTIVE
+          - ACTIVE
+        x-nullable: false
+      auth_algo:
+        type: string
+        enum:
+          - MILENAGE
+        x-nullable: false
+      auth_key:
+        type: string
+        format: byte
+        example: "AAAAAAAAAAAAAAAAAAAAAA=="
+        x-nullable: false
+      auth_opc:
+        type: string
+        format: byte
+        example: 'AAECAwQFBgcICQoLDA0ODw=='
+      sub_profile:
+        $ref: '#/definitions/sub_profile'
+
+  sub_profile:
+    type: string
+    minLength: 1
+    example: 'default'
+
+  enodeb_state:
+    description: Single Enodeb State
+    type: object
+    required:
+      - enodeb_configured
+      - gps_longitude
+      - gps_latitude
+      - enodeb_connected
+      - opstate_enabled
+      - rf_tx_on
+      - rf_tx_desired
+      - gps_connected
+      - ptp_connected
+      - mme_connected
+      - fsm_state
+    properties:
+      time_reported:
+        type: integer
+        format: uint64
+        description: Time at which the state was reported in ms
+      reporting_gateway_id:
+        type: string
+        description: Gateway ID from which the enodeb state was reported
+      enodeb_configured:
+        type: boolean
+      gps_longitude:
+        type: string
+      gps_latitude:
+        type: string
+      enodeb_connected:
+        type: boolean
+      opstate_enabled:
+        type: boolean
+      rf_tx_on:
+        type: boolean
+      rf_tx_desired:
+        type: boolean
+      gps_connected:
+        type: boolean
+      ptp_connected:
+        type: boolean
+      mme_connected:
+        type: boolean
+      fsm_state:
+        type: string
+
+  rule_id:
+    # A unique human readable identifier for labeling a policy rule
+    type: string
+    minLength: 1
+    x-nullable: false
+    example: All ICMP
+
+  flow_description:
+    type: object
+    required:
+      - action
+      - match
+    properties:
+      action:
+        type: string
+        enum:
+        - PERMIT
+        - DENY
+        default: PERMIT
+      match:
+        $ref: '#/definitions/flow_match'
+
+  flow_qos:
+    type: object
+    required:
+      - max_req_bw_ul
+      - max_req_bw_dl
+    properties:
+      max_req_bw_ul:
+        type: integer
+        format: uint32
+      max_req_bw_dl:
+        type: integer
+        format: uint32
+
+  redirect_information:
+    type: object
+    required:
+      - support
+      - address_type
+      - server_address
+    properties:
+      support:
+        type: string
+        enum:
+        - DISABLED
+        - ENABLED
+      address_type:
+        type: string
+        enum:
+        - IPv4
+        - IPv6
+        - URL
+        - SIP_URI
+      server_address:
+        type: string
+
+  policy_rule:
+    # A traffic match template and a identifier that is
+    # used to labelling usage records
+    type: object
+    required:
+      - id
+      - flow_list
+      - priority
+    properties:
+      id:
+        type: string
+        example: 'All ICMP'
+        x-go-custom-tag: 'magma_alt_name:"Id"'
+      flow_list:
+        type: array
+        items:
+          $ref: '#/definitions/flow_description'
+      priority:
+        type: integer
+        format: uint32
+        default: 10
+      rating_group:
+        type: integer
+        format: uint32
+      monitoring_key:
+        type: string
+      tracking_type:
+        type: string
+        enum:
+        - ONLY_OCS
+        - ONLY_PCRF
+        - OCS_AND_PCRF
+        - NO_TRACKING
+      qos:
+        $ref: '#/definitions/flow_qos'
+      redirect:
+        $ref: '#/definitions/redirect_information'
+
+  base_name:
+    type: string
+    minLength: 1
+    x-nullable: false
+
+  rule_names:
+    type: array
+    items:
+      type: string
+      x-nullable: false
+
+  base_name_record:
+    type: object
+    required:
+      - name
+      - rule_names
+    properties:
+      name:
+        $ref: '#/definitions/base_name'
+      rule_names:
+        $ref: '#/definitions/rule_names'
+
+  flow_match:
+    # A template for matching traffic to meter
+    type: object
+    required:
+      - ip_proto
+      - direction
+    properties:
+      ip_proto:
+        type: string
+        enum:
+        - IPPROTO_IP
+        - IPPROTO_TCP
+        - IPPROTO_UDP
+        - IPPROTO_ICMP
+        default: IPPROTO_IP
+      ipv4_src:
+        type: string
+        format: ip-address
+        example: "192.168.0.1/24"
+        x-go-custom-tag: 'magma_alt_name:"Ipv4Src"'
+      ipv4_dst:
+        type: string
+        format: ip-address
+        example: "0.0.0.0/0"
+        x-go-custom-tag: 'magma_alt_name:"Ipv4Dst"'
+      tcp_src:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"TcpSrc"'
+      tcp_dst:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"TcpDst"'
+      udp_src:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"UdpSrc"'
+      udp_dst:
+        type: integer
+        format: uint32
+        x-go-custom-tag: 'magma_alt_name:"UdpDst"'
+      direction:
+        type: string
+        enum:
+        - UPLINK
+        - DOWNLINK

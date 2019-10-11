@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 from fabric.api import env, lcd, local
 
-import fab.vagrant as vagrant
+from tools.fab import vagrant
 
 
 def split_hoststring(hoststring):

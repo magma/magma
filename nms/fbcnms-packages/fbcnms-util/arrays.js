@@ -27,6 +27,10 @@ export function setItem<TItem>(
   return newArray;
 }
 
+/**
+ * Given an array of dicts, updates the property key at the
+ * index to the value
+ */
 export function updateItem<TItem: {}, TProp: $Keys<TItem>>(
   input: $ReadOnlyArray<TItem>,
   index: number,

@@ -13,9 +13,24 @@ package unary
 
 import (
 	"github.com/golang/glog"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
+
+var uncaughtCounterVec = prometheus.NewCounterVec(
+	prometheus.CounterOpts{
+		Name: "gateway_handler_panic",
+		Help: "There was a panic in the gateway",
+	},
+	[]string{"fullMethod"},
+)
+
+func init() {
+	prometheus.MustRegister(uncaughtCounterVec)
+}
 
 var registry = []Interceptor{
 	{
@@ -76,9 +91,29 @@ func MiddlewareHandler(ctx context.Context, req interface{}, info *grpc.UnarySer
 		}
 	}
 
+	resp, err = callHandler(ctx, req, info, handler)
+	return
+}
+
+// callHandler simply wraps the handler call with some error recovery, logging,
+// and metrics
+func callHandler(
+	ctx context.Context,
+	req interface{},
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (resp interface{}, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			err = status.Errorf(codes.Unknown, "Handler Panic: %s", r)
+			uncaughtCounterVec.WithLabelValues(info.FullMethod).Inc()
+		}
+	}()
+
 	resp, err = handler(ctx, req)
 	if err != nil {
 		glog.Errorf("[ERROR %s]: %s", info.FullMethod, err)
 	}
+
 	return
 }

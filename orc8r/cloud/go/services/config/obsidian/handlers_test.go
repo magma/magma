@@ -150,7 +150,7 @@ func TestGetConfigHandler(t *testing.T) {
 	actualUnmarshalErr := &errConfig{}
 	err = cfgObsidian.GetReadConfigHandler("google.com", "err", mockKeyGetter, actualUnmarshalErr).HandlerFunc(c)
 	assert.Error(t, err)
-	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.Equal(t, http.StatusNotFound, err.(*echo.HTTPError).Code)
 
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 }

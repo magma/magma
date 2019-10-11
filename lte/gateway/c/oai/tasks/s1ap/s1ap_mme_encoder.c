@@ -39,6 +39,7 @@
 #include "S1ap-S1SetupResponse.h"
 #include "S1ap-UEContextModificationRequest.h"
 #include "S1ap-UEContextReleaseCommand.h"
+#include "S1ap-E-RABReleaseCommand.h"
 
 static inline int s1ap_mme_encode_initial_context_setup_request(
   s1ap_message *message_p,
@@ -84,6 +85,10 @@ static inline int s1ap_mme_encode_resetack(
   uint8_t **buffer,
   uint32_t *length);
 
+static inline int s1ap_mme_encode_e_rab_release_command(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length);
 //------------------------------------------------------------------------------
 static inline int s1ap_mme_encode_paging(
   s1ap_message *message_p,
@@ -196,6 +201,9 @@ static inline int s1ap_mme_encode_initiating(
 
     case S1ap_ProcedureCode_id_E_RABSetup:
       return s1ap_mme_encode_e_rab_setup(message_p, buffer, length);
+
+    case S1ap_ProcedureCode_id_E_RABRelease:
+      return s1ap_mme_encode_e_rab_release_command(message_p, buffer, length);
 
     case S1ap_ProcedureCode_id_MMEConfigurationTransfer:
       return s1ap_mme_encode_mme_configuration_transfer(
@@ -473,7 +481,7 @@ static inline int s1ap_mme_encode_paging(
     buffer,
     length,
     S1ap_ProcedureCode_id_Paging,
-    message_p->criticality,
+    S1ap_Criticality_ignore,
     &asn_DEF_S1ap_Paging,
     paging_p);
 }
@@ -536,11 +544,39 @@ static inline int s1ap_mme_encode_ue_context_modification_request(
     ueContextModificationRequest_p);
 }
 
+static inline int s1ap_mme_encode_e_rab_release_command(
+  s1ap_message *message_p,
+  uint8_t **buffer,
+  uint32_t *length)
+{
+  S1ap_E_RABReleaseCommand_t e_rab_rel_cmd;
+  S1ap_E_RABReleaseCommand_t *e_rab_rel_cmd_p = &e_rab_rel_cmd;
+
+  memset(e_rab_rel_cmd_p, 0, sizeof(S1ap_E_RABReleaseCommand_t));
+
+  /*
+   * Convert IE structure into asn1 message_p
+   */
+  if (
+    s1ap_encode_s1ap_e_rabreleasecommandies(
+      e_rab_rel_cmd_p, &message_p->msg.s1ap_E_RABReleaseCommandIEs) < 0) {
+    return -1;
+  }
+  return s1ap_generate_initiating_message(
+    buffer,
+    length,
+    S1ap_ProcedureCode_id_E_RABRelease,
+    message_p->criticality,
+    &asn_DEF_S1ap_E_RABSetupRequest,
+    e_rab_rel_cmd_p);
+}
+
 static inline int s1ap_mme_encode_mme_configuration_transfer(
   s1ap_message *message_p,
   uint8_t **buffer,
   uint32_t *length)
 {
+
   S1ap_MMEConfigurationTransfer_t mmeConfigurationTransfer;
   S1ap_MMEConfigurationTransfer_t *mmeConfigurationTransfer_p =
     &mmeConfigurationTransfer;

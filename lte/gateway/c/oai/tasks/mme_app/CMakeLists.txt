@@ -1,5 +1,17 @@
 set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r10.5)
 
+# compile the needed protos
+set(MMEAPP_STATE_CPP_PROTOS  mme_nas_state nas_state common_types)
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/gateway/c/oai/protos")
+generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${LTE_OUT_DIR})
+
 add_library(TASK_MME_APP
     mme_app_capabilities.c
     mme_app_context.c
@@ -36,7 +48,13 @@ add_library(TASK_MME_APP
     mme_app_edns_emulation.c
     mme_app_sgw_selection.c
     mme_app_sgs_status.c
+    mme_app_state_converter.cpp
+    mme_app_state_manager.cpp
+    mme_app_state.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
     )
+
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"
   PACKAGE_VERSION=\"0.1\"
@@ -47,7 +65,7 @@ target_link_libraries(TASK_MME_APP
   COMMON
   LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU
   TASK_NAS TASK_S1AP TASK_SGW TASK_SERVICE303 TASK_SCTP_SERVER
-  TASK_S6A TASK_SGS
+  TASK_S6A TASK_SGS protobuf cpp_redis
     )
 target_include_directories(TASK_MME_APP PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

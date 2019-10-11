@@ -1,0 +1,8 @@
+{
+  "name": "@fbcnms/mobileapp",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "qrcode": "^1.4.2"
+  }
+}

@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(MagmaCore)
 
@@ -55,6 +56,11 @@ if (NOT FUZZ)
   set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
   set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO  "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 endif (NOT FUZZ)
+
+################################################################
+# Set proto directory for state proto definitions
+################################################################
+set(STATE_PROTO_DIR ${PROJECT_SOURCE_DIR}/protos)
 
 ################################################################
 # S1AP LAYER OPTIONS

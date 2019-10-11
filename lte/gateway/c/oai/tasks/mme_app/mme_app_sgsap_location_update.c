@@ -52,7 +52,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
@@ -403,6 +403,7 @@ static int _is_combined_tau(
  **
 ***********************************************************************************/
 int mme_app_handle_nas_cs_domain_location_update_req(
+  mme_app_desc_t *mme_app_desc_p,
   itti_nas_cs_domain_location_update_req_t *const itti_nas_location_update_req)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -413,7 +414,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
 
   /*Fetch UE context*/
   ue_mm_context_t *ue_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, itti_nas_location_update_req->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, itti_nas_location_update_req->ue_id);
   /*Store Attch type in UE context*/
   ue_context->attach_type = itti_nas_location_update_req->attach_type;
 
@@ -804,7 +805,7 @@ int send_cs_domain_loc_updt_fail_to_nas(
  ** Inputs:              nas_sgs_location_update_acc                             **
  **
 ***********************************************************************************/
-int mme_app_handle_sgsap_location_update_acc(
+int mme_app_handle_sgsap_location_update_acc(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_location_update_acc_t *const itti_sgsap_location_update_acc)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -816,7 +817,7 @@ int mme_app_handle_sgsap_location_update_acc(
 
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_acc->imsi, &imsi64);
   ue_context_p =
-    mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+    mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -857,7 +858,7 @@ int mme_app_handle_sgsap_location_update_acc(
  ** Inputs:              nas_sgs_location_update_rej                             **
  **
 ***********************************************************************************/
-int mme_app_handle_sgsap_location_update_rej(
+int mme_app_handle_sgsap_location_update_rej(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_location_update_rej_t *const itti_sgsap_location_update_rej)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -871,12 +872,12 @@ int mme_app_handle_sgsap_location_update_rej(
   /*Fetch UE context*/
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej->imsi, &imsi64);
   ue_context_p =
-    mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+    mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Unknown IMSI in mme_app_handle_sgsap_location_update_rej\n");
-    mme_ue_context_dump_coll_keys();
+    mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -1029,9 +1030,9 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t *fsm_evt)
   MobileIdentity_t *mobileid = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, fsm_evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, fsm_evt->ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -1153,11 +1154,12 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t *fsm_evt)
   itti_sgsap_location_update_rej_p =
     (itti_sgsap_location_update_rej_t *) sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, fsm_evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, fsm_evt->ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
-    mme_ue_context_dump_coll_keys();
+    mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -1238,8 +1240,9 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t *fsm_evt)
     (itti_sgsap_location_update_rej_t *) sgs_context->sgsap_msg;
   /*Fetch UE context*/
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, fsm_evt->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, fsm_evt->ue_id);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID %d ", fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -1265,7 +1268,7 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t *fsm_evt)
  ** Inputs:              itti_nas_tau_complete_t msg                             **
  **                                                                              **
 ***********************************************************************************/
-void mme_app_handle_nas_tau_complete(
+void mme_app_handle_nas_tau_complete(mme_app_desc_t *mme_app_desc_p,
   itti_nas_tau_complete_t *itti_nas_tau_complete_p)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
@@ -1280,8 +1283,8 @@ void mme_app_handle_nas_tau_complete(
       LOG_MME_APP,
       "ERROR***** Invalid UE Id received from NAS in TAU Complete\n");
   }
-  ue_context_p =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+      &mme_app_desc_p->mme_ue_contexts, ue_id);
   if (ue_context_p) {
     if (ue_id != ue_context_p->mme_ue_s1ap_id) {
       OAILOG_ERROR(

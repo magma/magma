@@ -45,5 +45,12 @@ func GetObsidianHandlers() []obsidian.Handler {
 		cfgObsidian.GetCreateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
 		cfgObsidian.GetUpdateGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
 		cfgObsidian.GetDeleteGatewayConfigHandler(ConfigureAG, orc8r.MagmadGatewayType),
+
+		// V1
+		{Path: RebootGatewayV1, Methods: obsidian.POST, HandlerFunc: rebootGateway},
+		{Path: RestartServicesV1, Methods: obsidian.POST, HandlerFunc: restartServices},
+		{Path: GatewayPingV1, Methods: obsidian.POST, HandlerFunc: gatewayPing},
+		{Path: GatewayGenericCommandV1, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
+		{Path: TailGatewayLogsV1, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
 	}
 }

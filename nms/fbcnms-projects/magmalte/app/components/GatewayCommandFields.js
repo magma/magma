@@ -9,7 +9,6 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -22,12 +21,12 @@ import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import MagmaV1API from '../common/MagmaV1API';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 import grey from '@material-ui/core/colors/grey';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -45,10 +44,10 @@ const styles = _theme => ({
 type Props = ContextRouter &
   WithAlert &
   WithStyles<typeof styles> & {
-    onClose: () => void,
-    onSave: (gatewayID: string) => void,
-    gateway: Gateway,
+    onClose?: () => void,
+    gatewayID: string,
     showRestartCommand: boolean,
+    showRebootEnodebCommand: boolean,
     showPingCommand: boolean,
     showGenericCommand: boolean,
   };
@@ -56,6 +55,9 @@ type Props = ContextRouter &
 type State = {
   showRebootCheck: boolean,
   showRestartCheck: boolean,
+  enodebSerial: string,
+  showRebootEnodebProgress: boolean,
+  rebootEnodebResponse: string,
   pingHosts: string,
   pingPackets: string,
   pingResponse: string,
@@ -84,6 +86,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
   state = {
     showRebootCheck: false,
     showRestartCheck: false,
+    enodebSerial: '',
+    showRebootEnodebProgress: false,
+    rebootEnodebResponse: '',
     pingHosts: '',
     pingPackets: '',
     pingResponse: '',
@@ -101,7 +106,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           <Typography className={this.props.classes.title} variant="subtitle1">
             Reboot
           </Typography>
-          <FormField label="Reboot Device">
+          <FormField
+            label="Reboot Device"
+            tooltip="Reboot the Magma gateway server">
             <Button onClick={this.handleRebootGateway} color="primary">
               Reboot
             </Button>
@@ -110,13 +117,43 @@ class GatewayCommandFields extends React.Component<Props, State> {
             </Fade>
           </FormField>
           <div style={this.props.showRestartCommand ? {} : {display: 'none'}}>
-            <FormField label="Restart Services">
+            <FormField
+              label="Restart Services"
+              tooltip="Restart all MagmaD services on this gateway">
               <Button onClick={this.handleRestartServices} color="primary">
                 Restart Services
               </Button>
               <Fade in={this.state.showRestartCheck} timeout={500}>
                 <Check style={{verticalAlign: 'middle'}} htmlColor="green" />
               </Fade>
+            </FormField>
+          </div>
+          <div
+            style={this.props.showRebootEnodebCommand ? {} : {display: 'none'}}>
+            <Divider className={this.props.classes.divider} />
+            <Typography
+              className={this.props.classes.title}
+              variant="subtitle1">
+              Reboot eNodeB
+            </Typography>
+            <FormField label="eNodeB Serial ID">
+              <Input
+                className={this.props.classes.input}
+                value={this.state.enodebSerial}
+                onChange={this.enodebSerialChanged}
+                placeholder="Leave empty to reboot every connected eNodeB"
+              />
+            </FormField>
+            <FormField label="">
+              <Button onClick={this.handleRebootEnodeb} color="primary">
+                Reboot
+              </Button>
+            </FormField>
+            <FormField label="">
+              <CommandResponse
+                response={this.state.rebootEnodebResponse}
+                showProgressBar={this.state.showRebootEnodebProgress}
+              />
             </FormField>
           </div>
           <div style={this.props.showPingCommand ? {} : {display: 'none'}}>
@@ -193,22 +230,23 @@ class GatewayCommandFields extends React.Component<Props, State> {
             </FormField>
           </div>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
-            Close
-          </Button>
-        </DialogActions>
+        {this.props.onClose && (
+          <DialogActions>
+            <Button onClick={this.props.onClose} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        )}
       </>
     );
   }
 
   handleRebootGateway = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-    const commandName = 'reboot';
-
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName))
+    const {match, gatewayID} = this.props;
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gatewayID,
+    })
       .then(_resp => {
         this.props.alert('Successfully initiated reboot');
         this.setState({showRebootCheck: true}, () => {
@@ -221,12 +259,14 @@ class GatewayCommandFields extends React.Component<Props, State> {
   };
 
   handleRestartServices = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-    const commandName = 'restart_services';
-
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName), [])
+    const {match, gatewayID} = this.props;
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
+      {
+        networkId: nullthrows(match.params.networkId),
+        gatewayId: gatewayID,
+        services: [],
+      },
+    )
       .then(_resp => {
         this.props.alert('Successfully initiated service restart');
         this.setState({showRestartCheck: true}, () => {
@@ -241,10 +281,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
   };
 
   handlePing = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-    const commandName = 'ping';
-
+    const {match, gatewayID} = this.props;
     const hosts = this.state.pingHosts.split('\n').filter(host => host);
     const packets = parseInt(this.state.pingPackets);
     const params = {
@@ -253,10 +290,13 @@ class GatewayCommandFields extends React.Component<Props, State> {
     };
 
     this.setState({showPingProgress: true});
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName), params)
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandPing({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gatewayID,
+      pingRequest: params,
+    })
       .then(resp => {
-        this.setState({pingResponse: JSON.stringify(resp.data, null, 2)});
+        this.setState({pingResponse: JSON.stringify(resp, null, 2)});
       })
       .catch(error =>
         this.props.alert('Ping failed: ' + error.response.data.message),
@@ -264,11 +304,43 @@ class GatewayCommandFields extends React.Component<Props, State> {
       .finally(() => this.setState({showPingProgress: false}));
   };
 
-  handleGeneric = () => {
-    const {match, gateway} = this.props;
-    const id = gateway.logicalID;
-    const commandName = 'generic';
+  handleRebootEnodeb = () => {
+    const {match, gatewayID} = this.props;
+    const enodebSerial = this.state.enodebSerial;
+    const params =
+      enodebSerial.length > 0
+        ? {
+            command: 'reboot_enodeb',
+            // TODO (murtadha) need to fix type generation
+            // eslint-disable-next-line flowtype/no-weak-types
+            params: {shell_params: ([enodebSerial]: any)},
+          }
+        : {
+            command: 'reboot_all_enodeb',
+            params: {},
+          };
 
+    this.setState({showRebootEnodebProgress: true});
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gatewayID,
+      parameters: params,
+    })
+      .then(resp => {
+        this.setState({
+          rebootEnodebResponse: JSON.stringify(resp, null, 2),
+        });
+      })
+      .catch(error =>
+        this.props.alert(
+          'Reboot eNodeB failed: ' + error.response.data.message,
+        ),
+      )
+      .finally(() => this.setState({showRebootEnodebProgress: false}));
+  };
+
+  handleGeneric = () => {
+    const {match, gatewayID} = this.props;
     const genericCommandName = this.state.genericCommandName;
     let genericCommandParams = {};
     try {
@@ -283,10 +355,13 @@ class GatewayCommandFields extends React.Component<Props, State> {
     };
 
     this.setState({showGenericProgress: true});
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName), params)
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: gatewayID,
+      parameters: params,
+    })
       .then(resp => {
-        this.setState({genericResponse: JSON.stringify(resp.data, null, 2)});
+        this.setState({genericResponse: JSON.stringify(resp, null, 2)});
       })
       .catch(error =>
         this.props.alert(
@@ -295,6 +370,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
       )
       .finally(() => this.setState({showGenericProgress: false}));
   };
+
+  enodebSerialChanged = ({target}) =>
+    this.setState({enodebSerial: target.value});
 
   pingHostsChanged = ({target}) => this.setState({pingHosts: target.value});
   pingPacketsChanged = ({target}) => this.setState({pingPackets: target.value});

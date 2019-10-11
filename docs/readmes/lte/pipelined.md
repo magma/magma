@@ -6,7 +6,7 @@ hide_title: true
 # Pipelined
 ## Overview
 
-Pipelined is the control application that programs rules in the Open vSwitch (OVS). In implementation, Pipelined is a set of network services that are chained together. These services can be chained and enabled/disabled through the REST API in orchestrator. 
+Pipelined is the control application that programs rules in the Open vSwitch (OVS). In implementation, Pipelined is a set of network services that are chained together. These services can be chained and enabled/disabled through the REST API in orchestrator.
 
 ### Open vSwitch & OpenFlow
 
@@ -19,8 +19,8 @@ The OpenFlow pipeline of OVS contains 255 flow tables. Pipelined splits the tabl
 ![OpenFlow Pipeline](https://github.com/facebookincubator/magma/blob/master/docs/readmes/assets/openflow-pipeline.png?raw=true)
 
 [*Source: OpenFlow Specification*](https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf)
- 
-Each service is associated with a main table, which is used to forward traffic between different services. Services can claim scratch tables optionally, which are used for complex flow matching and processing within the same service. See [Services](#services) for a detailed breakdown of each Pipelined services. 
+
+Each service is associated with a main table, which is used to forward traffic between different services. Services can claim scratch tables optionally, which are used for complex flow matching and processing within the same service. See [Services](#services) for a detailed breakdown of each Pipelined services.
 
 Each flow table is programmed by a single service through OpenFlow and it can contain multiple flow entries. When a packet is forwarded to a table, it is matched against the flow entries installed in the table and the highest-priority matching flow entry is selected. The actions defined in the selected flow entry will be applied to the packet.
 
@@ -103,7 +103,7 @@ These services can be enabled and ordered from orchestrator cloud. `mconfig` is 
 Table numbers are dynamically assigned to these services and depenedent on the order.
 
 ```
-    ------------------------------- 
+    -------------------------------
     |          Table X            |
     |          metering           |
     |- Assigns unique flow id to  |
@@ -111,7 +111,7 @@ Table numbers are dynamically assigned to these services and depenedent on the o
     |- Receives flow stats from   |
     |  OVS and forwards to cloud  |
     -------------------------------
-    
+
     -------------------------------
     |          Table X            |
     |            DPI              |
@@ -148,7 +148,7 @@ Register |    Type    |         Use          |           Set by
 ---------|------------|----------------------|-----------------------------
 metadata | Write-once | Stores IMSI          | Table 0 (GTP application)   
 reg0     | Scratch    | Temporary Arithmetic | Any                         
-reg1     | Global     | Direction bit        | Table 1 (inout application) 
+reg1     | Global     | Direction bit        | Table 1 (inout application)
 reg2     | Local      | Policy number        | Enforcement app             
 reg3     | Local      | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app                     
@@ -162,7 +162,7 @@ Some scripts in `/lte/gateway/python/scripts` may come in handy for testing. The
 - `pipelined_cli.py` can be used to to make calls to the rpc API
     - Some commands require sudo privilege. To run the script as sudo in virtualenv, use `venvsudo pipelined_cli.py`
     - Example:
-  
+
 ```bash
 $ ./pipelined_cli.py enforcement activate_dynamic_rule --imsi IMSI12345 --rule_id rule1 --priority 110 --hard_timeout 60
 ```
@@ -173,12 +173,12 @@ $ venvsudo ./pipelined_cli.py enforcement display_flows
 
 - `fake_user.py` can be used to debug Pipelined without an eNodeB. It creates a fake_user OVS port and an interface with the same name and IP (10.10.10.10). Any traffic sent through the interface would traverse the pipeline, as if its sent from a user ip (192.168.128.200 by default).
     - Example:
-    
+
 ```bash
 $ ./fake_user.py create --imsi IMSI12345
 $ sudo curl --interface fake_user -vvv --ipv4 http://www.google.com > /dev/null
 ```
-    
+
 
 ### Unit Tests
 
@@ -193,4 +193,3 @@ Traffic integration tests cover the end to end flow of Pipelined. See the [Integ
 [OpenFlow Specification](https://www.opennetworking.org/wp-content/uploads/2014/10/openflow-spec-v1.4.0.pdf)
 
 [Ryu API Doc](https://ryu.readthedocs.io/en/latest/api_ref.html)
-

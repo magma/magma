@@ -54,12 +54,7 @@
 #include "mme_config.h"
 #include "emm_data.h"
 #include "EpsNetworkFeatureSupport.h"
-#include "mme_app_desc.h"
-
-/****************************************************************************/
-/****************  E X T E R N A L    D E F I N I T I O N S  ****************/
-/****************************************************************************/
-extern mme_app_desc_t mme_app_desc;
+#include "mme_app_state.h"
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -358,15 +353,16 @@ int mme_api_notify_imsi(
   const imsi64_t imsi64,
   uint8_t imsi_length)
 {
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS);
   ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, id);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, id);
 
   if (ue_mm_context) {
     mme_ue_context_update_coll_keys(
-      &mme_app_desc.mme_ue_contexts,
+      &mme_app_desc_p->mme_ue_contexts,
       ue_mm_context,
       ue_mm_context->enb_s1ap_id_key,
       id,
@@ -396,14 +392,14 @@ int mme_api_notify_imsi(
 int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t *const guti)
 {
   ue_mm_context_t *ue_mm_context = NULL;
-
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_NAS);
   ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, id);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, id);
 
   if (ue_mm_context) {
     mme_ue_context_update_coll_keys(
-      &mme_app_desc.mme_ue_contexts,
+      &mme_app_desc_p->mme_ue_contexts,
       ue_mm_context,
       ue_mm_context->enb_s1ap_id_key,
       id,
@@ -446,11 +442,12 @@ int mme_api_new_guti(
   tai_list_t *const tai_list)
 {
   OAILOG_FUNC_IN(LOG_NAS);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_context = NULL;
   imsi64_t imsi64 = imsi_to_imsi64(imsi);
 
   ue_context =
-    mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+    mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
 
   if (ue_context) {
     guti->gummei.mme_gid = _emm_data.conf.gummei.mme_gid;

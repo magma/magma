@@ -78,6 +78,14 @@ message SwxConfig {
     // Flag to ensure that a user is authorized for Non-3GPP IP Access
     bool verify_authorization = 3;
     uint32 CacheTTLSeconds = 4;
+     // Percentage of request failures considered to be unhealthy
+    float request_failure_threshold = 5;
+    // Minimum number of requests necessary to consider a metrics snapshot valid
+    uint32 minimum_request_threshold = 6;
+    // Flag to ensure that we send SAR with REGISTER following successful MAA
+    bool register_on_auth = 7;
+    // // use returned maa.AAAServerName to derive Origin Realm from
+    bool derive_unregister_realm = 8;
 }
 
 message EapAkaConfig {

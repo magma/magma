@@ -14,6 +14,7 @@ import (
 	"fbc/cwf/radius/modules/eap/authstate"
 	"fbc/cwf/radius/modules/eap/methods"
 	"fbc/cwf/radius/modules/eap/methods/akamagma"
+	"fbc/cwf/radius/modules/eap/methods/akatataipx"
 	"fbc/cwf/radius/modules/eap/packet"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2869"
@@ -35,33 +36,37 @@ type Config struct {
 }
 
 // stateManager a state manage instance
-var stateManager authstate.Manager
-var method methods.EapMethod
+type ModuleCtx struct {
+	stateManager authstate.Manager
+	method       methods.EapMethod
+}
 
 // Init module interface implementation
 //nolint:deadcode
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	var mCtx ModuleCtx
+
 	// Parse config
 	var eapConfig Config
 	err := mapstructure.Decode(config, &eapConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Initialize State Manager singleton
 	// TODO: sync object
-	if stateManager == nil {
-		stateManager = authstate.NewMemoryManager()
+	if mCtx.stateManager == nil {
+		mCtx.stateManager = authstate.NewMemoryManager()
 	}
 
 	// TODO: handle multiple methods (currently assuming only one)
-	method, err = getMethod(eapConfig.Methods[0])
+	mCtx.method, err = getMethod(eapConfig.Methods[0])
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// We're done without any error!
-	return nil
+	return mCtx, nil
 }
 
 // GetMethod factory method, instatiates and initializes an EAP method
@@ -69,14 +74,17 @@ func getMethod(method Method) (methods.EapMethod, error) {
 	switch method.Name {
 	case "akamagma":
 		return akamagma.Create(method.Config)
+	case "akatataipx":
+		return akatataipx.Create(method.Config)
 	default:
-		return nil, errors.New("unsupported eap method '%s' (only 'akamagma' is supported")
+		return nil, errors.New("unsupported eap method '%s' ('akamagma', 'akatataipx' are supported")
 	}
 }
 
 // Handle module interface implementation
 //nolint:deadcode
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	mCtx := m.(ModuleCtx)
 	c.Logger.Debug("Starting to handle radius request")
 
 	// Extract EAP packet
@@ -99,19 +107,19 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 	RestoreProtocolState.Start()
 	eapAuthState := &authstate.Container{}
 	if eapPacket.EAPType == packet.EAPTypeIDENTITY {
-		err := stateManager.Reset(r.Packet, packet.EAPTypeIDENTITY)
+		err := mCtx.stateManager.Reset(r.Packet, packet.EAPTypeIDENTITY)
 		if err != nil {
 			c.Logger.Error("Failed to load EAP state", zap.Error(err))
 			RestoreProtocolState.Failure("reset_on_eap_identity_failed")
 			return next(c, r)
 		}
-		if err := stateManager.Set(r.Packet, packet.EAPTypeIDENTITY, authstate.Container{}); err != nil {
+		if err := mCtx.stateManager.Set(r.Packet, packet.EAPTypeIDENTITY, authstate.Container{}); err != nil {
 			c.Logger.Error("Failed to load EAP state", zap.Error(err))
 			RestoreProtocolState.Failure("set_empty_on_eap_identity")
 			return next(c, r)
 		}
 	} else {
-		eapAuthState, err = stateManager.Get(r.Packet, eapPacket.EAPType)
+		eapAuthState, err = mCtx.stateManager.Get(r.Packet, eapPacket.EAPType)
 		if err != nil {
 			c.Logger.Error("Missing or invalid EAP auth state", zap.Error(err))
 			RestoreProtocolState.Failure("missing_or_invalid_auth_state")
@@ -130,7 +138,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 	// Handle the EAP-method state machine
 	logger := c.Logger
 	c.Logger = eapLogger
-	eapResponse, err := method.Handle(c, eapPacket, eapAuthState.ProtocolState, r)
+	eapResponse, err := mCtx.method.Handle(c, eapPacket, eapAuthState.ProtocolState, r)
 	if err != nil {
 		c.Logger.Error("Failed handling EAP packet", zap.Error(err))
 		HandleEapPacket.Failure("unknown")
@@ -142,7 +150,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 	// Persist state
 	PersistProtocolState.Start()
 	eapAuthState.ProtocolState = eapResponse.NewProtocolState
-	err = stateManager.Set(r.Packet, eapPacket.EAPType, *eapAuthState)
+	err = mCtx.stateManager.Set(r.Packet, eapPacket.EAPType, *eapAuthState)
 	if err != nil {
 		PersistProtocolState.Failure("unknown")
 		c.Logger.Error("Failed to persist state", zap.Error(err))

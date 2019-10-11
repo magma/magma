@@ -22,25 +22,28 @@ import (
 
 // OCS Environment Variables
 const (
-	OCSAddrEnv         = "OCS_ADDR"
-	GyNetworkEnv       = "GY_NETWORK"
-	GyDiamHostEnv      = "GY_DIAM_HOST"
-	GyDiamRealmEnv     = "GY_DIAM_REALM"
-	GyDiamProductEnv   = "GY_DIAM_PRODUCT"
-	GyInitMethodEnv    = "GY_INIT_METHOD"
-	GyLocalAddr        = "GY_LOCAL_ADDR"
-	OCSHostEnv         = "OCS_HOST"
-	OCSRealmEnv        = "OCS_REALM"
-	OCSApnOverwriteEnv = "OCS_APN_OVERWRITE"
-	DisableDestHostEnv = "DISABLE_DEST_HOST"
+	OCSAddrEnv              = "OCS_ADDR"
+	GyNetworkEnv            = "GY_NETWORK"
+	GyDiamHostEnv           = "GY_DIAM_HOST"
+	GyDiamRealmEnv          = "GY_DIAM_REALM"
+	GyDiamProductEnv        = "GY_DIAM_PRODUCT"
+	GyInitMethodEnv         = "GY_INIT_METHOD"
+	GyLocalAddr             = "GY_LOCAL_ADDR"
+	OCSHostEnv              = "OCS_HOST"
+	OCSRealmEnv             = "OCS_REALM"
+	OCSApnOverwriteEnv      = "OCS_APN_OVERWRITE"
+	OCSServiceIdentifierEnv = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
+	DisableDestHostEnv      = "DISABLE_DEST_HOST"
 
-	GyInitMethodFlag    = "gy_init_method"
-	OCSApnOverwriteFlag = "ocs_apn_overwrite"
+	GyInitMethodFlag         = "gy_init_method"
+	OCSApnOverwriteFlag      = "ocs_apn_overwrite"
+	OCSServiceIdentifierFlag = "ocs_service_identifier_overwrite"
 )
 
 var (
 	_ = flag.String(GyInitMethodFlag, "", "Gy init method (per_key|per_session)")
 	_ = flag.String(OCSApnOverwriteFlag, "", "OCS APN to use instead of request's APN")
+	_ = flag.String(OCSServiceIdentifierFlag, "", "OCS ServiceIdentifier to use in Gy requests")
 )
 
 // InitMethod describes the type of ways sessions can be initialized through the
@@ -58,7 +61,7 @@ const (
 // GetInitMethod returns the init method for this gy client based on the flags
 // or environment variables
 func GetInitMethod() InitMethod {
-	initMethod := PerSessionInit
+	initMethod := PerKeyInit
 	configsPtr := &mconfig.SessionProxyConfig{}
 	err := managed_configs.GetServiceConfigs(credit_control.SessionProxyServiceName, configsPtr)
 	if err != nil || configsPtr.Gy == nil {

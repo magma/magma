@@ -12,55 +12,42 @@ import (
 	"context"
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/modules/protos"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 	"fmt"
 	"math/rand"
 	"net"
 
 	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2865"
 	"fbc/lib/go/radius/rfc2866"
 
+	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
 // GRPCListener listens to gRpc
 type GRPCListener struct {
-	GrpcServer    *grpc.Server
-	Server        *Server
-	Config        config.ListenerConfig
-	Modules       []Module
-	HandleRequest modules.Middleware
-	dupDropped    uint32
-	ready         chan bool
+	Listener
+	GrpcServer *grpc.Server
+	Server     *Server
+	Port       int
+	ready      chan bool
 }
 
-// GetModules override
-func (l *GRPCListener) GetModules() []Module {
-	return l.Modules
+// GRPCListenerExtraConfig extra config for GRPC listener
+type GRPCListenerExtraConfig struct {
+	Port int `json:"port"`
 }
 
-// SetModules override
-func (l *GRPCListener) SetModules(m []Module) {
-	l.Modules = m
-}
-
-// AppendModule override
-func (l *GRPCListener) AppendModule(m *Module) {
-	l.Modules = append(l.Modules, *m)
-}
-
-// GetConfig override
-func (l *GRPCListener) GetConfig() config.ListenerConfig {
-	return l.Config
-}
-
-// SetHandleRequest override
-func (l *GRPCListener) SetHandleRequest(hr modules.Middleware) {
-	l.HandleRequest = hr
+// NewGRPCListener ...
+func NewGRPCListener() *GRPCListener {
+	return &GRPCListener{
+		ready: make(chan bool),
+	}
 }
 
 // Init override
@@ -68,20 +55,28 @@ func (l *GRPCListener) Init(
 	server *Server,
 	serverConfig config.ServerConfig,
 	listenerConfig config.ListenerConfig,
+	_ monitoring.ListenerCounters,
 ) error {
 	if server == nil {
 		return errors.New("cannot initialize GRPC listener with null server")
 	}
 
-	l.ready = make(chan bool, 1)
+	// Parse configuration
+	var cfg GRPCListenerExtraConfig
+	err := mapstructure.Decode(listenerConfig.Extra, &cfg)
+	if err != nil {
+		return err
+	}
+
 	l.Server = server
+	l.Port = cfg.Port
 	return nil
 }
 
 // ListenAndServe override
 func (l *GRPCListener) ListenAndServe() error {
 	// Start listenning
-	listenAddress := fmt.Sprintf(":%d", l.GetConfig().Port)
+	listenAddress := fmt.Sprintf(":%d", l.Port)
 	lis, err := net.Listen("tcp", listenAddress)
 	if err != nil {
 		l.ready <- false
@@ -110,11 +105,6 @@ func (l *GRPCListener) GetHandleRequest() modules.Middleware {
 // Shutdown override
 func (l *GRPCListener) Shutdown(ctx context.Context) error {
 	return nil
-}
-
-// GetDupDropped override
-func (l *GRPCListener) GetDupDropped() *uint32 {
-	return &l.dupDropped
 }
 
 // Ready override
@@ -171,7 +161,7 @@ func (s *authorizationServer) handleCoaRequest(ctx *protos.Context, request *rad
 	var correlationField = zap.Uint32("correlation", rand.Uint32())
 	requestContext := modules.RequestContext{
 		RequestID: correlationField.Integer,
-		Logger:    srv.loggerFactory.Bg().With(correlationField),
+		Logger:    srv.logger.With(correlationField),
 		SessionID: ctx.SessionId,
 		SessionStorage: session.NewSessionStorage(
 			srv.multiSessionStorage,
@@ -188,13 +178,14 @@ func (s *authorizationServer) handleCoaRequest(ctx *protos.Context, request *rad
 	// Add Acct-Session-Id attribute
 	request.Attributes = radius.Attributes{}
 	request.Set(rfc2866.AcctSessionID_Type, radius.Attribute(state.AcctSessionID))
+	request.Set(rfc2865.CallingStationID_Type, radius.Attribute(ctx.MacAddr))
 
 	// Set Identifier
 	request.Identifier = state.NextCoAIdentifier
 	state.NextCoAIdentifier = (state.NextCoAIdentifier + 1) % 0xFF
 
 	// Handle
-	counter := counters.NewOperation("handle_grpc").Start()
+	counter := monitoring.NewOperation("handle_grpc").Start()
 	res, err := s.Listener.HandleRequest(&requestContext, request)
 	if err != nil {
 		requestContext.Logger.Error("failed to handle request", zap.Error(err))

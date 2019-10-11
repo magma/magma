@@ -46,7 +46,7 @@ enum ServiceState {
   SERVICE_ENABLED = 0,
   SERVICE_NEEDS_DEACTIVATION = 1,
   SERVICE_DISABLED = 2,
-  SERVICE_NEEDS_ACTIVATION = 3
+  SERVICE_NEEDS_ACTIVATION = 3,
 };
 
 enum CreditUpdateType {
@@ -66,6 +66,11 @@ class SessionCredit {
   struct Usage {
     uint64_t bytes_tx;
     uint64_t bytes_rx;
+  };
+
+  struct FinalActionInfo {
+    ChargingCredit_FinalAction final_action;
+    RedirectServer redirect_server;
   };
 
   SessionCredit();
@@ -89,8 +94,7 @@ class SessionCredit {
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
-  void mark_failure();
-
+  void mark_failure(uint32_t code = 0);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
@@ -100,7 +104,8 @@ class SessionCredit {
     uint64_t tx_volume,
     uint64_t rx_volume,
     uint32_t validity_time,
-    bool is_final);
+    bool is_final,
+    FinalActionInfo final_action_info);
 
   /**
    * get_update_type returns the type of update required for the credit. If no
@@ -139,9 +144,14 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Returns true when there will be no more quora granted
+   * Returns true when there will be no more quota granted
    */
   bool no_more_grant();
+
+  /**
+   * Returns
+   */
+  RedirectServer get_redirect_server();
 
   /**
    * A threshold represented as a ratio for triggering usage update before
@@ -169,6 +179,7 @@ class SessionCredit {
  private:
   bool reporting_;
   bool is_final_;
+  FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
   std::time_t expiry_time_;
@@ -178,6 +189,7 @@ class SessionCredit {
    * session manager from reporting more usage than granted
    */
   uint64_t usage_reporting_limit_;
+  static const std::set<uint32_t> transient_result_codes_;
 
  private:
   bool quota_exhausted(
@@ -190,6 +202,8 @@ class SessionCredit {
   void set_expiry_time(uint32_t validity_time);
 
   bool is_reauth_required();
+
+  ServiceActionType get_action_for_deactivating_service();
 };
 
 } // namespace magma

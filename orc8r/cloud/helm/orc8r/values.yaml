@@ -33,9 +33,13 @@ imagePullSecrets: []
 metrics:
   metrics:
     create: false
-  graphite:
+  prometheus:
     create: false
   prometheusCache:
+    create: false
+  alertmanager:
+    create: false
+  configmanager:
     create: false
 
 # secrets subchart configuration.
@@ -164,3 +168,7 @@ controller:
   # Assign proxy to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+# Set True to create a CloudWatch agent to monitor metrics 
+cloudwatch:
+  create: false

@@ -10,25 +10,24 @@ package main
 
 import (
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/loader"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/server"
 	"flag"
+	"fmt"
+	"math/rand"
+	"net"
 	"os"
 	"os/signal"
+	"sort"
 	"syscall"
 
 	"go.uber.org/zap"
 )
 
 func main() {
-	// First there was a logger...
-	loggerConfig := zap.NewProductionConfig()
-	loggerConfig.Level.SetLevel(zap.DebugLevel)
-	logger, err := loggerConfig.Build()
-	if err != nil {
-		panic(err)
-	}
+	// Get a simple stdout logger
+	logger, err := zap.NewProduction()
 
 	// Get configuration
 	var configFilename string
@@ -40,10 +39,15 @@ func main() {
 		return
 	}
 
-	// Initialize counters
-	counters.Init(config.Counters, logger)
+	// Initialize monitoring
+	logger, err = monitoring.Init(config.Monitoring, logger)
+	if err != nil {
+		fmt.Println("Failed initializing monitoring", zap.Error(err))
+		return
+	}
 
-	// Prepare dependencies
+	logger = logger.With(zap.String("host", getHostIdentifier()))
+
 	loader := loader.NewStaticLoader(logger)
 
 	// Create server
@@ -60,8 +64,34 @@ func main() {
 		<-sigtermChannel
 		logger.Info("Received SIGTERM, existing")
 		radiusServer.Stop()
+		logger.Sync()
 	}()
 
 	// Start the server
 	radiusServer.Start()
+}
+
+func getHostIdentifier() string {
+	hostname, err := os.Hostname()
+	if err == nil {
+		return hostname
+	}
+
+	// Get the MAC address with the lowest lexicographical index
+	// This is some sort of stable host identifier...
+	interfaces, err := net.Interfaces()
+	if err == nil && len(interfaces) > 0 {
+		var macs []string
+		for _, ifa := range interfaces {
+			mac := ifa.HardwareAddr.String()
+			if mac != "" {
+				macs = append(macs, mac)
+			}
+		}
+		sort.Strings(macs)
+		return macs[0]
+	}
+
+	// Just a random, unstable identifer
+	return fmt.Sprintf("random:%d", rand.Intn(9999999))
 }

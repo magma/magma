@@ -19,6 +19,10 @@ import (
 const echoKeyType = "ECHO"
 const ecdsaKeyType = "SOFTWARE_ECDSA_SHA256"
 
+func (m *Network) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *NetworkDNSConfig) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
@@ -28,6 +32,10 @@ func (m *NetworkFeatures) ValidateModel() error {
 }
 
 func (m NetworkDNSRecords) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m DNSConfigRecord) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
@@ -68,4 +76,40 @@ func (m *MagmadGatewayConfigs) ValidateModel() error {
 		return err
 	}
 	return nil
+}
+
+func (m TierID) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *ReleaseChannel) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *Tier) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierName) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierVersion) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierGateways) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierImages) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *TierImage) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayStatus) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }

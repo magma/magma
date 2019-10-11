@@ -14,14 +14,15 @@ from typing import List, Tuple
 import grpc
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.pipelined_pb2 import (
+    SetupFlowsResult,
     ActivateFlowsResult,
     DeactivateFlowsResult,
     FlowResponse,
     RuleModResult,
+    SetupFlowsRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment,
-)
+    TableAssignment)
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -77,6 +78,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # --------------------------
     # Enforcement App
     # --------------------------
+
+    def SetupFlows(self, request, context):
+        """
+        Setup flows for all subscribers, used on pipelined restarts
+        """
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self._setup_flows,
+                                        request, fut)
+        return fut.result()
+
+    def _setup_flows(self, request: SetupFlowsRequest,
+                     fut: 'Future(SetupFlowsResult)'
+                     ) -> SetupFlowsResult:
+        enforcement_res = self._enforcer_app.setup(request)
+        fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):
         """

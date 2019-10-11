@@ -45,7 +45,7 @@
  **                      Abort Request message                                   **
  ** Outputs:             Return:    RETURNok, RETURNerror                        **
 ***********************************************************************************/
-int mme_app_handle_sgsap_service_abort_request(
+int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -68,7 +68,7 @@ int mme_app_handle_sgsap_service_abort_request(
   }
   IMSI_STRING_TO_IMSI64(itti_sgsap_service_abort_req_p->imsi, &imsi64);
   ue_context_p =
-    mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+    mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,

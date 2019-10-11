@@ -141,15 +141,27 @@ func findIdentsToChange(fset *token.FileSet, fileNode ast.Node, validDependentTy
 	ret := map[*ast.Ident]bool{}
 	ast.Inspect(fileNode, func(n ast.Node) bool {
 		switch n.(type) {
-		// we only care about fields when doing the replacements
-		case *ast.Field:
-			ident := findLeafIdent(fset, n)
-			if ident == nil {
-				break
-			}
-
-			if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
-				ret[ident] = true
+		case *ast.TypeSpec:
+			typeSpec := n.(*ast.TypeSpec)
+			switch typeSpec.Type.(type) {
+			case *ast.StructType:
+				for _, field := range typeSpec.Type.(*ast.StructType).Fields.List {
+					ident := findLeafIdent(fset, field)
+					if ident == nil {
+						break
+					}
+					if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
+						ret[ident] = true
+					}
+				}
+			case *ast.ArrayType:
+				ident := findLeafIdent(fset, typeSpec.Type)
+				if ident == nil {
+					break
+				}
+				if _, shouldReplace := validDependentTypes[ident.Name]; shouldReplace {
+					ret[ident] = true
+				}
 			}
 		}
 		return true
@@ -170,12 +182,12 @@ func findLeafIdent(fset *token.FileSet, n ast.Node) *ast.Ident {
 		return findLeafIdent(fset, t.X)
 	case *ast.ArrayType:
 		return findLeafIdent(fset, t.Elt)
-	case *ast.SelectorExpr:
-		return nil
 	case *ast.MapType:
 		// again making a quick hacky assumption that generated types won't be
 		// used as map keys
 		return findLeafIdent(fset, t.Value)
+	case *ast.SelectorExpr, *ast.InterfaceType:
+		return nil
 	default:
 		panic(fmt.Sprintf("Unsupported AST type %T; implement support yourself!", t))
 	}

@@ -11,32 +11,27 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/services/checkind/test_utils"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/pluginimpl/models"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/magmad/obsidian/handlers/view_factory"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
-	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
-	state_test_utils "magma/orc8r/cloud/go/services/state/test_utils"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
+	stateTestUtils "magma/orc8r/cloud/go/services/state/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetViewsForNetwork_Full(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	state_test_init.StartTestService(t)
-	magmad_test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 
 	testURLRoot := fmt.Sprintf(
@@ -100,9 +95,9 @@ func TestGetViewsForNetwork_Full(t *testing.T) {
 	tests.RunTest(t, getGatewaysFullView)
 
 	// Test Gateway Full View with state
-	ctx := state_test_utils.GetContextWithCertificate(t, "TestAGHwId00001")
-	gwStatus := test_utils.GetGatewayStatusSwaggerFixture("TestAGHwId00001")
-	state_test_utils.ReportGatewayStatus(t, ctx, gwStatus)
+	ctx := stateTestUtils.GetContextWithCertificate(t, "TestAGHwId00001")
+	gwStatus := models.NewDefaultGatewayStatus("TestAGHwId00001")
+	stateTestUtils.ReportGatewayStatus(t, ctx, gwStatus)
 	status, response, err := tests.SendHttpRequest("GET", fmt.Sprintf("%s/%s/gateways?view=full", testURLRoot, networkID), "")
 	assert.NoError(t, err)
 	assert.Equal(t, 200, status)

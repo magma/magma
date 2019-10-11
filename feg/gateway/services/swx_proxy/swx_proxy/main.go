@@ -36,6 +36,7 @@ func main() {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}
 	protos.RegisterSwxProxyServer(srv.GrpcServer, servicer)
+	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 
 	// Run the service
 	err = srv.Run()

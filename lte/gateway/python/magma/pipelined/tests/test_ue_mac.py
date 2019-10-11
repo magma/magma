@@ -119,10 +119,10 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 4 flows installed and 2 total pkts matched (one for each UE)
+        # Verify 17 flows installed and 2 total pkts matched (one for each UE)
         flow_verifier = FlowVerifier(
-            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2, 4)]
-            + [FlowTest(query, 1, 1) for query in flow_queries],
+            [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2, 17)]
+            + [FlowTest(query, 1, 4) for query in flow_queries],
             lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -166,13 +166,13 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 2 flows installed and 1 total pkt matched
+        # Verify 9 flows installed and 1 total pkt matched
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 1,
-                         2),
+                         9),
                 FlowTest(flow_queries[0], 0, 0),
-                FlowTest(flow_queries[1], 1, 1),
+                FlowTest(flow_queries[1], 1, 4),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,

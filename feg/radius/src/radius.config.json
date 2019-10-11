@@ -1,7 +1,16 @@
 {
-    "counters": {
-        "disable_stats": false,
-        "stat_views": ["proc"]
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "ods": {
+        "category_id": "958",
+        "access_token": "$MONITORING_ACCESS_TOKEN",
+        "entity": "goradius",
+        "graph_url": "https://graph.facebook.com/ods_metrics",
+        "unique_entity": true
     },
     "server": {
         "secret": "123456",
@@ -47,7 +56,7 @@
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     },
                     {
@@ -66,7 +75,7 @@
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     }
                 ]

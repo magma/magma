@@ -1,0 +1,63 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+- fail: msg="MAGMA_ROOT and OUTPUT_DIR are required"
+  when:
+    - MAGMA_ROOT is not defined or OUTPUT_DIR is not defined
+
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+    name: all_vars
+
+- name: Converting WORK_DIR to absolute path
+  shell: realpath {{ all_vars.WORK_DIR }}
+  register: WORK_DIR_ABSOLUTE
+
+- name: Execute via fakeroot the make debian/rules.
+  shell:  fakeroot make -f debian/rules binary
+  args:
+    chdir: "{{ WORK_DIR_ABSOLUTE.stdout }}/ovs"
+
+- name: Creating /usr/src/linux.
+  become: yes
+  file:
+    path: /usr/src/linux
+    state: directory
+    mode: 0755
+
+- name: Setting up KVERS var.
+  shell: uname -r
+  register: kvers
+
+- name: Making binaries modules.
+  command: make -f debian/rules.modules KSRC="/lib/modules/{{ kvers.stdout }}/build" KVERS={{ kvers.stdout }} binary-modules
+  ignore_errors: true
+  become: yes
+  args:
+    chdir: "{{ WORK_DIR_ABSOLUTE.stdout }}/ovs"
+
+- name: Find built .deb
+  shell: find /usr/src/*.deb
+  register: aoi_built_packages
+
+- name: Find built .deb
+  shell: find {{ WORK_DIR_ABSOLUTE.stdout }}/*.deb
+  register: built_packages
+
+- name: Copy freshly built .deb packages
+  command: cp -u {{ item }} {{ OUTPUT_DIR }}
+  with_items:
+    - "{{ aoi_built_packages.stdout_lines }}"
+
+- name: Copy freshly built .deb packages
+  command: cp -u {{ item }} {{ OUTPUT_DIR }}
+  with_items:
+    - "{{ built_packages.stdout_lines }}"
+  when: OUTPUT_DIR != WORK_DIR_ABSOLUTE.stdout

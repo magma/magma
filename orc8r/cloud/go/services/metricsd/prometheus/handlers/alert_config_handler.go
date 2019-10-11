@@ -17,6 +17,7 @@ import (
 	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
@@ -36,6 +37,15 @@ const (
 	AlertReceiverConfigURL = PrometheusRoot + obsidian.UrlSep + alertReceiverPart
 	AlertReceiverUpdateURL = AlertReceiverConfigURL + obsidian.UrlSep + ":" + ReceiverNamePathParam
 	AlertBulkUpdateURL     = AlertConfigURL + "/bulk"
+
+	AlertConfigV1URL         = PrometheusV1Root + obsidian.UrlSep + alertConfigPart
+	AlertUpdateV1URL         = AlertConfigV1URL + obsidian.UrlSep + ":" + AlertNamePathParam
+	AlertReceiverConfigV1URL = PrometheusV1Root + obsidian.UrlSep + alertReceiverPart
+	AlertReceiverUpdateV1URL = AlertReceiverConfigV1URL + obsidian.UrlSep + ":" + ReceiverNamePathParam
+	AlertBulkUpdateV1URL     = AlertConfigV1URL + "/bulk"
+
+	FiringAlertURL   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "alerts"
+	FiringAlertV1URL = handlers.ManageNetworkPath + obsidian.UrlSep + "alerts"
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
@@ -121,7 +131,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 	}
 
 	sendErr := sendConfig(rule, url, http.MethodPost)
-	if err != nil {
+	if sendErr != nil {
 		return obsidian.HttpError(sendErr, sendErr.Code)
 	}
 	return c.JSON(http.StatusCreated, rule.Alert)

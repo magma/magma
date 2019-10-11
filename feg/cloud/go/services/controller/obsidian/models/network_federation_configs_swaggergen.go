@@ -587,7 +587,7 @@ var networkFederationConfigsHealthHealthServicesItemsEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["S6A_PROXY","SESSION_PROXY"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["S6A_PROXY","SESSION_PROXY","SWX_PROXY"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -855,6 +855,12 @@ type NetworkFederationConfigsSwx struct {
 
 	// cache TTL seconds
 	CacheTTLSeconds uint32 `json:"cache_TTL_seconds,omitempty"`
+
+	// derive unregister realm
+	DeriveUnregisterRealm bool `json:"derive_unregister_realm,omitempty"`
+
+	// register on auth
+	RegisterOnAuth bool `json:"register_on_auth,omitempty"`
 
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`

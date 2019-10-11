@@ -14,8 +14,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
+	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	sdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -38,16 +38,39 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
 
+	// 1 sub without a profile on the backend (should fill as "default"), the
+	// other inactive with a sub profile
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{Type: lte.SubscriberEntityType, Key: "IMSI12345", Config: &models.Subscriber{ID: models.SubscriberID("IMSI12345"), Lte: &models.LteSubscription{State: "ACTIVE"}}},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.Subscriber{ID: models.SubscriberID("IMSI67890"), Lte: &models.LteSubscription{State: "INACTIVE"}}},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI12345",
+			Config: &models2.LteSubscription{
+				State:   "ACTIVE",
+				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			},
+		},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models2.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
 	})
 	assert.NoError(t, err)
 
 	pro := &sdbstreamer.SubscribersProvider{}
 	expectedProtos := []*protos.SubscriberData{
-		{Sid: &protos.SubscriberID{Id: "12345", Type: protos.SubscriberID_IMSI}, Lte: &protos.LTESubscription{State: protos.LTESubscription_ACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
-		{Sid: &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI}, Lte: &protos.LTESubscription{State: protos.LTESubscription_INACTIVE}, NetworkId: &orcprotos.NetworkID{Id: "n1"}},
+		{
+			Sid: &protos.SubscriberID{Id: "12345", Type: protos.SubscriberID_IMSI},
+			Lte: &protos.LTESubscription{
+				State:   protos.LTESubscription_ACTIVE,
+				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			},
+			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			SubProfile: "default",
+		},
+		{
+			Sid:        &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI},
+			Lte:        &protos.LTESubscription{State: protos.LTESubscription_INACTIVE},
+			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
 	}
 	expected := funk.Map(
 		expectedProtos,

@@ -192,6 +192,12 @@ definitions:
           verify_authorization:
             type: boolean
             example: false
+          register_on_auth:
+            type: boolean
+            example: false
+          derive_unregister_realm:
+            type: boolean
+            example: false
           cache_TTL_seconds:
             type: integer
             format: uint32
@@ -247,6 +253,7 @@ definitions:
               enum:
               - S6A_PROXY
               - SESSION_PROXY
+              - SWX_PROXY
             example:
             - S6A_PROXY
             - SESSION_PROXY

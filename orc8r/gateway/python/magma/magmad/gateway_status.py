@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+# pylint: disable=broad-except
 
 import json
 import logging
@@ -13,12 +14,7 @@ import psutil
 import platform
 import time
 import netifaces
-from typing import (
-    NamedTuple,
-    List,
-    Any,
-    Dict,
-)
+from typing import NamedTuple, List, Any, Dict, Optional, Tuple
 from magma.common.misc_utils import (
     get_ip_from_if,
     is_interface_up,
@@ -33,7 +29,11 @@ from magma.magmad.check.machine_check.cpu_info import (
 from magma.magmad.check.network_check.routing_table import (
     get_routing_table,
 )
-
+from magma.magmad.check.kernel_check.kernel_versions import (
+    get_kernel_versions_async,
+)
+from magma.common.job import Job
+from magma.magmad.service_poller import ServicePoller
 
 GatewayStatus = NamedTuple(
     'GatewayStatus',
@@ -85,8 +85,7 @@ NetworkInterface = NamedTuple(
     'NetworkInterface',
     [('network_interface_id', str), ('mac_address', str),
      ('ip_addresses', List[str]), ('status', str),
-     ('ipv6_addresses', List[str])]
-)
+     ('ipv6_addresses', List[str])])
 
 Route = NamedTuple(
     'Route',
@@ -94,29 +93,67 @@ Route = NamedTuple(
      ('genmask', str), ('network_interface_id', str)])
 
 
-class GatewayStatusNative:
-    def __init__(self, service: MagmaService):
+class KernelVersionsPoller(Job):
+    """
+    KernelVersionsPoller will periodically call get_kernel_versions_async and
+    store the result. get_kernel_versions_installed can be called to get the
+    latest list.
+    """
+    def __init__(self, service):
+        super().__init__(
+            interval=service.mconfig.checkin_interval,
+            loop=service.loop
+        )
+        self._kernel_versions_installed = []
+
+    def get_kernel_versions_installed(self) -> List[str]:
+        """ returns the latest list of kernel versions gathered from _run"""
+        return self._kernel_versions_installed
+
+    async def _run(self):
+        try:
+            result = await get_kernel_versions_async(loop=self._loop)
+            result = list(result)[0].kernel_versions_installed
+            self._kernel_versions_installed = result
+        except Exception as e:
+            logging.error("Error getting kernel versions! %s", e)
+
+
+class GatewayStatusFactory:
+    """
+    GatewayStatusFactory is used to generate an object with information about
+    the gateway. get_serialized_status is the public interface used to generate the
+    gateway status object. The object mimics the swagger spec for GatewayStatus
+    defined in the orc8r.
+    """
+    def __init__(self, service: MagmaService,
+                 service_poller: ServicePoller,
+                 kernel_version_poller: Optional[KernelVersionsPoller]):
         self._service = service
+        self._service_poller = service_poller
+
+        # Get one time status info
         self._kernel_version = platform.uname().release
         self._boot_time = psutil.boot_time()
-        cpu_info = get_cpu_info()
-        if cpu_info.error is not None:
-            logging.error('Failed to get cpu info: %s', cpu_info.error)
-        self._cpu_info = CPUInfo(
-            core_count=cpu_info.core_count,
-            threads_per_core=cpu_info.threads_per_core,
-            architecture=cpu_info.architecture,
-            model_name=cpu_info.model_name,
-        )
+        self._cpu_info = self._get_cpu_info()
 
-    def make_status(
-            self,
-            service_statusmeta: Dict[str, Any],
-            kernel_versions_installed: List[str]) -> str:
-        system_status = self._system_status_tuple()._asdict()
+        self._kernel_version_poller = kernel_version_poller
+
+        # track services that are required to have non empty meta in order to
+        # check-in
+        self._required_service_metas = frozenset(
+            service.config.get("skip_checkin_if_missing_meta_services", []))
+
+    def get_serialized_status(self) -> Tuple[str, bool]:
+        """
+        get_serialized_status returns a tuple of the serialized gateway status
+        and a boolean on whether or not its meta fields has all the required
+        services specified by the service config.
+        """
+        system_status = self._system_status()._asdict()
         platform_info = \
-            self._get_platform_info_tuple(kernel_versions_installed)._asdict()
-        machine_info = self._get_machine_info_tuple()._asdict()
+            self._get_platform_info()._asdict()
+        machine_info = self._get_machine_info()._asdict()
 
         gw_status = GatewayStatus(
             machine_info=machine_info,
@@ -124,12 +161,44 @@ class GatewayStatusNative:
             system_status=system_status,
             meta={},
         )
-        for statusmeta in service_statusmeta.values():
+        gw_status, meta_services = self._fill_in_meta(gw_status)
+
+        has_required_service_meta = self._meta_has_required_services(meta_services)
+        return json.dumps(gw_status._asdict()), has_required_service_meta
+
+    def _fill_in_meta(
+        self, gw_status: GatewayStatus
+    ) -> Tuple[GatewayStatus, List[str]]:
+        service_status_meta = self._gather_service_status_meta()
+        for statusmeta in service_status_meta.values():
             gw_status.meta.update(statusmeta)
+        return gw_status, service_status_meta.keys()
 
-        return json.dumps(gw_status._asdict())
+    def _gather_service_status_meta(self):
+        """
+        returns map of (name: statusmeta) of each service
+        """
+        status_meta_by_name = {}
+        for name, info in sorted(self._service_poller.service_info.items()):
+            if info.status is not None:
+                if len(info.status.meta) == 0:
+                    continue
+                status_meta_by_name[name] = info.status.meta
+        return status_meta_by_name
 
-    def _system_status_tuple(self) -> SystemStatus:
+    @staticmethod
+    def _get_cpu_info() -> CPUInfo:
+        cpu_info = get_cpu_info()
+        if cpu_info.error is not None:
+            logging.error('Failed to get cpu info: %s', cpu_info.error)
+        return CPUInfo(
+            core_count=cpu_info.core_count,
+            threads_per_core=cpu_info.threads_per_core,
+            architecture=cpu_info.architecture,
+            model_name=cpu_info.model_name,
+        )
+
+    def _system_status(self) -> SystemStatus:
         cpu = psutil.cpu_times()
         mem = psutil.virtual_memory()
         swap = psutil.swap_memory()
@@ -163,14 +232,16 @@ class GatewayStatusNative:
         )
         return system_status
 
-    def _get_platform_info_tuple(
-            self, kernel_versions: List[str]) -> PlatformInfo:
+    def _get_platform_info(self) -> PlatformInfo:
         try:
             gw_ip = get_ip_from_if('tun0')  # look for tun0 interface
         except ValueError:
             gw_ip = 'N/A'
 
-        mconfig_metadata = self._service.mconfig_metadata
+        kernel_versions_installed = []
+        if self._kernel_version_poller is not None:
+            kernel_versions_installed = \
+                self._kernel_version_poller.get_kernel_versions_installed()
 
         platform_info = PlatformInfo(
             vpn_ip=gw_ip,
@@ -181,21 +252,22 @@ class GatewayStatusNative:
                 )._asdict(),
             ],
             kernel_version=self._kernel_version,
-            kernel_versions_installed=kernel_versions,
+            kernel_versions_installed=kernel_versions_installed,
             config_info=ConfigInfo(
-                mconfig_created_at=mconfig_metadata.created_at,
+                mconfig_created_at=self._service.mconfig_metadata.created_at,
             )._asdict(),
         )
         return platform_info
 
-    def _get_machine_info_tuple(self) -> MachineInfo:
+    def _get_machine_info(self) -> MachineInfo:
         machine_info = MachineInfo(
             cpu_info=self._cpu_info._asdict(),
-            network_info=self._get_network_info_tuple()._asdict(),
+            network_info=self._get_network_info()._asdict(),
         )
         return machine_info
 
-    def _get_network_info_tuple(self) -> NetworkInfo:
+    @staticmethod
+    def _get_network_info() -> NetworkInfo:
         def network_interface_gen():
             for interface in netifaces.interfaces():
                 try:
@@ -223,7 +295,7 @@ class GatewayStatusNative:
                     ipv6_addresses=ipv6_addresses,
                 )
 
-        def make_route_tuple(route) -> Route:
+        def make_route(route) -> Route:
             return Route(
                 destination_ip=route.destination,
                 gateway_ip=route.gateway,
@@ -241,7 +313,26 @@ class GatewayStatusNative:
                 network_interface._asdict() for network_interface in
                 network_interface_gen()],
             routing_table=[
-                make_route_tuple(route)._asdict() for
+                make_route(route)._asdict() for
                 route in routing_cmd_result.routing_table],
         )
         return network_info
+
+    def _meta_has_required_services(self, meta_services: List[str]) -> bool:
+        """
+        Verifies based on status meta pulled from service_poller.
+        service_statusmeta contains map of service_name -> statusmeta
+        returns True if gateway state reporting is allowed
+        """
+        got_meta_services = set(meta_services)
+
+        has_required_services = \
+            got_meta_services.issuperset(self._required_service_metas)
+
+        if not has_required_services:
+            logging.warning(
+                "Missing meta from services: %s "
+                "(specified in cfg skip_checkin_if_missing_meta_services)",
+                ", ".join(self._required_service_metas - got_meta_services))
+
+        return has_required_services

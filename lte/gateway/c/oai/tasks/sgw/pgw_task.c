@@ -35,13 +35,14 @@
 #include "intertask_interface.h"
 #include "pgw_defs.h"
 #include "pgw_handlers.h"
+#include "spgw_service.h"
 #include "sgw.h"
 #include "common_defs.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "spgw_config.h"
-
-pgw_app_t pgw_app;
+#include "spgw_state.h"
+#include "assertions.h"
 
 extern __pid_t g_pid;
 
@@ -52,20 +53,43 @@ static void *pgw_intertask_interface(void *args_p)
 {
   itti_mark_task_ready(TASK_PGW_APP);
 
+  spgw_state_t *spgw_state_p;
+
   while (1) {
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_PGW_APP, &received_message_p);
 
+    spgw_state_p = get_spgw_state(false);
+    AssertFatal(
+      spgw_state_p != NULL, "Failed to retrieve SPGW state on PGW task");
+
     switch (ITTI_MSG_ID(received_message_p)) {
+      case PGW_NW_INITIATED_ACTIVATE_BEARER_REQ: {
+        pgw_handle_nw_initiated_bearer_actv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.pgw_nw_init_actv_bearer_request);
+      } break;
+
+      case PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
+        pgw_handle_nw_initiated_bearer_deactv_req(
+          spgw_state_p,
+          &received_message_p->ittiMsg.pgw_nw_init_deactv_bearer_request);
+      } break;
+
       case S5_CREATE_BEARER_REQUEST: {
         pgw_handle_create_bearer_request(
-          &received_message_p->ittiMsg.s5_create_bearer_request);
+          spgw_state_p, &received_message_p->ittiMsg.s5_create_bearer_request);
       } break;
 
       case S5_NW_INITIATED_ACTIVATE_BEARER_RESP: {
         pgw_handle_nw_init_activate_bearer_rsp(
           &received_message_p->ittiMsg.s5_nw_init_actv_bearer_response);
+      } break;
+
+      case S5_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
+        pgw_handle_nw_init_deactivate_bearer_rsp(
+          &received_message_p->ittiMsg.s5_nw_init_deactv_bearer_response);
       } break;
 
       case TERMINATE_MESSAGE: {
@@ -81,6 +105,7 @@ static void *pgw_intertask_interface(void *args_p)
           ITTI_MSG_NAME(received_message_p));
       } break;
     }
+
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
   }
@@ -96,6 +121,9 @@ int pgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
+  // start spgw_service which hosts GRPC server
+  spgw_service_init();
+
   FILE *fp = NULL;
   bstring filename = bformat("/tmp/pgw_%d.status", g_pid);
   fp = fopen(bdata(filename), "w+");
@@ -110,5 +138,6 @@ int pgw_init(spgw_config_t *spgw_config_pP)
 
 static void pgw_exit(void)
 {
+  stop_spgw_service();
   return;
 }

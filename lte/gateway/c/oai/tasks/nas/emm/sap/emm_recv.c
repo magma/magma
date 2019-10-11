@@ -52,10 +52,7 @@
 #include "emm_asDef.h"
 #include "emm_data.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
-
-extern mme_app_desc_t mme_app_desc;
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -804,6 +801,16 @@ int emm_recv_service_request(
       }
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }
+  }
+  // If PCRF has initiated default bearer deact, send detach
+  if (emm_ctx->nw_init_bearer_deactv) {
+    emm_sap_t emm_sap = {0};
+    emm_sap.primitive = EMMCN_NW_INITIATED_DETACH_UE;
+    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.ue_id = ue_id;
+    emm_sap.u.emm_cn.u.emm_cn_nw_initiated_detach.detach_type =
+      NW_DETACH_TYPE_RE_ATTACH_NOT_REQUIRED;
+    rc = emm_sap_send(&emm_sap);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   /*
    * Do following:

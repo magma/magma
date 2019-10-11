@@ -29,6 +29,7 @@ import (
 const (
 	internalMetricCacheSize  = "cache_size"
 	internalMetricCacheLimit = "cache_limit"
+	scrapeWorkerPoolSize     = 100
 )
 
 // MetricCache serves as a replacement for the prometheus pushgateway. Accepts
@@ -40,6 +41,7 @@ type MetricCache struct {
 	limit                int
 	stats                cacheStats
 	sync.Mutex
+	scrapeTimeout int
 }
 
 type cacheStats struct {
@@ -56,7 +58,7 @@ type cacheStats struct {
 	currentCountDatapoints int
 }
 
-func NewMetricCache(limit int) *MetricCache {
+func NewMetricCache(limit int, scrapeTimeout int) *MetricCache {
 	if limit > 0 {
 		glog.Infof("Prometheus-Cache created with a limit of %d\n", limit)
 	} else {
@@ -73,6 +75,7 @@ func NewMetricCache(limit int) *MetricCache {
 		metricFamiliesByName: make(map[string]*familyAndMetrics),
 		internalMetrics:      internalMetrics,
 		limit:                limit,
+		scrapeTimeout:        scrapeTimeout,
 	}
 }
 
@@ -131,7 +134,7 @@ func (c *MetricCache) Scrape(ctx echo.Context) error {
 	c.clearMetrics()
 	c.Unlock()
 
-	expositionString := c.exposeMetrics(scrapeMetrics)
+	expositionString := c.exposeMetrics(scrapeMetrics, scrapeWorkerPoolSize)
 	expositionString += c.exposeInternalMetrics()
 
 	c.stats.lastScrapeTime = time.Now().Unix()
@@ -147,18 +150,57 @@ func (c *MetricCache) clearMetrics() {
 	c.metricFamiliesByName = make(map[string]*familyAndMetrics)
 }
 
-func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics) string {
-	respStr := strings.Builder{}
+func (c *MetricCache) exposeMetrics(metricFamiliesByName map[string]*familyAndMetrics, workers int) string {
+	fams := make(chan *familyAndMetrics, workers)
+	results := make(chan string, workers)
+	respStrChannel := make(chan string, 1)
+
+	waitGroup := &sync.WaitGroup{}
+
+	for i := 0; i < workers; i++ {
+		waitGroup.Add(1)
+		go processFamilyWorker(fams, results, waitGroup)
+	}
+
+	go processFamilyStringsWorker(results, respStrChannel)
+
 	for _, fam := range metricFamiliesByName {
+		fams <- fam
+	}
+
+	close(fams)
+	waitGroup.Wait()
+	close(results)
+
+	select {
+	case respStr := <-respStrChannel:
+		return respStr
+	case <-time.After(time.Duration(c.scrapeTimeout) * time.Second):
+		glog.Errorf("Timeout reached for building metrics string. Returning empty string.")
+		return ""
+	}
+}
+
+func processFamilyWorker(fams <-chan *familyAndMetrics, results chan<- string, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
+	for fam := range fams {
 		pullFamily := fam.popSortedDatapoints()
 		familyStr, err := familyToString(pullFamily)
 		if err != nil {
 			glog.Errorf("metric %s dropped. error converting metric to string: %v", *pullFamily.Name, err)
 		} else {
-			respStr.WriteString(familyStr)
+			results <- familyStr
 		}
 	}
-	return respStr.String()
+}
+
+func processFamilyStringsWorker(results <-chan string, respStrChannel chan<- string) {
+	respStr := strings.Builder{}
+
+	for result := range results {
+		respStr.WriteString(result)
+	}
+	respStrChannel <- respStr.String()
 }
 
 func (c *MetricCache) exposeInternalMetrics() string {
@@ -209,7 +251,7 @@ Current Count Datapoints: %d `, hostname, limitValue, utilizationValue,
 		c.stats.currentCountFamilies, c.stats.currentCountSeries, c.stats.currentCountDatapoints)
 
 	if verbose != "" {
-		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName), c.exposeInternalMetrics())
+		debugString += fmt.Sprintf("\n\nCurrent Exposition Text:\n%s\n%s", c.exposeMetrics(c.metricFamiliesByName, scrapeWorkerPoolSize), c.exposeInternalMetrics())
 	}
 
 	return ctx.String(http.StatusOK, debugString)

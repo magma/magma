@@ -9,6 +9,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
+	"os/exec"
+
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/orc8r/cloud/go/blobstore"
@@ -25,27 +28,34 @@ import (
 const (
 	networkIDPlaceholder = "magma"
 	blobTypePlaceholder  = "uesim"
-	radiusAddress        = "192.168.70.101:1812"
+	trafficMSS           = "1300"
+	trafficSrvIP         = "192.168.129.42"
 )
 
 // UESimServer tracks all the UEs being simulated.
 type UESimServer struct {
 	store blobstore.BlobStorageFactory
-	op    []byte
-	amf   []byte
+	cfg   *UESimConfig
+}
+
+type UESimConfig struct {
+	op            []byte
+	amf           []byte
+	radiusAddress string
+	radiusSecret  string
+	brMac         string
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
-	// TODO use config to assign these values
-	Op := []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11")
-	Amf := []byte("\x67\x41")
-
+	config, err := GetUESimConfig()
+	if err != nil {
+		return nil, err
+	}
 	return &UESimServer{
 		store: factory,
-		op:    Op,
-		amf:   Amf,
+		cfg:   config,
 	}, nil
 }
 
@@ -94,7 +104,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, radiusAddress)
+	akaIDReq, err := radius.Exchange(context.Background(), &eapIDResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -104,7 +114,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, radiusAddress)
+	akaChalReq, err := radius.Exchange(context.Background(), &akaIDResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -114,7 +124,7 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
-	result, err := radius.Exchange(context.Background(), &akaChalResp, radiusAddress)
+	result, err := radius.Exchange(context.Background(), &akaChalResp, srv.cfg.radiusAddress)
 	if err != nil {
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
@@ -126,6 +136,17 @@ func (srv *UESimServer) Authenticate(ctx context.Context, id *cwfprotos.Authenti
 	radiusPacket := &cwfprotos.AuthenticateResponse{RadiusPacket: resultBytes}
 
 	return radiusPacket, nil
+}
+
+func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*protos.Void, error) {
+	if req == nil {
+		return &protos.Void{}, fmt.Errorf("Nil GenTrafficRequest provided")
+	}
+	var cmd *exec.Cmd
+	cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
+	cmd.Dir = "/usr/bin"
+	_, err := cmd.Output()
+	return &protos.Void{}, err
 }
 
 // Converts UE data to a blob for storage.

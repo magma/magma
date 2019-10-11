@@ -1,0 +1,44 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+{{- if .Values.prometheus.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-prometheus
+  labels:
+    app.kubernetes.io/component: prometheus
+{{ include "metrics.labels" . | indent 4 }}
+    {{- with .Values.prometheus.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.prometheus.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: prometheus
+{{ include "selector-labels" . | indent 4 }}
+  type: {{ .Values.prometheus.service.type }}
+  ports:
+{{- range $port := .Values.prometheus.service.ports }}
+     - name: {{ $port.name }}
+       port: {{ $port.port }}
+       targetPort: {{ $port.targetPort }}
+{{- end }}
+{{- if eq .Values.prometheus.service.type "LoadBalancer" }}
+  {{- if .Values.prometheus.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.prometheus.service.loadBalancerIP }}
+  {{- end -}}
+  {{- if .Values.prometheus.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+  {{- range .Values.prometheus.service.loadBalancerSourceRanges }}
+  - {{ . }}
+  {{- end }}
+  {{- end -}}
+{{- end -}}
+{{- end }}

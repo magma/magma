@@ -8,118 +8,81 @@
  * @format
  */
 
-import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext from './context/AppContext';
-import AppDrawer from '@fbcnms/ui/components/layout/AppDrawer';
-import CssBaseline from '@material-ui/core/CssBaseline';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import NetworkContext from './context/NetworkContext';
+import Admin from './admin/Admin';
+import AppContext from '@fbcnms/ui/context/AppContext';
+import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import ErrorLayout from './main/ErrorLayout';
+import Index, {ROOT_PATHS} from './main/Index';
+import MagmaV1API from '../common/MagmaV1API';
+import NetworkError from './main/NetworkError';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React from 'react';
-import SectionLinks from './layout/SectionLinks';
-import SectionRoutes from './layout/SectionRoutes';
-import VersionTooltip from './VersionTooltip';
-import defaultTheme from '@fbcnms/ui/theme/default';
-import {MuiThemeProvider} from '@material-ui/core/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {SnackbarProvider} from 'notistack';
-import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
 
-import {MagmaAPIUrls} from '../common/MagmaAPI';
-import {hot} from 'react-hot-loader';
-import {makeStyles} from '@material-ui/styles';
+import useMagmaAPI from '../common/useMagmaAPI';
 import {sortBy} from 'lodash';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-  },
-  toolbarIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: '0 8px',
-    ...theme.mixins.toolbar,
-  },
-}));
-
-// These won't be considered networkIds
-const ROOT_PATHS = new Set(['network']);
-
-function Index() {
-  const classes = useStyles();
-  const {match} = useRouter();
-  const networkId = ROOT_PATHS.has(match.params.networkId)
-    ? null
-    : match.params.networkId;
-
-  return (
-    <NetworkContext.Provider value={{networkId}}>
-      <div className={classes.root}>
-        <AppDrawer>
-          <SectionLinks />
-          <VersionTooltip />
-        </AppDrawer>
-        <AppContent>
-          <SectionRoutes />
-        </AppContent>
-      </div>
-    </NetworkContext.Provider>
-  );
-}
+import {useRouter} from '@fbcnms/ui/hooks';
 
 function Main() {
   const {match} = useRouter();
-  const {response, error} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.networks(),
-  });
+  const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
-  const networkIds = sortBy(response?.data) || ['mpk_test'];
+  const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
   const appContext = {
     ...window.CONFIG.appData,
     networkIds,
   };
 
+  if (error) {
+    return (
+      <AppContext.Provider value={appContext}>
+        <ErrorLayout>
+          <NetworkError error={error} />
+        </ErrorLayout>
+      </AppContext.Provider>
+    );
+  }
+
   if (networkIds.length > 0 && !match.params.networkId) {
     return <Redirect to={`/nms/${networkIds[0]}/map/`} />;
   }
 
-  if (
+  const hasNoNetworks =
     response &&
-    !error &&
     networkIds.length === 0 &&
-    match.params.networkId !== 'network'
-  ) {
+    !ROOT_PATHS.has(match.params.networkId);
+
+  // If it's a superuser and there are no networks, prompt them to create a
+  // network
+  if (hasNoNetworks && window.CONFIG.appData.user.isSuperUser) {
     return <Redirect to="/nms/network/create" />;
   }
 
+  // If it's a regular user and there are no networks, then they likely dont
+  // have access.
+  if (hasNoNetworks && !window.CONFIG.appData.user.isSuperUser) {
+    return (
+      <AppContext.Provider value={appContext}>
+        <ErrorLayout>
+          <NoNetworksMessage />
+        </ErrorLayout>
+      </AppContext.Provider>
+    );
+  }
+
   return (
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}>
-          <AppContext.Provider value={appContext}>
-            <TopBarContextProvider>
-              <CssBaseline />
-              <Index />
-            </TopBarContextProvider>
-          </AppContext.Provider>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <AppContext.Provider value={appContext}>
+      <Index />
+    </AppContext.Provider>
   );
 }
 
-/* eslint-disable-next-line no-undef */
-export default hot(module)(() => (
-  <Switch>
-    <Route path="/nms/:networkId" component={Main} />
-    <Route path="/nms" component={Main} />
-  </Switch>
-));
+export default () => (
+  <ApplicationMain>
+    <Switch>
+      <Route path="/nms/:networkId" component={Main} />
+      <Route path="/nms" component={Main} />
+      <Route path="/admin" component={Admin} />
+    </Switch>
+  </ApplicationMain>
+);

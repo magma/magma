@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {NetworkUpgradeTier} from '../../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
+import type {tier} from '../../common/__generated__/MagmaAPIBindings';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
@@ -27,7 +27,7 @@ type Props = WithStyles<typeof styles> & {
   gatewayID: string,
   onChange: (gatewayID: string, newTierID: string) => void,
   tierID: ?string,
-  networkUpgradeTiers: ?(NetworkUpgradeTier[]),
+  networkUpgradeTiers: ?(tier[]),
 };
 
 class UpgradeStatusTierID extends React.Component<Props> {

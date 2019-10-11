@@ -86,7 +86,7 @@ function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
 
     alert = (
       message: Node | Error,
-      confirmLabel?: Node = 'Ok',
+      confirmLabel?: Node = 'OK',
     ): Promise<boolean> => {
       return this.addDialog({
         message: message instanceof Error ? String(message) : message,

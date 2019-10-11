@@ -9,10 +9,7 @@ LICENSE file in the root directory of this source tree.
 package pluginimpl
 
 import (
-	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -27,21 +24,17 @@ import (
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	dnsdconfig "magma/orc8r/cloud/go/services/dnsd/config"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
-	magmadconfig "magma/orc8r/cloud/go/services/magmad/config"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/confignames"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
-	graphite_exp "magma/orc8r/cloud/go/services/metricsd/graphite/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	promo_exp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
 	stateh "magma/orc8r/cloud/go/services/state/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/streamer/mconfig"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	upgradeh "magma/orc8r/cloud/go/services/upgrade/obsidian/handlers"
 
@@ -67,6 +60,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// State service serdes
 		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
+		// For checkin_cli.py to test cloud < - > gateway connection
+		state.NewStateSerde(state.StringMapSerdeType, &state.StringToStringMap{}),
 
 		// Device service serdes
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
@@ -78,19 +73,6 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
 		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{}),
-
-		// Legacy config manager serdes
-		&magmadconfig.MagmadGatewayConfigManager{},
-		&dnsdconfig.DnsNetworkConfigManager{},
-	}
-}
-
-func (*BaseOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
-	return []factory.MconfigBuilder{
-		// magmad
-		&magmadconfig.MagmadMconfigBuilder{},
-		// dnsd
-		&dnsdconfig.DnsdMconfigBuilder{},
 	}
 }
 
@@ -139,7 +121,6 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 
 const (
 	ProfileNamePrometheus = "prometheus"
-	ProfileNameGraphite   = "graphite"
 	ProfileNameExportAll  = "exportall"
 )
 
@@ -158,44 +139,22 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 
 	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusAddresses := metricsConfig.GetRequiredStringArrayParam(confignames.PrometheusPushAddresses)
-	prometheusCustomPushExporter := promo_exp.NewCustomPushExporter(prometheusAddresses)
+	prometheusCustomPushExporter := promeExp.NewCustomPushExporter(prometheusAddresses)
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: controllerCollectors,
 		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
-	// No-op graphite exporter if graphite parameters are not set
-	graphiteExportAddresses, _ := metricsConfig.GetStringArrayParam(confignames.GraphiteExportAddresses)
-	var graphiteAddresses []graphite_exp.Address
-	for _, address := range graphiteExportAddresses {
-		portIdx := strings.LastIndex(address, ":")
-		portStr := address[portIdx+1:]
-		portInt, err := strconv.Atoi(portStr)
-		if err != nil {
-			panic(fmt.Errorf("graphite address improperly formed: %s\n", address))
-		}
-		graphiteAddresses = append(graphiteAddresses, graphite_exp.NewAddress(address[:portIdx], portInt))
-	}
-	graphiteExporter := graphite_exp.NewGraphiteExporter(graphiteAddresses)
-
-	// Graphite profile - Exports all service metrics to Graphite
-	graphiteProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameGraphite,
-		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{graphiteExporter},
-	}
-
-	// ExportAllProfile - Exports to both graphite and prometheus
+	// ExportAllProfile - Exports to all exporters
 	exportAllProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameExportAll,
 		Collectors: controllerCollectors,
-		Exporters:  []exporters.Exporter{prometheusCustomPushExporter, graphiteExporter},
+		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
 	}
 
 	return []metricsd.MetricsProfile{
 		prometheusProfile,
-		graphiteProfile,
 		exportAllProfile,
 	}
 }

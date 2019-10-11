@@ -1,7 +1,9 @@
 {
-    "counters": {
-        "disable_stats": false,
-        "stat_views": ["proc"]
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
     },
     "server": {
         "secret": "123456",
@@ -9,8 +11,10 @@
         "listeners": [
             {
                 "name": "coa_grpc",
-                "port": 9108,
                 "type": "grpc",
+                "extra": {
+                    "port": 9108
+                },
                 "modules": [
                     {
                         "name": "analytics",

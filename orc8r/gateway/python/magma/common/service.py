@@ -12,8 +12,7 @@ import logging
 import signal
 import time
 from concurrent import futures
-from typing import List
-
+from typing import List, Optional
 import functools
 import grpc
 import os
@@ -29,6 +28,7 @@ from orc8r.protos.service303_pb2 import (
 from orc8r.protos.service303_pb2_grpc import (
     Service303Servicer,
     add_Service303Servicer_to_server,
+    Service303Stub,
 )
 
 from magma.configuration.exceptions import LoadConfigError
@@ -81,12 +81,13 @@ class MagmaService(Service303Servicer):
         # Load the service config if present
         self._config = None
         self.reload_config()
-
         # Count errors
-        log_counter = ServiceLogErrorReporter(self._loop,
-                                              self._config,
-                                              self._log_count_handler)
-        log_counter.start()
+        self.log_counter = ServiceLogErrorReporter(
+            loop=self._loop,
+            service_config=self._config,
+            handler=self._log_count_handler,
+        )
+        self.log_counter.start()
 
         # Operational States
         self._operational_states = []
@@ -362,3 +363,22 @@ class MagmaService(Service303Servicer):
             states = self._get_operational_states_cb()
             res.states.extend(states)
         return res
+
+
+def get_service303_client(service_name: str, location: str) \
+        -> Optional[Service303Stub]:
+    """
+    get_service303_client returns a grpc client attached to the given service
+    name and location.
+    Example Use: client = get_service303_client("state", ServiceRegistry.LOCAL)
+    """
+    try:
+        chan = ServiceRegistry.get_rpc_channel(
+            service_name,
+            location,
+        )
+        return Service303Stub(chan)
+    except ValueError:
+        # Service can't be contacted
+        logging.error('Failed to get RPC channel to %s', service_name)
+        return None

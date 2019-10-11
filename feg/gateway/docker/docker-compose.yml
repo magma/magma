@@ -134,7 +134,7 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3 -m magma.magmad.main
+    command: python3.5 -m magma.magmad.main
 
   redis:
     <<: *pyservice

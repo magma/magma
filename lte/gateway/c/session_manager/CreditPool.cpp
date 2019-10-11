@@ -66,9 +66,27 @@ static CreditUsage::UpdateType convert_update_type_to_proto(
   return CreditUsage::QUOTA_EXHAUSTED;
 }
 
+template<typename KeyType>
+static void populate_output_actions(
+  std::string imsi,
+  std::string ip_addr,
+  KeyType key,
+  SessionRules *session_rules,
+  std::unique_ptr<ServiceAction> &action,
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+{
+  action->set_imsi(imsi);
+  action->set_ip_addr(ip_addr);
+  session_rules->add_rules_to_action(*action, key);
+  actions_out->push_back(std::move(action));
+}
+
 void ChargingCreditPool::get_updates(
+  std::string imsi,
+  std::string ip_addr,
+  SessionRules *session_rules,
   std::vector<CreditUsage> *updates_out,
-  std::vector<ActionPair<uint32_t>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
 {
   for (auto &credit_pair : credit_map_) {
     auto &credit = *(credit_pair.second);
@@ -76,7 +94,18 @@ void ChargingCreditPool::get_updates(
     if (action_type != CONTINUE_SERVICE) {
       MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << credit_pair.first << " action type " << action_type;
-      actions_out->emplace_back(credit_pair.first, action_type);
+      auto action = std::make_unique<ServiceAction>(action_type);
+      if (action_type == REDIRECT) {
+        action->set_rating_group(credit_pair.first);
+        action->set_redirect_server(credit.get_redirect_server());
+      }
+      populate_output_actions(
+        imsi,
+        ip_addr,
+        credit_pair.first,
+        session_rules,
+        action,
+        actions_out);
     } else {
       auto update_type = credit.get_update_type();
       if (update_type != CREDIT_NO_UPDATE) {
@@ -110,18 +139,37 @@ static uint64_t get_granted_units(const CreditUnit &unit, uint64_t default_val)
   return unit.is_valid() ? unit.volume() : default_val;
 }
 
-static void receive_credit_with_default(
+static SessionCredit::FinalActionInfo get_final_action_info(
+  const ChargingCredit &credit)
+{
+  SessionCredit::FinalActionInfo final_action_info;
+  if (credit.is_final()) {
+    final_action_info.final_action = credit.final_action();
+    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+      final_action_info.redirect_server = credit.redirect_server();
+    }
+  }
+
+  return final_action_info;
+}
+
+static void receive_charging_credit_with_default(
   SessionCredit &credit,
   const GrantedUnits &gsu,
   uint64_t default_volume,
-  uint32_t validity_time,
-  bool is_final)
+  const ChargingCredit &charging_credit)
 {
   uint64_t total = get_granted_units(gsu.total(), default_volume);
   uint64_t tx = get_granted_units(gsu.tx(), default_volume);
   uint64_t rx = get_granted_units(gsu.rx(), default_volume);
 
-  credit.receive_credit(total, tx, rx, validity_time, is_final);
+  credit.receive_credit(
+    total,
+    tx,
+    rx,
+    charging_credit.validity_time(),
+    charging_credit.is_final(),
+    get_final_action_info(charging_credit));
 }
 
 bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
@@ -140,12 +188,11 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
    */
   uint64_t default_volume = 0;
   auto credit = std::make_unique<SessionCredit>();
-  receive_credit_with_default(
+  receive_charging_credit_with_default(
     *credit,
     update.credit().granted_units(),
     default_volume,
-    update.credit().validity_time(),
-    update.credit().is_final());
+    update.credit());
   credit_map_[update.charging_key()] = std::move(credit);
   return true;
 }
@@ -160,7 +207,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   if (!update.success()) {
     // update unsuccessful, reset credit and return
     MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
-    it->second->mark_failure();
+    it->second->mark_failure(update.result_code());
     return false;
   }
   const auto &gsu = update.credit().granted_units();
@@ -170,12 +217,11 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
   uint64_t default_volume = 0; // default to not increasing credit
-  receive_credit_with_default(
+  receive_charging_credit_with_default(
     *(it->second),
     gsu,
     default_volume,
-    update.credit().validity_time(),
-    update.credit().is_final());
+    update.credit());
   return true;
 }
 
@@ -226,6 +272,21 @@ UsageMonitoringCreditPool::UsageMonitoringCreditPool(const std::string &imsi):
 {
 }
 
+static void receive_monitoring_credit_with_default(
+  SessionCredit &credit,
+  const GrantedUnits &gsu,
+  uint64_t default_volume)
+{
+  uint64_t total = get_granted_units(gsu.total(), default_volume);
+  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
+  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
+
+  SessionCredit::FinalActionInfo final_action_info;
+
+  credit.receive_credit(
+    total, tx, rx, 0, false, final_action_info);
+}
+
 bool UsageMonitoringCreditPool::add_used_credit(
   const std::string &key,
   uint64_t used_tx,
@@ -265,14 +326,24 @@ static UsageMonitorUpdate get_monitor_update_from_struct(
 }
 
 void UsageMonitoringCreditPool::get_updates(
+  std::string imsi,
+  std::string ip_addr,
+  SessionRules *session_rules,
   std::vector<UsageMonitorUpdate> *updates_out,
-  std::vector<ActionPair<std::string>> *actions_out)
+  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
 {
   for (auto &monitor_pair : monitor_map_) {
     auto &credit = monitor_pair.second->credit;
     auto action_type = credit.get_action();
     if (action_type != CONTINUE_SERVICE) {
-      actions_out->emplace_back(monitor_pair.first, action_type);
+      auto action = std::make_unique<ServiceAction>(action_type);
+      populate_output_actions(
+        imsi,
+        ip_addr,
+        monitor_pair.first,
+        session_rules,
+        action,
+        actions_out);
     }
     auto update_type = credit.get_update_type();
     if (update_type != CREDIT_NO_UPDATE) {
@@ -336,8 +407,8 @@ bool UsageMonitoringCreditPool::init_new_credit(
   // validity time and final units not used for monitors
   // unless defined, volume is defined as the maximum possible value
   uint64_t default_volume = std::numeric_limits<uint64_t>::max();
-  receive_credit_with_default(
-    monitor->credit, update.credit().granted_units(), default_volume, 0, false);
+  receive_monitoring_credit_with_default(
+    monitor->credit, update.credit().granted_units(), default_volume);
   monitor_map_[update.credit().monitoring_key()] = std::move(monitor);
   return true;
 }
@@ -354,7 +425,7 @@ bool UsageMonitoringCreditPool::receive_credit(
     return init_new_credit(update);
   }
   if (!update.success()) {
-    it->second->credit.mark_failure();
+    it->second->credit.mark_failure(update.result_code());
     return false;
   }
   const auto &gsu = update.credit().granted_units();
@@ -364,12 +435,10 @@ bool UsageMonitoringCreditPool::receive_credit(
                << "for subscriber " << imsi_ << " monitoring key "
                << update.credit().monitoring_key();
   uint64_t default_volume = 0;
-  receive_credit_with_default(
+  receive_monitoring_credit_with_default(
     it->second->credit,
     update.credit().granted_units(),
-    default_volume,
-    0,
-    false);
+    default_volume);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }

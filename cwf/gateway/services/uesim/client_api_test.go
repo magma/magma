@@ -13,6 +13,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/services/uesim"
+	"magma/cwf/gateway/services/uesim/test_init"
 	"magma/lte/cloud/go/crypto"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,7 @@ const (
 )
 
 func TestUESimClient(t *testing.T) {
+	test_init.StartTestService(t)
 	imsi := "001010000000001"
 	key := make([]byte, 16)
 	opc, err := crypto.GenerateOpc(key, []byte(Op))

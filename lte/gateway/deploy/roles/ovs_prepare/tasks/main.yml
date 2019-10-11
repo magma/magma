@@ -1,0 +1,125 @@
+---
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+- fail: msg="MAGMA_ROOT and OUTPUT_DIR are required"
+  when:
+    - MAGMA_ROOT is not defined or OUTPUT_DIR is not defined
+
+- name: Get Kernel version
+  shell: uname -r
+  register: KVERS
+
+- fail: msg="Kernel Version {{ KVERS.stdout  }} not supported please use 4.9.0-9-amd64"
+  when:
+    - KVERS.stdout != '4.9.0-9-amd64'
+
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+    name: all_vars
+
+- name: Converting WORK_DIR to absolute path
+  shell: realpath {{ all_vars.WORK_DIR }}
+  register: WORK_DIR_ABSOLUTE
+
+- name: Converting OUTPUT_DIR to absolute path
+  shell: realpath {{ OUTPUT_DIR }}
+  register: OUTPUT_DIR_ABSOLUTE
+
+- name: Removing "{{ WORK_DIR_ABSOLUTE.stdout }}".
+  become: yes
+  file:
+    path: "{{ WORK_DIR_ABSOLUTE.stdout }}"
+    state: absent
+    force: yes
+
+- name: Creating "{{ all_vars.WORK_DIR }}"
+  file:
+    path: "{{ all_vars.WORK_DIR }}"
+    state: directory
+    mode: 0755
+  register: GIT_HOME
+
+- name: Update and upgrade apt packages
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Install build dependencies.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - graphviz
+      - debhelper
+      - dh-autoreconf
+      - python-all
+      - python-twisted-conch
+      - module-assistant
+      - openssl
+      - pkg-config
+      - libssl-dev
+      - build-essential
+      - libcap-ng-dev
+      - git
+      - ruby-dev
+
+- name: Ensure correct kernel headers are installed.
+  shell: "apt -y install linux-headers-$(uname -r)"
+  become: yes
+
+- name: Copy ssh keepAlive configs
+  copy: src={{ item.src }} dest={{ item.dest }}
+  become: yes
+  with_items:
+    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+
+- name: Install FPM
+  become: yes
+  gem: name=fpm
+       user_install=no
+       state=present
+
+- name: Cloning the ovs "{{ all_vars.ovs_version }}".
+  git:
+    repo: https://github.com/openvswitch/ovs.git
+    dest: "{{ GIT_HOME.path }}/ovs"
+    version: "{{ all_vars.ovs_version }}"
+
+- name: Uploading gtp backport patch to remote.
+  synchronize:
+    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/gtp-v4.9-backport/"
+    dest: "{{ GIT_HOME.path }}/ovs/flow-based-gtp-linux-v4.9"
+
+- name: Uploading gtp patches to remote.
+  synchronize:
+    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/ovs/{{ all_vars.ovs_version_short }}/"
+    dest: "{{ GIT_HOME.path }}/ovs/"
+  with_items:
+    - "{{ all_vars.patches }}"
+
+- name: Patch ovs
+  command: git apply "{{ item }}"
+  args:
+    chdir: "{{ GIT_HOME.path }}/ovs"
+  with_items:
+      - "{{ all_vars.patches }}"
+
+- name: Execute the boot.sh script.
+  command: sh boot.sh
+  args:
+    chdir: "{{ GIT_HOME.path }}/ovs"

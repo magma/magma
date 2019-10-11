@@ -30,13 +30,21 @@ class SessionRules {
 
   void insert_dynamic_rule(const PolicyRule &rule);
 
+  void activate_static_rule(const std::string &rule_id);
+
   bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+
+  bool deactivate_static_rule(const std::string &rule_id);
 
   void add_rules_to_action(ServiceAction &action, uint32_t charging_key);
   void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
 
+  std::vector<std::string> &get_static_rule_ids();
+  DynamicRuleStore &get_dynamic_rules();
+
  private:
   StaticRuleStore &static_rules_;
+  std::vector<std::string> active_static_rules_;
   DynamicRuleStore dynamic_rules_;
 };
 

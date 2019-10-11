@@ -15,7 +15,6 @@ import (
 	"magma/lte/cloud/go/lte"
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
-	cellular_models "magma/lte/cloud/go/services/cellular/obsidian/models"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
@@ -71,7 +70,7 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		return errors.WithStack(err)
 	}
 
-	enbConfigsBySerial := getEnodebConfigsBySerial(enodebs)
+	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 
 	vals := map[string]proto.Message{
 		"enodebd": &mconfig.EnodebD{
@@ -104,14 +103,14 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			CsfbMnc:                  nonEPSServiceMconfig.csfbMnc,
 			Lac:                      nonEPSServiceMconfig.lac,
 			RelayEnabled:             swag.BoolValue(nwEpc.RelayEnabled),
-			CloudSubscriberdbEnabled: swag.BoolValue(nwEpc.CloudSubscriberdbEnabled),
+			CloudSubscriberdbEnabled: nwEpc.CloudSubscriberdbEnabled,
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     gwEpc.IPBlock,
 			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
-			DefaultRuleId: swag.StringValue(nwEpc.DefaultRuleID),
+			DefaultRuleId: nwEpc.DefaultRuleID,
 			RelayEnabled:  swag.BoolValue(nwEpc.RelayEnabled),
 			Services:      pipelineDServices,
 		},
@@ -128,6 +127,12 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
+		},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags: map[string]string{
+				"network_id": networkID,
+				"gateway_id": gatewayID,
+			},
 		},
 	}
 	for k, v := range vals {
@@ -251,7 +256,7 @@ func getTddConfig(tddConfig *models2.NetworkRanConfigsTddConfig) *mconfig.Enodeb
 	}
 }
 
-func getEnodebConfigsBySerial(enodebs []configurator.NetworkEntity) map[string]*mconfig.EnodebD_EnodebConfig {
+func getEnodebConfigsBySerial(nwConfig *models2.NetworkCellularConfigs, gwConfig *models2.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*mconfig.EnodebD_EnodebConfig {
 	ret := make(map[string]*mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
 		serial := ent.Key
@@ -260,18 +265,44 @@ func getEnodebConfigsBySerial(enodebs []configurator.NetworkEntity) map[string]*
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*cellular_models.NetworkEnodebConfigs)
-		ret[serial] = &mconfig.EnodebD_EnodebConfig{
+		cellularEnbConfig := ienbConfig.(*models2.EnodebConfiguration)
+		enbMconfig := &mconfig.EnodebD_EnodebConfig{
 			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
 			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
 			Pci:                    int32(cellularEnbConfig.Pci),
-			TransmitEnabled:        cellularEnbConfig.TransmitEnabled,
+			TransmitEnabled:        swag.BoolValue(cellularEnbConfig.TransmitEnabled),
 			DeviceClass:            cellularEnbConfig.DeviceClass,
 			BandwidthMhz:           int32(cellularEnbConfig.BandwidthMhz),
 			Tac:                    int32(cellularEnbConfig.Tac),
-			CellId:                 int32(cellularEnbConfig.CellID),
+			CellId:                 int32(swag.Uint32Value(cellularEnbConfig.CellID)),
 		}
+
+		// override zero values with network/gateway configs
+		if enbMconfig.Earfcndl == 0 {
+			enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
+		}
+		if enbMconfig.SubframeAssignment == 0 {
+			if nwConfig.Ran.TddConfig != nil {
+				enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+			}
+		}
+		if enbMconfig.SpecialSubframePattern == 0 {
+			if nwConfig.Ran.TddConfig != nil {
+				enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+			}
+		}
+		if enbMconfig.Pci == 0 {
+			enbMconfig.Pci = int32(gwConfig.Ran.Pci)
+		}
+		if enbMconfig.BandwidthMhz == 0 {
+			enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
+		}
+		if enbMconfig.Tac == 0 {
+			enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+		}
+
+		ret[serial] = enbMconfig
 	}
 	return ret
 }

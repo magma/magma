@@ -74,7 +74,12 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - /etc/snowflake:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
-    command: python3 -m magma.magmad.main
+      - ./:/var/opt/magma/docker
+    environment:
+      DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.5 -m magma.magmad.main
 
   pipelined:
     <<: *ltepyservice
@@ -89,9 +94,14 @@ services:
       - /etc/snowflake:/etc/snowflake
       - /var/run/openvswitch:/var/run/openvswitch
     command: >
-      sh -c "set bridge br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
-        /usr/bin/ovs-vsctl set-controller br0 tcp:127.0.0.1:6633 &&
+      sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
+        /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
+
+  redirectd:
+    <<: *ltepyservice
+    container_name: redirectd
+    command: python3 -m magma.redirectd.main
 
   radius:
     image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
@@ -105,6 +115,8 @@ services:
       - RADIUS_SECRET=123456
       - COA_FIXED_ENDPOINT=127.0.0.1:4799
       - AAA_ENDPOINT=127.0.0.1:9109
+      - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
+      - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
     network_mode: host
     restart: always
 

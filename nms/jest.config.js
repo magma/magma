@@ -29,6 +29,7 @@ module.exports = {
         '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-i18n/**/__tests__/*.js',
+        '<rootDir>/fbcnms-packages/fbcnms-platform-server/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
         '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
@@ -44,12 +45,16 @@ module.exports = {
         '\\.(css|less)$': 'identity-obj-proxy',
       },
       name: 'app',
+      setupFiles: [
+        '<rootDir>/fbcnms-packages/fbcnms-babel-register/polyfill.js',
+      ],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-ui/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
         '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
+        '<rootDir>/fbcnms-packages/fbcnms-mobileapp/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
       ],
       transform: {

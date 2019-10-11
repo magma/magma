@@ -13,7 +13,7 @@ module.exports = {
     filename => {
       if (filename.indexOf('fbcnms') >= 0) {
         return false;
-      } else if (filename.indexOf('magmanms') >= 0) {
+      } else if (filename.indexOf('magmalte') >= 0) {
         return false;
       } else if (filename.indexOf('node_modules') >= 0) {
         return true;
@@ -29,7 +29,7 @@ module.exports = {
           node: 'current',
           chrome: '58',
         },
-        corejs: 2,
+        corejs: 3,
         useBuiltIns: 'entry',
       },
     ],

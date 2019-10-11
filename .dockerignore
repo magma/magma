@@ -2,6 +2,7 @@
 !.cache/test_certs
 !fb/config/
 
+!third_party/
 
 !cwf/cloud/
 !cwf/gateway/
@@ -18,6 +19,12 @@
 !lte/gateway/Makefile
 !lte/gateway/c
 !lte/protos/
+!lte/gateway/deploy
+!lte/gateway/docker/deploy
+
+!devmand/cloud/
+!devmand/gateway/
+!devmand/protos/
 
 !orc8r/cloud/configs/
 !orc8r/cloud/go/

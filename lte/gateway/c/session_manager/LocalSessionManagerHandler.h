@@ -96,9 +96,17 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   LocalEnforcer *enforcer_;
   SessionCloudReporter *reporter_;
   SessionIDGenerator id_gen_;
+  uint64_t current_epoch_;
+  uint64_t reported_epoch_;
+  std::chrono::seconds retry_timeout_;
+  static const std::string hex_digit_;
 
  private:
   void check_usage_for_reporting();
+  bool is_pipelined_restarted();
+  bool restart_pipelined(const std::uint64_t &epoch);
+
+  std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void send_create_session(
     const CreateSessionRequest &request,
@@ -106,6 +114,11 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     const std::string &sid,
     const SessionState::Config &cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback);
+
+  void handle_setup_callback(
+    const std::uint64_t &epoch,
+    Status status,
+    SetupFlowsResult resp);
 };
 
 } // namespace magma

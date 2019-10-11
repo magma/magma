@@ -433,7 +433,7 @@ void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
-void mme_app_handle_sgs_detach_req(
+void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
   const itti_nas_sgs_detach_req_t *const sgs_detach_req_p)
 {
   struct ue_mm_context_s *ue_context = NULL;
@@ -442,7 +442,7 @@ void mme_app_handle_sgs_detach_req(
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(sgs_detach_req_p != NULL);
   ue_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, sgs_detach_req_p->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, sgs_detach_req_p->ue_id);
   if (ue_context == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
@@ -527,7 +527,7 @@ void mme_app_handle_sgs_detach_req(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-int mme_app_handle_sgs_eps_detach_ack(
+int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
   const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -545,7 +545,7 @@ int mme_app_handle_sgs_eps_detach_ack(
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS-EPS DETACH ACK: Unknown IMSI " IMSI_64_FMT "\n",
@@ -592,7 +592,7 @@ int mme_app_handle_sgs_eps_detach_ack(
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-int mme_app_handle_sgs_imsi_detach_ack(
+int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t* mme_app_desc_p,
   const itti_sgsap_imsi_detach_ack_t *const imsi_detach_ack_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -611,7 +611,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
 
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc.mme_ue_contexts, imsi64)) == NULL) {
+       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS-IMSI DETACH ACK: Unknown IMSI " IMSI_64_FMT "\n",

@@ -112,6 +112,11 @@ Description Defines the messages supported by the Access Stratum sublayer
 #define AS_RAB_RELEASE_REQ (AS_RAB_RELEASE | AS_REQUEST)
 #define AS_RAB_RELEASE_IND (AS_RAB_RELEASE | AS_INDICATION)
 
+/* Deactivate Bearer */
+#define AS_DEACTIVATE_BEARER_CONTEXT 0xa
+#define AS_DEACTIVATE_BEARER_CONTEXT_REQ \
+  (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
+
 /* NAS Cause */
 typedef enum nas_cause_s {
   NAS_CAUSE_IMSI_UNKNOWN_IN_HSS = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS,
@@ -537,6 +542,18 @@ typedef struct rab_release_ind_s {
 } rab_release_ind_t;
 
 /*
+ * NAS->AS - Deactivate EPS Bearer context request
+ * NAS requests the AS to deactivate bearer
+ */
+typedef struct deactivate_bearer_context_req_s {
+  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
+  ebi_t ebi;              /* EPS bearer id    */
+  bstring nas_msg; /* NAS message to transfer     */
+} deactivate_bearer_context_req_t;
+
+
+
+/*
  * --------------------------------------------------------------------------
  *  Structure of the AS messages handled by the network sublayer
  * --------------------------------------------------------------------------
@@ -568,6 +585,7 @@ typedef struct as_message_s {
     rab_establish_cnf_t rab_establish_cnf;
     rab_release_req_t rab_release_req;
     rab_release_ind_t rab_release_ind;
+    deactivate_bearer_context_req_t deactivate_bearer_context_req;
   } __attribute__((__packed__)) msg;
 } as_message_t;
 

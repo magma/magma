@@ -10,7 +10,7 @@
 
 import React from 'react';
 
-import AppContext from './context/AppContext';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';

@@ -1,4 +1,11 @@
 #!/bin/bash
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
 
 exit_on_error() {
     local message=$1
@@ -47,7 +54,7 @@ attach_ebs() {
         if [[ -n "$ATTACHED_EBS_VOLUME" ]]; then
 
             # detach volume if it is attached
-            aws ec2 detach-volume --volume-id $ATTACHED_EBS_VOLUME
+            aws ec2 detach-volume --region $REGION --volume-id $ATTACHED_EBS_VOLUME
 
             sleep 10
 

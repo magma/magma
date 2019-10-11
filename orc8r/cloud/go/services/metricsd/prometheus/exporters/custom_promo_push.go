@@ -26,7 +26,9 @@ import (
 )
 
 const (
-	pushInterval = time.Second * 30
+	pushInterval        = time.Second * 30
+	NetworkLabelNetwork = "networkID"
+	NetworkLabelGateway = "gatewayID"
 )
 
 var (
@@ -62,7 +64,6 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 	e.Lock()
 	defer e.Unlock()
 
-	timeStamp := time.Now().Unix() * 1000
 	for _, metricAndContext := range metrics {
 		// Don't register family if it has 0 metrics. Would cause prometheus scrape
 		// to fail.
@@ -83,7 +84,10 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 			}
 			for _, metric := range fam.Metric {
 				addContextLabelsToMetric(metric, metricAndContext.Context)
-				metric.TimestampMs = &timeStamp
+				if metric.TimestampMs == nil || *metric.TimestampMs == 0 {
+					timeStamp := time.Now().Unix() * 1000
+					metric.TimestampMs = &timeStamp
+				}
 			}
 			if baseFamily, ok := e.familiesByName[familyName]; ok {
 				addMetricsToFamily(baseFamily, fam)

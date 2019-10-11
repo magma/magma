@@ -65,7 +65,7 @@ static void _mme_app_handle_sgs_status_for_loc_upd_req(
  **                                                                        **
  ***************************************************************************/
 
-int mme_app_handle_sgs_status_message(
+int mme_app_handle_sgs_status_message(mme_app_desc_t *mme_app_desc_p,
     itti_sgsap_status_t * const sgsap_status_pP) {
   struct ue_mm_context_s *ue_context_p = NULL;
   uint8_t message_type;
@@ -81,8 +81,8 @@ int mme_app_handle_sgs_status_message(
   OAILOG_INFO (LOG_MME_APP, "Received SGS-Status message for IMSI "
                IMSI_64_FMT "\n", imsi64);
 
-  if ((ue_context_p = mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts,
-      imsi64)) == NULL) {
+  if ((ue_context_p = mme_ue_context_exists_imsi(
+          &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "SGS-Status message: Failed to find UE context"
                 " for IMSI " IMSI_64_FMT "\n", imsi64);
     increment_counter ("sgsap_status", 1, 1, "cause", "imsi_unknown");

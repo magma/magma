@@ -61,6 +61,7 @@ typedef enum emmcn_primitive_s {
   _EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC,
   _EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL,
   _EMMCN_CS_DOMAIN_MM_INFORMATION_REQ,
+  _EMMCN_DEACTIVATE_BEARER_REQ, // LG
   _EMMCN_END
 } emm_cn_primitive_t;
 
@@ -92,6 +93,9 @@ typedef struct itti_nas_pdn_connectivity_rsp_s emm_cn_pdn_res_t;
 typedef struct itti_nas_pdn_connectivity_fail_s emm_cn_pdn_fail_t;
 typedef struct itti_mme_app_create_dedicated_bearer_req_s
   emm_cn_activate_dedicated_bearer_req_t;
+
+typedef struct itti_mme_app_delete_dedicated_bearer_req_s
+  emm_cn_deactivate_dedicated_bearer_req_t;
 
 typedef struct emm_cn_deregister_ue_s {
   uint32_t ue_id;
@@ -127,6 +131,7 @@ typedef struct emm_mme_ul_s {
     emm_cn_pdn_res_t *emm_cn_pdn_res;
     emm_cn_pdn_fail_t *emm_cn_pdn_fail;
     emm_cn_activate_dedicated_bearer_req_t *activate_dedicated_bearer_req;
+    emm_cn_deactivate_dedicated_bearer_req_t *deactivate_dedicated_bearer_req;
     emm_cn_implicit_detach_ue_t emm_cn_implicit_detach;
     emm_cn_smc_fail_t *smc_fail;
     emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach;

@@ -7,18 +7,22 @@
  * @format
  */
 
-const _ = require('lodash');
-const path = require('path');
-const yarn = require('@fbcnms/util/yarn');
+import '@fbcnms/babel-register/polyfill';
+import path from 'path';
+import {merge, omit} from 'lodash';
+import {readManifest, resolveWorkspaces} from '@fbcnms/util/yarn';
+
+// Packages that can have duplicate versions (keep this to a minimum)
+const PACKAGE_BLACKLIST = ['core-js'];
 
 it('ensures no mismatched versions in workspaces', () => {
   const root = path.resolve(__dirname, '..');
-  const rootManifest = yarn.readManifest(path.resolve(root, 'package.json'));
-  const workspaces = yarn.resolveWorkspaces(root, rootManifest);
+  const rootManifest = readManifest(path.resolve(root, 'package.json'));
+  const workspaces = resolveWorkspaces(root, rootManifest);
 
   const allManifests = [rootManifest, ...workspaces];
 
-  const allDepsMap = _.merge(
+  const allDepsMap = merge(
     {},
     ...allManifests.map(manifest => ({
       ...manifest.dependencies,
@@ -28,10 +32,15 @@ it('ensures no mismatched versions in workspaces', () => {
     })),
   );
 
-  for (const manifest of workspaces) {
-    expect(allDepsMap).toMatchObject(manifest.dependencies || {});
-    expect(allDepsMap).toMatchObject(manifest.devDependencies || {});
-    expect(allDepsMap).toMatchObject(manifest.peerDependencies || {});
-    expect(allDepsMap).toMatchObject(manifest.optionalDependencies || {});
+  const o = packages => omit(packages, PACKAGE_BLACKLIST);
+  const filteredDepsMap = o(allDepsMap);
+
+  for (const manifest of allManifests) {
+    expect(filteredDepsMap).toMatchObject(o(manifest.dependencies) || {});
+    expect(filteredDepsMap).toMatchObject(o(manifest.devDependencies) || {});
+    expect(filteredDepsMap).toMatchObject(o(manifest.peerDependencies) || {});
+    expect(filteredDepsMap).toMatchObject(
+      o(manifest.optionalDependencies) || {},
+    );
   }
 });

@@ -13,18 +13,13 @@ import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   toggleContainer: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    justifyContent: 'flex-start',
     background: theme.palette.background.default,
     padding: 0,
     border: 0,
     margin: '10px',
-    position: 'absolute',
-    bottom: '0',
-    left: 0,
     borderStyle: 'solid',
     borderRadius: '4px',
+    display: 'inline-block',
   },
 }));
 

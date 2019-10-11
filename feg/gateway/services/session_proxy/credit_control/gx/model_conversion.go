@@ -125,6 +125,7 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 
 	eventTriggers, revalidationTime := GetEventTriggersRelatedInfo(rar.EventTriggers, rar.RevalidationTime)
 	usageMonitoringCredits := getUsageMonitoringCredits(rar.UsageMonitors)
+	qosInfo := getQoSInfo(rar.Qos)
 
 	return &protos.PolicyReAuthRequest{
 		SessionId:              sid,
@@ -135,6 +136,7 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 		EventTriggers:          eventTriggers,
 		RevalidationTime:       revalidationTime,
 		UsageMonitoringCredits: usageMonitoringCredits,
+		QosInfo:                qosInfo,
 	}
 }
 
@@ -240,6 +242,16 @@ func getUsageMonitoringCredits(usageMonitors []*UsageMonitoringInfo) []*protos.U
 		)
 	}
 	return usageMonitoringCredits
+}
+
+func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
+	if qosInfo == nil {
+		return nil
+	}
+	return &protos.QoSInformation{
+		BearerId: qosInfo.BearerIdentifier,
+		Qci:      protos.QCI(*qosInfo.Qci),
+	}
 }
 
 func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMonitoringCredit {

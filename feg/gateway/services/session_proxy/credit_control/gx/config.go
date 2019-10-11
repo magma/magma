@@ -22,23 +22,27 @@ import (
 
 // PCRF Environment Variables
 const (
-	PCRFAddrEnv        = "PCRF_ADDR"
-	GxNetworkEnv       = "GX_NETWORK"
-	GxDiamHostEnv      = "GX_DIAM_HOST"
-	GxDiamRealmEnv     = "GX_DIAM_REALM"
-	GxDiamProductEnv   = "GX_DIAM_PRODUCT"
-	GxLocalAddr        = "GX_LOCAL_ADDR"
-	PCRFHostEnv        = "PCRF_HOST"
-	PCRFRealmEnv       = "PCRF_REALM"
-	PCRF91CompliantEnv = "PCRF_91_COMPLIANT"
-	DisableDestHostEnv = "DISABLE_DEST_HOST"
+	PCRFAddrEnv             = "PCRF_ADDR"
+	GxNetworkEnv            = "GX_NETWORK"
+	GxDiamHostEnv           = "GX_DIAM_HOST"
+	GxDiamRealmEnv          = "GX_DIAM_REALM"
+	GxDiamProductEnv        = "GX_DIAM_PRODUCT"
+	GxLocalAddr             = "GX_LOCAL_ADDR"
+	PCRFHostEnv             = "PCRF_HOST"
+	PCRFRealmEnv            = "PCRF_REALM"
+	PCRF91CompliantEnv      = "PCRF_91_COMPLIANT"
+	DisableDestHostEnv      = "DISABLE_DEST_HOST"
+	DisableEUIIPv6IfNoIPEnv = "DISABLE_EUI64_IPV6_IF_NO_IP"
 
-	PCRF91CompliantFlag = "pcrf_91_compliant"
+	PCRF91CompliantFlag      = "pcrf_91_compliant"
+	DisableEUIIPv6IfNoIPFlag = "disable_eui64_ipv6_prefix"
 )
 
 var (
 	pcrf91Compliant = flag.Bool(
 		PCRF91CompliantFlag, false, "Set to support 29.212 release 9.1 compliant PCRF")
+	disableEUIIpIfEmpty = flag.Bool(
+		DisableEUIIPv6IfNoIPFlag, false, "Don't use MAC based EUI-64 IPv6 address for Gx CCR if IP is not provided")
 )
 
 // GetPCRFConfiguration returns the server configuration for the set PCRF

@@ -92,7 +92,11 @@ message PipelineD {
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 7;
     repeated NetworkServices services = 8;
-
+    message AllowedUE {
+      string ip = 1;
+      int32 key =2;
+    }
+    repeated AllowedUE allowed_ues = 9;
     // DEPRECATED
     // repeated string apps = 4;
 }
@@ -210,4 +214,11 @@ message SubscriberDB {
 message LighttpD {
     orc8r.LogLevel log_level = 1;
     bool enable_caching = 2;
+}
+
+//------------------------------------------------------------------------------
+// Fluent Bit configs
+//------------------------------------------------------------------------------
+message FluentBit {
+    map<string, string> extra_tags = 1;
 }

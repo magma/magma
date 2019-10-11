@@ -65,11 +65,12 @@ const MAX_NUM_BREADCRUMBS = 3;
 
 type Props = {
   breadcrumbs: Array<BreadcrumbData>,
+  className?: string,
   size?: 'default' | 'small' | 'large',
 };
 
 const Breadcrumbs = (props: Props) => {
-  const {breadcrumbs, size} = props;
+  const {breadcrumbs, size, className} = props;
   const classes = useStyles();
 
   const [isBreadcrumbsMenuOpen, toggleBreadcrumbsMenuOpen] = useState(false);
@@ -90,7 +91,7 @@ const Breadcrumbs = (props: Props) => {
   const textClass = size === 'small' ? classes.smallText : classes.largeText;
 
   return (
-    <div className={classes.breadcrumbs}>
+    <div className={classNames(classes.breadcrumbs, className)}>
       {startBreadcrumbs.map(b => (
         <Breadcrumb
           key={b.id}

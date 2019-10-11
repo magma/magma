@@ -964,22 +964,10 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
    * Message processing
    */
   /*
-   * Execute the default EPS bearer context activation procedure accepted
+   * Execute the dedicated EPS bearer context deactivation procedure accepted
    * * * * by the UE
    */
-  int pid =
-    esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
-
-  if (pid != RETURNerror) {
-    /*
-     * Release all the resources reserved for the PDN
-     */
-    int rc = esm_proc_pdn_disconnect_accept(emm_context, pid, &esm_cause);
-
-    if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
-    }
-  }
+  esm_proc_eps_bearer_context_deactivate_accept(emm_context, ebi, &esm_cause);
 
   /*
    * Return the ESM cause value

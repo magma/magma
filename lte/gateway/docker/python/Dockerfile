@@ -60,7 +60,8 @@ RUN apt-get -y update && apt-get -y install \
   python-cffi \
   python3-aioeventlet \
   python3-pip \
-  redis-server
+  redis-server \
+  iptables
 
 # Install OVS via Magma bionic pkg repo
 RUN apt-key add /tmp/jfrog.pub && \

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -29,15 +29,20 @@
 #ifndef FILE_PGW_HANDLERS_SEEN
 #define FILE_PGW_HANDLERS_SEEN
 #include "s5_messages_types.h"
+#include "sgw_messages_types.h"
+#include "spgw_state.h"
 
 int pgw_handle_create_bearer_request(
+  spgw_state_t *spgw_state,
   const itti_s5_create_bearer_request_t *const bearer_req_p);
 uint32_t pgw_handle_nw_init_activate_bearer_rsp(
   const itti_s5_nw_init_actv_bearer_rsp_t *const act_ded_bearer_rsp);
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
-  Imsi_t *imsi,
-  ebi_t lbi,
-  traffic_flow_template_t *ul_tft,
-  traffic_flow_template_t *dl_tft,
-  bearer_qos_t *eps_bearer_qos);
+  spgw_state_t *spgw_state,
+  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p);
+uint32_t pgw_handle_nw_init_deactivate_bearer_rsp(
+  const itti_s5_nw_init_deactv_bearer_rsp_t *const deact_ded_bearer_rsp);
+uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
+  spgw_state_t *spgw_state,
+  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p);
 #endif /* FILE_PGW_HANDLERS_SEEN */

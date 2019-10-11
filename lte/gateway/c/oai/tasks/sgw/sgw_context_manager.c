@@ -41,11 +41,7 @@
 #include "obj_hashtable.h"
 #include "common_defs.h"
 #include "log.h"
-#include "3gpp_23.401.h"
 #include "sgw_context_manager.h"
-#include "sgw.h"
-
-extern sgw_app_t sgw_app;
 
 //-----------------------------------------------------------------------------
 static bool sgw_display_s11teid2mme_mapping(
@@ -71,14 +67,14 @@ static bool sgw_display_s11teid2mme_mapping(
 }
 
 //-----------------------------------------------------------------------------
-void sgw_display_s11teid2mme_mappings(void)
+void sgw_display_s11teid2mme_mappings(spgw_state_t *state)
 //-----------------------------------------------------------------------------
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "+--------------------------------------+\n");
   OAILOG_DEBUG(LOG_SPGW_APP, "| MME <--- S11 TE ID MAPPINGS ---> SGW |\n");
   OAILOG_DEBUG(LOG_SPGW_APP, "+--------------------------------------+\n");
   hashtable_ts_apply_callback_on_elements(
-    sgw_app.s11teid2mme_hashtable, sgw_display_s11teid2mme_mapping, NULL, NULL);
+    state->sgw_state.s11teid2mme, sgw_display_s11teid2mme_mapping, NULL, NULL);
   OAILOG_DEBUG(LOG_SPGW_APP, "+--------------------------------------+\n");
 }
 
@@ -161,14 +157,14 @@ static bool sgw_display_s11_bearer_context_information(
 }
 
 //-----------------------------------------------------------------------------
-void sgw_display_s11_bearer_context_information_mapping(void)
+void sgw_display_s11_bearer_context_information_mapping(spgw_state_t *state)
 //-----------------------------------------------------------------------------
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "+-----------------------------------------+\n");
   OAILOG_DEBUG(LOG_SPGW_APP, "| S11 BEARER CONTEXT INFORMATION MAPPINGS |\n");
   OAILOG_DEBUG(LOG_SPGW_APP, "+-----------------------------------------+\n");
   hashtable_ts_apply_callback_on_elements(
-    sgw_app.s11_bearer_context_information_hashtable,
+    state->sgw_state.s11_bearer_context_information,
     sgw_display_s11_bearer_context_information,
     NULL,
     NULL);
@@ -187,18 +183,15 @@ void pgw_lite_cm_free_apn(pgw_apn_t **apnP)
 }
 
 //-----------------------------------------------------------------------------
-teid_t sgw_get_new_S11_tunnel_id(void)
+teid_t sgw_get_new_S11_tunnel_id(spgw_state_t *state)
 //-----------------------------------------------------------------------------
 {
-  // TO DO: RANDOM
-  static teid_t tunnel_id = 0;
-
-  tunnel_id += 1;
-  return tunnel_id;
+  return ++state->sgw_state.tunnel_id;
 }
 
 //-----------------------------------------------------------------------------
 mme_sgw_tunnel_t *sgw_cm_create_s11_tunnel(
+  spgw_state_t *state,
   teid_t remote_teid,
   teid_t local_teid)
 //-----------------------------------------------------------------------------
@@ -224,97 +217,25 @@ mme_sgw_tunnel_t *sgw_cm_create_s11_tunnel(
    * Trying to insert the new tunnel into the tree.
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
-  hashtable_ts_insert(sgw_app.s11teid2mme_hashtable, local_teid, new_tunnel);
+  hashtable_ts_insert(state->sgw_state.s11teid2mme, local_teid, new_tunnel);
   return new_tunnel;
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_s11_tunnel(teid_t local_teid)
+int sgw_cm_remove_s11_tunnel(spgw_state_t *state, teid_t local_teid)
 //-----------------------------------------------------------------------------
 {
   int temp = 0;
 
-  temp = hashtable_ts_free(sgw_app.s11teid2mme_hashtable, local_teid);
+  temp = hashtable_ts_free(state->sgw_state.s11teid2mme, local_teid);
   return temp;
 }
 
 //-----------------------------------------------------------------------------
-sgw_eps_bearer_ctxt_t *sgw_cm_create_eps_bearer_context(void)
-//-----------------------------------------------------------------------------
-{
-  sgw_eps_bearer_ctxt_t *sgw_eps_bearer_ctxt = NULL;
-
-  sgw_eps_bearer_ctxt = calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
-
-  if (sgw_eps_bearer_ctxt == NULL) {
-    /*
-     * Malloc failed, may be ENOMEM error
-     */
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to create new EPS bearer object\n");
-    return NULL;
-  }
-
-  return sgw_eps_bearer_ctxt;
-}
-
-//-----------------------------------------------------------------------------
-sgw_pdn_connection_t *sgw_cm_create_pdn_connection(void)
-//-----------------------------------------------------------------------------
-{
-  sgw_pdn_connection_t *pdn_connection = NULL;
-
-  pdn_connection = calloc(1, sizeof(sgw_pdn_connection_t));
-
-  if (!pdn_connection) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to create new PDN connection object\n");
-  }
-  return pdn_connection;
-}
-
-//-----------------------------------------------------------------------------
-void sgw_cm_free_pdn_connection(sgw_pdn_connection_t *pdn_connectionP)
-{
-  if (pdn_connectionP) {
-    if (pdn_connectionP->apn_in_use) {
-      free_wrapper((void **) &pdn_connectionP->apn_in_use);
-    }
-    for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
-      sgw_free_sgw_eps_bearer_context(
-        &pdn_connectionP->sgw_eps_bearers_array[ebix]);
-    }
-  }
-}
-
-//-----------------------------------------------------------------------------
-void sgw_free_sgw_eps_bearer_context(
-  sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt)
-{
-  if (*sgw_eps_bearer_ctxt) {
-    // nothing to do actually
-    free_wrapper((void **) sgw_eps_bearer_ctxt);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void sgw_cm_free_s_plus_p_gw_eps_bearer_context_information(
-  s_plus_p_gw_eps_bearer_context_information_t **contextP)
-{
-  if (*contextP) {
-    sgw_cm_free_pdn_connection(
-      &(*contextP)->sgw_eps_bearer_context_information.pdn_connection);
-
-    if ((*contextP)->pgw_eps_bearer_context_information.apns) {
-      obj_hashtable_ts_destroy(
-        (*contextP)->pgw_eps_bearer_context_information.apns);
-    }
-
-    free_wrapper((void **) contextP);
-  }
-}
-
-//-----------------------------------------------------------------------------
 s_plus_p_gw_eps_bearer_context_information_t *
-sgw_cm_create_bearer_context_information_in_collection(teid_t teid)
+sgw_cm_create_bearer_context_information_in_collection(
+  spgw_state_t *state,
+  teid_t teid)
 {
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_context_information =
     NULL;
@@ -338,15 +259,7 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid)
     LOG_SPGW_APP,
     "sgw_cm_create_bearer_context_information_in_collection " TEID_FMT "\n",
     teid);
-  /*
-   * new_bearer_context_information->sgw_eps_bearer_context_information.pdn_connections = obj_hashtable_ts_create(32, NULL, NULL, sgw_cm_free_pdn_connection);
-   * 
-   * if ( new_bearer_context_information->sgw_eps_bearer_context_information.pdn_connections == NULL) {
-   * SPGW_APP_ERROR("Failed to create PDN connections collection object entry for EPS bearer teid %u \n", teid);
-   * sgw_cm_free_s_plus_p_gw_eps_bearer_context_information(new_bearer_context_information);
-   * return NULL;
-   * }
-   */
+
   bstring b = bfromcstr("pgw_eps_bearer_ctxt_info_apns");
   new_bearer_context_information->pgw_eps_bearer_context_information.apns =
     obj_hashtable_ts_create(
@@ -361,8 +274,7 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid)
       "Failed to create APN collection object entry for EPS bearer S11 "
       "teid " TEID_FMT "\n",
       teid);
-    sgw_cm_free_s_plus_p_gw_eps_bearer_context_information(
-      &new_bearer_context_information);
+    sgw_free_s11_bearer_context_information(&new_bearer_context_information);
     return NULL;
   }
 
@@ -371,7 +283,7 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid)
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
   hashtable_ts_insert(
-    sgw_app.s11_bearer_context_information_hashtable,
+    state->sgw_state.s11_bearer_context_information,
     teid,
     new_bearer_context_information);
   OAILOG_DEBUG(
@@ -383,12 +295,12 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid)
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_bearer_context_information(teid_t teid)
+int sgw_cm_remove_bearer_context_information(spgw_state_t *state, teid_t teid)
 {
   int temp = 0;
 
   temp =
-    hashtable_ts_free(sgw_app.s11_bearer_context_information_hashtable, teid);
+    hashtable_ts_free(state->sgw_state.s11_bearer_context_information, teid);
   return temp;
 }
 

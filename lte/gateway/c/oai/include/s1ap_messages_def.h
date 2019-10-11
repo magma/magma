@@ -177,6 +177,16 @@ MESSAGE_DEF(
   itti_s1ap_ue_context_mod_resp_fail_t,
   s1ap_ue_context_mod_failure)
 MESSAGE_DEF(
+  S1AP_E_RAB_REL_CMD,
+  MESSAGE_PRIORITY_MED,
+  itti_s1ap_e_rab_rel_cmd_t,
+  s1ap_e_rab_rel_cmd)
+MESSAGE_DEF(
+  S1AP_E_RAB_REL_RSP,
+  MESSAGE_PRIORITY_MED,
+  itti_s1ap_e_rab_rel_rsp_t,
+  s1ap_e_rab_rel_rsp)
+MESSAGE_DEF(
   S1AP_ENB_CONFIGURATION_TRANSFER_LOG,
   MESSAGE_PRIORITY_MED,
   IttiMsgText,

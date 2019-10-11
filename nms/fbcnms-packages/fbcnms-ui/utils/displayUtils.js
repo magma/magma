@@ -30,3 +30,39 @@ export const formatFileSize = (sizeInBytes: number) => {
     return `${sizeInBytes}B`;
   }
 };
+
+export const isJSON = (text: ?string): boolean => {
+  if (!text) {
+    return false;
+  }
+  try {
+    JSON.parse(text);
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
+
+// formats server side timestamps (seonds from epoch)
+// to text input required format dd-mm-yyyy
+export const formatDateForTextInput = (dateValue: ?string) => {
+  return !!dateValue ? dateValue.split('T')[0] : '';
+};
+
+export const formatMultiSelectValue = (
+  options: Array<{value: string, label: string}>,
+  value: string,
+) => options.find(option => option.value === value)?.label;
+
+export function hexToRgb(hexColor: string) {
+  hexColor = hexColor.substr(1);
+
+  const re = new RegExp(`.{1,${hexColor.length / 3}}`, 'g');
+  let colors = hexColor.match(re);
+
+  if (colors && colors[0].length === 1) {
+    colors = colors.map(n => n + n);
+  }
+
+  return colors ? colors.map(n => parseInt(n, 16)).join(',') : '';
+}

@@ -12,6 +12,7 @@ package gy
 
 import (
 	"net"
+	"strconv"
 	"time"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -48,7 +49,10 @@ type GyClient struct {
 	diamClient *diameter.Client
 }
 
-var apnOverwrite string
+var (
+	apnOverwrite      string
+	serviceIdentifier int = -1
+)
 
 // NewGyClient contructs a new GyClient with the magma diameter settings
 func NewConnectedGyClient(
@@ -58,6 +62,14 @@ func NewConnectedGyClient(
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.CHARGING_CONTROL_APP_ID, getCCAHandler())
 	registerReAuthHandler(reAuthHandler, diamClient)
 	apnOverwrite = diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, "")
+	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
+	if len(siStr) > 0 {
+		var err error
+		serviceIdentifier, err = strconv.Atoi(siStr)
+		if err != nil {
+			serviceIdentifier = -1
+		}
+	}
 	return &GyClient{diamClient: diamClient}
 }
 
@@ -269,15 +281,14 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPSGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
-	if len(request.Apn) > 0 {
-		var apn datatype.UTF8String
-		if len(apnOverwrite) > 0 {
-			apn = datatype.UTF8String(apnOverwrite)
-		} else {
-			apn = datatype.UTF8String(request.Apn)
-		}
+	apn := datatype.UTF8String(request.Apn)
+	if len(apnOverwrite) > 0 {
+		apn = datatype.UTF8String(apnOverwrite)
+	}
+	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))
 	}
+
 	if len(request.UserLocation) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPUserLocationInfo, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string(request.UserLocation))))
 	}
@@ -312,6 +323,10 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	avpGroup := []*diam.AVP{
 		diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(credits.RatingGroup)),
 	}
+	if serviceIdentifier >= 0 {
+		avpGroup = append(avpGroup, diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(0)))
+	}
+
 	/*** Altamira OCS needs empty RSU ***/
 	if requestType != credit_control.CRTTerminate {
 		avpGroup = append(
@@ -362,6 +377,9 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 		if mscc.FinalUnitIndication != nil {
 			receivedCredits.IsFinal = true
 			receivedCredits.FinalAction = mscc.FinalUnitIndication.Action
+			if mscc.FinalUnitIndication.Action == Redirect {
+				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
+			}
 		}
 		creditList = append(creditList, receivedCredits)
 	}

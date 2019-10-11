@@ -36,36 +36,41 @@ type Config struct {
 	AllowPII      bool   // If true, PII will not be tokenized before sending to GraphQL
 }
 
-var (
-	// a client to issue GraphQL calls
-	graphqlClient *graphql.Client
-	cfg           Config
-	graphQLOps    map[string]*Queue // a queue of GraphQL operations, pending serialized execution
+type (
+	// ModuleCtx ...
+	ModuleCtx struct {
+		// a client to issue GraphQL calls
+		graphqlClient *graphql.Client
+		cfg           Config
+		graphQLOps    map[string]*Queue // a queue of GraphQL operations, pending serialized execution
+	}
 )
 
 // Init module interface implementation
 //nolint:deadcode
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	var ctx ModuleCtx
+
 	// Parse config
-	err := mapstructure.Decode(config, &cfg)
+	err := mapstructure.Decode(config, &ctx.cfg)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Warn in log about dangerous settings
-	if cfg.DryRunGraphQL {
+	if ctx.cfg.DryRunGraphQL {
 		logger.Warn("ANALYTICS IS SET TO DRY MODE, DATA WILL NOT BE SENT OUT VIA GRAPHQL")
 	}
 
-	if cfg.AllowPII {
+	if ctx.cfg.AllowPII {
 		logger.Warn("ANALYTICS IS SET TO ALLOW PII BE SENT OUT")
 	}
 
-	graphQLOps = make(map[string]*Queue)
+	ctx.graphQLOps = make(map[string]*Queue)
 	// Create client
-	graphqlClient = graphql.NewClient(graphql.ClientConfig{
-		Token:    cfg.AccessToken,
-		Endpoint: cfg.GraphQLURL,
+	ctx.graphqlClient = graphql.NewClient(graphql.ClientConfig{
+		Token:    ctx.cfg.AccessToken,
+		Endpoint: ctx.cfg.GraphQLURL,
 		HTTPClient: &http.Client{
 			Transport: &http.Transport{
 				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -73,7 +78,7 @@ func Init(logger *zap.Logger, config modules.ModuleConfig) error {
 		},
 	})
 
-	return nil
+	return ctx, nil
 }
 
 // get the session state when exist. otherwise, create it
@@ -99,7 +104,8 @@ func getSessionState(logger *zap.Logger, c *modules.RequestContext) (*session.St
 
 // Handle module interface implementation
 //nolint:deadcode
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	mCtx := m.(ModuleCtx)
 	pkt := r.Packet
 
 	switch r.Code {
@@ -133,7 +139,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			NormalizedMacAddress: normalizedMacAddress,
 		}
 
-		if !cfg.AllowPII {
+		if !mCtx.cfg.AllowPII {
 			session.AcctSessionID = tokenize(session.AcctSessionID)
 			session.CallingStationID = tokenize(session.CallingStationID)
 			session.FramedIPAddress = tokenize(session.FramedIPAddress)
@@ -146,7 +152,7 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			c.Logger.Error("failed to update session", zap.Error(err), zap.Any("session_state", sessionState))
 		}
 
-		pushGraphQLTask(c.Logger, &createSessionTask{
+		pushGraphQLTask(mCtx, c.Logger, &createSessionTask{
 			Logger:       c.Logger,
 			reqCtx:       c,
 			session:      &session,
@@ -193,19 +199,19 @@ func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middlewar
 			}
 
 			// Tokenize fields which might contain PII
-			if !cfg.AllowPII {
+			if !mCtx.cfg.AllowPII {
 				session.AcctSessionID = tokenize(session.AcctSessionID)
 			}
 
 			// Send the request!
-			pushGraphQLTask(c.Logger, &updateSessionTask{
+			pushGraphQLTask(mCtx, c.Logger, &updateSessionTask{
 				Logger:       c.Logger,
 				reqCtx:       c,
 				session:      &session,
 				sessionState: sessionState,
 			}, sessionState)
 			if rfc2866.AcctStatusType_Get(pkt) == rfc2866.AcctStatusType_Value_Stop {
-				cleanSessionTasks(c.Logger, sessionState)
+				cleanSessionTasks(mCtx, c.Logger, sessionState)
 			}
 		case rfc2866.AcctStatusType_Value_AccountingOn:
 			fallthrough

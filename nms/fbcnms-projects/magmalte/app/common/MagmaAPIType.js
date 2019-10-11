@@ -8,47 +8,6 @@
  * @format
  */
 
-// TODO: Coordinate with murtadha on type
-export type CheckindGateway = {
-  gateway_id: string,
-  config: {[string]: any},
-  meta: {
-    enodeb_connected: ?boolean,
-    rf_tx_on: ?boolean,
-  },
-  status: ?{
-    checkin_time: number,
-    hardware_id: string,
-    version: string,
-    system_status: {
-      time: number,
-      cpu_user: number,
-      cpu_system: number,
-      cpu_idle: number,
-      mem_total: number,
-      mem_available: number,
-      mem_used: number,
-      mem_free: number,
-      uptime_secs: number,
-    },
-    cert_expiration_time: number,
-    meta: {[string]: string},
-    vpn_ip: string,
-    kernel_version: string,
-  },
-  record: {
-    hw_id: {
-      id: string,
-    },
-    name: string,
-    key: {
-      key_type: string,
-      key: string,
-    },
-  },
-  offset: number,
-};
-
 export type WifiConfig = {
   mesh_id?: string,
   info?: string,
@@ -59,77 +18,10 @@ export type WifiConfig = {
   additional_props: ?{[string]: string},
 };
 
-export type CellularConfig = {
-  attached_enodeb_serials: Array<string>,
-  epc: {
-    nat_enabled: boolean,
-    ip_block: string,
-  },
-  ran: {
-    pci: string | number,
-    transmit_enabled: boolean,
-  },
-  non_eps_service: ?{
-    non_eps_service_control: string | number,
-    csfb_rat: string | number,
-    csfb_mcc: string | number,
-    csfb_mnc: string | number,
-    lac: string | number,
-  },
-};
-
-export type MagmadConfig = {
-  autoupgrade_enabled: boolean,
-  autoupgrade_poll_interval: number,
-  checkin_interval: number,
-  checkin_timeout: number,
-  tier: string,
-};
-
 export type Record = {
-  hw_id: {id: string},
-  name: string,
+  hardware_id: string,
 };
 
-export type CellularNetworkProfile = {
-  max_dl_bit_rate: number,
-  max_ul_bit_rate: number,
-};
-
-export type CellularNetworkConfig = {
-  epc: {
-    lte_auth_amf: string,
-    lte_auth_op: string,
-    mcc: string,
-    mnc: string,
-    sub_profiles: {
-      [string]: CellularNetworkProfile,
-    },
-    tac: number,
-  },
-  ran: {
-    bandwidth_mhz: number,
-    earfcndl: number,
-    special_subframe_pattern: number,
-    subframe_assignment: number,
-    ul_dl_ratio: number,
-  },
-  default_rule_id?: string,
-};
-
-export type NetworkUpgradeImage = {
-  name: string,
-  order: number,
-};
-
-export type NetworkUpgradeTier = {
-  id: string,
-  name: string,
-  version: string,
-  images: Array<NetworkUpgradeImage>,
-};
-
-export type UpgradeReleaseChannel = {
-  name: string,
-  supported_versions: Array<string>,
+export type DevmandConfig = {
+  managed_devices: string[],
 };

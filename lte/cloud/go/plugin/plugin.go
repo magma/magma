@@ -10,11 +10,9 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
-	models4 "magma/lte/cloud/go/plugin/models"
-	"magma/lte/cloud/go/services/cellular/config"
+	"magma/lte/cloud/go/plugin/handlers"
+	lteModels "magma/lte/cloud/go/plugin/models"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
-	"magma/lte/cloud/go/services/cellular/obsidian/models"
-	cellular_state "magma/lte/cloud/go/services/cellular/state"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
 	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	models2 "magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -32,7 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
 
@@ -53,29 +50,19 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		// Legacy serdes
-		&config.CellularNetworkConfigManager{},
-		&config.CellularGatewayConfigManager{},
-		&config.CellularEnodebConfigManager{},
-
-		// TODO: expose enodeb state via swagger model and change serde to swagger serde
-		&cellular_state.EnodebStateSerde{},
+		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
 		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &models4.NetworkCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &models4.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &models.NetworkEnodebConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRule{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &models3.Subscriber{}),
-	}
-}
-
-func (*LteOrchestratorPlugin) GetLegacyMconfigBuilders() []factory.MconfigBuilder {
-	return []factory.MconfigBuilder{
-		&config.CellularBuilder{},
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntity2Type, &lteModels.PolicyRule{}),
+		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntity2Type, &lteModels.BaseNameRecord{}),
+		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
 	}
 }
 
@@ -95,7 +82,7 @@ func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.Confi
 		meteringdh.GetObsidianHandlers(),
 		policydbh.GetObsidianHandlers(),
 		subscriberdbh.GetObsidianHandlers(),
-		GetHandlers(),
+		handlers.GetHandlers(),
 	)
 }
 

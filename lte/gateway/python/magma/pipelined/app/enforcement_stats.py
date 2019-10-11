@@ -7,6 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import time
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
@@ -30,6 +31,7 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
+global_epoch = int(time.time())
 
 
 class RelayDisabledException(Exception):
@@ -206,7 +208,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             return
 
         record_table = RuleRecordTable(
-            records=self.total_usage.values())
+            records=self.total_usage.values(),
+            epoch=global_epoch)
         fut.set_result(record_table)
 
     def _monitor(self, poll_interval):
@@ -290,7 +293,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         Report usage to sessiond using rpc
         """
-        record_table = RuleRecordTable(records=delta_usage.values())
+        record_table = RuleRecordTable(records=delta_usage.values(),
+                                       epoch=global_epoch)
         future = self.sessiond.ReportRuleStats.future(
             record_table, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(

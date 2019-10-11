@@ -12,6 +12,7 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+TEST_PACKET_REG = 'reg5'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):
@@ -28,6 +29,12 @@ class Direction(IntEnum):
     """
     OUT = 0x01
     IN = 0x10
+    PASSTHROUGH = 0x2
+
+
+class TestPacket(IntEnum):
+    ON = 0x1
+    OFF = 0x0
 
 
 def load_direction(parser, direction: Direction):
@@ -41,3 +48,12 @@ def load_direction(parser, direction: Direction):
 
 def is_valid_direction(direction: Direction):
     return isinstance(direction, Direction)
+
+
+def load_trace_packet(parser, test: TestPacket):
+    """
+    Wrapper for loading the test-packet register
+    """
+    if not isinstance(test, TestPacket):
+        raise Exception('Invalid test object')
+    return parser.NXActionRegLoad2(dst=TEST_PACKET_REG, value=test.value)

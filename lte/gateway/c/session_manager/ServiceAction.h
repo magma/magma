@@ -10,13 +10,17 @@
 
 #include <memory>
 
+#include <lte/protos/session_manager.grpc.pb.h>
+
 namespace magma {
 using namespace lte;
 
 enum ServiceActionType {
   CONTINUE_SERVICE = 0,
   TERMINATE_SERVICE = 1,
-  ACTIVATE_SERVICE = 2
+  ACTIVATE_SERVICE = 2,
+  REDIRECT = 3,
+  RESTRICT_ACCESS = 4,
 };
 
 /**
@@ -42,6 +46,18 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction &set_rating_group(uint32_t rating_group)
+  {
+    rating_group_ = rating_group;
+    return *this;
+  }
+
+  ServiceAction &set_redirect_server(const RedirectServer &redirect_server)
+  {
+    redirect_server_ = std::make_unique<RedirectServer>(redirect_server);
+    return *this;
+  }
+
   /**
    * get_imsi returns the associated IMSI for the action, or throws a nullptr
    * exception if there is none stored
@@ -53,6 +69,8 @@ class ServiceAction {
    * or throws a nullptr exception if there is none stored
    */
   const std::string &get_ip_addr() const { return *ip_addr_; }
+
+  uint32_t get_rating_group() const { return rating_group_; }
 
   const std::vector<std::string> &get_rule_ids() const { return rule_ids_; }
 
@@ -68,12 +86,19 @@ class ServiceAction {
     return &rule_definitions_;
   }
 
+  const RedirectServer &get_redirect_server() const
+  {
+    return *redirect_server_;
+  }
+
  private:
   ServiceActionType action_type_;
   std::unique_ptr<std::string> imsi_;
   std::unique_ptr<std::string> ip_addr_;
+  uint32_t rating_group_;
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;
+  std::unique_ptr<RedirectServer> redirect_server_;
 };
 
 } // namespace magma

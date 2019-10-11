@@ -16,9 +16,9 @@ from fabric.api import cd, env, lcd, local, run
 from fabric.operations import get
 from fabric.utils import abort, puts
 
-sys.path.append('../../orc8r/tools')
-import fab.pkg as pkg  # NOQA
-from fab.hosts import vagrant_setup, ansible_setup, split_hoststring # NOQA
+sys.path.append('../../orc8r')
+import tools.fab.pkg as pkg  # NOQA
+from tools.fab.hosts import vagrant_setup, ansible_setup, split_hoststring  # NOQA
 
 
 # List of service tiers
@@ -101,7 +101,6 @@ def _package_vagrant_zip(service, folder, cloud_host, commit_hash):
 
         if service == "metrics":
             run('cp -pr roles/prometheus %s/ansible/roles/.' % folder)
-            run('cp -pr roles/third_party/graphite %s/ansible/roles.' % folder)
         else:
             run('cp -pr roles/%s %s/ansible/roles/.' % (service, folder))
 

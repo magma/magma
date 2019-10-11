@@ -16,6 +16,7 @@
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
+#include "SpgwServiceClient.h"
 
 namespace magma {
 
@@ -36,6 +37,7 @@ class LocalEnforcer {
     std::shared_ptr<SessionCloudReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
 
@@ -47,6 +49,14 @@ class LocalEnforcer {
   void stop();
 
   folly::EventBase &get_event_base();
+
+  /**
+   * Setup rules for all sessions in pipelined, used whenever pipelined
+   * restarts and needs to recover state
+   */
+  bool setup(
+    const std::uint64_t &epoch,
+    std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
    * Insert a group of rule usage into the monitor and update credit manager
@@ -130,6 +140,8 @@ class LocalEnforcer {
   bool is_session_duplicate(
     const std::string &imsi, const magma::SessionState::Config &config);
 
+  static uint32_t REDIRECT_FLOW_PRIORITY;
+
  private:
   struct RulesToProcess {
     std::vector<std::string> static_rules;
@@ -138,6 +150,7 @@ class LocalEnforcer {
   std::shared_ptr<SessionCloudReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
   folly::EventBase *evb_;
@@ -226,6 +239,16 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState> &session);
 
   /**
+   * Send bearer creation request through the PGW client if rules were
+   * activated successfully in pipelined
+   */
+  void create_bearer(
+    const bool &activate_success,
+    const std::unique_ptr<SessionState> &session,
+    const PolicyReAuthRequest &request,
+    const std::vector<PolicyRule> &dynamic_rules);
+
+  /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers
    */
   bool revalidation_required(
@@ -238,6 +261,20 @@ class LocalEnforcer {
 
   void execute_actions(
     const std::vector<std::unique_ptr<ServiceAction>> &actions);
+
+  /**
+    * Deactive rules for certain IMSI.
+    * Notify AAA service if the session is a CWF session.
+    */
+  void terminate_service(
+    const std::string &imsi,
+    const std::vector<std::string> &rule_ids,
+    const std::vector<PolicyRule> &dynamic_rules);
+
+  /**
+    * Install flow for redirection through pipelined
+    */
+  void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
 };
 
 } // namespace magma

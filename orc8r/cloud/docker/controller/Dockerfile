@@ -8,10 +8,10 @@ FROM ${baseImage} as base
 RUN apt-get update && \
     apt-get install -y curl make git gcc bzr unzip vim
 
-# Install Golang 1.11
+# Install Golang 1.12
 WORKDIR /usr/local
-RUN curl https://dl.google.com/go/go1.11.linux-amd64.tar.gz -O && \
-    tar xvf go1.11.linux-amd64.tar.gz && \
+RUN curl https://dl.google.com/go/go1.12.linux-amd64.tar.gz -O && \
+    tar xvf go1.12.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 ENV GO111MODULE on
 
@@ -83,7 +83,7 @@ RUN /usr/local/bin/setup_swagger_ui
 # Create an empty envdir for overriding in production
 RUN mkdir -p /var/opt/magma/envdir
 # TODO: automatically read the services from the plugins
-ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,EPS_AUTHENTICATION,METRICSD,CHECKIND,UPGRADE,MAGMAD,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,MESH,OBSIDIAN,LOGGER,DISPATCHER,CONFIG,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE
+ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,EPS_AUTHENTICATION,METRICSD,CHECKIND,MAGMAD,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,OBSIDIAN,LOGGER,DISPATCHER,CONFIG,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE
 # TODO: fix dispatcher to work on containers
 ENV SERVICE_HOST_NAME localhost
 # TODO: fix metricsd for fetching host level metrics

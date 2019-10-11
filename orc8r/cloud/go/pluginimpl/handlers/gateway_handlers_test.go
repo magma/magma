@@ -10,7 +10,6 @@ package handlers_test
 
 import (
 	"crypto/x509"
-	"os"
 	"testing"
 	"time"
 
@@ -23,12 +22,11 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/security/key"
-	checkind_test_utils "magma/orc8r/cloud/go/services/checkind/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
-	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 
@@ -41,6 +39,8 @@ import (
 func TestListGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -58,7 +58,7 @@ func TestListGateways(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]models.MagmadGateway{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -66,21 +66,43 @@ func TestListGateways(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: orc8r.MagmadGatewayType, Key: "gz"},
-			{Type: orc8r.MagmadGatewayType, Key: "g2"},
-			{Type: orc8r.MagmadGatewayType, Key: "g1"},
-			{Type: orc8r.MagmadGatewayType, Key: "g3"},
+			{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+			{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 		},
 	)
 	assert.NoError(t, err)
-	tc.ExpectedResult = tests.JSONMarshaler([]string{"g1", "g2", "g3", "gz"})
+	expectedResult := map[string]models.MagmadGateway{
+		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}},
+		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
+	tests.RunUnitTest(t, e, tc)
+
+	// add device and state to g1
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord)
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
+
+	expectedState := models.NewDefaultGatewayStatus("hw1")
+	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
+
+	expectedResult = map[string]models.MagmadGateway{
+		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
+		"g2": {ID: "g2", Magmad: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
+	}
+	tc.ExpectedResult = tests.JSONMarshaler(expectedResult)
 	tests.RunUnitTest(t, e, tc)
 }
 
 func TestCreateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -289,13 +311,14 @@ func TestCreateGateway(t *testing.T) {
 
 func TestGetGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
+
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.GetUnfreezeClockDeferFunc(t)()
 
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
-	state_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -337,7 +360,7 @@ func TestGetGateway(t *testing.T) {
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportGatewayStatus(t, ctx, checkind_test_utils.GetGatewayStatusSwaggerFixture("hw1"))
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks/n1/gateways"
@@ -360,7 +383,7 @@ func TestGetGateway(t *testing.T) {
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
 		},
-		Status: checkind_test_utils.GetGatewayStatusSwaggerFixture("hw1"),
+		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expected.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	expected.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
@@ -414,10 +437,9 @@ func TestGetGateway(t *testing.T) {
 
 func TestUpdateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
-
+	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -539,10 +561,9 @@ func TestUpdateGateway(t *testing.T) {
 
 func TestDeleteGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 
 	test_init.StartTestService(t)
-	device_test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -596,12 +617,508 @@ func TestDeleteGateway(t *testing.T) {
 		configurator.FullEntityLoadCriteria(),
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
-	assert.NoError(t, err)
+	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.EqualError(t, err, "Not found")
 
 	expectedEnts := configurator.NetworkEntities{
 		{NetworkID: "n1", Type: orc8r.UpgradeTierEntityType, Key: "t1", GraphID: "2"},
 	}
 	assert.Equal(t, expectedEnts, actualEnts)
-	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}, actualDevice)
+}
+
+func TestGetPartialReadHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.GetUnfreezeClockDeferFunc(t)()
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	gwConfig := &models.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         15,
+		CheckinTimeout:          5,
+	}
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+				Config:     gwConfig,
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g2",
+				Name: "barfoo", Description: "bar foo",
+				PhysicalID: "hw2",
+			},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getGatewayName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/name", obsidian.GET).HandlerFunc
+	getGatewayDescription := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/description", obsidian.GET).HandlerFunc
+	getGatewayState := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/status", obsidian.GET).HandlerFunc
+	getGatewayDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/device", obsidian.GET).HandlerFunc
+	getGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/magmad", obsidian.GET).HandlerFunc
+
+	// happy path name
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/name",
+		Handler:        getGatewayName,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler("foobar"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy path desc
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/description",
+		Handler:        getGatewayDescription,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler("foo bar"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedState := models.NewDefaultGatewayStatus("hw1")
+	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
+	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
+
+	// happy path state
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/state",
+		Handler:        getGatewayState,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedState,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404 state
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g2/state",
+		Handler:        getGatewayState,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy path device
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/device",
+		Handler:        getGatewayDevice,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404 device
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g2/device",
+		Handler:        getGatewayDevice,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy case magmad config
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/magmad",
+		Handler:        getGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: gwConfig,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// 404 magmad config
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g2/magmad",
+		Handler:        getGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetGatewayTierHandler(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	getGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.GET).HandlerFunc
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+			},
+		},
+	)
+	// 404 tier
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/tier",
+		Handler:        getGatewayTier,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(""),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// add a tier and tier -> gateway association
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: orc8r.UpgradeTierEntityType,
+			Key:  "t1",
+			Associations: []storage.TypeAndKey{
+				{
+					Type: orc8r.MagmadGatewayType,
+					Key:  "g1",
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	// happy
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot + "/g1/tier",
+		Handler:        getGatewayTier,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler("t1"),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestUpdateGatewayTierHandler(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.PUT).HandlerFunc
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+			},
+		},
+	)
+	// 404 tier
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/tier",
+		Handler:        updateGatewayTier,
+		Payload:        tests.JSONMarshaler(models.TierID("t1")),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "Tier t1 does not exist",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// add 2 tiers
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: orc8r.UpgradeTierEntityType,
+				Key:  "t1",
+			},
+			{
+				Type: orc8r.UpgradeTierEntityType,
+				Key:  "t2",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	// happy add a tier
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/tier",
+		Handler:        updateGatewayTier,
+		Payload:        tests.JSONMarshaler(models.TierID("t1")),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	entities, _, err := configurator.LoadEntities(
+		"n1",
+		swag.String(orc8r.UpgradeTierEntityType),
+		nil,
+		nil,
+		nil,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+	)
+	assert.NoError(t, err)
+	expectedTiers := configurator.NetworkEntities{
+		{
+			NetworkID: "n1",
+			Type:      orc8r.UpgradeTierEntityType,
+			Key:       "t1",
+			Associations: []storage.TypeAndKey{
+				{
+					Type: orc8r.MagmadGatewayType,
+					Key:  "g1",
+				},
+			},
+			GraphID: "2",
+			Version: 1,
+		},
+		{
+			NetworkID: "n1",
+			Type:      orc8r.UpgradeTierEntityType,
+			Key:       "t2",
+			GraphID:   "6",
+			Version:   0,
+		},
+	}
+	assert.Equal(t, expectedTiers, entities)
+
+	// happy switch to a different tier
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/tier",
+		Handler:        updateGatewayTier,
+		Payload:        tests.JSONMarshaler(models.TierID("t2")),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	entities, _, err = configurator.LoadEntities(
+		"n1",
+		swag.String(orc8r.UpgradeTierEntityType),
+		nil,
+		nil,
+		nil,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+	)
+	expectedTiers = configurator.NetworkEntities{
+		{
+			NetworkID: "n1",
+			Type:      orc8r.UpgradeTierEntityType,
+			Key:       "t1",
+			GraphID:   "2",
+			Version:   2,
+		},
+		{
+			NetworkID: "n1",
+			Type:      orc8r.UpgradeTierEntityType,
+			Key:       "t2",
+			Associations: []storage.TypeAndKey{
+				{
+					Type: orc8r.MagmadGatewayType,
+					Key:  "g1",
+				},
+			},
+			GraphID: "6",
+			Version: 1,
+		},
+	}
+	assert.Equal(t, expectedTiers, entities)
+}
+
+func TestGetPartialUpdateHandlers(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+
+	gwConfig := &models.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         15,
+		CheckinTimeout:          5,
+	}
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g1",
+				Name: "foobar", Description: "foo bar",
+				PhysicalID: "hw1",
+				Config:     gwConfig,
+			},
+			{
+				Type: orc8r.MagmadGatewayType, Key: "g2",
+				Name: "barfoo", Description: "bar foo",
+				PhysicalID: "hw2",
+			},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/networks/n1/gateways"
+
+	obsidianHandlers := handlers.GetObsidianHandlers()
+	updateGatewayName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/name", obsidian.PUT).HandlerFunc
+	updateGatewayDesc := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/description", obsidian.PUT).HandlerFunc
+	updateGatewayDevice := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/device", obsidian.PUT).HandlerFunc
+	updateGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/magmad", obsidian.PUT).HandlerFunc
+
+	// validation error name
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/name",
+		Handler:        updateGatewayName,
+		Payload:        tests.JSONMarshaler(""),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 400,
+		ExpectedError:  " in body should be at least 1 chars long",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy path name
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/name",
+		Handler:        updateGatewayName,
+		Payload:        tests.JSONMarshaler("newname"),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	entity, err := configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true})
+	assert.NoError(t, err)
+	assert.Equal(t, "newname", entity.Name)
+
+	// happy path desc
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g1/description",
+		Handler:        updateGatewayDesc,
+		Payload:        tests.JSONMarshaler("newdesc"),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	entity, err = configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true})
+	assert.NoError(t, err)
+	assert.Equal(t, "newdesc", entity.Description)
+
+	// happy path device
+	tc = tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot + "/g2/device",
+		Handler: updateGatewayDevice,
+		Payload: tests.JSONMarshaler(&models.GatewayDevice{HardwareID: "hw2",
+			Key: &models.ChallengeKey{KeyType: "ECHO"}}),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	device, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2")
+	assert.NoError(t, err)
+	assert.Equal(t, &models.GatewayDevice{HardwareID: "hw2", Key: &models.ChallengeKey{KeyType: "ECHO"}}, device)
+
+	// happy case magmad config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g2/magmad",
+		Handler:        updateGatewayConfig,
+		Payload:        gwConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g2"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	entity, err = configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadConfig: true})
+	assert.NoError(t, err)
+	assert.Equal(t, gwConfig, entity.Config)
+
+	// 404 magmad config (no gateway registered)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot + "/g3/magmad",
+		Handler:        updateGatewayConfig,
+		Payload:        gwConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g3"},
+		ExpectedStatus: 400,
+		ExpectedError:  "Gateway g3 does not exist",
+	}
+	tests.RunUnitTest(t, e, tc)
 }

@@ -42,9 +42,9 @@ func GetObsidianHandlers() []obsidian.Handler {
 		cfgObsidian.GetUpdateNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType, &models2.NetworkCellularConfigs{}),
 		cfgObsidian.GetDeleteNetworkConfigHandler(NetworkConfigPath, lte.CellularNetworkType),
 
-		cfgObsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		cfgObsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
-		cfgObsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models.NetworkEnodebConfigs{}),
+		cfgObsidian.GetReadConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models2.EnodebConfiguration{}),
+		cfgObsidian.GetCreateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models2.EnodebConfiguration{}),
+		cfgObsidian.GetUpdateConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId, &models2.EnodebConfiguration{}),
 		cfgObsidian.GetDeleteConfigHandler(EnodebConfigPath, lte.CellularEnodebType, getEnodebId),
 		// List all eNodeB devices for a network
 		cfgObsidian.GetReadAllKeysConfigHandler(EnodebListPath, lte.CellularEnodebType),

@@ -9,6 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 import re
+from magma.enodebd.exceptions import UnrecognizedEnodebError
 
 
 class EnodebDeviceName():
@@ -18,6 +19,7 @@ class EnodebDeviceName():
     """
     BAICELLS = 'Baicells'
     BAICELLS_OLD = 'Baicells Old'
+    BAICELLS_QAFA = 'Baicells QAFA'
     BAICELLS_QAFB = 'Baicells QAFB'
     CAVIUM = 'Cavium'
 
@@ -44,6 +46,8 @@ def get_device_name(
     if device_oui in {'34ED0B', '48BF74'}:
         if sw_version.startswith('BaiBS_QAFB'):
             return EnodebDeviceName.BAICELLS_QAFB
+        elif sw_version.startswith('BaiBS_QAFA'):
+            return EnodebDeviceName.BAICELLS_QAFA
         elif sw_version.startswith('BaiStation_'):
             # Note: to disable flag inversion completely (for all builds),
             # set to BaiStation_V000R000C00B000SPC000
@@ -57,12 +61,12 @@ def get_device_name(
         elif sw_version.startswith('BaiBS_RTS_'):
             return EnodebDeviceName.BAICELLS
         else:
-            raise KeyError("Device %s unsupported: Software (%s)" %
-                           (device_oui, sw_version))
+            raise UnrecognizedEnodebError("Device %s unsupported: Software (%s)"
+                                         % (device_oui, sw_version))
     elif device_oui in {'000FB7', }:
         return EnodebDeviceName.CAVIUM
     else:
-        raise KeyError("Device %s unsupported" % device_oui)
+        raise UnrecognizedEnodebError("Device %s unsupported" % device_oui)
 
 
 def _parse_sw_version(version_str):

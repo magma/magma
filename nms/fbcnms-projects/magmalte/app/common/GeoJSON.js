@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {CheckindGateway} from './MagmaAPIType';
+import type {magmad_gateway} from './__generated__/MagmaAPIBindings';
 
 export type MagmaFeatureCollection = {
   type: 'FeatureCollection',
@@ -25,7 +25,8 @@ export type MagmaGatewayFeature = {
     id: string | number,
     name?: string,
     iconSize: IconSize,
-    gateway?: CheckindGateway,
+    gateway?: magmad_gateway,
+    [key: string]: any,
   },
 };
 

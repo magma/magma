@@ -59,6 +59,9 @@
         "METERING",
         "DPI",
         "ENFORCEMENT"
+       ],
+       "allowedUes": [
+        {"ip": "1.1.1.1", "key":123}
        ]
     },
     "subscriberdb": {
@@ -94,6 +97,10 @@
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
       "relayEnabled": false
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {}
     }
   }
 }

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -43,6 +43,7 @@
 #include "PdnConnectivityReject.h"
 #include "common_defs.h"
 #include "emm_data.h"
+#include "mme_config.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -251,7 +252,7 @@ int esm_sap_send(esm_sap_t *msg)
           bearer_activate->mbr_ul,
           bearer_activate->tft,
           bearer_activate->pco,
-          bearer_activate->gtp_teid,
+          &bearer_activate->sgw_fteid,
           &esm_cause);
         if (rc != RETURNok) {
           break;
@@ -280,6 +281,20 @@ int esm_sap_send(esm_sap_t *msg)
     case ESM_EPS_BEARER_CONTEXT_MODIFY_REJ: break;
 
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
+
+      if (msg->data.eps_bearer_context_deactivate.
+        is_pcrf_initiated) {
+        /*Currently we support single bearear deactivation*/
+        rc = _esm_sap_send(
+          DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST,
+          msg->is_standalone,
+          msg->ctx,
+          (proc_tid_t) 0,
+          msg->data.eps_bearer_context_deactivate.ebi[0],
+          &msg->data,
+          msg->send);
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
+      }
       int bid = BEARERS_PER_UE;
 
       /*
@@ -288,7 +303,7 @@ int esm_sap_send(esm_sap_t *msg)
       rc = esm_proc_eps_bearer_context_deactivate(
         msg->ctx,
         true,
-        msg->data.eps_bearer_context_deactivate.ebi,
+        msg->data.eps_bearer_context_deactivate.ebi[0],
         &pid,
         &bid,
         NULL);
@@ -1079,7 +1094,20 @@ static int _esm_sap_send(
 
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: break;
+    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
+      const esm_eps_bearer_context_deactivate_t *msg =
+        &data->eps_bearer_context_deactivate;
+      /*Currently we support single bearear deactivation only at NAS*/
+      if (RETURNok == rc) {
+        rc = esm_send_deactivate_eps_bearer_context_request(
+          (proc_tid_t) 0,
+          msg->ebi[0],
+          &esm_msg.deactivate_eps_bearer_context_request,
+          ESM_CAUSE_REGULAR_DEACTIVATION);
+
+        esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
+      }
+    } break;
 
     case PDN_CONNECTIVITY_REJECT: break;
 

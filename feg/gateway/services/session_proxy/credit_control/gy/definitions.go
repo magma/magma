@@ -71,12 +71,13 @@ type QosRequestInfo struct {
 }
 
 type ReceivedCredits struct {
-	ResultCode   uint32
-	RatingGroup  uint32
-	GrantedUnits *credit_control.GrantedServiceUnit
-	ValidityTime uint32
-	IsFinal      bool
-	FinalAction  FinalUnitAction // unused if IsFinal is false
+	ResultCode     uint32
+	RatingGroup    uint32
+	GrantedUnits   *credit_control.GrantedServiceUnit
+	ValidityTime   uint32
+	IsFinal        bool
+	FinalAction    FinalUnitAction // unused if IsFinal is false
+	RedirectServer RedirectServer
 }
 
 type CreditControlAnswer struct {
@@ -87,8 +88,23 @@ type CreditControlAnswer struct {
 }
 
 type FinalUnitIndication struct {
-	Action FinalUnitAction `avp:"Final-Unit-Action"`
+	Action         FinalUnitAction `avp:"Final-Unit-Action"`
+	RedirectServer RedirectServer  `avp:"Redirect-Server"`
 }
+
+type RedirectServer struct {
+	RedirectAddressType   RedirectAddressType `avp:"Redirect-Address-Type"`
+	RedirectServerAddress string              `avp:"Redirect-Server-Address"`
+}
+
+type RedirectAddressType uint8
+
+const (
+	IPV4Address RedirectAddressType = iota
+	IPV6Address
+	URL
+	SIPURI
+)
 
 type MSCCDiameterMessage struct {
 	ResultCode          uint32                            `avp:"Result-Code"`

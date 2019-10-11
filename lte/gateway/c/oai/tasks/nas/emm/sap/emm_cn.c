@@ -76,7 +76,7 @@
 #include "esm_data.h"
 #include "esm_msg.h"
 #include "esm_sapDef.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
 #include "nas_messages_types.h"
@@ -122,6 +122,7 @@ static const char *_emm_cn_primitive_str[] = {
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC",
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL",
   "EMMCN_MM_INFORMATION_REQUEST",
+  "EMMCN_DEACTIVATE_BEARER_REQ",
 };
 
 //------------------------------------------------------------------------------
@@ -134,8 +135,9 @@ static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg)
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -172,8 +174,9 @@ static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg)
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -281,8 +284,9 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
   ebi_t new_ebi = 0;
   bool is_pdn_connectivity = false;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg_pP->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -539,8 +543,9 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
   bool is_standalone = false;  // warning hardcoded
   bool triggered_by_ue = true; // warning hardcoded
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg_pP->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -808,8 +813,9 @@ static int _emm_cn_activate_dedicated_bearer_req(
   // forward to ESM
   esm_sap_t esm_sap = {0};
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
   esm_sap.primitive = ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ;
   esm_sap.ctx = &ue_mm_context->emm_context;
@@ -834,7 +840,41 @@ static int _emm_cn_activate_dedicated_bearer_req(
   esm_sap.data.eps_dedicated_bearer_context_activate.pco = msg->pco;
   // stole ref if any
   msg->pco = NULL;
-  esm_sap.data.eps_dedicated_bearer_context_activate.gtp_teid = msg->gtp_teid;
+  memcpy(&esm_sap.data.eps_dedicated_bearer_context_activate.sgw_fteid,
+    &msg->sgw_fteid, sizeof(fteid_t));
+
+  rc = esm_sap_send(&esm_sap);
+
+  unlock_ue_contexts(ue_mm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
+static int _emm_cn_deactivate_dedicated_bearer_req(
+  emm_cn_deactivate_dedicated_bearer_req_t *msg)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNok;
+  // forward to ESM
+  esm_sap_t esm_sap = {0};
+
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+
+  esm_sap.primitive = ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ;
+  esm_sap.ctx = &ue_mm_context->emm_context;
+  esm_sap.is_standalone = true;
+  esm_sap.ue_id = msg->ue_id;
+  esm_sap.data.eps_bearer_context_deactivate.
+    is_pcrf_initiated = true;
+  /*Currently we only support deactivation of a single bearer at NAS*/
+  esm_sap.data.eps_bearer_context_deactivate.no_of_bearers =
+    msg->no_of_bearers;
+  memcpy(
+    esm_sap.data.eps_bearer_context_deactivate.ebi,
+    msg->ebi,
+    sizeof(ebi_t));
 
   rc = esm_sap_send(&esm_sap);
 
@@ -1316,6 +1356,11 @@ int emm_cn_send(const emm_cn_t *msg)
     case EMMCN_CS_DOMAIN_MM_INFORMATION_REQ:
       rc = _emm_cn_cs_domain_mm_information_req(
         msg->u.emm_cn_cs_domain_mm_information_req);
+      break;
+
+   case EMMCN_DEACTIVATE_BEARER_REQ:
+      rc = _emm_cn_deactivate_dedicated_bearer_req(
+        msg->u.deactivate_dedicated_bearer_req);
       break;
 
     default:

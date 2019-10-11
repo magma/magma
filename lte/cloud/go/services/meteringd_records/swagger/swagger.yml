@@ -115,9 +115,6 @@ definitions:
         $ref: './swagger-common.yml#/definitions/subscriber_id'
         x-nullable: false
         x-go-custom-tag: 'magma_alt_name:"Sid"'
-      match:
-        $ref: '#/definitions/flow_match'
-        x-nullable: false
       bytes_tx:
         type: integer
         format: uint64

@@ -11,10 +11,12 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
@@ -27,11 +29,17 @@ import (
 const (
 	queryPart      = "query"
 	queryRangePart = "query_range"
+	seriesPart     = "series"
 
-	PrometheusRoot = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+	PrometheusRoot   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
+	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
 
 	QueryURL      = PrometheusRoot + obsidian.UrlSep + queryPart
 	QueryRangeURL = PrometheusRoot + obsidian.UrlSep + queryRangePart
+
+	QueryV1URL      = PrometheusV1Root + obsidian.UrlSep + queryPart
+	QueryRangeV1URL = PrometheusV1Root + obsidian.UrlSep + queryRangePart
+	SeriesV1URL     = PrometheusV1Root + obsidian.UrlSep + seriesPart
 
 	defaultStepWidth = "15s"
 )
@@ -130,4 +138,35 @@ type PromQLResultStruct struct {
 type PromQLDataStruct struct {
 	ResultType string      `json:"resultType"`
 	Result     model.Value `json:"result"`
+}
+
+var (
+	minTime = time.Unix(math.MinInt64/1000+62135596801, 0).UTC()
+	maxTime = time.Unix(math.MaxInt64/1000-62135596801, 999999999).UTC()
+)
+
+func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		nID, nerr := obsidian.GetNetworkId(c)
+		if nerr != nil {
+			return obsidian.HttpError(nerr, http.StatusBadRequest)
+		}
+
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
+		if err != nil {
+			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		}
+
+		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
+		if err != nil {
+			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
+		}
+
+		match := fmt.Sprintf(`{networkID="%s"}`, nID)
+		res, err := api.Series(context.Background(), []string{match}, startTime, endTime)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		return c.JSON(http.StatusOK, res)
+	}
 }

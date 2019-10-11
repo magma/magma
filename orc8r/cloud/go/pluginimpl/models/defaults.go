@@ -44,3 +44,75 @@ func NewDefaultNetwork(networkID string, name string, description string) *Netwo
 		Features:    NewDefaultFeaturesConfig(),
 	}
 }
+
+func NewDefaultGatewayStatus(hardwareID string) *GatewayStatus {
+	return &GatewayStatus{
+		CheckinTime:        0,
+		CertExpirationTime: 0,
+		Meta:               map[string]string{"hello": "world"},
+		SystemStatus: &SystemStatus{
+			Time:       1495484735606,
+			CPUUser:    31498,
+			CPUSystem:  8361,
+			CPUIDLE:    1869111,
+			MemTotal:   1016084,
+			MemUsed:    54416,
+			MemFree:    412772,
+			UptimeSecs: 1234,
+			SwapTotal:  1016081,
+			SwapUsed:   54415,
+			SwapFree:   412771,
+			DiskPartitions: []*DiskPartition{
+				{
+					Device:     "/dev/sda1",
+					MountPoint: "/",
+					Total:      1,
+					Used:       2,
+					Free:       3,
+				},
+			},
+		},
+		PlatformInfo: &PlatformInfo{
+			VpnIP: "facebook.com",
+			Packages: []*Package{
+				{
+					Name:    "magma",
+					Version: "0.0.0.0",
+				},
+			},
+			KernelVersion:           "42",
+			KernelVersionsInstalled: []string{"42", "43"},
+			ConfigInfo: &ConfigInfo{
+				MconfigCreatedAt: 1552968732,
+			},
+		},
+		MachineInfo: &MachineInfo{
+			CPUInfo: &MachineInfoCPUInfo{
+				CoreCount:      4,
+				ThreadsPerCore: 1,
+				Architecture:   "x86_64",
+				ModelName:      "Intel(R) Core(TM) i9-8950HK CPU @ 2.90GHz",
+			},
+			NetworkInfo: &MachineInfoNetworkInfo{
+				NetworkInterfaces: []*NetworkInterface{
+					{
+						NetworkInterfaceID: "gtp_br0",
+						Status:             NetworkInterfaceStatusUP,
+						MacAddress:         "08:00:27:1e:8a:32",
+						IPAddresses:        []string{"10.10.10.1"},
+						IPV6Addresses:      []string{"fe80::a00:27ff:fe1e:8332"},
+					},
+				},
+				RoutingTable: []*Route{
+					{
+						DestinationIP:      "0.0.0.0",
+						GatewayIP:          "10.10.10.1",
+						Genmask:            "255.255.255.0",
+						NetworkInterfaceID: "eth0",
+					},
+				},
+			},
+		},
+		HardwareID: hardwareID,
+	}
+}

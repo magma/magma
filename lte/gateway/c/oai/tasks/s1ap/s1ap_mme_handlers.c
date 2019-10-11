@@ -136,7 +136,9 @@ s1ap_message_handler_t message_handlers[][3] = {
    s1ap_mme_handle_erab_setup_response,
    s1ap_mme_handle_erab_setup_failure}, /* E_RABSetup */
   {0, 0, 0},                            /* E_RABModify */
-  {0, 0, 0},                            /* E_RABRelease */
+  {0,
+   s1ap_mme_handle_erab_rel_response,
+   0},                                  /* E_RABRelease */
   {0, 0, 0},                            /* E_RABReleaseIndication */
   {0,
    s1ap_mme_handle_initial_context_setup_response,
@@ -508,14 +510,6 @@ int s1ap_mme_handle_s1_setup_request(
       s1SetupRequest_p->eNBname.buf,
       s1SetupRequest_p->eNBname.size);
     enb_association->enb_name[s1SetupRequest_p->eNBname.size] = '\0';
-  }
-  // associating one more key i.e enb_id with enb_association
-  hashtable_rc_t hash_rc = hashtable_ts_insert(
-    &state->enbs,
-    (const hash_key_t) enb_id,
-    (void *) enb_association);
-  if (HASH_TABLE_OK != hash_rc) {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   s1ap_dump_enb(enb_association);
@@ -2598,10 +2592,11 @@ int s1ap_mme_handle_enb_configuration_transfer(
   uint8_t *enb_id_buf = NULL;
   enb_description_t *enb_association = NULL;
   enb_description_t *target_enb_association = NULL;
+  hashtable_element_array_t *enb_array = NULL;
   uint32_t target_enb_id = 0;
-  void *data = NULL;
   uint8_t *buffer = NULL;
   uint32_t length = 0;
+  uint32_t idx = 0;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -2649,16 +2644,19 @@ int s1ap_mme_handle_enb_configuration_transfer(
       OAILOG_INFO(LOG_S1AP, "macro eNB id: %u\n", target_enb_id);
     }
   }
-  // retrieve enb_description using target_enb_id
-  if (
-    HASH_TABLE_OK ==
-    hashtable_ts_get(
-      &state->enbs, (const hash_key_t) target_enb_id, (void **) &data)) {
-    target_enb_association = (enb_description_t *)(uintptr_t) data;
-    if (!target_enb_association) {
-      OAILOG_ERROR(
-        LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  // retrieve enb_description using hash table and match target_enb_id
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+       target_enb_association =
+          (enb_description_t *)(uintptr_t) enb_array->elements[idx];
+       if (target_enb_association->enb_id == target_enb_id) {
+          break;
+       }
+    }
+    if (target_enb_association->enb_id != target_enb_id) {
+       OAILOG_ERROR(
+         LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
+       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
 
@@ -2869,4 +2867,91 @@ const char *s1ap_direction2str(uint8_t dir)
     case S1AP_PDU_PR_unsuccessfulOutcome: return "unsuccessful outcome";
     default: return "unknown direction";
   }
+}
+
+//------------------------------------------------------------------------------
+int s1ap_mme_handle_erab_rel_response(
+  s1ap_state_t *state,
+  const sctp_assoc_id_t assoc_id,
+  const sctp_stream_id_t stream,
+  struct s1ap_message_s *message)
+{
+  OAILOG_FUNC_IN(LOG_S1AP);
+  S1ap_E_RABReleaseResponseIEs_t *s1ap_E_RABReleaseResponseIEs_p = NULL;
+  ue_description_t *ue_ref_p = NULL;
+  MessageDef *message_p = NULL;
+  int rc = RETURNok;
+
+  s1ap_E_RABReleaseResponseIEs_p = &message->msg.s1ap_E_RABReleaseResponseIEs;
+
+  if (
+    (ue_ref_p = s1ap_state_get_ue_mmeid(
+       state, (uint32_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id)) ==
+    NULL) {
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
+      (mme_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (
+    ue_ref_p->enb_ue_s1ap_id !=
+      s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID) {
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
+      ", received: " ENB_UE_S1AP_ID_FMT "\n",
+      ue_ref_p->enb_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) s1ap_E_RABReleaseResponseIEs_p->eNB_UE_S1AP_ID);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_REL_RSP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_S1AP,"itti_alloc_new_message Failed\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
+  S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items = 1;
+  S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
+
+  if (
+    s1ap_E_RABReleaseResponseIEs_p->presenceMask &
+    S1AP_E_RABRELEASERESPONSEIES_E_RABRELEASELISTBEARERRELCOMP_PRESENT) {
+    int num_erab = s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerRelComp
+                     .s1ap_E_RABReleaseItemBearerRelComp.count;
+    for (int index = 0; index < num_erab; index++) {
+      S1ap_E_RABReleaseItemBearerRelComp_t *erab_rel_item =
+        (S1ap_E_RABReleaseItemBearerRelComp_t *)
+          s1ap_E_RABReleaseResponseIEs_p->e_RABReleaseListBearerRelComp
+            .s1ap_E_RABReleaseItemBearerRelComp.array[index];
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[index].e_rab_id =
+        erab_rel_item->e_RAB_ID;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items += 1;
+    }
+  }
+
+  if (
+    s1ap_E_RABReleaseResponseIEs_p->presenceMask &
+    S1AP_E_RABRELEASERESPONSEIES_E_RABFAILEDTORELEASELIST_PRESENT) {
+    int num_erab = s1ap_E_RABReleaseResponseIEs_p
+                     ->e_RABFailedToReleaseList.s1ap_E_RABItem.count;
+    for (int index = 0; index < num_erab; index++) {
+      S1ap_E_RABItem_t *erab_item =
+        (S1ap_E_RABItem_t *) s1ap_E_RABReleaseResponseIEs_p
+          ->e_RABFailedToReleaseList.s1ap_E_RABItem.array[index];
+      S1AP_E_RAB_REL_RSP(message_p)
+        .e_rab_failed_to_rel_list.item[index]
+        .e_rab_id = erab_item->e_RAB_ID;
+      S1AP_E_RAB_REL_RSP(message_p)
+        .e_rab_failed_to_rel_list.item[index]
+        .cause = erab_item->cause;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items +=
+        1;
+    }
+  }
+  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }

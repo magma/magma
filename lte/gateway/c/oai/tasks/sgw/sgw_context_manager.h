@@ -30,54 +30,28 @@
 
 #include <stdint.h>
 
-#include "3gpp_23.401.h"
 #include "3gpp_24.007.h"
-#include "common_types.h"
 
-/********************************
-*     Paired contexts           *
-*********************************/
-// data entry for s11_bearer_context_information_hashtable
-// like this if needed in future, the split of S and P GW should be easier.
-typedef struct s_plus_p_gw_eps_bearer_context_information_s {
-  sgw_eps_bearer_context_information_t sgw_eps_bearer_context_information;
-  pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
-} s_plus_p_gw_eps_bearer_context_information_t;
+#include "sgw_types.h"
+#include "spgw_state.h"
 
-// data entry for s11teid2mme_hashtable
-typedef struct mme_sgw_tunnel_s {
-  uint32_t local_teid;  ///< Tunnel endpoint Identifier
-  uint32_t remote_teid; ///< Tunnel endpoint Identifier
-} mme_sgw_tunnel_t;
-
-// data entry for s1uteid2enb_hashtable
-typedef struct enb_sgw_s1u_tunnel_s {
-  uint32_t local_teid;                 ///< S-GW Tunnel endpoint Identifier
-  uint32_t remote_teid;                ///< eNB Tunnel endpoint Identifier
-  ip_address_t enb_ip_address_for_S11; ///< eNB IP address the S1U interface.
-} enb_sgw_s1u_tunnel_t;
-
-void sgw_display_s11teid2mme_mappings(void);
+void sgw_display_s11teid2mme_mappings(spgw_state_t *state);
 void sgw_display_sgw_eps_bearer_context(
   const sgw_eps_bearer_ctxt_t *const eps_bearer_ctxt);
-void sgw_display_s11_bearer_context_information_mapping(void);
+void sgw_display_s11_bearer_context_information_mapping(spgw_state_t *state);
 void pgw_lite_cm_free_apn(pgw_apn_t **apnP);
 
-teid_t sgw_get_new_S11_tunnel_id(void);
+teid_t sgw_get_new_S11_tunnel_id(spgw_state_t *state);
 mme_sgw_tunnel_t *sgw_cm_create_s11_tunnel(
+  spgw_state_t *state,
   teid_t remote_teid,
   teid_t local_teid);
-int sgw_cm_remove_s11_tunnel(teid_t local_teid);
-sgw_eps_bearer_ctxt_t *sgw_cm_create_eps_bearer_context(void);
-sgw_pdn_connection_t *sgw_cm_create_pdn_connection(void);
-void sgw_cm_free_pdn_connection(sgw_pdn_connection_t *pdn_connectionP);
-void sgw_free_sgw_eps_bearer_context(
-  sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt);
+int sgw_cm_remove_s11_tunnel(spgw_state_t *state, teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t *
-sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
-void sgw_cm_free_s_plus_p_gw_eps_bearer_context_information(
-  s_plus_p_gw_eps_bearer_context_information_t **contextP);
-int sgw_cm_remove_bearer_context_information(teid_t teid);
+sgw_cm_create_bearer_context_information_in_collection(
+  spgw_state_t *state,
+  teid_t teid);
+int sgw_cm_remove_bearer_context_information(spgw_state_t *state, teid_t teid);
 sgw_eps_bearer_ctxt_t *sgw_cm_create_eps_bearer_ctxt_in_collection(
   sgw_pdn_connection_t *const sgw_pdn_connection,
   const ebi_t eps_bearer_idP);

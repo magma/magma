@@ -9,26 +9,28 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Enodeb, EnodebPayload} from './EnodebUtils';
 import type {WithStyles} from '@material-ui/core';
+import type {
+  enodeb,
+  enodeb_configuration,
+} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import EnodebBandwidthSelector from './EnodebBandwidthSelector';
-import EnodebDeviceSelector from './EnodebDeviceSelector';
+import EnodebPropertySelector from './EnodebPropertySelector';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
+import MagmaV1API from '../../common/MagmaV1API';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import {EnodebBandwidthOption, EnodebDeviceClass} from './EnodebUtils';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -43,19 +45,20 @@ const styles = {
 type Props = ContextRouter &
   WithStyles<typeof styles> & {
     // Only set if we are editing an eNodeB configuration
-    editingEnodeb: ?Enodeb,
+    editingEnodeb: ?enodeb,
     onClose: () => void,
-    onSave: (serial: string, enodeb: {[string]: any}) => void,
+    onSave: enodeb => void,
   };
 
 type EditingEnodeb = {
+  name: string,
   serialId: string,
-  deviceClass: $Values<typeof EnodebDeviceClass>,
+  deviceClass: $PropertyType<enodeb_configuration, 'device_class'>,
   earfcndl: string,
   subframeAssignment: string,
   specialSubframePattern: string,
   pci: string,
-  bandwidthMhz: $Values<typeof EnodebBandwidthOption>,
+  bandwidthMhz: $PropertyType<enodeb_configuration, 'bandwidth_mhz'>,
   tac: string,
   enodebId: string, // 20 bit number, user chosen
   cellNumber: string, // 8-bit number, static
@@ -74,9 +77,10 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
   };
 
   getEditingEnodeb(): EditingEnodeb {
-    const {editingEnodeb} = this.props;
+    const editingEnodeb = this.props.editingEnodeb;
     if (editingEnodeb == null) {
       return {
+        name: '',
         serialId: '',
         deviceClass: EnodebDeviceClass['BAICELLS_ID'],
         earfcndl: '0',
@@ -91,21 +95,26 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
       };
     }
 
-    const cellIdBits = editingEnodeb.cellId.toString(2).padStart(28, '0');
+    const cellIdBits = editingEnodeb.config.cell_id
+      .toString(2)
+      .padStart(28, '0');
     const enodebId = parseInt(cellIdBits.substring(0, 20), 2).toString();
     const cellNumber = parseInt(cellIdBits.substring(20, 28), 2).toString();
     return {
-      serialId: editingEnodeb.serialId,
-      deviceClass: editingEnodeb.deviceClass,
-      earfcndl: editingEnodeb.earfcndl.toString(),
-      subframeAssignment: editingEnodeb.subframeAssignment.toString(),
-      specialSubframePattern: editingEnodeb.specialSubframePattern.toString(),
-      pci: editingEnodeb.pci.toString(),
-      bandwidthMhz: editingEnodeb.bandwidthMhz,
-      tac: editingEnodeb.tac.toString(),
+      name: editingEnodeb.name,
+      serialId: editingEnodeb.serial,
+      deviceClass: editingEnodeb.config.device_class,
+      earfcndl: String(editingEnodeb.config.earfcndl || 0),
+      subframeAssignment: String(editingEnodeb.config.subframe_assignment || 0),
+      specialSubframePattern: String(
+        editingEnodeb.config.special_subframe_pattern || 0,
+      ),
+      pci: String(editingEnodeb.config.pci || 0),
+      bandwidthMhz: editingEnodeb.config.bandwidth_mhz,
+      tac: String(editingEnodeb.config.tac || 0),
       enodebId: enodebId,
       cellNumber: cellNumber,
-      transmitEnabled: editingEnodeb.transmitEnabled,
+      transmitEnabled: editingEnodeb.config.transmit_enabled,
     };
   }
 
@@ -123,6 +132,13 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
         <DialogContent>
           {error}
           <TextField
+            label="eNodeB Name"
+            className={classes.input}
+            value={this.state.editingEnodeb.name}
+            onChange={this.onNameChange}
+            placeholder="Name of eNodeB, eg. 'Market NW Corner'"
+          />
+          <TextField
             label="eNodeB Serial ID"
             className={classes.input}
             disabled={this.props.editingEnodeb != null}
@@ -130,10 +146,12 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
             onChange={this.onSerialIdChange}
             placeholder="Unique Serial ID of eNodeB, eg. 120200002618AGP0003"
           />
-          <EnodebDeviceSelector
-            className={classes.input}
+          <EnodebPropertySelector
+            titleLabel="eNodeB Device Class"
             value={this.state.editingEnodeb.deviceClass}
+            valueOptionsByKey={EnodebDeviceClass}
             onChange={this.onDeviceClassChange}
+            className={classes.input}
           />
           <TextField
             label="EARFCNDL"
@@ -168,10 +186,12 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
             placeholder="0-504"
             error={!this.isPciValid()}
           />
-          <EnodebBandwidthSelector
-            className={classes.input}
-            value={this.state.editingEnodeb.bandwidthMhz}
+          <EnodebPropertySelector
+            titleLabel="eNodeB DL/UL Bandwidth (MHz)"
+            value={this.state.editingEnodeb.bandwidthMhz || ''}
+            valueOptionsByKey={EnodebBandwidthOption}
             onChange={this.onBandwidthMhzChange}
+            className={classes.input}
           />
           <TextField
             label="Tracking Area Code"
@@ -223,36 +243,71 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
 
   fieldChangedHandler = (
     field:
+      | 'name'
       | 'serialId'
-      | 'deviceClass'
       | 'earfcndl'
       | 'subframeAssignment'
       | 'specialSubframePattern'
       | 'pci'
-      | 'transmitEnabled'
-      | 'bandwidthMhz'
       | 'tac'
       | 'enodebId'
       | 'cellNumber',
-  ) => event =>
-    // $FlowFixMe: deviceClass won't be an arbitrary string
-    this.setState({
-      editingEnodeb: {
-        ...this.state.editingEnodeb,
-        // $FlowFixMe: property 'value' will be present.
-        [field]: event.target.value,
-      },
-    });
+  ) => (event: SyntheticEvent<HTMLInputElement>) => {
+    const {target} = event;
+    if (target instanceof HTMLInputElement) {
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          [field]: target.value,
+        },
+      });
+    } else {
+      throw Error('Expected event to be a SyntheticEvent<HTMLInputElement>');
+    }
+  };
 
+  onNameChange = this.fieldChangedHandler('name');
   onSerialIdChange = this.fieldChangedHandler('serialId');
-  onDeviceClassChange = this.fieldChangedHandler('deviceClass');
+  onDeviceClassChange = event => {
+    const optionKey = Object.values(EnodebDeviceClass).indexOf(
+      event.target.value,
+    );
+    if (optionKey > -1) {
+      const value =
+        EnodebDeviceClass[Object.keys(EnodebDeviceClass)[optionKey]];
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          deviceClass: value,
+        },
+      });
+    } else {
+      throw Error('Expected a valid eNodeB device class selection.');
+    }
+  };
   onEarfcndlChange = this.fieldChangedHandler('earfcndl');
   onSubframeAssignmentChange = this.fieldChangedHandler('subframeAssignment');
   onSpecialSubframePatternChange = this.fieldChangedHandler(
     'specialSubframePattern',
   );
   onPciChange = this.fieldChangedHandler('pci');
-  onBandwidthMhzChange = this.fieldChangedHandler('bandwidthMhz');
+  onBandwidthMhzChange = event => {
+    const optionKey = Object.values(EnodebBandwidthOption).indexOf(
+      event.target.value,
+    );
+    if (optionKey > -1) {
+      const value =
+        EnodebBandwidthOption[Object.keys(EnodebBandwidthOption)[optionKey]];
+      this.setState({
+        editingEnodeb: {
+          ...this.state.editingEnodeb,
+          bandwidthMhz: value,
+        },
+      });
+    } else {
+      throw Error('Expected a valid bandwidth (MHz) selection.');
+    }
+  };
   onTacChange = this.fieldChangedHandler('tac');
   onEnodebIdChange = this.fieldChangedHandler('enodebId');
   onCellNumberChange = this.fieldChangedHandler('cellNumber');
@@ -357,50 +412,50 @@ class AddEditEnodebDialog extends React.Component<Props, State> {
       !this.isCellIdValid() ||
       !this.isTransmitEnabledValid()
     ) {
-      this.setState({error: 'Please complete all fields'});
+      this.setState({error: 'Please complete all fields with valid values'});
       return;
     }
     const enb = {
-      serialId: this.state.editingEnodeb.serialId,
-      deviceClass: this.state.editingEnodeb.deviceClass,
-      earfcndl: parseInt(this.state.editingEnodeb.earfcndl),
-      subframeAssignment: parseInt(this.state.editingEnodeb.subframeAssignment),
-      specialSubframePattern: parseInt(
-        this.state.editingEnodeb.specialSubframePattern,
-      ),
-      pci: parseInt(this.state.editingEnodeb.pci),
-      bandwidthMhz: this.state.editingEnodeb.bandwidthMhz,
-      tac: parseInt(this.state.editingEnodeb.tac),
-      cellId: this.getCellId(),
-      transmitEnabled: this.state.editingEnodeb.transmitEnabled,
+      name: this.state.editingEnodeb.name,
+      serial: this.state.editingEnodeb.serialId,
+      config: {
+        device_class: this.state.editingEnodeb.deviceClass,
+        earfcndl: parseInt(this.state.editingEnodeb.earfcndl),
+        subframe_assignment: parseInt(
+          this.state.editingEnodeb.subframeAssignment,
+        ),
+        special_subframe_pattern: parseInt(
+          this.state.editingEnodeb.specialSubframePattern,
+        ),
+        pci: parseInt(this.state.editingEnodeb.pci),
+        bandwidth_mhz: this.state.editingEnodeb.bandwidthMhz,
+        tac: parseInt(this.state.editingEnodeb.tac),
+        cell_id: this.getCellId(),
+        transmit_enabled: this.state.editingEnodeb.transmitEnabled,
+      },
     };
-    const postData = this._getEnbPostData(enb);
-    const match = this.props.match;
+    const networkId = nullthrows(this.props.match.params.networkId);
     try {
       if (this.props.editingEnodeb != null) {
-        await axios.put(MagmaAPIUrls.enodeb(match, enb.serialId), postData);
+        await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
+          networkId,
+          enodebSerial: enb.serial,
+          enodeb: enb,
+        });
       } else {
-        await axios.post(MagmaAPIUrls.enodeb(match, enb.serialId), postData);
+        await MagmaV1API.postLteByNetworkIdEnodebs({
+          networkId,
+          enodeb: enb,
+        });
       }
-      const resp = await axios.get(MagmaAPIUrls.enodeb(match, enb.serialId));
-      this.props.onSave(enb.serialId, resp.data);
+      const data = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
+        networkId,
+        enodebSerial: enb.serial,
+      });
+      this.props.onSave(data);
     } catch (e) {
       this.setState({error: e?.response?.data?.message || e?.message || e});
     }
-  };
-
-  _getEnbPostData = (enb: Enodeb): EnodebPayload => {
-    return {
-      device_class: enb.deviceClass,
-      earfcndl: enb.earfcndl,
-      pci: enb.pci,
-      special_subframe_pattern: enb.specialSubframePattern,
-      subframe_assignment: enb.subframeAssignment,
-      bandwidth_mhz: enb.bandwidthMhz,
-      tac: enb.tac,
-      cell_id: enb.cellId,
-      transmit_enabled: enb.transmitEnabled,
-    };
   };
 }
 

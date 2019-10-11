@@ -54,7 +54,7 @@
 #include "emm_msg.h"
 #include "emm_msgDef.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_message.h"
 #include "nas_procedures.h"
 
@@ -86,6 +86,7 @@ static const char *_emm_as_primitive_str[] = {
   "EMMAS_DATA_IND",
   "EMMAS_PAGE_IND",
   "EMMAS_STATUS_IND",
+  "EMMAS_ERAB_REL_CMD",
 };
 
 /*
@@ -149,6 +150,9 @@ static int _emm_as_release_req(const emm_as_release_t *, nas_release_req_t *);
 static int _emm_as_erab_setup_req(
   const emm_as_activate_bearer_context_req_t *,
   activate_bearer_context_req_t *);
+static int _emm_as_erab_rel_cmd(
+  const emm_as_deactivate_bearer_context_req_t *msg,
+  deactivate_bearer_context_req_t *as_msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -356,8 +360,9 @@ static int _emm_as_recv(
     decode_status = &local_decode_status;
   }
 
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
 
   emm_context_t *emm_ctx = NULL;
 
@@ -708,8 +713,9 @@ static int _emm_as_data_ind(emm_as_data_t *msg, int *emm_cause)
         /*
          * Decrypt the received security protected message
          */
+        mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
         ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-          &mme_app_desc.mme_ue_contexts, msg->ue_id);
+          &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
         emm_context_t *emm_ctx = NULL;
 
@@ -829,8 +835,9 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
                            .security_protected.plain.emm.header = {0},
                            .security_protected.plain.esm.header = {0}};
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, msg->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -1324,6 +1331,12 @@ static int _emm_as_send(const emm_as_t *msg)
         &as_msg.msg.activate_bearer_context_req);
       break;
 
+    case _EMMAS_ERAB_REL_CMD:
+      as_msg.msg_id = _emm_as_erab_rel_cmd(
+        &msg->u.deactivate_bearer_context_req,
+        &as_msg.msg.deactivate_bearer_context_req);
+      break;
+
     case _EMMAS_STATUS_IND:
       as_msg.msg_id =
         _emm_as_status_ind(&msg->u.status, &as_msg.msg.dl_info_transfer_req);
@@ -1388,6 +1401,14 @@ static int _emm_as_send(const emm_as_t *msg)
           as_msg.msg.activate_bearer_context_req.gbr_dl,
           as_msg.msg.activate_bearer_context_req.gbr_ul,
           as_msg.msg.activate_bearer_context_req.nas_msg);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      } break;
+
+      case AS_DEACTIVATE_BEARER_CONTEXT_REQ: {
+        nas_itti_erab_rel_cmd(
+          as_msg.msg.deactivate_bearer_context_req.ue_id,
+          as_msg.msg.deactivate_bearer_context_req.ebi,
+          as_msg.msg.deactivate_bearer_context_req.nas_msg);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       } break;
 
@@ -1533,8 +1554,9 @@ static int _emm_as_data_req(
     int bytes = 0;
     emm_security_context_t *emm_security_context = NULL;
     struct emm_context_s *emm_ctx = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1674,8 +1696,9 @@ static int _emm_as_status_ind(
   if (size > 0) {
     emm_security_context_t *emm_security_context = NULL;
     struct emm_context_s *emm_ctx = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1825,8 +1848,9 @@ static int _emm_as_security_req(
   if (size > 0) {
     struct emm_context_s *emm_ctx = NULL;
     emm_security_context_t *emm_security_context = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -1935,8 +1959,9 @@ static int _emm_as_security_rej(
   if (size > 0) {
     struct emm_context_s *emm_ctx = NULL;
     emm_security_context_t *emm_security_context = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -2019,8 +2044,9 @@ static int _emm_as_erab_setup_req(
     int bytes = 0;
     emm_security_context_t *emm_security_context = NULL;
     struct emm_context_s *emm_ctx = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
@@ -2065,6 +2091,92 @@ static int _emm_as_erab_setup_req(
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);
 }
+
+//------------------------------------------------------------------------------
+static int _emm_as_erab_rel_cmd(
+  const emm_as_deactivate_bearer_context_req_t *msg,
+  deactivate_bearer_context_req_t *as_msg)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int size = 0;
+  int is_encoded = false;
+
+  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send AS data transfer request\n");
+  nas_message_t nas_msg = {.security_protected.header = {0},
+                           .security_protected.plain.emm.header = {0},
+                           .security_protected.plain.esm.header = {0}};
+
+  /*
+   * Setup the AS message
+   */
+  as_msg->ue_id = msg->ue_id;
+  as_msg->ebi = msg->ebi;
+
+  /*
+   * Setup the NAS security header
+   */
+  EMM_msg *emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+
+  /*
+   * Setup the NAS information message
+   */
+  if (emm_msg) {
+    size = msg->nas_msg->slen;
+    is_encoded = true;
+  }
+
+  if (size > 0) {
+    int bytes = 0;
+    emm_security_context_t *emm_security_context = NULL;
+    struct emm_context_s *emm_ctx = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+
+    if (ue_mm_context) {
+      emm_ctx = &ue_mm_context->emm_context;
+      if (emm_ctx) {
+        if (IS_EMM_CTXT_PRESENT_SECURITY(emm_ctx)) {
+          emm_security_context = &emm_ctx->_security;
+        }
+      }
+    }
+
+    if (emm_security_context) {
+      nas_msg.header.sequence_number = emm_security_context->dl_count.seq_num;
+      OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "Set nas_msg.header.sequence_number -> %u\n",
+        nas_msg.header.sequence_number);
+    }
+
+    if (!is_encoded) {
+      /*
+       * Encode the NAS information message
+       */
+      bytes =
+        _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+    } else {
+      /*
+       * Encrypt the NAS information message
+       */
+      bytes = _emm_as_encrypt(
+        &as_msg->nas_msg,
+        &nas_msg.header,
+        msg->nas_msg->data,
+        size,
+        emm_security_context);
+    }
+
+    unlock_ue_contexts(ue_mm_context);
+    if (bytes > 0) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, AS_DEACTIVATE_BEARER_CONTEXT_REQ);
+    }
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:    _emm_as_establish_cnf()                                   **
@@ -2283,8 +2395,9 @@ static int _emm_as_establish_rej(
   if (size > 0) {
     struct emm_context_s *emm_ctx = NULL;
     emm_security_context_t *emm_security_context = NULL;
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, msg->ue_id);
+      &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;

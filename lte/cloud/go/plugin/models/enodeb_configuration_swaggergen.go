@@ -30,8 +30,8 @@ type EnodebConfiguration struct {
 
 	// device class
 	// Required: true
-	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
-	DeviceClass *string `json:"device_class"`
+	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
+	DeviceClass string `json:"device_class"`
 
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
@@ -55,7 +55,8 @@ type EnodebConfiguration struct {
 	Tac uint32 `json:"tac,omitempty"`
 
 	// transmit enabled
-	TransmitEnabled bool `json:"transmit_enabled,omitempty"`
+	// Required: true
+	TransmitEnabled *bool `json:"transmit_enabled"`
 }
 
 // Validate validates this enodeb configuration
@@ -87,6 +88,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateTac(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTransmitEnabled(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -147,7 +152,7 @@ var enodebConfigurationTypeDeviceClassPropEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["Baicells Nova-233 G2 OD FDD","Baicells Nova-243 OD TDD","Baicells Neutrino 224 ID FDD","Baicells ID TDD/FDD","NuRAN Cavium OC-LTE"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -162,6 +167,9 @@ const (
 
 	// EnodebConfigurationDeviceClassBaicellsNova243ODTDD captures enum value "Baicells Nova-243 OD TDD"
 	EnodebConfigurationDeviceClassBaicellsNova243ODTDD string = "Baicells Nova-243 OD TDD"
+
+	// EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD captures enum value "Baicells Neutrino 224 ID FDD"
+	EnodebConfigurationDeviceClassBaicellsNeutrino224IDFDD string = "Baicells Neutrino 224 ID FDD"
 
 	// EnodebConfigurationDeviceClassBaicellsIDTDDFDD captures enum value "Baicells ID TDD/FDD"
 	EnodebConfigurationDeviceClassBaicellsIDTDDFDD string = "Baicells ID TDD/FDD"
@@ -180,12 +188,12 @@ func (m *EnodebConfiguration) validateDeviceClassEnum(path, location string, val
 
 func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error {
 
-	if err := validate.Required("device_class", "body", m.DeviceClass); err != nil {
+	if err := validate.RequiredString("device_class", "body", string(m.DeviceClass)); err != nil {
 		return err
 	}
 
 	// value enum
-	if err := m.validateDeviceClassEnum("device_class", "body", *m.DeviceClass); err != nil {
+	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
 		return err
 	}
 
@@ -246,6 +254,15 @@ func (m *EnodebConfiguration) validateTac(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateTransmitEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("transmit_enabled", "body", m.TransmitEnabled); err != nil {
 		return err
 	}
 
