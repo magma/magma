@@ -83,6 +83,9 @@ class PipelinedController(Enum):
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
     )
+    StartupFlows = Controller(
+        'magma.pipelined.app.startup_flows', 'startup_flows'
+    )
 
 
 def assert_pipelined_not_running():
