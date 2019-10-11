@@ -228,3 +228,11 @@ func validateIPBlocks(ipBlocks []string) error {
 	}
 	return nil
 }
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *PolicyRule) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

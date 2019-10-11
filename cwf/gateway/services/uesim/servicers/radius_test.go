@@ -57,7 +57,13 @@ func TestRadius(t *testing.T) {
 
 	expected, err := radius.Parse([]byte(RadiusAccessRequestEapAkaIdentityResponsePacket), []byte(Secret))
 	assert.NoError(t, err)
-	assert.Equal(t, *expected, actual)
+	assert.Equal(t, expected.Code, actual.Code)
+	assert.Equal(t, expected.Authenticator, actual.Authenticator)
+	assert.Equal(t, expected.Identifier, actual.Identifier)
+	assert.Equal(t, expected.Get(rfc2865.UserName_Type), actual.Get(rfc2865.UserName_Type))
+	assert.Equal(t, expected.Get(rfc2865.CallingStationID_Type), actual.Get(rfc2865.CallingStationID_Type))
+	assert.Equal(t, expected.Get(rfc2865.CalledStationID_Type), actual.Get(rfc2865.CalledStationID_Type))
+	assert.Equal(t, expected.Get(rfc2869.EAPMessage_Type), actual.Get(rfc2869.EAPMessage_Type))
 }
 
 func TestUserNotFound(t *testing.T) {

@@ -68,6 +68,12 @@ const (
 	ActivateSubscriberPath   = ManageSubscriberPath + obsidian.UrlSep + "activate"
 	DeactivateSubscriberPath = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
 	SubscriberProfilePath    = ManageSubscriberPath + obsidian.UrlSep + "lte" + obsidian.UrlSep + "sub_profile"
+
+	policiesRootPath         = ManageNetworkPath + obsidian.UrlSep + "policies"
+	policyRuleRootPath       = policiesRootPath + obsidian.UrlSep + "rules"
+	policyRuleManagePath     = policyRuleRootPath + obsidian.UrlSep + ":rule_id"
+	policyBaseNameRootPath   = policiesRootPath + obsidian.UrlSep + "base_names"
+	policyBaseNameManagePath = policyBaseNameRootPath + obsidian.UrlSep + ":base_name"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -101,6 +107,18 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
 		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
+
+		{Path: policyBaseNameRootPath, Methods: obsidian.GET, HandlerFunc: ListBaseNames},
+		{Path: policyBaseNameRootPath, Methods: obsidian.POST, HandlerFunc: CreateBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.GET, HandlerFunc: GetBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateBaseName},
+		{Path: policyBaseNameManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteBaseName},
+
+		{Path: policyRuleRootPath, Methods: obsidian.GET, HandlerFunc: ListRules},
+		{Path: policyRuleRootPath, Methods: obsidian.POST, HandlerFunc: CreateRule},
+		{Path: policyRuleManagePath, Methods: obsidian.GET, HandlerFunc: GetRule},
+		{Path: policyRuleManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRule},
+		{Path: policyRuleManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRule},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
 
