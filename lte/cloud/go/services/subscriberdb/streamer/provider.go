@@ -45,11 +45,8 @@ func (provider *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any
 		if err != nil {
 			return nil, err
 		}
-		// Only stream down subscriber if it is ACTIVE
-		if subProto.Lte.State == protos2.LTESubscription_ACTIVE {
-			subProto.NetworkId = &protos.NetworkID{Id: ent.NetworkID}
-			subProtos = append(subProtos, subProto)
-		}
+		subProto.NetworkId = &protos.NetworkID{Id: ent.NetworkID}
+		subProtos = append(subProtos, subProto)
 	}
 	return subscribersToUpdates(subProtos)
 }
