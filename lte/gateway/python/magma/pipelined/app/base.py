@@ -29,6 +29,10 @@ from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest
 global_epoch = int(time.time())
 
 
+class ControllerNotReadyException(Exception):
+    pass
+
+
 class MagmaController(app_manager.RyuApp):
     """
     The base class for all MagmaControllers. Does not itself manage any tables,

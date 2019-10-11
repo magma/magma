@@ -110,7 +110,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _delete_all_flows(self, datapath):
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
 

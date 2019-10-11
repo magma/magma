@@ -55,14 +55,14 @@ class InOutController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        self._clear_ingress_egress_tables(datapath)
+        self.delete_all_flows(datapath)
         self._install_default_egress_flows(datapath)
         self._install_default_ingress_flows(datapath)
 
     def cleanup_on_disconnect(self, datapath):
-        self._clear_ingress_egress_tables(datapath)
+        self.delete_all_flows(datapath)
 
-    def _clear_ingress_egress_tables(self, datapath):
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
                                               INGRESS))

@@ -68,12 +68,15 @@ class ArpController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath, self.table_num)
+        self.delete_all_flows(datapath)
         self._set_incoming_arp_flows(datapath)
         self._set_default_eth_dst_flow(datapath)
         self._set_default_forward_flow(datapath)
 
     def cleanup_on_disconnect(self, datapath):
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
     def _set_incoming_arp_flows(self, datapath):
