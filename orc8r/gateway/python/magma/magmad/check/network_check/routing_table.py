@@ -9,18 +9,21 @@ of patent rights can be found in the PATENTS file in the same directory.
 Util module for executing multiple `dpkg` commands via subprocess.
 """
 
-from typing import List, NamedTuple, Optional
+from typing import List, NamedTuple, Optional, Dict, Any
 
 from magma.magmad.check import subprocess_workflow
 
 RouteCommandParams = NamedTuple('RouteCommandParams', [])
 Route = NamedTuple('Route',
-                   [('destination', str), ('gateway', str), ('genmask', str),
-                    ('flags', str), ('metric', str), ('ref', str),
-                    ('use', str), ('interface', str)])
+                   [('destination_ip', str), ('gateway_ip', str),
+                    ('genmask', str), ('network_interface_id', str)])
+
 RouteCommandResult = NamedTuple('RouteCommandResult',
                                 [('error', Optional[str]),
-                                 ('routing_table', Optional[List[Route]])])
+                                 ('routing_table', List[Dict[str, Any]])])
+
+# TODO: This relies on the SO language being English. Maybe there is a way to
+#  get the info another way.
 
 
 def get_routing_table() -> RouteCommandResult:
@@ -44,18 +47,29 @@ def parse_route_output(stdout, stderr, _):
     Parse stdout output from a route command.
     """
     if stderr:
-        return RouteCommandResult(error=stderr, routing_table=None)
+        return RouteCommandResult(error=stderr, routing_table=[])
 
     stdout_decoded = stdout.decode().strip()
     heading = stdout_decoded.split('\n')[1]
     if heading.split() != ['Destination', 'Gateway', 'Genmask', 'Flags',
                            'Metric', 'Ref', 'Use', 'Iface']:
         return RouteCommandResult(error='Unexpected heading: %s' % heading,
-                                  routing_table=None)
+                                  routing_table=[])
 
     # Ignore the title and heading
     lines = stdout_decoded.split('\n')[2:]
+    routes = []
+    for line in lines:
+        attrs = line.split()
+        routes.append(
+            Route(
+                destination_ip=attrs[0],
+                gateway_ip=attrs[1],
+                genmask=attrs[2],
+                network_interface_id=attrs[7],
+            )._asdict()
+        )
     return RouteCommandResult(
         error=None,
-        routing_table=[Route(*line.split()) for line in lines]
+        routing_table=routes,
     )

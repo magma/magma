@@ -53,7 +53,7 @@ func TestBuilder_Build(t *testing.T) {
 	}
 	cwfGW := configurator.NetworkEntity{
 		Type: cwf.CwfGatewayType, Key: "gw1",
-		Config: defaultgwConfig,
+		Config:             defaultgwConfig,
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
