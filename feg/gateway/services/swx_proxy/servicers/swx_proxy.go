@@ -245,6 +245,6 @@ func (s *swxProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 	}, nil
 }
 
-func (s *swxProxy) genSID() string {
-	return s.config.ClientCfg.GenSessionID("swx")
+func (s *swxProxy) genSID(imsi string) string {
+	return s.config.ClientCfg.GenSessionIdImsi("swx", imsi)
 }

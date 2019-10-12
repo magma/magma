@@ -57,7 +57,8 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 			req.SipNumAuthVectors = MinRequestedVectors // Get Max allowed # of vectors for caching
 		}
 	}
-	maa, err := s.sendMAR(req)
+	sid := s.genSID(req.GetUserName())
+	maa, err := s.sendMAR(req, sid)
 	if err != nil {
 		if protos.SwxErrorCode(status.Code(err)) != protos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED {
 			return res, err
@@ -78,17 +79,18 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 				req.GetUserName(),
 				ServerAssignnmentType_USER_DEREGISTRATION,
 				aaaHost,
-				originRalm)
+				originRalm, "")
 			// repeat MAR after deregistration
-			maa, err = s.sendMAR(req)
+			sid = s.genSID(req.GetUserName())
+			maa, err = s.sendMAR(req, sid)
 		}
 		if err != nil {
 			return res, err
 		}
 	}
-
+	res.SessionId = sid
 	if shouldSendSar {
-		profile, authorized, err := s.retrieveUserProfile(req.GetUserName())
+		profile, authorized, err := s.retrieveUserProfile(req.GetUserName(), sid)
 		if err != nil {
 			glog.Error(err)
 		}
@@ -98,7 +100,7 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 		}
 		res.UserProfile = profile
 	} else if s.config.RegisterOnAuth {
-		err := s.registerUser(req.GetUserName())
+		err := s.registerUser(req.GetUserName(), sid)
 		if err != nil {
 			glog.Error(err)
 		}
@@ -111,8 +113,10 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	return res, err
 }
 
-func (s *swxProxy) sendMAR(req *protos.AuthenticationRequest) (*MAA, error) {
-	sid := s.genSID()
+func (s *swxProxy) sendMAR(req *protos.AuthenticationRequest, sid string) (*MAA, error) {
+	if len(sid) == 0 {
+		sid = s.genSID(req.GetUserName())
+	}
 	ch := make(chan interface{})
 	s.requestTracker.RegisterRequest(sid, ch)
 	// if request hasn't been removed by end of transaction, remove it
@@ -169,12 +173,12 @@ func (s *swxProxy) sendMAR(req *protos.AuthenticationRequest) (*MAA, error) {
 
 // retrieveUserProfile sends SARs with ServerAssignmentType AAA_USER_DATA_REQUEST or REGISTRATION, receives back SAA
 // and returns the subscribers's Non-3GPP-User-Data profile
-func (s *swxProxy) retrieveUserProfile(userName string) (*protos.AuthenticationAnswer_UserProfile, bool, error) {
+func (s *swxProxy) retrieveUserProfile(userName, sid string) (*protos.AuthenticationAnswer_UserProfile, bool, error) {
 	var sat uint32 = ServerAssignmentType_AAA_USER_DATA_REQUEST
 	if s.config.RegisterOnAuth {
 		sat = ServerAssignmentType_REGISTRATION
 	}
-	saa, err := s.sendSAR(userName, sat)
+	saa, err := s.sendSAR(userName, sat, sid)
 	if err != nil {
 		return nil, true, err
 	}
@@ -195,8 +199,8 @@ func (s *swxProxy) retrieveUserProfile(userName string) (*protos.AuthenticationA
 }
 
 // registerUser sends SARs with ServerAssignmentType REGISTRATION
-func (s *swxProxy) registerUser(userName string) error {
-	_, err := s.sendSAR(userName, ServerAssignmentType_REGISTRATION)
+func (s *swxProxy) registerUser(userName, sid string) error {
+	_, err := s.sendSAR(userName, ServerAssignmentType_REGISTRATION, sid)
 	return err
 }
 
