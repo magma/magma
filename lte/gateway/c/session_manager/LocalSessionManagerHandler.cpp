@@ -210,14 +210,18 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   cfg.qos_info = qos_info;
 
   if (enforcer_->is_imsi_duplicate(imsi)) {
-    if (enforcer_->is_session_duplicate(imsi, cfg)) {
+    std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
+    if (core_sid != nullptr) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
                   << ", not creating session";
       enforcer_->get_event_base().runInEventBaseThread(
-          [response_callback]() {
+          [response_callback, core_sid]() {
             try {
+              LocalCreateSessionResponse resp;
+              resp.set_session_id(*core_sid);
+              delete core_sid;
               response_callback(
-                grpc::Status::OK, LocalCreateSessionResponse());
+                grpc::Status::OK, resp);
             } catch (...) {
                 std::exception_ptr ep = std::current_exception();
                 MLOG(MERROR) << "CreateSession response_callback exception: "
@@ -269,7 +273,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
                      << imsi << ": " << status.error_message();
       }
-      response_callback(status, LocalCreateSessionResponse());
+      LocalCreateSessionResponse resp;
+      resp.set_session_id(response.session_id());
+      response_callback(status, resp);
     });
 }
 

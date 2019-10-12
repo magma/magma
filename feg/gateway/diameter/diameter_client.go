@@ -254,6 +254,11 @@ func (client *Client) RegisterRequestHandlerForAppID(command uint32, appID uint3
 	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: true}, handler)
 }
 
+// RegisterHandler registers diameter handler to be used for given command and app
+func (client *Client) RegisterHandler(command uint32, appID uint32, request bool, handler diam.Handler) {
+	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: request}, handler)
+}
+
 // GenSessionIDOpt generates rfc6733 compliant session ID:
 //     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 func GenSessionIDOpt(identity, protocol, opt string) string {

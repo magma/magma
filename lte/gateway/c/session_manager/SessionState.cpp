@@ -18,10 +18,12 @@ namespace magma {
 SessionState::SessionState(
   const std::string &imsi,
   const std::string &session_id,
+  const std::string &core_session_id,
   const SessionState::Config &cfg,
   StaticRuleStore &rule_store):
   imsi_(imsi),
   session_id_(session_id),
+  core_session_id_(core_session_id),
   config_(cfg),
   // Request number set to 2, because request 1 is INIT call
   request_number_(2),

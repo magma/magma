@@ -29,7 +29,7 @@ class SessionStateTest : public ::testing::Test {
   {
     rule_store = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-      "imsi", "session", test_sstate_cfg, *rule_store);
+      "imsi", "session", "", test_sstate_cfg, *rule_store);
   }
 
   void insert_rule(

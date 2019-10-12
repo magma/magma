@@ -57,9 +57,17 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 		return &protos.AcctResp{}, Errorf(
 			codes.FailedPrecondition, "Accounting Start: Session %s was not authenticated", sid)
 	}
-	var err error
+	var (
+		err    error
+		csResp *protos.CreateSessionResp
+	)
 	if srv.config.GetAccountingEnabled() && !srv.config.GetCreateSessionOnAuth() {
-		_, err = srv.CreateSession(ctx, aaaCtx)
+		csResp, err = srv.CreateSession(ctx, aaaCtx)
+		if err == nil {
+			s.Lock()
+			s.GetCtx().AcctSessionId = csResp.GetSessionId()
+			s.Unlock()
+		}
 	} else {
 		srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 	}
@@ -114,13 +122,14 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 }
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
-func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *protos.Context) (*protos.AcctResp, error) {
+func (srv *accountingService) CreateSession(
+	grpcCtx context.Context, aaaCtx *protos.Context) (*protos.CreateSessionResp, error) {
 
 	startime := time.Now()
 
 	mac, err := net.ParseMAC(aaaCtx.GetMacAddr())
 	if err != nil {
-		return &protos.AcctResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
+		return &protos.CreateSessionResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
 	}
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
@@ -130,15 +139,14 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 		HardwareAddr:    mac,
 		RadiusSessionId: aaaCtx.GetSessionId(),
 	}
-	_, err = session_manager.CreateSession(req)
+	csResp, err := session_manager.CreateSession(req)
 	if err == nil {
-		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout, srv.timeoutSessionNotifier)
 		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
 	} else {
 		err = Errorf(codes.Internal, "Create Session Error: %v", err)
 	}
 
-	return &protos.AcctResp{}, err
+	return &protos.CreateSessionResp{SessionId: csResp.GetSessionId()}, err
 }
 
 // TerminateSession is an "inbound" RPC from session manager to notify accounting of a client session termination
