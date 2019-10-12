@@ -53,6 +53,10 @@ message stop_request {
 message acct_resp {
 }
 
+message create_session_resp {
+    string session_id = 1;
+}
+
 message terminate_session_request {
     string radius_session_id = 1;
     string imsi = 2;
@@ -73,7 +77,7 @@ service accounting {
     // Local Session Management RPCs
     //
     // create_session is an "outbound" RPC for session manager which can be called from start()
-    rpc create_session(context) returns (acct_resp) {}
+    rpc create_session(context) returns (create_session_resp) {}
     // terminate_session is an "inbound" RPC from session manager to notify accounting of a client session termination
     rpc terminate_session(terminate_session_request) returns (acct_resp) {}
 }

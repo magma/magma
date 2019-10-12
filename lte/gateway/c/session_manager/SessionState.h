@@ -56,6 +56,7 @@ class SessionState {
   SessionState(
     const std::string &imsi,
     const std::string &session_id,
+    const std::string &core_session_id,
     const SessionState::Config &cfg,
     StaticRuleStore &rule_store);
 
@@ -145,6 +146,8 @@ class SessionState {
 
   std::string get_apn();
 
+  std::string get_core_session_id() const { return core_session_id_; };
+
   uint32_t get_bearer_id();
 
   uint32_t get_qci();
@@ -188,6 +191,7 @@ class SessionState {
 
   std::string imsi_;
   std::string session_id_;
+  std::string core_session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;

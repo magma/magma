@@ -30,13 +30,39 @@ func (client *CloseableSessionProxyResponderClient) Close() {
 
 // Get a client to the local session manager client. To avoid leaking
 // connections, defer Close() on the returned client.
-func GetSessionProxyResponderClient(cloudRegistry registry.CloudRegistry) (*CloseableSessionProxyResponderClient, error) {
+func GetSessionProxyResponderClient(
+	cloudRegistry registry.CloudRegistry) (*CloseableSessionProxyResponderClient, error) {
+
 	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to connect to gw relay: %s", err)
 	}
 	return &CloseableSessionProxyResponderClient{
 		SessionProxyResponderClient: protos.NewSessionProxyResponderClient(conn),
+		conn:                        conn,
+	}, nil
+}
+
+type CloseableAbortSessionResponderClient struct {
+	protos.AbortSessionResponderClient
+	conn *grpc.ClientConn
+}
+
+func (client *CloseableAbortSessionResponderClient) Close() {
+	client.conn.Close()
+}
+
+// AbortSessionResponderClient returns a client to the local abort session client. To avoid leaking
+// connections, defer Close() on the returned client.
+func GetAbortSessionResponderClient(
+	cloudRegistry registry.CloudRegistry) (*CloseableAbortSessionResponderClient, error) {
+
+	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to connect to gw relay: %s", err)
+	}
+	return &CloseableAbortSessionResponderClient{
+		AbortSessionResponderClient: protos.NewAbortSessionResponderClient(conn),
 		conn:                        conn,
 	}, nil
 }
