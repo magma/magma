@@ -116,6 +116,7 @@ func createChallengeRequest(
 	autn := ra[aka.RAND_LEN:aka.RandAutnLen]
 	lockedCtx.Xres = av.GetXres()
 	lockedCtx.Profile = ans.GetUserProfile()
+	lockedCtx.AuthSessionId = ans.GetSessionId()
 
 	// Clone EAP Challenge packet
 	p := eap.Packet(make([]byte, challengeReqTemplateLen))

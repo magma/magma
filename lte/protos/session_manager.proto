@@ -53,6 +53,7 @@ message LocalCreateSessionRequest {
 }
 
 message LocalCreateSessionResponse {
+  string session_id = 1;
 }
 
 message LocalEndSessionResponse {
@@ -403,6 +404,7 @@ message CreateSessionResponse {
   repeated UsageMonitoringUpdateResponse usage_monitors = 6;
   repeated StaticRuleInstall static_rules = 7; // static rules
   repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
+  string session_id = 9;
 }
 
 message StaticRuleInstall {

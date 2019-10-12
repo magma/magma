@@ -261,11 +261,25 @@ func GenSessionIDOpt(identity, protocol, opt string) string {
 		identity = "magma"
 	}
 	nano := time.Now().UnixNano()
-	nanoHigh := uint(nano << 32)
+	ts := uint(nano<<32) ^ uint(nano)
 	if len(protocol) != 0 {
-		return fmt.Sprintf("%s-%s;%d;%d;%X", identity, protocol, nanoHigh, uint(nano), opt)
+		return fmt.Sprintf("%s-%s;%d;%d;%s", identity, protocol, ts, rand.Uint32(), opt)
 	}
-	return fmt.Sprintf("%s;%d;%d;%X", identity, nanoHigh, uint(nano), opt)
+	return fmt.Sprintf("%s;%d;%d;%s", identity, ts, rand.Uint32(), opt)
+}
+
+// GenSessionIDOpt generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi value>
+func GenSessionIdImsi(identity, protocol, imsi string) string {
+	if len(identity) == 0 {
+		identity = "magma"
+	}
+	nano := time.Now().UnixNano()
+	ts := uint(nano<<32) ^ uint(nano)
+	if len(protocol) != 0 {
+		return fmt.Sprintf("%s-%s;%d;%d;IMSI%s", identity, protocol, ts, rand.Uint32(), imsi)
+	}
+	return fmt.Sprintf("%s;%d;%d;IMSI%s", identity, ts, rand.Uint32(), imsi)
 }
 
 // GenSessionID generates rfc6733 compliant session ID:
@@ -295,6 +309,17 @@ func (client *DiameterClientConfig) GenSessionIDOpt(protocol, opt string) string
 //     and <optional value> is base 16 uint32 random number
 func (client *DiameterClientConfig) GenSessionID(protocol string) string {
 	return client.GenSessionIDOpt(protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
+}
+
+// GenSessionIdImsi generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi>]
+// Where <DiameterIdentity> is client.Host|ProductName-protocol
+//     and <optional value> is base 16 uint32 random number
+func (client *DiameterClientConfig) GenSessionIdImsi(protocol, imsi string) string {
+	if len(imsi) == 0 {
+		return client.GenSessionID(protocol)
+	}
+	return GenSessionIdImsi("", protocol, imsi)
 }
 
 // DecodeSessionID extracts and returns session ID if available,
