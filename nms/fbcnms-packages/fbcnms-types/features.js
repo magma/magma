@@ -30,4 +30,5 @@ export type FeatureID =
   | 'documents_site'
   | 'coverage_maps'
   | 'logs'
-  | 'services';
+  | 'services'
+  | 'planned_equipment';

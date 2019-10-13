@@ -129,6 +129,11 @@ const arrayConfigs = [
     title: 'Coverage Maps',
     enabledByDefault: false,
   },
+  {
+    id: 'planned_equipment',
+    title: 'Planned Equipment',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
