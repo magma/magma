@@ -23,7 +23,4 @@ const (
 
 	BaseNameEntityType   = "base_name"
 	PolicyRuleEntityType = "policy"
-
-	BaseNameEntity2Type   = "base_name_2"
-	PolicyRuleEntity2Type = "policy_2"
 )

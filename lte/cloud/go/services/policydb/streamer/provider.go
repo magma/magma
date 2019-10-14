@@ -14,7 +14,6 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_models "magma/lte/cloud/go/plugin/models"
 	protos2 "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -43,22 +42,9 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 	if err != nil {
 		return nil, err
 	}
-	ruleEnts2, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntity2Type, configurator.EntityLoadCriteria{LoadConfig: true})
-	if err != nil {
-		return nil, err
-	}
 
-	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts)+len(ruleEnts2))
+	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
-		ruleConfig := rule.Config.(*models.PolicyRule)
-		ruleProto := &protos2.PolicyRule{}
-		err = ruleConfig.ToProto(ruleProto)
-		if err != nil {
-			return nil, err
-		}
-		ruleProtos = append(ruleProtos, ruleProto)
-	}
-	for _, rule := range ruleEnts2 {
 		ruleConfig := rule.Config.(*lte_models.PolicyRule)
 		ruleProto := &protos2.PolicyRule{}
 		err = ruleConfig.ToProto(ruleProto)
@@ -103,29 +89,9 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 	if err != nil {
 		return nil, err
 	}
-	bnEnts2, err := configurator.LoadAllEntitiesInNetwork(
-		gwEnt.NetworkID,
-		lte.BaseNameEntity2Type,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return nil, err
-	}
 
-	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts)+len(bnEnts2))
+	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		bnConfig := bn.Config.(*models.BaseNameRecord)
-		ruleNames := make([]string, 0, len(bn.Associations))
-		for _, assoc := range bn.Associations {
-			ruleNames = append(ruleNames, assoc.Key)
-		}
-		bnProto := &protos2.ChargingRuleBaseNameRecord{
-			Name:         string(bnConfig.Name),
-			RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
-		}
-		bnProtos = append(bnProtos, bnProto)
-	}
-	for _, bn := range bnEnts2 {
 		bnConfig := bn.Config.(*lte_models.BaseNameRecord)
 		ruleNames := make([]string, 0, len(bn.Associations))
 		for _, assoc := range bn.Associations {

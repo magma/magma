@@ -74,6 +74,8 @@ tags:
     description: Endpoints related to LTE networks
   - name: LTE Gateways
     description: Endpoints related to LTE gateway management
+  - name: Policies
+    description: Endpoints related to network policy management
 
 paths:
   /lte:
@@ -1210,7 +1212,7 @@ paths:
     get:
       summary: List policy rules
       tags:
-        - LTE Networks
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -1225,7 +1227,7 @@ paths:
     post:
       summary: Add a new policy rule
       tags:
-        - LTE Networks
+        - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - in: body
@@ -1246,7 +1248,7 @@ paths:
     get:
       summary: Get policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1260,7 +1262,7 @@ paths:
     put:
       summary: Modify a policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1278,7 +1280,7 @@ paths:
     delete:
       summary: Delete a policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1292,7 +1294,7 @@ paths:
     get:
       summary: List Charging Rule Base Names
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -1305,7 +1307,7 @@ paths:
     post:
       summary: Create Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - in: body
@@ -1326,7 +1328,7 @@ paths:
     get:
       summary: Get Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
@@ -1340,7 +1342,7 @@ paths:
     put:
       summary: Modify a Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
@@ -1358,7 +1360,7 @@ paths:
     delete:
       summary: Delete a Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
