@@ -9,8 +9,10 @@
  */
 
 import * as React from 'react';
+import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
 import NavListItem from '@fbcnms/ui/components/NavListItem.react';
@@ -87,5 +89,12 @@ function NavRoutes() {
 }
 
 export default () => (
-  <AdminMain navRoutes={() => <NavRoutes />} navItems={() => <NavItems />} />
+  <ApplicationMain>
+    <AdminContextProvider>
+      <AdminMain
+        navRoutes={() => <NavRoutes />}
+        navItems={() => <NavItems />}
+      />
+    </AdminContextProvider>
+  </ApplicationMain>
 );
