@@ -54,7 +54,6 @@ func TestConfig_Validate(t *testing.T) {
 		Receivers: []*Receiver{&sampleReceiver, &sampleSlackReceiver},
 		Global:    &defaultGlobalConf,
 	}
-
 	err := validConfig.Validate()
 	assert.NoError(t, err)
 
@@ -63,9 +62,8 @@ func TestConfig_Validate(t *testing.T) {
 		Receivers: []*Receiver{},
 		Global:    &defaultGlobalConf,
 	}
-
 	err = invalidConfig.Validate()
-	assert.Error(t, err)
+	assert.EqualError(t, err, `undefined receiver "testReceiver" used in route`)
 
 	invalidSlackReceiver := Receiver{
 		Name: "invalidSlack",
@@ -84,7 +82,26 @@ func TestConfig_Validate(t *testing.T) {
 		Global:    &defaultGlobalConf,
 	}
 	err = invalidSlackConfig.Validate()
-	assert.Error(t, err)
+	assert.EqualError(t, err, `unsupported scheme "" for URL`)
+
+	// Fail if action is missing a type
+	invalidSlackAction := Config{
+		Route: &config.Route{
+			Receiver: "invalidSlackAction",
+		},
+		Receivers: []*Receiver{{
+			Name: "invalidSlackAction",
+			SlackConfigs: []*SlackConfig{{
+				APIURL: "http://slack.com",
+				Actions: []*config.SlackAction{{
+					URL:  "test.com",
+					Text: "test",
+				}},
+			}},
+		}},
+	}
+	err = invalidSlackAction.Validate()
+	assert.EqualError(t, err, `missing type in Slack action configuration`)
 }
 
 func TestConfig_GetReceiver(t *testing.T) {
