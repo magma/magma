@@ -10,7 +10,7 @@ replace magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
-	github.com/aws/aws-sdk-go v1.16.19
+	github.com/aws/aws-sdk-go v1.19.6
 	github.com/go-openapi/errors v0.18.0
 	github.com/go-openapi/strfmt v0.18.0
 	github.com/go-openapi/swag v0.18.0
@@ -22,12 +22,12 @@ require (
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/lib/pq v1.0.0
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_golang v0.9.2
+	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/stretchr/testify v1.3.0
 	github.com/thoas/go-funk v0.4.0
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
-	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
-	google.golang.org/grpc v1.17.0
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19
+	google.golang.org/grpc v1.19.0
 
 	magma/orc8r/cloud/go v0.0.0
 )
