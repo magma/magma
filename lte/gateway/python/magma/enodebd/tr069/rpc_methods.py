@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from spyne.decorator import rpc
 from spyne.model.complex import ComplexModelBase
 from spyne.server.wsgi import WsgiMethodContext
@@ -85,9 +85,9 @@ class AutoConfigServer(ServiceBase):
     ) -> ComplexModelBase:
         # Log incoming msg
         if hasattr(message, 'as_dict'):
-            logging.debug('Handling TR069 message: %s', str(type(message)))
+            logger.debug('Handling TR069 message: %s', str(type(message)))
         else:
-            logging.debug('Handling TR069 message.')
+            logger.debug('Handling TR069 message.')
 
         # The manager will route the request to the state machine handling
         # the specific eNodeB.
@@ -95,9 +95,9 @@ class AutoConfigServer(ServiceBase):
 
         # Log outgoing msg
         if hasattr(req, 'as_dict'):
-            logging.debug('Sending TR069 message: %s', str(req.as_dict()))
+            logger.debug('Sending TR069 message: %s', str(req.as_dict()))
         else:
-            logging.debug('Sending TR069 message.')
+            logger.debug('Sending TR069 message.')
 
         # Set header
         ctx.out_header = models.ID(mustUnderstand='1')

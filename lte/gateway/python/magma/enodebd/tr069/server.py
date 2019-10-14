@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import _thread
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import socket
 from wsgiref.simple_server import ServerHandler, WSGIRequestHandler, \
     WSGIServer, make_server
@@ -85,14 +85,14 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
     def log_message(self, format, *args):
         """ Overwrite message logging to use python logging framework rather
             than stderr """
-        logging.debug("%s - %s", self.client_address[0], format % args)
+        logger.debug("%s - %s", self.client_address[0], format % args)
 
     # Disable pylint warning because we are using same parameter name as built-in
     # pylint: disable=redefined-builtin
     def log_error(self, format, *args):
         """ Overwrite message logging to use python logging framework rather
             than stderr """
-        logging.warning("%s - %s", self.client_address[0], format % args)
+        logger.warning("%s - %s", self.client_address[0], format % args)
 
 
 def tr069_server(state_machine_manager: StateMachineManager) -> None:
@@ -121,7 +121,7 @@ def tr069_server(state_machine_manager: StateMachineManager) -> None:
         raise e
 
     socket.setdefaulttimeout(SOCKET_TIMEOUT)
-    logging.info('Starting TR-069 server on %s:%s',
+    logger.info('Starting TR-069 server on %s:%s',
                  ip_address, config['tr069']['port'])
     server = make_server(ip_address,
                          config['tr069']['port'], wsgi_app,
@@ -133,5 +133,5 @@ def tr069_server(state_machine_manager: StateMachineManager) -> None:
     finally:
         # Log error and interrupt main thread, to ensure that entire process
         # is restarted if this thread exits
-        logging.error('Hit error in TR-069 thread. Interrupting main thread.')
+        logger.error('Hit error in TR-069 thread. Interrupting main thread.')
         _thread.interrupt_main()

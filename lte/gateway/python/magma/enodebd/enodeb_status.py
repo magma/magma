@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import os
 from collections import namedtuple
 from typing import Any, Dict, List, NamedTuple, Optional, Union, Tuple
@@ -104,7 +104,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
         if val is None:
             return 0
         if type(val) is not bool:
-            logging.error('Could not cast metric value %s to int', val)
+            logger.error('Could not cast metric value %s to int', val)
             return 0
         return int(val)  # val should be either True or False
 
@@ -365,7 +365,7 @@ def _format_as_bool(
     elif stripped_value in {'false', '0'}:
         return False
     else:
-        logging.warning(
+        logger.warning(
             '%s parameter not understood (%s)', param_name, param_value)
         return False
 
@@ -383,7 +383,7 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
             elif stripped_value == '1':
                 return True
             else:
-                logging.warning(
+                logger.warning(
                     'GPS status parameter not understood (%s)', param)
                 return False
     except (KeyError, ConfigurationError):
@@ -410,7 +410,7 @@ def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[str, str]:
     except (KeyError, ConfigurationError):
         return _get_cached_gps_coords()
     except ValueError:
-        logging.warning('GPS lat/long not understood (%s/%s)', lat, lon)
+        logger.warning('GPS lat/long not understood (%s/%s)', lat, lon)
         return '0', '0'
 
 
@@ -434,13 +434,13 @@ def _read_gps_coords_from_file():
         with open(CACHED_GPS_COORD_FILE_PATH) as f:
             lines = f.readlines()
             if len(lines) != 2:
-                logging.warning('Expected to find 2 lines in GPS '
+                logger.warning('Expected to find 2 lines in GPS '
                                 'coordinate file but only found %d',
                                 len(lines))
                 return '0', '0'
             return tuple(map(lambda l: l.strip(), lines))
     except OSError:
-        logging.warning('Could not open cached GPS coordinate file')
+        logger.warning('Could not open cached GPS coordinate file')
         return '0', '0'
 
 

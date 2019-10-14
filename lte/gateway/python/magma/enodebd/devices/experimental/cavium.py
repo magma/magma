@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from typing import Optional, Callable, Dict, Any, List, Type
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import TrParam, DataModel
@@ -219,10 +219,10 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
 
     def read_msg(self, message: Any) -> Optional[str]:
         if type(message) == models.Fault:
-            logging.error('Received Fault in response to SetParameterValues')
+            logger.error('Received Fault in response to SetParameterValues')
             if message.SetParameterValuesFault is not None:
                 for fault in message.SetParameterValuesFault:
-                    logging.error(
+                    logger.error(
                         'SetParameterValuesFault Param: %s, Code: %s, String: %s',
                         fault.ParameterName, fault.FaultCode, fault.FaultString)
             raise Tr069Error(

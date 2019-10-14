@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import json
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from collections import namedtuple
 from lte.protos.mconfig import mconfigs_pb2
 from typing import Any, Optional, Union
@@ -463,7 +463,7 @@ def _set_earfcn_freq_band_mode(
         ParameterName.BAND_CAPABILITY)
     band_capabilities = band_capability_list.split(',')
     if str(band) not in band_capabilities:
-        logging.warning('Band %d not in capabilities list (%s). Continuing'
+        logger.warning('Band %d not in capabilities list (%s). Continuing'
                         ' with config because capabilities list may not be'
                         ' correct', band, band_capabilities)
 
@@ -472,14 +472,14 @@ def _set_earfcn_freq_band_mode(
         _set_param_if_present(cfg, data_model, ParameterName.EARFCNUL,
                               earfcnul)
     else:
-        logging.debug('Not setting EARFCNUL - duplex mode is not FDD')
+        logger.debug('Not setting EARFCNUL - duplex mode is not FDD')
 
     _set_param_if_present(cfg, data_model, ParameterName.BAND, band)
 
     if duplex_mode == DuplexMode.TDD:
-        logging.debug('Set EARFCNDL=%d, Band=%d', earfcndl, band)
+        logger.debug('Set EARFCNDL=%d, Band=%d', earfcndl, band)
     else:
-        logging.debug('Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
+        logger.debug('Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
                       earfcndl, earfcnul, band)
 
 

@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from typing import Any, Optional, Dict, List
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
@@ -102,7 +102,7 @@ def _get_param_values_by_path(
     for param_value in inform.ParameterList.ParameterValueStruct:
         path = param_value.Name
         value = param_value.Value.Data
-        logging.debug('(Inform msg) Received parameter: %s = %s', path,
+        logger.debug('(Inform msg) Received parameter: %s = %s', path,
                       value)
         param_values_by_path[path] = value
     return param_values_by_path
