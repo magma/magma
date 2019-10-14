@@ -2932,6 +2932,10 @@ declare module "@material-ui/icons/Scanner" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/ScatterPlot" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/Schedule" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
