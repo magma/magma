@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import json
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from typing import List, Any
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.exceptions import ConfigurationError
@@ -148,5 +148,5 @@ class EnodebConfiguration():
         trparam_model = self.data_model
         tr_param = trparam_model.get_parameter(param_name)
         if tr_param is None:
-            logging.error('Parameter <%s> not defined in model', param_name)
+            logger.error('Parameter <%s> not defined in model', param_name)
             raise ConfigurationError("Parameter not defined in model.")

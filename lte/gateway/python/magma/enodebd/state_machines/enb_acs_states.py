@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from collections import namedtuple
 from typing import Any, Optional
 from abc import ABC, abstractmethod
@@ -187,7 +187,7 @@ class BaicellsRemWaitState(EnodebAcsState):
 
     def enter(self):
         self.rem_timer = StateMachineTimer(self.CONFIG_DELAY_AFTER_BOOT)
-        logging.info('Holding off of eNB configuration for %s seconds. '
+        logger.info('Holding off of eNB configuration for %s seconds. '
                      'Will resume after eNB REM process has finished. ',
                      self.CONFIG_DELAY_AFTER_BOOT)
 
@@ -276,7 +276,7 @@ class CheckOptionalParamsState(EnodebAcsState):
                 self.acs.data_model,
                 message,
             )
-            logging.debug('Received CPE parameter values: %s',
+            logger.debug('Received CPE parameter values: %s',
                           str(name_to_val))
             for name, val in name_to_val.items():
                 self.acs.data_model.set_parameter_presence(self.optional_param,
@@ -368,7 +368,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
         # Current values of the fetched parameters
         name_to_val = parse_get_parameter_values_response(self.acs.data_model,
                                                           message)
-        logging.debug('Fetched Transient Params: %s', str(name_to_val))
+        logger.debug('Fetched Transient Params: %s', str(name_to_val))
 
         # Update device configuration
         for name in name_to_val:
@@ -473,7 +473,7 @@ class WaitGetParametersState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         name_to_val = parse_get_parameter_values_response(self.acs.data_model,
                                                           message)
-        logging.debug('Received CPE parameter values: %s', str(name_to_val))
+        logger.debug('Received CPE parameter values: %s', str(name_to_val))
         for name, val in name_to_val.items():
             magma_val = self.acs.data_model.transform_for_magma(name, val)
             self.acs.device_cfg.set_parameter(name, magma_val)
@@ -538,7 +538,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
             for param_value_struct in message.ParameterList.ParameterValueStruct:
                 path_to_val[param_value_struct.Name] = \
                     param_value_struct.Value.Data
-        logging.debug('Received object parameters: %s', str(path_to_val))
+        logger.debug('Received object parameters: %s', str(path_to_val))
 
         # Number of PLMN objects reported can be incorrect. Let's count them
         num_plmns = 0
@@ -546,7 +546,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
         while True:
             obj_name = ParameterName.PLMN_N % (num_plmns + 1)
             if obj_name not in obj_to_params or len(obj_to_params[obj_name]) == 0:
-                logging.warning("eNB has PLMN %s but not defined in model",
+                logger.warning("eNB has PLMN %s but not defined in model",
                     obj_name)
                 break
             param_name_list = obj_to_params[obj_name]
@@ -566,7 +566,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
         num_plmns_reported = \
                 int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
-            logging.warning("eNB reported %d PLMNs but found %d",
+            logger.warning("eNB reported %d PLMNs but found %d",
                     num_plmns_reported, num_plmns)
             self.acs.device_cfg.set_parameter(ParameterName.NUM_PLMNS,
                                               num_plmns)
@@ -671,7 +671,7 @@ class AddObjectsState(EnodebAcsState):
         # parent object XX. so strip the index
         if len(path_parts) > 2 and \
                 path_parts[-1] == '' and path_parts[-2].isnumeric():
-            logging.debug('Stripping index from path=%s', desired_path)
+            logger.debug('Stripping index from path=%s', desired_path)
             desired_path = '.'.join(path_parts[:-2]) + '.'
         request.ObjectName = desired_path
         return AcsMsgAndTransition(request, None)
@@ -713,7 +713,7 @@ class SetParameterValuesState(EnodebAcsState):
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
                                           % len(param_values)
         request.ParameterList.ParameterValueStruct = []
-        logging.debug('Sending TR069 request to set CPE parameter values: %s',
+        logger.debug('Sending TR069 request to set CPE parameter values: %s',
                       str(param_values))
         for name, value in param_values.items():
             param_info = self.acs.data_model.get_parameter(name)
@@ -761,7 +761,7 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
         request.ParameterList.arrayType = 'cwmp:ParameterValueStruct[%d]' \
                                           % len(param_values)
         request.ParameterList.ParameterValueStruct = []
-        logging.debug('Sending TR069 request to set CPE parameter values: %s',
+        logger.debug('Sending TR069 request to set CPE parameter values: %s',
                       str(param_values))
         for name, value in param_values.items():
             param_info = self.acs.data_model.get_parameter(name)
@@ -815,12 +815,12 @@ class WaitSetParameterValuesState(EnodebAcsState):
                 return AcsReadMsgResult(True, self.apply_invasive_transition)
             return AcsReadMsgResult(True, self.done_transition)
         elif type(message) == models.Fault:
-            logging.error('Received Fault in response to SetParameterValues, '
+            logger.error('Received Fault in response to SetParameterValues, '
                           'Code (%s), Message (%s)', message.FaultCode,
                           message.FaultString)
             if message.SetParameterValuesFault is not None:
                 for fault in message.SetParameterValuesFault:
-                    logging.error('SetParameterValuesFault Param: %s, '
+                    logger.error('SetParameterValuesFault Param: %s, '
                                   'Code: %s, String: %s', fault.ParameterName,
                                   fault.FaultCode, fault.FaultString)
         return AcsReadMsgResult(False, None)
@@ -845,12 +845,12 @@ class WaitSetParameterValuesState(EnodebAcsState):
                                                          self.acs.data_model)
         for obj_name, name_to_val in obj_to_name_to_val.items():
             for name, val in name_to_val.items():
-                logging.debug('Set obj: %s, name: %s, val: %s', str(obj_name),
+                logger.debug('Set obj: %s, name: %s, val: %s', str(obj_name),
                               str(name), str(val))
                 magma_val = self.acs.data_model.transform_for_magma(name, val)
                 self.acs.device_cfg.set_parameter_for_object(name, magma_val,
                                                              obj_name)
-        logging.info('Successfully configured CPE parameters!')
+        logger.info('Successfully configured CPE parameters!')
 
     def state_description(self) -> str:
         return 'Setting parameter values'
@@ -902,7 +902,7 @@ class BaicellsSendRebootState(EnodebAcsState):
             # Set maxEnvelopes to 1, as per TR-069 spec
             response.MaxEnvelopes = 1
             return AcsMsgAndTransition(response, None)
-        logging.info('Sending reboot request to eNB')
+        logger.info('Sending reboot request to eNB')
         request = models.Reboot()
         request.CommandKey = ''
         self.acs.are_invasive_changes_applied = True
@@ -941,7 +941,7 @@ class SendRebootState(EnodebAcsState):
             # Set maxEnvelopes to 1, as per TR-069 spec
             response.MaxEnvelopes = 1
             return AcsMsgAndTransition(response, None)
-        logging.info('Sending reboot request to eNB')
+        logger.info('Sending reboot request to eNB')
         request = models.Reboot()
         request.CommandKey = ''
         return AcsMsgAndTransition(request, self.done_transition)
