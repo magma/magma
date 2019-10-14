@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	rootPath     = "/:network_id"
+	rootPath     = "/:file_prefix"
 	ReceiverPath = rootPath + "/receiver"
 	RoutePath    = ReceiverPath + "/route"
 
@@ -41,7 +41,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 		if err != nil {
 			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
 		}
-		err = client.CreateReceiver(getNetworkID(c), receiver)
+		err = client.CreateReceiver(getFilePrefix(c), receiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -55,11 +55,11 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 }
 
 // GetGetReceiversHandler returns a handler function to retrieve receivers for
-// a network
+// a filePrefix
 func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
-		recs, err := client.GetReceivers(networkID)
+		getFilePrefix := getFilePrefix(c)
+		recs, err := client.GetReceivers(getFilePrefix)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -70,13 +70,13 @@ func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Con
 // GetUpdateReceiverHandler returns a handler function to update a receivers
 func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
+		getFilePrefix := getFilePrefix(c)
 		newReceiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateReceiver(networkID, &newReceiver)
+		err = client.UpdateReceiver(getFilePrefix, &newReceiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -91,10 +91,10 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 
 func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
+		getFilePrefix := getFilePrefix(c)
 		receiverName := c.QueryParam(ReceiverNameQueryParam)
 
-		err := client.DeleteReceiver(networkID, receiverName)
+		err := client.DeleteReceiver(getFilePrefix, receiverName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -109,8 +109,8 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 
 func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
-		route, err := client.GetRoute(networkID)
+		getFilePrefix := getFilePrefix(c)
+		route, err := client.GetRoute(getFilePrefix)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -120,12 +120,12 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 
 func GetUpdateRouteHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
+		getFilePrefix := getFilePrefix(c)
 		newRoute, err := decodeRoutePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		err = client.ModifyNetworkRoute(networkID, &newRoute)
+		err = client.ModifyNetworkRoute(getFilePrefix, &newRoute)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
