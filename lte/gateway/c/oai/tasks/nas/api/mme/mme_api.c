@@ -476,11 +476,16 @@ int mme_api_new_guti(
     guti->gummei.mme_code = _emm_data.conf.gummei.gummei[nb_gummei].mme_code;
     guti->gummei.plmn.mcc_digit1 = _emm_data.conf.gummei.
       gummei[nb_gummei].plmn.mcc_digit1;
-    guti->gummei.plmn.mcc_digit2 = _emm_data.conf.gummei.gummei[nb_gummei].plmn.mcc_digit2;
-    guti->gummei.plmn.mcc_digit3 = _emm_data.conf.gummei.gummei[nb_gummei].plmn.mcc_digit3;
-    guti->gummei.plmn.mnc_digit1 = _emm_data.conf.gummei.gummei[nb_gummei].plmn.mnc_digit1;
-    guti->gummei.plmn.mnc_digit2 = _emm_data.conf.gummei.gummei[nb_gummei].plmn.mnc_digit2;
-    guti->gummei.plmn.mnc_digit3 = _emm_data.conf.gummei.gummei[nb_gummei].plmn.mnc_digit3;
+    guti->gummei.plmn.mcc_digit2 = _emm_data.conf.gummei.gummei[nb_gummei].
+      plmn.mcc_digit2;
+    guti->gummei.plmn.mcc_digit3 = _emm_data.conf.gummei.gummei[nb_gummei].
+      plmn.mcc_digit3;
+    guti->gummei.plmn.mnc_digit1 = _emm_data.conf.gummei.gummei[nb_gummei].
+      plmn.mnc_digit1;
+    guti->gummei.plmn.mnc_digit2 = _emm_data.conf.gummei.gummei[nb_gummei].
+      plmn.mnc_digit2;
+    guti->gummei.plmn.mnc_digit3 = _emm_data.conf.gummei.gummei[nb_gummei].
+      plmn.mnc_digit3;
     // TODO Find another way to generate m_tmsi
     guti->m_tmsi = (tmsi_t)(uintptr_t) ue_context;
     if (guti->m_tmsi == INVALID_M_TMSI) {
@@ -602,8 +607,8 @@ int mme_api_new_guti(
         break;
       case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
         for (int p_cnt = 0;
-          p_cnt < _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
-          p_cnt++){
+          p_cnt < (_emm_data.conf.tai_list.partial_tai_list[i].
+          numberofelements + 1); p_cnt++){
           if (
             (_emm_data.conf.tai_list.partial_tai_list[i]
                .u.tai_many_plmn[p_cnt].mcc_digit1 ==
