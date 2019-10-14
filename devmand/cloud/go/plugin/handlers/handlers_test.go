@@ -463,7 +463,7 @@ func TestCreateAgent(t *testing.T) {
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            baseAgentsUrl,
-		Payload:        &models2.SymphonyAgent{},
+		Payload:        &models2.MutableSymphonyAgent{},
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        createAgent,
@@ -474,7 +474,7 @@ func TestCreateAgent(t *testing.T) {
 
 	// Test post new agent
 	seedPreAgent(t)
-	payload := &models2.SymphonyAgent{
+	payload := &models2.MutableSymphonyAgent{
 		Name:        "agent_1",
 		Description: "agent 1",
 		ID:          "a1",
@@ -636,7 +636,7 @@ func TestUpdateAgent(t *testing.T) {
 
 	// Test with missing agent
 	seedNetworks(t)
-	payload := &models2.SymphonyAgent{
+	payload := &models2.MutableSymphonyAgent{
 		Name:        "agent_1",
 		Description: "UPDATED agent 1",
 		ID:          "a1",

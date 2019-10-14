@@ -62,9 +62,6 @@ message AuthenticationAnswer {
     // Subscriber identifier
     string user_name = 1;
 
-    // For details about fields read 3GPP 29.273
-    repeated SIPAuthVector sip_auth_vectors = 2;
-
     // Only for EAP-AKA/EAP-AKA'
     message SIPAuthVector {
         // Contains one of EAP-AKA or EAP-AKA'
@@ -78,13 +75,16 @@ message AuthenticationAnswer {
         // Integrity Key
         bytes integrity_key = 5;
     }
-
-    UserProfile user_profile = 3;
+    // For details about fields read 3GPP 29.273
+    repeated SIPAuthVector sip_auth_vectors = 2;
 
     message UserProfile {
         // MSISDN from HSS
         string msisdn = 1;
     }
+    UserProfile user_profile = 3;
+
+    string session_id = 4;
 }
 
 // RegistrationRequest:
@@ -92,11 +92,14 @@ message AuthenticationAnswer {
 message RegistrationRequest {
     // Subscriber identifier
     string user_name = 1;
+    string session_id = 2;
 }
 
 // RegistrationAnswer:
 // ServerAssignmentAnswer with ServerAssignmentType set to (DE)/REGISTRATION (Section 8.2.2.3)
-message RegistrationAnswer {}
+message RegistrationAnswer {
+    string session_id = 1;
+}
 
 // RegistrationTerminationRequest, see: http://www.qtc.jp/3GPP/Specs/29273-920.pdf Section 8.2.2.4
 message RegistrationTerminationRequest {
@@ -112,4 +115,5 @@ message RegistrationTerminationRequest {
     }
     ReasonCode reason_code = 2;
     string reason_info = 3;
+    string session_id = 4;
 }

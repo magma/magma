@@ -86,12 +86,13 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 				log.Printf("Cannot Create Session on Auth: accounting service is missing")
 				return resp, nil
 			}
-			_, err = srv.accounting.CreateSession(ctx, resp.Ctx)
+			csResp, err := srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
 				log.Printf("Failed to create session: %v", err)
 				return resp, nil
 			}
+			resp.Ctx.AcctSessionId = csResp.GetSessionId()
 		}
 		// Add Session & overwrite an existing session with the same ID if present,
 		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation

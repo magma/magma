@@ -80,7 +80,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return ret, err
 	}
-	allowed_ues, err := getPipelineDAllowedUes(gwConfig.AllowedUes)
+	allowedGrePeers, err := getPipelineDAllowedGrePeers(gwConfig.AllowedGrePeers)
 	if err != nil {
 		return ret, err
 	}
@@ -98,13 +98,13 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		ret["aaa_server"] = mc
 	}
 	ret["pipelined"] = &ltemconfig.PipelineD{
-		LogLevel:      protos.LogLevel_INFO,
-		UeIpBlock:     DefaultUeIpBlock, // Unused by CWF
-		NatEnabled:    false,
-		DefaultRuleId: swag.StringValue(nwConfig.DefaultRuleID),
-		RelayEnabled:  true,
-		Services:      pipelineDServices,
-		AllowedUes:    allowed_ues,
+		LogLevel:        protos.LogLevel_INFO,
+		UeIpBlock:       DefaultUeIpBlock, // Unused by CWF
+		NatEnabled:      false,
+		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
+		RelayEnabled:    true,
+		Services:        pipelineDServices,
+		AllowedGrePeers: allowedGrePeers,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
@@ -115,13 +115,15 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	}
 	return ret, err
 }
-func getPipelineDAllowedUes(allowed_ues models.AllowedUes) ([]*ltemconfig.PipelineD_AllowedUE, error) {
-	ues := make([]*ltemconfig.PipelineD_AllowedUE, 0, len(allowed_ues))
-	for _, entry := range allowed_ues {
-		ues = append(ues, &ltemconfig.PipelineD_AllowedUE{Ip: entry.IP.String(), Key: int32(entry.Key)})
+
+func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*ltemconfig.PipelineD_AllowedGrePeer, error) {
+	ues := make([]*ltemconfig.PipelineD_AllowedGrePeer, 0, len(allowedGrePeers))
+	for _, entry := range allowedGrePeers {
+		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP.String(), Key: int32(entry.Key)})
 	}
 	return ues, nil
 }
+
 func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.PipelineD_NetworkServices, error) {
 	apps := make([]ltemconfig.PipelineD_NetworkServices, 0, len(networkServices))
 	for _, service := range networkServices {

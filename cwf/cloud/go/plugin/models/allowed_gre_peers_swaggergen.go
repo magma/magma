@@ -14,12 +14,12 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// AllowedUes allowed ues
-// swagger:model allowed_ues
-type AllowedUes []*AllowedUe
+// AllowedGrePeers allowed gre peers
+// swagger:model allowed_gre_peers
+type AllowedGrePeers []*AllowedGrePeer
 
-// Validate validates this allowed ues
-func (m AllowedUes) Validate(formats strfmt.Registry) error {
+// Validate validates this allowed gre peers
+func (m AllowedGrePeers) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	for i := 0; i < len(m); i++ {

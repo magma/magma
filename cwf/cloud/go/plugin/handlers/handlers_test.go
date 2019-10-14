@@ -284,7 +284,7 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "foobar",
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedUes: models2.AllowedUes{
+			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1", Key: 123},
 			},
 		},
@@ -320,7 +320,7 @@ func TestCwfGateways(t *testing.T) {
 			},
 			Name: "foobar", Description: "foo bar",
 			CarrierWifi: &models2.GatewayCwfConfigs{
-				AllowedUes: models2.AllowedUes{
+				AllowedGrePeers: models2.AllowedGrePeers{
 					{IP: "1.1.1.1", Key: 123},
 				},
 			},
@@ -356,7 +356,7 @@ func TestCwfGateways(t *testing.T) {
 		},
 		Name: "foobar", Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedUes: models2.AllowedUes{
+			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1", Key: 123},
 			},
 		},
@@ -392,7 +392,7 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "newname",
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedUes: models2.AllowedUes{
+			AllowedGrePeers: models2.AllowedGrePeers{
 				{IP: "1.1.1.1", Key: 123},
 			},
 		},
@@ -431,7 +431,7 @@ func TestCwfGateways(t *testing.T) {
 
 	// Test get gateway CarrierWifi config
 	expectedGwConfGet := &models2.GatewayCwfConfigs{
-		AllowedUes: models2.AllowedUes{
+		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "1.1.1.1", Key: 123},
 		},
 	}
@@ -448,7 +448,7 @@ func TestCwfGateways(t *testing.T) {
 
 	// Test update gateway CarrierWifi config
 	payloadConf := &models2.GatewayCwfConfigs{
-		AllowedUes: models2.AllowedUes{
+		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "2.2.2.2", Key: 321},
 		},
 	}
@@ -472,7 +472,6 @@ func TestCwfGateways(t *testing.T) {
 		ExpectedResult: payloadConf,
 	}
 	tests.RunUnitTest(t, e, tc)
-
 
 	// Test DeleteGateway
 	tc = tests.Test{

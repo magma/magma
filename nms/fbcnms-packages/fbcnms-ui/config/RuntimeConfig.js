@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {FeatureID} from '@fbcnms/types/features';
+
 const TEST_SUBDOMAIN = '-test';
 const LOCALHOST = 'localhost';
 const PHB_SUBDOMAIN = 'purpleheadband.cloud';
@@ -17,6 +19,13 @@ export function isTestEnv(): boolean {
     window.location.hostname.includes(TEST_SUBDOMAIN) ||
     window.location.hostname.includes(LOCALHOST)
   );
+}
+
+export function isFeatureEnabled(
+  enabledFeatures: Array<FeatureID>,
+  featureId: FeatureID,
+): boolean {
+  return isTestEnv() || enabledFeatures.includes(featureId);
 }
 
 export function isPhbProdEnv(): boolean {

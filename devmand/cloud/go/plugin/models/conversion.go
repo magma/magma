@@ -57,7 +57,7 @@ func (m *SymphonyNetwork) FromConfiguratorNetwork(n configurator.Network) *Symph
 	return m
 }
 
-func (m *SymphonyAgent) GetMagmadGateway() *models2.MagmadGateway {
+func (m *MutableSymphonyAgent) GetMagmadGateway() *models2.MagmadGateway {
 	return &models2.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
@@ -68,7 +68,7 @@ func (m *SymphonyAgent) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *SymphonyAgent) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
+func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
 	ent := configurator.NetworkEntity{
 		Type: devmand.SymphonyAgentType,
 		Key:  string(m.ID),
@@ -88,11 +88,11 @@ func (m *SymphonyAgent) GetAdditionalWritesOnCreate() []configurator.EntityWrite
 	}
 }
 
-func (m *SymphonyAgent) GetAdditionalEntitiesToLoadOnUpdate(agentID string) []storage.TypeAndKey {
+func (m *MutableSymphonyAgent) GetAdditionalEntitiesToLoadOnUpdate(agentID string) []storage.TypeAndKey {
 	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: agentID}}
 }
 
-func (m *SymphonyAgent) GetAdditionalWritesOnUpdate(
+func (m *MutableSymphonyAgent) GetAdditionalWritesOnUpdate(
 	agentID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
@@ -115,7 +115,7 @@ func (m *SymphonyAgent) GetAdditionalWritesOnUpdate(
 	return ret, nil
 }
 
-func (m *SymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity {
+func (m *MutableSymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity {
 	ret := configurator.NetworkEntity{
 		Type: devmand.SymphonyAgentType,
 		Key:  string(m.ID),
@@ -126,7 +126,7 @@ func (m *SymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity {
 	return ret
 }
 
-func (m *SymphonyAgent) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+func (m *MutableSymphonyAgent) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
 		Type: devmand.SymphonyAgentType,
 		Key:  string(m.ID),

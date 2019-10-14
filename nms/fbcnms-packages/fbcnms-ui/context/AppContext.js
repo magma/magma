@@ -19,7 +19,7 @@ export type User = {
   isSuperUser: boolean,
 };
 
-type Context = {
+export type AppContextType = {
   csrfToken: ?string,
   version: ?string,
   networkIds: string[],
@@ -30,7 +30,7 @@ type Context = {
   enabledFeatures: FeatureID[],
 };
 
-export default React.createContext<Context>({
+export default React.createContext<AppContextType>({
   csrfToken: null,
   version: null,
   networkIds: [],

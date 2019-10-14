@@ -249,7 +249,7 @@ func listAgents(c echo.Context) error {
 }
 
 func createAgent(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &symphonymodels.SymphonyAgent{}); nerr != nil {
+	if nerr := handlers.CreateMagmadGatewayFromModel(c, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -295,7 +295,7 @@ func updateAgent(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, aid, &symphonymodels.SymphonyAgent{}); nerr != nil {
+	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, aid, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
