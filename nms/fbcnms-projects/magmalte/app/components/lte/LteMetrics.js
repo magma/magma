@@ -15,13 +15,13 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Metrics from '../insights/Metrics';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
-import React from 'react';
+import React, {useContext} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useFeatureFlag, useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   bar: {
@@ -220,7 +220,9 @@ function InternalMetrics() {
 }
 
 export default function() {
-  const lteNetworkMetrics = useFeatureFlag(AppContext, 'lte_network_metrics');
+  const lteNetworkMetrics = useContext(AppContext).isFeatureEnabled(
+    'lte_network_metrics',
+  );
   if (!lteNetworkMetrics) {
     return <GatewayMetrics />;
   }

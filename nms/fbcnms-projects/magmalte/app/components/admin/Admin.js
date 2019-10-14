@@ -25,7 +25,7 @@ import UsersSettings from '../UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
 import {makeStyles} from '@material-ui/styles';
-import {useFeatureFlag, useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -36,11 +36,9 @@ const useStyles = makeStyles(theme => ({
 
 function NavItems() {
   const {relativeUrl} = useRouter();
-  const auditLogEnabled = useFeatureFlag(AppContext, 'audit_log_view');
-  const networkManagementEnabled = useFeatureFlag(
-    AppContext,
-    'magma_network_management',
-  );
+  const {isFeatureEnabled} = React.useContext(AppContext);
+  const auditLogEnabled = isFeatureEnabled('audit_log_view');
+  const networkManagementEnabled = isFeatureEnabled('magma_network_management');
 
   return (
     <>
