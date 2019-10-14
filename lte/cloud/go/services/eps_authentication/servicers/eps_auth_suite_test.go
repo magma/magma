@@ -11,9 +11,9 @@ package servicers
 import (
 	"testing"
 
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/models"
+	lteprotos "magma/lte/cloud/go/protos"
 	utils "magma/lte/cloud/go/services/eps_authentication/servicers/test_utils"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	orc8rprotos "magma/orc8r/cloud/go/protos"
@@ -34,15 +34,15 @@ type EpsAuthTestSuite struct {
 	Server *EPSAuthServer
 }
 
-func (suite *EpsAuthTestSuite) AuthenticationInformation(air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
+func (suite *EpsAuthTestSuite) AuthenticationInformation(air *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
 	return suite.Server.AuthenticationInformation(getTestContext(), air)
 }
 
-func (suite *EpsAuthTestSuite) UpdateLocation(ulr *fegprotos.UpdateLocationRequest) (*fegprotos.UpdateLocationAnswer, error) {
+func (suite *EpsAuthTestSuite) UpdateLocation(ulr *lteprotos.UpdateLocationRequest) (*lteprotos.UpdateLocationAnswer, error) {
 	return suite.Server.UpdateLocation(getTestContext(), ulr)
 }
 
-func (suite *EpsAuthTestSuite) PurgeUE(purge *fegprotos.PurgeUERequest) (*fegprotos.PurgeUEAnswer, error) {
+func (suite *EpsAuthTestSuite) PurgeUE(purge *lteprotos.PurgeUERequest) (*lteprotos.PurgeUEAnswer, error) {
 	return suite.Server.PurgeUE(getTestContext(), purge)
 }
 

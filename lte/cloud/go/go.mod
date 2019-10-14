@@ -6,10 +6,7 @@
 //
 module magma/lte/cloud/go
 
-replace (
-	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
-	magma/orc8r/cloud/go => ../../../orc8r/cloud/go
-)
+replace magma/orc8r/cloud/go => ../../../orc8r/cloud/go
 
 require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
@@ -32,6 +29,5 @@ require (
 	google.golang.org/genproto v0.0.0-20190111180523-db91494dd46c
 	google.golang.org/grpc v1.17.0
 
-	magma/feg/cloud/go/protos v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 )
