@@ -8,11 +8,11 @@
  * @format
  */
 'use strict';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import LoginForm from '@fbcnms/ui/components/auth/LoginForm.js';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {BrowserRouter} from 'react-router-dom';
 
 import {} from './common/axiosConfig';
@@ -30,10 +30,10 @@ function LoginWrapper() {
 }
 
 ReactDOM.render(
-  <AppContext.Provider value={window.CONFIG.appData}>
+  <AppContextProvider>
     <BrowserRouter>
       <LoginWrapper />
     </BrowserRouter>
-  </AppContext.Provider>,
+  </AppContextProvider>,
   nullthrows(document.getElementById('root')),
 );

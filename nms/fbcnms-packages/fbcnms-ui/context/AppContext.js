@@ -9,7 +9,7 @@
  */
 'use strict';
 
-import React from 'react';
+import * as React from 'react';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import type {FeatureID} from '@fbcnms/types/features';
 
@@ -30,7 +30,7 @@ export type AppContextType = {
   enabledFeatures: FeatureID[],
 };
 
-export default React.createContext<AppContextType>({
+const AppContext = React.createContext<AppContextType>({
   csrfToken: null,
   version: null,
   networkIds: [],
@@ -40,3 +40,22 @@ export default React.createContext<AppContextType>({
   hideExpandButton: emptyFunction,
   enabledFeatures: [],
 });
+
+type Props = {|
+  children: React.Node,
+  networkIDs?: string[],
+|};
+
+export function AppContextProvider(props: Props) {
+  const {appData} = window.CONFIG;
+  const value = {
+    ...appData,
+    networkIds: props.networkIDs || [],
+  };
+
+  return (
+    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
+  );
+}
+
+export default AppContext;
