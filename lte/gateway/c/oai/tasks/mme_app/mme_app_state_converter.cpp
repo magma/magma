@@ -236,14 +236,8 @@ void MmeNasStateConverter::ue_context_to_proto(
 {
   ue_ctxt_proto->Clear();
 
-  ue_ctxt_proto->set_imsi(ue_ctxt->imsi);
-  ue_ctxt_proto->set_imsi_len(ue_ctxt->imsi_len);
-  ue_ctxt_proto->set_member_present_mask(ue_ctxt->member_present_mask);
-
-  memcpy(
-    ue_ctxt_proto->mutable_imeisv(),
-    &ue_ctxt->imeisv.u.value,
-    IMEISV_BCD8_SIZE);
+  ue_ctxt_proto->set_imsi(ue_ctxt->emm_context._imsi64);
+  ue_ctxt_proto->set_imsi_len(ue_ctxt->emm_context._imsi.length);
 
   char* msisdn_buffer = bstr2cstr(ue_ctxt->msisdn, (char) '?');
   if (msisdn_buffer) {
@@ -284,13 +278,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   const UeContext* ue_context_proto,
   ue_mm_context_t* state_ue_mm_context)
 {
-  state_ue_mm_context->imsi = ue_context_proto->imsi();
-  state_ue_mm_context->imsi_len = ue_context_proto->imsi_len();
-  state_ue_mm_context->member_present_mask =
-    ue_context_proto->member_present_mask();
-  strcpy(
-    (char*) state_ue_mm_context->imeisv.u.value,
-    ue_context_proto->imeisv().c_str());
+  state_ue_mm_context->emm_context._imsi64 = ue_context_proto->imsi();
+  state_ue_mm_context->emm_context._imsi.length = ue_context_proto->imsi_len();
   state_ue_mm_context->msisdn = bfromcstr(ue_context_proto->msisdn().c_str());
   state_ue_mm_context->imsi_auth = ue_context_proto->imsi_auth();
   state_ue_mm_context->ue_context_rel_cause =

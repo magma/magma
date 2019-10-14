@@ -2696,7 +2696,7 @@ void _send_delete_dedicated_bearer_rsp(
   print_bearer_ids_helper(ebi, num_bearer_context);
   s11_deact_ded_bearer_rsp->bearer_contexts.num_bearer_context =
     num_bearer_context;
-  s11_deact_ded_bearer_rsp->imsi = ue_context_p->imsi;
+  s11_deact_ded_bearer_rsp->imsi = ue_context_p->emm_context._imsi64;
   s11_deact_ded_bearer_rsp->s_gw_teid_s11_s4 = s_gw_teid_s11_s4;
 
   OAILOG_INFO(
