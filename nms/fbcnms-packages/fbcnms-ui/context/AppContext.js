@@ -9,9 +9,10 @@
  */
 'use strict';
 
+import type {FeatureID} from '@fbcnms/types/features';
+
 import * as React from 'react';
 import emptyFunction from '@fbcnms/util/emptyFunction';
-import type {FeatureID} from '@fbcnms/types/features';
 
 export type User = {
   tenant: string,
@@ -27,7 +28,7 @@ export type AppContextType = {
   user: User,
   showExpandButton: () => void,
   hideExpandButton: () => void,
-  enabledFeatures: FeatureID[],
+  isFeatureEnabled: FeatureID => boolean,
 };
 
 const AppContext = React.createContext<AppContextType>({
@@ -38,7 +39,7 @@ const AppContext = React.createContext<AppContextType>({
   user: {tenant: '', email: '', isSuperUser: false},
   showExpandButton: emptyFunction,
   hideExpandButton: emptyFunction,
-  enabledFeatures: [],
+  isFeatureEnabled: () => false,
 });
 
 type Props = {|
@@ -51,6 +52,9 @@ export function AppContextProvider(props: Props) {
   const value = {
     ...appData,
     networkIds: props.networkIDs || [],
+    isFeatureEnabled: (featureID: FeatureID): boolean => {
+      return appData.enabledFeatures.indexOf(featureID) !== -1;
+    },
   };
 
   return (

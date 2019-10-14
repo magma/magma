@@ -24,13 +24,13 @@ import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
 import {getWACSections} from '@fbcnms/magmalte/app/components/wac/WACSections';
-import {useFeatureFlag} from '@fbcnms/ui/hooks';
 
 export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
+  const {isFeatureEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
-  const alertsEnabled = useFeatureFlag(AppContext, 'alerts');
-  const logsEnabled = useFeatureFlag(AppContext, 'logs');
+  const alertsEnabled = isFeatureEnabled('alerts');
+  const logsEnabled = isFeatureEnabled('logs');
 
   useEffect(() => {
     if (networkId) {

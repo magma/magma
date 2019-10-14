@@ -35,7 +35,7 @@ const handleReact = _tab =>
                 isSuperUser: req.user.isSuperUser,
               }
             : null,
-          enabledFeatures: await getEnabledFeatures(null),
+          enabledFeatures: await getEnabledFeatures(req, null),
         },
         MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
