@@ -187,8 +187,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
             return self.add_obj_transition
         return self.skip_transition
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting transient read-only parameters'
 
 
@@ -294,8 +293,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting object parameters'
 
 
