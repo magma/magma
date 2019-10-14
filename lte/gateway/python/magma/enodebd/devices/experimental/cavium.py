@@ -133,8 +133,7 @@ class CaviumGetObjectParametersState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting object parameters'
 
 
@@ -198,8 +197,7 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Disabling admin_enable (Cavium only)'
 
 
@@ -253,8 +251,7 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
         else:
             return AcsReadMsgResult(True, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Disabling admin_enable (Cavium only)'
 
 

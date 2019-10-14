@@ -80,9 +80,8 @@ class EnodebAcsState(ABC):
     def acs(self, val: EnodebAcsStateMachine) -> None:
         self._acs = val
 
-    @classmethod
     @abstractmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         """ Provide a few words about what the state represents """
         pass
 
@@ -129,8 +128,7 @@ class WaitInformState(EnodebAcsState):
         response.MaxEnvelopes = 1
         return AcsMsgAndTransition(response, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Disconnected'
 
 
@@ -162,8 +160,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Waiting for incoming GetRPC Methods after boot'
 
 
@@ -190,8 +187,8 @@ class BaicellsRemWaitState(EnodebAcsState):
 
     def enter(self):
         self.rem_timer = StateMachineTimer(self.CONFIG_DELAY_AFTER_BOOT)
-        logging.info('Holding off of eNB configuration for %s seconds due to '
-                     'idiosyncrasy of Baicells eNB.',
+        logging.info('Holding off of eNB configuration for %s seconds. '
+                     'Will resume after eNB REM process has finished. ',
                      self.CONFIG_DELAY_AFTER_BOOT)
 
     def exit(self):
@@ -210,9 +207,10 @@ class BaicellsRemWaitState(EnodebAcsState):
                                        self.done_transition)
         return AcsMsgAndTransition(models.DummyInput(), None)
 
-    @classmethod
-    def state_description(cls) -> str:
-        return 'Waiting for eNB REM to run'
+    def state_description(self) -> str:
+        remaining = self.rem_timer.seconds_remaining()
+        return 'Waiting for eNB REM to run for %d more seconds before ' \
+               'resuming with configuration.' % remaining
 
 
 class WaitEmptyMessageState(EnodebAcsState):
@@ -240,8 +238,7 @@ class WaitEmptyMessageState(EnodebAcsState):
             return AcsReadMsgResult(True, self.done_transition)
         return AcsReadMsgResult(True, self.unknown_param_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Waiting for empty message from eNodeB'
 
 
@@ -293,8 +290,7 @@ class CheckOptionalParamsState(EnodebAcsState):
             return AcsReadMsgResult(True, None)
         return AcsReadMsgResult(True, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Checking if some optional parameters exist in data model'
 
 
@@ -338,8 +334,7 @@ class SendGetTransientParametersState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting transient read-only parameters'
 
 
@@ -404,8 +399,7 @@ class WaitGetTransientParametersState(EnodebAcsState):
             return self.add_obj_transition
         return self.skip_transition
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting transient read-only parameters'
 
 
@@ -463,8 +457,7 @@ class GetParametersState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting non-object parameters'
 
 
@@ -486,8 +479,7 @@ class WaitGetParametersState(EnodebAcsState):
             self.acs.device_cfg.set_parameter(name, magma_val)
         return AcsReadMsgResult(True, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting non-object parameters'
 
 
@@ -515,8 +507,7 @@ class GetObjectParametersState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting object parameters'
 
 
@@ -602,8 +593,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting object parameters'
 
 
@@ -659,8 +649,7 @@ class DeleteObjectsState(EnodebAcsState):
             return AcsReadMsgResult(True, self.skip_transition)
         return AcsReadMsgResult(True, self.add_obj_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Deleting objects'
 
 
@@ -705,8 +694,7 @@ class AddObjectsState(EnodebAcsState):
             return AcsReadMsgResult(True, None)
         return AcsReadMsgResult(True, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Adding objects'
 
 
@@ -753,8 +741,7 @@ class SetParameterValuesState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Setting parameter values'
 
 
@@ -802,8 +789,7 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
 
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Setting parameter values excluding Admin Enable'
 
 
@@ -866,8 +852,7 @@ class WaitSetParameterValuesState(EnodebAcsState):
                                                              obj_name)
         logging.info('Successfully configured CPE parameters!')
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Setting parameter values'
 
 
@@ -884,8 +869,7 @@ class EndSessionState(EnodebAcsState):
         request = models.DummyInput()
         return AcsMsgAndTransition(request, None)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
@@ -924,8 +908,7 @@ class BaicellsSendRebootState(EnodebAcsState):
         self.acs.are_invasive_changes_applied = True
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Rebooting eNB'
 
 
@@ -963,8 +946,7 @@ class SendRebootState(EnodebAcsState):
         request.CommandKey = ''
         return AcsMsgAndTransition(request, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Rebooting eNB'
 
 
@@ -983,8 +965,7 @@ class WaitRebootResponseState(EnodebAcsState):
         """ Reply with empty message """
         return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Rebooting eNB'
 
 
@@ -1041,8 +1022,7 @@ class WaitInformMRebootState(EnodebAcsState):
                                self.acs.device_cfg)
         return AcsReadMsgResult(True, self.done_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Waiting for M Reboot code from Inform'
 
 
@@ -1084,8 +1064,7 @@ class WaitRebootDelayState(EnodebAcsState):
     def get_msg(self) -> AcsMsgAndTransition:
         return AcsMsgAndTransition(models.DummyInput(), None)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Waiting after eNB reboot to prevent race conditions'
 
 
@@ -1104,6 +1083,5 @@ class ErrorState(EnodebAcsState):
     def get_msg(self) -> AcsMsgAndTransition:
         return AcsMsgAndTransition(models.DummyInput(), None)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Error state - awaiting manual restart of enodebd service'
