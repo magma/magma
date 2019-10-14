@@ -110,7 +110,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	updateAlert := GetUpdateAlertHandler(client, "")
 
 	c, rec := buildContext(sampleAlert1, http.MethodPut, "/", handlers.AlertConfigURL, testNID)
-	c.SetParamNames("network_id", RuleNamePathParam)
+	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
 	err := updateAlert(c)
@@ -140,8 +140,8 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	c := echo.New().NewContext(req, rec)
-	c.SetPath("/networks/:network_id/prometheus/alert_config/bulk")
-	c.SetParamNames("network_id")
+	c.SetPath("/networks/:file_prefix/prometheus/alert_config/bulk")
+	c.SetParamNames("file_prefix")
 	c.SetParamValues(testNID)
 
 	err = bulkUpdateFunc(c)
