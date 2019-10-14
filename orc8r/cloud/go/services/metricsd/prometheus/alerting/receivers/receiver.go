@@ -17,6 +17,7 @@ import (
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
+	"gopkg.in/yaml.v2"
 )
 
 // Config uses a custom receiver struct to avoid scrubbing of 'secrets' during
@@ -63,57 +64,17 @@ func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID strin
 	return c.Validate()
 }
 
-// Validate makes sure that the config is properly formed. Have to do this here
-// since alertmanager only does validation during unmarshaling
+// Validate makes sure that the config is properly formed. Unmarshal the yaml
+// data into an alertmanager Config struct to ensure that it is properly formed
 func (c *Config) Validate() error {
-	receiverNames := map[string]struct{}{}
-
-	for _, rcv := range c.Receivers {
-		if _, ok := receiverNames[rcv.Name]; ok {
-			return fmt.Errorf("notification receiver name '%s' is not unique", rcv.Name)
-		}
-		for _, sc := range rcv.SlackConfigs {
-			err := validateURL(sc.APIURL)
-			if err != nil {
-				return err
-			}
-		}
-		receiverNames[rcv.Name] = struct{}{}
-	}
-	if c.Route == nil {
-		return fmt.Errorf("no route provided")
-	}
-	if len(c.Route.Receiver) == 0 {
-		return fmt.Errorf("root route must specify a default receiver")
-	}
-	if len(c.Route.Match) > 0 || len(c.Route.MatchRE) > 0 {
-		return fmt.Errorf("root route must not have any matchers")
+	yamlData, err := yaml.Marshal(c)
+	if err != nil {
+		return err
 	}
 
-	// check that all receivers used in routing tree are defined
-	return checkReceiver(c.Route, receiverNames)
-}
-
-func validateURL(url string) error {
-	if !strings.HasPrefix(url, "http") {
-		return fmt.Errorf("invalid url: %s", url)
-	}
-	return nil
-}
-
-// checkReceiver returns an error if a node in the routing tree
-// references a receiver not in the given map.
-func checkReceiver(r *config.Route, receivers map[string]struct{}) error {
-	for _, sr := range r.Routes {
-		if err := checkReceiver(sr, receivers); err != nil {
-			return err
-		}
-	}
-	if r.Receiver == "" {
-		return nil
-	}
-	if _, ok := receivers[r.Receiver]; !ok {
-		return fmt.Errorf("undefined receiver %q used in route", r.Receiver)
+	err = yaml.Unmarshal(yamlData, &config.Config{})
+	if err != nil {
+		return err
 	}
 	return nil
 }
