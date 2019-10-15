@@ -10,6 +10,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"magma/orc8r/gateway/directoryd"
+
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -59,6 +61,8 @@ func (srv *accountingService) AbortSession(
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
 		session_manager.EndSession(makeSID(imsi))
+	} else {
+		directoryd.RemoveIMSI(imsi)
 	}
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
@@ -105,10 +109,14 @@ func (srv *accountingService) TerminateRegistration(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: auth: %s | acct: %s",
 			sid, imsi, req.GetSessionId(), authSid, acctSid)
 	}
+
+	directoryd.RemoveIMSI(imsi) // remove it from directoryd even if session manager will try to remove it again
+
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
 		session_manager.EndSession(makeSID(imsi))
 	}
+
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {

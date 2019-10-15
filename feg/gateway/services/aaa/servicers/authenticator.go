@@ -13,6 +13,8 @@ import (
 	"log"
 	"time"
 
+	"magma/orc8r/gateway/directoryd"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
@@ -80,6 +82,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		return resp, nil
 	}
 	if srv.sessions != nil && eap.Packet(resp.Payload).IsSuccess() {
+		imsi := resp.Ctx.GetImsi()
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
@@ -101,6 +104,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 			return resp, nil // log error, but don't pass to caller, the auth only users will still be able to connect
 		}
+		directoryd.AddIMSI(imsi)
 	}
 	return resp, nil
 }
