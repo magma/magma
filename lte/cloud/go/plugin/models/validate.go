@@ -213,6 +213,10 @@ func (m *LteSubscription) ValidateModel() error {
 	return nil
 }
 
+func (m *EnodebState) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 // validateIPBlocks parses and validates IP networks containing subnet masks.
 // Returns an error in case any IP network in list is invalid.
 func validateIPBlocks(ipBlocks []string) error {
@@ -221,6 +225,14 @@ func validateIPBlocks(ipBlocks []string) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *PolicyRule) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
 	}
 	return nil
 }

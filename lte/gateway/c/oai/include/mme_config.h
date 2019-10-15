@@ -295,7 +295,7 @@ typedef struct mme_config_s {
 
   lai_t lai;
 
-  int use_stateless;
+  bool use_stateless;
 } mme_config_t;
 
 extern mme_config_t mme_config;

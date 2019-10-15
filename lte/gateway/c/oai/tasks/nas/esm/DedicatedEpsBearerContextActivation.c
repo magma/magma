@@ -116,7 +116,7 @@ int esm_proc_dedicated_eps_bearer_context(
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
   protocol_configuration_options_t *pco,
-  teid_t gtp_teid,
+  fteid_t *sgw_fteid,
   esm_cause_t *esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -153,7 +153,7 @@ int esm_proc_dedicated_eps_bearer_context(
       mbr_ul,
       tft,
       pco,
-      gtp_teid);
+      sgw_fteid); //TODO-Remove this once NAS and MME tasks are merged
 
     if (*default_ebi == ESM_EBI_UNASSIGNED) {
       /*

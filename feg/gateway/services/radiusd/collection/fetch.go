@@ -57,6 +57,11 @@ func (r *MetricsRequester) FetchMetrics() (string, error) {
 	return string(body), nil
 }
 
+// RefreshConfig tries to refresh configs
+func (r *MetricsRequester) RefreshConfig() {
+	r.metricsUrl = getMetricsUrl()
+}
+
 func getMetricsUrl() string {
 	radiusdCfg := GetRadiusdConfig()
 	host := radiusdCfg.GetRadiusMetricsHost()

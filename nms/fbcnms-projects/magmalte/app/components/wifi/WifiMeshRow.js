@@ -18,6 +18,7 @@ import Button from '@material-ui/core/Button';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import ClipboardLink from '@fbcnms/ui/components/ClipboardLink';
 import DeleteIcon from '@material-ui/icons/Delete';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
@@ -36,7 +37,6 @@ import {groupBy} from 'lodash';
 import WifiDeviceDetails, {InfoRow} from './WifiDeviceDetails';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {meshesURL} from './WifiUtils';
 import {withRouter} from 'react-router-dom';
@@ -168,7 +168,10 @@ class WifiMeshRow extends React.Component<Props, State> {
           <TableCell className={classes.gatewayCell}>{gateway.info}</TableCell>
           <TableCell className={classes.tableCell}>
             {status}
-            <GatewayStatus isGrey={!gateway.status} isActive={!!gateway.up} />
+            <DeviceStatusCircle
+              isGrey={!gateway.status}
+              isActive={!!gateway.up}
+            />
             <Tooltip
               title="Click to toggle device info"
               enterDelay={400}

@@ -33,7 +33,7 @@ add_library(ASYNC_GRPC
 # session_manager, etc.
 add_custom_command(TARGET ASYNC_GRPC POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/async_grpc/*.h
+                   ${PROJECT_SOURCE_DIR}/async_grpc/*.h
                    $<TARGET_FILE_DIR:ASYNC_GRPC>)
 
 target_include_directories(ASYNC_GRPC PUBLIC

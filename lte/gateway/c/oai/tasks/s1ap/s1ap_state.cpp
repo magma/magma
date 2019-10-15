@@ -221,19 +221,21 @@ void s1ap_state_free(s1ap_state_t *state)
   enb_description_t *enb;
 
   keys = hashtable_ts_get_keys(&state->enbs);
-  AssertFatal(keys != NULL, "failed to get keys for enbs");
-  for (i = 0; i < keys->num_keys; i++) {
-    assoc_id = (sctp_assoc_id_t) keys->keys[i];
-    ht_rc =
-      hashtable_ts_get(&state->enbs, (hash_key_t) assoc_id, (void **) &enb);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in assoc_id");
+  if (!keys) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+  } else {
+    for (i = 0; i < keys->num_keys; i++) {
+      assoc_id = (sctp_assoc_id_t) keys->keys[i];
+      ht_rc =
+        hashtable_ts_get(&state->enbs, (hash_key_t) assoc_id, (void **) &enb);
+      AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in assoc_id");
 
-    if (hashtable_ts_destroy(&enb->ue_coll) != HASH_TABLE_OK) {
-      OAI_FPRINTF_ERR("An error occured while destroying UE coll hash table");
+      if (hashtable_ts_destroy(&enb->ue_coll) != HASH_TABLE_OK) {
+        OAI_FPRINTF_ERR("An error occured while destroying UE coll hash table");
+      }
     }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  free(keys->keys);
-  free(keys);
 
   if (hashtable_ts_destroy(&state->enbs) != HASH_TABLE_OK) {
     OAI_FPRINTF_ERR("An error occured while destroying s1 eNB hash table");
@@ -302,33 +304,37 @@ void state2proto(S1apState *proto, s1ap_state_t *state)
   // copy over enbs
   auto enbs = proto->mutable_enbs();
   keys = hashtable_ts_get_keys(&state->enbs);
-  AssertFatal(keys != NULL, "failed to get keys for enbs");
-  for (i = 0; i < keys->num_keys; i++) {
-    associd = (sctp_assoc_id_t) keys->keys[i];
-    ht_rc =
-      hashtable_ts_get(&state->enbs, (hash_key_t) associd, (void **) &enb);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "associd not in enbs");
+  if (!keys) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in the enb hashtable");
+  } else {
+    for (i = 0; i < keys->num_keys; i++) {
+      associd = (sctp_assoc_id_t) keys->keys[i];
+      ht_rc =
+        hashtable_ts_get(&state->enbs, (hash_key_t) associd, (void **) &enb);
+      AssertFatal(ht_rc == HASH_TABLE_OK, "associd not in enbs");
 
-    enb2proto(&enb_proto, enb);
-    (*enbs)[associd] = enb_proto;
+      enb2proto(&enb_proto, enb);
+      (*enbs)[associd] = enb_proto;
+    }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  free(keys->keys);
-  free(keys);
 
   // copy over mmeid2associd
   auto mmeid2associd = proto->mutable_mmeid2associd();
   keys = hashtable_ts_get_keys(&state->mmeid2associd);
-  AssertFatal(keys != NULL, "failed to get keys for mmeid2associd");
-  for (i = 0; i < keys->num_keys; i++) {
-    mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
-    ht_rc = hashtable_ts_get(
-      &state->mmeid2associd, (hash_key_t) mmeid, (void **) &associd);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
+  if (!keys) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
+  } else {
+    for (i = 0; i < keys->num_keys; i++) {
+      mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
+      ht_rc = hashtable_ts_get(
+        &state->mmeid2associd, (hash_key_t) mmeid, (void **) &associd);
+      AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
 
-    (*mmeid2associd)[mmeid] = associd;
+      (*mmeid2associd)[mmeid] = associd;
+    }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  free(keys->keys);
-  free(keys);
 
   proto->set_num_enbs(state->num_enbs);
 }
@@ -395,19 +401,21 @@ void enb2proto(EnbDescription *proto, enb_description_t *enb)
   // store ues
   auto ues = proto->mutable_ues();
   keys = hashtable_ts_get_keys(&enb->ue_coll);
-  AssertFatal(keys != NULL, "failed to get keys for ue_coll");
-  for (i = 0; i < keys->num_keys; i++) {
-    enbueid = (mme_ue_s1ap_id_t) keys->keys[i];
-    ht_rc =
-      hashtable_ts_get(&enb->ue_coll, (hash_key_t) enbueid, (void **) &ue);
-    AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in ue_coll");
-    AssertFatal(ue->enb == enb, "tried to commit ue assigned to wrong enb");
+  if (!keys) {
+    OAILOG_DEBUG(LOG_S1AP, "No keys in ue_coll hashtable");
+  } else {
+    for (i = 0; i < keys->num_keys; i++) {
+      enbueid = (mme_ue_s1ap_id_t) keys->keys[i];
+      ht_rc =
+        hashtable_ts_get(&enb->ue_coll, (hash_key_t) enbueid, (void **) &ue);
+      AssertFatal(ht_rc == HASH_TABLE_OK, "enbueid not in ue_coll");
+      AssertFatal(ue->enb == enb, "tried to commit ue assigned to wrong enb");
 
-    ue2proto(&ue_proto, ue);
-    (*ues)[enbueid] = ue_proto;
+      ue2proto(&ue_proto, ue);
+      (*ues)[enbueid] = ue_proto;
+    }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
   }
-  free(keys->keys);
-  free(keys);
 }
 
 void proto2enb(enb_description_t *enb, EnbDescription *proto)

@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/state"
@@ -30,9 +31,9 @@ import (
 // network entities in the storage layer.
 // Note that *models.MagmadGateway itself implements this interface as well.
 type MagmadEncompassingGateway interface {
-	// TODO: we should be able to pull the validation flow into the generic
-	//  gateway handlers as well
-	ValidatableModel
+	// ValidatableModel allows the model to be validated by calling
+	// ValidateModel()
+	serde.ValidatableModel
 
 	// GetMagmadGateway returns the *models.MagmadGateway which is wrapped by
 	// the model
@@ -100,24 +101,24 @@ func ListGatewaysHandler(c echo.Context) error {
 }
 
 func CreateGatewayHandler(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload, nerr := GetAndValidatePayload(c, &models.MagmadGateway{})
-	if nerr != nil {
-		return nerr
-	}
-
-	if nerr := CreateMagmadGatewayFromModel(nid, payload.(*models.MagmadGateway)); nerr != nil {
+	if nerr := CreateMagmadGatewayFromModel(c, &models.MagmadGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
-func CreateMagmadGatewayFromModel(nid string, payload MagmadEncompassingGateway) *echo.HTTPError {
-	mdGateway := payload.GetMagmadGateway()
+func CreateMagmadGatewayFromModel(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPError {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload, nerr := GetAndValidatePayload(c, model)
+	if nerr != nil {
+		return nerr
+	}
+	encompassingGateway := payload.(MagmadEncompassingGateway)
+	mdGateway := encompassingGateway.GetMagmadGateway()
 
 	// must associate to an existing tier
 	tierExists, err := configurator.DoesEntityExist(nid, orc8r.UpgradeTierEntityType, string(mdGateway.Tier))
@@ -171,7 +172,7 @@ func CreateMagmadGatewayFromModel(nid string, payload MagmadEncompassingGateway)
 	case *models.MagmadGateway:
 		break
 	default:
-		writes = append(writes, payload.GetAdditionalWritesOnCreate()...)
+		writes = append(writes, encompassingGateway.GetAdditionalWritesOnCreate()...)
 	}
 
 	if err = configurator.WriteEntities(nid, writes...); err != nil {
@@ -233,19 +234,19 @@ func UpdateGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	payload, nerr := GetAndValidatePayload(c, &models.MagmadGateway{})
-	if nerr != nil {
-		return nerr
-	}
-
-	if nerr := UpdateMagmadGatewayFromModel(nid, gid, payload.(*models.MagmadGateway)); nerr != nil {
+	if nerr = UpdateMagmadGatewayFromModel(c, nid, gid, &models.MagmadGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-func UpdateMagmadGatewayFromModel(nid string, gid string, payload MagmadEncompassingGateway) *echo.HTTPError {
-	mdGateway := payload.GetMagmadGateway()
+func UpdateMagmadGatewayFromModel(c echo.Context, nid string, gid string, model MagmadEncompassingGateway) *echo.HTTPError {
+	payload, nerr := GetAndValidatePayload(c, model)
+	if nerr != nil {
+		return nerr
+	}
+	encompassingGateway := payload.(MagmadEncompassingGateway)
+	mdGateway := encompassingGateway.GetMagmadGateway()
 
 	entsToLoad := []storage.TypeAndKey{}
 	entsToLoad = append(entsToLoad, mdGateway.GetAdditionalEntitiesToLoadOnUpdate(gid)...)
@@ -253,7 +254,7 @@ func UpdateMagmadGatewayFromModel(nid string, gid string, payload MagmadEncompas
 	case *models.MagmadGateway:
 		break
 	default:
-		entsToLoad = append(entsToLoad, payload.GetAdditionalEntitiesToLoadOnUpdate(gid)...)
+		entsToLoad = append(entsToLoad, encompassingGateway.GetAdditionalEntitiesToLoadOnUpdate(gid)...)
 	}
 
 	loadedEnts, _, err := configurator.LoadEntities(
@@ -266,7 +267,7 @@ func UpdateMagmadGatewayFromModel(nid string, gid string, payload MagmadEncompas
 		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway before update"), http.StatusInternalServerError)
 	}
 
-	writes, nerr := getUpdateWrites(gid, payload, loadedEnts)
+	writes, nerr := getUpdateWrites(gid, encompassingGateway, loadedEnts)
 	if nerr != nil {
 		return nerr
 	}

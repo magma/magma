@@ -13,13 +13,13 @@ import AddEditAlertConfigurationStep from './AddEditAlertConfigurationStep';
 import AddEditAlertInfoStep from './AddEditAlertInfoStep';
 import AddEditAlertNotificationStep from './AddEditAlertNotificationStep';
 import Button from '@material-ui/core/Button';
+import MagmaV1API from '../../../common/MagmaV1API';
 import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 import grey from '@material-ui/core/colors/grey';
 
-import {MagmaAlarmAPIUrls} from './AlarmAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -73,8 +73,10 @@ export default function AddEditAlert(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const saveAlert = () => {
-    axios
-      .post(MagmaAlarmAPIUrls.alertConfig(match), alertConfig)
+    MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig({
+      networkId: nullthrows(match.params.networkId),
+      alertConfig,
+    })
       .then(() => props.onExit())
       .catch(error =>
         enqueueSnackbar(

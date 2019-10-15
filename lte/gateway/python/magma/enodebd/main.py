@@ -12,6 +12,7 @@ from unittest import mock
 from magma.enodebd.enodeb_status import get_service_status_old, \
     get_operational_states
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from magma.enodebd.logger import EnodebdLogger as logger
 from .rpc_servicer import EnodebdRpcServicer
 from .stats_manager import StatsManager
 from .tr069.server import tr069_server
@@ -34,6 +35,7 @@ def main():
     Top-level function for enodebd
     """
     service = MagmaService('enodebd', mconfigs_pb2.EnodebD())
+    logger.init()
 
     # State machine manager for tracking multiple connected eNB devices.
     state_machine_manager = StateMachineManager(service)

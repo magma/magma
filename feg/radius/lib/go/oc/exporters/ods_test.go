@@ -30,7 +30,6 @@ import (
 
 var (
 	category = "123"
-	prefix   = "dummy"
 	token    = "456|789"
 	entity   = "my_component"
 )
@@ -67,7 +66,6 @@ type mockConfigProvider struct {
 func (m *mockConfigProvider) getConfig() Config {
 	return Config{
 		Category:    category,
-		Prefix:      prefix,
 		Token:       token,
 		Entity:      entity,
 		DisablePost: true,
@@ -128,7 +126,6 @@ func TestPostODS(t *testing.T) {
 			require.NoError(t, err)
 			var odsCfg = Config{
 				Category: category,
-				Prefix:   prefix,
 				Token:    token,
 				Entity:   entity,
 				GraphURL: u.String(),

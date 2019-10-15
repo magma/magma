@@ -415,10 +415,10 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of all gateways inside the network
+          description: Map of all gateways inside the network by gatewayID
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/magmad_gateway'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
@@ -1027,6 +1027,53 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/logs:
+    get:
+      summary: Get logs
+      tags:
+        - Logs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: simple_query
+          in: query
+          description: Simple Query String to execute
+          required: false
+          type: string
+        - name: fields
+          in: query
+          description: Comma-separated list of fields to search with the simple query. Defaults to the log field.
+          required: false
+          type: string
+        - name: filters
+          in: query
+          description: Comma-separated list of key:value pairs to filter the query with.
+          required: false
+          type: string
+        - name: size
+          in: query
+          description: Maximum number of hits returned. Defaults to 10.
+          required: false
+          type: string
+        - name: start
+          in: query
+          description: Time to start searching
+          required: false
+          type: string
+        - name: end
+          in: query
+          description: Time to end searching
+          required: false
+          type: string
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/elastic_hit'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   channel_id:
     in: path
@@ -1562,3 +1609,32 @@ definitions:
     uniqueItems: true
     items:
       $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+
+  elastic_hit:
+    type: object
+    required:
+      - _index
+      - _type
+      - _id
+      - _source
+    properties:
+      _index:
+        type: string
+      _type:
+        type: string
+      _id:
+        type: string
+      _score:
+        type: number
+      _seq_no:
+        type: number
+      _primary_term:
+        type: string
+      _sort:
+        type: array
+        items:
+          type: number
+      _source:
+        type: object
+        additionalProperties:
+          type: string

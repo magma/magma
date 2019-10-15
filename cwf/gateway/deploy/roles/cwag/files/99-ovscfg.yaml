@@ -10,7 +10,7 @@ network:
   version: 2
   renderer: networkd
   ethernets:
-    br0:
+    cwag_br0:
       dhcp4: no
       addresses:
         - 192.168.128.1/24

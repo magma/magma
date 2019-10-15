@@ -8,7 +8,6 @@
  * @format
  */
 
-import type {CheckindGateway} from '@fbcnms/magmalte/app/common/MagmaAPIType';
 import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
 import type {TimeRange} from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
 
@@ -21,6 +20,7 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
@@ -28,11 +28,11 @@ import TimeRangeSelector from '@fbcnms/magmalte/app/components/insights/TimeRang
 import Typography from '@material-ui/core/Typography';
 import {Route} from 'react-router-dom';
 
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
-import {find} from 'lodash';
+import useMagmaAPI from '../../common/useMagmaAPI';
+import {find, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {resolveQuery} from '@fbcnms/magmalte/app/components/insights/Metrics';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -57,26 +57,22 @@ function MultiMetrics(props: {
   const selectedGateway = match.params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const {error, isLoading, response: response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-  });
+  const {error, isLoading, response: gateways} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdGateways,
+    {networkId: match.params.networkId},
+  );
 
   useSnackbar('Error fetching devices', {variant: 'error'}, error);
 
-  if (error || isLoading || !response || !response.data) {
+  if (error || isLoading || !gateways) {
     return <LoadingFiller />;
   }
 
-  const gateways: Array<CheckindGateway> = response.data.filter(
-    state => state.record,
-  );
   const defaultGateway = find(
     gateways,
     gateway => gateway.status?.hardware_id !== null,
   );
-  const selectedGatewayOrDefault =
-    selectedGateway || defaultGateway?.gateway_id;
+  const selectedGatewayOrDefault = selectedGateway || defaultGateway?.id;
 
   return (
     <>
@@ -87,8 +83,8 @@ function MultiMetrics(props: {
             inputProps={{id: 'devices'}}
             value={selectedGatewayOrDefault}
             onChange={props.onGatewaySelectorChange}>
-            {gateways.map(device => (
-              <MenuItem value={device.gateway_id} key={device.gateway_id}>
+            {map(gateways, device => (
+              <MenuItem value={device.id} key={device.id}>
                 {device.name}
               </MenuItem>
             ))}

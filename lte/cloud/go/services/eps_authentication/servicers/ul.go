@@ -12,9 +12,9 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
 	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
 

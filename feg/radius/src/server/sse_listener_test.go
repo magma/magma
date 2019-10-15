@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2866"
@@ -66,6 +67,7 @@ func TestCoARequestResponse(t *testing.T) {
 				"ResponseURL":    fmt.Sprintf("http://127.0.0.1:%d/coa_response", port+1),
 			},
 		},
+		monitoring.CreateListenerCounters("test_listener"),
 	)
 	sseListener.SetHandleRequest(
 		func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {

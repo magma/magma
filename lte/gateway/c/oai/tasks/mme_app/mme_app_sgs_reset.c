@@ -65,7 +65,7 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_reset_indication(
+int mme_app_handle_sgsap_reset_indication(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_vlr_reset_indication_t *const reset_indication_pP)
 {
   int rc = RETURNerror;
@@ -77,7 +77,7 @@ int mme_app_handle_sgsap_reset_indication(
 
   /* Handle VLR Reset for each SGS associated UE */
   hashtable_ts_apply_callback_on_elements(
-    mme_app_desc.mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
+    mme_app_desc_p->mme_ue_contexts.mme_ue_s1ap_id_ue_context_htbl,
     mme_app_handle_reset_indication,
     NULL,
     NULL);

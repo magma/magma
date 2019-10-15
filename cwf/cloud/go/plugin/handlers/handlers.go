@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -45,6 +46,7 @@ const (
 	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
 	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
+	ManageGatewayCarrierWifiPath = ManageGatewayPath + obsidian.UrlSep + "carrier_wifi"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -72,25 +74,13 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCarrierWifiPath, &cwfmodels.GatewayCwfConfigs{})...)
 
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
-	if nerr != nil {
-		return nerr
-	}
-
-	payload := &cwfmodels.MutableCwfGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	if nerr := handlers.CreateMagmadGatewayFromModel(nid, payload); nerr != nil {
+	if nerr := handlers.CreateMagmadGatewayFromModel(c, &cwfmodels.MutableCwfGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -107,6 +97,14 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
+	ent, err := configurator.LoadEntity(
+		nid, cwf.CwfGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load cwf gateway"), http.StatusInternalServerError)
+	}
+
 	ret := &cwfmodels.CwfGateway{
 		ID:          magmadModel.ID,
 		Name:        magmadModel.Name,
@@ -116,6 +114,10 @@ func getGateway(c echo.Context) error {
 		Tier:        magmadModel.Tier,
 		Magmad:      magmadModel.Magmad,
 	}
+	if ent.Config != nil {
+		ret.CarrierWifi = ent.Config.(*cwfmodels.GatewayCwfConfigs)
+	}
+
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -124,16 +126,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-
-	payload := &cwfmodels.MutableCwfGateway{}
-	if err := c.Bind(payload); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if err := payload.ValidateModel(); err != nil {
-		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-
-	if nerr := handlers.UpdateMagmadGatewayFromModel(nid, gid, payload); nerr != nil {
+	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &cwfmodels.MutableCwfGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)

@@ -38,8 +38,14 @@ Application::Application()
   ErrorHandler::executeWithCatch(
       [this]() -> void {
         snmpEngine = addEngine<channels::snmp::Engine>(name);
+        pingEngine = addEngine<channels::ping::Engine>(eventBase);
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
+}
+
+channels::ping::Engine& Application::getPingEngine() {
+  assert(pingEngine != nullptr);
+  return *pingEngine;
 }
 
 std::string Application::getName() const {
@@ -108,6 +114,8 @@ void Application::run() {
     for (auto& service : services) {
       service->start();
     }
+
+    eventBase.runInEventBaseThread([this]() { pingEngine->start(); });
 
     // TODO move this to devices
     scheduleEvery(

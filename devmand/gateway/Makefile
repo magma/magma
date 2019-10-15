@@ -1,6 +1,6 @@
 all:
 	cd ${PKG_BUILD_DIR}; \
-	cmake -GNinja -DCMAKE_BUILD_TYPE=release  \
+	cmake -GNinja -DCMAKE_BUILD_TYPE=release \
 		-DCMAKE_INSTALL_PREFIX=${PKG_INSTALL_DIR} \
 		${PKG_REPO_DIR}
 	cd ${PKG_BUILD_DIR}; ninja -C .
@@ -10,3 +10,4 @@ all:
 		cp @ ${PKG_INSTALL_DIR}@;'
 test:
 	cd ${PKG_BUILD_DIR}; ctest -T test -V
+.PHONY: test

@@ -162,9 +162,11 @@ func (st *memSessionTable) FindSession(imsi string) (sid string) {
 
 // RemoveSession - removes the session with the given SID and returns it
 func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
-	var s *memSession
 	if st != nil {
-		var found bool
+		var (
+			found bool
+			s     *memSession
+		)
 		st.rwl.Lock()
 		if s, found = st.sm[sid]; found {
 			delete(st.sm, sid)
@@ -178,9 +180,10 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 			apn := s.GetApn()
 			metrics.Sessions.WithLabelValues(apn).Dec()
 			metrics.SessionStop.WithLabelValues(apn, s.GetImsi(), sid).SetToCurrentTime()
+			return s
 		}
 	}
-	return s
+	return nil
 }
 
 // SetTimeout - [Re]sets the session's cleanup timeout to fire after tout duration

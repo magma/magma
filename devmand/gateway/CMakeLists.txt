@@ -31,6 +31,8 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/mikrotik/Channel.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/mikrotik/WriteTask.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/packet/Engine.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Channel.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Engine.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/Config.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/CambiumDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/DemoDevice.cpp
@@ -39,6 +41,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/Factory.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/EchoDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/FrinxDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/PingDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
@@ -50,6 +53,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/Time.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
 )
 
@@ -144,6 +148,7 @@ target_link_libraries(devmand
 
 add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/MikrotikChannelTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp

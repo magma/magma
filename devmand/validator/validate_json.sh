@@ -9,6 +9,8 @@
 #
 cd /usr/share/yang/models || exit
 
+validate_yang.sh fbc-symphony-device.yang
+
 # The order of models matters here for some strange reason so just be aware.
 yanglint --strict \
   fbc-symphony-device.yang \

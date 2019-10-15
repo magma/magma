@@ -176,10 +176,10 @@ paths:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of all federation gateways inside the network
+          description: Map of all federated gateways inside the network by gatewayID
           schema:
-            type: array
-            items:
+            type: object
+            additionalProperties:
               $ref: '#/definitions/federation_gateway'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'

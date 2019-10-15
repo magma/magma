@@ -30,6 +30,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
+  timeout: 5000,
   proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
     return {
       ...proxyReqOpts,
@@ -92,19 +93,13 @@ export async function networksResponseDecorator(
   let result = networkIds;
   if (userReq.organization) {
     const organization = await userReq.organization();
-    if (userReq.user.isSuperUser) {
-      // if this is a Super User, they have access to all networks in the org
-      // that are also available in the Magma controller
-      result = intersection(organization.networkIDs, networkIds);
-    } else {
-      // otherwise, the list of networks is further restricted to what the user
-      // is allowed to see
-      result = intersection(
-        organization.networkIDs,
-        networkIds,
-        userReq.user.networkIDs,
-      );
-    }
+    result = intersection(organization.networkIDs, networkIds);
+  }
+
+  if (!userReq.user.isSuperUser) {
+    // the list of networks is further restricted to what the user
+    // is allowed to see
+    result = intersection(result, userReq.user.networkIDs);
   }
 
   return JSON.stringify(result);
@@ -125,6 +120,14 @@ const containsNetworkID = function(
   );
 };
 
+const proxyErrorHandler = (err, res, next) => {
+  if (err.code === 'ENOTFOUND') {
+    res.status(503).send('Cannot reach Orchestrator server');
+  } else {
+    next();
+  }
+};
+
 router.use(
   /^\/magma\/networks$/,
   proxy(API_HOST, {
@@ -134,11 +137,21 @@ router.use(
 );
 
 router.use(
+  /^\/magma\/v1\/networks$/,
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    userResDecorator: networksResponseDecorator,
+    proxyErrorHandler,
+  }),
+);
+
+router.use(
   '/magma/networks/:networkID',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
@@ -148,6 +161,7 @@ router.use(
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
@@ -157,11 +171,20 @@ router.use(
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
     userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
   }),
 );
 
 router.use(
   '/magma/channels/:channel',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
+router.use(
+  '/magma/v1/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: (req, _res) => req.method === 'GET',

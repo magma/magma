@@ -13,8 +13,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	pdbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -39,49 +39,56 @@ func TestPolicyStreamers(t *testing.T) {
 	assert.NoError(t, err)
 
 	// create the rules first otherwise base names can't associate to them
+	id1 := "r1"
+	monitoringKey1 := swag.String("foo")
+	id2 := "r2"
+	priority2 := swag.Uint32(42)
+	id3 := "r3"
+	monitoringKey3 := swag.String("bar")
+
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.PolicyRuleEntityType,
+			Type: lte.PolicyRuleEntity2Type,
 			Key:  "r1",
 			Config: &models.PolicyRule{
-				ID:            "r1",
-				MonitoringKey: swag.String("foo"),
+				ID:            &id1,
+				MonitoringKey: *monitoringKey1,
 			},
 		},
 		{
-			Type: lte.PolicyRuleEntityType,
+			Type: lte.PolicyRuleEntity2Type,
 			Key:  "r2",
 			Config: &models.PolicyRule{
-				ID:       "r2",
-				Priority: swag.Uint32(42),
+				ID:       &id2,
+				Priority: priority2,
 			},
 		},
 		{
-			Type: lte.PolicyRuleEntityType,
+			Type: lte.PolicyRuleEntity2Type,
 			Key:  "r3",
 			Config: &models.PolicyRule{
-				ID:            "r3",
-				MonitoringKey: swag.String("bar"),
+				ID:            &id3,
+				MonitoringKey: *monitoringKey3,
 			},
 		},
 	})
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:   lte.BaseNameEntityType,
+			Type:   lte.BaseNameEntity2Type,
 			Key:    "b1",
 			Config: &models.BaseNameRecord{Name: models.BaseName("b1")},
 			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntityType, Key: "r1"},
-				{Type: lte.PolicyRuleEntityType, Key: "r2"},
+				{Type: lte.PolicyRuleEntity2Type, Key: "r1"},
+				{Type: lte.PolicyRuleEntity2Type, Key: "r2"},
 			},
 		},
 		{
-			Type:   lte.BaseNameEntityType,
+			Type:   lte.BaseNameEntity2Type,
 			Key:    "b2",
 			Config: &models.BaseNameRecord{Name: models.BaseName("b2")},
 			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntityType, Key: "r3"},
+				{Type: lte.PolicyRuleEntity2Type, Key: "r3"},
 			},
 		},
 	})

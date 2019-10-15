@@ -22,8 +22,8 @@ require (
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
-	golang.org/x/net v0.0.0-20190110200230-915654e7eabc
-	google.golang.org/grpc v1.17.0
+	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	google.golang.org/grpc v1.19.0
 
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

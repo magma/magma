@@ -62,6 +62,12 @@ typedef enum hashtable_return_code_e {
 
 #define HASH_TABLE_DEFAULT_HASH_FUNC NULL
 #define HASH_TABLE_DEFAULT_free_wrapper_FUNC NULL
+#define FREE_HASHTABLE_KEY_ARRAY(key_array_ptr)                                \
+  do {                                                                         \
+    AssertFatal(key_array_ptr, "Trying to free a NULL array pointer");         \
+    free(key_array_ptr->keys);                                                 \
+    free(key_array_ptr);                                                       \
+  } while(0) /*Free the list of keys of a hash table */
 
 typedef struct hash_node_s {
   hash_key_t key;

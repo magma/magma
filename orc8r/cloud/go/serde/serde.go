@@ -35,6 +35,19 @@ type Serde interface {
 	Deserialize(in []byte) (interface{}, error)
 }
 
+// ValidateableModel implements a ValidateModel() function that returns whether
+// the instance is valid.
+type ValidatableModel interface {
+	ValidateModel() error
+}
+
+// ValidateableBinaryConvertible wraps both BinaryConvertible, for generic
+// serde factory functions, and ValidateableModel for validations.
+type ValidateableBinaryConvertible interface {
+	BinaryConvertible
+	ValidatableModel
+}
+
 // BinaryConvertible wraps encoding.BinaryMarshaler and
 // encoding.BinaryUnmarshaler for use in generic serde factory functions.
 type BinaryConvertible interface {

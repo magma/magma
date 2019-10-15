@@ -23,7 +23,10 @@ import (
 	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
-const AAAServiceName = "aaa_server"
+const (
+	AAAServiceName = "aaa_server"
+	Version        = "0.1"
+)
 
 func main() {
 	// Create a shared Session Table
@@ -46,6 +49,7 @@ func main() {
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
+	log.Printf("Starting AAA Service v%s.", Version)
 	err = srv.Run()
 	if err != nil {
 		log.Fatalf("Error running AAA service: %s", err)

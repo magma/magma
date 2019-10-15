@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import asyncio
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from xml.etree import ElementTree
 from aiohttp import web
 from magma.common.misc_utils import get_ip_from_if
@@ -189,24 +189,24 @@ class StatsManager:
 
             index = name_index_map.get(counter)
             if index is None:
-                logging.info('PM counter %s not found in PmNames', counter)
+                logger.info('PM counter %s not found in PmNames', counter)
                 continue
 
             data_el = index_data_map.get(index)
             if data_el is None:
-                logging.info('PM counter %s not found in PmData', counter)
+                logger.info('PM counter %s not found in PmData', counter)
                 continue
 
             if data_el.tag == 'V':
                 if subcounter is not None:
-                    logging.info('No subcounter in PM counter %s', counter)
+                    logger.info('No subcounter in PM counter %s', counter)
                     continue
 
                 # Data is singular value
                 try:
                     value = int(data_el.text)
                 except ValueError:
-                    logging.info('PM value (%s) of counter %s not integer',
+                    logger.info('PM value (%s) of counter %s not integer',
                                  data_el.text, counter)
                     continue
             elif data_el.tag == 'CV':
@@ -220,7 +220,7 @@ class StatsManager:
                         index = index + 1
 
                 if subcounter is not None and subcounter_index is None:
-                    logging.info('PM subcounter (%s) not found', subcounter)
+                    logger.info('PM subcounter (%s) not found', subcounter)
                     continue
 
                 # Data is multiple sub-elements. Sum them, or select the one
@@ -234,11 +234,11 @@ class StatsManager:
                             value = value + int(sub_data_el.text)
                         index = index + 1
                 except ValueError:
-                    logging.info('PM value (%s) of counter %s not integer',
+                    logger.info('PM value (%s) of counter %s not integer',
                                  sub_data_el.text, pm_name)
                     continue
             else:
-                logging.info('Unknown PM data type (%s) of counter %s',
+                logger.info('Unknown PM data type (%s) of counter %s',
                              data_el.tag, pm_name)
                 continue
 
@@ -339,7 +339,7 @@ class StatsManager:
         """
         Clear statistics. Called when eNodeB management plane disconnects
         """
-        logging.info('Clearing statistics')
+        logger.info('Clearing statistics')
         # Set all metrics to 0 if eNodeB not connected
         for metric in self.PM_FILE_TO_METRIC_MAP.values():
             metric.set(0)

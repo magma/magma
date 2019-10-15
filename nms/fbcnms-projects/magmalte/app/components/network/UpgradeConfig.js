@@ -8,17 +8,20 @@
  * @format
  */
 
-import type {CheckindGateway} from '../../common/MagmaAPIType';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {tier} from '../../common/__generated__/MagmaAPIBindings';
+import type {
+  magmad_gateway,
+  tier,
+} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '../../common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
@@ -31,19 +34,17 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
-import axios from 'axios';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {MagmaAPIUrls, fetchAllGateways} from '../../common/MagmaAPI';
 import {Route, withRouter} from 'react-router-dom';
-import {get, map, merge, sortBy} from 'lodash';
+import {map, sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 type State = {
-  gateways: ?(CheckindGateway[]),
+  gateways: ?(magmad_gateway[]),
   errorMessage: ?string,
-  loading: boolean,
+  saving: boolean,
   networkUpgradeTiers: ?(tier[]),
   supportedVersions: ?(string[]),
 };
@@ -113,7 +114,7 @@ const SupportedVersionsTable = (props: {supportedVersions: string[]}) => {
 };
 
 const GatewayUpgradeStatusTable = (props: {
-  tableData: Array<CheckindGateway>,
+  tableData: Array<magmad_gateway>,
   networkUpgradeTiers: ?(tier[]),
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {
@@ -135,14 +136,14 @@ const GatewayUpgradeStatusTable = (props: {
       </TableHead>
       <TableBody>
         {map(sortedTableData, row => (
-          <TableRow key={row.gateway_id}>
+          <TableRow key={row.id}>
             <TableCell>{row.name}</TableCell>
-            <TableCell>{get(row, 'record.hardware_id')}</TableCell>
+            <TableCell>{row.device.hardware_id}</TableCell>
             <TableCell>
               <UpgradeStatusTierID
                 onChange={onUpgradeTierChange}
-                gatewayID={row.gateway_id}
-                tierID={get(row, 'config.magmad_gateway.tier')}
+                gatewayID={row.id}
+                tierID={row.tier}
                 networkUpgradeTiers={networkUpgradeTiers}
               />
             </TableCell>
@@ -168,7 +169,7 @@ class UpgradeConfig extends React.Component<Props, State> {
   state = {
     gateways: null,
     errorMessage: null,
-    loading: true,
+    saving: false,
     networkUpgradeTiers: null,
     supportedVersions: null,
   };
@@ -178,17 +179,17 @@ class UpgradeConfig extends React.Component<Props, State> {
   }
 
   loadData() {
-    const {networkId} = this.props.match.params;
+    const networkId = nullthrows(this.props.match.params.networkId);
     Promise.all([
-      axios.get(MagmaAPIUrls.upgradeChannel('stable')),
-      fetchAllGateways(networkId || ''),
+      MagmaV1API.getChannelsByChannelId({channelId: 'stable'}),
+      MagmaV1API.getNetworksByNetworkIdGateways({networkId}),
       fetchAllNetworkUpgradeTiers(networkId || ''),
     ])
       .then(([channelResp, gateways, networkUpgradeTiers]) => {
         this.setState({
           gateways,
           networkUpgradeTiers,
-          supportedVersions: channelResp.data.supported_versions,
+          supportedVersions: channelResp.supported_versions,
         });
       })
       .catch(this.props.alert);
@@ -196,7 +197,12 @@ class UpgradeConfig extends React.Component<Props, State> {
 
   render() {
     const {classes, match} = this.props;
-    const {gateways, networkUpgradeTiers, supportedVersions} = this.state;
+    const {
+      gateways,
+      networkUpgradeTiers,
+      supportedVersions,
+      saving,
+    } = this.state;
 
     if (!gateways) {
       return <LoadingFiller />;
@@ -204,6 +210,7 @@ class UpgradeConfig extends React.Component<Props, State> {
 
     return (
       <>
+        {saving && <LoadingFillerBackdrop />}
         {gateways && (
           <>
             <Toolbar>
@@ -263,21 +270,26 @@ class UpgradeConfig extends React.Component<Props, State> {
   }
 
   handleGatewayUpgradeTierChange = (gatewayID, newTierID) => {
+    this.setState({saving: true});
     this.handleGatewayUpgradeTierChangeAsync(gatewayID, newTierID).catch(
-      error => this.props.alert(error.response?.data?.message || error),
+      error => {
+        this.props.alert(error.response?.data?.message || error);
+        this.setState({saving: false});
+      },
     );
   };
 
   async handleGatewayUpgradeTierChangeAsync(gatewayID, newTierID) {
-    const networkId = this.props.match.params.networkId || '';
-    const url = MagmaAPIUrls.gatewayConfigs(this.props.match, gatewayID);
-    const resp = await axios.get(url);
-    const newData = merge({}, resp.data, {
-      tier: newTierID,
+    const networkId = nullthrows(this.props.match.params.networkId);
+    await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
+      networkId,
+      gatewayId: gatewayID,
+      tierId: JSON.stringify(`"${newTierID}"`),
     });
-    await axios.put(url, newData);
-    const gateways = await fetchAllGateways(networkId);
-    this.setState({gateways});
+    const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
+      networkId,
+    });
+    this.setState({gateways, saving: false});
   }
 
   handleUpgradeTierDelete = (tierId: string) => {

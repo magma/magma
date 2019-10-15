@@ -13,6 +13,7 @@ import type {Fragment} from 'react';
 import type {WifiGateway, WifiGatewayStatus} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import React from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
@@ -24,8 +25,6 @@ import Typography from '@material-ui/core/Typography';
 import moment from 'moment';
 
 import {withStyles} from '@material-ui/core/styles';
-
-import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 
 import {macColonfy} from './WifiUtils';
 
@@ -245,7 +244,7 @@ const WifiDeviceDetails = (props: Props) => {
             label="Status"
             data={
               <>
-                <GatewayStatus isGrey={!status} isActive={!!device.up} />
+                <DeviceStatusCircle isGrey={!status} isActive={!!device.up} />
                 {device.up ? 'UP' : 'DOWN'}
               </>
             }

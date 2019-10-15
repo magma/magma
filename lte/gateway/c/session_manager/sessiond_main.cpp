@@ -110,6 +110,7 @@ int main(int argc, char *argv[])
   __gcov_flush();
 #endif
 
+  MLOG(MINFO) << "Starting Session Manager";
   magma::init_logging(argv[0]);
   auto mconfig = load_mconfig();
   auto config =
@@ -149,7 +150,7 @@ int main(int argc, char *argv[])
   if (config["support_carrier_wifi"].as<bool>()) {
     aaa_client = std::make_shared<aaa::AsyncAAAClient>();
     optional_client_thread = std::thread([&]() {
-      MLOG(MINFO) << "Started AAA client response thread";
+      MLOG(MINFO) << "Started AAA Client response thread";
       aaa_client->rpc_response_loop();
     });
 

@@ -156,15 +156,6 @@ service Pipelined {
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
 
-  // ------------------
-  // Packet tracer App:
-  // ------------------
-
-  // Initiate a packet send through the switch which will report the
-  // table_id that caused a failure in the end
-  rpc TracePacket (SerializedRyuPacket) returns (PacketDropTableId) {}
-
-
   // --------
   // Debugging:
   // --------

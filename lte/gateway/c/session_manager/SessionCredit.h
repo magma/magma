@@ -94,8 +94,7 @@ class SessionCredit {
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
-  void mark_failure();
-
+  void mark_failure(uint32_t code = 0);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
@@ -145,7 +144,7 @@ class SessionCredit {
   void reauth();
 
   /**
-   * Returns true when there will be no more quora granted
+   * Returns true when there will be no more quota granted
    */
   bool no_more_grant();
 
@@ -190,6 +189,7 @@ class SessionCredit {
    * session manager from reporting more usage than granted
    */
   uint64_t usage_reporting_limit_;
+  static const std::set<uint32_t> transient_result_codes_;
 
  private:
   bool quota_exhausted(
