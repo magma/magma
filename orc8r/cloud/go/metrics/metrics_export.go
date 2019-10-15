@@ -16,6 +16,11 @@ import (
 	prometheus_proto "github.com/prometheus/client_model/go"
 )
 
+const (
+	NetworkLabelName = "networkID"
+	GatewayLabelName = "gatewayID"
+)
+
 // This method gathers metrics from prometheus' default registry,
 // and adds a timestamp to each metric. This method is called
 // in Service303 Server's GetMetrics rpc implementation.

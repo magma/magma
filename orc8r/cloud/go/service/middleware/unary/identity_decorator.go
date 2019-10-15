@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/golang/protobuf/ptypes"
@@ -65,7 +66,7 @@ var gwExpiringCert = prometheus.NewCounterVec(
 		Name: "gateway_expiring_cert",
 		Help: "Count of GW cloud requests with soon to expire Client Certificate (indicated GW bootstrapper failure",
 	},
-	[]string{"networkId", "gatewayId"},
+	[]string{metrics.NetworkLabelName, metrics.GatewayLabelName},
 )
 
 func init() {

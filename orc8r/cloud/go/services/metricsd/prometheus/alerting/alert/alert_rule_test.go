@@ -11,9 +11,9 @@ package alert_test
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -93,13 +93,13 @@ func TestSecureRule(t *testing.T) {
 	err := alert.SecureRule("test", &rule)
 	assert.NoError(t, err)
 
-	networkLabels := map[string]string{exporters.NetworkLabelNetwork: "test"}
+	networkLabels := map[string]string{metrics.NetworkLabelName: "test"}
 	restrictor := security.NewQueryRestrictor(networkLabels)
 	expectedExpr, _ := restrictor.RestrictQuery(sampleRule.Expr)
 
 	assert.Equal(t, expectedExpr, rule.Expr)
 	assert.Equal(t, 2, len(rule.Labels))
-	assert.Equal(t, "test", rule.Labels[exporters.NetworkLabelNetwork])
+	assert.Equal(t, "test", rule.Labels[metrics.NetworkLabelName])
 }
 
 func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {

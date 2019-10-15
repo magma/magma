@@ -16,10 +16,10 @@ import (
 	"net/http"
 	neturl "net/url"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"
@@ -290,7 +290,7 @@ func viewFiringAlerts(networkID, alertmanagerApiURL string, c echo.Context) erro
 func getAlertsForNetwork(networkID string, alerts []models.GettableAlert) []models.GettableAlert {
 	networkAlerts := make([]models.GettableAlert, 0)
 	for _, alert := range alerts {
-		if labelVal, ok := alert.Labels[exporters.NetworkLabelNetwork]; ok {
+		if labelVal, ok := alert.Labels[metrics.NetworkLabelName]; ok {
 			if labelVal == networkID {
 				networkAlerts = append(networkAlerts, alert)
 			}

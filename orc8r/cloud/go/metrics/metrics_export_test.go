@@ -13,7 +13,7 @@ import (
 	"math"
 	"testing"
 
-	"magma/orc8r/cloud/go/common/metrics"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 	prometheus_proto "github.com/prometheus/client_model/go"
