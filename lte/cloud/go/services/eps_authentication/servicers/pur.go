@@ -11,7 +11,7 @@ package servicers
 import (
 	"errors"
 
-	"magma/feg/cloud/go/protos"
+	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
 

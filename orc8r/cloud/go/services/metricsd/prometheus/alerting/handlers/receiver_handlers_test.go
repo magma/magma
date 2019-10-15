@@ -222,7 +222,7 @@ func buildContext(body interface{}, method, target, path, networkID string) (ech
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	c.SetPath(path)
-	c.SetParamNames("network_id")
+	c.SetParamNames("file_prefix")
 	c.SetParamValues(networkID)
 	return c, rec
 }

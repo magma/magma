@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import re
 from magma.enodebd.exceptions import UnrecognizedEnodebError
 
@@ -77,24 +77,24 @@ def _parse_sw_version(version_str):
     Note: trailing characters (for dev builds) are ignored. Null is returned
     for version strings that don't match the above format.
     """
-    logging.debug('Got firmware version: %s', version_str)
+    logger.debug('Got firmware version: %s', version_str)
 
     version = re.findall(
         r'BaiStation_V(\d{3})R(\d{3})C(\d{2})B(\d{3})SPC(\d{3})', version_str)
     if not version:
         return None
     elif len(version) > 1:
-        logging.warning('SW version (%s) not formatted as expected',
+        logger.warning('SW version (%s) not formatted as expected',
                         version_str)
     version_int = []
     for num in version[0]:
         try:
             version_int.append(int(num))
         except ValueError:
-            logging.warning('SW version (%s) not formatted as expected',
+            logger.warning('SW version (%s) not formatted as expected',
                             version_str)
             return None
 
-    logging.debug('Parsed firmware version: %s', version_int)
+    logger.debug('Parsed firmware version: %s', version_int)
 
     return version_int

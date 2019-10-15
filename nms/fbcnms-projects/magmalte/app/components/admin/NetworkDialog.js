@@ -107,7 +107,7 @@ export default function NetworkDialog(props: Props) {
           className={classes.input}
           value={networkID}
           onChange={({target}) => setNetworkId(target.value)}
-          disabled={editingNetworkID}
+          disabled={!!editingNetworkID}
         />
         <TextField
           name="name"

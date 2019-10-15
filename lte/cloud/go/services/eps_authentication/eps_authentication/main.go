@@ -11,8 +11,8 @@ package main
 import (
 	"log"
 
-	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication"
 	"magma/lte/cloud/go/services/eps_authentication/servicers"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
@@ -44,7 +44,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("EPS Auth Servicer Initialization Error: %s", err)
 	}
-	protos.RegisterS6AProxyServer(srv.GrpcServer, servicer)
+	protos.RegisterEPSAuthenticationServer(srv.GrpcServer, servicer)
 
 	// Run the service
 	err = srv.Run()

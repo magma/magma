@@ -16,7 +16,7 @@ modifications are required because:
 3) Minor enhancements for debug-ability
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 
 from lxml import etree
 
@@ -113,7 +113,7 @@ class Tr069Soap11(Soap11):
                 detail_children = list(detail_elem)
                 if len(detail_children):
                     if len(detail_children) > 1:
-                        logging.warning("Multiple detail elements found in SOAP"
+                        logger.warning("Multiple detail elements found in SOAP"
                                         " fault - using first one")
                     ctx.in_body_doc = detail_children[0]
                     ctx.method_request_string = ctx.in_body_doc.tag

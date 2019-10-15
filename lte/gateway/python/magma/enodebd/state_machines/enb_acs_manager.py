@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from typing import Any, Optional, List
 from magma.common.service import MagmaService
 from magma.enodebd.devices.device_map import get_device_handler_from_name
@@ -46,7 +46,7 @@ class StateMachineManager:
             try:
                 self._update_device_mapping(client_ip, tr069_message)
             except UnrecognizedEnodebError as err:
-                logging.warning('Received TR-069 Inform message from an '
+                logger.warning('Received TR-069 Inform message from an '
                                 'unrecognized device. '
                                 'Ending TR-069 session with empty HTTP '
                                 'response. Error: (%s)', err)
@@ -54,7 +54,7 @@ class StateMachineManager:
 
         handler = self._get_handler(client_ip)
         if handler is None:
-            logging.warning('Received non-Inform TR-069 message from unknown '
+            logger.warning('Received non-Inform TR-069 message from unknown '
                             'eNB. Ending session with empty HTTP response.')
             return models.DummyInput()
 
@@ -113,13 +113,13 @@ class StateMachineManager:
         """
         if enb_serial is None:
             # TR-069 message did not contain an eNodeB serial ID.
-            logging.error('Cannot associate null eNB serial to a an IP')
+            logger.error('Cannot associate null eNB serial to a an IP')
             pass
         elif self._ip_serial_mapping.has_ip(client_ip):
             # Same IP, different eNB connected
             prev_serial = self._ip_serial_mapping.get_serial(client_ip)
             if enb_serial != prev_serial:
-                logging.info('eNodeB change on IP <%s>, from %s to %s',
+                logger.info('eNodeB change on IP <%s>, from %s to %s',
                              client_ip, prev_serial, enb_serial)
                 self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
                 self._state_machine_by_ip[client_ip] = None
@@ -127,7 +127,7 @@ class StateMachineManager:
             # Same eNB, different IP
             prev_ip = self._ip_serial_mapping.get_ip(enb_serial)
             if client_ip != prev_ip:
-                logging.info('eNodeB <%s> changed IP from %s to %s',
+                logger.info('eNodeB <%s> changed IP from %s to %s',
                              enb_serial, prev_ip, client_ip)
                 self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
                 handler = self._state_machine_by_ip[prev_ip]

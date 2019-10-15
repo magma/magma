@@ -9,9 +9,10 @@
  */
 'use strict';
 
-import React from 'react';
-import emptyFunction from '@fbcnms/util/emptyFunction';
 import type {FeatureID} from '@fbcnms/types/features';
+
+import * as React from 'react';
+import emptyFunction from '@fbcnms/util/emptyFunction';
 
 export type User = {
   tenant: string,
@@ -27,10 +28,10 @@ export type AppContextType = {
   user: User,
   showExpandButton: () => void,
   hideExpandButton: () => void,
-  enabledFeatures: FeatureID[],
+  isFeatureEnabled: FeatureID => boolean,
 };
 
-export default React.createContext<AppContextType>({
+const AppContext = React.createContext<AppContextType>({
   csrfToken: null,
   version: null,
   networkIds: [],
@@ -38,5 +39,27 @@ export default React.createContext<AppContextType>({
   user: {tenant: '', email: '', isSuperUser: false},
   showExpandButton: emptyFunction,
   hideExpandButton: emptyFunction,
-  enabledFeatures: [],
+  isFeatureEnabled: () => false,
 });
+
+type Props = {|
+  children: React.Node,
+  networkIDs?: string[],
+|};
+
+export function AppContextProvider(props: Props) {
+  const {appData} = window.CONFIG;
+  const value = {
+    ...appData,
+    networkIds: props.networkIDs || [],
+    isFeatureEnabled: (featureID: FeatureID): boolean => {
+      return appData.enabledFeatures.indexOf(featureID) !== -1;
+    },
+  };
+
+  return (
+    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
+  );
+}
+
+export default AppContext;
