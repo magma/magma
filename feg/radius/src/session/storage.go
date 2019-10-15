@@ -8,6 +8,10 @@ LICENSE file in the root directory of this source tree.
 
 package session
 
+import (
+	"errors"
+)
+
 type (
 	// State the data to store per session
 	State struct {
@@ -44,6 +48,11 @@ type sessionStorage struct {
 	globalStorage GlobalStorage
 	sessionID     string
 }
+
+var (
+	// ErrInvalidDataFormat indicate we have an invalid data as state
+	ErrInvalidDataFormat = errors.New("invalid data format found in storage")
+)
 
 func (s *sessionStorage) Get() (*State, error) {
 	return s.globalStorage.Get(s.sessionID)

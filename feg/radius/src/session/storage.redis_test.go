@@ -12,22 +12,34 @@ import (
 	"fmt"
 	"sync"
 	"testing"
+
+	"github.com/alicebob/miniredis"
 )
 
-func TestBasicInsertGet(t *testing.T) {
+func TestBasicInsertGetRedis(t *testing.T) {
+
 	// Arrange
-	storage := NewMultiSessionMemoryStorage()
+	sessionID := "test"
+
+	mr, _ := miniredis.Run()
+	defer mr.Close()
+
+	storage := NewMultiSessionRedisStorage(mr.Addr(), "", 0)
 
 	// Act and Assert
-	performSignleReadWriteDeleteReadTest(t, storage, "test")
+	performSignleReadWriteDeleteReadTest(t, storage, sessionID)
 }
 
-func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
+func TestMultipleConcurrentInsertDeleteGetRedis(t *testing.T) {
 	// Arrange
 	degOfParallelism := 100
 	reqPerConcurrentContext := 100
 	onComplete := sync.WaitGroup{}
-	storage := NewMultiSessionMemoryStorage()
+
+	mr, _ := miniredis.Run()
+	defer mr.Close()
+
+	storage := NewMultiSessionRedisStorage(mr.Addr(), "", 0)
 
 	// Act
 	for i := 0; i < degOfParallelism; i++ {
@@ -37,7 +49,4 @@ func TestMultipleConcurrentInsertDeleteGet(t *testing.T) {
 		}(fmt.Sprintf("called%d", i), fmt.Sprintf("calling%d", i))
 	}
 	onComplete.Wait()
-
-	// Assert
-	// nothing to do (assert will happen in the go routines spawned above)
 }
