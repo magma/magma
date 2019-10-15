@@ -33,7 +33,12 @@ module.exports.overrides = [
     files: ['**/__mocks__/**/*.js', '**/__tests__/**/*.js', 'testHelpers.js'],
   },
   {
-    files: ['fbcnms-packages/**/*.js', 'fbcnms-projects/magmalte/**/*.js'],
+    files: [
+      'fbcnms-packages/**/*.js',
+      'fbcnms-projects/inventory/**/*.js',
+      'fbcnms-projects/magmalte/**/*.js',
+      'fbcnms-projects/platform-server/**/*.js',
+    ],
     rules: {
       'header/header': [2, 'block', {pattern: openSourcePattern}],
     },
