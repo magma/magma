@@ -13,8 +13,8 @@ import (
 	"strings"
 	"sync"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/prometheus/alertmanager/config"
 
@@ -157,7 +157,7 @@ func (c *client) ModifyNetworkRoute(networkID string, route *config.Route) error
 		route.Match = map[string]string{}
 	}
 
-	route.Match[exporters.NetworkLabelNetwork] = networkID
+	route.Match[metrics.NetworkLabelName] = networkID
 
 	for _, childRoute := range route.Routes {
 		if childRoute == nil {

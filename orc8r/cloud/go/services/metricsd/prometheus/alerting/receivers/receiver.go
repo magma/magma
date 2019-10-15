@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
@@ -57,7 +57,7 @@ func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID strin
 
 	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
 	route.Receiver = baseRouteName
-	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+	route.Match = map[string]string{metrics.NetworkLabelName: networkID}
 
 	c.Route.Routes = append(c.Route.Routes, route)
 
