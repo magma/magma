@@ -59,7 +59,7 @@
 #include "emm_data.h"
 #include "hashtable.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "service303.h"
 
@@ -366,8 +366,9 @@ int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
 
   OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_imsi(
-    &mme_app_desc.mme_ue_contexts, (const hash_key_t) imsi64);
+    &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
   if (ue_mm_context) {
     ctxt = &ue_mm_context->emm_context;
   }

@@ -179,16 +179,49 @@ void LocalEnforcer::terminate_service(
 {
   pipelined_client_->deactivate_flows_for_rules(imsi, rule_ids, dynamic_rules);
 
-  // tell AAA service to terminate radius session if necessary
   auto it = session_map_.find(imsi);
   if (it == session_map_.end()) {
-    MLOG(MWARNING) << "Could not find session with IMSI " << imsi;
-  } else if (it->second->is_radius_cwf_session()) {
+    MLOG(MWARNING) << "Could not find session with IMSI " << imsi
+                   << " to terminate";
+    return;
+  }
+
+  it->second->start_termination([this](SessionTerminateRequest term_req) {
+    // report to cloud
+    reporter_->report_terminate_session(
+      term_req,
+      [&term_req](Status status, SessionTerminateResponse response) {
+        if (!status.ok()) {
+          MLOG(MERROR)
+            << "Failed to terminate service in controller for subscriber "
+            << term_req.sid() << ": " << status.error_message();
+        } else {
+          MLOG(MDEBUG)
+            << "Termination successful in controller for subscriber "
+            << term_req.sid();
+        }
+      }
+    );
+  });
+
+  // tell AAA service to terminate radius session if necessary
+  if (it->second->is_radius_cwf_session()) {
     MLOG(MDEBUG) << "Asking AAA service to terminate session with "
                  << "Radius ID: " << it->second->get_radius_session_id()
                  << ", IMSI: " << imsi;
     aaa_client_->terminate_session(it->second->get_radius_session_id(), imsi);
   }
+
+  std::string session_id = it->second->get_session_id();
+  // The termination should be completed when aggregated usage record no longer
+  // includes the imsi. If this has not occurred after the timeout, force
+  // terminate the session.
+  evb_->runAfterDelay(
+    [this, imsi, session_id] {
+      MLOG(MDEBUG) << "Forced service termination for IMSI " << imsi;
+      complete_termination(imsi, session_id);
+    },
+    session_force_termination_timeout_ms_);
 }
 
 // TODO: make session_manager.proto and policydb.proto to use common field
@@ -498,7 +531,8 @@ bool LocalEnforcer::init_session_credit(
   const CreateSessionResponse &response)
 {
   std::unordered_set<uint32_t> successful_credits;
-  auto session_state = new SessionState(imsi, session_id, cfg, *rule_store_);
+  auto session_state = new SessionState(
+    imsi, session_id, response.session_id(), cfg, *rule_store_);
   for (const auto &credit : response.credits()) {
     session_state->get_charging_pool().receive_credit(credit);
     if (credit.success() && contains_credit(credit.credit().granted_units())) {
@@ -598,14 +632,16 @@ void LocalEnforcer::complete_termination(
 
 void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
 {
-  for (const auto &response : response.responses()) {
-    auto it = session_map_.find(response.sid());
+  for (const auto &credit_update_resp : response.responses()) {
+    auto it = session_map_.find(credit_update_resp.sid());
     if (it == session_map_.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI " << response.sid()
-                   << " during update";
+      MLOG(MERROR) << "Could not find session for IMSI "
+                   << credit_update_resp.sid() << " during update";
       return;
     }
-    it->second->get_charging_pool().receive_credit(response);
+    if (credit_update_resp.success()) {
+        it->second->get_charging_pool().receive_credit(credit_update_resp);
+    }
   }
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     if (revalidation_required(usage_monitor_resp.event_triggers())) {
@@ -912,14 +948,14 @@ bool LocalEnforcer::is_imsi_duplicate(const std::string &imsi)
   return true;
 }
 
-bool LocalEnforcer::is_session_duplicate(
+std::string *LocalEnforcer::duplicate_session_id(
   const std::string &imsi, const magma::SessionState::Config &config)
 {
   auto it = session_map_.find(imsi);
-  if (it == session_map_.end()) {
-    return false;
+  if (it == session_map_.end() || (!it->second->is_same_config(config))) {
+    return nullptr;
   }
-  return it->second->is_same_config(config);
+  return new std::string(it->second->get_core_session_id());
 }
 
 static void mark_rule_failures(

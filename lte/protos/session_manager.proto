@@ -53,6 +53,7 @@ message LocalCreateSessionRequest {
 }
 
 message LocalCreateSessionResponse {
+  string session_id = 1;
 }
 
 message LocalEndSessionResponse {
@@ -316,6 +317,7 @@ message CreditUpdateResponse {
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   ResponseType type = 5;
+  uint32 result_code = 6;
 }
 
 // PCRF USAGE MONITORING
@@ -363,6 +365,7 @@ message UsageMonitoringUpdateResponse {
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
+  uint32 result_code = 7;
 }
 
 
@@ -401,6 +404,7 @@ message CreateSessionResponse {
   repeated UsageMonitoringUpdateResponse usage_monitors = 6;
   repeated StaticRuleInstall static_rules = 7; // static rules
   repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
+  string session_id = 9;
 }
 
 message StaticRuleInstall {

@@ -26,25 +26,27 @@ const (
 // and modifying alert configuration files
 type PrometheusAlertClient interface {
 	ValidateRule(rule rulefmt.Rule) error
-	RuleExists(networkID, rulename string) bool
-	WriteRule(networkID string, rule rulefmt.Rule) error
-	UpdateRule(networkID string, rule rulefmt.Rule) error
-	ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error)
-	DeleteRule(networkID, ruleName string) error
-	BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUpdateResults, error)
+	RuleExists(filePrefix, rulename string) bool
+	WriteRule(filePrefix string, rule rulefmt.Rule) error
+	UpdateRule(filePrefix string, rule rulefmt.Rule) error
+	ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error)
+	DeleteRule(filePrefix, ruleName string) error
+	BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error)
 }
 
 type client struct {
-	fileLocks *FileLocker
-	rulesDir  string
-	fsClient  files.FSClient
+	fileLocks    *FileLocker
+	rulesDir     string
+	fsClient     files.FSClient
+	multitenancy bool
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient, multitenant bool) PrometheusAlertClient {
 	return &client{
-		fileLocks: fileLocks,
-		rulesDir:  rulesDir,
-		fsClient:  fsClient,
+		fileLocks:    fileLocks,
+		rulesDir:     rulesDir,
+		fsClient:     fsClient,
+		multitenancy: multitenant,
 	}
 }
 
@@ -57,13 +59,13 @@ func (c *client) ValidateRule(rule rulefmt.Rule) error {
 	return nil
 }
 
-func (c *client) RuleExists(networkID, rulename string) bool {
-	filename := makeFilename(networkID, c.rulesDir)
+func (c *client) RuleExists(filePrefix, rulename string) bool {
+	filename := makeFilename(filePrefix, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(networkID, filename)
+	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return false
 	}
@@ -71,14 +73,14 @@ func (c *client) RuleExists(networkID, rulename string) bool {
 }
 
 // WriteRule takes an alerting rule and writes it to the rules file for the
-// given networkID
-func (c *client) WriteRule(networkID string, rule rulefmt.Rule) error {
-	filename := makeFilename(networkID, c.rulesDir)
+// given filePrefix
+func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
+	filename := makeFilename(filePrefix, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(networkID, filename)
+	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return err
 	}
@@ -91,20 +93,22 @@ func (c *client) WriteRule(networkID string, rule rulefmt.Rule) error {
 	return nil
 }
 
-func (c *client) UpdateRule(networkID string, rule rulefmt.Rule) error {
-	filename := makeFilename(networkID, c.rulesDir)
+func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
+	filename := makeFilename(filePrefix, c.rulesDir)
 
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
-	ruleFile, err := c.initializeRuleFile(networkID, filename)
+	ruleFile, err := c.initializeRuleFile(filePrefix, filename)
 	if err != nil {
 		return err
 	}
 
-	err = SecureRule(networkID, &rule)
-	if err != nil {
-		return err
+	if c.multitenancy {
+		err = SecureRule(filePrefix, &rule)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = ruleFile.ReplaceRule(rule)
@@ -119,8 +123,8 @@ func (c *client) UpdateRule(networkID string, rule rulefmt.Rule) error {
 	return nil
 }
 
-func (c *client) ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error) {
-	filename := makeFilename(networkID, c.rulesDir)
+func (c *client) ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error) {
+	filename := makeFilename(filePrefix, c.rulesDir)
 	c.fileLocks.RLock(filename)
 	defer c.fileLocks.RUnlock(filename)
 
@@ -128,7 +132,7 @@ func (c *client) ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error) {
 		return []rulefmt.Rule{}, nil
 	}
 
-	ruleFile, err := c.readRuleFile(makeFilename(networkID, c.rulesDir))
+	ruleFile, err := c.readRuleFile(makeFilename(filePrefix, c.rulesDir))
 	if err != nil {
 		return []rulefmt.Rule{}, err
 	}
@@ -142,8 +146,8 @@ func (c *client) ReadRules(networkID, ruleName string) ([]rulefmt.Rule, error) {
 	return []rulefmt.Rule{*foundRule}, nil
 }
 
-func (c *client) DeleteRule(networkID, ruleName string) error {
-	filename := makeFilename(networkID, c.rulesDir)
+func (c *client) DeleteRule(filePrefix, ruleName string) error {
+	filename := makeFilename(filePrefix, c.rulesDir)
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
@@ -164,8 +168,8 @@ func (c *client) DeleteRule(networkID, ruleName string) error {
 	return nil
 }
 
-func (c *client) BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUpdateResults, error) {
-	filename := makeFilename(networkID, c.rulesDir)
+func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error) {
+	filename := makeFilename(filePrefix, c.rulesDir)
 	c.fileLocks.Lock(filename)
 	defer c.fileLocks.Unlock(filename)
 
@@ -177,11 +181,14 @@ func (c *client) BulkUpdateRules(networkID string, rules []rulefmt.Rule) (BulkUp
 	results := NewBulkUpdateResults()
 	for _, newRule := range rules {
 		ruleName := newRule.Alert
-		err := SecureRule(networkID, &newRule)
-		if err != nil {
-			results.Errors[ruleName] = err
-			continue
+		if c.multitenancy {
+			err := SecureRule(filePrefix, &newRule)
+			if err != nil {
+				results.Errors[ruleName] = err
+				continue
+			}
 		}
+
 		if ruleFile.GetRule(ruleName) != nil {
 			err := ruleFile.ReplaceRule(newRule)
 			if err != nil {
@@ -211,7 +218,7 @@ func (c *client) writeRuleFile(ruleFile *File, filename string) error {
 	return nil
 }
 
-func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
+func (c *client) initializeRuleFile(filePrefix, filename string) (*File, error) {
 	if _, err := c.fsClient.Stat(filename); err == nil {
 		file, err := c.readRuleFile(filename)
 		if err != nil {
@@ -219,7 +226,7 @@ func (c *client) initializeRuleFile(networkID, filename string) (*File, error) {
 		}
 		return file, nil
 	}
-	return NewFile(networkID), nil
+	return NewFile(filePrefix), nil
 }
 
 func (c *client) ruleFileExists(filename string) bool {
@@ -266,6 +273,6 @@ func (r BulkUpdateResults) String() string {
 	return str.String()
 }
 
-func makeFilename(networkID, path string) string {
-	return path + "/" + networkID + rulesFilePostfix
+func makeFilename(filePrefix, path string) string {
+	return path + "/" + filePrefix + rulesFilePostfix
 }

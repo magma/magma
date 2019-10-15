@@ -27,24 +27,30 @@ module fbc-symphony-device {
 
     revision 2019-08-01 {
         description "Initial revision";
+        reference "";
     }
 
     typedef status {
         type enumeration {
             enum UP {
-                description "The controller is able to reach this device.";
+                description "The agent is able to reach this device.";
             }
             enum DOWN {
-                description "The controller is unable to reach this device.";
+                description "The agent is unable to reach this device.";
             }
         }
+
+        description "A brief context about the state of the device as
+                ascertained by the agent.";
     }
 
     container system {
+        description "A container with generic system attributes.";
+
         leaf status {
             type status;
             description "A brief context about the state of the device as
-                ascertained by the controller.";
+                ascertained by the agent.";
         }
 
         leaf last-activity {
@@ -57,6 +63,40 @@ module fbc-symphony-device {
         uses loc:geo-location {
             refine geo-location/location {
                 mandatory false;
+            }
+        }
+
+        container latencies {
+            description "Latencies related to this system.";
+
+            list latency {
+                key "type src dst";
+                description "A list of latencies related to this system.";
+
+                leaf rtt {
+                    type uint64;
+                    units usec;
+                    description "The round trip time of this latency in
+                        microseconds.";
+                }
+
+                leaf type {
+                    type string;
+                    description "A string defining the method used to measure
+                        the latency (e.g. ping).";
+                }
+
+                leaf src {
+                    type string;
+                    description "A string defining the source of the latency
+                        measurement";
+                }
+
+                leaf dst {
+                    type string;
+                    description "A string defining the destination of the
+                        latency measurement";
+                }
             }
         }
     }

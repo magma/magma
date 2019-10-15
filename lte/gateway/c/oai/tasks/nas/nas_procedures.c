@@ -48,7 +48,6 @@
 #include "digest.h"
 #include "nas_procedures.h"
 #include "common_defs.h"
-#include "mme_app_desc.h"
 
 static nas_emm_common_proc_t *get_nas_common_procedure(
   const struct emm_context_s *const ctxt,
@@ -916,39 +915,32 @@ void nas_emm_procedure_register_emm_message(
   const uint64_t puid,
   bstring nas_msg)
 {
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
-  if ((ue_mm_context) && (nas_msg)) {
+  struct emm_context_s *emm_ctx = emm_context_get(&_emm_data, ue_id);
+  if ((emm_ctx) && (nas_msg)) {
     nas_emm_proc_t *emm_proc =
-      nas_emm_find_procedure_by_puid(&ue_mm_context->emm_context, puid);
+      nas_emm_find_procedure_by_puid(emm_ctx, puid);
 
     if (emm_proc) {
-      int index = ue_mm_context->emm_context.emm_procedures
-                    ->nas_proc_mess_sign_next_location;
-      ue_mm_context->emm_context.emm_procedures->nas_proc_mess_sign[index]
-        .nas_msg_length = blength(nas_msg);
-      ue_mm_context->emm_context.emm_procedures->nas_proc_mess_sign[index]
-        .puid = puid;
-      ue_mm_context->emm_context.emm_procedures->nas_proc_mess_sign[index]
-        .digest_length = NAS_MSG_DIGEST_SIZE;
+      int index = emm_ctx->emm_procedures->nas_proc_mess_sign_next_location;
+      emm_ctx->emm_procedures->nas_proc_mess_sign[index].nas_msg_length =
+        blength(nas_msg);
+      emm_ctx->emm_procedures->nas_proc_mess_sign[index].puid = puid;
+      emm_ctx->emm_procedures->nas_proc_mess_sign[index].digest_length =
+        NAS_MSG_DIGEST_SIZE;
 
       nas_digest_msg(
         (const unsigned char *const) bdata(nas_msg),
         blength(nas_msg),
-        (char *const) ue_mm_context->emm_context.emm_procedures
-          ->nas_proc_mess_sign[index]
-          .digest,
-        &ue_mm_context->emm_context.emm_procedures->nas_proc_mess_sign[index]
-           .digest_length);
+        (char *const) emm_ctx->emm_procedures->nas_proc_mess_sign[index].digest,
+        &emm_ctx->emm_procedures->nas_proc_mess_sign[index].digest_length);
 
-      ue_mm_context->emm_context.emm_procedures
-        ->nas_proc_mess_sign_next_location =
+      emm_ctx->emm_procedures->nas_proc_mess_sign_next_location =
         (index + 1) % MAX_NAS_PROC_MESS_SIGN;
     } else {
       // forward to ESM, TODO later...
     }
   }
-  unlock_ue_contexts(ue_mm_context);
+  emm_context_unlock(emm_ctx);
 }
 
 //-----------------------------------------------------------------------------

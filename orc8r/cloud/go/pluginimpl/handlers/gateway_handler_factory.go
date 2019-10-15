@@ -15,6 +15,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/state"
@@ -26,17 +27,12 @@ import (
 
 // NetworkModel describes models that represent a certain type of gateway.
 // For example, an LTE gateway, that can be read/updated/deleted
-type GatewayModel interface {
-	ValidatableModel
-	// FromBackendModels the same PartialGatewayModel from the configurator
-	// entities attached to the networkID and gatewayID.
-	FromBackendModels(magmadGateway, cellularGateway configurator.NetworkEntity, device *models.GatewayDevice, status *models.GatewayStatus) GatewayModel
-}
+type GatewayModel interface{}
 
 // PartialGatewayModel describe models that represents a portion of network
 // entity that can be read and updated.
 type PartialGatewayModel interface {
-	ValidatableModel
+	serde.ValidatableModel
 	// FromBackendModels the same PartialGatewayModel from the configurator
 	// entities attached to the networkID and gatewayID.
 	FromBackendModels(networkID string, gatewayID string) error

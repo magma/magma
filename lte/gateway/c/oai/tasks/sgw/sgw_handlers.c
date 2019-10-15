@@ -72,8 +72,6 @@ extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 
-static uint32_t g_gtpv1u_teid = 0;
-
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
 #else
@@ -81,10 +79,10 @@ static uint32_t g_gtpv1u_teid = 0;
 #endif
 
 //------------------------------------------------------------------------------
-uint32_t sgw_get_new_s1u_teid(void)
+uint32_t sgw_get_new_s1u_teid(spgw_state_t *state)
 {
-  __sync_fetch_and_add(&g_gtpv1u_teid, 1);
-  return g_gtpv1u_teid;
+  __sync_fetch_and_add(&state->sgw_state.gtpv1u_teid, 1);
+  return state->sgw_state.gtpv1u_teid;
 }
 
 //------------------------------------------------------------------------------
@@ -142,7 +140,7 @@ int sgw_handle_create_session_request(
   new_endpoint_p = sgw_cm_create_s11_tunnel(
     state,
     session_req_pP->sender_fteid_for_cp.teid,
-    sgw_get_new_S11_tunnel_id());
+    sgw_get_new_S11_tunnel_id(state));
 
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR(
@@ -295,7 +293,7 @@ int sgw_handle_create_session_request(
       message_p->ittiMsg.s5_create_bearer_request.context_teid =
         new_endpoint_p->local_teid;
       message_p->ittiMsg.s5_create_bearer_request.S1u_teid =
-        sgw_get_new_s1u_teid();
+        sgw_get_new_s1u_teid(state);
       message_p->ittiMsg.s5_create_bearer_request.eps_bearer_id =
         session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id;
@@ -1866,7 +1864,7 @@ int sgw_no_pcef_create_dedicated_bearer(spgw_state_t *state, s11_teid_t teid)
         TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
       eps_bearer_ctxt_p->tft.numberofpacketfilters = number_of_packet_filters;
 
-      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid();
+      eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up = sgw_get_new_s1u_teid(state);
       eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
       eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
         .s_addr = state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
@@ -1989,15 +1987,13 @@ int sgw_handle_create_bearer_response(
                   create_bearer_response_pP->bearer_contexts.bearer_contexts[i]
                     .eps_bearer_id;
 
-                bstring bip = fteid_ip_address_to_bstring(
+                get_fteid_ip_address(
                   &create_bearer_response_pP->bearer_contexts.bearer_contexts[i]
-                     .s1u_enb_fteid);
-                bstring_to_ip_address(
-                  bip, &eps_bearer_ctxt_p->enb_ip_address_S1u);
+                     .s1u_enb_fteid,
+                  &eps_bearer_ctxt_p->enb_ip_address_S1u);
                 eps_bearer_ctxt_p->enb_teid_S1u =
                   create_bearer_response_pP->bearer_contexts.bearer_contexts[i]
                     .s1u_enb_fteid.teid;
-                bdestroy_wrapper(&bip);
 
                 eps_bearer_ctxt_p = sgw_cm_insert_eps_bearer_ctxt_in_collection(
                   &ctx_p->sgw_eps_bearer_context_information.pdn_connection,
@@ -2172,8 +2168,10 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       sizeof(bearer_qos_t));
 
     //S1U SGW F-TEID
-    s11_actv_bearer_request->s1_u_sgw_fteid.teid = sgw_get_new_s1u_teid();
+    s11_actv_bearer_request->s1_u_sgw_fteid.teid = sgw_get_new_s1u_teid(state);
     s11_actv_bearer_request->s1_u_sgw_fteid.interface_type = S1_U_SGW_GTP_U;
+    //Set IPv4 address type bit
+    s11_actv_bearer_request->s1_u_sgw_fteid.ipv4 = true;
 
     //TODO - IPv6 address
     s11_actv_bearer_request->s1_u_sgw_fteid.ipv4_address.s_addr =
@@ -2247,7 +2245,16 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
     eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up =
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .s1u_sgw_fteid.teid;
+    //S1U SGW IPv4 addr
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
+    eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.address.ipv4_address
+        .s_addr = state->sgw_state.sgw_ip_address_S1u_S12_S4_up.s_addr;
+
     //S1U enb TEID
+    get_fteid_ip_address(
+      &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+         .s1u_enb_fteid,
+      &eps_bearer_ctxt_p->enb_ip_address_S1u);
     eps_bearer_ctxt_p->enb_teid_S1u =
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .s1u_enb_fteid.teid;
@@ -2263,6 +2270,21 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       &eps_bearer_ctxt_p->tft,
       &s11_actv_bearer_rsp->tft,
       sizeof(traffic_flow_template_t));
+
+    //PAA
+    /*Copy PAA from default bearer context as the ip address remains same for
+      dedicated bearer as well
+     */
+    sgw_eps_bearer_ctxt_t *default_eps_bearer_ctxt_p =
+      sgw_cm_get_eps_bearer_entry(
+      &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
+      spgw_context->sgw_eps_bearer_context_information
+      .pdn_connection.default_bearer);
+    memcpy(
+      &eps_bearer_ctxt_p->paa,
+      &default_eps_bearer_ctxt_p->paa,
+      sizeof(paa_t));
+
   } else {
     OAILOG_INFO(
       LOG_SPGW_APP,
@@ -2290,13 +2312,13 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   act_ded_bearer_rsp->ebi =
     s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
       .eps_bearer_id;
-  // S1-U enb FTEID
+  // S1-U enb TEID
   memcpy(
     &act_ded_bearer_rsp->S1_U_enb_teid,
     &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
        .s1u_enb_fteid.teid,
     sizeof(teid_t));
-  //S1-U sgw FTEID
+  //S1-U sgw TEID
   memcpy(
     &act_ded_bearer_rsp->S1_U_sgw_teid,
     &s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]

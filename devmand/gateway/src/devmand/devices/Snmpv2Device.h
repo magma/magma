@@ -8,7 +8,7 @@
 #pragma once
 
 #include <devmand/channels/snmp/Channel.h>
-#include <devmand/devices/Device.h>
+#include <devmand/devices/PingDevice.h>
 
 /* TODO use this
 #include <ydk/netconf_provider.hpp>
@@ -31,7 +31,7 @@
 namespace devmand {
 namespace devices {
 
-class Snmpv2Device : public Device {
+class Snmpv2Device : public PingDevice {
  public:
   Snmpv2Device(
       Application& application,
@@ -64,7 +64,7 @@ class Snmpv2Device : public Device {
   }
 
  protected:
-  channels::snmp::Channel channel;
+  channels::snmp::Channel snmpChannel;
 };
 
 } // namespace devices

@@ -13,6 +13,7 @@ namespace device {
 
 void Model::init(folly::dynamic& state) {
   auto& system = state["fbc-symphony-device:system"] = folly::dynamic::object;
+  assert(state.isObject());
 
   // ietf-geo-location ########################################################
   // Inits all of these to defaults. Some are left out as they are to be filled
@@ -32,6 +33,25 @@ void Model::init(folly::dynamic& state) {
   // vel["v-east"] = 0;
   // vel["v-up"] = 0;
   // geol["timestamp"] = 0;
+
+  // latencies ########################################################
+  auto& latencies = system["latencies"] = folly::dynamic::object;
+  latencies["latency"] = folly::dynamic::array;
+}
+
+void Model::addLatency(
+    folly::dynamic& state,
+    const std::string& type,
+    const std::string& src,
+    const std::string& dst,
+    channels::ping::Rtt rtt) {
+  auto& latencies = state["fbc-symphony-device:system"]["latencies"]["latency"];
+  folly::dynamic latency = folly::dynamic::object;
+  latency["type"] = type;
+  latency["src"] = src;
+  latency["dst"] = dst;
+  latency["rtt"] = rtt;
+  latencies.push_back(latency);
 }
 
 } // namespace device

@@ -10,7 +10,8 @@ package diameter
 
 const (
 	// SuccessCode is the result code returned from a successful diameter call
-	SuccessCode = 2001
+	SuccessCode        = 2001
+	LimitedSuccessCode = 2002
 )
 
 var diamCodeToNameMap = map[uint32]string{
@@ -31,6 +32,7 @@ var diamCodeToNameMap = map[uint32]string{
 	4001: "AUTHENTICATION_REJECTED",
 	4002: "OUT_OF_SPACE",
 	4003: "ELECTION_LOST",
+	4012: "DIAMETER_CREDIT_LIMIT_REACHED",
 	4181: "AUTHENTICATION_DATA_UNAVAILABLE",
 	5001: "USER_UNKNOWN",
 	5003: "IDENTITY_NOT_REGISTERED",

@@ -148,7 +148,7 @@ int esm_proc_default_eps_bearer_context(
       0,
       (traffic_flow_template_t *) NULL,
       (protocol_configuration_options_t *) NULL,
-      0);
+      NULL);
 
     if (*ebi == ESM_EBI_UNASSIGNED) {
       /*

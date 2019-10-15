@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import traceback
 from typing import Any, Dict
 from abc import abstractmethod
@@ -63,7 +63,7 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
 
     def get_state(self) -> str:
         if self.state is None:
-            logging.warning('ACS State machine is not in any state.')
+            logger.warning('ACS State machine is not in any state.')
             return 'N/A'
         return self.state.state_description()
 
@@ -86,14 +86,14 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             self._read_tr069_msg(message)
             return self._get_tr069_msg()
         except Exception:  # pylint: disable=broad-except
-            logging.error('Failed to handle tr069 message')
-            logging.error(traceback.format_exc())
+            logger.error('Failed to handle tr069 message')
+            logger.error(traceback.format_exc())
             self._dump_debug_info()
             self.transition(self.unexpected_fault_state_name)
             return self._get_tr069_msg()
 
     def transition(self, next_state: str) -> Any:
-        logging.debug('State transition to <%s>', next_state)
+        logger.debug('State transition to <%s>', next_state)
         self.state.exit()
         self.state = self.state_map[next_state]
         self.state.enter()
@@ -164,11 +164,11 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         been disconnected.
         """
         if isinstance(message, models.Inform):
-            logging.debug('ACS in (%s) state. Received an Inform message',
+            logger.debug('ACS in (%s) state. Received an Inform message',
                           self.state.state_description())
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
-            logging.debug('ACS in (%s) state. Received a Fault <%s>',
+            logger.debug('ACS in (%s) state. Received a Fault <%s>',
                           self.state.state_description(), message.FaultString)
             self.transition(self.unexpected_fault_state_name)
         else:
@@ -218,18 +218,18 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
             and not is_mme_connected
 
         if is_mme_unexpectedly_dc:
-            logging.warning('eNodeB is connected to AGw, is configured, '
+            logger.warning('eNodeB is connected to AGw, is configured, '
                             'and has AdminState enabled for transmit. '
                             'MME connection to eNB is missing.')
             if self.mme_timer is None:
-                logging.warning('eNodeB will be rebooted if MME connection '
+                logger.warning('eNodeB will be rebooted if MME connection '
                                 'is not established in: %s seconds.',
                                 self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
                 metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(1)
                 self.mme_timer = \
                     StateMachineTimer(self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
             elif self.mme_timer.is_done():
-                logging.warning('eNodeB has not established MME connection '
+                logger.warning('eNodeB has not established MME connection '
                                 'within %s seconds - rebooting!',
                                 self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
                 metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
@@ -243,21 +243,21 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
                 pass
         else:
             if self.mme_timer is not None:
-                logging.info('eNodeB has established MME connection.')
+                logger.info('eNodeB has established MME connection.')
                 self.mme_timer = None
             metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
 
     def _dump_debug_info(self) -> None:
         if self.device_cfg is not None:
-            logging.error('Device configuration: %s',
+            logger.error('Device configuration: %s',
                           self.device_cfg.get_debug_info())
         else:
-            logging.error('Device configuration: None')
+            logger.error('Device configuration: None')
         if self.desired_cfg is not None:
-            logging.error('Desired configuration: %s',
+            logger.error('Desired configuration: %s',
                           self.desired_cfg.get_debug_info())
         else:
-            logging.error('Desired configuration: None')
+            logger.error('Desired configuration: None')
 
     @abstractmethod
     def _init_state_map(self) -> None:

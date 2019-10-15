@@ -49,7 +49,7 @@
 #include "emm_fsm.h"
 #include "hashtable.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "nas_timer.h"
 #include "nas/securityDef.h"
@@ -651,8 +651,9 @@ struct emm_context_s *emm_context_get(
 
   DevAssert(emm_data);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, ue_id);
+      &mme_app_desc_p->mme_ue_contexts, ue_id);
     if (ue_mm_context) {
       emm_context_p = &ue_mm_context->emm_context;
     }
@@ -672,8 +673,9 @@ struct emm_context_s *emm_context_get_by_imsi(
 {
   struct emm_context_s *emm_context_p = NULL;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_imsi(&mme_app_desc.mme_ue_contexts, imsi64);
+    mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_mm_context) {
     emm_context_p = &ue_mm_context->emm_context;
   }
@@ -699,8 +701,9 @@ struct emm_context_s *emm_context_get_by_guti(
 {
   struct emm_context_s *emm_context_p = NULL;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_guti(&mme_app_desc.mme_ue_contexts, guti);
+    mme_ue_context_exists_guti(&mme_app_desc_p->mme_ue_contexts, guti);
   if (ue_mm_context) {
     emm_context_p = &ue_mm_context->emm_context;
   }
@@ -760,12 +763,13 @@ int emm_context_upsert_imsi(emm_data_t *emm_data, struct emm_context_s *elm)
   mme_ue_s1ap_id_t ue_id =
     (PARENT_STRUCT(elm, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   h_rc = hashtable_uint64_ts_remove(
-    mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl,
+    mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
     (const hash_key_t) elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     h_rc = hashtable_uint64_ts_insert(
-      mme_app_desc.mme_ue_contexts.imsi_ue_context_htbl,
+      mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
       (const hash_key_t) elm->_imsi64,
       ue_id);
   } else {

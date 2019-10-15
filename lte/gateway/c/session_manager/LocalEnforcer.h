@@ -137,7 +137,7 @@ class LocalEnforcer {
 
   bool is_imsi_duplicate(const std::string &imsi);
 
-  bool is_session_duplicate(
+  std::string *duplicate_session_id(
     const std::string &imsi, const magma::SessionState::Config &config);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;

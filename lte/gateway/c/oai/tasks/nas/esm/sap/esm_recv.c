@@ -44,6 +44,7 @@
 #include "mme_api.h"
 #include "mme_app_desc.h"
 #include "mme_app_apn_selection.h"
+#include "mme_app_state.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -346,8 +347,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
   if ((is_standalone) &&
     (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1)) {
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc.mme_ue_contexts, ue_id);
+      &mme_app_desc_p->mme_ue_contexts, ue_id);
     //Select APN
     struct apn_configuration_s *apn_config =
       mme_app_select_apn(

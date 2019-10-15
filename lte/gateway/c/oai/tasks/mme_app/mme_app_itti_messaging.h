@@ -39,6 +39,7 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
 #include "s1ap_messages_types.h"
 
@@ -49,7 +50,7 @@ int mme_app_notify_s1ap_ue_context_released(const mme_ue_s1ap_id_t ue_idP);
 int mme_app_send_s11_release_access_bearers_req(
   struct ue_mm_context_s *const ue_mm_context,
   const pdn_cid_t pdn_index);
-int mme_app_send_s11_create_session_req(
+int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
   struct ue_mm_context_s *const ue_mm_context,
   const pdn_cid_t pdn_cid);
 

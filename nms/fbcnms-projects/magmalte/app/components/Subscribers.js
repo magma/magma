@@ -30,11 +30,10 @@ import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {map} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -54,10 +53,6 @@ const styles = theme => ({
   },
 });
 
-type SubProfiles = {
-  [string]: {max_dl_bit_rate?: number, max_ul_bit_rate?: number},
-};
-
 type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
@@ -67,7 +62,7 @@ type State = {
   showAddEditDialog: boolean,
   showImportDialog: boolean,
   editingSubscriber: ?subscriber,
-  subProfiles: SubProfiles,
+  subProfiles: Set<string>,
 };
 
 class Subscribers extends React.Component<Props, State> {
@@ -78,28 +73,24 @@ class Subscribers extends React.Component<Props, State> {
     showAddEditDialog: false,
     showImportDialog: false,
     editingSubscriber: null,
-    subProfiles: {},
+    subProfiles: new Set(),
   };
 
   componentDidMount() {
+    const networkId = nullthrows(this.props.match.params.networkId);
     Promise.all([
       MagmaV1API.getLteByNetworkIdSubscribers({
-        networkId: nullthrows(this.props.match.params.networkId),
+        networkId,
       }),
-      axios.get(
-        MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-      ),
+      MagmaV1API.getLteByNetworkIdCellularEpc({networkId}),
     ])
-      .then(([response1, response2]) => {
-        let subProfiles = (response2.data.epc || {}).sub_profiles || {};
-        subProfiles = {...subProfiles};
-        if (!subProfiles.default) {
-          subProfiles.default = {};
-        }
+      .then(([subscribers, epcConfigs]) => {
+        const subProfiles = new Set(
+          Object.keys(epcConfigs.sub_profiles || {}),
+        ).add('default');
 
-        const subscribers = Object.keys(response1).map(sid => response1[sid]);
         this.setState({
-          subscribers: subscribers.map(s =>
+          subscribers: map(subscribers, s =>
             this._buildSubscriber(s, subProfiles),
           ),
           loading: false,
@@ -185,7 +176,7 @@ class Subscribers extends React.Component<Props, State> {
           onClose={this.hideDialogs}
           onSave={this.onSaveSubscriber}
           onSaveError={this.onSaveSubscriberError}
-          subProfiles={Object.keys(this.state.subProfiles)}
+          subProfiles={Array.from(this.state.subProfiles)}
         />
         <ImportSubscribersDialog
           open={this.state.showImportDialog}
@@ -278,9 +269,9 @@ class Subscribers extends React.Component<Props, State> {
       });
   };
 
-  _buildSubscriber(subscriber: subscriber, subProfiles?: SubProfiles) {
+  _buildSubscriber(subscriber: subscriber, subProfiles?: Set<string>) {
     subProfiles = subProfiles || this.state.subProfiles;
-    if (!(subscriber.lte.sub_profile in subProfiles)) {
+    if (!subProfiles.has(subscriber.lte.sub_profile)) {
       subscriber.lte.sub_profile = 'default';
     }
 

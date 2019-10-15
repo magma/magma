@@ -11,9 +11,11 @@ package authstate
 import (
 	"errors"
 	"fbc/cwf/radius/modules/eap/packet"
-	"fbc/cwf/radius/monitoring/counters"
+	"fbc/cwf/radius/monitoring"
 	"fmt"
 	"sync"
+
+	"go.opencensus.io/tag"
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
@@ -21,9 +23,9 @@ import (
 
 // Manager an interface for EAP state management storage
 type memoryManager struct {
-	getOpCounter   counters.Operation
-	setOpCounter   counters.Operation
-	resetOpCounter counters.Operation
+	getOpCounter   monitoring.Operation
+	setOpCounter   monitoring.Operation
+	resetOpCounter monitoring.Operation
 	storage        sync.Map
 }
 
@@ -79,9 +81,9 @@ func getKey(r *radius.Packet) string {
 // local memory for (transient) storage
 func NewMemoryManager() Manager {
 	return &memoryManager{
-		getOpCounter:   counters.NewOperation("eap_state_get").SetTag(counters.StorageTag, "memory"),
-		setOpCounter:   counters.NewOperation("eap_state_set").SetTag(counters.StorageTag, "memory"),
-		resetOpCounter: counters.NewOperation("eap_state_reset").SetTag(counters.StorageTag, "memory"),
+		getOpCounter:   monitoring.NewOperation("eap_state_get", tag.Upsert(monitoring.StorageTag, "memory")),
+		setOpCounter:   monitoring.NewOperation("eap_state_set", tag.Upsert(monitoring.StorageTag, "memory")),
+		resetOpCounter: monitoring.NewOperation("eap_state_reset", tag.Upsert(monitoring.StorageTag, "memory")),
 		storage:        sync.Map{},
 	}
 }

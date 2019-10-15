@@ -59,9 +59,9 @@ type TransactionalBlobStorage interface {
 	GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error)
 
 	// CreateOrUpdate writes blobs to the storage. Blobs are either updated
-	// in-place or created. The Version field of Blobs passed in here is
-	// ignored - all version incrementation is done internally inside the
-	// storage implementation.
+	// in-place or created. The Version field of Blobs passed here will be used
+	// if it is not set to 0. Otherwise version incrementation will be handled
+	// internally inside the storage implementation.
 	CreateOrUpdate(networkID string, blobs []Blob) error
 
 	// GetExistingKeys takes in a list of keys and returns a list of keys

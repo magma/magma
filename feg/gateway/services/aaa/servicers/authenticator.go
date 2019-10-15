@@ -15,7 +15,6 @@ import (
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
@@ -63,7 +62,7 @@ func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := client.Handle(in)
 	if resp == nil {
-		return resp, err
+		return resp, Errorf(codes.Internal, "Auth Handle error: %v, <nil> response", err)
 	}
 	method := eap.Packet(resp.GetPayload()).Type()
 	if method == uint8(protos.EapType_Reserved) {
@@ -84,25 +83,26 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
-				return resp, status.Errorf(
-					codes.Unavailable,
-					"Cannot Create Session on Auth: accounting service is missing")
+				log.Printf("Cannot Create Session on Auth: accounting service is missing")
+				return resp, nil
 			}
-			_, err = srv.accounting.CreateSession(ctx, resp.Ctx)
+			csResp, err := srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
-				return resp, err
+				log.Printf("Failed to create session: %v", err)
+				return resp, nil
 			}
+			resp.Ctx.AcctSessionId = csResp.GetSessionId()
 		}
 		// Add Session & overwrite an existing session with the same ID if present,
 		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
 		_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, srv.accounting.timeoutSessionNotifier, true)
 		if err != nil {
-			return resp, status.Errorf(
-				codes.Internal, "Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
+			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
+			return resp, nil // log error, but don't pass to caller, the auth only users will still be able to connect
 		}
 	}
-	return resp, err
+	return resp, nil
 }
 
 // SupportedMethods returns sorted list (ascending, by type) of registered EAP Provider Methods

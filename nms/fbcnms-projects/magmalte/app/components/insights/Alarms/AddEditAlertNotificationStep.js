@@ -104,14 +104,14 @@ export default function AddEditAlertNotificationStep(props: Props) {
             <Grid item>
               <TextField
                 type="number"
-                value={timeNumber}
+                value={timeNumber || ''}
                 onChange={event => setTimeNumber(event.target.value)}
               />
             </Grid>
             <Grid item>
               <TextField
                 select
-                value={timeUnit}
+                value={timeUnit || timeUnits[0].value}
                 onChange={event => setTimeUnit(event.target.value)}>
                 {timeUnits.map(option => (
                   <MenuItem key={option.value} value={option.value}>

@@ -25,7 +25,6 @@ log_level: INFO
 # after these static services.
 static_services: [
   'ue_mac',
-  'arpd',
   'access_control',
   'ryu_rest_service',
 #  'packet_tracer',
@@ -73,7 +72,7 @@ dpi:
   mon_port_number: 32769
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
-virtual_interface: br0
+virtual_interface: cwag_br0
 
 # Interface to NAT traffic to
 nat_iface: eth2
@@ -82,14 +81,14 @@ nat_iface: eth2
 enodeb_iface: eth1
 
 # Bridge name comes from CWAG ansible role
-bridge_name: br0
+bridge_name: cwag_br0
 # Bridge ip comes from 99-ovscfg.yaml
 bridge_ip_address: 192.168.128.1
 
 #QoS Queue Programming
 enable_queue_pgm: true
 
-monitored_ifaces: ['br0',
+monitored_ifaces: ['cwag_br0',
                    'gre0',
                    'gre_sys'
                   ]

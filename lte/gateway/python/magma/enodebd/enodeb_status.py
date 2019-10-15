@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import os
 from collections import namedtuple
 from typing import Any, Dict, List, NamedTuple, Optional, Union, Tuple
@@ -104,7 +104,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
         if val is None:
             return 0
         if type(val) is not bool:
-            logging.error('Could not cast metric value %s to int', val)
+            logger.error('Could not cast metric value %s to int', val)
             return 0
         return int(val)  # val should be either True or False
 
@@ -246,8 +246,12 @@ def get_enb_status(enodeb: EnodebAcsStateMachine) -> EnodebStatus:
     enodeb_connected = enodeb.is_enodeb_connected()
     opstate_enabled = _parse_param_as_bool(enodeb, ParameterName.OP_STATE)
     rf_tx_on = _parse_param_as_bool(enodeb, ParameterName.RF_TX_STATUS)
-    enb_serial = enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
-    rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    try:
+        enb_serial =\
+            enodeb.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+        rf_tx_desired = get_enb_rf_tx_desired(enodeb.mconfig, enb_serial)
+    except (KeyError, ConfigurationError):
+        rf_tx_desired = False
     mme_connected = _parse_param_as_bool(enodeb, ParameterName.MME_STATUS)
     gps_connected = _get_gps_status_as_bool(enodeb)
     ptp_connected = _parse_param_as_bool(enodeb, ParameterName.PTP_STATUS)
@@ -280,18 +284,23 @@ def get_single_enb_status(
     # Get IP info
     ip = state_machine_manager.get_ip_of_serial(device_serial)
 
+    def get_status_property(status: bool) -> SingleEnodebStatus.StatusProperty:
+        if status:
+            return SingleEnodebStatus.StatusProperty.Value('ON')
+        return SingleEnodebStatus.StatusProperty.Value('OFF')
+
     # Build the message to return through gRPC
     enb_status = SingleEnodebStatus()
     enb_status.device_serial = device_serial
     enb_status.ip_address = ip
-    enb_status.connected = status.enodeb_connected
-    enb_status.configured = status.enodeb_configured
-    enb_status.opstate_enabled = status.opstate_enabled
-    enb_status.rf_tx_on = status.rf_tx_on
-    enb_status.rf_tx_desired = status.rf_tx_desired
-    enb_status.gps_connected = status.gps_connected
-    enb_status.ptp_connected = status.ptp_connected
-    enb_status.mme_connected = status.mme_connected
+    enb_status.connected = get_status_property(status.enodeb_connected)
+    enb_status.configured = get_status_property(status.enodeb_configured)
+    enb_status.opstate_enabled = get_status_property(status.opstate_enabled)
+    enb_status.rf_tx_on = get_status_property(status.rf_tx_on)
+    enb_status.rf_tx_desired = get_status_property(status.rf_tx_desired)
+    enb_status.gps_connected = get_status_property(status.gps_connected)
+    enb_status.ptp_connected = get_status_property(status.ptp_connected)
+    enb_status.mme_connected = get_status_property(status.mme_connected)
     enb_status.gps_longitude = status.gps_longitude
     enb_status.gps_latitude = status.gps_latitude
     enb_status.fsm_state = status.fsm_state
@@ -356,7 +365,7 @@ def _format_as_bool(
     elif stripped_value in {'false', '0'}:
         return False
     else:
-        logging.warning(
+        logger.warning(
             '%s parameter not understood (%s)', param_name, param_value)
         return False
 
@@ -374,7 +383,7 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
             elif stripped_value == '1':
                 return True
             else:
-                logging.warning(
+                logger.warning(
                     'GPS status parameter not understood (%s)', param)
                 return False
     except (KeyError, ConfigurationError):
@@ -401,7 +410,7 @@ def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[str, str]:
     except (KeyError, ConfigurationError):
         return _get_cached_gps_coords()
     except ValueError:
-        logging.warning('GPS lat/long not understood (%s/%s)', lat, lon)
+        logger.warning('GPS lat/long not understood (%s/%s)', lat, lon)
         return '0', '0'
 
 
@@ -425,13 +434,13 @@ def _read_gps_coords_from_file():
         with open(CACHED_GPS_COORD_FILE_PATH) as f:
             lines = f.readlines()
             if len(lines) != 2:
-                logging.warning('Expected to find 2 lines in GPS '
+                logger.warning('Expected to find 2 lines in GPS '
                                 'coordinate file but only found %d',
                                 len(lines))
                 return '0', '0'
             return tuple(map(lambda l: l.strip(), lines))
     except OSError:
-        logging.warning('Could not open cached GPS coordinate file')
+        logger.warning('Could not open cached GPS coordinate file')
         return '0', '0'
 
 

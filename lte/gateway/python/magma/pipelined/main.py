@@ -78,7 +78,6 @@ def main():
         manager.applications.get('EnforcementStatsController', None),
         manager.applications.get('DPIController', None),
         manager.applications.get('UEMacAddressController', None),
-        manager.applications.get('PacketTracingController', None),
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 

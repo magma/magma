@@ -118,7 +118,7 @@ int mme_app_send_s11_release_access_bearers_req(
 }
 
 //------------------------------------------------------------------------------
-int mme_app_send_s11_create_session_req(
+int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
   struct ue_mm_context_s *const ue_mm_context,
   const pdn_cid_t pdn_cid)
 {
@@ -241,7 +241,7 @@ int mme_app_send_s11_create_session_req(
   //ue_mm_context->mme_teid_s11 = session_request_p->sender_fteid_for_cp.teid;
   ue_mm_context->pdn_contexts[pdn_cid]->s_gw_teid_s11_s4 = 0;
   mme_ue_context_update_coll_keys(
-    &mme_app_desc.mme_ue_contexts,
+    &mme_app_desc_p->mme_ue_contexts,
     ue_mm_context,
     ue_mm_context->enb_s1ap_id_key,
     ue_mm_context->mme_ue_s1ap_id,

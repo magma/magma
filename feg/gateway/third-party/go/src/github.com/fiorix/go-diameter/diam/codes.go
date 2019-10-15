@@ -23,6 +23,7 @@ const (
 	OutOfSpace             = 4002
 	ElectionLost           = 4003
 	AVPUnsupported         = 5001
+	UnknownUser            = 5001
 	UnknownSessionID       = 5002
 	AuthorizationRejected  = 5003
 	InvalidAVPValue        = 5004

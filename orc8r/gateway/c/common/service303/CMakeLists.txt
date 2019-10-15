@@ -19,6 +19,8 @@ set(SERVICE303_GRPC_PROTOS service303)
 generate_grpc_protos("${SERVICE303_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${CPP_OUT_DIR})
 
+generate_prometheus_proto("${PROTO_SRCS}" "${PROTO_HDRS}" ${CPP_OUT_DIR})
+
 message("Proto_srcs are ${PROTO_SRCS}")
 
 add_library(SERVICE303_LIB
@@ -39,7 +41,7 @@ target_link_libraries(SERVICE303_LIB
 # session_manager, etc.
 add_custom_command(TARGET SERVICE303_LIB POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/service303/*.h
+                   ${PROJECT_SOURCE_DIR}/service303/*.h
                    $<TARGET_FILE_DIR:SERVICE303_LIB>)
 
 target_include_directories(SERVICE303_LIB PUBLIC

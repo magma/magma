@@ -207,7 +207,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   if (!update.success()) {
     // update unsuccessful, reset credit and return
     MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
-    it->second->mark_failure();
+    it->second->mark_failure(update.result_code());
     return false;
   }
   const auto &gsu = update.credit().granted_units();
@@ -425,7 +425,7 @@ bool UsageMonitoringCreditPool::receive_credit(
     return init_new_credit(update);
   }
   if (!update.success()) {
-    it->second->credit.mark_failure();
+    it->second->credit.mark_failure(update.result_code());
     return false;
   }
   const auto &gsu = update.credit().granted_units();

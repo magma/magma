@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
-	"fbc/cwf/radius/monitoring/counters"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
 	"math/rand"
@@ -94,7 +94,7 @@ func allocateUpstreamHost(c *modules.RequestContext, listenerName string) error 
 		return nil
 	}
 
-	counter := counters.NewOperation("pick_upstream_host").Start()
+	counter := monitoring.NewOperation("pick_upstream_host").Start()
 
 	upstreamHost, err := pickRandomUpstreamHost(c, state, listenerName)
 	if err != nil {

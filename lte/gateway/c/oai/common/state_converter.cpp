@@ -65,5 +65,14 @@ void StateConverter::ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi *ecgi_proto)
   ecgi_proto->set_empty(state_ecgi.cell_identity.empty);
 }
 
+void StateConverter::proto_to_ecgi(const Ecgi &ecgi_proto, ecgi_t *state_ecgi)
+{
+  strncpy((char *) &state_ecgi->plmn, ecgi_proto.plmn().c_str(), PLMN_BYTES);
+
+  state_ecgi->cell_identity.enb_id = ecgi_proto.enb_id();
+  state_ecgi->cell_identity.cell_id = ecgi_proto.cell_id();
+  state_ecgi->cell_identity.empty = ecgi_proto.empty();
+}
+
 } // namespace lte
 } // namespace magma

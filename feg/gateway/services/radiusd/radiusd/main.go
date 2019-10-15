@@ -31,19 +31,26 @@ func main() {
 	}
 
 	radiusdCfg := collection.GetRadiusdConfig()
+	interval := radiusdCfg.GetUpdateIntervalSecs()
 	// Run Radius metrics collection Loop
 	go func() {
 		for {
-			<-time.After(time.Duration(radiusdCfg.GetUpdateIntervalSecs()) * time.Second)
+			<-time.After(time.Duration(interval) * time.Second)
 			prometheusText, err := metricsRequester.FetchMetrics()
 			if err != nil {
-				glog.Fatalf("Error getting metrics from server: %s", err)
+				glog.Errorf("Error getting metrics from server: %s", err)
+				metricsRequester.RefreshConfig()
+				interval *= 2
+				continue
 			}
 			metricFamilies, err := collection.ParsePrometheusText(prometheusText)
 			if err != nil {
-				glog.Fatalf("Unable to parse prometheus text: %s", err)
+				glog.Errorf("Unable to parse prometheus text: %s", err)
+				interval *= 2
+				continue
 			}
 			metricAggregateRegistry.Update(metricFamilies)
+			interval = radiusdCfg.GetUpdateIntervalSecs()
 		}
 	}()
 

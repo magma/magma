@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include <functional>
 #include <google/protobuf/message.h>
 
 using google::protobuf::Message;

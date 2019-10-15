@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package scuba
 
 import (
+	"fbc/cwf/radius/config"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -22,7 +23,7 @@ import (
 func TestSendOdsCounters(t *testing.T) {
 	// Arrange
 	logger, _ := zap.NewDevelopment()
-	Initialize(&Config{
+	Initialize(&config.Scuba{
 		MessageQueueSize: 1,
 		FlushIntervalSec: 1,
 		BatchSize:        2,

@@ -45,7 +45,6 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import EGRESS, INGRESS, InOutController
 from magma.pipelined.app.meter import MeterController
-from magma.pipelined.app.packet_tracer import PacketTracingController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
@@ -191,7 +190,6 @@ class ServiceManager:
 
     App = namedtuple('App', ['name', 'module'])
 
-    PACKET_TRACING_SERVICE_NAME = "packet_tracer"
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
@@ -224,10 +222,6 @@ class ServiceManager:
     # Mapping between the app names defined in pipelined.yml and the names and
     # modules of their corresponding Ryu apps in PipelineD.
     STATIC_SERVICE_TO_APPS = {
-        PACKET_TRACING_SERVICE_NAME: [
-            App(name=PacketTracingController.APP_NAME,
-                module=PacketTracingController.__module__)
-        ],
         UE_MAC_ADDRESS_SERVICE_NAME: [
             App(name=UEMacAddressController.APP_NAME,
                 module=UEMacAddressController.__module__),

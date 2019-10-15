@@ -120,6 +120,9 @@ spec:
       labels:
 {{ tuple $envAll "cwf" "gateway" | include "selector-labels" | indent 8 }}
       annotations:
+        {{ if .Values.pod.cni.interface }}
+        cni: {{ .Values.pod.cni.interface | quote }}
+        {{- end }}
         kubernetes.io/target-runtime: virtlet.cloud
         VirtletVCPUCount: {{ .Values.virtlet.vcpuCount | quote }}
         VirtletRootVolumeSize: {{ .Values.virtlet.rootVolumeSize }}
@@ -136,6 +139,7 @@ spec:
 {{ toYaml .Values.virtlet.user | indent 10 }}
 {{- end }}
           runcmd:
+          - /opt/magma/bin/bootstrap.sh
           - /opt/magma/bin/install_gateway.sh {{ .Values.cwf.type }}
     spec:
       {{- if .Values.manifests.rbac }}

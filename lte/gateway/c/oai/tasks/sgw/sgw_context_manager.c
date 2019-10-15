@@ -183,14 +183,10 @@ void pgw_lite_cm_free_apn(pgw_apn_t **apnP)
 }
 
 //-----------------------------------------------------------------------------
-teid_t sgw_get_new_S11_tunnel_id(void)
+teid_t sgw_get_new_S11_tunnel_id(spgw_state_t *state)
 //-----------------------------------------------------------------------------
 {
-  // TO DO: RANDOM
-  static teid_t tunnel_id = 0;
-
-  tunnel_id += 1;
-  return tunnel_id;
+  return ++state->sgw_state.tunnel_id;
 }
 
 //-----------------------------------------------------------------------------

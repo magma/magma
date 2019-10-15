@@ -81,7 +81,7 @@ func (m *CwfGateway) ValidateModel() error {
 }
 
 func (m *CwfGateway) FromBackendModels(
-	magmadGateway, cellularGateway configurator.NetworkEntity,
+	magmadGateway, cwfGateway configurator.NetworkEntity,
 	device *models2.GatewayDevice,
 	status *models2.GatewayStatus,
 ) handlers.GatewayModel {
@@ -89,6 +89,10 @@ func (m *CwfGateway) FromBackendModels(
 	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+	if cwfGateway.Config != nil {
+		m.CarrierWifi = cwfGateway.Config.(*GatewayCwfConfigs)
+	}
+
 	return m
 }
 
@@ -114,7 +118,7 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 			Key:         string(m.ID),
 			Name:        string(m.Name),
 			Description: string(m.Description),
-			Config:      nil,
+			Config:      m.CarrierWifi,
 		},
 		configurator.EntityUpdateCriteria{
 			Type:              orc8r.MagmadGatewayType,
@@ -139,8 +143,9 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 	}
 
 	entUpdate := configurator.EntityUpdateCriteria{
-		Type: cwf.CwfGatewayType,
-		Key:  string(m.ID),
+		Type:      cwf.CwfGatewayType,
+		Key:       string(m.ID),
+		NewConfig: m.CarrierWifi,
 	}
 	if string(m.Name) != existingEnt.Name {
 		entUpdate.NewName = swag.String(string(m.Name))
@@ -151,6 +156,24 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 
 	ret = append(ret, entUpdate)
 	return ret, nil
+}
+
+func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *carrierWifi.(*GatewayCwfConfigs)
+	return nil
+}
+
+func (m *GatewayCwfConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	return []configurator.EntityUpdateCriteria{
+		{
+			Type: cwf.CwfGatewayType, Key: gatewayID,
+			NewConfig: m,
+		},
+	}, nil
 }
 
 func (m *NetworkCarrierWifiConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {

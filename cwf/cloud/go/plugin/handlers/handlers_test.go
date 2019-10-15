@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
 package handlers_test
 
 import (
@@ -250,6 +258,8 @@ func TestCwfGateways(t *testing.T) {
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.GET).HandlerFunc
 	getGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.GET).HandlerFunc
+	getCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.GET).HandlerFunc
+	updateCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.PUT).HandlerFunc
 	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
 
@@ -273,6 +283,11 @@ func TestCwfGateways(t *testing.T) {
 		ID:          "g1",
 		Name:        "foobar",
 		Description: "foo bar",
+		CarrierWifi: &models2.GatewayCwfConfigs{
+			AllowedGrePeers: models2.AllowedGrePeers{
+				{IP: "1.1.1.1", Key: 123},
+			},
+		},
 		Magmad: &models.MagmadGatewayConfigs{
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
@@ -304,6 +319,11 @@ func TestCwfGateways(t *testing.T) {
 				Key:        &models.ChallengeKey{KeyType: "ECHO"},
 			},
 			Name: "foobar", Description: "foo bar",
+			CarrierWifi: &models2.GatewayCwfConfigs{
+				AllowedGrePeers: models2.AllowedGrePeers{
+					{IP: "1.1.1.1", Key: 123},
+				},
+			},
 			Tier: "t1",
 			Magmad: &models.MagmadGatewayConfigs{
 				AutoupgradeEnabled:      swag.Bool(true),
@@ -335,6 +355,11 @@ func TestCwfGateways(t *testing.T) {
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
 		},
 		Name: "foobar", Description: "foo bar",
+		CarrierWifi: &models2.GatewayCwfConfigs{
+			AllowedGrePeers: models2.AllowedGrePeers{
+				{IP: "1.1.1.1", Key: 123},
+			},
+		},
 		Tier: "t1",
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
@@ -366,6 +391,11 @@ func TestCwfGateways(t *testing.T) {
 		ID:          "g1",
 		Name:        "newname",
 		Description: "bar baz",
+		CarrierWifi: &models2.GatewayCwfConfigs{
+			AllowedGrePeers: models2.AllowedGrePeers{
+				{IP: "1.1.1.1", Key: 123},
+			},
+		},
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
@@ -396,6 +426,50 @@ func TestCwfGateways(t *testing.T) {
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 200,
 		ExpectedResult: expectedGet,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test get gateway CarrierWifi config
+	expectedGwConfGet := &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "1.1.1.1", Key: 123},
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        getCarrierWifiGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedGwConfGet,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test update gateway CarrierWifi config
+	payloadConf := &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "2.2.2.2", Key: 321},
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        updateCarrierWifiGatewayConfig,
+		Payload:        payloadConf,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        getCarrierWifiGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: payloadConf,
 	}
 	tests.RunUnitTest(t, e, tc)
 

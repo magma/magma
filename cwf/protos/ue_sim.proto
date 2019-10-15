@@ -37,6 +37,10 @@ message AuthenticateResponse {
     bytes radiusPacket = 1;
 }
 
+message GenTrafficRequest {
+    string imsi = 1;
+}
+
 // --------------------------------------------------------------------------
 // UE Simulator service definition
 // --------------------------------------------------------------------------
@@ -48,4 +52,7 @@ service UESim {
     // Triggers an authentication for the UE with the specified imsi.
     //
     rpc Authenticate (AuthenticateRequest) returns (AuthenticateResponse) {}
+
+    // Triggers iperf traffic towards the CWAG
+    rpc GenTraffic(GenTrafficRequest) returns (orc8r.Void) {}
 }

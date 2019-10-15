@@ -13,15 +13,10 @@ import (
 	"reflect"
 
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/serde"
 
 	"github.com/labstack/echo"
 )
-
-// ValidateModels validates the model to be according to swagger spec, as
-// well as other custom validations.
-type ValidatableModel interface {
-	ValidateModel() error
-}
 
 // GetAndValidatePayload can be used by any model that implements ValidateModel
 // Example:
@@ -30,8 +25,8 @@ type ValidatableModel interface {
 //		return nil, nerr
 //	}
 //	record := payload.(*models.DNSConfigRecord)
-func GetAndValidatePayload(c echo.Context, model interface{}) (ValidatableModel, *echo.HTTPError) {
-	iModel := reflect.New(reflect.TypeOf(model).Elem()).Interface().(ValidatableModel)
+func GetAndValidatePayload(c echo.Context, model interface{}) (serde.ValidatableModel, *echo.HTTPError) {
+	iModel := reflect.New(reflect.TypeOf(model).Elem()).Interface().(serde.ValidatableModel)
 	if err := c.Bind(iModel); err != nil {
 		return nil, obsidian.HttpError(err, http.StatusBadRequest)
 	}

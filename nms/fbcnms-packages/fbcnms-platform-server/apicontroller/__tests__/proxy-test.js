@@ -49,6 +49,24 @@ const createData = (
   return {proxyResponse, proxyResponseData, userRequest};
 };
 
+const createDataNoOrg = (
+  controllerNetworks: Array<string>,
+  userNetworks: Array<string>,
+  isSuperUser: boolean,
+) => {
+  const proxyResponse = {statusCode: 200};
+  const proxyResponseData = new Buffer(
+    JSON.stringify(controllerNetworks),
+    'utf8',
+  );
+
+  const userRequest = {
+    user: {isSuperUser, networkIDs: userNetworks},
+  };
+
+  return {proxyResponse, proxyResponseData, userRequest};
+};
+
 describe('Proxy test', () => {
   describe('networkIdFilter', () => {
     const params = {
@@ -202,6 +220,63 @@ describe('Proxy test', () => {
       );
 
       expect(JSON.parse(result)).toEqual(['network1', 'network2']);
+    });
+
+    describe('no organization', () => {
+      it('filters user access when no access to networks', async () => {
+        const {proxyResponse, proxyResponseData, userRequest} = createDataNoOrg(
+          ['network1', 'network2', 'network3'],
+          [],
+          false, // isSuperUser
+        );
+
+        const result = await testNetworksResponseDecorator(
+          proxyResponse,
+          proxyResponseData,
+          userRequest,
+          {}, // userResponse
+        );
+
+        expect(result).toEqual('[]');
+      });
+
+      it('filters user access to networks allowed', async () => {
+        const {proxyResponse, proxyResponseData, userRequest} = createDataNoOrg(
+          ['network1', 'network2', 'network3'],
+          ['network1', 'network4', 'network5'],
+          false, // isSuperUser
+        );
+
+        const result = await testNetworksResponseDecorator(
+          proxyResponse,
+          proxyResponseData,
+          userRequest,
+          {}, // userResponse
+        );
+
+        expect(JSON.parse(result)).toEqual(['network1']);
+      });
+
+      it('superuser access to all networks', async () => {
+        const {proxyResponse, proxyResponseData, userRequest} = createDataNoOrg(
+          ['network1', 'network2', 'network3'],
+          [],
+          true, // isSuperUser
+        );
+
+        const result = await testNetworksResponseDecorator(
+          proxyResponse,
+          proxyResponseData,
+          userRequest,
+          {}, // userResponse
+        );
+
+        expect(JSON.parse(result)).toEqual([
+          'network1',
+          'network2',
+          'network3',
+        ]);
+      });
     });
   });
 });

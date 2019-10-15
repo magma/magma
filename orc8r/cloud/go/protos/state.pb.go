@@ -35,7 +35,7 @@ func (m *StateID) Reset()         { *m = StateID{} }
 func (m *StateID) String() string { return proto.CompactTextString(m) }
 func (*StateID) ProtoMessage()    {}
 func (*StateID) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{0}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{0}
 }
 func (m *StateID) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_StateID.Unmarshal(m, b)
@@ -81,7 +81,7 @@ func (m *GetStatesRequest) Reset()         { *m = GetStatesRequest{} }
 func (m *GetStatesRequest) String() string { return proto.CompactTextString(m) }
 func (*GetStatesRequest) ProtoMessage()    {}
 func (*GetStatesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{1}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{1}
 }
 func (m *GetStatesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetStatesRequest.Unmarshal(m, b)
@@ -126,7 +126,7 @@ func (m *GetStatesResponse) Reset()         { *m = GetStatesResponse{} }
 func (m *GetStatesResponse) String() string { return proto.CompactTextString(m) }
 func (*GetStatesResponse) ProtoMessage()    {}
 func (*GetStatesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{2}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{2}
 }
 func (m *GetStatesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GetStatesResponse.Unmarshal(m, b)
@@ -164,7 +164,7 @@ func (m *ReportStatesRequest) Reset()         { *m = ReportStatesRequest{} }
 func (m *ReportStatesRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportStatesRequest) ProtoMessage()    {}
 func (*ReportStatesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{3}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{3}
 }
 func (m *ReportStatesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReportStatesRequest.Unmarshal(m, b)
@@ -202,7 +202,7 @@ func (m *ReportStatesResponse) Reset()         { *m = ReportStatesResponse{} }
 func (m *ReportStatesResponse) String() string { return proto.CompactTextString(m) }
 func (*ReportStatesResponse) ProtoMessage()    {}
 func (*ReportStatesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{4}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{4}
 }
 func (m *ReportStatesResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ReportStatesResponse.Unmarshal(m, b)
@@ -242,7 +242,7 @@ func (m *IDAndError) Reset()         { *m = IDAndError{} }
 func (m *IDAndError) String() string { return proto.CompactTextString(m) }
 func (*IDAndError) ProtoMessage()    {}
 func (*IDAndError) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{5}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{5}
 }
 func (m *IDAndError) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_IDAndError.Unmarshal(m, b)
@@ -295,7 +295,7 @@ func (m *DeleteStatesRequest) Reset()         { *m = DeleteStatesRequest{} }
 func (m *DeleteStatesRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteStatesRequest) ProtoMessage()    {}
 func (*DeleteStatesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_state_47dd5aebc7be16d6, []int{6}
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{6}
 }
 func (m *DeleteStatesRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DeleteStatesRequest.Unmarshal(m, b)
@@ -329,6 +329,128 @@ func (m *DeleteStatesRequest) GetIds() []*StateID {
 	return nil
 }
 
+type SyncStatesRequest struct {
+	States               []*IDAndVersion `protobuf:"bytes,1,rep,name=states,proto3" json:"states,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *SyncStatesRequest) Reset()         { *m = SyncStatesRequest{} }
+func (m *SyncStatesRequest) String() string { return proto.CompactTextString(m) }
+func (*SyncStatesRequest) ProtoMessage()    {}
+func (*SyncStatesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{7}
+}
+func (m *SyncStatesRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SyncStatesRequest.Unmarshal(m, b)
+}
+func (m *SyncStatesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SyncStatesRequest.Marshal(b, m, deterministic)
+}
+func (dst *SyncStatesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncStatesRequest.Merge(dst, src)
+}
+func (m *SyncStatesRequest) XXX_Size() int {
+	return xxx_messageInfo_SyncStatesRequest.Size(m)
+}
+func (m *SyncStatesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SyncStatesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SyncStatesRequest proto.InternalMessageInfo
+
+func (m *SyncStatesRequest) GetStates() []*IDAndVersion {
+	if m != nil {
+		return m.States
+	}
+	return nil
+}
+
+type IDAndVersion struct {
+	Id                   *StateID `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Version              uint64   `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *IDAndVersion) Reset()         { *m = IDAndVersion{} }
+func (m *IDAndVersion) String() string { return proto.CompactTextString(m) }
+func (*IDAndVersion) ProtoMessage()    {}
+func (*IDAndVersion) Descriptor() ([]byte, []int) {
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{8}
+}
+func (m *IDAndVersion) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IDAndVersion.Unmarshal(m, b)
+}
+func (m *IDAndVersion) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IDAndVersion.Marshal(b, m, deterministic)
+}
+func (dst *IDAndVersion) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IDAndVersion.Merge(dst, src)
+}
+func (m *IDAndVersion) XXX_Size() int {
+	return xxx_messageInfo_IDAndVersion.Size(m)
+}
+func (m *IDAndVersion) XXX_DiscardUnknown() {
+	xxx_messageInfo_IDAndVersion.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IDAndVersion proto.InternalMessageInfo
+
+func (m *IDAndVersion) GetId() *StateID {
+	if m != nil {
+		return m.Id
+	}
+	return nil
+}
+
+func (m *IDAndVersion) GetVersion() uint64 {
+	if m != nil {
+		return m.Version
+	}
+	return 0
+}
+
+type SyncStatesResponse struct {
+	UnsyncedStates       []*IDAndVersion `protobuf:"bytes,1,rep,name=unsyncedStates,proto3" json:"unsyncedStates,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
+}
+
+func (m *SyncStatesResponse) Reset()         { *m = SyncStatesResponse{} }
+func (m *SyncStatesResponse) String() string { return proto.CompactTextString(m) }
+func (*SyncStatesResponse) ProtoMessage()    {}
+func (*SyncStatesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_state_9acaa31cfe23a72c, []int{9}
+}
+func (m *SyncStatesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SyncStatesResponse.Unmarshal(m, b)
+}
+func (m *SyncStatesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SyncStatesResponse.Marshal(b, m, deterministic)
+}
+func (dst *SyncStatesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SyncStatesResponse.Merge(dst, src)
+}
+func (m *SyncStatesResponse) XXX_Size() int {
+	return xxx_messageInfo_SyncStatesResponse.Size(m)
+}
+func (m *SyncStatesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SyncStatesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SyncStatesResponse proto.InternalMessageInfo
+
+func (m *SyncStatesResponse) GetUnsyncedStates() []*IDAndVersion {
+	if m != nil {
+		return m.UnsyncedStates
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*StateID)(nil), "magma.orc8r.StateID")
 	proto.RegisterType((*GetStatesRequest)(nil), "magma.orc8r.GetStatesRequest")
@@ -337,6 +459,9 @@ func init() {
 	proto.RegisterType((*ReportStatesResponse)(nil), "magma.orc8r.ReportStatesResponse")
 	proto.RegisterType((*IDAndError)(nil), "magma.orc8r.IDAndError")
 	proto.RegisterType((*DeleteStatesRequest)(nil), "magma.orc8r.DeleteStatesRequest")
+	proto.RegisterType((*SyncStatesRequest)(nil), "magma.orc8r.SyncStatesRequest")
+	proto.RegisterType((*IDAndVersion)(nil), "magma.orc8r.IDAndVersion")
+	proto.RegisterType((*SyncStatesResponse)(nil), "magma.orc8r.SyncStatesResponse")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -354,6 +479,7 @@ type StateServiceClient interface {
 	GetStates(ctx context.Context, in *GetStatesRequest, opts ...grpc.CallOption) (*GetStatesResponse, error)
 	ReportStates(ctx context.Context, in *ReportStatesRequest, opts ...grpc.CallOption) (*ReportStatesResponse, error)
 	DeleteStates(ctx context.Context, in *DeleteStatesRequest, opts ...grpc.CallOption) (*Void, error)
+	SyncStates(ctx context.Context, in *SyncStatesRequest, opts ...grpc.CallOption) (*SyncStatesResponse, error)
 }
 
 type stateServiceClient struct {
@@ -391,11 +517,21 @@ func (c *stateServiceClient) DeleteStates(ctx context.Context, in *DeleteStatesR
 	return out, nil
 }
 
+func (c *stateServiceClient) SyncStates(ctx context.Context, in *SyncStatesRequest, opts ...grpc.CallOption) (*SyncStatesResponse, error) {
+	out := new(SyncStatesResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.StateService/SyncStates", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // StateServiceServer is the server API for StateService service.
 type StateServiceServer interface {
 	GetStates(context.Context, *GetStatesRequest) (*GetStatesResponse, error)
 	ReportStates(context.Context, *ReportStatesRequest) (*ReportStatesResponse, error)
 	DeleteStates(context.Context, *DeleteStatesRequest) (*Void, error)
+	SyncStates(context.Context, *SyncStatesRequest) (*SyncStatesResponse, error)
 }
 
 func RegisterStateServiceServer(s *grpc.Server, srv StateServiceServer) {
@@ -456,6 +592,24 @@ func _StateService_DeleteStates_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _StateService_SyncStates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncStatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(StateServiceServer).SyncStates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.StateService/SyncStates",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(StateServiceServer).SyncStates(ctx, req.(*SyncStatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _StateService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.orc8r.StateService",
 	HandlerType: (*StateServiceServer)(nil),
@@ -472,37 +626,47 @@ var _StateService_serviceDesc = grpc.ServiceDesc{
 			MethodName: "DeleteStates",
 			Handler:    _StateService_DeleteStates_Handler,
 		},
+		{
+			MethodName: "SyncStates",
+			Handler:    _StateService_SyncStates_Handler,
+		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "orc8r/protos/state.proto",
 }
 
-func init() { proto.RegisterFile("orc8r/protos/state.proto", fileDescriptor_state_47dd5aebc7be16d6) }
+func init() { proto.RegisterFile("orc8r/protos/state.proto", fileDescriptor_state_9acaa31cfe23a72c) }
 
-var fileDescriptor_state_47dd5aebc7be16d6 = []byte{
-	// 378 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0xcf, 0x4f, 0xea, 0x40,
-	0x10, 0xa6, 0xf0, 0x1e, 0xca, 0xc0, 0x01, 0x16, 0x12, 0x6b, 0x15, 0x83, 0x7b, 0x30, 0xc4, 0x43,
-	0x6b, 0xe0, 0xa2, 0x27, 0x83, 0x96, 0x98, 0x26, 0x9e, 0x4a, 0x34, 0x46, 0x4e, 0xd8, 0x4e, 0x08,
-	0x91, 0x76, 0xeb, 0xee, 0xa2, 0xf1, 0x5f, 0xf7, 0x64, 0xba, 0x6d, 0xa0, 0x05, 0x34, 0xe1, 0xe0,
-	0xa9, 0x9d, 0xf9, 0x7e, 0x64, 0xf6, 0x9b, 0x5d, 0xd0, 0x19, 0xf7, 0x2e, 0xb9, 0x15, 0x71, 0x26,
-	0x99, 0xb0, 0x84, 0x9c, 0x48, 0x34, 0x55, 0x41, 0xaa, 0xc1, 0x64, 0x1a, 0x4c, 0x4c, 0x85, 0x1b,
-	0x87, 0x39, 0x9a, 0xc7, 0x82, 0x80, 0x85, 0x09, 0xcf, 0x68, 0xe7, 0x1d, 0x90, 0xbf, 0xcf, 0x3c,
-	0xec, 0x5f, 0xf4, 0x13, 0x98, 0x5e, 0xc1, 0xde, 0x28, 0x76, 0x75, 0x6c, 0x42, 0xe0, 0x9f, 0xfc,
-	0x8c, 0x50, 0xd7, 0x3a, 0x5a, 0xb7, 0xe2, 0xaa, 0x7f, 0x62, 0xc0, 0xbe, 0x8f, 0xb1, 0xc2, 0xb1,
-	0xf5, 0xa2, 0xea, 0x2f, 0x6b, 0xfa, 0x04, 0xf5, 0x3b, 0x94, 0x4a, 0x2d, 0x5c, 0x7c, 0x5b, 0xa0,
-	0x90, 0xe4, 0x18, 0x2a, 0x21, 0xca, 0x0f, 0xc6, 0x5f, 0x1d, 0x3b, 0x35, 0x5a, 0x35, 0xc8, 0x19,
-	0x94, 0x66, 0xbe, 0xd0, 0x8b, 0x9d, 0x52, 0xb7, 0xda, 0x6b, 0x99, 0x99, 0x13, 0x98, 0xe9, 0x10,
-	0x6e, 0x4c, 0xa0, 0xd7, 0xd0, 0xc8, 0x38, 0x8b, 0x88, 0x85, 0x02, 0xc9, 0x39, 0x94, 0xd5, 0xf9,
-	0x85, 0xae, 0x29, 0x3d, 0xd9, 0xd4, 0xbb, 0x29, 0x83, 0x0e, 0xa0, 0xe9, 0x62, 0xc4, 0xf8, 0xda,
-	0x74, 0xbb, 0x58, 0x8c, 0xa1, 0x95, 0xb7, 0x48, 0xc7, 0xb8, 0x85, 0xfa, 0x22, 0xe4, 0x0a, 0x41,
-	0x7f, 0x94, 0x75, 0x3b, 0xc8, 0xb9, 0x39, 0xf6, 0x20, 0xf4, 0x87, 0x9c, 0x33, 0xee, 0x6e, 0x08,
-	0xa8, 0x0b, 0xb0, 0xc2, 0x77, 0x0d, 0x9e, 0xb4, 0xe0, 0x3f, 0xc6, 0x42, 0xbd, 0xa4, 0x80, 0xa4,
-	0xa0, 0x63, 0x68, 0xda, 0x38, 0x47, 0x89, 0x7f, 0xb0, 0x91, 0xde, 0x97, 0x06, 0x35, 0xd5, 0x18,
-	0x25, 0x17, 0x88, 0xdc, 0x43, 0x65, 0xb9, 0x22, 0xd2, 0xce, 0x09, 0xd7, 0x2f, 0x85, 0x71, 0xf2,
-	0x13, 0x9c, 0x44, 0x4a, 0x0b, 0xe4, 0x01, 0x6a, 0xd9, 0xb0, 0x49, 0x27, 0xa7, 0xd8, 0xb2, 0x4a,
-	0xe3, 0xf4, 0x17, 0xc6, 0xd2, 0x76, 0x08, 0xb5, 0x6c, 0x24, 0x6b, 0xb6, 0x5b, 0xd2, 0x32, 0x1a,
-	0x39, 0xc6, 0x23, 0x9b, 0xf9, 0xb4, 0x70, 0xd3, 0x7e, 0x3e, 0x52, 0x5d, 0x2b, 0x79, 0x4a, 0xde,
-	0x9c, 0x2d, 0x7c, 0x6b, 0xca, 0xd2, 0x37, 0xf5, 0x52, 0x56, 0xdf, 0xfe, 0x77, 0x00, 0x00, 0x00,
-	0xff, 0xff, 0x97, 0x3d, 0x35, 0xdb, 0xac, 0x03, 0x00, 0x00,
+var fileDescriptor_state_9acaa31cfe23a72c = []byte{
+	// 471 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x54, 0x4f, 0x6f, 0xd3, 0x30,
+	0x14, 0x5f, 0xd3, 0xb1, 0xd1, 0xb7, 0x0a, 0xad, 0x6f, 0x95, 0xc8, 0x02, 0x85, 0x62, 0x21, 0x34,
+	0x71, 0x68, 0x61, 0xbd, 0xc0, 0x09, 0x15, 0x32, 0x50, 0x25, 0x04, 0x92, 0x2b, 0x06, 0x62, 0xa7,
+	0x12, 0x3f, 0x4d, 0x11, 0xab, 0x5d, 0x6c, 0x77, 0xa8, 0x9f, 0x91, 0x2f, 0x85, 0xea, 0x64, 0x6d,
+	0x9c, 0xac, 0x93, 0x76, 0xd8, 0xa9, 0x79, 0xfe, 0xfd, 0xe9, 0xcf, 0xcf, 0xcf, 0x86, 0x50, 0xe9,
+	0xe4, 0x8d, 0xee, 0xcf, 0xb4, 0xb2, 0xca, 0xf4, 0x8d, 0x9d, 0x58, 0xea, 0xb9, 0x02, 0xf7, 0xa6,
+	0x93, 0xf3, 0xe9, 0xa4, 0xe7, 0xf0, 0xe8, 0xd0, 0xa3, 0x25, 0x6a, 0x3a, 0x55, 0x32, 0xe3, 0x45,
+	0x1d, 0xdf, 0x81, 0xf4, 0x65, 0x9a, 0xd0, 0xe0, 0xd5, 0x20, 0x83, 0xd9, 0x5b, 0xd8, 0x1d, 0x2f,
+	0x5d, 0x47, 0x31, 0x22, 0x6c, 0xdb, 0xc5, 0x8c, 0xc2, 0x5a, 0xb7, 0x76, 0xd4, 0xe0, 0xee, 0x1b,
+	0x23, 0xb8, 0x2f, 0x68, 0xa9, 0x18, 0xc5, 0x61, 0xe0, 0xd6, 0x57, 0x35, 0xfb, 0x01, 0xfb, 0x9f,
+	0xc8, 0x3a, 0xb5, 0xe1, 0xf4, 0x67, 0x4e, 0xc6, 0xe2, 0x63, 0x68, 0x48, 0xb2, 0x7f, 0x95, 0xfe,
+	0x3d, 0x8a, 0x73, 0xa3, 0xf5, 0x02, 0xbe, 0x80, 0x7a, 0x2a, 0x4c, 0x18, 0x74, 0xeb, 0x47, 0x7b,
+	0xc7, 0xed, 0x5e, 0x61, 0x07, 0xbd, 0x3c, 0x04, 0x5f, 0x12, 0xd8, 0x3b, 0x68, 0x15, 0x9c, 0xcd,
+	0x4c, 0x49, 0x43, 0xf8, 0x12, 0x76, 0xdc, 0xfe, 0x4d, 0x58, 0x73, 0x7a, 0xac, 0xea, 0x79, 0xce,
+	0x60, 0x43, 0x38, 0xe0, 0x34, 0x53, 0xba, 0x94, 0xee, 0x36, 0x16, 0x67, 0xd0, 0xf6, 0x2d, 0xf2,
+	0x18, 0x1f, 0x60, 0x7f, 0x2e, 0xb5, 0x43, 0x48, 0x8c, 0x8b, 0x6e, 0x0f, 0x3d, 0xb7, 0x51, 0x3c,
+	0x94, 0xe2, 0x44, 0x6b, 0xa5, 0x79, 0x45, 0xc0, 0x38, 0xc0, 0x1a, 0xbf, 0x6d, 0xe3, 0xb1, 0x0d,
+	0xf7, 0x68, 0x29, 0x0c, 0xeb, 0x0e, 0xc8, 0x0a, 0x76, 0x06, 0x07, 0x31, 0x5d, 0x90, 0xa5, 0xbb,
+	0x38, 0x91, 0x8f, 0xd0, 0x1a, 0x2f, 0x64, 0xe2, 0x5b, 0xbf, 0x2e, 0xb5, 0xf3, 0xb0, 0xda, 0x80,
+	0x53, 0xd2, 0x26, 0x55, 0x72, 0xd5, 0xd5, 0x2f, 0xd0, 0x2c, 0xae, 0xe3, 0x73, 0x08, 0x52, 0xe1,
+	0x62, 0x6d, 0xfa, 0xfb, 0x20, 0x15, 0x18, 0xc2, 0xee, 0x65, 0x26, 0x70, 0xbd, 0xd8, 0xe6, 0x57,
+	0x25, 0xfb, 0x0e, 0x58, 0xcc, 0x95, 0x9f, 0xd1, 0x10, 0x1e, 0xcc, 0xa5, 0x59, 0xc8, 0xa4, 0x74,
+	0x42, 0x37, 0x04, 0x2c, 0x09, 0x8e, 0xff, 0x05, 0xd0, 0x74, 0x9f, 0xe3, 0xec, 0xc6, 0xe0, 0x67,
+	0x68, 0xac, 0x66, 0x12, 0x3b, 0x9e, 0x51, 0xf9, 0x16, 0x44, 0x4f, 0x36, 0xc1, 0x59, 0x3e, 0xb6,
+	0x85, 0xdf, 0xa0, 0x59, 0x9c, 0x2e, 0xec, 0x7a, 0x8a, 0x6b, 0x66, 0x37, 0x7a, 0x76, 0x03, 0x63,
+	0x65, 0x7b, 0x02, 0xcd, 0xe2, 0x0c, 0x94, 0x6c, 0xaf, 0x19, 0x8f, 0xa8, 0xe5, 0x31, 0x4e, 0x55,
+	0x2a, 0xd8, 0x16, 0x7e, 0x05, 0x58, 0x77, 0x15, 0xfd, 0xdd, 0x54, 0xc6, 0x20, 0x7a, 0xba, 0x11,
+	0xbf, 0xca, 0xf5, 0xbe, 0xf3, 0xf3, 0x91, 0xe3, 0xf4, 0xb3, 0xc7, 0x28, 0xb9, 0x50, 0x73, 0xd1,
+	0x3f, 0x57, 0xf9, 0xab, 0xf4, 0x6b, 0xc7, 0xfd, 0x0e, 0xfe, 0x07, 0x00, 0x00, 0xff, 0xff, 0x25,
+	0x92, 0x8a, 0xcd, 0xee, 0x04, 0x00, 0x00,
 }

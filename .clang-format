@@ -46,7 +46,7 @@ AlignEscapedNewlines: Right
 AlignOperands: true
 AlignTrailingComments: true
 DerivePointerAlignment: false
-PointerAlignment: Right
+PointerAlignment: Left
 
 # function style
 AllowAllParametersOfDeclarationOnNextLine: false

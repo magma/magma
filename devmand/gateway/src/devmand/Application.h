@@ -23,6 +23,7 @@
 #include <devmand/cartography/Cartographer.h>
 #include <devmand/channels/Engine.h>
 #include <devmand/channels/packet/Engine.h>
+#include <devmand/channels/ping/Engine.h>
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
@@ -83,13 +84,16 @@ class Application final : public MetricSink {
 
   DhcpdConfig& getDhcpdConfig();
 
+  channels::ping::Engine& getPingEngine();
+
  private:
   void pollDevices();
 
   template <class EngineType, class... Args>
-  EngineType* addEngine(Args... args) {
+  EngineType* addEngine(Args&&... args) {
     return static_cast<EngineType*>(
-        channelEngines.emplace(std::make_unique<EngineType>(args...))
+        channelEngines
+            .emplace(std::make_unique<EngineType>(std::forward<Args>(args)...))
             .first->get());
   }
 
@@ -125,6 +129,7 @@ class Application final : public MetricSink {
    */
   ChannelEngines channelEngines;
   channels::snmp::Engine* snmpEngine;
+  channels::ping::Engine* pingEngine;
 
   /*
    * A config writer for dhcpd.

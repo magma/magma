@@ -10,6 +10,7 @@ package servicers
 
 import (
 	"encoding/hex"
+	"net"
 
 	"magma/cwf/gateway/registry"
 	"magma/orc8r/cloud/go/service/config"
@@ -20,6 +21,8 @@ import (
 const (
 	defaultRadiusAddress = "192.168.70.101:1812"
 	defaultRadiusSecret  = "123456"
+	defaultCwagTestBr    = "cwag_test_br0"
+	defaultBrMac         = "76-02-5B-80-EC-44"
 )
 
 var (
@@ -36,6 +39,7 @@ func GetUESimConfig() (*UESimConfig, error) {
 			amf:           defaultAmf,
 			radiusAddress: string(defaultRadiusAddress),
 			radiusSecret:  string(defaultRadiusSecret),
+			brMac:         defaultBrMac,
 		}, nil
 	}
 	addr, err := uecfg.GetStringParam("radius_address")
@@ -46,6 +50,11 @@ func GetUESimConfig() (*UESimConfig, error) {
 	if err != nil {
 		secret = defaultRadiusSecret
 	}
+	brName, err := uecfg.GetStringParam("ue_bridge")
+	if err != nil {
+		brName = defaultCwagTestBr
+	}
+	brMac := getBridgeMac(brName)
 	amfBytes := getHexParam(uecfg, "amf", defaultAmf)
 	opBytes := getHexParam(uecfg, "op", defaultOp)
 	glog.Infof("UE SIM Config - OP: %x, AMF: %x, RADIUS Endpoint: %s, RADIUS Secret: %s",
@@ -55,7 +64,19 @@ func GetUESimConfig() (*UESimConfig, error) {
 		amf:           amfBytes,
 		radiusAddress: string(addr),
 		radiusSecret:  string(secret),
+		brMac:         brMac,
 	}, nil
+}
+
+// TODO: Store UE MAC and add necessary OVS flows to allow traffic to use
+// the stored UE MAC as eth src
+func getBridgeMac(br string) string {
+	brInterface, err := net.InterfaceByName(br)
+	if err != nil {
+		glog.Errorf("No bridge named %s exists. Using default: %s as bridge MAC", br, defaultBrMac)
+		return defaultBrMac
+	}
+	return brInterface.HardwareAddr.String()
 }
 
 func getHexParam(cfg *config.ConfigMap, param string, defaultBytes []byte) []byte {
