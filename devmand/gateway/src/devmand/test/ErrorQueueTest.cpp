@@ -8,6 +8,7 @@
 #include <devmand/test/EventBaseTest.h>
 #include <devmand/ErrorQueue.h>
 #include <folly/json.h>
+#include <future>
 
 namespace devmand {
 namespace test {
@@ -39,6 +40,37 @@ TEST(ErrorQueueTest, SimpleEnqueueDequeue) {
   auto expected3 = folly::toJson(
       folly::dynamic::array("str two", "three", "four!", "FIVE", "sixth"));
   EXPECT_EQ(errs3, expected3);
+}
+
+static int doManyAdds(
+    int addCount, int getInterval, std::shared_ptr<ErrorQueue> errors) {
+  // "add" lots of errors
+  for (int i = 0; i < addCount; ++i) {
+    errors->add(std::move(folly::to<std::string>(i)));
+    // every n-th add, do a "get"
+    if (i % getInterval == 0) {
+      errors.get();
+    }
+  }
+  return 1;
+}
+
+TEST(ErrorQueueTest, MultithreadAdd) {
+  std::shared_ptr<ErrorQueue> errors = std::make_shared<ErrorQueue>(20);
+  std::vector<std::future<int>> futures;
+  auto numThreads = 3;
+  // start 3 threads adding to ErrorQueue
+  for (int i = 0; i < numThreads; ++i) {
+    // each thread will "add" 10,000 strings and "get" every 50
+    futures.emplace_back(std::async(doManyAdds, 10000, 50, errors));
+  }
+  // wait for all three threads to finish
+  auto threadCount = 0;
+  for (auto& f : futures) {
+    threadCount += f.get();
+  }
+  // no segfaults, so test passed
+  EXPECT_EQ(threadCount, numThreads);
 }
 
 } // namespace test
