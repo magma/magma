@@ -99,8 +99,7 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
         req = DeleteSubscriberRequest()
 
         # mme expects a list of IMSIs without "IMSI" prefix
-        imsis_to_delete_without_prefix = \
-            set(map(lambda s: s[4:], deleted_sub_ids))
+        imsis_to_delete_without_prefix = [sub[4:] for sub in deleted_sub_ids]
 
         req.imsi_list.extend(imsis_to_delete_without_prefix)
         future = client.DeleteSubscriber.future(req)
