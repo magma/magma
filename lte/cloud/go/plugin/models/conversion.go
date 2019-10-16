@@ -398,7 +398,7 @@ var formatsRegistry = strfmt.NewFormats()
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:         lte.BaseNameEntity2Type,
+		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
 		Associations: m.RuleNames.ToAssocs(),
 	}
@@ -407,7 +407,7 @@ func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.PolicyRuleEntity2Type {
+		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
 		}
 	}
@@ -418,14 +418,14 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.PolicyRuleEntity2Type, Key: rn}
+			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:   lte.PolicyRuleEntity2Type,
+		Type:   lte.PolicyRuleEntityType,
 		Key:    *m.ID,
 		Config: m,
 	}
