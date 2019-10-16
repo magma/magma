@@ -39,6 +39,7 @@ Engine::Engine(
       timeoutFrequency(timeoutFrequency_) {
   icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
   if (icmpSocket < 0) {
+    LOG(ERROR) << "Failed to open dgram socket";
     throw std::system_error(errno, std::generic_category());
   }
 
