@@ -57,7 +57,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         hosts.ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
-    execute(_run_unit_tests)
+    #execute(_run_unit_tests)
     execute(_set_cwag_configs)
     cwag_host_to_mac = execute(_get_cwag_br_mac)
     host = env.hosts[0]

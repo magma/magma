@@ -187,6 +187,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   std::function<void(Status, LocalCreateSessionResponse)> response_callback)
 {
   auto imsi = request->sid().id();
+  MLOG(ERROR) << "IN CREATE SESSION!!!!" << imsi;
   auto sid = id_gen_.gen_session_id(imsi);
   auto mac_addr = convert_mac_addr_to_str(request->hardware_addr());
   SessionState::Config cfg = {.ue_ipv4 = request->ue_ipv4(),
@@ -253,10 +254,11 @@ void LocalSessionManagerHandlerImpl::send_create_session(
   const SessionState::Config &cfg,
   std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback)
 {
+  MLOG(MERROR) << "IN SEND CREATE SESSION! for imsi " << imsi;
   reporter_->report_create_session(
     request,
-    [this, imsi, sid, cfg, response_callback](
-      Status status, CreateSessionResponse response) {
+    [this, imsi, sid, cfg, response_callback]
+      (Status status, CreateSessionResponse response) {
       if (status.ok()) {
         bool success = enforcer_->init_session_credit(imsi, sid, cfg, response);
         if (!success) {

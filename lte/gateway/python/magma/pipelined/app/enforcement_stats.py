@@ -83,6 +83,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Store last usage excluding deleted flows for calculating deltas
         self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
+        self.logger.info("Initializing EnforcementStatsController")
 
     def _check_relay(func):  # pylint: disable=no-self-argument
         def wrapped(self, *args, **kwargs):
@@ -98,8 +99,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self.logger.info("Initialize_on_connect app=%s, datapath.id=%s",
+                         self.APP_NAME, datapath.id)
         self._datapath = datapath
         if self._relay_enabled:
+            self.logger.info("Relay is enabled")
             flows.delete_all_flows_from_table(datapath, self.tbl_num)
             self._install_default_flows(datapath)
 

@@ -26,8 +26,10 @@ import (
 // sendSingleCreditRequest sends a CCR message through the gy client
 // and waits for a response based on the grpc server's set timeout
 func (srv *CentralSessionController) sendSingleCreditRequest(request *gy.CreditControlRequest) (*gy.CreditControlAnswer, error) {
+	glog.Errorf("IN SEND SINGLE CREDIT REQUEST!!!")
 	done := make(chan interface{}, 1)
 	err := srv.creditClient.SendCreditControlRequest(srv.cfg.OCSConfig, done, request)
+	glog.Errorf("Sending Credit Control Request with %v %v err : %v", srv.cfg.OCSConfig, request, err)
 	if err != nil {
 		return nil, err
 	}

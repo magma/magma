@@ -60,4 +60,4 @@
 ##    GOBIN: "{{ gobin }}"
 #    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
 #  command: go get -u golang.org/x/lint/golint
-#  when: full_provision
+#  when: full_provision>>>>>>> destination:  9b5639de7636 - marwhal: Add very basic enforcement rule

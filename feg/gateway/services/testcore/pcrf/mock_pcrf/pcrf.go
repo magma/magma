@@ -193,6 +193,7 @@ func (srv *PCRFDiamServer) SetRules(
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", accountRules.Imsi)
 	}
+	fmt.Printf("In SetRULE! I should be setting rule now")
 	account.RuleNames = accountRules.RuleNames
 	account.RuleBaseNames = accountRules.RuleBaseNames
 	account.RuleDefinitions = accountRules.RuleDefinitions
@@ -235,6 +236,7 @@ func (srv *PCRFDiamServer) GetRuleBaseNames(imsi string) ([]string, error) {
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", imsi)
 	}
+	fmt.Printf("GETRULEBASENAMES for %s\n", imsi)
 	return account.RuleBaseNames, nil
 }
 
@@ -249,6 +251,7 @@ func (srv *PCRFDiamServer) GetRuleDefinitions(
 	if !ok {
 		return nil, fmt.Errorf("Could not find imsi %s", imsi)
 	}
+	fmt.Printf("GETRUL DEFINITIONS for %s\n", imsi)
 	return account.RuleDefinitions, nil
 }
 

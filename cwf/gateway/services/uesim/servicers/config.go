@@ -32,7 +32,6 @@ var (
 
 func GetUESimConfig() (*UESimConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
-	glog.Errorf("Attempted to get ServiceConfig : %v %v", uecfg, err)
 	if err != nil {
 		glog.Error(err)
 		return &UESimConfig{

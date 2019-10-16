@@ -145,6 +145,31 @@ func addSubscriberToPcrf(sub *lteprotos.SubscriberID) error {
 	return err
 }
 
+func addAllAcceptingPcrfRule(imsi string) error {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return err
+	}
+	rules := &fegprotos.AccountRules{
+		Imsi:      imsi,
+		RuleNames: []string{},
+		RuleBaseNames: []string{},
+		RuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				ChargineRuleName: fmt.Sprintf("dynrule1-%s", imsi),
+				Precedence:       100,
+				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
+			},
+		},
+	}
+	fmt.Printf("********* SETTING UP RULE FOR IMSI %v %v\n", imsi, rules.RuleDefinitions[0])
+	_, err = cli.SetRules(
+		context.Background(),
+		rules,
+	)
+	return err
+}
+
 // addSubscriber tries to add this subscriber to the OCS server.
 // Input: The subscriber data which will be added.
 func addSubscriberToOcs(sub *lteprotos.SubscriberID) error {
@@ -212,6 +237,10 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
 		}
+		err = addAllAcceptingPcrfRule(imsi)
+		if err != nil {
+			return nil, errors.Wrap(err, "Error adding a rule !!! what ")
+		}
 
 		ues = append(ues, ue)
 		fmt.Printf("Added UE to Simulator, HSS, PCRF, and OCS:\n"+
@@ -250,6 +279,7 @@ func (testRunner *TestRunner) GenULTraffic(imsi string) error {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi: imsi,
 	}
+	fmt.Printf("Goin to Call GenTraffic in uesim")
 	return uesim.GenTraffic(req)
 }
 

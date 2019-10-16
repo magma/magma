@@ -65,6 +65,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
 
         self._redirect_manager = None
+        self.logger.info("Initializing EnforcementController")
 
     def setup(self, req):
         """
@@ -89,6 +90,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self.logger.info("Initialize_on_connect app=%s, datapath.id=%s", self.APP_NAME, datapath.id)
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
@@ -153,6 +155,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self.logger.info("app=%s, installing default flows")
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -196,8 +199,10 @@ class EnforcementController(PolicyMixin, MagmaController):
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
         """
+        self.logger.info("app=%s, installing flow for rule imsi:%s, ip_addr:%s, rule:%s", self.APP_NAME, imsi, ip_addr, rule)
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
         priority = self.get_of_priority(rule.priority)
+        self.logger.info("app=%s, priority is now... %s", self.APP_NAME, priority)
         ul_qos = rule.qos.max_req_bw_ul
         dl_qos = rule.qos.max_req_bw_dl
 
@@ -252,6 +257,7 @@ class EnforcementController(PolicyMixin, MagmaController):
                 return fail("No response from OVS")
             if not result.ok():
                 return fail(result.exception())
+        self.logger.info("app:%s Returning success from _wait_for_responses imsi:%s, ruleID:%s", self.APP_NAME, imsi, rule.id)
         return RuleModResult.SUCCESS
 
     def _get_classify_rule_flow_msg(self, imsi, flow, rule_num, priority,

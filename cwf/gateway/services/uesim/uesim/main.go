@@ -31,6 +31,7 @@ func main() {
 		glog.Fatalf("Error creating UE server: %s", err)
 	}
 	protos.RegisterUESimServer(srv.GrpcServer, servicer)
+	glog.Errorf("Starting UESIM service!")
 
 	// Run the service
 	err = srv.Run()

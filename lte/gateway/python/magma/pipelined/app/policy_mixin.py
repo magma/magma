@@ -58,14 +58,19 @@ class PolicyMixin(metaclass=ABCMeta):
         dyn_results = []
         for rule in dynamic_rules:
             res = self._install_flow_for_rule(imsi, ip_addr, rule)
+            self.logger.info(
+                "In PolicyMixin result of trying to install rule for imsi:%s, rule_id:%s res:%s",
+                imsi, rule.id, res)
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
         self._install_default_flow_for_subscriber(imsi)
-        return ActivateFlowsResult(
+        res = ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
         )
+        self.logger.info("ActivateFlowsResult : %s", res)
+        return res
 
     def _install_flow_for_static_rule(self, imsi, ip_addr, rule_id):
         """

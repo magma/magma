@@ -120,7 +120,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
-        logging.debug('Activating flows for %s', request.sid.id)
+        logging.error('Activating flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule_id)
@@ -164,6 +164,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
                                        ) -> ActivateFlowsResult:
+        logging.error("IN _activate_rule_in_enforcement imsi:%s, static_rule_ids:%s dynamic_rules:%s", imsi, static_rule_ids, dynamic_rules)
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, ip_addr, static_rule_ids, dynamic_rules)
         _report_enforcement_failures(enforcement_res, imsi)
@@ -323,9 +324,11 @@ def _report_enforcement_failures(activate_flow_result: ActivateFlowsResult,
                                  imsi: str):
     rule_results = chain(activate_flow_result.static_rule_results,
                          activate_flow_result.dynamic_rule_results)
+    logging.error("In _report_enforcement failures")
     for result in rule_results:
         if result.result == RuleModResult.SUCCESS:
             continue
+        logging.info("FOUND FAILURE! imsi:%s, result:%s", imsi, result)
         ENFORCEMENT_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                              imsi=imsi).inc()
 

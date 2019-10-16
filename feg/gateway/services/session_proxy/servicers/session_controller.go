@@ -77,6 +77,7 @@ func (srv *CentralSessionController) CreateSession(
 	glog.V(2).Info("Trying to create session")
 	imsi := removeSidPrefix(request.Subscriber.Id)
 	sessionID := request.SessionId
+	glog.Errorf("Trying to create session for %v sessionID %v", imsi, sessionID)
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
 	if err != nil {
@@ -97,11 +98,13 @@ func (srv *CentralSessionController) CreateSession(
 	}
 
 	policyRules := getPolicyRulesFromDefinitions(ruleDefs)
+	glog.Errorf("policyRules %v", policyRules)
 	keys, err := srv.dbClient.GetChargingKeysForRules(ruleNames, policyRules)
 	if err != nil {
 		glog.Errorf("Failed to get charging keys for rules: %s", err)
 		return nil, err
 	}
+	glog.Errorf("Keys : %v", keys)
 	keys = removeDuplicateChargingKeys(keys)
 	credits := []*protos.CreditUpdateResponse{}
 
@@ -133,6 +136,7 @@ func (srv *CentralSessionController) CreateSession(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
+	glog.Errorf("Successfully returning from CreateSession! staticRules %v dynamicRule %v", staticRules, dynamicRules)
 
 	return &protos.CreateSessionResponse{
 		Credits:       credits,

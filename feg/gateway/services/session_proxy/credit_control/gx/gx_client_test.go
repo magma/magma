@@ -82,6 +82,7 @@ func TestGxClient(t *testing.T) {
 		ruleBaseNames = append(ruleBaseNames, installRule.RuleBaseNames...)
 		ruleDefinitions = append(ruleDefinitions, installRule.RuleDefinitions...)
 	}
+	t.Logf("%v, %v, %v", ruleNames, ruleBaseNames, ruleDefinitions[0])
 	assert.ElementsMatch(t, imsi1Rules, ruleNames)
 	assert.ElementsMatch(t, imsi1BaseRules, ruleBaseNames)
 	assert.Equal(t, 1, len(ruleDefinitions))
