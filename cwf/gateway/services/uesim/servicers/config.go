@@ -32,6 +32,7 @@ var (
 
 func GetUESimConfig() (*UESimConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
+	glog.Errorf("Attempted to get ServiceConfig : %v %v", uecfg, err)
 	if err != nil {
 		glog.Error(err)
 		return &UESimConfig{
@@ -39,7 +40,7 @@ func GetUESimConfig() (*UESimConfig, error) {
 			amf:           defaultAmf,
 			radiusAddress: string(defaultRadiusAddress),
 			radiusSecret:  string(defaultRadiusSecret),
-			brMac:         defaultBrMac,
+			brMac:         getBridgeMac(defaultCwagTestBr),
 		}, nil
 	}
 	addr, err := uecfg.GetStringParam("radius_address")

@@ -9,11 +9,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import sys
 from distutils.util import strtobool
+import os
 
-from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
+from fabric.api import cd, env, execute, lcd, local, run, sudo, warn_only, settings
+print(sys.path)
+sys.path.insert(0, os.path.abspath('../../orc8r/'))
+print(sys.path)
 
-sys.path.append('../../orc8r')
-from tools.fab.hosts import ansible_setup, vagrant_setup
+import tools.fab.hosts as hosts
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
@@ -50,9 +53,9 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
     if not gateway_host:
-        vagrant_setup("cwag", destroy_vm)
+        hosts.vagrant_setup("cwag", destroy_vm)
     else:
-        ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+        hosts.ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
 
     execute(_run_unit_tests)
     execute(_set_cwag_configs)
@@ -65,18 +68,18 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # vagrant machine
     with lcd(LTE_AGW_ROOT):
         if not trf_host:
-            vagrant_setup("magma_trfserver", destroy_vm)
+            hosts.vagrant_setup("magma_trfserver", destroy_vm)
         else:
-            ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
+            hosts.ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
 
     execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
     if not test_host:
-        vagrant_setup("cwag_test", destroy_vm)
+        hosts.vagrant_setup("cwag_test", destroy_vm)
     else:
-        ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+        hosts.ansible_setup(test_host, "cwag_test", "cwag_test.yml")
 
     execute(_set_cwag_test_configs)
     execute(_set_cwag_test_networking, cwag_br_mac)
@@ -92,6 +95,8 @@ def _set_cwag_configs():
         sudo('mkdir -p /var/opt/magma/configs')
         sudo('cp gateway.mconfig /var/opt/magma/configs')
         sudo('cp sessiond.yml /var/opt/magma/configs')
+        sudo('touch /var/opt/magma/uesim.yml')
+        sudo('touch /var/opt/magma/configs/uesim.yml')
 
 
 def _get_cwag_br_mac():
@@ -134,7 +139,6 @@ def _start_ue_simulator():
     """ Starts the UE Sim Service """
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
         run('tmux new -d \'go run main.go\'')
-
 
 def _start_trfserver():
     """ Starts the traffic gen server"""

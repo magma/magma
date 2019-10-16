@@ -145,7 +145,8 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	var cmd *exec.Cmd
 	cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
 	cmd.Dir = "/usr/bin"
-	_, err := cmd.Output()
+	o, err := cmd.Output()
+	glog.Errorf("o : %v, err : %v", o, err)
 	return &protos.Void{}, err
 }
 

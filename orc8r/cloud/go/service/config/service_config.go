@@ -117,6 +117,7 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 		// If error - try Override cfg
 		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
 		log.Printf("Error Loading %s configs from '%s': %v", serviceName, configFileName, err)
+		glog.Errorf("Didn't find config in %v", configFileName)
 	}
 
 	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))

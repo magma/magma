@@ -9,7 +9,6 @@
 package integ_tests
 
 import (
-	"reflect"
 	"testing"
 
 	"fbc/lib/go/radius/rfc2869"
@@ -29,6 +28,6 @@ func TestAuthenticate(t *testing.T) {
 
 		eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
 		assert.NotNil(t, eapMessage)
-		assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
+		assert.Equal(t, int(eapMessage[0]), eap.SuccessCode)
 	}
 }
