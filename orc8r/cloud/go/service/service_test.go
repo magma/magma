@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/checkind"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -28,7 +28,7 @@ func TestServiceRun(t *testing.T) {
 	allowedStartRange := 15.0
 
 	// Create the service
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, checkind.ServiceName)
+	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
 
@@ -41,7 +41,7 @@ func TestServiceRun(t *testing.T) {
 	assert.Equal(t, protos.ServiceInfo_APP_HEALTHY, srv.Health)
 
 	// Create a rpc stub and query the Service303 interface
-	conn, err := registry.GetConnection(checkind.ServiceName)
+	conn, err := registry.GetConnection(state.ServiceName)
 	assert.NoError(t, err, "err in getting connection to service")
 	client := protos.NewService303Client(conn)
 
@@ -49,7 +49,7 @@ func TestServiceRun(t *testing.T) {
 
 	// check GetServiceInfo rpc call.
 	expectedServiceInfo := protos.ServiceInfo{
-		Name:          "CHECKIND",
+		Name:          "STATE",
 		Version:       "0.0.0",
 		State:         protos.ServiceInfo_ALIVE,
 		Health:        protos.ServiceInfo_APP_HEALTHY,
