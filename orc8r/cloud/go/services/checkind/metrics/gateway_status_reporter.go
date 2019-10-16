@@ -65,9 +65,13 @@ func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
 			}
 
 			// report mconfig age
-			mconfigCreatedAt := status.PlatformInfo.ConfigInfo.MconfigCreatedAt
-			if mconfigCreatedAt != 0 {
-				gwMconfigAge.WithLabelValues(networkID, gatewayID).Set(float64(status.CheckinTime/1000 - mconfigCreatedAt))
+			if status.PlatformInfo != nil && status.PlatformInfo.ConfigInfo != nil {
+				mconfigCreatedAt := status.PlatformInfo.ConfigInfo.MconfigCreatedAt
+				if mconfigCreatedAt != 0 {
+					gwMconfigAge.WithLabelValues(networkID, gatewayID).Set(float64(status.CheckinTime/1000 - mconfigCreatedAt))
+				}
+			} else {
+				glog.Errorf("Status for networkID %s, gatewayID %s is missing the MconfigCreatedAt field", networkID, gatewayID)
 			}
 		}
 		upGwCount.WithLabelValues(networkID).Set(float64(numUpGateways))

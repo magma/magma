@@ -17,16 +17,16 @@ import (
 // swagger:model gateway_cwf_configs
 type GatewayCwfConfigs struct {
 
-	// allowed ues
+	// allowed gre peers
 	// Required: true
-	AllowedUes AllowedUes `json:"allowed_ues"`
+	AllowedGrePeers AllowedGrePeers `json:"allowed_gre_peers"`
 }
 
 // Validate validates this gateway cwf configs
 func (m *GatewayCwfConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateAllowedUes(formats); err != nil {
+	if err := m.validateAllowedGrePeers(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -36,15 +36,15 @@ func (m *GatewayCwfConfigs) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *GatewayCwfConfigs) validateAllowedUes(formats strfmt.Registry) error {
+func (m *GatewayCwfConfigs) validateAllowedGrePeers(formats strfmt.Registry) error {
 
-	if err := validate.Required("allowed_ues", "body", m.AllowedUes); err != nil {
+	if err := validate.Required("allowed_gre_peers", "body", m.AllowedGrePeers); err != nil {
 		return err
 	}
 
-	if err := m.AllowedUes.Validate(formats); err != nil {
+	if err := m.AllowedGrePeers.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("allowed_ues")
+			return ve.ValidateName("allowed_gre_peers")
 		}
 		return err
 	}

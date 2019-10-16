@@ -26,6 +26,7 @@ import (
 	modmagmaacct "fbc/cwf/radius/modules/magmaacct"
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
+	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
 	modxwfv3 "fbc/cwf/radius/modules/xwfv3"
 	"fbc/lib/go/radius"
 	"fmt"
@@ -52,19 +53,20 @@ type StaticLoader struct {
 
 // CWFModuleMap the available CWF modules with their names, for use by the configuration file
 var CWFModuleMap = ModuleNameMap{
-	"addmsisdn":    func() modules.Module { return NewModule(modmsisdn.Init, modmsisdn.Handle) },
-	"analytics":    func() modules.Module { return NewModule(modan.Init, modan.Handle) },
-	"eap":          func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
-	"lbserve":      func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
-	"proxy":        func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
-	"xwfv3":        func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
-	"testloopback": func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
-	"coafixedip":   func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
-	"coanas":       func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
-	"coadynamic":   func() modules.Module { return NewModule(modcoadynamic.Init, modcoadynamic.Handle) },
-	"adaptruckus":  func() modules.Module { return NewModule(modadaptruckus.Init, modadaptruckus.Handle) },
-	"alwaysaccept": func() modules.Module { return NewModule(modalwaysaccept.Init, modalwaysaccept.Handle) },
-	"magmaacct":    func() modules.Module { return NewModule(modmagmaacct.Init, modmagmaacct.Handle) },
+	"addmsisdn":          func() modules.Module { return NewModule(modmsisdn.Init, modmsisdn.Handle) },
+	"analytics":          func() modules.Module { return NewModule(modan.Init, modan.Handle) },
+	"eap":                func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
+	"lbserve":            func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
+	"proxy":              func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
+	"xwfv3":              func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
+	"testloopback":       func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
+	"coafixedip":         func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
+	"coanas":             func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
+	"coadynamic":         func() modules.Module { return NewModule(modcoadynamic.Init, modcoadynamic.Handle) },
+	"adaptruckus":        func() modules.Module { return NewModule(modadaptruckus.Init, modadaptruckus.Handle) },
+	"alwaysaccept":       func() modules.Module { return NewModule(modalwaysaccept.Init, modalwaysaccept.Handle) },
+	"magmaacct":          func() modules.Module { return NewModule(modmagmaacct.Init, modmagmaacct.Handle) },
+	"testsessionstorage": func() modules.Module { return NewModule(testsessionstorage.Init, testsessionstorage.Handle) },
 }
 
 var CWFFilterMap = FilterNameMap{

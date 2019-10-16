@@ -54,6 +54,7 @@ func TestGxClient(t *testing.T) {
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
 		getMockReAuthHandler(),
+		nil,
 	)
 
 	// send init
@@ -186,6 +187,7 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
 		getMockReAuthHandler(),
+		nil,
 	)
 	done := make(chan interface{}, 1000)
 

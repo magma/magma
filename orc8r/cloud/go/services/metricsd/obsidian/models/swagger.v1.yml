@@ -87,9 +87,7 @@ paths:
           description:
             List of PromQL metrics results
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/promql_return_object'
+            $ref: '#/definitions/promql_return_object'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -124,9 +122,7 @@ paths:
         '200':
           description: List of PromQL metrics results
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/promql_return_object'
+            $ref: '#/definitions/promql_return_object'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 

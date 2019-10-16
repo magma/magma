@@ -10,15 +10,15 @@
 namespace devmand {
 
 void ErrorQueue::add(std::string&& error) {
-  errors.emplace_front(std::forward<std::string>(error));
-
-  if (maxSize > errors.size()) {
-    errors.pop_back();
+  errors.emplace_back(std::forward<std::string>(error));
+  // on max size, discard oldest error
+  if (errors.size() > maxSize) {
+    errors.pop_front();
   }
 }
 
 folly::dynamic ErrorQueue::get() {
-  folly::dynamic ret = folly::dynamic::array;
+  auto ret = folly::dynamic::array();
   for (auto& error : errors) {
     ret.push_back(error);
   }

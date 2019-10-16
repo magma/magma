@@ -86,15 +86,16 @@ func standardSwxProxyTest(t *testing.T) {
 		t.Fatalf("GRPC SAR Register Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{}, regRes)
+	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, regRes)
 	t.Logf("GRPC Register SAA: %#+v", *regRes)
 
+	regReq.SessionId = regRes.GetSessionId()
 	deregRes, err := swx_proxy.Deregister(regReq)
 	if err != nil {
 		t.Fatalf("GRPC SAR Deregister Error: %v", err)
 		return
 	}
-	assert.Equal(t, &protos.RegistrationAnswer{}, deregRes)
+	assert.Equal(t, &protos.RegistrationAnswer{SessionId: regRes.GetSessionId()}, deregRes)
 	t.Logf("GRPC Deregister SAA: %#+v", *deregRes)
 
 	// Test client error handling

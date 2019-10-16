@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"magma/orc8r/gateway/directoryd"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -57,9 +59,17 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 		return &protos.AcctResp{}, Errorf(
 			codes.FailedPrecondition, "Accounting Start: Session %s was not authenticated", sid)
 	}
-	var err error
+	var (
+		err    error
+		csResp *protos.CreateSessionResp
+	)
 	if srv.config.GetAccountingEnabled() && !srv.config.GetCreateSessionOnAuth() {
-		_, err = srv.CreateSession(ctx, aaaCtx)
+		csResp, err = srv.CreateSession(ctx, aaaCtx)
+		if err == nil {
+			s.Lock()
+			s.GetCtx().AcctSessionId = csResp.GetSessionId()
+			s.Unlock()
+		}
 	} else {
 		srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 	}
@@ -107,6 +117,8 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+	} else {
+		directoryd.RemoveIMSI(sessionImsi)
 	}
 	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
 
@@ -114,13 +126,14 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 }
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
-func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *protos.Context) (*protos.AcctResp, error) {
+func (srv *accountingService) CreateSession(
+	grpcCtx context.Context, aaaCtx *protos.Context) (*protos.CreateSessionResp, error) {
 
 	startime := time.Now()
 
 	mac, err := net.ParseMAC(aaaCtx.GetMacAddr())
 	if err != nil {
-		return &protos.AcctResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
+		return &protos.CreateSessionResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
 	}
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
@@ -130,15 +143,14 @@ func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *pro
 		HardwareAddr:    mac,
 		RadiusSessionId: aaaCtx.GetSessionId(),
 	}
-	_, err = session_manager.CreateSession(req)
+	csResp, err := session_manager.CreateSession(req)
 	if err == nil {
-		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout, srv.timeoutSessionNotifier)
 		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
 	} else {
 		err = Errorf(codes.Internal, "Create Session Error: %v", err)
 	}
 
-	return &protos.AcctResp{}, err
+	return &protos.CreateSessionResp{SessionId: csResp.GetSessionId()}, err
 }
 
 // TerminateSession is an "inbound" RPC from session manager to notify accounting of a client session termination
@@ -167,6 +179,7 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
+
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
 		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
@@ -189,6 +202,8 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+	} else {
+		directoryd.RemoveIMSI(aaaCtx.GetImsi())
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)

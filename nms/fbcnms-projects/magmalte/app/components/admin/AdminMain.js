@@ -12,11 +12,8 @@ import * as React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '../../common/MagmaV1API';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '../../common/useMagmaAPI';
 import {getProjectLinks} from '../../common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
@@ -32,7 +29,7 @@ type Props = {
   navRoutes: () => React.Node,
 };
 
-function AdminMain(props: Props) {
+export default function AdminMain(props: Props) {
   const classes = useStyles();
   const {tabs, user} = useContext(AppContext);
 
@@ -47,22 +44,3 @@ function AdminMain(props: Props) {
     </div>
   );
 }
-
-export default (props: Props) => {
-  const {error, isLoading, response} = useMagmaAPI(MagmaV1API.getNetworks, {});
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  const networkIds = error || !response ? ['mpk_test'] : response.sort();
-  const appContext = {
-    ...window.CONFIG.appData,
-    networkIds,
-  };
-  return (
-    <AppContext.Provider value={appContext}>
-      <AdminMain {...props} />
-    </AppContext.Provider>
-  );
-};

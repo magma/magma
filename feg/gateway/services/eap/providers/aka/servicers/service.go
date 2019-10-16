@@ -35,7 +35,8 @@ type UserCtx struct {
 	K_aut,
 	MSK,
 	Xres []byte
-	SessionId string
+	SessionId     string
+	AuthSessionId string
 }
 
 type SessionCtx struct {

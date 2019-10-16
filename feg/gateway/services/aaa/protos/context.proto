@@ -19,6 +19,8 @@ message context {
     string apn = 6;
     string mac_addr = 7;
     string ip_addr = 8;
+    string auth_session_id = 9;
+    string acct_session_id = 10;
 }
 
 message Void {

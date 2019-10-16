@@ -254,6 +254,11 @@ func (client *Client) RegisterRequestHandlerForAppID(command uint32, appID uint3
 	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: true}, handler)
 }
 
+// RegisterHandler registers diameter handler to be used for given command and app
+func (client *Client) RegisterHandler(command uint32, appID uint32, request bool, handler diam.Handler) {
+	client.mux.HandleIdx(diam.CommandIndex{AppID: appID, Code: command, Request: request}, handler)
+}
+
 // GenSessionIDOpt generates rfc6733 compliant session ID:
 //     <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 func GenSessionIDOpt(identity, protocol, opt string) string {
@@ -261,11 +266,25 @@ func GenSessionIDOpt(identity, protocol, opt string) string {
 		identity = "magma"
 	}
 	nano := time.Now().UnixNano()
-	nanoHigh := uint(nano << 32)
+	ts := uint(nano<<32) ^ uint(nano)
 	if len(protocol) != 0 {
-		return fmt.Sprintf("%s-%s;%d;%d;%X", identity, protocol, nanoHigh, uint(nano), opt)
+		return fmt.Sprintf("%s-%s;%d;%d;%s", identity, protocol, ts, rand.Uint32(), opt)
 	}
-	return fmt.Sprintf("%s;%d;%d;%X", identity, nanoHigh, uint(nano), opt)
+	return fmt.Sprintf("%s;%d;%d;%s", identity, ts, rand.Uint32(), opt)
+}
+
+// GenSessionIDOpt generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi value>
+func GenSessionIdImsi(identity, protocol, imsi string) string {
+	if len(identity) == 0 {
+		identity = "magma"
+	}
+	nano := time.Now().UnixNano()
+	ts := uint(nano<<32) ^ uint(nano)
+	if len(protocol) != 0 {
+		return fmt.Sprintf("%s-%s;%d;%d;IMSI%s", identity, protocol, ts, rand.Uint32(), imsi)
+	}
+	return fmt.Sprintf("%s;%d;%d;IMSI%s", identity, ts, rand.Uint32(), imsi)
 }
 
 // GenSessionID generates rfc6733 compliant session ID:
@@ -297,6 +316,17 @@ func (client *DiameterClientConfig) GenSessionID(protocol string) string {
 	return client.GenSessionIDOpt(protocol, strconv.FormatUint(uint64(rand.Uint32()), 16))
 }
 
+// GenSessionIdImsi generates rfc6733 compliant session ID:
+//     <DiameterIdentity>;<high 32 bits>;<low 32 bits>;IMSI<imsi>]
+// Where <DiameterIdentity> is client.Host|ProductName-protocol
+//     and <optional value> is base 16 uint32 random number
+func (client *DiameterClientConfig) GenSessionIdImsi(protocol, imsi string) string {
+	if len(imsi) == 0 {
+		return client.GenSessionID(protocol)
+	}
+	return GenSessionIdImsi("", protocol, imsi)
+}
+
 // DecodeSessionID extracts and returns session ID if available,
 // or original diam SessionId (diamSid) string otherwise
 // Input: OriginHost;rand1#;rand2#;IMSIxyz
@@ -309,6 +339,31 @@ func DecodeSessionID(diamSid string) string {
 		return split[n1] + "-" + split[n1-2] + split[n1-1]
 	}
 	return diamSid // not magma encoded SID, return as is
+}
+
+// ExtractImsiFromSessionID extracts and returns IMSI (without 'IMSI' prefix) from diameter session ID if available,
+// or original diam SessionId (diamSid) string otherwise
+// Input: OriginHost;[rand1#;rand2#;]IMSIxyz
+// Returns: xyz
+func ExtractImsiFromSessionID(diamSid string) (string, error) {
+	split := strings.Split(diamSid, ";")
+	n1 := len(split) - 1
+	if n1 > 0 {
+		imsi := strings.TrimSpace(split[n1])
+		if strings.HasPrefix(imsi, "IMSI") {
+			imsi = imsi[4:]
+			if len(imsi) < 10 || len(imsi) > 16 {
+				return diamSid, fmt.Errorf("Invalid length of IMSI: %s, SessionID: %s", imsi, diamSid)
+			}
+			for l := range imsi {
+				if l < '0' || l > '9' {
+					return diamSid, fmt.Errorf("Invalid char %c in IMSI: %s, SessionID: %s", l, imsi, diamSid)
+				}
+			}
+			return imsi, nil
+		}
+	}
+	return diamSid, fmt.Errorf("Non Magma SessionID: %s", diamSid)
 }
 
 // EncodeSessionID encodes SessionID in rfc6733 compliant form:

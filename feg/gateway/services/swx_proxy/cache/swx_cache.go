@@ -102,6 +102,19 @@ func (swxCache *Impl) Get(imsi string) *protos.AuthenticationAnswer {
 	return nil
 }
 
+// Remove removes all auth vectors for the IMSI from cache and returns the removed item if available
+func (swxCache *Impl) Remove(imsi string) *protos.AuthenticationAnswer {
+	swxCache.mu.Lock()
+	defer swxCache.mu.Unlock()
+	ent, found := swxCache.data.vectors[imsi]
+	if found {
+		delete(swxCache.data.vectors, imsi)
+		heap.Remove(&swxCache.data, ent.idx)
+		return ent.ans
+	}
+	return nil
+}
+
 // Put adds ans vectors into the cache after extracting the first vector from the list, which it returns back to
 // the caller in the returned AuthenticationAnswer
 func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer) *protos.AuthenticationAnswer {

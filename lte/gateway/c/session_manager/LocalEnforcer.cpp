@@ -531,7 +531,8 @@ bool LocalEnforcer::init_session_credit(
   const CreateSessionResponse &response)
 {
   std::unordered_set<uint32_t> successful_credits;
-  auto session_state = new SessionState(imsi, session_id, cfg, *rule_store_);
+  auto session_state = new SessionState(
+    imsi, session_id, response.session_id(), cfg, *rule_store_);
   for (const auto &credit : response.credits()) {
     session_state->get_charging_pool().receive_credit(credit);
     if (credit.success() && contains_credit(credit.credit().granted_units())) {
@@ -947,14 +948,14 @@ bool LocalEnforcer::is_imsi_duplicate(const std::string &imsi)
   return true;
 }
 
-bool LocalEnforcer::is_session_duplicate(
+std::string *LocalEnforcer::duplicate_session_id(
   const std::string &imsi, const magma::SessionState::Config &config)
 {
   auto it = session_map_.find(imsi);
-  if (it == session_map_.end()) {
-    return false;
+  if (it == session_map_.end() || (!it->second->is_same_config(config))) {
+    return nullptr;
   }
-  return it->second->is_same_config(config);
+  return new std::string(it->second->get_core_session_id());
 }
 
 static void mark_rule_failures(

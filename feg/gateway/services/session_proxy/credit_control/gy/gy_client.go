@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"time"
 
+	"magma/feg/gateway/registry"
+
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
@@ -58,6 +60,7 @@ var (
 func NewConnectedGyClient(
 	diamClient *diameter.Client,
 	reAuthHandler ReAuthHandler,
+	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.CHARGING_CONTROL_APP_ID, getCCAHandler())
 	registerReAuthHandler(reAuthHandler, diamClient)
@@ -70,6 +73,13 @@ func NewConnectedGyClient(
 			serviceIdentifier = -1
 		}
 	}
+	if cloudRegistry != nil {
+		diamClient.RegisterHandler(
+			diam.AbortSession,
+			diam.CHARGING_CONTROL_APP_ID,
+			true,
+			credit_control.NewASRHandler(diamClient, cloudRegistry))
+	}
 	return &GyClient{diamClient: diamClient}
 }
 
@@ -78,12 +88,13 @@ func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
 	servers []*diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
+	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
 	diamClient := diameter.NewClient(clientCfg)
 	for _, server := range servers {
 		diamClient.BeginConnection(server)
 	}
-	return NewConnectedGyClient(diamClient, reAuthHandler)
+	return NewConnectedGyClient(diamClient, reAuthHandler, cloudRegistry)
 }
 
 // SendCreditControlRequest sends a Credit Control Request to the

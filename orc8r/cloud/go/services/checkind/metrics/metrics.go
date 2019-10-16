@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package metrics
 
 import (
+	"magma/orc8r/cloud/go/metrics"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -18,26 +20,26 @@ var (
 			Name: "gateway_checkin_status",
 			Help: "1 for checkin success, 0 for checkin failure",
 		},
-		[]string{"networkId", "gatewayId"},
+		[]string{metrics.NetworkLabelName, metrics.GatewayLabelName},
 	)
 	upGwCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_up_count",
 			Help: "Number of gateways that are up in the network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	totalGwCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_total_count",
 			Help: "Total number of gateways that are in the network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	gwMconfigAge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_mconfig_age",
 			Help: "Age of the mconfig in the gateway in seconds",
 		},
-		[]string{"networkId", "gatewayId"},
+		[]string{metrics.NetworkLabelName, metrics.GatewayLabelName},
 	)
 )
 
