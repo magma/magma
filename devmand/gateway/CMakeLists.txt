@@ -91,6 +91,7 @@ target_link_libraries(devman
 add_library(devman_channel_snmp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Channel.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Engine.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/EventHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/IfMib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Oid.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Pdu.cpp

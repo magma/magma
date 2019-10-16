@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <folly/dynamic.h>
 
 #include <devmand/channels/snmp/Oid.h>
@@ -42,6 +44,8 @@ class ErrorResponse final : public Response {
   ErrorResponse(ErrorResponse&&) = default;
   ErrorResponse& operator=(ErrorResponse&&) = default;
 };
+
+using Responses = std::vector<Response>;
 
 } // namespace snmp
 } // namespace channels

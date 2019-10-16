@@ -10,6 +10,7 @@
 
 #include <folly/Format.h>
 
+#include <devmand/Application.h>
 #include <devmand/ErrorHandler.h>
 #include <devmand/channels/snmp/IfMib.h>
 #include <devmand/devices/Snmpv2Device.h>
@@ -83,6 +84,7 @@ Snmpv2Device::Snmpv2Device(
     oid proto[])
     : PingDevice(application, id_, folly::IPAddress(peer)),
       snmpChannel(
+          application.getSnmpEngine(),
           peer,
           community,
           version,
@@ -215,6 +217,11 @@ std::shared_ptr<State> Snmpv2Device::getState() {
                                 result.value);
                           }
                         }));
+  state->addRequest(
+      snmpChannel.walk(channels::snmp::Oid(".1")).thenValue([](auto walk) {
+        LOG(INFO) << "Completed an SNMP walk with " << walk.size()
+                  << " entries";
+      }));
 
   auto addRequest = [&state, this](
                         const std::string& oid, const std::string& path) {
