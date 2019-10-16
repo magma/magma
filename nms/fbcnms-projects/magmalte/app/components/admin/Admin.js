@@ -9,8 +9,10 @@
  */
 
 import * as React from 'react';
+import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
 import NavListItem from '@fbcnms/ui/components/NavListItem.react';
@@ -23,7 +25,7 @@ import UsersSettings from '../UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
 import {makeStyles} from '@material-ui/styles';
-import {useFeatureFlag, useRouter} from '@fbcnms/ui/hooks';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   paper: {
@@ -34,11 +36,9 @@ const useStyles = makeStyles(theme => ({
 
 function NavItems() {
   const {relativeUrl} = useRouter();
-  const auditLogEnabled = useFeatureFlag(AppContext, 'audit_log_view');
-  const networkManagementEnabled = useFeatureFlag(
-    AppContext,
-    'magma_network_management',
-  );
+  const {isFeatureEnabled} = React.useContext(AppContext);
+  const auditLogEnabled = isFeatureEnabled('audit_log_view');
+  const networkManagementEnabled = isFeatureEnabled('magma_network_management');
 
   return (
     <>
@@ -87,5 +87,12 @@ function NavRoutes() {
 }
 
 export default () => (
-  <AdminMain navRoutes={() => <NavRoutes />} navItems={() => <NavItems />} />
+  <ApplicationMain>
+    <AdminContextProvider>
+      <AdminMain
+        navRoutes={() => <NavRoutes />}
+        navItems={() => <NavItems />}
+      />
+    </AdminContextProvider>
+  </ApplicationMain>
 );

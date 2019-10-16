@@ -21,8 +21,7 @@
   register: WORK_DIR_ABSOLUTE
 
 - name: Execute via fakeroot the make debian/rules.
-  shell:  make -f debian/rules binary
-  become: yes
+  shell:  fakeroot make -f debian/rules binary
   args:
     chdir: "{{ WORK_DIR_ABSOLUTE.stdout }}/ovs"
 

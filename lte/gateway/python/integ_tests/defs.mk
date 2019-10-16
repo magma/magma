@@ -31,8 +31,34 @@ s1aptests/test_service_info.py \
 s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
-s1aptests/test_attach_ul_udp_data.py \
+s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
+s1aptests/test_attach_detach_EEA1.py \
+s1aptests/test_attach_detach_EEA2.py \
+s1aptests/test_attach_detach_EIA1.py \
+s1aptests/test_attach_detach_emm_status.py \
+s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
+s1aptests/test_attach_detach_ICS_Failure.py \
+s1aptests/test_attach_detach_ps_service_not_available.py \
+s1aptests/test_attach_emergency.py \
+s1aptests/test_attach_missing_imsi.py \
+s1aptests/test_duplicate_attach.py \
+s1aptests/test_enb_partial_reset_con_dereg.py \
+s1aptests/test_enb_partial_reset.py \
+s1aptests/test_nas_non_delivery_for_auth.py \
+s1aptests/test_outoforder_attach_complete_ICSR.py \
+s1aptests/test_s1setup_incorrect_plmn.py \
+s1aptests/test_s1setup_incorrect_tac.py \
+s1aptests/test_sctp_abort_after_auth_req.py \
+s1aptests/test_sctp_abort_after_identity_req.py \
+s1aptests/test_sctp_abort_after_smc.py \
+s1aptests/test_sctp_shutdown_after_auth_req.py \
+s1aptests/test_sctp_shutdown_after_identity_req.py \
+s1aptests/test_sctp_shutdown_after_smc.py
+#s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py
+#s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
+#s1aptests/test_attach_dl_udp_data.py \
+#s1aptests/test_attach_dl_tcp_data.py
 
 # TODO Disabled because MME wont run without UEs in HSS
 #s1aptests/test_attach_missing_imsi.py \

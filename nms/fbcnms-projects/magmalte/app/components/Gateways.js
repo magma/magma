@@ -9,9 +9,10 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway, GatewayPayload} from './GatewayUtils';
+import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
 
 import AddGatewayDialog from './AddGatewayDialog';
 import Button from '@material-ui/core/Button';
@@ -19,6 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import MagmaV1API from '../common/MagmaV1API';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -27,20 +29,14 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from './GatewayUtils';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
 import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
-
-const myInt = (n: ?(string | number)): ?number => {
-  return n ? parseInt(n) : null;
-};
 
 const styles = theme => ({
   header: {
@@ -57,8 +53,8 @@ type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   showDialog: boolean,
-  gateways: ?(Gateway[]),
-  editingGateway: ?any,
+  gateways: ?(GatewayV1[]),
+  editingGateway: ?GatewayV1,
 };
 
 class Gateways extends React.Component<Props, State> {
@@ -70,11 +66,13 @@ class Gateways extends React.Component<Props, State> {
 
   componentDidMount() {
     const {match} = this.props;
-    axios
-      .get(MagmaAPIUrls.gateways(match, true))
+    MagmaV1API.getLteByNetworkIdGateways({
+      networkId: nullthrows(match.params.networkId),
+    })
       .then(response => {
-        const gateways = response.data
-          .filter(g => g.record && g.config)
+        const gateways = Object.keys(response)
+          .map(k => response[k])
+          .filter(g => g.cellular)
           .map(this._buildGatewayFromPayload);
         this.setState({gateways});
       })
@@ -179,23 +177,18 @@ class Gateways extends React.Component<Props, State> {
         if (!confirmed) {
           return;
         }
-        axios
-          .delete(MagmaAPIUrls.gateway(match, gateway.logicalID))
-          .then(_resp =>
-            this.setState({
-              gateways: gateways.filter(
-                gw => gw.logicalID != gateway.logicalID,
-              ),
-            }),
-          );
+        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+          networkId: nullthrows(match.params.networkId),
+          gatewayId: gateway.logicalID,
+        }).then(() =>
+          this.setState({
+            gateways: gateways.filter(gw => gw.logicalID != gateway.logicalID),
+          }),
+        );
       });
   };
 
-  _buildGatewayFromPayload(gateway: GatewayPayload): Gateway {
-    if (!gateway.record || !gateway.config) {
-      throw Error('Cannot read gateway without `record` or `config`');
-    }
-
+  _buildGatewayFromPayload(gateway: lte_gateway): GatewayV1 {
     let enodebRFTXOn = false;
     let enodebConnected = false;
     let gpsConnected = false;
@@ -222,16 +215,17 @@ class Gateways extends React.Component<Props, State> {
         lastCheckin = checkin.toString();
       }
 
-      if (status.meta) {
+      const {meta} = status;
+      if (meta) {
         if (!isBackhaulDown) {
           enodebRFTXOn = status.meta && status.meta.rf_tx_on;
         }
 
-        latLon.lat = status.meta.gps_latitude;
-        latLon.lon = status.meta.gps_longitude;
-        gpsConnected = status.meta.gps_connected == 1;
-        enodebConnected = status.meta.enodeb_connected == 1;
-        mmeConnected = status.meta.mme_connected == 1;
+        latLon.lat = parseFloat(meta.gps_latitude);
+        latLon.lon = parseFloat(meta.gps_longitude);
+        gpsConnected = meta.gps_connected == '1';
+        enodebConnected = meta.enodeb_connected == '1';
+        mmeConnected = meta.mme_connected == '1';
       }
 
       if (status.hardware_id) {
@@ -242,44 +236,38 @@ class Gateways extends React.Component<Props, State> {
     let autoupgradePollInterval,
       checkinInterval,
       checkinTimeout,
-      tier,
       autoupgradeEnabled;
-    if (gateway.config && gateway.config.magmad_gateway) {
-      const {magmad_gateway: magmadGateway} = gateway.config;
-      autoupgradePollInterval = myInt(magmadGateway.autoupgrade_poll_interval);
-      checkinInterval = myInt(magmadGateway.checkin_interval);
-      checkinTimeout = myInt(magmadGateway.checkin_timeout);
-      tier = magmadGateway.tier;
-      autoupgradeEnabled = magmadGateway.autoupgrade_enabled;
+    if (gateway.magmad) {
+      const {magmad} = gateway;
+      autoupgradePollInterval = magmad.autoupgrade_poll_interval;
+      checkinInterval = magmad.checkin_interval;
+      checkinTimeout = magmad.checkin_timeout;
+      autoupgradeEnabled = magmad.autoupgrade_enabled;
     }
 
     let ipBlock, natEnabled;
-    let attachedEnodebSerials = [];
     let pci, transmitEnabled;
     let control, csfbRAT, csfbMCC, csfbMNC, lac;
-    if (gateway.config && gateway.config.cellular_gateway) {
-      const {cellular_gateway: cellularGateway} = gateway.config;
-      ipBlock = (cellularGateway.epc || {}).ip_block;
-      natEnabled = (cellularGateway.epc || {}).nat_enabled;
+    if (gateway.cellular) {
+      const {cellular} = gateway;
+      ipBlock = cellular?.epc?.ip_block;
+      natEnabled = cellular?.epc?.nat_enabled;
+      pci = cellular?.ran?.pci;
+      transmitEnabled = cellular?.ran?.transmit_enabled ?? false;
 
-      attachedEnodebSerials = cellularGateway.attached_enodeb_serials || [];
-
-      pci = myInt((cellularGateway.ran || {}).pci);
-      transmitEnabled = (cellularGateway.ran || {}).transmit_enabled || false;
-
-      const nonEPSService = cellularGateway.non_eps_service || {};
-      control = myInt(nonEPSService.non_eps_service_control);
-      csfbRAT = myInt(nonEPSService.csfb_rat);
-      csfbMNC = myInt(nonEPSService.csfb_mnc);
-      csfbMCC = myInt(nonEPSService.csfb_mcc);
-      lac = myInt(nonEPSService.lac);
+      const nonEPSService = cellular.non_eps_service || {};
+      control = nonEPSService.non_eps_service_control;
+      csfbRAT = nonEPSService.csfb_rat;
+      csfbMNC = nonEPSService.csfb_mnc;
+      csfbMCC = nonEPSService.csfb_mcc;
+      lac = nonEPSService.lac;
     }
 
     return {
       hardware_id: hardwareID,
       name: gateway.name || 'N/A',
-      logicalID: gateway.gateway_id,
-      challengeType: gateway.record.key.key_type || '',
+      logicalID: gateway.id,
+      challengeType: gateway?.device?.key?.key_type || '',
       enodebRFTXEnabled: !!transmitEnabled,
       enodebRFTXOn: !!enodebRFTXOn,
       enodebConnected,
@@ -293,9 +281,9 @@ class Gateways extends React.Component<Props, State> {
       autoupgradePollInterval,
       checkinInterval,
       checkinTimeout,
-      tier,
+      tier: gateway.tier,
       autoupgradeEnabled: !!autoupgradeEnabled,
-      attachedEnodebSerials,
+      attachedEnodebSerials: gateway.connected_enodeb_serials || [],
       ran: {
         pci,
         transmitEnabled: !!transmitEnabled,

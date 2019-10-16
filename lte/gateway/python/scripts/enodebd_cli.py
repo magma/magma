@@ -12,7 +12,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import argparse
 from magma.common.rpc_utils import grpc_wrapper
 from lte.protos.enodebd_pb2 import GetParameterRequest, SetParameterRequest, \
-    EnodebIdentity
+    EnodebIdentity, SingleEnodebStatus
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
 from orc8r.protos.common_pb2 import Void
 
@@ -76,9 +76,9 @@ def get_status(client, args):
         otherwise print that the parameter is not known
         """
         if name in enb_status:
-            _print_status_line(readable_name, enb_status[name])
+            _print_str_status_line(readable_name, enb_status[name])
         else:
-            _print_status_line(readable_name, 'Unknown')
+            _print_str_status_line(readable_name, 'Unknown')
 
     status = client.GetStatus(Void())
     meta = status.meta
@@ -103,18 +103,18 @@ def get_all_status(client, args):
     """ Get status information of each eNodeB """
     def print_enb_status(enb_status):
         print('--- eNodeB Serial:', enb_status.device_serial, '---')
-        _print_status_line('IP Address', enb_status.ip_address)
-        _print_status_line('eNodeB connected', enb_status.connected)
-        _print_status_line('eNodeB Configured', enb_status.configured)
-        _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
-        _print_status_line('RF TX on', enb_status.rf_tx_on)
-        _print_status_line('RF TX desired', enb_status.rf_tx_desired)
-        _print_status_line('GPS Connected', enb_status.gps_connected)
-        _print_status_line('PTP Connected', enb_status.ptp_connected)
-        _print_status_line('MME Connected', enb_status.mme_connected)
-        _print_status_line('GPS Longitude', enb_status.gps_longitude)
-        _print_status_line('GPS Latitude', enb_status.gps_latitude)
-        _print_status_line('FSM State', enb_status.fsm_state)
+        _print_str_status_line('IP Address', enb_status.ip_address)
+        _print_prop_status_line('eNodeB connected', enb_status.connected)
+        _print_prop_status_line('eNodeB Configured', enb_status.configured)
+        _print_prop_status_line('Opstate Enabled', enb_status.opstate_enabled)
+        _print_prop_status_line('RF TX on', enb_status.rf_tx_on)
+        _print_prop_status_line('RF TX desired', enb_status.rf_tx_desired)
+        _print_prop_status_line('GPS Connected', enb_status.gps_connected)
+        _print_prop_status_line('PTP Connected', enb_status.ptp_connected)
+        _print_prop_status_line('MME Connected', enb_status.mme_connected)
+        _print_str_status_line('GPS Longitude', enb_status.gps_longitude)
+        _print_str_status_line('GPS Latitude', enb_status.gps_latitude)
+        _print_str_status_line('FSM State', enb_status.fsm_state)
         print('\n')
 
     status = client.GetAllEnodebStatus(Void())
@@ -134,20 +134,26 @@ def get_enb_status(client, args):
     req = EnodebIdentity()
     req.device_serial = args.device_serial
     enb_status = client.GetEnodebStatus(req)
-    _print_status_line('eNodeB Connected', enb_status.connected)
-    _print_status_line('eNodeB Configured', enb_status.configured)
-    _print_status_line('Opstate Enabled', enb_status.opstate_enabled)
-    _print_status_line('RF TX on', enb_status.rf_tx_on)
-    _print_status_line('RF TX desired', enb_status.rf_tx_desired)
-    _print_status_line('GPS Connected', enb_status.gps_connected)
-    _print_status_line('PTP Connected', enb_status.ptp_connected)
-    _print_status_line('MME Connected', enb_status.mme_connected)
-    _print_status_line('GPS Longitude', enb_status.gps_longitude)
-    _print_status_line('GPS Latitude', enb_status.gps_latitude)
-    _print_status_line('FSM State', enb_status.fsm_state)
+    _print_prop_status_line('eNodeB Connected', enb_status.connected)
+    _print_prop_status_line('eNodeB Configured', enb_status.configured)
+    _print_prop_status_line('Opstate Enabled', enb_status.opstate_enabled)
+    _print_prop_status_line('RF TX on', enb_status.rf_tx_on)
+    _print_prop_status_line('RF TX desired', enb_status.rf_tx_desired)
+    _print_prop_status_line('GPS Connected', enb_status.gps_connected)
+    _print_prop_status_line('PTP Connected', enb_status.ptp_connected)
+    _print_prop_status_line('MME Connected', enb_status.mme_connected)
+    _print_str_status_line('GPS Longitude', enb_status.gps_longitude)
+    _print_str_status_line('GPS Latitude', enb_status.gps_latitude)
+    _print_str_status_line('FSM State', enb_status.fsm_state)
 
 
-def _print_status_line(header: str, value: str) -> None:
+def _print_prop_status_line(header: str, value: int) -> None:
+    """ Argument 'value' should be a StatusProperty enum """
+    _print_str_status_line(header,
+                           SingleEnodebStatus.StatusProperty.Name(value))
+
+
+def _print_str_status_line(header: str, value: str) -> None:
     """
     Print a single line for status info.
 

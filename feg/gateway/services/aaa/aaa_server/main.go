@@ -14,16 +14,21 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
 	"magma/feg/gateway/services/aaa/store"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	managed_configs "magma/orc8r/gateway/mconfig"
 )
 
-const AAAServiceName = "aaa_server"
+const (
+	AAAServiceName = "aaa_server"
+	Version        = "0.1"
+)
 
 func main() {
 	// Create a shared Session Table
@@ -42,10 +47,13 @@ func main() {
 	}
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
+	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, acct)
+	fegprotos.RegisterSwxGatewayServiceServer(srv.GrpcServer, acct)
 
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
+	log.Printf("Starting AAA Service v%s.", Version)
 	err = srv.Run()
 	if err != nil {
 		log.Fatalf("Error running AAA service: %s", err)

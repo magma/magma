@@ -10,8 +10,7 @@ package config
 
 import (
 	"encoding/json"
-	"fbc/cwf/radius/modules"
-	"fbc/lib/go/oc"
+	"fbc/cwf/radius/monitoring/census"
 	"io/ioutil"
 )
 
@@ -21,16 +20,16 @@ const LiveTier = "live"
 type (
 	// ModuleDescriptor a descriptor for loading a single module
 	ModuleDescriptor struct {
-		Name   string               `json:"name"`
-		Config modules.ModuleConfig `json:"config"`
+		Name   string                 `json:"name"`
+		Config map[string]interface{} `json:"config"`
 	}
 
 	// ListenerConfig for a single listener (server has a listerner per each port)
 	ListenerConfig struct {
-		Name    string             `json:"name"`
-		Port    int                `json:"port"`
-		Type    string             `json:"type"`
-		Modules []ModuleDescriptor `json:"modules"`
+		Name    string                 `json:"name"`
+		Type    string                 `json:"type"`
+		Modules []ModuleDescriptor     `json:"modules"`
+		Extra   map[string]interface{} `json:"extra"` // Extra config, per listener
 	}
 
 	// ServiceTier represents a uniquely identifiable named set of upstream hosts
@@ -65,19 +64,40 @@ type (
 		DefaultTier  string        `json:"defaultTier"`
 	}
 
+	// RedisConfig the configuration of redus server
+	RedisConfig struct {
+		Addr     string `json:"addr"`
+		Password string `json:"password"`
+		DB       int    `json:"db"`
+	}
+
+	//SessionStorageConfig ...
+	SessionStorageConfig struct {
+		StorageType string      `json:"storageType"`
+		Redis       RedisConfig `json:"redis"`
+	}
+
 	// ServerConfig Encapsulates the configuration of a radius server
 	ServerConfig struct {
-		Secret      string            `json:"secret"`
-		DedupWindow Duration          `json:"dedupWindow"`
-		LoadBalance LoadBalanceConfig `json:"loadBalance"`
-		Listeners   []ListenerConfig  `json:"listeners"`
-		Filters     []string          `json:"filters"`
+		Secret         string                `json:"secret"`
+		DedupWindow    Duration              `json:"dedupWindow"`
+		LoadBalance    LoadBalanceConfig     `json:"loadBalance"`
+		Listeners      []ListenerConfig      `json:"listeners"`
+		Filters        []string              `json:"filters"`
+		SessionStorage *SessionStorageConfig `json:"sessionStorage"`
+	}
+
+	// MonitoringConfig ...
+	MonitoringConfig struct {
+		Census *census.Config `json:"census"`
+		Ods    *Ods           `json:"ods"`
+		Scuba  *Scuba         `json:"scuba"`
 	}
 
 	// RadiusConfig the configuration file format
 	RadiusConfig struct {
-		Counters oc.Config    `json:"counters"`
-		Server   ServerConfig `json:"server"`
+		Monitoring *MonitoringConfig `json:"monitoring"`
+		Server     ServerConfig      `json:"server"`
 	}
 )
 

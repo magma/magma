@@ -18,10 +18,12 @@ namespace magma {
 SessionState::SessionState(
   const std::string &imsi,
   const std::string &session_id,
+  const std::string &core_session_id,
   const SessionState::Config &cfg,
   StaticRuleStore &rule_store):
   imsi_(imsi),
   session_id_(session_id),
+  core_session_id_(core_session_id),
   config_(cfg),
   // Request number set to 2, because request 1 is INIT call
   request_number_(2),
@@ -96,6 +98,7 @@ void SessionState::get_updates_from_charging_pool(
     new_req->set_plmn_id(config_.plmn_id);
     new_req->set_imsi_plmn_id(config_.imsi_plmn_id);
     new_req->set_user_location(config_.user_location);
+    new_req->set_hardware_addr(config_.hardware_addr);
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
@@ -119,6 +122,7 @@ void SessionState::get_updates_from_monitor_pool(
     new_req->set_request_number(request_number_);
     new_req->set_sid(imsi_);
     new_req->set_ue_ipv4(config_.ue_ipv4);
+    new_req->set_hardware_addr(config_.hardware_addr);
     new_req->mutable_update()->CopyFrom(update);
     request_number_++;
   }
@@ -172,6 +176,7 @@ void SessionState::complete_termination()
   termination.set_plmn_id(config_.plmn_id);
   termination.set_imsi_plmn_id(config_.imsi_plmn_id);
   termination.set_user_location(config_.user_location);
+  termination.set_hardware_addr(config_.hardware_addr);
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
   try {
@@ -226,8 +231,9 @@ bool SessionState::is_same_config(const Config &new_config)
     config_.imsi_plmn_id.compare(new_config.imsi_plmn_id) == 0 &&
     config_.user_location.compare(new_config.user_location) == 0 &&
     config_.rat_type == new_config.rat_type &&
-    config_.mac_addr.compare(new_config.mac_addr) == 0 &&
-    config_.radius_session_id.compare(new_config.radius_session_id) == 0;
+    config_.hardware_addr.compare(new_config.hardware_addr) == 0 &&
+    config_.radius_session_id.compare(new_config.radius_session_id) == 0 &&
+    config_.bearer_id == new_config.bearer_id;
 }
 
 std::string SessionState::get_session_id()
@@ -243,6 +249,11 @@ std::string SessionState::get_subscriber_ip_addr()
 std::string SessionState::get_mac_addr()
 {
   return config_.mac_addr;
+}
+
+std::string SessionState::get_apn()
+{
+  return config_.apn;
 }
 
 bool SessionState::is_radius_cwf_session()
@@ -261,6 +272,25 @@ void SessionState::get_session_info(SessionState::SessionInfo &info)
   info.ip_addr = config_.ue_ipv4;
   session_rules_.get_dynamic_rules().get_rules(info.dynamic_rules);
   info.static_rules = session_rules_.get_static_rule_ids();
+}
+
+uint32_t SessionState::get_qci()
+{
+  if (!config_.qos_info.enabled) {
+    MLOG(MWARNING) << "QoS is not enabled.";
+    return 0;
+  }
+  return config_.qos_info.qci;
+}
+
+uint32_t SessionState::get_bearer_id()
+{
+  return config_.bearer_id;
+}
+
+bool SessionState::qos_enabled()
+{
+  return config_.qos_info.enabled;
 }
 
 } // namespace magma

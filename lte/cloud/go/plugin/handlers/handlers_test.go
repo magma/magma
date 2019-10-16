@@ -194,7 +194,7 @@ func TestGetNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        getNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -335,7 +335,7 @@ func TestUpdateNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        updateNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -379,7 +379,7 @@ func TestDeleteNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        deleteNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not an LTE network",
+		ExpectedError:  "network n2 is not a <lte> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -711,6 +711,150 @@ func TestCellularDelete(t *testing.T) {
 
 	_, err := configurator.LoadNetworkConfig("n1", lte.CellularNetworkType)
 	assert.EqualError(t, err, "Not found")
+}
+
+func TestCreateGateway(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	// setup fixtures in backend
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+			{Type: lte.CellularEnodebType, Key: "enb1"},
+		},
+	)
+	assert.NoError(t, err)
+	err = device.RegisterDevice(
+		"n1", orc8r.AccessGatewayRecordType, "hw2",
+		&models.GatewayDevice{
+			HardwareID: "hw2",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+	)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/gateways"
+	hands := handlers.GetHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, hands, testURLRoot, obsidian.POST).HandlerFunc
+
+	// happy path, no device
+	payload := &models2.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g1",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular:               newDefaultGatewayConfig(),
+		ConnectedEnodebSerials: []string{"enb1"},
+		Tier:                   "t1",
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err := configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g1"},
+			{Type: lte.CellularGatewayType, Key: "g1"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	assert.NoError(t, err)
+
+	expectedEnts := configurator.NetworkEntities{
+		{
+			NetworkID: "n1", Type: lte.CellularGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			Config:             payload.Cellular,
+			Associations:       []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: "enb1"}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
+			GraphID:            "2",
+		},
+		{
+			NetworkID: "n1", Type: orc8r.MagmadGatewayType, Key: "g1",
+			Name: string(payload.Name), Description: string(payload.Description),
+			PhysicalID:         "hw1",
+			Config:             payload.Magmad,
+			Associations:       []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: "g1"}},
+			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			GraphID:            "2",
+			Version:            1,
+		},
+	}
+	assert.Equal(t, expectedEnts, actualEnts)
+	assert.Equal(t, payload.Device, actualDevice)
+
+	// valid magmad gateway, invalid cellular - nothing should change on backend
+	payload = &models2.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw2",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g3",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular: newDefaultGatewayConfig(),
+		// Invalid due to nonexistent enb
+		ConnectedEnodebSerials: []string{"enb1", "dne"},
+		Tier:                   "t1",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 500,
+		ExpectedError:  "failed to create gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actualEnts, _, err = configurator.LoadEntities(
+		"n1", nil, nil, nil,
+		[]storage.TypeAndKey{
+			{Type: orc8r.MagmadGatewayType, Key: "g3"},
+			{Type: lte.CellularGatewayType, Key: "g3"},
+		},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	// the device should get created regardless
+	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(actualEnts))
+	assert.Equal(t, payload.Device, actualDevice)
 }
 
 func TestListAndGetGateways(t *testing.T) {
@@ -2006,18 +2150,21 @@ func TestCreateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
-	tc := tests.Test{
-		Method: "POST",
-		URL:    testURLRoot,
-		Payload: &models2.Subscriber{
-			ID: "IMSI1234567890",
-			Lte: &models2.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:    "ACTIVE",
-			},
+	// default sub profile should always succeed
+	payload := &models2.Subscriber{
+		ID: "IMSI1234567890",
+		Lte: &models2.LteSubscription{
+			AuthAlgo:   "MILENAGE",
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "default",
 		},
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
 		Handler:        createSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -2031,27 +2178,86 @@ func TestCreateSubscriber(t *testing.T) {
 		NetworkID: "n1",
 		Type:      lte.SubscriberEntityType,
 		Key:       "IMSI1234567890",
-		Config: &models2.LteSubscription{
-			AuthAlgo: "MILENAGE",
-			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			State:    "ACTIVE",
-		},
-		GraphID: "2",
+		Config:    payload.Lte,
+		GraphID:   "2",
 	}
 	assert.Equal(t, expected, actual)
 
-	// validation failure
+	// no cellular config on network and a non-default sub profile should be 500
+	payload = &models2.Subscriber{
+		ID: "IMSI0987654321",
+		Lte: &models2.LteSubscription{
+			AuthAlgo:   "MILENAGE",
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "foo",
+		},
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 500,
+		ExpectedError:  "no cellular config found for network",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	_, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI0987654321", configurator.FullEntityLoadCriteria())
+	assert.EqualError(t, err, "Not found")
+
+	// nonexistent sub profile should be 400
+	err = configurator.UpdateNetworkConfig(
+		"n1", lte.CellularNetworkType,
+		&models2.NetworkCellularConfigs{
+			Epc: &models2.NetworkEpcConfigs{
+				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+					"blah": {
+						MaxDlBitRate: 100,
+						MaxUlBitRate: 100,
+					},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	payload = &models2.Subscriber{
+		ID: "IMSI0987654321",
+		Lte: &models2.LteSubscription{
+			AuthAlgo:   "MILENAGE",
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "foo",
+		},
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        payload,
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "subscriber profile foo does not exist for the network",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// other validation failure
 	tc = tests.Test{
 		Method: "POST",
 		URL:    testURLRoot,
 		Payload: &models2.Subscriber{
 			ID: "IMSI1234567898",
 			Lte: &models2.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:    "ACTIVE",
+				AuthAlgo:   "MILENAGE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
 			},
 		},
 		Handler:        createSubscriber,
@@ -2103,10 +2309,11 @@ func TestListSubscribers(t *testing.T) {
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
 				Config: &models2.LteSubscription{
-					AuthAlgo: "MILENAGE",
-					AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					State:    "ACTIVE",
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
 				},
 			},
 		},
@@ -2124,19 +2331,21 @@ func TestListSubscribers(t *testing.T) {
 			"IMSI1234567890": {
 				ID: "IMSI1234567890",
 				Lte: &models2.LteSubscription{
-					AuthAlgo: "MILENAGE",
-					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:    "ACTIVE",
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
 				},
 			},
 			"IMSI0987654321": {
 				ID: "IMSI0987654321",
 				Lte: &models2.LteSubscription{
-					AuthAlgo: "MILENAGE",
-					AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					State:    "ACTIVE",
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					State:      "ACTIVE",
+					SubProfile: "foo",
 				},
 			},
 		}),
@@ -2169,6 +2378,7 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// No sub profile configured, we should return "default"
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
@@ -2193,15 +2403,15 @@ func TestGetSubscriber(t *testing.T) {
 		ExpectedResult: &models2.Subscriber{
 			ID: "IMSI1234567890",
 			Lte: &models2.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:    "ACTIVE",
+				AuthAlgo:   "MILENAGE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
 			},
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-
 }
 
 func TestUpdateSubscriber(t *testing.T) {
@@ -2218,19 +2428,22 @@ func TestUpdateSubscriber(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	tc := tests.Test{
-		Method:  "PUT",
-		URL:     testURLRoot,
-		Handler: updateSubscriber,
-		Payload: &models2.Subscriber{
-			ID: "IMSI1234567890",
-			Lte: &models2.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:    "ACTIVE",
-			},
+	// 404
+	payload := &models2.Subscriber{
+		ID: "IMSI1234567890",
+		Lte: &models2.LteSubscription{
+			AuthAlgo:   "MILENAGE",
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "default",
 		},
+	}
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateSubscriber,
+		Payload:        payload,
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 404,
@@ -2238,32 +2451,50 @@ func TestUpdateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Happy path
+	err = configurator.UpdateNetworkConfig(
+		"n1", lte.CellularNetworkType,
+		&models2.NetworkCellularConfigs{
+			Epc: &models2.NetworkEpcConfigs{
+				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+					"foo": {
+						MaxUlBitRate: 100,
+						MaxDlBitRate: 100,
+					},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
 			Config: &models2.LteSubscription{
-				AuthKey: []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc: []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:   "ACTIVE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
 			},
 		},
 	)
 	assert.NoError(t, err)
 
-	tc = tests.Test{
-		Method:  "PUT",
-		URL:     testURLRoot,
-		Handler: updateSubscriber,
-		Payload: &models2.Subscriber{
-			ID: "IMSI1234567890",
-			Lte: &models2.LteSubscription{
-				AuthAlgo: "MILENAGE",
-				AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-				AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-				State:    "INACTIVE",
-			},
+	payload = &models2.Subscriber{
+		ID: "IMSI1234567890",
+		Lte: &models2.LteSubscription{
+			AuthAlgo:   "MILENAGE",
+			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			State:      "INACTIVE",
+			SubProfile: "foo",
 		},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateSubscriber,
+		Payload:        payload,
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 204,
@@ -2276,16 +2507,25 @@ func TestUpdateSubscriber(t *testing.T) {
 		NetworkID: "n1",
 		Type:      lte.SubscriberEntityType,
 		Key:       "IMSI1234567890",
-		Config: &models2.LteSubscription{
-			AuthAlgo: "MILENAGE",
-			AuthKey:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-			AuthOpc:  []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-			State:    "INACTIVE",
-		},
-		GraphID: "2",
-		Version: 1,
+		Config:    payload.Lte,
+		GraphID:   "2",
+		Version:   1,
 	}
 	assert.Equal(t, expected, actual)
+
+	// No profile matching
+	payload.Lte.SubProfile = "bar"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateSubscriber,
+		Payload:        payload,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 400,
+		ExpectedError:  "subscriber profile bar does not exist for the network",
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestDeleteSubscriber(t *testing.T) {
@@ -2402,6 +2642,131 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	assert.NoError(t, err)
 	expected.Config.(*models2.LteSubscription).State = "ACTIVE"
 	expected.Version = 4
+	assert.Equal(t, expected, actual)
+}
+
+func TestUpdateSubscriberProfile(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	err = configurator.UpdateNetworkConfig(
+		"n1", lte.CellularNetworkType,
+		&models2.NetworkCellularConfigs{
+			Epc: &models2.NetworkEpcConfigs{
+				SubProfiles: map[string]models2.NetworkEpcConfigsSubProfilesAnon{
+					"foo": {
+						MaxUlBitRate: 100,
+						MaxDlBitRate: 100,
+					},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Config: &models2.LteSubscription{
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id/lte/sub_profile"
+	handlers := handlers.GetHandlers()
+	updateProfile := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
+
+	// 404
+	payload := "foo"
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateProfile,
+		Payload:        tests.JSONMarshaler(payload),
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI0987654321"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// bad profile
+	payload = "bar"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateProfile,
+		Payload:        tests.JSONMarshaler(payload),
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 400,
+		ExpectedError:  "subscriber profile bar does not exist for the network",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// happy path
+	payload = "foo"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateProfile,
+		Payload:        tests.JSONMarshaler(payload),
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
+	expected := configurator.NetworkEntity{
+		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Config: &models2.LteSubscription{
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "foo",
+		},
+		GraphID: "2",
+		Version: 1,
+	}
+	assert.Equal(t, expected, actual)
+
+	// set to default
+	payload = "default"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            testURLRoot,
+		Handler:        updateProfile,
+		Payload:        tests.JSONMarshaler(payload),
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	expected = configurator.NetworkEntity{
+		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+		Config: &models2.LteSubscription{
+			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			State:      "ACTIVE",
+			SubProfile: "default",
+		},
+		GraphID: "2",
+		Version: 2,
+	}
 	assert.Equal(t, expected, actual)
 }
 

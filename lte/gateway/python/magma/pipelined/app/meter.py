@@ -89,14 +89,12 @@ class MeterController(MagmaController):
                               priority=flows.MINIMUM_PRIORITY,
                               cookie=self.DEFAULT_FLOW_COOKIE,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              max_len=ofproto.OFPCML_NO_BUFFER,
-                              install_trace_flow=False)
+                              max_len=ofproto.OFPCML_NO_BUFFER)
         flows.add_output_flow(datapath, self.tbl_num, outbound_match, [],
                               priority=flows.MINIMUM_PRIORITY,
                               cookie=self.DEFAULT_FLOW_COOKIE,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              max_len=ofproto.OFPCML_NO_BUFFER,
-                              install_trace_flow=False)
+                              max_len=ofproto.OFPCML_NO_BUFFER)
 
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _install_new_ingress_egress_flows(self, ev):

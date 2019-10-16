@@ -22,12 +22,19 @@
       "relayEnabled": true,
       "apps": [],
       "services": [
+      ],
+      "allowedGrePeers": [
+       {"ip": "1.1.1.1", "key":123}
       ]
     },
     "sessiond": {
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
       "relayEnabled": true
+    },
+    "redirectd": {
+      "@type": "type.googleapis.com/magma.mconfig.RedirectD",
+      "logLevel": "INFO"
     },
     "radiusd": {
       "@type": "type.googleapis.com/magma.mconfig.RadiusdConfig",

@@ -12,7 +12,6 @@ import type {MetricGraphConfig} from '../insights/Metrics';
 import type {TimeRange} from '../insights/AsyncMetric';
 
 import AppBar from '@material-ui/core/AppBar';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import AsyncMetric from '../insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -24,7 +23,6 @@ import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/styles';
 import {resolveQuery} from '../insights/Metrics';
-import {useFeatureFlag} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -47,8 +45,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(disk_percent)',
-          resolveGraphiteQuery: _ => 'sumSeries(disk_percent)',
+          resolveQuery: _ => 'sum(disk_percent)',
         },
       ],
       legendLabels: ['Disk Percent'],
@@ -59,8 +56,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(enb_connected)',
-          resolveGraphiteQuery: _ => 'sum(enb_connected)',
+          resolveQuery: _ => 'sum(enb_connected)',
         },
       ],
       legendLabels: ['Connected'],
@@ -71,8 +67,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(ue_connected)',
-          resolveGraphiteQuery: _ => 'sum(ue_connected)',
+          resolveQuery: _ => 'sum(ue_connected)',
         },
       ],
       legendLabels: ['Connected'],
@@ -83,8 +78,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(ue_registered)',
-          resolveGraphiteQuery: _ => 'sum(ue_registered)',
+          resolveQuery: _ => 'sum(ue_registered)',
         },
       ],
       legendLabels: ['Registered'],
@@ -95,19 +89,13 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(s1_setup)',
-          resolveGraphiteQuery: _ => 'sum(s1_setup)',
+          resolveQuery: _ => 'sum(s1_setup)',
         },
         {
-          resolvePrometheusQuery: _ => "sum(s1_setup{result='success'})",
-          resolveGraphiteQuery: _ =>
-            "sum(seriesByTag('name=s1_setup', 'result=success'))",
+          resolveQuery: _ => "sum(s1_setup{result='success'})",
         },
         {
-          resolvePrometheusQuery: _ =>
-            "sum(s1_setup) - sum(s1_setup{result='success'})",
-          resolveGraphiteQuery: _ =>
-            "diffSeries(sum(s1_setup), sum(seriesByTag('name=s1_setup', 'result=success')))",
+          resolveQuery: _ => "sum(s1_setup) - sum(s1_setup{result='success'})",
         },
       ],
       legendLabels: ['Total', 'Success', 'Failure'],
@@ -118,20 +106,14 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(ue_attach)',
-          resolveGraphiteQuery: _ => 'sum(ue_attach)',
+          resolveQuery: _ => 'sum(ue_attach)',
         },
         {
-          resolvePrometheusQuery: _ =>
-            "sum(ue_attach{result='attach_proc_successful'})",
-          resolveGraphiteQuery: _ =>
-            "sum(seriesByTag('name=ue_attach', 'result=attach_proc_successful'))",
+          resolveQuery: _ => "sum(ue_attach{result='attach_proc_successful'})",
         },
         {
-          resolvePrometheusQuery: _ =>
+          resolveQuery: _ =>
             "sum(ue_attach) - sum(ue_attach{result='attach_proc_successful'})",
-          resolveGraphiteQuery: _ =>
-            "diffSeries(sum(ue_attach), sum(seriesByTag('name=ue_attach', 'result=attach_proc_successful')))",
         },
       ],
       legendLabels: ['Total', 'Success', 'Failure'],
@@ -142,20 +124,14 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(ue_detach)',
-          resolveGraphiteQuery: _ => 'sum(ue_detach)',
+          resolveQuery: _ => 'sum(ue_detach)',
         },
         {
-          resolvePrometheusQuery: _ =>
-            "sum(ue_detach{result='attach_proc_successful'})",
-          resolveGraphiteQuery: _ =>
-            "sum(seriesByTag('name=ue_detach', 'result=attach_proc_successful'))",
+          resolveQuery: _ => "sum(ue_detach{result='attach_proc_successful'})",
         },
         {
-          resolvePrometheusQuery: _ =>
+          resolveQuery: _ =>
             "sum(ue_detach) - sum(ue_detach{result='attach_proc_successful'})",
-          resolveGraphiteQuery: _ =>
-            "diffSeries(sum(ue_detach), sum(seriesByTag('name=ue_detach', 'result=attach_proc_successful')))",
         },
       ],
       legendLabels: ['Total', 'Success', 'Failure'],
@@ -166,8 +142,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'avg(enodeb_gps_connected)',
-          resolveGraphiteQuery: _ => 'avg(enodeb_gps_connected)',
+          resolveQuery: _ => 'avg(enodeb_gps_connected)',
         },
       ],
       legendLabels: ['Uptime'],
@@ -178,8 +153,7 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'avg(enodeb_rf_tx_enabled)',
-          resolveGraphiteQuery: _ => 'avg(enodeb_rf_tx_enabled)',
+          resolveQuery: _ => 'avg(enodeb_rf_tx_enabled)',
         },
       ],
       legendLabels: ['Transmitting Status'],
@@ -190,30 +164,20 @@ export default function CloudMetrics() {
       basicQueryConfigs: [],
       customQueryConfigs: [
         {
-          resolvePrometheusQuery: _ => 'sum(service_request)',
-          resolveGraphiteQuery: _ => 'sum(service_request)',
+          resolveQuery: _ => 'sum(service_request)',
         },
         {
-          resolvePrometheusQuery: _ => "sum(service_request{result='success'})",
-          resolveGraphiteQuery: _ =>
-            "sum(seriesByTag('name=service_request', 'result=success'))",
+          resolveQuery: _ => "sum(service_request{result='success'})",
         },
         {
-          resolvePrometheusQuery: _ =>
+          resolveQuery: _ =>
             "sum(service_request) - sum(service_request{result='success'})",
-          resolveGraphiteQuery: _ =>
-            "diffSeries(sum(service_request), sum(seriesByTag('name=service_request', 'result=success')))",
         },
       ],
       legendLabels: ['Total', 'Success', 'Failure'],
       unit: '',
     },
   ];
-
-  const usePrometheusDatabase = useFeatureFlag(
-    AppContext,
-    'prometheus_metrics_database',
-  );
 
   return (
     <>
@@ -236,10 +200,9 @@ export default function CloudMetrics() {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(config, '', usePrometheusDatabase)}
+                    queries={resolveQuery(config, '')}
                     timeRange={timeRange}
                     legendLabels={config.legendLabels}
-                    usePrometheusDB={usePrometheusDatabase}
                   />
                 </div>
               </CardContent>

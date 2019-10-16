@@ -21,7 +21,7 @@ const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
 
 // NMS specific
 
-const API_HOST = process.env.API_HOST || '';
+const API_HOST = process.env.API_HOST || 'magma_test.local';
 
 const NETWORK_FALLBACK = process.env.NETWORK_FALLBACK
   ? process.env.NETWORK_FALLBACK.split(',')

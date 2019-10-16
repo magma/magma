@@ -8,14 +8,14 @@
 
 package test_utils
 
-import "magma/feg/cloud/go/services/controller/obsidian/models"
+import "magma/feg/cloud/go/plugin/models"
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 	// GyInitMethod_PER_SESSION
 	gyInitMethodPerSession := uint32(1)
 
 	return &models.NetworkFederationConfigs{
-		S6a: &models.NetworkFederationConfigsS6a{
+		S6a: &models.S6a{
 			Server: &models.DiameterClientConfigs{
 				Protocol:         "sctp",
 				Retransmits:      3,
@@ -26,7 +26,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 				Realm:            "magma.com",
 			},
 		},
-		Gx: &models.NetworkFederationConfigsGx{
+		Gx: &models.Gx{
 			Server: &models.DiameterClientConfigs{
 				Protocol:         "tcp",
 				Retransmits:      3,
@@ -37,7 +37,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 				Realm:            "magma.com",
 			},
 		},
-		Gy: &models.NetworkFederationConfigsGy{
+		Gy: &models.Gy{
 			Server: &models.DiameterClientConfigs{
 				Protocol:         "tcp",
 				Retransmits:      3,
@@ -49,7 +49,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			},
 			InitMethod: &gyInitMethodPerSession,
 		},
-		Hss: &models.NetworkFederationConfigsHss{
+		Hss: &models.Hss{
 			Server: &models.DiameterServerConfigs{
 				Protocol:  "tcp",
 				DestHost:  "magma.com",
@@ -64,7 +64,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			SubProfiles:       make(map[string]models.SubscriptionProfile),
 			StreamSubscribers: false,
 		},
-		Swx: &models.NetworkFederationConfigsSwx{
+		Swx: &models.Swx{
 			Server: &models.DiameterClientConfigs{
 				Protocol:         "sctp",
 				Retransmits:      3,
@@ -77,7 +77,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			VerifyAuthorization: false,
 			CacheTTLSeconds:     10800,
 		},
-		EapAka: &models.NetworkFederationConfigsEapAka{
+		EapAka: &models.EapAka{
 			Timeout: &models.EapAkaTimeouts{
 				ChallengeMs:            20000,
 				ErrorNotificationMs:    10000,
@@ -86,13 +86,13 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			},
 			PlmnIds: []string{},
 		},
-		AaaServer: &models.NetworkFederationConfigsAaaServer{
+		AaaServer: &models.AaaServer{
 			IDLESessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
 		},
 		ServedNetworkIds: []string{},
-		Health: &models.NetworkFederationConfigsHealth{
+		Health: &models.Health{
 			HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},
 			UpdateIntervalSecs:       10,
 			CloudDisablePeriodSecs:   10,
@@ -105,8 +105,6 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 		}}
 }
 
-func NewDefaultGatewayConfig() *models.GatewayFegConfigs {
-	return &models.GatewayFegConfigs{
-		NetworkFederationConfigs: *NewDefaultNetworkConfig(),
-	}
+func NewDefaultGatewayConfig() *models.GatewayFederationConfigs {
+	return (*models.GatewayFederationConfigs)(NewDefaultNetworkConfig())
 }

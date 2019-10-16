@@ -29,6 +29,7 @@ class Direction(IntEnum):
     """
     OUT = 0x01
     IN = 0x10
+    PASSTHROUGH = 0x2
 
 
 class TestPacket(IntEnum):

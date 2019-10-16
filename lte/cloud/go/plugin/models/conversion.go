@@ -10,18 +10,33 @@ package models
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/protos"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/thoas/go-funk"
 )
+
+func (m *LteNetwork) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
+	return &LteNetwork{}
+}
 
 func (m *LteNetwork) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
@@ -50,7 +65,7 @@ func (m *LteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 	}
 }
 
-func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) *LteNetwork {
+func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{} {
 	m.ID = models.NetworkID(n.ID)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
@@ -133,13 +148,15 @@ func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	device *models2.GatewayDevice,
 	status *models2.GatewayStatus,
-) *LteGateway {
+) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 
-	m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
+	if cellularGateway.Config != nil {
+		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
+	}
 	for _, tk := range cellularGateway.Associations {
 		if tk.Type == lte.CellularEnodebType {
 			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
@@ -165,8 +182,8 @@ func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
 	}
 }
 
-func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
+func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
+	ent := configurator.NetworkEntity{
 		Type:        lte.CellularGatewayType,
 		Key:         string(m.ID),
 		Name:        string(m.Name),
@@ -174,31 +191,51 @@ func (m *MutableLteGateway) ToConfiguratorEntity() configurator.NetworkEntity {
 		Config:      m.Cellular,
 	}
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
 	}
-	return ret
+
+	return []configurator.EntityWriteOperation{
+		ent,
+		configurator.EntityUpdateCriteria{
+			Type:              orc8r.MagmadGatewayType,
+			Key:               string(m.ID),
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
+		},
+	}
 }
 
-func (m *MutableLteGateway) GetMagmadGatewayUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:              orc8r.MagmadGatewayType,
-		Key:               string(m.ID),
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
-	}
+func (m *MutableLteGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: gatewayID}}
 }
 
-func (m *MutableLteGateway) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type:           lte.CellularGatewayType,
-		Key:            string(m.ID),
-		NewName:        swag.String(string(m.Name)),
-		NewDescription: swag.String(string(m.Description)),
-		NewConfig:      m.Cellular,
+func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
+	gatewayID string,
+	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, error) {
+	ret := []configurator.EntityWriteOperation{}
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayType, Key: gatewayID}]
+	if !ok {
+		return ret, merrors.ErrNotFound
 	}
+
+	entUpdate := configurator.EntityUpdateCriteria{
+		Type:      lte.CellularGatewayType,
+		Key:       string(m.ID),
+		NewConfig: m.Cellular,
+	}
+	if string(m.Name) != existingEnt.Name {
+		entUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingEnt.Description {
+		entUpdate.NewDescription = swag.String(string(m.Description))
+	}
+
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
 	}
-	return ret
+
+	ret = append(ret, entUpdate)
+	return ret, nil
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
@@ -346,5 +383,123 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
 	m.ID = ent.Key
 	m.Lte = ent.Config.(*LteSubscription)
+	// If no profile in backend, return "default"
+	if m.Lte.SubProfile == "" {
+		m.Lte.SubProfile = "default"
+	}
 	return m
+}
+
+func (m *SubProfile) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+var formatsRegistry = strfmt.NewFormats()
+
+func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:         lte.BaseNameEntity2Type,
+		Key:          string(m.Name),
+		Associations: m.RuleNames.ToAssocs(),
+	}
+}
+
+func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
+	m.Name = BaseName(ent.Key)
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.PolicyRuleEntity2Type {
+			m.RuleNames = append(m.RuleNames, tk.Key)
+		}
+	}
+	return m
+}
+
+func (m RuleNames) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: lte.PolicyRuleEntity2Type, Key: rn}
+		},
+	).([]storage.TypeAndKey)
+}
+
+func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   lte.PolicyRuleEntity2Type,
+		Key:    *m.ID,
+		Config: m,
+	}
+}
+
+// PolicyRule's ToProto fills in passed protos.PolicyRule struct from
+// receiver's protos.PolicyRule
+func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
+	flowRuleProto, ok := pfrm.(*protos.PolicyRule)
+	if !ok {
+		return fmt.Errorf(
+			"Invalid Destination Type %s, *protos.PolicyRule expected",
+			reflect.TypeOf(pfrm))
+	}
+	if policyRule != nil || flowRuleProto != nil {
+		orcprotos.FillIn(policyRule, flowRuleProto)
+		trackingVal, ok := protos.PolicyRule_TrackingType_value[policyRule.TrackingType]
+		if ok {
+			flowRuleProto.TrackingType = protos.PolicyRule_TrackingType(trackingVal)
+		}
+		if flowRuleProto.FlowList == nil {
+			flowRuleProto.FlowList = flowListToProto(policyRule.FlowList)
+		}
+		if policyRule.Redirect != nil {
+			flowRuleProto.Redirect = redirectInfoToProto(policyRule.Redirect)
+		}
+		if policyRule.Priority != nil {
+			flowRuleProto.Priority = *policyRule.Priority
+		}
+		flowRuleProto.Id = *policyRule.ID
+		flowRuleProto.MonitoringKey = policyRule.MonitoringKey
+		flowRuleProto.RatingGroup = policyRule.RatingGroup
+	}
+	return nil
+}
+
+func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
+	redirectProto := &protos.RedirectInformation{}
+	orcprotos.FillIn(redirectModel, redirectProto)
+	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
+	if ok {
+		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
+	}
+	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
+	if ok {
+		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
+	}
+	return redirectProto
+}
+
+// Fill protos.PolicyRule.FlowList From passed protos.PolicyRule.FlowList
+func flowListToProto(flowList []*FlowDescription) []*protos.FlowDescription {
+	var s []*protos.FlowDescription
+	for i, flow := range flowList {
+		s = append(s, new(protos.FlowDescription))
+		orcprotos.FillIn(flow, s[i])
+		match := flow.Match
+		orcprotos.FillIn(match, s[i].Match)
+		if match.IPProto != nil {
+			protoVal, ok := protos.FlowMatch_IPProto_value[*match.IPProto]
+			if ok {
+				s[i].Match.IpProto = protos.FlowMatch_IPProto(protoVal)
+			}
+		}
+		directionVal, ok := protos.FlowMatch_Direction_value[*match.Direction]
+		if ok {
+			s[i].Match.Direction = protos.FlowMatch_Direction(directionVal)
+		}
+		if flow.Action != nil {
+			actionVal, ok := protos.FlowDescription_Action_value[*flow.Action]
+			if ok {
+				s[i].Action = protos.FlowDescription_Action(actionVal)
+			}
+		}
+	}
+	return s
 }

@@ -51,6 +51,11 @@
         "../../../orc8r/tools/ansible/roles/docker"
       ],
       "extra_arguments": [ "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"]
+    },
+    {
+      "type": "shell",
+      "inline": ["sudo reboot"],
+      "expect_disconnect": true
     }
   ]
 }

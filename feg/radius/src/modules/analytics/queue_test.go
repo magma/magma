@@ -22,6 +22,7 @@ import (
 const maxTimeBetweenTasks = 10 // msec
 
 func TestAnalyticsQueue(t *testing.T) {
+	var mCtx ModuleCtx
 	numTasks := 100
 	for withDrain := 0; withDrain < 2; withDrain++ {
 		isDrain := false
@@ -29,7 +30,7 @@ func TestAnalyticsQueue(t *testing.T) {
 			isDrain = true
 		}
 		lastExecTaskID := atomic.NewInt32(0)
-		queue := NewAnalyticsQueue()
+		queue := NewAnalyticsQueue(mCtx)
 		for i := 1; i <= numTasks; i++ {
 			t := LazyExecSerializerOrderedTask{
 				Testing:        t,
@@ -61,7 +62,7 @@ type LazyExecSerializerOrderedTask struct {
 	TaskID         int
 }
 
-func (t *LazyExecSerializerOrderedTask) Run() {
+func (t *LazyExecSerializerOrderedTask) Run(_ ModuleCtx) {
 	expectedID := 1 + t.LastExecTaskID.Load()
 	// check order of tasks is maintained
 	require.True(t.Testing, int32(t.TaskID) == expectedID, "expecting task ID %d but executing ID %d", expectedID, t.TaskID)

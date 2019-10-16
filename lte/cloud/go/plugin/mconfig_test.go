@@ -140,6 +140,12 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
 		},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags: map[string]string{
+				"network_id": "n1",
+				"gateway_id": "gw1",
+			},
+		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
@@ -235,6 +241,12 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+		},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags: map[string]string{
+				"network_id": "n1",
+				"gateway_id": "gw1",
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)
@@ -360,6 +372,12 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
+		},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags: map[string]string{
+				"network_id": "n1",
+				"gateway_id": "gw1",
+			},
 		},
 	}
 	err := builder.Build("n1", "gw1", graph, nw, actual)

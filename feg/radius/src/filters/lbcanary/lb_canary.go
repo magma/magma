@@ -11,7 +11,7 @@ package lbcanary
 import (
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
@@ -70,7 +70,7 @@ func allocateTier(c *modules.RequestContext) error {
 		return nil
 	}
 
-	counter := counters.NewOperation("pick_canary_tier").Start()
+	counter := monitoring.NewOperation("pick_canary_tier").Start()
 	tier := pickRandomTier()
 
 	state.Tier = tier

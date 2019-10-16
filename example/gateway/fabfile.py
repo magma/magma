@@ -8,9 +8,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import sys
-sys.path.append('../../orc8r/tools')
-import fab.dev_utils as dev_utils
+
+sys.path.append('../../orc8r')
+import tools.fab.dev_utils as dev_utils
+
 
 def register_vm():
     """ Provisions the gateway vm with the cloud vm """
-    dev_utils.register_vm(vm_type="example")
+    dev_utils.register_generic_gateway('test', 'example')

@@ -9,15 +9,16 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Enodeb, EnodebPayload} from './EnodebUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {enodeb} from '../../common/__generated__/MagmaAPIBindings';
 
 import AddEditEnodebDialog from './AddEditEnodebDialog';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import MagmaV1API from '../../common/MagmaV1API';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -26,13 +27,10 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {DEFAULT_ENODEB} from './EnodebUtils';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -51,8 +49,8 @@ type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
   showDialog: boolean,
-  enodebs: Enodeb[],
-  editingEnodeb: ?any,
+  enodebs: enodeb[],
+  editingEnodeb: ?enodeb,
 };
 
 class Enodebs extends React.Component<Props, State> {
@@ -64,46 +62,32 @@ class Enodebs extends React.Component<Props, State> {
 
   componentDidMount() {
     const {match} = this.props;
-    const handleFunc = this._handleEnodebPayloads.bind(this);
-    axios
-      .get(MagmaAPIUrls.enodebs(match))
-      .then(response => {
-        const enbSerialArr = response.data;
-        const enbReqArr = enbSerialArr.map(enbSerial =>
-          axios.get(MagmaAPIUrls.enodeb(match, enbSerial)),
-        );
-        axios.all(enbReqArr).then(payloadArr => {
-          handleFunc(enbSerialArr, payloadArr);
-        });
+    MagmaV1API.getLteByNetworkIdEnodebs({
+      networkId: nullthrows(match.params.networkId),
+    })
+      .then(result => {
+        const enodebs = Object.keys(result).map(key => result[key]);
+        this.setState({enodebs});
       })
       .catch(error => {
         this.props.alert('Failed to get eNB for network: ' + error);
       });
   }
 
-  _handleEnodebPayloads(enbSerialArr, payloadArr) {
-    const handleFunc = this._buildEnodebFromPayload.bind(this);
-    const enodebs = [];
-    payloadArr.forEach(function(payload, i) {
-      enodebs.push(handleFunc(enbSerialArr[i], payload.data));
-    });
-    this.setState({enodebs});
-  }
-
   render() {
     const {enodebs} = this.state;
     const rows = (enodebs || []).map(enodeb => (
-      <TableRow key={enodeb.serialId}>
+      <TableRow key={enodeb.serial}>
         <TableCell>
           {status}
-          {enodeb.serialId}
+          {enodeb.serial}
         </TableCell>
-        <TableCell>{enodeb.deviceClass}</TableCell>
+        <TableCell>{enodeb.config.device_class}</TableCell>
         <TableCell>
-          <IconButton onClick={this.editEnodeb.bind(this, enodeb)}>
+          <IconButton onClick={() => this.editEnodeb(enodeb)}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={this.deleteEnodeb.bind(this, enodeb)}>
+          <IconButton onClick={() => this.deleteEnodeb(enodeb)}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
@@ -164,8 +148,7 @@ class Enodebs extends React.Component<Props, State> {
     this.setState({editingEnodeb});
   };
 
-  onSave = (enbSerial: string, enodebPayload: EnodebPayload) => {
-    const enodeb = this._buildEnodebFromPayload(enbSerial, enodebPayload);
+  onSave = (enodeb: enodeb) => {
     const newEnodebs = nullthrows(this.state.enodebs).slice(0);
     if (this.state.editingEnodeb) {
       newEnodebs[newEnodebs.indexOf(this.state.editingEnodeb)] = enodeb;
@@ -182,39 +165,23 @@ class Enodebs extends React.Component<Props, State> {
   deleteEnodeb = enodeb => {
     const {match} = this.props;
     this.props
-      .confirm(`Are you sure you want to delete ${enodeb.serialId}?`)
+      .confirm(`Are you sure you want to delete ${enodeb.serial}?`)
       .then(confirmed => {
         if (!confirmed) {
           return;
         }
-        axios.delete(MagmaAPIUrls.enodeb(match, enodeb.serialId)).then(_resp =>
+        MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
+          networkId: nullthrows(match.params.networkId),
+          enodebSerial: enodeb.serial,
+        }).then(() =>
           this.setState({
             enodebs: this.state.enodebs.filter(
-              enb => enb.serialId != enodeb.serialId,
+              enb => enb.serial != enodeb.serial,
             ),
           }),
         );
       });
   };
-
-  _buildEnodebFromPayload(enbSerial: string, enodeb: EnodebPayload): Enodeb {
-    return {
-      serialId: enbSerial,
-      deviceClass: enodeb.device_class || DEFAULT_ENODEB.device_class,
-      earfcndl: enodeb.earfcndl || DEFAULT_ENODEB.earfcndl,
-      subframeAssignment:
-        enodeb.subframe_assignment || DEFAULT_ENODEB.subframe_assignment,
-      specialSubframePattern:
-        enodeb.special_subframe_pattern ||
-        DEFAULT_ENODEB.special_subframe_pattern,
-      pci: enodeb.pci || DEFAULT_ENODEB.pci,
-      bandwidthMhz: enodeb.bandwidth_mhz || DEFAULT_ENODEB.bandwidth_mhz,
-      tac: enodeb.tac || DEFAULT_ENODEB.tac,
-      cellId: enodeb.cell_id || DEFAULT_ENODEB.cell_id,
-      transmitEnabled:
-        enodeb.transmit_enabled || DEFAULT_ENODEB.transmit_enabled,
-    };
-  }
 }
 
 export default withStyles(styles)(withAlert(withRouter(Enodebs)));

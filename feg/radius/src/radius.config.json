@@ -1,15 +1,29 @@
 {
-    "counters": {
-        "disable_stats": false,
-        "stat_views": ["proc"]
+    "monitoring": {
+        "census": {
+            "disable_stats": false,
+            "stat_views": ["proc"]
+        }
+    },
+    "ods": {
+        "category_id": "958",
+        "access_token": "$MONITORING_ACCESS_TOKEN",
+        "entity": "goradius",
+        "graph_url": "https://graph.facebook.com/ods_metrics",
+        "unique_entity": true
     },
     "server": {
+        "sessionStorage": {
+            "storageType": "memory"
+        },
         "secret": "123456",
         "dedupWindow": "500ms",
         "listeners": [
             {
                 "name": "auth",
-                "port": 1812,
+                "extra": {
+                    "port": 1812
+                },
                 "type": "udp",
                 "modules": [
                     {
@@ -37,7 +51,9 @@
             },
             {
                 "name": "acct",
-                "port": 1813,
+                "extra": {
+                    "port": 1813
+                },
                 "type": "udp",
                 "modules": [
                     {
@@ -47,7 +63,7 @@
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     },
                     {
@@ -60,13 +76,15 @@
             },
             {
                 "name": "coa_grpc",
-                "port": 9108,
+                "extra": {
+                    "port": 9108
+                },
                 "type": "grpc",
                 "modules": [
                     {
                         "name": "coadynamic",
                         "config": {
-                            "Port": "3799"
+                            "Port": 3799
                         }
                     }
                 ]

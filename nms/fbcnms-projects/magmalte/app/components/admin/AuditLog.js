@@ -9,6 +9,7 @@
  */
 
 import Button from '@material-ui/core/Button';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -27,7 +28,6 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
 
-import {GatewayStatus} from '@fbcnms/magmalte/app/components/GatewayUtils';
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios} from '@fbcnms/ui/hooks';
@@ -90,7 +90,10 @@ export default function() {
     <TableRow key={log.id}>
       <TableCell>{log.actingUserId}</TableCell>
       <TableCell>
-        <GatewayStatus isGrey={false} isActive={log.status === 'SUCCESS'} />
+        <DeviceStatusCircle
+          isGrey={false}
+          isActive={log.status === 'SUCCESS'}
+        />
         {log.mutationType}
       </TableCell>
       <TableCell>{log.objectType}</TableCell>

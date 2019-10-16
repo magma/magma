@@ -84,5 +84,5 @@ ChallengeResponseAuthentication no
 UsePAM yes
 
 X11Forwarding yes
-ClientAliveInterval 200
-ClientAliveCountMax 5
+ClientAliveInterval 60
+ClientAliveCountMax 50

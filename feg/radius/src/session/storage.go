@@ -8,7 +8,9 @@ LICENSE file in the root directory of this source tree.
 
 package session
 
-import "bytes"
+import (
+	"errors"
+)
 
 type (
 	// State the data to store per session
@@ -47,6 +49,11 @@ type sessionStorage struct {
 	sessionID     string
 }
 
+var (
+	// ErrInvalidDataFormat indicate we have an invalid data as state
+	ErrInvalidDataFormat = errors.New("invalid data format found in storage")
+)
+
 func (s *sessionStorage) Get() (*State, error) {
 	return s.globalStorage.Get(s.sessionID)
 }
@@ -65,22 +72,4 @@ func NewSessionStorage(globalStorage GlobalStorage, sessionID string) Storage {
 		globalStorage: globalStorage,
 		sessionID:     sessionID,
 	}
-}
-
-// CreateSessionIDStrings format the session key from its 2 constituents
-func CreateSessionIDStrings(callingStationID string, calledStationID string) string {
-	return CreateSessionID([]byte(callingStationID), []byte(calledStationID))
-}
-
-// CreateSessionID format the session key from its 2 constituents
-func CreateSessionID(callingStationID []byte, calledStationID []byte) string {
-	var sessionID bytes.Buffer
-
-	if calledStationID != nil {
-		sessionID.Write(calledStationID)
-	}
-	if callingStationID != nil {
-		sessionID.Write(callingStationID)
-	}
-	return sessionID.String()
 }

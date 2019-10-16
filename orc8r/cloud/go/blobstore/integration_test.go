@@ -53,8 +53,8 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	err = store1.CreateOrUpdate("network1", []blobstore.Blob{
 		{Type: "t1", Key: "k1", Value: []byte("v1")},
 		{Type: "t1", Key: "k2", Value: []byte("v2")},
-		{Type: "t2", Key: "k1", Value: []byte("v3")},
-		{Type: "t2", Key: "k2", Value: []byte("v4")},
+		{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+		{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
 	})
 	assert.NoError(t, err)
 	assert.NoError(t, store1.Commit())
@@ -92,8 +92,8 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		[]blobstore.Blob{
 			{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
 			{Type: "t1", Key: "k2", Value: []byte("v2"), Version: 0},
-			{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 0},
-			{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 0},
+			{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+			{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
 		},
 		getManyActual,
 	)
@@ -126,7 +126,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 
 	err = store.CreateOrUpdate("network1", []blobstore.Blob{
-		{Type: "t1", Key: "k1", Value: []byte("hello")},
+		{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 20},
 		{Type: "t9", Key: "k9", Value: []byte("world")},
 	})
 	assert.NoError(t, err)
@@ -142,7 +142,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.Equal(
 		t,
 		[]blobstore.Blob{
-			{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 1},
+			{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 20},
 			{Type: "t9", Key: "k9", Value: []byte("world"), Version: 0},
 		},
 		getManyActual,

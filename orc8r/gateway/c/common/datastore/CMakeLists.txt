@@ -24,7 +24,7 @@ target_link_libraries(DATASTORE
 # session_manager, etc.
 add_custom_command(TARGET DATASTORE POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/datastore/*.h*
+                   ${PROJECT_SOURCE_DIR}/datastore/*.h*
                    $<TARGET_FILE_DIR:DATASTORE>)
 
 target_include_directories(DATASTORE PUBLIC

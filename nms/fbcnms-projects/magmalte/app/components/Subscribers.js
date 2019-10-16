@@ -9,9 +9,9 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Subscriber} from './lte/AddEditSubscriberDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {subscriber} from '../common/__generated__/MagmaAPIBindings';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
 import Button from '@material-ui/core/Button';
@@ -20,6 +20,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../common/MagmaV1API';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -29,10 +30,10 @@ import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../common/MagmaAPI';
+import {map} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -52,20 +53,16 @@ const styles = theme => ({
   },
 });
 
-type SubProfiles = {
-  [string]: {max_dl_bit_rate?: number, max_ul_bit_rate?: number},
-};
-
 type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
 type State = {
-  subscribers: Array<Subscriber>,
+  subscribers: Array<subscriber>,
   errorMessage: ?string,
   loading: boolean,
   showAddEditDialog: boolean,
   showImportDialog: boolean,
-  editingSubscriber: ?Subscriber,
-  subProfiles: SubProfiles,
+  editingSubscriber: ?subscriber,
+  subProfiles: Set<string>,
 };
 
 class Subscribers extends React.Component<Props, State> {
@@ -76,37 +73,30 @@ class Subscribers extends React.Component<Props, State> {
     showAddEditDialog: false,
     showImportDialog: false,
     editingSubscriber: null,
-    subProfiles: {},
+    subProfiles: new Set(),
   };
 
   componentDidMount() {
-    axios
-      .all([
-        axios.get(MagmaAPIUrls.subscribers(this.props.match), {
-          params: {fields: 'all'},
-        }),
-        axios.get(
-          MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-        ),
-      ])
-      .then(
-        axios.spread((response1, response2) => {
-          let subProfiles = (response2.data.epc || {}).sub_profiles || {};
-          subProfiles = {...subProfiles};
-          if (!subProfiles.default) {
-            subProfiles.default = {};
-          }
+    const networkId = nullthrows(this.props.match.params.networkId);
+    Promise.all([
+      MagmaV1API.getLteByNetworkIdSubscribers({
+        networkId,
+      }),
+      MagmaV1API.getLteByNetworkIdCellularEpc({networkId}),
+    ])
+      .then(([subscribers, epcConfigs]) => {
+        const subProfiles = new Set(
+          Object.keys(epcConfigs.sub_profiles || {}),
+        ).add('default');
 
-          const subscribers = (Object.values(response1.data): Array<any>);
-          this.setState({
-            subscribers: (subscribers: Array<Subscriber>).map(s =>
-              this._buildSubscriber(s, subProfiles),
-            ),
-            loading: false,
-            subProfiles,
-          });
-        }),
-      )
+        this.setState({
+          subscribers: map(subscribers, s =>
+            this._buildSubscriber(s, subProfiles),
+          ),
+          loading: false,
+          subProfiles,
+        });
+      })
       .catch((error, _) =>
         this.setState({
           errorMessage: error.response.data.message.toString(),
@@ -186,7 +176,7 @@ class Subscribers extends React.Component<Props, State> {
           onClose={this.hideDialogs}
           onSave={this.onSaveSubscriber}
           onSaveError={this.onSaveSubscriberError}
-          subProfiles={Object.keys(this.state.subProfiles)}
+          subProfiles={Array.from(this.state.subProfiles)}
         />
         <ImportSubscribersDialog
           open={this.state.showImportDialog}
@@ -208,16 +198,18 @@ class Subscribers extends React.Component<Props, State> {
     });
 
   onSaveSubscriber = id => {
-    axios
-      .get(MagmaAPIUrls.subscriber(this.props.match, id))
-      .then(response =>
+    MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
+      networkId: nullthrows(this.props.match.params.networkId),
+      subscriberId: id,
+    })
+      .then(newSubscriber =>
         this.setState(state => {
           const subscribers = state.subscribers.slice(0);
           if (state.editingSubscriber) {
             const index = subscribers.indexOf(state.editingSubscriber);
-            subscribers[index] = this._buildSubscriber(response.data);
+            subscribers[index] = this._buildSubscriber(newSubscriber);
           } else {
-            subscribers.push(this._buildSubscriber(response.data));
+            subscribers.push(this._buildSubscriber(newSubscriber));
           }
           return {subscribers, showAddEditDialog: false};
         }),
@@ -230,15 +222,18 @@ class Subscribers extends React.Component<Props, State> {
   };
 
   onBulkUpload = async (subscriberIDs: Array<string>) => {
-    const responses = await Promise.all(
+    const results = await Promise.all(
       subscriberIDs.map(id =>
-        axios.get(MagmaAPIUrls.subscriber(this.props.match, id)),
+        MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          subscriberId: id,
+        }),
       ),
     );
     this.setState(state => {
       const subscribers = [
         ...state.subscribers,
-        ...responses.map(response => this._buildSubscriber(response.data)),
+        ...results.map(subscriber => this._buildSubscriber(subscriber)),
       ];
       return {subscribers, showImportDialog: false};
     });
@@ -253,13 +248,15 @@ class Subscribers extends React.Component<Props, State> {
   editSubscriber = subscriber =>
     this.setState({editingSubscriber: subscriber, showAddEditDialog: true});
 
-  deleteSubscriber = sub =>
+  deleteSubscriber = sub => {
     this.props
       .confirm(`Are you sure you want to delete subscriber ${sub.id}?`)
       .then(confirmed => {
         if (confirmed) {
-          axios
-            .delete(MagmaAPIUrls.subscriber(this.props.match, 'IMSI' + sub.id))
+          MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({
+            networkId: this.props.match.params.networkId || '',
+            subscriberId: `IMSI${sub.id}`,
+          })
             .then(_resp =>
               this.setState({
                 subscribers: this.state.subscribers.filter(
@@ -270,11 +267,12 @@ class Subscribers extends React.Component<Props, State> {
             .catch(this.props.alert);
         }
       });
+  };
 
-  _buildSubscriber(subscriber: Subscriber, subProfiles?: SubProfiles) {
+  _buildSubscriber(subscriber: subscriber, subProfiles?: Set<string>) {
     subProfiles = subProfiles || this.state.subProfiles;
-    if (!(subscriber.sub_profile in subProfiles)) {
-      subscriber.sub_profile = 'default';
+    if (!subProfiles.has(subscriber.lte.sub_profile)) {
+      subscriber.lte.sub_profile = 'default';
     }
 
     subscriber.id = subscriber.id.replace(/^IMSI/, '');
@@ -283,9 +281,9 @@ class Subscribers extends React.Component<Props, State> {
 }
 
 type Props2 = {
-  subscriber: Subscriber,
-  onEdit: Subscriber => void,
-  onDelete: Subscriber => any,
+  subscriber: subscriber,
+  onEdit: subscriber => void,
+  onDelete: subscriber => void,
 };
 class SubscriberTableRow extends React.Component<Props2> {
   render() {
@@ -293,7 +291,7 @@ class SubscriberTableRow extends React.Component<Props2> {
       <TableRow>
         <TableCell>{this.props.subscriber.id}</TableCell>
         <TableCell>{this.props.subscriber.lte.state}</TableCell>
-        <TableCell>{this.props.subscriber.sub_profile}</TableCell>
+        <TableCell>{this.props.subscriber.lte.sub_profile}</TableCell>
         <TableCell>
           <IconButton onClick={this.onEdit}>
             <EditIcon />

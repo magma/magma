@@ -1,0 +1,64 @@
+#!/bin/bash
+set -e
+
+start=$(date +%s)
+
+if [ -z ${CLOUD_ADDRESS+x} ]; then
+  export CLOUD_ADDRESS="controller.magma.etagecom.io"
+fi
+
+if [ -z ${BOOTSTRAP_CLOUD_ADDRESS+x} ]; then
+  export BOOTSTRAP_CLOUD_ADDRESS="bootstrapper-controller.magma.etagecom.io"
+fi
+
+if [ -z ${SNOWFLAKE+x} ]; then
+    # shellcheck source=/dev/null
+    SNOWFLAKE="$(. scripts/generate_snowflake)"
+    export SNOWFLAKE
+fi
+
+cat << EOF > docker-compose.override.yml
+version: '3.7'
+services:
+  symphony-agent:
+    environment:
+      - SNOWFLAKE=${SNOWFLAKE}
+      - CLOUD_ADDRESS=${CLOUD_ADDRESS}
+      - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+EOF
+
+echo "Creating image..."
+docker_registry=${SYMPHONY_DOCKER_REGISTRY:="facebookconnectivity-southpoll-dev-docker.jfrog.io"}
+CACHE_DIR=${SYMPHONY_AGENT_CACHE_DIR:-$(realpath ~)/cache_devmand_build}
+
+# shellcheck source=/dev/null
+. scripts/build_image firstparty devmand | tee /tmp/devmand_build.log
+build_status=${PIPESTATUS[0]}
+if [ "$build_status" -eq 0 ]; then
+
+  [ ! -d "$CACHE_DIR" ] && mkdir "$CACHE_DIR"
+
+  docker rm -f devmand &>/dev/null || true
+  docker run --name devmand \
+    -v "$(realpath ../):/cache/devmand/repo:ro" \
+    -v "$CACHE_DIR:/cache/devmand/build:rw" \
+    ${docker_registry}/devmand
+  docker cp devmand:/cache/devmand/install firstparty
+  # shellcheck source=/dev/null
+  . scripts/build_image firstparty symphony-agent | tee /tmp/symphony_agent_build.log
+  /bin/rm -rf firstparty/install
+  build_status=${PIPESTATUS[0]}
+fi
+
+if [ "$build_status" -eq 0 ]; then
+  docker commit devmand devmand-built
+  echo "Created image!"
+else
+  echo "Creating image failed!"
+fi
+
+end=$(date +%s)
+runtime=$((end-start))
+echo "The script took ${runtime} seconds to run."
+
+exit "$build_status"

@@ -14,16 +14,18 @@ import (
 	"strings"
 	"time"
 
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/orc8r/gateway/directoryd"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
 )
 
@@ -33,9 +35,17 @@ type accountingService struct {
 	sessionTout time.Duration // Idle Session Timeout
 }
 
+const (
+	imsiPrefix = "IMSI"
+)
+
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*accountingService, error) {
-	return &accountingService{sessions: sessions, config: cfg, sessionTout: GetIdleSessionTimeout(cfg)}, nil
+	return &accountingService{
+		sessions:    sessions,
+		config:      cfg,
+		sessionTout: GetIdleSessionTimeout(cfg),
+	}, nil
 }
 
 // Start implements Radius Acct-Status-Type: Start endpoint
@@ -46,12 +56,20 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 	sid := aaaCtx.GetSessionId()
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, status.Errorf(
+		return &protos.AcctResp{}, Errorf(
 			codes.FailedPrecondition, "Accounting Start: Session %s was not authenticated", sid)
 	}
-	var err error
+	var (
+		err    error
+		csResp *protos.CreateSessionResp
+	)
 	if srv.config.GetAccountingEnabled() && !srv.config.GetCreateSessionOnAuth() {
-		_, err = srv.CreateSession(ctx, aaaCtx)
+		csResp, err = srv.CreateSession(ctx, aaaCtx)
+		if err == nil {
+			s.Lock()
+			s.GetCtx().AcctSessionId = csResp.GetSessionId()
+			s.Unlock()
+		}
 	} else {
 		srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 	}
@@ -61,15 +79,19 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 // InterimUpdate implements Radius Acct-Status-Type: Interim-Update endpoint
 func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.UpdateRequest) (*protos.AcctResp, error) {
 	if ur == nil {
-		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil Update Request")
+		return &protos.AcctResp{}, Errorf(codes.InvalidArgument, "Nil Update Request")
 	}
 	sid := ur.GetCtx().GetSessionId()
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, status.Errorf(
+		return &protos.AcctResp{}, Errorf(
 			codes.FailedPrecondition, "Accounting Update: Session %s was not authenticated", sid)
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
+
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsOut()))
+
 	return &protos.AcctResp{}, nil
 }
 
@@ -81,37 +103,54 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	sid := req.GetCtx().GetSessionId()
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, status.Errorf(
-			codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
+		return &protos.AcctResp{}, Errorf(codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
 	}
+
+	s.Lock()
+	sessionImsi := s.GetCtx().GetImsi()
+	apn := s.GetCtx().GetApn()
+	s.Unlock()
+
 	var err error
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(req.GetCtx().GetImsi()))
+		_, err = session_manager.EndSession(makeSID(sessionImsi))
+		if err != nil {
+			err = Error(codes.Unavailable, err)
+		}
+	} else {
+		directoryd.RemoveIMSI(sessionImsi)
 	}
+	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
+
 	return &protos.AcctResp{}, err
 }
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
-func (srv *accountingService) CreateSession(grpcCtx context.Context, aaaCtx *protos.Context) (*protos.AcctResp, error) {
+func (srv *accountingService) CreateSession(
+	grpcCtx context.Context, aaaCtx *protos.Context) (*protos.CreateSessionResp, error) {
+
+	startime := time.Now()
 
 	mac, err := net.ParseMAC(aaaCtx.GetMacAddr())
 	if err != nil {
-		return &protos.AcctResp{}, status.Errorf(
-			codes.InvalidArgument,
-			"Invalid MAC Address: %v", err)
+		return &protos.CreateSessionResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
 	}
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
+		UeIpv4:          aaaCtx.GetIpAddr(),
 		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
 		RadiusSessionId: aaaCtx.GetSessionId(),
 	}
-	_, err = session_manager.CreateSession(req)
+	csResp, err := session_manager.CreateSession(req)
 	if err == nil {
-		srv.sessions.SetTimeout(req.GetRadiusSessionId(), srv.sessionTout, srv.timeoutSessionNotifier)
+		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
+	} else {
+		err = Errorf(codes.Internal, "Create Session Error: %v", err)
 	}
-	return &protos.AcctResp{}, err
+
+	return &protos.CreateSessionResp{SessionId: csResp.GetSessionId()}, err
 }
 
 // TerminateSession is an "inbound" RPC from session manager to notify accounting of a client session termination
@@ -120,23 +159,36 @@ func (srv *accountingService) TerminateSession(
 
 	sid := req.GetRadiusSessionId()
 	s := srv.sessions.RemoveSession(sid)
+
 	if s == nil {
-		return &protos.AcctResp{}, status.Errorf(codes.FailedPrecondition, "Session %s is not found", sid)
+		return &protos.AcctResp{}, Errorf(codes.FailedPrecondition, "Session %s is not found", sid)
 	}
+
 	s.Lock()
-	defer s.Unlock()
-	imsi := s.GetCtx().GetImsi()
+	sctx := s.GetCtx()
+	imsi := sctx.GetImsi()
+	apn := sctx.GetApn()
+	s.Unlock()
+
+	metrics.SessionTerminate.WithLabelValues(apn, imsi)
+
+	if !strings.HasPrefix(imsi, imsiPrefix) {
+		imsi = imsiPrefix + imsi
+	}
 	if imsi != req.GetImsi() {
-		return &protos.AcctResp{}, status.Errorf(
+		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
+
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
-		return &protos.AcctResp{}, status.Errorf(
-			codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
+		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
 	}
 	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: s.GetCtx()})
+	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
+	if err != nil {
+		err = Error(codes.Internal, err)
+	}
 	return &protos.AcctResp{}, err
 }
 
@@ -150,6 +202,8 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+	} else {
+		directoryd.RemoveIMSI(aaaCtx.GetImsi())
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)
@@ -161,10 +215,10 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	}
 	if radErr != nil {
 		if err != nil {
-			err = status.Errorf(
+			err = Errorf(
 				codes.Internal, "Session Timeout Notification errors; session manager: %v, Radius: %v", err, radErr)
 		} else {
-			err = radErr
+			err = Error(codes.Unavailable, radErr)
 		}
 	}
 	return err
@@ -178,7 +232,6 @@ func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {
 }
 
 func makeSID(imsi string) *lte_protos.SubscriberID {
-	const imsiPrefix = "IMSI"
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
 	}

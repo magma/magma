@@ -84,6 +84,24 @@ matrix:
         - make -C ${MAGMA_ROOT}/feg/gateway precommit
 
     - language: go
+      name: CWAG precommit
+      go:
+        - 1.12.x
+      os: linux
+      dist: xenial
+
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on GOPROXY=https://proxy.golang.org
+
+      before_install:
+        - ./travis/golang_before_install.sh
+
+      script:
+        - cd ${MAGMA_ROOT}/cwf/gateway
+        - travis_retry travis_wait go mod download
+        - make -C ${MAGMA_ROOT}/cwf/gateway precommit
+
+    - language: go
       name: orc8r gateway go tests
       go:
         - 1.12.x
@@ -123,6 +141,23 @@ matrix:
 
       script:
         - make -C $MAGMA_ROOT/lte/gateway/python test_all
+
+    - language: minimal
+      name: nms builds
+      os: linux
+      dist: xenial
+
+      env:
+        - NMS_ROOT=$TRAVIS_BUILD_DIR/nms
+
+      addons:
+        apt:
+          packages:
+            - docker-ce
+
+      script:
+        - cd ${NMS_ROOT}
+        - docker build -t magmalte -f fbcnms-projects/magmalte/Dockerfile .
 
 notifications:
   slack:

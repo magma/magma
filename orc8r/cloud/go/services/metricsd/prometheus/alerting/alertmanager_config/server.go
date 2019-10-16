@@ -22,15 +22,15 @@ import (
 )
 
 const (
-	defaultPort                   = "9093"
-	defaultAlertmanagerURL        = "localhost:9092"
+	defaultPort                   = "9101"
+	defaultAlertmanagerURL        = "alertmanager:9093"
 	defaultAlertmanagerConfigPath = "./alertmanager.yml"
 )
 
 func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
-	alertmanagerConfPath := flag.String("alertmanager-conf", "./alertmanager.yml", fmt.Sprintf("Path to alertmanager configuration file. Default is %s", defaultAlertmanagerConfigPath))
-	alertmanagerURL := flag.String("alertmanagerURL", "localhost:9092", fmt.Sprintf("URL of the alertmanager instance that is being used. Default is %s", defaultAlertmanagerURL))
+	alertmanagerConfPath := flag.String("alertmanager-conf", defaultAlertmanagerConfigPath, fmt.Sprintf("Path to alertmanager configuration file. Default is %s", defaultAlertmanagerConfigPath))
+	alertmanagerURL := flag.String("alertmanagerURL", defaultAlertmanagerURL, fmt.Sprintf("URL of the alertmanager instance that is being used. Default is %s", defaultAlertmanagerURL))
 	flag.Parse()
 
 	e := echo.New()

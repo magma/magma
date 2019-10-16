@@ -35,6 +35,10 @@ const useStyles = makeStyles(() => ({
 
 const timeUnits = [
   {
+    value: '',
+    label: '',
+  },
+  {
     value: 's',
     label: 'seconds',
   },
@@ -59,19 +63,35 @@ const timeUnits = [
 export default function AddEditAlertNotificationStep(props: Props) {
   const classes = useStyles();
   const {alertConfig, setAlertConfig} = props;
-  const duration = alertConfig.for ?? '5m';
+  const duration = alertConfig.for ?? '';
   const [timeNumber, setTimeNumber] = useState<string>(duration.slice(0, -1));
   const [timeUnit, setTimeUnit] = useState<string>(
     duration[duration.length - 1],
   );
 
+  // Since "for" is a reserved key word, need to create this function to handle
+  // deleting the key in an immutable way. Eventually this function will be
+  // useful for deleting other optional fields, like annotations
+  const deleteAlertConfigKey = (obj: AlertConfig, prop: string) => {
+    const {[prop]: _, ...res} = obj;
+    return res;
+  };
+
   useEffect(() => {
-    setAlertConfig(prevConfig => {
-      return {
-        ...prevConfig,
-        for: timeNumber + timeUnit,
-      };
-    });
+    if (timeNumber && timeUnit) {
+      setAlertConfig(prevConfig => {
+        return {
+          ...prevConfig,
+          for: timeNumber + timeUnit,
+        };
+      });
+    } else {
+      setAlertConfig(prevConfig => {
+        return {
+          ...deleteAlertConfigKey(prevConfig, 'for'),
+        };
+      });
+    }
   }, [setAlertConfig, timeNumber, timeUnit]);
 
   return (
@@ -79,21 +99,19 @@ export default function AddEditAlertNotificationStep(props: Props) {
       <Typography variant="h6">SET YOUR NOTIFICATIONS</Typography>
       <div className={classes.body}>
         <div>
-          <Typography variant="subtitle1">Notification Time</Typography>
+          <Typography variant="subtitle1">Grace Period</Typography>
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
-                required
                 type="number"
-                label="Required"
-                value={timeNumber}
+                value={timeNumber || ''}
                 onChange={event => setTimeNumber(event.target.value)}
               />
             </Grid>
             <Grid item>
               <TextField
                 select
-                value={timeUnit}
+                value={timeUnit || timeUnits[0].value}
                 onChange={event => setTimeUnit(event.target.value)}>
                 {timeUnits.map(option => (
                   <MenuItem key={option.value} value={option.value}>

@@ -9,11 +9,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 import importlib
 import logging
 import typing
-
 import snowflake
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
 from magma.magmad.logging.systemd_tailer import start_systemd_tailer
@@ -21,14 +21,14 @@ from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
 from orc8r.protos.mconfig import mconfigs_pb2
-
 from .bootstrap_manager import BootstrapManager
-from .checkin_manager import CheckinManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
+from .grpc_client_manager import GRPCClientManager
 from .state_reporter import StateReporter
+from .gateway_status import KernelVersionsPoller, GatewayStatusFactory
 from .service_poller import ServicePoller
 from .sync_rpc_client import SyncRPCClient
 from .metrics_collector import MetricsCollector
@@ -92,9 +92,6 @@ def main():
             service.loop,
         )
 
-    # Schedule periodic checkins
-    checkin_manager = CheckinManager(service, service_poller)
-
     # Create sync rpc client with a heartbeat of 30 seconds (timeout = 60s)
     sync_rpc_client = None
     if service.config.get('enable_sync_rpc', False):
@@ -110,31 +107,54 @@ def main():
         if first_time_bootstrap:
             if stream_client:
                 stream_client.start()
-            await checkin_manager.try_checkin()
             if sync_rpc_client:
                 sync_rpc_client.start()
             first_time_bootstrap = False
         if certs_generated and 'control_proxy' in services:
-            service.loop.create_task(
-                service_manager.restart_services(services=['control_proxy'])
-            )
+            await service_manager.restart_services(services=['control_proxy'])
 
     # Create bootstrap manager
     bootstrap_manager = BootstrapManager(service, bootstrap_success_cb)
 
-    async def checkin_failure_cb(err_code):
-        await bootstrap_manager.on_checkin_fail(err_code)
-    checkin_manager.set_failure_cb(checkin_failure_cb)
+    # Initialize kernel version poller if it is enabled
+    kernel_version_poller = None
+    if service.config.get('enable_kernel_version_checking', False):
+        kernel_version_poller = KernelVersionsPoller(service)
+        kernel_version_poller.start()
 
-    # Start bootstrap_manager after checkin_manager's callback is set
+    # gateway status generator to bundle various information about this
+    # gateway into an object.
+    gateway_status_factory = GatewayStatusFactory(
+        service=service,
+        service_poller=service_poller,
+        kernel_version_poller=kernel_version_poller,
+    )
+
+    # _grpc_client_manager to manage grpc client recycling
+    grpc_client_manager = GRPCClientManager(
+        service_name="state",
+        service_stub=StateServiceStub,
+        max_client_reuse=60,
+    )
+
+    # Initialize StateReporter
+    state_reporter = StateReporter(
+        config=service.config,
+        mconfig=service.mconfig,
+        loop=service.loop,
+        bootstrap_manager=bootstrap_manager,
+        gw_status_factory=gateway_status_factory,
+        grpc_client_manager=grpc_client_manager,
+    )
+
+    # Start _bootstrap_manager
     bootstrap_manager.start_bootstrap_manager()
-
-    # Schedule periodic state reporting
-    state_manager = StateReporter(service, checkin_manager)
-    state_manager.start()
 
     # Start all services when magmad comes up
     service.loop.create_task(service_manager.start_services())
+
+    # Start state reporting loop
+    state_reporter.start()
 
     # Start upgrade manager loop
     if service.config.get('enable_upgrade_manager', False):
@@ -167,7 +187,7 @@ def main():
     if SDWatchdog.has_notify():
         # Create systemd watchdog
         sdwatchdog = SDWatchdog(
-            tasks=[bootstrap_manager, checkin_manager],
+            tasks=[bootstrap_manager, state_reporter],
             update_status=True)
         # Start watchdog loop
         service.loop.create_task(sdwatchdog.run())

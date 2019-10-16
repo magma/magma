@@ -16,6 +16,7 @@
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
+#include "SpgwServiceClient.h"
 
 namespace magma {
 
@@ -36,6 +37,7 @@ class LocalEnforcer {
     std::shared_ptr<SessionCloudReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
 
@@ -135,7 +137,7 @@ class LocalEnforcer {
 
   bool is_imsi_duplicate(const std::string &imsi);
 
-  bool is_session_duplicate(
+  std::string *duplicate_session_id(
     const std::string &imsi, const magma::SessionState::Config &config);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
@@ -148,6 +150,7 @@ class LocalEnforcer {
   std::shared_ptr<SessionCloudReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
   folly::EventBase *evb_;
@@ -234,6 +237,16 @@ class LocalEnforcer {
   void receive_monitoring_credit_from_rar(
     const PolicyReAuthRequest &request,
     const std::unique_ptr<SessionState> &session);
+
+  /**
+   * Send bearer creation request through the PGW client if rules were
+   * activated successfully in pipelined
+   */
+  void create_bearer(
+    const bool &activate_success,
+    const std::unique_ptr<SessionState> &session,
+    const PolicyReAuthRequest &request,
+    const std::vector<PolicyRule> &dynamic_rules);
 
   /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers

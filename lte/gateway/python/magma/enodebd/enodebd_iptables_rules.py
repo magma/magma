@@ -11,7 +11,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 
 import asyncio
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import shlex
 import subprocess
 import re
@@ -59,11 +59,11 @@ async def check_and_apply_iptables_rules(port: str,
                                          enodebd_public_ip: str,
                                          enodebd_ip: str) -> None:
     command = 'sudo iptables -t nat -L'
-    output = subprocess.run(command, shell=True, stdout=subprocess.PIPE)
+    output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, check=True)
     command_output = output.stdout.decode('utf-8').strip()
     prerouting_rules = _get_prerouting_rules(command_output)
     if not prerouting_rules:
-        logging.info('Configuring Iptables rule')
+        logger.info('Configuring Iptables rule')
         await run(
             get_iptables_rule(
                 port,
@@ -92,9 +92,9 @@ def check_rules(prerouting_rules: List[str],
         if not match:
             unexpected_rules.append(rule)
     if unexpected_rules:
-        logging.warning('The following Prerouting rule(s) are unexpected')
+        logger.warning('The following Prerouting rule(s) are unexpected')
         for rule in unexpected_rules:
-            logging.warning(rule)
+            logger.warning(rule)
 
 
 async def run(cmd):
@@ -104,7 +104,7 @@ async def run(cmd):
     await proc.communicate()
     if proc.returncode != 0:
         # This can happen because the NAT prerouting rule didn't exist
-        logging.info('Possible error running async subprocess: %s exited with '
+        logger.info('Possible error running async subprocess: %s exited with '
                      'return code [%d].', cmd, proc.returncode)
     return proc.returncode
 
@@ -131,7 +131,7 @@ async def set_enodebd_iptables_rule():
         enodebd_netmask,
     )
     if not verify_config:
-        logging.warning(
+        logger.warning(
             'The IP address of the %s interface is %s. The '
             'expected IP addresses are %s',
             interface, enodebd_ip, str(EXPECTED_IP4)

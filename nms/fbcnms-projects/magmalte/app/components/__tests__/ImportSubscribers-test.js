@@ -8,11 +8,13 @@
  * @format
  */
 
+import MagmaAPIBindings from '../../common/__generated__/MagmaAPIBindings';
 import axiosMock from 'axios';
 import {parseFileAndSave} from '../ImportSubscribersDialog';
 
 const match = {params: {}, isExact: true, path: '', url: ''};
 jest.mock('axios');
+jest.mock('../../common/__generated__/MagmaAPIBindings');
 
 describe('ImportSubscribers parseFileAndSave', () => {
   const setErrorMsg = jest.fn();
@@ -20,9 +22,7 @@ describe('ImportSubscribers parseFileAndSave', () => {
   const id = 311;
   const CSV_HEADER = 'imsi,lte_state,lte_auth_key,lte_auth_opc,sub_profile';
   beforeEach(() => {
-    axiosMock.post.mockResolvedValueOnce({
-      data: id,
-    });
+    MagmaAPIBindings.postLteByNetworkIdSubscribers.mockResolvedValueOnce(id);
   });
 
   afterEach(() => {

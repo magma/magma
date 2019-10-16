@@ -3,6 +3,18 @@ set(asn1_generated_dir ${PROJECT_BINARY_DIR}/s1ap)
 set(asn1c_call "${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1")
 set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
 
+# compile required protos
+set(SPGW_LTE_CPP_PROTOS spgw_state common_types)
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+create_proto_dir("lte/gateway/c/oai" STATE_OUT_DIR)
+generate_cpp_protos("${SPGW_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
+        "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${STATE_OUT_DIR})
+
 add_library(TASK_SGW
     spgw_config.c
     pgw_config.c
@@ -20,6 +32,10 @@ add_library(TASK_SGW
     pgw_procedures.c
     spgw_state.cpp
     spgw_state_manager.cpp
+    spgw_service_handler.c
+    spgw_state_converter.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
     )
 target_compile_definitions(TASK_SGW PRIVATE
     PACKAGE_NAME=\"S/P-GW\"
@@ -31,7 +47,7 @@ target_link_libraries(TASK_SGW
     ${GTPNL_LIBRARIES}
     LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
     TASK_GTPV1U
-    cpp_redis tacopie
+    cpp_redis tacopie protobuf
 )
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

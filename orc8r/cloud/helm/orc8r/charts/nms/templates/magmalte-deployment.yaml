@@ -87,7 +87,7 @@ spec:
             exec:
               command:
               - curl 
-              - http://localhost:8081/user/login
+              - http://localhost:8081/healthz
             initialDelaySeconds: 60
           ports:
             - containerPort: 8081

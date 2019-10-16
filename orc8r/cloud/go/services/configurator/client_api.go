@@ -275,6 +275,43 @@ func GetNetworkConfigsByType(networkID string, configType string) (interface{}, 
 	return networks[0].Configs[configType], nil
 }
 
+// WriteEntities executes a series of entity writes (creation or update) to be
+// executed in order within a single transaction.
+// This function is all-or-nothing - any failure or error encountered during
+// any operation will rollback the entire batch.
+func WriteEntities(networkID string, writes ...EntityWriteOperation) error {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return err
+	}
+
+	req := &protos.WriteEntitiesRequest{NetworkID: networkID}
+	for _, write := range writes {
+		switch op := write.(type) {
+		case NetworkEntity:
+			protoEnt, err := op.toStorageProto()
+			if err != nil {
+				return err
+			}
+			req.Writes = append(req.Writes, &protos.WriteEntityRequest{Request: &protos.WriteEntityRequest_Create{Create: protoEnt}})
+		case EntityUpdateCriteria:
+			protoEuc, err := op.toStorageProto()
+			if err != nil {
+				return err
+			}
+			req.Writes = append(req.Writes, &protos.WriteEntityRequest{Request: &protos.WriteEntityRequest_Update{Update: protoEuc}})
+		default:
+			return errors.Errorf("unrecognized entity write operation %T", op)
+		}
+	}
+
+	_, err = client.WriteEntities(context.Background(), req)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
 	ret, err := CreateEntities(networkID, []NetworkEntity{entity})
 	if err != nil {
@@ -436,6 +473,10 @@ func ListEntityKeys(networkID string, entityType string) ([]string, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
 		return []string{}, err
+	}
+	networkExists, _ := DoesNetworkExist(networkID)
+	if !networkExists {
+		return []string{}, merrors.ErrNotFound
 	}
 
 	resp, err := client.LoadEntities(

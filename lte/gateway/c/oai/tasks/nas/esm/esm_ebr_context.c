@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -88,7 +88,7 @@ ebi_t esm_ebr_context_create(
   const bitrate_t mbr_ul,
   traffic_flow_template_t *tft,
   protocol_configuration_options_t *pco,
-  teid_t gtp_teid)
+  fteid_t *sgw_fteid)
 {
   int bidx = 0;
   esm_context_t *esm_ctx = NULL;
@@ -193,8 +193,11 @@ ebi_t esm_ebr_context_create(
           &bearer_context->esm_ebr_context.pco);
       }
       bearer_context->esm_ebr_context.pco = pco;
-      bearer_context->s_gw_fteid_s1u.teid = gtp_teid;
-
+      if(sgw_fteid) {
+        memcpy(&bearer_context->s_gw_fteid_s1u, sgw_fteid, sizeof(fteid_t));
+      }
+      bearer_context->bearer_state |=
+        BEARER_STATE_SGW_CREATED | BEARER_STATE_MME_CREATED;
       if (is_default) {
         /*
          * Set the PDN connection activation indicator
@@ -370,6 +373,8 @@ ebi_t esm_ebr_context_release(
      * * * * to the PDN connection
      */
     pdn->n_bearers -= 1;
+    //Decrement the number of active bearers in ESM context
+    emm_context->esm_ctx.n_active_ebrs -=1;
 
     if (ue_mm_context->pdn_contexts[*pid]->default_ebi == ebi) {
       /*
@@ -416,10 +421,7 @@ ebi_t esm_ebr_context_release(
           /*
            * Release dedicated EPS bearer data
            */
-          if (mme_config.eps_network_feature_support.
-            ims_voice_over_ps_session_in_s1) {
-            free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
-          }
+          free_wrapper ((void**)&ue_mm_context->bearer_contexts[idx]);
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection
@@ -441,10 +443,7 @@ ebi_t esm_ebr_context_release(
         pdn->is_emergency = false;
       }
 
-      if (mme_config.eps_network_feature_support.
-        ims_voice_over_ps_session_in_s1) {
-        ue_mm_context->pdn_contexts[*pid]->is_active = false;
-      }
+      ue_mm_context->pdn_contexts[*pid]->is_active = false;
     } else {
       OAILOG_INFO(
         LOG_NAS_ESM,

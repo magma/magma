@@ -24,6 +24,11 @@ namespace magma {
  */
 class SessionState {
  public:
+  struct QoSInfo {
+    bool enabled;
+    uint32_t qci;
+  };
+
   struct Config {
     std::string ue_ipv4;
     std::string spgw_ipv4;
@@ -35,7 +40,10 @@ class SessionState {
     std::string user_location;
     RATType rat_type;
     std::string mac_addr; // MAC Address for WLAN
+    std::string hardware_addr; // MAC Address for WLAN (binary)
     std::string radius_session_id;
+    uint32_t bearer_id;
+    QoSInfo qos_info;
   };
   struct SessionInfo {
     std::string imsi;
@@ -48,6 +56,7 @@ class SessionState {
   SessionState(
     const std::string &imsi,
     const std::string &session_id,
+    const std::string &core_session_id,
     const SessionState::Config &cfg,
     StaticRuleStore &rule_store);
 
@@ -131,13 +140,25 @@ class SessionState {
 
   std::string get_mac_addr();
 
+  std::string get_hardware_addr() { return config_.hardware_addr; }
+
   std::string get_radius_session_id();
+
+  std::string get_apn();
+
+  std::string get_core_session_id() const { return core_session_id_; };
+
+  uint32_t get_bearer_id();
+
+  uint32_t get_qci();
 
   bool is_radius_cwf_session();
 
   bool is_same_config(const Config &new_config);
 
   void get_session_info(SessionState::SessionInfo &info);
+
+  bool qos_enabled();
 
  private:
   /**
@@ -170,6 +191,7 @@ class SessionState {
 
   std::string imsi_;
   std::string session_id_;
+  std::string core_session_id_;
   uint32_t request_number_;
   ChargingCreditPool charging_pool_;
   UsageMonitoringCreditPool monitor_pool_;

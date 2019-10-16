@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/http2"
 )
 
+// DefaultTimeout the default timeout of a request
 const DefaultTimeout = 5 * time.Second
 
 //Client struct encapsulates an http2 connection to www
@@ -56,9 +57,8 @@ func isSuccessful(resp *http.Response) bool {
 	return false
 }
 
-//NewClient returns an initialized Client struct.
+// NewClient returns an initialized Client struct.
 func NewClient(accessToken string) *Client {
-
 	return &Client{
 		http2client: http.Client{
 			Transport: &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
@@ -76,7 +76,6 @@ func (c *Client) addAccessToken(req *http.Request) {
 
 //Get method will perform an http get request for the specified url and will return the response bytes
 func (c *Client) Get(url string) ([]byte, error) {
-
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -104,7 +103,7 @@ func (c *Client) Get(url string) ([]byte, error) {
 }
 
 //PostJSON method will perform an http post to the url specified with a json body
-func (c *Client) PostJSON(url string, bodyToSend map[string]string) ([]byte, error) {
+func (c *Client) PostJSON(url string, bodyToSend map[string]string, headers map[string]string) ([]byte, error) {
 
 	// Turning the map into a json
 	body, err := json.Marshal(bodyToSend)
@@ -118,6 +117,9 @@ func (c *Client) PostJSON(url string, bodyToSend map[string]string) ([]byte, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("radius-packet-encoding", "base64/binary")
+	for header, value := range headers {
+		req.Header.Set(header, value)
+	}
 
 	c.addAccessToken(req)
 

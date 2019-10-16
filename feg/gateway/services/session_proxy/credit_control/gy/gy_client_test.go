@@ -46,7 +46,7 @@ func TestGyClient(t *testing.T) {
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(),
+		getReAuthHandler(), nil,
 	)
 
 	// send init
@@ -147,7 +147,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(),
+		getReAuthHandler(), nil,
 	)
 
 	// send init
@@ -195,7 +195,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(),
+		getReAuthHandler(), nil,
 	)
 
 	// send inits
@@ -249,7 +249,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(),
+		getReAuthHandler(), nil,
 	)
 
 	// send inits
@@ -298,7 +298,7 @@ func TestGyReAuth(t *testing.T) {
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(),
+		getReAuthHandler(), nil,
 	)
 
 	// send one init to set user context in OCS

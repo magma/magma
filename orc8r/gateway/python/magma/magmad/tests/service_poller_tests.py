@@ -21,26 +21,6 @@ from magma.magmad.service_poller import ServicePoller
 SP = "magma.magmad.service_poller"
 
 
-class MockFuture(object):
-    def __init__(self, is_error):
-        self._is_error = is_error
-
-    def exception(self):
-        if self._is_error:
-            return self.MockException()
-        return None
-
-    def result(self):
-        return ServiceInfo()
-
-    class MockException(object):
-        def details(self):
-            return ''
-
-        def code(self):
-            return 0
-
-
 class ServicePollerTests(unittest.TestCase):
     """
     Tests for the ServicePoller
@@ -57,8 +37,7 @@ class ServicePollerTests(unittest.TestCase):
         self._service_poller = ServicePoller(self._loop, config)
 
     @unittest.mock.patch('%s.Service303Stub' % SP)
-    @unittest.mock.patch('magma.configuration.service_configs')
-    def test_poll(self, _service_configs_mock, service303_mock):
+    def test_poll(self, service303_mock):
         """
         Test if the query to Service303 succeeds.
         """
@@ -77,13 +56,15 @@ class ServicePollerTests(unittest.TestCase):
         self._loop.run_until_complete(test())
 
     @unittest.mock.patch('%s.Service303Stub' % SP)
-    @unittest.mock.patch('magma.configuration.service_configs')
-    def test_poll_exception(self, _service_configs_mock, service303_mock):
+    def test_poll_exception(self, service303_mock):
         """
         Test if the query to Service303 fails and handled gracefully.
         """
         def fake_add_done(f):
-            raise grpc.RpcError("Test Exception")
+            grpc_err = grpc.RpcError()
+            grpc_err.code = lambda: grpc.StatusCode.UNKNOWN
+            grpc_err.details = lambda: "Test Exception"
+            raise grpc_err
 
         async def test():
             # Mock out GetServiceInfo.future
@@ -99,6 +80,7 @@ class ServicePollerTests(unittest.TestCase):
             mock.GetServiceInfo.future.assert_called_once_with(
                 Void(), self._service_poller.GET_STATUS_TIMEOUT)
         self._loop.run_until_complete(test())
+
 
 if __name__ == "__main__":
     unittest.main()

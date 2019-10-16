@@ -20,17 +20,15 @@ import (
 )
 
 func TestCensusConfig(t *testing.T) {
-	config, err := NewConfig(`{"jaeger":{"AgentEndpoint":"localhost:12345"},"xray":{"region": "eu-west-1"},"prometheus":{},"zpages":true}`)
+	config, err := NewConfig(`{"jaeger":{"AgentEndpoint":"localhost:12345"},"xray":{"region": "eu-west-1"},"prometheus":{}}`)
 	require.NotNil(t, config)
 	assert.NoError(t, err)
 	opts := config.ServerOptions()
-	assert.Len(t, opts, 5)
+	assert.Len(t, opts, 4)
 	srv, err := server.New(server.Config{}, opts...)
 	assert.NotNil(t, srv)
 	assert.NoError(t, err)
 	_, pattern := srv.Mux.Handler(httptest.NewRequest(http.MethodGet, "/metrics", nil))
-	assert.NotEmpty(t, pattern)
-	_, pattern = srv.Mux.Handler(httptest.NewRequest(http.MethodGet, "/debug/tracez", nil))
 	assert.NotEmpty(t, pattern)
 }
 
@@ -42,7 +40,6 @@ func TestCensusConfigBadConfig(t *testing.T) {
 	assert.Nil(t, config.XRay)
 	assert.Nil(t, config.Jaeger)
 	assert.Nil(t, config.Prometheus)
-	assert.False(t, config.ZPages)
 }
 
 func TestCensusConfigWithService(t *testing.T) {

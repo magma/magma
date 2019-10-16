@@ -13,13 +13,15 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
-	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
+	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
@@ -29,7 +31,12 @@ func TestBuilder_Build(t *testing.T) {
 
 	// empty case: no cwf associated to magmad gateway
 	nw := configurator.Network{ID: "n1"}
-	gw := configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1"}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: cwf.CwfGatewayType, Key: "gw1"},
+		},
+	}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
@@ -42,7 +49,18 @@ func TestBuilder_Build(t *testing.T) {
 
 	// Network config exists
 	nw.Configs = map[string]interface{}{
-		cwf.CwfNetworkType: defaultConfig,
+		cwf.CwfNetworkType: defaultnwConfig,
+	}
+	cwfGW := configurator.NetworkEntity{
+		Type: cwf.CwfGatewayType, Key: "gw1",
+		Config:             defaultgwConfig,
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{cwfGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
+		},
 	}
 	actual = map[string]proto.Message{}
 	expected = map[string]proto.Message{
@@ -63,16 +81,22 @@ func TestBuilder_Build(t *testing.T) {
 		"pipelined": &ltemconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24", // Unused by CWF
-			NatEnabled:    true,
+			NatEnabled:    false,
 			DefaultRuleId: "",
 			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
 				ltemconfig.PipelineD_ENFORCEMENT,
 			},
+			AllowedGrePeers: []*ltemconfig.PipelineD_AllowedGrePeer{
+				{Ip: "1.1.1.1", Key: 111},
+			},
 		},
 		"sessiond": &ltemconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: true,
+		},
+		"redirectd": &ltemconfig.RedirectD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
@@ -80,9 +104,9 @@ func TestBuilder_Build(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-var defaultConfig = &models.NetworkCarrierWifiConfigs{
-	EapAka: &models.NetworkCarrierWifiConfigsEapAka{
-		Timeout: &models.EapAkaTimeouts{
+var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
+	EapAka: &models.EapAka{
+		Timeout: &models.EapAkaTimeout{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionMs:              43200000,
@@ -90,14 +114,15 @@ var defaultConfig = &models.NetworkCarrierWifiConfigs{
 		},
 		PlmnIds: []string{},
 	},
-	AaaServer: &models.NetworkCarrierWifiConfigsAaaServer{
+	AaaServer: &models.AaaServer{
 		IDLESessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
-	FegNetworkID:    "test_feg_network",
 	NetworkServices: []string{"policy_enforcement"},
-	DefaultRuleID:   "",
-	NatEnabled:      true,
-	RelayEnabled:    true,
+	DefaultRuleID:   swag.String(""),
+}
+
+var defaultgwConfig = &models.GatewayCwfConfigs{
+	AllowedGrePeers: models.AllowedGrePeers{{IP: "1.1.1.1", Key: 111}},
 }

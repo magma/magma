@@ -25,6 +25,9 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  redirectd:
+    ip_address: 127.0.0.1
+    port: 50071
   aaa_server:
     ip_address: 127.0.0.1
     port: 9109

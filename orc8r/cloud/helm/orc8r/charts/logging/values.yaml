@@ -1,0 +1,22 @@
+imagePullSecrets: []
+
+fluentd_daemon:
+  create: false
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "elasticsearch-logging"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi

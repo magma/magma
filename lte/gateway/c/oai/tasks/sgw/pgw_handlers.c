@@ -37,7 +37,6 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "log.h"
-#include "sgw.h"
 #include "spgw_config.h"
 #include "pgw_pco.h"
 #include "pgw_ue_ip_address_alloc.h"
@@ -65,7 +64,7 @@ static void get_session_req_data(
   struct pcef_create_session_data *data);
 extern spgw_config_t spgw_config;
 extern uint32_t sgw_get_new_s1u_teid(void);
-extern void print_bearer_ids_helper(ebi_t[], uint32_t);
+extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 //--------------------------------------------------------------------------------
 
 int pgw_handle_create_bearer_request(
@@ -428,11 +427,7 @@ static void get_session_req_data(
 
 uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   spgw_state_t *spgw_state,
-  Imsi_t *imsi,
-  ebi_t lbi,
-  traffic_flow_template_t *ul_tft,
-  traffic_flow_template_t *dl_tft,
-  bearer_qos_t *eps_bearer_qos)
+  const itti_pgw_nw_init_actv_bearer_request_t *const bearer_req_p)
 {
   OAILOG_FUNC_IN(LOG_PGW_APP);
   MessageDef *message_p = NULL;
@@ -447,7 +442,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   OAILOG_INFO(
     LOG_PGW_APP,
     "Received Create Bearer Req from PCRF with IMSI %s\n",
-    imsi->digit);
+    bearer_req_p->imsi);
 
   message_p =
     itti_alloc_new_message(TASK_SPGW_APP, S5_NW_INITIATED_ACTIVATE_BEARER_REQ);
@@ -466,11 +461,13 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
   //Copy Bearer QoS
   memcpy(
     &itti_s5_actv_bearer_req->eps_bearer_qos,
-    eps_bearer_qos,
+    &bearer_req_p->eps_bearer_qos,
     sizeof(bearer_qos_t));
   //Copy TFT
   memcpy(
-    &itti_s5_actv_bearer_req->tft, ul_tft, sizeof(traffic_flow_template_t));
+    &itti_s5_actv_bearer_req->tft,
+    &bearer_req_p->ul_tft,
+    sizeof(traffic_flow_template_t));
   //Assign LBI
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (!hashtblP) {
@@ -493,12 +490,12 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
         if (!strncmp(
               (const char *)
                 spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-              (const char *) imsi->digit,
-              strlen((const char *) imsi->digit))) {
+              (const char *) bearer_req_p->imsi,
+              strlen((const char *) bearer_req_p->imsi))) {
           if (
             spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
-              .default_bearer == lbi) {
-            itti_s5_actv_bearer_req->lbi = lbi;
+              .default_bearer == bearer_req_p->lbi) {
+            itti_s5_actv_bearer_req->lbi = bearer_req_p->lbi;
             itti_s5_actv_bearer_req->mme_teid_S11 =
               spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
             break;
@@ -533,9 +530,7 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
 
 uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   spgw_state_t *spgw_state,
-  Imsi_t *imsi,
-  uint32_t no_of_bearers,
-  ebi_t ebi[])
+  const itti_pgw_nw_init_deactv_bearer_request_t *const bearer_req_p)
 {
   uint32_t rc = RETURNok;
   OAILOG_FUNC_IN(LOG_PGW_APP);
@@ -550,7 +545,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   bool found = false;
 
   OAILOG_INFO(LOG_PGW_APP, "Received nw_initiated_deactv_bearer_req from NW\n");
-  print_bearer_ids_helper(ebi, no_of_bearers);
+  print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
   message_p = itti_alloc_new_message(
     TASK_SPGW_APP, S5_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   if (message_p == NULL) {
@@ -568,9 +563,11 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     0,
     sizeof(itti_s5_nw_init_deactv_bearer_request_t));
   itti_s5_deactv_ded_bearer_req->delete_default_bearer = false;
-  itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers;
+  itti_s5_deactv_ded_bearer_req->no_of_bearers = bearer_req_p->no_of_bearers;
   memcpy(
-    &itti_s5_deactv_ded_bearer_req->ebi, ebi, (sizeof(ebi_t)) * no_of_bearers);
+    &itti_s5_deactv_ded_bearer_req->ebi,
+    bearer_req_p->ebi,
+    (sizeof(ebi_t)) * bearer_req_p->no_of_bearers);
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (hashtblP == NULL) {
     OAILOG_ERROR(
@@ -585,19 +582,19 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
       spgw_ctxt_p = node->data;
-      pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
       num_elements++;
       if (spgw_ctxt_p != NULL) {
         if (!strcmp(
               (const char *)
                 spgw_ctxt_p->sgw_eps_bearer_context_information.imsi.digit,
-              (const char *) imsi->digit)) {
+              (const char *) bearer_req_p->imsi)) {
           itti_s5_deactv_ded_bearer_req->s11_mme_teid =
             spgw_ctxt_p->sgw_eps_bearer_context_information.mme_teid_S11;
-          for (j = 0; j < no_of_bearers; j++) {
+          for (j = 0; j < bearer_req_p->no_of_bearers; j++) {
             if (
-              ebi[j] == spgw_ctxt_p->sgw_eps_bearer_context_information
-                          .pdn_connection.default_bearer) {
+              bearer_req_p->ebi[j] ==
+              spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
+                .default_bearer) {
               itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
               found = true;
               break;
@@ -606,6 +603,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
         }
       }
     }
+    pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
   OAILOG_INFO(

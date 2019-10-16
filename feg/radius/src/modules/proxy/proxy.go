@@ -24,27 +24,30 @@ type Config struct {
 	Target string
 }
 
-var target string
+// ModuleCtx ...
+type ModuleCtx struct {
+	target string
+}
 
 // Init module interface implementation
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	var proxyConfig Config
 	err := mapstructure.Decode(config, &proxyConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if proxyConfig.Target == "" {
-		return errors.New("proxy module cannot be initialize with empty Target value")
+		return nil, errors.New("proxy module cannot be initialize with empty Target value")
 	}
 
-	target = proxyConfig.Target
-	return nil
+	return ModuleCtx{target: proxyConfig.Target}, nil
 }
 
 // Handle module interface implementation
-func Handle(_ *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
-	res, err := radius.Exchange(context.Background(), r.Packet, target)
+func Handle(m modules.Context, _ *modules.RequestContext, r *radius.Request, _ modules.Middleware) (*modules.Response, error) {
+	mCtx := m.(ModuleCtx)
+	res, err := radius.Exchange(context.Background(), r.Packet, mCtx.target)
 	if err != nil {
 		return nil, err
 	}

@@ -81,7 +81,6 @@ func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
 				continue
 			}
 			for _, metric := range fam.Metric {
-				addContextLabelsToMetric(metric, metricAndContext.Context)
 				if metric.TimestampMs == nil || *metric.TimestampMs == 0 {
 					timeStamp := time.Now().Unix() * 1000
 					metric.TimestampMs = &timeStamp
@@ -109,30 +108,6 @@ func dropInvalidMetrics(metrics []*io_prometheus_client.Metric, familyName strin
 		}
 	}
 	return validMetrics
-}
-
-func addContextLabelsToMetric(metric *io_prometheus_client.Metric, ctx mxd_exp.MetricsContext) {
-	networkAdded, gatewayAdded := false, false
-	for _, label := range metric.Label {
-		if label.GetName() == NetworkLabelNetwork {
-			label.Value = makeStringPointer(ctx.NetworkID)
-			networkAdded = true
-		}
-		if label.GetName() == NetworkLabelGateway {
-			label.Value = makeStringPointer(ctx.GatewayID)
-			gatewayAdded = true
-		}
-	}
-	if !networkAdded {
-		metric.Label = append(metric.Label,
-			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelNetwork), Value: &ctx.NetworkID},
-		)
-	}
-	if !gatewayAdded {
-		metric.Label = append(metric.Label,
-			&io_prometheus_client.LabelPair{Name: makeStringPointer(NetworkLabelGateway), Value: &ctx.GatewayID},
-		)
-	}
 }
 
 func validateLabels(metric *io_prometheus_client.Metric) error {

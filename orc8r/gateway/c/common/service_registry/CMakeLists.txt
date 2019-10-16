@@ -22,7 +22,7 @@ target_link_libraries(SERVICE_REGISTRY CONFIG
 # session_manager, etc.
 add_custom_command(TARGET SERVICE_REGISTRY POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy
-                   ${CMAKE_SOURCE_DIR}/service_registry/*.h
+                   ${PROJECT_SOURCE_DIR}/service_registry/*.h
                    $<TARGET_FILE_DIR:SERVICE_REGISTRY>)
 
 target_include_directories(SERVICE_REGISTRY PUBLIC

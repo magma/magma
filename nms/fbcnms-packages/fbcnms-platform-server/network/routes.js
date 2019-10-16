@@ -9,8 +9,8 @@
  */
 
 // TODO
-// import type {CellularNetworkConfig} from '@fbcnms/magmanms/app/common/MagmaAPIType';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {network_cellular_configs} from '@fbcnms/magmalte/app/common/__generated__/MagmaAPIBindings';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
 import axios from 'axios';
@@ -25,9 +25,7 @@ const logger = require('@fbcnms/logging').getLogger(module);
 
 const router = express.Router();
 
-// TODO
-// const DEFAULT_CELLULAR_CONFIG: CellularNetworkConfig = {
-const DEFAULT_CELLULAR_CONFIG = {
+const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
   epc: {
     cloud_subscriberdb_enabled: false,
     default_rule_id: '',
@@ -81,9 +79,11 @@ router.post(
       }
 
       // Add network to organization
-      const organization = await req.organization();
-      const networkIDs = [...organization.networkIDs, networkID];
-      await organization.update({networkIDs});
+      if (req.organization) {
+        const organization = await req.organization();
+        const networkIDs = [...organization.networkIDs, networkID];
+        await organization.update({networkIDs});
+      }
     } catch (e) {
       logger.error(e, {
         response: e.response?.data,

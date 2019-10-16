@@ -31,8 +31,30 @@ type MetricAndContext struct {
 
 // MetricsContext provides information to the exporter about where this metric
 // comes from.
-// OriginatingEntity - unique identifier for the originator of a metric
-// DecodedName       - name of the metric family
 type MetricsContext struct {
-	NetworkID, GatewayID, HardwareID, OriginatingEntity, DecodedName, MetricName string
+	MetricName        string
+	AdditionalContext AdditionalMetricContext
 }
+
+type AdditionalMetricContext interface {
+	isExtraMetricContext()
+}
+
+type CloudMetricContext struct {
+	// Hostname of the cloud host that this metric comes from
+	CloudHost string
+}
+
+func (c *CloudMetricContext) isExtraMetricContext() {}
+
+type GatewayMetricContext struct {
+	NetworkID, GatewayID string
+}
+
+func (c *GatewayMetricContext) isExtraMetricContext() {}
+
+type PushedMetricContext struct {
+	NetworkID string
+}
+
+func (c *PushedMetricContext) isExtraMetricContext() {}

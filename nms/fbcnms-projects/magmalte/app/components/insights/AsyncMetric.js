@@ -9,12 +9,11 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
+import MagmaV1API from '../../common/MagmaV1API';
 import React from 'react';
-import axios from 'axios';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -27,7 +26,6 @@ type Props = {
   legendLabels?: Array<string>,
   timeRange: TimeRange,
   networkId?: string,
-  usePrometheusDB: boolean,
 };
 
 const useStyles = makeStyles({
@@ -97,7 +95,7 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
     unit: 'day',
   },
   '30_days': {
-    days: 14,
+    days: 30,
     step: '8h',
     unit: 'day',
   },
@@ -106,19 +104,34 @@ const RANGE_VALUES: {[TimeRange]: RangeValue} = {
 const COLORS = ['blue', 'red', 'green', 'yellow', 'purple', 'black'];
 
 interface DatabaseHelper<T> {
-  getLegendLabel(data: T): string;
-  queryFunction: (networkID: string) => string;
+  getLegendLabel(data: T, tagSets: Array<{[string]: string}>): string;
   datapointFieldName: string;
 }
 
 class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
-  getLegendLabel(result: PrometheusResponse): string {
+  getLegendLabel(
+    result: PrometheusResponse,
+    tagSets: Array<{[string]: string}>,
+  ): string {
     const {metric} = result;
 
     const tags = [];
-    const droppedTags = ['gatewayID', 'networkID', 'service', '__name__'];
+    const droppedTags = ['networkID', '__name__'];
+    const droppedIfSameTags = ['gatewayID', 'service'];
+
+    const uniqueTagValues = {};
+    droppedIfSameTags.forEach(tagName => {
+      uniqueTagValues[tagName] = Array.from(
+        new Set(tagSets.map(item => item[tagName])),
+      );
+    });
+
     for (const key in metric) {
-      if (metric.hasOwnProperty(key) && !droppedTags.includes(key)) {
+      if (
+        metric.hasOwnProperty(key) &&
+        !droppedTags.includes(key) &&
+        (!uniqueTagValues[key] || uniqueTagValues[key].length !== 1)
+      ) {
         tags.push(key + '=' + metric[key]);
       }
     }
@@ -127,40 +140,11 @@ class PrometheusHelper implements DatabaseHelper<PrometheusResponse> {
       : `${metric['__name__']} (${tags.join(', ')})`;
   }
 
-  queryFunction = MagmaAPIUrls.prometheusQueryRange;
   datapointFieldName = 'values';
-}
-
-class GraphiteHelper implements DatabaseHelper<GraphiteResponse> {
-  getLegendLabel(result: GraphiteResponse): string {
-    const {target} = result;
-    const label = JSON.stringify(target)
-      .slice(1, -1) // remove double quotes
-      .split(';'); // token separator for graphite
-    const metric = label.shift();
-
-    // remove gateway, network, and service tags, they're not interesting
-    const tags = label.filter(tag => {
-      const tagName = tag.split('=')[0];
-      return (
-        tagName !== 'gatewayID' &&
-        tagName !== 'networkID' &&
-        tagName !== 'service'
-      );
-    });
-    return tags.length === 0 ? metric : `${metric} (${tags.join(', ')})`;
-  }
-
-  queryFunction = MagmaAPIUrls.graphiteQuery;
-  datapointFieldName = 'datapoints';
 }
 
 type PrometheusResponse = {
   metric: {[key: string]: string},
-};
-
-type GraphiteResponse = {
-  target: JSON,
 };
 
 function Progress() {
@@ -204,30 +188,21 @@ function useDatasetsFetcher(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const stringedQueries = JSON.stringify(props.queries);
 
-  const dbHelper = useMemo(
-    () =>
-      props.usePrometheusDB ? new PrometheusHelper() : new GraphiteHelper(),
-    [props.usePrometheusDB],
-  );
+  const dbHelper = useMemo(() => new PrometheusHelper(), []);
 
   useEffect(() => {
-    const queries = JSON.parse(stringedQueries);
+    const queries = props.queries;
     const requests = queries.map(async (query, index) => {
       try {
-        const response = await axios.get(
-          dbHelper.queryFunction(props.networkId || match),
+        const response = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
           {
-            params: {
-              query,
-              ...{
-                start: startEnd.start,
-                end: startEnd.end,
-                step: startEnd.step,
-              },
-            },
+            networkId: props.networkId || match.params.networkId,
+            start: startEnd.start,
+            end: startEnd.end,
+            step: startEnd.step,
+            query,
           },
         );
-
         const label = props.legendLabels ? props.legendLabels[index] : null;
         return {response, label};
       } catch (error) {
@@ -241,14 +216,15 @@ function useDatasetsFetcher(props: Props) {
     Promise.all(requests).then(allResponses => {
       let index = 0;
       const datasets = [];
-      allResponses.filter(Boolean).forEach(({response, label}) => {
-        const result = props.usePrometheusDB
-          ? response.data?.data?.result
-          : response.data?.result;
+      allResponses.filter(Boolean).forEach(r => {
+        const response = r.response;
+        const label = r.label;
+        const result = response.data.result;
         if (result) {
+          const tagSets = result.map(it => it.metric);
           result.map(it =>
             datasets.push({
-              label: label || dbHelper.getLegendLabel(it),
+              label: label || dbHelper.getLegendLabel(it, tagSets),
               unit: props.unit || '',
               fill: false,
               lineTension: 0,
@@ -286,7 +262,6 @@ function useDatasetsFetcher(props: Props) {
     props.legendLabels,
     enqueueSnackbar,
     dbHelper,
-    props.usePrometheusDB,
   ]);
 
   return allDatasets;

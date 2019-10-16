@@ -11,7 +11,6 @@ package testloopback
 import (
 	"fbc/cwf/radius/modules"
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"go.uber.org/zap"
 )
@@ -23,24 +22,46 @@ import (
  */
 
 // Init module interface implementation
-func Init(logger *zap.Logger, config modules.ModuleConfig) error {
-	return nil
+func Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
+	return nil, nil
 }
 
 // Handle module interface implementation
-func Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+func Handle(_ modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
 	logger := c.Logger.With(zap.String("module_name", "testloopback"))
-	// create a response with all attributes copied from request
+
+	// Create a response with all attributes copied from request
 	resp := modules.Response{
-		Code:       radius.CodeAccessAccept,
+		Code:       getResponseCode(r),
 		Attributes: r.Packet.Attributes,
 	}
-	// add some attributes so test code can verify this module processed the packet
-	a, err := radius.NewString("Eitan")
-	if err != nil {
-		logger.Error("failed to create RADIUS attribute to response")
-	}
-	resp.Attributes.Add(rfc2865.UserName_Type, a)
+
 	logger.Debug("generating dummy response", zap.Any("dummy response", resp))
 	return &resp, nil
+}
+
+func getResponseCode(r *radius.Request) radius.Code {
+	switch r.Code {
+	case radius.CodeAccessRequest:
+		return radius.CodeAccessAccept
+	case radius.CodeAccountingRequest:
+		return radius.CodeAccountingResponse
+	case radius.CodeCoARequest:
+		return radius.CodeCoAACK
+	case radius.CodeDisconnectRequest:
+		return radius.CodeCoAACK
+
+	case radius.CodeAccessReject:
+	case radius.CodeAccountingResponse:
+	case radius.CodeAccessChallenge:
+	case radius.CodeStatusServer:
+	case radius.CodeStatusClient:
+	case radius.CodeDisconnectACK:
+	case radius.CodeDisconnectNAK:
+	case radius.CodeCoAACK:
+	case radius.CodeCoANAK:
+	case radius.CodeAccessAccept:
+	case radius.CodeReserved:
+	}
+	return r.Code
 }

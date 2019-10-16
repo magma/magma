@@ -180,7 +180,8 @@ func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) e
 	for i, blob := range blobs {
 		id := blob.toID()
 		sharedBlob, ok := sharedBlobSet[id]
-		if ok {
+		// increment version if it isn't set in the update
+		if ok && blob.Version == 0 {
 			blobs[i].Version = sharedBlob.Version + 1
 		}
 	}
@@ -190,7 +191,7 @@ func (store *memoryBlobStorage) CreateOrUpdate(networkID string, blobs []Blob) e
 	for _, blob := range blobs {
 		id := blob.toID()
 		storedChange, exists := perNetworkLocalMap[id]
-		if exists && storedChange.cType == CreateOrUpdate {
+		if exists && storedChange.cType == CreateOrUpdate && blob.Version == 0 {
 			blob.Version = storedChange.blob.Version + 1
 		}
 		perNetworkLocalMap[id] = change{cType: CreateOrUpdate, blob: blob}

@@ -32,7 +32,7 @@
 #include "3gpp_36.401.h"
 #include "EmmCause.h"
 #include "emm_asDef.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -116,9 +116,10 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
   emm_sap.u.emm_as.u.status.emm_cause = emm_cause;
   emm_sap.u.emm_as.u.status.ue_id = ue_id;
   emm_sap.u.emm_as.u.status.guti = NULL;
-
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
+        ue_id);
   if (ue_mm_context) {
     ctx = &ue_mm_context->emm_context;
     if (ctx) {

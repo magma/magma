@@ -23,6 +23,7 @@ non_service303_services:
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
+  - redirectd
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -40,13 +41,18 @@ bootstrap_config:
 
 # Flags indicating the magmad features to be enabled
 enable_config_streamer: True
-enable_upgrade_manager: False
+enable_upgrade_manager: True
 enable_network_monitor: True
 enable_systemd_tailer: False
 enable_sync_rpc: True
 enable_kernel_version_checking: True
 
 systemd_tailer_poll_interval: 30 # seconds
+
+upgrader_factory:
+  module: magma.magmad.upgrade.docker_upgrader
+  class: DockerUpgraderFactory
+  gateway_module: cwf
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2

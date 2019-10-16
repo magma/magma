@@ -63,5 +63,3 @@ typedef struct mme_app_desc_s {
   uint32_t nb_s1u_bearers_released_since_last_stat;
   uint32_t nb_s1u_bearers_established_since_last_stat;
 } mme_app_desc_t;
-
-extern mme_app_desc_t mme_app_desc;

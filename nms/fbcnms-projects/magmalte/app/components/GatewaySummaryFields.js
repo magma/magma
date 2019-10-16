@@ -9,7 +9,7 @@
  */
 
 import type {ContextRouter} from 'react-router-dom';
-import type {Gateway} from './GatewayUtils';
+import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -21,13 +21,13 @@ import Divider from '@material-ui/core/Divider';
 import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
+import MagmaV1API from '../common/MagmaV1API';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 import moment from 'moment';
 import {GatewayStatus} from './GatewayUtils';
-import {MagmaAPIUrls, updateGatewayName} from '../common/MagmaAPI';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -37,7 +37,7 @@ type Props = ContextRouter &
   WithStyles<typeof styles> & {
     onClose: () => void,
     onSave: (gatewayID: string) => void,
-    gateway: Gateway,
+    gateway: GatewayV1,
   };
 
 type State = {
@@ -148,7 +148,11 @@ class GatewaySummaryFields extends React.Component<Props, State> {
     const {match, gateway} = this.props;
     const id = gateway.logicalID;
 
-    updateGatewayName(id, this.state.name, match)
+    MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdName({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: id,
+      name: JSON.stringify(`"${this.state.name}"`),
+    })
       .then(() => this.props.onSave(id))
       .catch(error => this.props.alert(error.response.data.message));
   };
@@ -159,10 +163,10 @@ class GatewaySummaryFields extends React.Component<Props, State> {
   handleRebootGateway = () => {
     const {match, gateway} = this.props;
     const id = gateway.logicalID;
-    const commandName = 'reboot';
-
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName))
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot({
+      networkId: nullthrows(match.params.networkId),
+      gatewayId: id,
+    })
       .then(_resp => {
         this.props.alert('Successfully initiated reboot');
         this.setState({showRebootCheck: true}, () => {
@@ -177,10 +181,14 @@ class GatewaySummaryFields extends React.Component<Props, State> {
   handleRestartServices = () => {
     const {match, gateway} = this.props;
     const id = gateway.logicalID;
-    const commandName = 'restart_services';
 
-    axios
-      .post(MagmaAPIUrls.command(match, id, commandName), [])
+    MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
+      {
+        networkId: nullthrows(match.params.networkId),
+        gatewayId: id,
+        services: [],
+      },
+    )
       .then(_resp => {
         this.props.alert('Successfully initiated service restart');
         this.setState({showRestartCheck: true}, () => {

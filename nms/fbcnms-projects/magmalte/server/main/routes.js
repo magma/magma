@@ -35,7 +35,7 @@ const handleReact = _tab =>
                 isSuperUser: req.user.isSuperUser,
               }
             : null,
-          enabledFeatures: await getEnabledFeatures(null),
+          enabledFeatures: await getEnabledFeatures(req, null),
         },
         MAPBOX_ACCESS_TOKEN: req.user && MAPBOX_ACCESS_TOKEN,
       }),
@@ -64,7 +64,7 @@ router.use(
   '/user',
   userMiddleware({
     loginSuccessUrl: '/nms',
-    loginFailureUrl: '/login?invalid=true',
+    loginFailureUrl: '/user/login?invalid=true',
   }),
 );
 router.get('/nms*', access(AccessRoles.USER), handleReact('nms'));

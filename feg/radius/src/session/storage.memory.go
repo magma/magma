@@ -9,26 +9,22 @@ LICENSE file in the root directory of this source tree.
 package session
 
 import (
-	"errors"
-	"fbc/cwf/radius/counters"
+	"fbc/cwf/radius/monitoring"
 	"fmt"
 	"sync"
+
+	"go.opencensus.io/tag"
 )
 
 type memoryStorage struct {
 	data sync.Map
 }
 
-var (
-	// ErrInvalidDataFormat indicate we have an invalid data as state
-	ErrInvalidDataFormat = errors.New("invalid data format found in storage")
-)
-
 func (m *memoryStorage) Get(sessionID string) (*State, error) {
-	counter := ReadSessionState.Start().
-		SetTag(counters.SessionIDTag, sessionID).
-		SetTag(counters.StorageTag, "memory")
-
+	counter := ReadSessionState.Start(
+		tag.Upsert(monitoring.SessionIDTag, sessionID),
+		tag.Upsert(monitoring.StorageTag, "memory"),
+	)
 	data, ok := m.data.Load(sessionID)
 	if !ok {
 		counter.Failure("not_found")
@@ -46,18 +42,20 @@ func (m *memoryStorage) Get(sessionID string) (*State, error) {
 }
 
 func (m *memoryStorage) Set(sessionID string, state State) error {
-	counter := WriteSessionState.Start().
-		SetTag(counters.SessionIDTag, sessionID).
-		SetTag(counters.StorageTag, "memory")
+	counter := WriteSessionState.Start(
+		tag.Upsert(monitoring.SessionIDTag, sessionID),
+		tag.Upsert(monitoring.StorageTag, "memory"),
+	)
 	m.data.Store(sessionID, state)
 	counter.Success()
 	return nil
 }
 
 func (m *memoryStorage) Reset(sessionID string) error {
-	counter := ResetSessionState.Start().
-		SetTag(counters.SessionIDTag, sessionID).
-		SetTag(counters.StorageTag, "memory")
+	counter := ResetSessionState.Start(
+		tag.Upsert(monitoring.SessionIDTag, sessionID),
+		tag.Upsert(monitoring.StorageTag, "memory"),
+	)
 	m.data.Delete(sessionID)
 	counter.Success()
 	return nil

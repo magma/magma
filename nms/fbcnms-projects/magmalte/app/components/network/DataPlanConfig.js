@@ -8,14 +8,11 @@
  * @format
  */
 
-import type {
-  CellularNetworkConfig,
-  CellularNetworkProfile,
-} from '../../common/MagmaAPIType';
 import type {ContextRouter, Match} from 'react-router-dom';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {network_epc_configs} from '../../common/__generated__/MagmaAPIBindings';
 
 import Button from '@material-ui/core/Button';
 import DataPlanEditDialog from './DataPlanEditDialog';
@@ -23,6 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '../../common/MagmaV1API';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -30,12 +28,11 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import axios from 'axios';
 import {Route, withRouter} from 'react-router-dom';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {get, map} from 'lodash';
+import {get} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 import {
@@ -60,7 +57,7 @@ type ErrorResponse = {
 };
 
 type State = {
-  config: ?CellularNetworkConfig,
+  config: ?network_epc_configs,
   loading: boolean,
 };
 
@@ -73,16 +70,10 @@ class DataPlanConfig extends React.Component<Props, State> {
   };
 
   componentDidMount() {
-    axios
-      .get<null, CellularNetworkConfig>(
-        MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-      )
-      .then(response =>
-        this.setState({
-          config: response.data,
-          loading: false,
-        }),
-      )
+    MagmaV1API.getLteByNetworkIdCellularEpc({
+      networkId: nullthrows(this.props.match.params.networkId),
+    })
+      .then(response => this.setState({config: response, loading: false}))
       .catch((error: ErrorResponse) => {
         this.props.alert(get(error, 'response.data.message', error));
         this.setState({
@@ -99,9 +90,9 @@ class DataPlanConfig extends React.Component<Props, State> {
       return <LoadingFiller />;
     }
 
-    const rows = map(
-      config.epc.sub_profiles,
-      (profile: CellularNetworkProfile, id) => (
+    const rows = Object.keys(config.sub_profiles || {}).map(id => {
+      const profile = nullthrows(config.sub_profiles)[id];
+      return (
         <TableRow key={id}>
           <TableCell>{id}</TableCell>
           <TableCell>
@@ -137,8 +128,8 @@ class DataPlanConfig extends React.Component<Props, State> {
             </div>
           </TableCell>
         </TableRow>
-      ),
-    );
+      );
+    });
 
     return (
       <>
@@ -174,7 +165,7 @@ class DataPlanConfig extends React.Component<Props, State> {
     return (
       <DataPlanEditDialog
         dataPlanId={dataPlanId}
-        networkConfig={this.state.config}
+        epcConfig={nullthrows(this.state.config)}
         onCancel={this.handleDataPlanEditCancel}
         onSave={this.handleDataPlanEditSave}
       />
@@ -197,20 +188,15 @@ class DataPlanConfig extends React.Component<Props, State> {
         const {
           [dataPlanId]: deletedProfile, // eslint-disable-line no-unused-vars
           ...newSubProfiles
-        } = config.epc.sub_profiles;
+        } = nullthrows(config.sub_profiles);
         const newConfig = {
           ...config,
-          epc: {
-            ...config.epc,
-            sub_profiles: newSubProfiles,
-          },
+          sub_profiles: newSubProfiles,
         };
-        return axios
-          .put(
-            MagmaAPIUrls.networkConfigsForType(this.props.match, 'cellular'),
-            newConfig,
-          )
-          .then(_resp => this.setState({config: newConfig}));
+        return MagmaV1API.putLteByNetworkIdCellularEpc({
+          networkId: nullthrows(this.props.match.params.networkId),
+          config: newConfig,
+        }).then(() => this.setState({config: newConfig}));
       });
   };
 
@@ -220,7 +206,7 @@ class DataPlanConfig extends React.Component<Props, State> {
 
   handleDataPlanEditSave = (
     dataPlanId: string,
-    newNetworkConfig: CellularNetworkConfig,
+    newNetworkConfig: network_epc_configs,
   ) => {
     this.setState({
       config: newNetworkConfig,

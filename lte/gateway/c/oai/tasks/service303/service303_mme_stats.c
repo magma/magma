@@ -22,15 +22,16 @@
 
 #include <stddef.h>
 
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "service303.h"
 
 static void service303_mme_statistics_read(void)
 {
   size_t label = 0;
-  set_gauge("enb_connected", mme_app_desc.nb_enb_connected, label);
-  set_gauge("ue_registered", mme_app_desc.nb_ue_attached, label);
-  set_gauge("ue_connected", mme_app_desc.nb_ue_connected, label);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  set_gauge("enb_connected", mme_app_desc_p->nb_enb_connected, label);
+  set_gauge("ue_registered", mme_app_desc_p->nb_ue_attached, label);
+  set_gauge("ue_connected", mme_app_desc_p->nb_ue_connected, label);
   return;
 }
 

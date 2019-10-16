@@ -23,14 +23,17 @@ import (
 
 const (
 	// Gateway services
-	GwMobilityd       GwServiceType = "mobilityd"
-	GwMagmad          GwServiceType = "magmad"
-	GwEnodebd         GwServiceType = "enodebd"
-	GwPipelined       GwServiceType = "pipelined"
-	GwSubscriberDB    GwServiceType = "subscriberdb"
-	GwS6aService      GwServiceType = "s6a_service"
-	GwSgsService      GwServiceType = "sgs_service"
-	GwSessiondService GwServiceType = "sessiond"
+	GwMobilityd           GwServiceType = "mobilityd"
+	GwMagmad              GwServiceType = "magmad"
+	GwEnodebd             GwServiceType = "enodebd"
+	GwPipelined           GwServiceType = "pipelined"
+	GwSubscriberDB        GwServiceType = "subscriberdb"
+	GwS6aService          GwServiceType = "s6a_service"
+	GwSgsService          GwServiceType = "sgs_service"
+	GwSessiondService     GwServiceType = "sessiond"
+	GwSpgwService         GwServiceType = "spgw_service"
+	GwAbortSessionService GwServiceType = "abort_session_service"
+	GwAAAService          GwServiceType = "aaa_service"
 
 	// SyncRPC gateway header key
 	GatewayIdHeaderKey = "Gatewayid"
@@ -54,6 +57,9 @@ var services = []GwServiceType{
 	GwS6aService,
 	GwSgsService,
 	GwSessiondService,
+	GwSpgwService,
+	GwAbortSessionService,
+	GwAAAService,
 }
 
 var config = httpServerConfig{HttpServerAddressPort, &sync.RWMutex{}}

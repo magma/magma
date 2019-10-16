@@ -39,6 +39,7 @@
     "identity-obj-proxy": "^3.0.0",
     "nodemon": "^1.18.10",
     "react-hot-loader": "^4.8.0",
+    "swagger-js-codegen": "^1.13.0",
     "webpack-cli": "^3.2.3"
   }
 }

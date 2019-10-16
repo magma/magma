@@ -52,32 +52,28 @@
 
 - name: Install convenience packages for development
   apt:
-    pkg: "{{ item }}"
     state: present
     update_cache: no
-  with_items:
-    - byobu
-    - vim
-    - aptitude
+    pkg:
+      - byobu
+      - vim
+      - aptitude
   when: preburn
 
 - name: Install debugger packages
   apt:
-    pkg: "{{ item }}"
+    pkg: gdb
     state: present
     update_cache: no
-  with_items:
-    - gdb
   when: preburn
 
 - name: Install monitoring packages
   apt:
-    pkg: "{{ item }}"
     state: present
     update_cache: no
-  with_items:
-    - htop
-    - iotop
+    pkg:
+      - htop
+      - iotop
   when: preburn
 
 # TODO: remove this after migrating magma_test box image to plain Debian
@@ -87,8 +83,10 @@
 
 - name: Install prereqs for FPM
   tags: dev
-  apt: pkg={{ item }} state=present update_cache=no
-  with_items:
+  apt:
+    state: present
+    update_cache: no
+    pkg:
       - ruby
       - ruby-dev
       - build-essential
@@ -106,8 +104,10 @@
 
 - name: Install dependencies for building and shipping client release
   tags: dev
-  apt: pkg={{ item }} state=present update_cache=no
-  with_items:
+  apt:
+    state: present
+    update_cache: no
+    pkg:
       - autogen
       - autoconf
       - build-essential
@@ -149,24 +149,26 @@
 ########################################
 
 - name: Install common Magma gateway dev dependencies
-  apt: pkg={{ item }} state=present update_cache=yes
-  with_items:
-    # install gRPC
-    - grpc-dev
-    # install protobuf
-    - libprotobuf10
-    - libprotobuf-dev
-    - libprotobuf-lite10
-    - libprotoc10
-    - libprotoc-dev
-    - libxml2-dev
-    - libxslt-dev
-    - protobuf-compiler
-    # install ethtool for disabling TCP checksumming
-    - ethtool
-    - libssl1.0-dev
-    - libffi-dev
-    - iperf3
-    - libsystemd-dev
-    - pkg-config
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      # install gRPC
+      - grpc-dev
+      # install protobuf
+      - libprotobuf10
+      - libprotobuf-dev
+      - libprotobuf-lite10
+      - libprotoc10
+      - libprotoc-dev
+      - libxml2-dev
+      - libxslt-dev
+      - protobuf-compiler
+      # install ethtool for disabling TCP checksumming
+      - ethtool
+      - libssl1.0-dev
+      - libffi-dev
+      - iperf3
+      - libsystemd-dev
+      - pkg-config
   when: preburn

@@ -87,9 +87,7 @@ paths:
           description:
             List of PromQL metrics results
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/promql_return_object'
+            $ref: '#/definitions/promql_return_object'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -124,9 +122,34 @@ paths:
         '200':
           description: List of PromQL metrics results
           schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/series:
+    get:
+      summary: Get a list of metric series in prometheus database
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of metric names
+          schema:
             type: array
             items:
-              $ref: '#/definitions/promql_return_object'
+              $ref: '#/definitions/prometheus_labelset'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -466,6 +489,16 @@ definitions:
       instance: "NFHDZAQU8Pyw2N91nbNdGjk5e"
       job: "sample_service"
       host: "magma_controller_a"
+
+  prometheus_labelset:
+    type: object
+    required:
+    - __name__
+    properties:
+      __name__:
+        type: string
+    additionalProperties:
+      type: string
 
   metric_datapoints:
     type: array

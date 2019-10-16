@@ -14,18 +14,19 @@ import (
 	filtlballocate "fbc/cwf/radius/filters/lballocate"
 	filtlbcanary "fbc/cwf/radius/filters/lbcanary"
 	"fbc/cwf/radius/modules"
-	modadaptruckus "fbc/cwf/radius/modules/adapt_ruckus"
+	modadaptruckus "fbc/cwf/radius/modules/adaptruckus"
 	modmsisdn "fbc/cwf/radius/modules/addmsisdn"
-	modalwaysaccept "fbc/cwf/radius/modules/always_accept"
+	modalwaysaccept "fbc/cwf/radius/modules/alwaysaccept"
 	modan "fbc/cwf/radius/modules/analytics"
-	modcoadynamic "fbc/cwf/radius/modules/coa_dynamic"
-	modcoafixed "fbc/cwf/radius/modules/coa_fixed_ip"
-	modcoanas "fbc/cwf/radius/modules/coa_nas"
+	modcoadynamic "fbc/cwf/radius/modules/coadynamic"
+	modcoafixed "fbc/cwf/radius/modules/coafixedip"
+	modcoanas "fbc/cwf/radius/modules/coanas"
 	modeap "fbc/cwf/radius/modules/eap"
 	modlbserve "fbc/cwf/radius/modules/lbserve"
-	modmagmaacct "fbc/cwf/radius/modules/magma_acct"
+	modmagmaacct "fbc/cwf/radius/modules/magmaacct"
 	modproxy "fbc/cwf/radius/modules/proxy"
 	modloopback "fbc/cwf/radius/modules/testloopback"
+	testsessionstorage "fbc/cwf/radius/modules/testsessionstorage"
 	modxwfv3 "fbc/cwf/radius/modules/xwfv3"
 	"fbc/lib/go/radius"
 	"fmt"
@@ -52,19 +53,20 @@ type StaticLoader struct {
 
 // CWFModuleMap the available CWF modules with their names, for use by the configuration file
 var CWFModuleMap = ModuleNameMap{
-	"addmsisdn":    func() modules.Module { return NewModule(modmsisdn.Init, modmsisdn.Handle) },
-	"analytics":    func() modules.Module { return NewModule(modan.Init, modan.Handle) },
-	"eap":          func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
-	"lbserve":      func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
-	"proxy":        func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
-	"xwfv3":        func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
-	"testloopback": func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
-	"coafixedip":   func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
-	"coanas":       func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
-	"coadynamic":   func() modules.Module { return NewModule(modcoadynamic.Init, modcoadynamic.Handle) },
-	"adaptruckus":  func() modules.Module { return NewModule(modadaptruckus.Init, modadaptruckus.Handle) },
-	"alwaysaccept": func() modules.Module { return NewModule(modalwaysaccept.Init, modalwaysaccept.Handle) },
-	"magmaacct":    func() modules.Module { return NewModule(modmagmaacct.Init, modmagmaacct.Handle) },
+	"addmsisdn":          func() modules.Module { return NewModule(modmsisdn.Init, modmsisdn.Handle) },
+	"analytics":          func() modules.Module { return NewModule(modan.Init, modan.Handle) },
+	"eap":                func() modules.Module { return NewModule(modeap.Init, modeap.Handle) },
+	"lbserve":            func() modules.Module { return NewModule(modlbserve.Init, modlbserve.Handle) },
+	"proxy":              func() modules.Module { return NewModule(modproxy.Init, modproxy.Handle) },
+	"xwfv3":              func() modules.Module { return NewModule(modxwfv3.Init, modxwfv3.Handle) },
+	"testloopback":       func() modules.Module { return NewModule(modloopback.Init, modloopback.Handle) },
+	"coafixedip":         func() modules.Module { return NewModule(modcoafixed.Init, modcoafixed.Handle) },
+	"coanas":             func() modules.Module { return NewModule(modcoanas.Init, modcoanas.Handle) },
+	"coadynamic":         func() modules.Module { return NewModule(modcoadynamic.Init, modcoadynamic.Handle) },
+	"adaptruckus":        func() modules.Module { return NewModule(modadaptruckus.Init, modadaptruckus.Handle) },
+	"alwaysaccept":       func() modules.Module { return NewModule(modalwaysaccept.Init, modalwaysaccept.Handle) },
+	"magmaacct":          func() modules.Module { return NewModule(modmagmaacct.Init, modmagmaacct.Handle) },
+	"testsessionstorage": func() modules.Module { return NewModule(testsessionstorage.Init, testsessionstorage.Handle) },
 }
 
 var CWFFilterMap = FilterNameMap{
@@ -125,12 +127,12 @@ type module struct {
 	handle modules.ModuleHandleFunc
 }
 
-func (m module) Init(logger *zap.Logger, config modules.ModuleConfig) error {
+func (m module) Init(logger *zap.Logger, config modules.ModuleConfig) (modules.Context, error) {
 	return m.init(logger, config)
 }
 
-func (m module) Handle(c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
-	return m.handle(c, r, next)
+func (m module) Handle(x modules.Context, c *modules.RequestContext, r *radius.Request, next modules.Middleware) (*modules.Response, error) {
+	return m.handle(x, c, r, next)
 }
 
 // NewModule create a new module interface

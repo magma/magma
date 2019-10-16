@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -252,7 +252,7 @@ int esm_sap_send(esm_sap_t *msg)
           bearer_activate->mbr_ul,
           bearer_activate->tft,
           bearer_activate->pco,
-          bearer_activate->gtp_teid,
+          &bearer_activate->sgw_fteid,
           &esm_cause);
         if (rc != RETURNok) {
           break;
@@ -1095,21 +1095,17 @@ static int _esm_sap_send(
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
-      if (
-        mme_config.eps_network_feature_support.
-        ims_voice_over_ps_session_in_s1) {
-        const esm_eps_bearer_context_deactivate_t *msg =
-          &data->eps_bearer_context_deactivate;
-        /*Currently we support single bearear deactivation only at NAS*/
-        if (RETURNok == rc) {
-          rc = esm_send_deactivate_eps_bearer_context_request(
-            (proc_tid_t) 0,
-            msg->ebi[0],
-            &esm_msg.deactivate_eps_bearer_context_request,
-            ESM_CAUSE_REGULAR_DEACTIVATION);
+      const esm_eps_bearer_context_deactivate_t *msg =
+        &data->eps_bearer_context_deactivate;
+      /*Currently we support single bearear deactivation only at NAS*/
+      if (RETURNok == rc) {
+        rc = esm_send_deactivate_eps_bearer_context_request(
+          (proc_tid_t) 0,
+          msg->ebi[0],
+          &esm_msg.deactivate_eps_bearer_context_request,
+          ESM_CAUSE_REGULAR_DEACTIVATION);
 
-          esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
-        }
+        esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
       }
     } break;
 

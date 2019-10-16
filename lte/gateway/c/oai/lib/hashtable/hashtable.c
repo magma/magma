@@ -448,9 +448,8 @@ hashtable_key_array_t *hashtable_ts_get_keys(hash_table_ts_t *const hashtblP)
   if (ka == NULL) return NULL;
 
   if (hashtblP->num_elements == 0) {
-    ka->keys = NULL;
-    ka->num_keys = 0;
-    return ka;
+    free(ka);
+    return NULL;
   }
 
   ka->keys = calloc(hashtblP->num_elements, sizeof(hash_key_t *));

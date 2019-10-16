@@ -11,10 +11,10 @@ package protos
 
 import (
 	"bytes"
-	"log"
 	"reflect"
 	"strings"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/golang/protobuf/proto"
 )
@@ -61,7 +61,7 @@ func (_ mconfigAnyResolver) Resolve(typeUrl string) (proto.Message, error) {
 	mt := proto.MessageType(mname)
 	var res proto.Message
 	if mt == nil {
-		log.Printf("mconfigAnyResolver: unknown message type %q", mname)
+		glog.V(4).Infof("mconfigAnyResolver: unknown message type %q", mname)
 		res = new(Void)
 	} else {
 		res = reflect.New(mt.Elem()).Interface().(proto.Message)

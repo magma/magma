@@ -57,7 +57,6 @@ setup(
         'scripts/mobility_cli.py',
         'scripts/ocs_cli.py',
         'scripts/packet_ryu_cli.py',
-        'scripts/packet_tracer_cli.py',
         'scripts/pcrf_cli.py',
         'scripts/pipelined_cli.py',
         'scripts/policydb_cli.py',
@@ -66,6 +65,7 @@ setup(
         'scripts/session_manager_cli.py',
         'scripts/sgs_cli.py',
         'scripts/subscriber_cli.py',
+        'scripts/spgw_service_cli.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[

@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 from typing import Optional, Any, Callable, Dict, List, Type
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import TrParam, DataModel
@@ -158,7 +158,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
         # Current values of the fetched parameters
         name_to_val = parse_get_parameter_values_response(self.acs.data_model,
                                                           message)
-        logging.debug('Received Parameters: %s', str(name_to_val))
+        logger.debug('Received Parameters: %s', str(name_to_val))
 
         # Update device configuration
         for name in name_to_val:
@@ -187,8 +187,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
             return self.add_obj_transition
         return self.skip_transition
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting transient read-only parameters'
 
 
@@ -251,7 +250,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
             path_to_val[param_value_struct.Name] = \
                 param_value_struct.Value.Data
 
-        logging.debug('Received object parameters: %s', str(path_to_val))
+        logger.debug('Received object parameters: %s', str(path_to_val))
 
         num_plmns = self.acs.data_model.get_num_plmns()
         for i in range(1, num_plmns + 1):
@@ -294,8 +293,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
             return AcsReadMsgResult(True, self.set_params_transition)
         return AcsReadMsgResult(True, self.skip_transition)
 
-    @classmethod
-    def state_description(cls) -> str:
+    def state_description(self) -> str:
         return 'Getting object parameters'
 
 

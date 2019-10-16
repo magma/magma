@@ -35,12 +35,15 @@ services:
       - ../../fbcnms-projects/magmalte/server:/usr/src/fbcnms-projects/magmalte/server
     depends_on:
       - mysql
+    networks:
+      - default
+      - orc8r_default
     ports:
       - "8081:8081"
     environment:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
-      API_HOST: ${API_HOST:-host.docker.internal:9443}
+      API_HOST: ${API_HOST:-proxy:9443}
       PORT: 8081
       HOST: 0.0.0.0
       MYSQL_HOST: mysql
@@ -60,3 +63,7 @@ secrets:
     file: ${API_CERT_FILENAME:-../../../.cache/test_certs/admin_operator.pem}
   api_key:
     file: ${API_PRIVATE_KEY_FILENAME:-../../../.cache/test_certs/admin_operator.key.pem}
+
+networks:
+  orc8r_default:
+    external: true

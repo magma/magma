@@ -13,12 +13,14 @@ import (
 	"strings"
 
 	"magma/cwf/cloud/go/cwf"
-	"magma/cwf/cloud/go/services/carrier_wifi/obsidian/models"
+	"magma/cwf/cloud/go/plugin/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
@@ -48,8 +50,18 @@ func (*Builder) Build(
 		return nil
 	}
 	nwConfig := inwConfig.(*models.NetworkCarrierWifiConfigs)
+	gwConfig, err := graph.GetEntity(cwf.CwfGatewayType, gatewayID)
+	if err == merrors.ErrNotFound {
+		return nil
+	}
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	if gwConfig.Config == nil {
+		return nil
+	}
 
-	vals, err := buildFromNetworkConfig(nwConfig)
+	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -59,12 +71,16 @@ func (*Builder) Build(
 	return nil
 }
 
-func buildFromNetworkConfig(nwConfig *models.NetworkCarrierWifiConfigs) (map[string]proto.Message, error) {
+func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *models.GatewayCwfConfigs) (map[string]proto.Message, error) {
 	ret := map[string]proto.Message{}
 	if nwConfig == nil {
 		return ret, nil
 	}
 	pipelineDServices, err := getPipelineDServicesConfig(nwConfig.NetworkServices)
+	if err != nil {
+		return ret, err
+	}
+	allowedGrePeers, err := getPipelineDAllowedGrePeers(gwConfig.AllowedGrePeers)
 	if err != nil {
 		return ret, err
 	}
@@ -82,18 +98,30 @@ func buildFromNetworkConfig(nwConfig *models.NetworkCarrierWifiConfigs) (map[str
 		ret["aaa_server"] = mc
 	}
 	ret["pipelined"] = &ltemconfig.PipelineD{
-		LogLevel:      protos.LogLevel_INFO,
-		UeIpBlock:     DefaultUeIpBlock, // Unused by CWF
-		NatEnabled:    nwConfig.NatEnabled,
-		DefaultRuleId: nwConfig.DefaultRuleID,
-		RelayEnabled:  nwConfig.RelayEnabled,
-		Services:      pipelineDServices,
+		LogLevel:        protos.LogLevel_INFO,
+		UeIpBlock:       DefaultUeIpBlock, // Unused by CWF
+		NatEnabled:      false,
+		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
+		RelayEnabled:    true,
+		Services:        pipelineDServices,
+		AllowedGrePeers: allowedGrePeers,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
 		LogLevel:     protos.LogLevel_INFO,
-		RelayEnabled: nwConfig.RelayEnabled,
+		RelayEnabled: true,
+	}
+	ret["redirectd"] = &ltemconfig.RedirectD{
+		LogLevel: protos.LogLevel_INFO,
 	}
 	return ret, err
+}
+
+func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*ltemconfig.PipelineD_AllowedGrePeer, error) {
+	ues := make([]*ltemconfig.PipelineD_AllowedGrePeer, 0, len(allowedGrePeers))
+	for _, entry := range allowedGrePeers {
+		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP.String(), Key: int32(entry.Key)})
+	}
+	return ues, nil
 }
 
 func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.PipelineD_NetworkServices, error) {

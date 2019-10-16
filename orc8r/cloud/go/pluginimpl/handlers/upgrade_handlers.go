@@ -199,14 +199,14 @@ func createTierImage(c echo.Context) error {
 		return nerr
 	}
 
-	update, err := image.(*models.TierImage).ToUpdateCriteria(networkID, tierID)
+	updates, err := image.(*models.TierImage).ToUpdateCriteria(networkID, tierID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	_, err = configurator.UpdateEntity(networkID, update)
+	_, err = configurator.UpdateEntities(networkID, updates)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

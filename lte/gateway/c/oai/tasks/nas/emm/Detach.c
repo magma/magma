@@ -45,7 +45,6 @@
 #include "esm_data.h"
 #include "esm_sapDef.h"
 #include "mme_api.h"
-#include "mme_app_desc.h"
 #include "nas_procedures.h"
 
 /****************************************************************************/
@@ -278,8 +277,6 @@ int emm_proc_sgs_detach_request(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
-  emm_context_t *emm_ctx = NULL;
-
   OAILOG_INFO(
     LOG_NAS_EMM,
     "EMM-PROC  - SGS Detach type = %s (%d) requested (ue_id=" MME_UE_S1AP_ID_FMT
@@ -290,9 +287,8 @@ int emm_proc_sgs_detach_request(
   /*
    * Get the UE emm context
    */
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
-  emm_ctx = &ue_mm_context->emm_context;
+
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctx != NULL) {
     /* check if the non EPS service control is enable and combined attach*/
@@ -305,7 +301,7 @@ int emm_proc_sgs_detach_request(
     }
   }
 
-  unlock_ue_contexts(ue_mm_context);
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 /****************************************************************************
@@ -360,12 +356,11 @@ int emm_proc_detach_request(
     params->type,
     ue_id);
   /*
-   * Get the UE context
+   * Get the UE emm context
    */
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
 
-  if (ue_mm_context == NULL) {
+  if (emm_ctx == NULL) {
     OAILOG_WARNING(
       LOG_NAS_EMM,
       "No EMM context exists for the UE (ue_id=" MME_UE_S1AP_ID_FMT ") \n",
@@ -377,7 +372,6 @@ int emm_proc_detach_request(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  emm_context_t *emm_ctx = &ue_mm_context->emm_context;
 
   if (params->switch_off) {
     increment_counter("ue_detach", 1, 1, "result", "success");
@@ -421,7 +415,7 @@ int emm_proc_detach_request(
         "Do not clear emm context for UE Initiated IMSI Detach Request "
         " for the UE (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
-      unlock_ue_contexts(ue_mm_context);
+      emm_context_unlock(emm_ctx);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
   }
@@ -441,7 +435,7 @@ int emm_proc_detach_request(
   // Release emm and esm context
   _clear_emm_ctxt(emm_ctx);
 
-  unlock_ue_contexts(ue_mm_context);
+  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 

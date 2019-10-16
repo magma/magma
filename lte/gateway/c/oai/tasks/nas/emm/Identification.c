@@ -42,7 +42,7 @@
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 
 /****************************************************************************/
@@ -226,8 +226,9 @@ int emm_proc_identification_complete(
     ue_id);
 
   // Get the UE context
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc.mme_ue_contexts, ue_id);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
     nas_emm_ident_proc_t *ident_proc =
@@ -406,8 +407,9 @@ static int _identification_request(nas_emm_ident_proc_t *const proc)
   int rc = RETURNok;
   struct emm_context_s *emm_ctx = NULL;
 
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc.mme_ue_contexts, proc->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, proc->ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {

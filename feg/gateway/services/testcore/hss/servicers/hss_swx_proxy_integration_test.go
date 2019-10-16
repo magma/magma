@@ -1,3 +1,11 @@
+/*
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+*/
+
 package servicers_test
 
 import (
@@ -179,12 +187,20 @@ func getTestSwxProxy(t *testing.T, hss *hss.HomeSubscriberServer, verifyAuthr, w
 
 type successfulMockRelay struct{}
 
-func (s *successfulMockRelay) RelayFromFeg() (fegprotos.ErrorCode, error) {
+func (s *successfulMockRelay) RelayRTR(*swx.RTR) (fegprotos.ErrorCode, error) {
+	return fegprotos.ErrorCode_SUCCESS, nil
+}
+
+func (s *successfulMockRelay) RelayASR(*diameter.ASR) (fegprotos.ErrorCode, error) {
 	return fegprotos.ErrorCode_SUCCESS, nil
 }
 
 type unsuccessfulMockRelay struct{}
 
-func (s *unsuccessfulMockRelay) RelayFromFeg() (fegprotos.ErrorCode, error) {
+func (s *unsuccessfulMockRelay) RelayRTR(*swx.RTR) (fegprotos.ErrorCode, error) {
+	return fegprotos.ErrorCode_UNABLE_TO_DELIVER, nil
+}
+
+func (s *unsuccessfulMockRelay) RelayASR(*diameter.ASR) (fegprotos.ErrorCode, error) {
 	return fegprotos.ErrorCode_UNABLE_TO_DELIVER, nil
 }

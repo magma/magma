@@ -37,33 +37,60 @@ typedef struct sgw_state_s {
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
 
   // Maps teid (as uint32 key) to mme_sgw_tunnel
-  hash_table_ts_t *s11teid2mme;
+  hash_table_ts_t* s11teid2mme;
   // Maps teid (as uint32 key) to s11_eps_bearer_context_information
-  hash_table_ts_t *s11_bearer_context_information;
+  hash_table_ts_t* s11_bearer_context_information;
 
   gtpv1u_data_t gtpv1u_data;
 
+  teid_t tunnel_id;
+
+  uint32_t gtpv1u_teid;
+
 } sgw_state_t;
+
+typedef struct pgw_state_s {
+  STAILQ_HEAD(ipv4_list_free_s, ipv4_list_elm_s) ipv4_list_free;
+  STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
+  hash_table_ts_t* deactivated_predefined_pcc_rules;
+  hash_table_ts_t* predefined_pcc_rules;
+} pgw_state_t;
 
 typedef struct spgw_state_s {
   sgw_state_t sgw_state;
+  pgw_state_t pgw_state;
 } spgw_state_t;
 
 // Initializes SGW state struct when task process starts.
-int spgw_state_init(bool persist_state, spgw_config_t *spgw_config_p);
+int spgw_state_init(bool persist_state, const spgw_config_t* spgw_config_p);
 // Function that frees spgw_state.
 void spgw_state_exit(void);
 // Function that returns a pointer to spgw_state.
-spgw_state_t *get_spgw_state(void);
+spgw_state_t *get_spgw_state(bool read_from_db);
 // Function that writes the spgw_state struct into db.
 void put_spgw_state(void);
 
+/**
+ * Callback function for s11_bearer_context_information hashtable freefunc
+ * @param context_p spgw eps bearer context entry on hashtable
+ */
 void sgw_free_s11_bearer_context_information(
-  s_plus_p_gw_eps_bearer_context_information_t **context_p);
-void sgw_free_pdn_connection(sgw_pdn_connection_t *pdn_connection_p);
-void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt);
-
-// TODO: Add conversion (state2proto, proto2state) helper functions.
+    s_plus_p_gw_eps_bearer_context_information_t** context_p);
+/**
+ * Frees pdn connection and its contained objects
+ * @param pdn_connection_p
+ */
+void sgw_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p);
+/**
+ * Frees sgw_eps_bearer_ctxt entry
+ * @param sgw_eps_bearer_ctxt
+ */
+void sgw_free_eps_bearer_context(sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt);
+/**
+ * Callback function for pcc_rule hashtables freefunc
+ * @param rule pcc_rule entry on hashtable
+ */
+void pgw_free_pcc_rule(void** rule);
 
 #ifdef __cplusplus
 }

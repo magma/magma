@@ -9,16 +9,16 @@ LICENSE file in the root directory of this source tree.
 package session
 
 import (
-	"fbc/cwf/radius/counters"
+	"fbc/cwf/radius/monitoring"
 )
 
 var (
 	// ReadSessionState counts reading session state from storage
-	ReadSessionState = counters.NewOperation("read_session_state")
+	ReadSessionState = monitoring.NewOperation("read_session_state")
 
 	// WriteSessionState counts writing session state from storage
-	WriteSessionState = counters.NewOperation("write_session_state")
+	WriteSessionState = monitoring.NewOperation("write_session_state")
 
 	// ResetSessionState counts reseting session state from storage
-	ResetSessionState = counters.NewOperation("reset_session_state")
+	ResetSessionState = monitoring.NewOperation("reset_session_state")
 )

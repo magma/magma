@@ -11,8 +11,8 @@ package alert
 import (
 	"fmt"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -81,7 +81,7 @@ func (f *File) DeleteRule(name string) error {
 // SecureRule attaches a label for networkID to the given alert expression to
 // to ensure that only metrics owned by this network can be alerted on
 func SecureRule(networkID string, rule *rulefmt.Rule) error {
-	networkLabels := map[string]string{exporters.NetworkLabelNetwork: networkID}
+	networkLabels := map[string]string{metrics.NetworkLabelName: networkID}
 	restrictor := security.NewQueryRestrictor(networkLabels)
 
 	restrictedExpression, err := restrictor.RestrictQuery(rule.Expr)
@@ -92,7 +92,7 @@ func SecureRule(networkID string, rule *rulefmt.Rule) error {
 	if rule.Labels == nil {
 		rule.Labels = make(map[string]string)
 	}
-	rule.Labels[exporters.NetworkLabelNetwork] = networkID
+	rule.Labels[metrics.NetworkLabelName] = networkID
 	return nil
 }
 
@@ -108,11 +108,6 @@ type RuleJSONWrapper struct {
 }
 
 func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
-	modelFor, err := model.ParseDuration(r.For)
-	if err != nil {
-		return rulefmt.Rule{}, err
-	}
-
 	if r.Labels == nil {
 		r.Labels = make(map[string]string)
 	}
@@ -124,9 +119,15 @@ func (r *RuleJSONWrapper) ToRuleFmt() (rulefmt.Rule, error) {
 		Record:      r.Record,
 		Alert:       r.Alert,
 		Expr:        r.Expr,
-		For:         modelFor,
 		Labels:      r.Labels,
 		Annotations: r.Annotations,
+	}
+	if r.For != "" {
+		modelFor, err := model.ParseDuration(r.For)
+		if err != nil {
+			return rulefmt.Rule{}, err
+		}
+		rule.For = modelFor
 	}
 	return rule, nil
 }

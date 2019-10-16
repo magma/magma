@@ -11,18 +11,18 @@ package server
 import (
 	"context"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/counters"
 	"fbc/cwf/radius/filters"
 	"fbc/cwf/radius/loader"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
-	"fbc/lib/go/log"
 	"fmt"
 	"sync/atomic"
 	"time"
 
+	"go.opencensus.io/tag"
+
 	"fbc/lib/go/radius"
-	"fbc/lib/go/radius/rfc2865"
 
 	"github.com/patrickmn/go-cache"
 
@@ -52,80 +52,93 @@ type (
 
 	// Module represents a listener module
 	Module struct {
-		Name string
-		Code modules.Module
+		Name    string
+		Context modules.Context
+		Code    modules.Module
 	}
 
 	// Server encapsultes an instance of RADIUS server
 	Server struct {
 		ready               chan bool // wait on this to wait for the server to be ready for work
 		terminate           chan bool
-		listeners           map[string]Listener
+		listeners           map[string]ListenerInterface
 		filters             []*Filter
 		config              config.ServerConfig
 		logger              *zap.Logger
-		loggerFactory       log.Factory
 		multiSessionStorage session.GlobalStorage
 		dedupSet            *cache.Cache
+		counters            *monitoring.ServerCounters
 	}
 )
 
 // New a RADIUS server instance as per config
 func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (*Server, error) {
-	counters.ServerInit.Start()
+	// Init session storage
+	multiSessionStorage, err := initSessionStorage(config, logger)
+	if err != nil {
+		return nil, err
+	}
 
 	// Init server object
 	server := Server{
-		listeners:           make(map[string]Listener), // Will be populated by "Start" method
+		listeners:           make(map[string]ListenerInterface), // Will be populated by "Start" method
 		ready:               make(chan bool, 1),
 		filters:             make([]*Filter, 0),
 		terminate:           make(chan bool, 1), // Internal channel used for termination of listeners
 		config:              config,             // The original config for later reference
 		logger:              logger,
-		loggerFactory:       log.NewFactory(logger),
-		multiSessionStorage: session.NewMultiSessionMemoryStorage(),
+		multiSessionStorage: multiSessionStorage,
 		dedupSet:            cache.New(config.DedupWindow.Duration, time.Minute),
+		counters:            monitoring.CreateServerCounters(),
 	}
-	logger.Info("allocate new server", zap.Int("num_listeners", len(config.Listeners)), zap.Int("num_filters", len(config.Filters)))
+
+	serverInitCounter := server.counters.Init.Start()
+	logger.Info(
+		"allocate new server",
+		zap.Int("num_listeners", len(config.Listeners)),
+		zap.Int("num_filters", len(config.Filters)),
+	)
 
 	// Load filters from config
 	for _, filterName := range config.Filters {
-		counters.FilterInit.
-			SetTag(counters.FilterTag, filterName).
-			Start()
+		server.counters.FilterInit.Start(
+			tag.Upsert(monitoring.FilterTag, filterName),
+		)
 		filter, err := loader.LoadFilter(filterName)
 		if err != nil {
 			logger.Error("filter failed to load", zap.String("filter_name", filterName), zap.Error(err))
-			counters.FilterInit.Failure("load_error")
+			server.counters.FilterInit.Failure("load_error")
 			return nil, err
 		}
 
 		err = filter.Init(&config)
 		if err != nil {
 			logger.Error("filter failed to init", zap.String("filter_name", filterName), zap.Error(err))
-			counters.FilterInit.Failure("init_error")
+			server.counters.FilterInit.Failure("init_error")
 			return nil, err
 		}
 		server.filters = append(server.filters, &Filter{
 			Name: filterName,
 			Code: filter,
 		})
-		counters.FilterInit.Success()
+		server.counters.FilterInit.Success()
 	}
 
 	// Load listeners from config
 	for _, lconfig := range config.Listeners {
-		counters.ListenerInit.
-			SetTag(counters.ListenerTag, lconfig.Name).
-			Start()
+		listenerInitCounter := server.counters.ListenerInit.Start(
+			tag.Upsert(monitoring.ListenerTag, lconfig.Name),
+		)
 
 		// Create the listener
-		var listener Listener
+		var listener ListenerInterface
 		switch lconfig.Type {
 		case "udp":
-			listener = &UDPListener{Config: lconfig}
+			listener = NewUDPListener()
 		case "grpc":
-			listener = &GRPCListener{Config: lconfig}
+			listener = NewGRPCListener()
+		case "sse":
+			listener = NewSSEListener()
 		default:
 			logger.Error(
 				fmt.Sprintf("failed to create listener, listener type '%s'", lconfig.Type),
@@ -134,19 +147,22 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 			break
 		}
 
+		// Set configuration for listener
+		listener.SetConfig(lconfig)
+
 		// Load modules
 		for _, modDesc := range lconfig.Modules {
-			counters.ModuleInit.
-				SetTag(counters.ListenerTag, lconfig.Name).
-				SetTag(counters.ModuleTag, modDesc.Name).
-				Start()
+			moduleInitCounter := server.counters.ModuleInit.Start(
+				tag.Upsert(monitoring.ListenerTag, lconfig.Name),
+				tag.Upsert(monitoring.ModuleTag, modDesc.Name),
+			)
 
 			logger.Info("loading module", zap.String("module_name", modDesc.Name))
 			// Load module
 			module, err := loader.LoadModule(modDesc.Name)
 			if err != nil {
 				logger.Error("module failed to load", zap.String("module_name", modDesc.Name), zap.Error(err))
-				counters.ModuleInit.Failure("load_error")
+				moduleInitCounter.Failure("load_error")
 				return nil, err
 			}
 			logger.Debug(
@@ -157,18 +173,19 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 
 			// Init the module
 			logger.Debug("Initializing module", zap.String("module_name", modDesc.Name))
-			err = module.Init(logger, modDesc.Config)
+			moduleCtx, err := module.Init(logger, modDesc.Config)
 			if err != nil {
 				logger.Error("module failed to init", zap.String("module_name", modDesc.Name), zap.Error(err))
-				counters.ModuleInit.Failure("init_error")
+				moduleInitCounter.Failure("init_error")
 				return nil, err
 			}
 
 			listener.AppendModule(&Module{
-				Code: module,
-				Name: modDesc.Name,
+				Code:    module,
+				Context: moduleCtx,
+				Name:    modDesc.Name,
 			})
-			counters.ModuleInit.Success()
+			moduleInitCounter.Success()
 		}
 
 		// Wrap modules in call chain, leveraging the middleware pattern
@@ -184,31 +201,55 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 
 		// Initialize the listener
 		listener.SetHandleRequest(handler)
-		err := listener.Init(&server, config, lconfig)
+		err := listener.Init(
+			&server,
+			config,
+			lconfig,
+			monitoring.CreateListenerCounters(lconfig.Name),
+		)
 		if err != nil {
+			listenerInitCounter.Failure("unknown")
 			return nil, err
 		}
 
 		logger.Debug("listener created", zap.String("listener", lconfig.Name))
 		server.listeners[lconfig.Name] = listener
-		counters.ListenerInit.Success()
+		listenerInitCounter.Success()
 	}
 
 	// Down we go!
-	counters.ServerInit.Success()
+	serverInitCounter.Success()
 	return &server, nil
+}
+
+func initSessionStorage(config config.ServerConfig, logger *zap.Logger) (session.GlobalStorage, error) {
+	var multiSessionStorage session.GlobalStorage
+	if config.SessionStorage == nil || config.SessionStorage.StorageType == "memory" {
+		multiSessionStorage = session.NewMultiSessionMemoryStorage()
+		logger.Info("created memory config")
+	} else if config.SessionStorage.StorageType == "redis" {
+		redis := config.SessionStorage.Redis
+		multiSessionStorage = session.NewMultiSessionRedisStorage(redis.Addr, redis.Password, redis.DB)
+		logger.Info("created redis config", zap.String("addr", redis.Addr))
+	} else {
+		logger.Error("missing session storage config")
+		err := fmt.Errorf("missing session storage config")
+		return nil, err
+	}
+
+	return multiSessionStorage, nil
 }
 
 func wrapMiddleware(listenerName string, next modules.Middleware, module Module) modules.Middleware {
 	return func(c *modules.RequestContext, r *radius.Request) (*modules.Response, error) {
 		// Start counter
-		counter := counters.NewOperation(module.Name).
-			SetTag(counters.ListenerTag, listenerName).
-			SetTag(counters.ModuleTag, module.Name).
-			Start()
+		counter := monitoring.NewOperation(
+			module.Name,
+			tag.Upsert(monitoring.ListenerTag, listenerName),
+		).Start()
 
 		// Handle
-		res, err := module.Code.Handle(c, r, next)
+		res, err := module.Code.Handle(module.Context, c, r, next)
 
 		// Complete counter operation
 		if err != nil {
@@ -222,34 +263,36 @@ func wrapMiddleware(listenerName string, next modules.Middleware, module Module)
 
 // Start listening and parsing incoming requests
 func (s Server) Start() {
-	isFail := false
 	var err error
 	s.logger.Debug("starting server", zap.Int("num_listeners", len(s.listeners)), zap.Int("num_filters", len(s.filters)))
 	for _, listener := range s.listeners {
+		// Create logger
 		logger := s.logger.With(zap.String("listener", listener.GetConfig().Name))
-		logger.Debug("Starting listener", zap.Int("port", listener.GetConfig().Port))
-		go func(listener Listener) {
+		logger.Debug("Starting listener")
+
+		// Initialize logger
+		go func(listener ListenerInterface) {
 			logger.Debug("listener go-routine starts...")
 			err = listener.ListenAndServe()
 			if err != nil {
 				logger.Error("starting listener failed", zap.Error(err))
-				isFail = true
 			} else {
 				logger.Info("listener initialized successfully")
 			}
 		}(listener)
 	}
+
 	for _, listener := range s.listeners {
 		logger := s.logger.With(zap.String("listener", listener.GetConfig().Name))
 		// wait for listener to initialize
 		logger.Info("waiting for listener to be ready...")
-		<-listener.Ready()
+		listenerReady := <-listener.Ready()
+		if !listenerReady {
+			s.logger.Error("some listeners failed to initialize")
+			s.ready <- false
+			return
+		}
 		logger.Info("listener is ready")
-	}
-	if isFail {
-		s.logger.Error("some listeners failed to initialize")
-		s.ready <- false
-		return
 	}
 
 	// Server is ready!
@@ -295,22 +338,6 @@ func (s Server) Stop() {
 	// Signal termination
 	s.logger.Debug("All listeners are now down, terminating server")
 	s.terminate <- true
-}
-
-// getSessionID Extracts the radius session id from the given radius request
-func getSessionID(r *radius.Request) string {
-	result := ""
-	calledStationIDAttr, err := rfc2865.CalledStationID_Lookup(r.Packet)
-	if err == nil {
-		result += string(calledStationIDAttr)
-	}
-
-	callingStationIDAttr, err := rfc2865.CallingStationID_Lookup(r.Packet)
-	if err == nil {
-		result += string(callingStationIDAttr)
-	}
-
-	return result
 }
 
 // getSessionStateAPI returns a per-session accessor to session state
