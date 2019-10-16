@@ -14,12 +14,6 @@ import (
 	"fmt"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/swx_proxy/cache"
-	"magma/feg/gateway/services/swx_proxy/metrics"
-	orcprotos "magma/orc8r/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
@@ -27,6 +21,13 @@ import (
 	"github.com/fiorix/go-diameter/diam/sm"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/swx_proxy/cache"
+	"magma/feg/gateway/services/swx_proxy/metrics"
+	orcprotos "magma/orc8r/cloud/go/protos"
 )
 
 const (
@@ -35,7 +36,8 @@ const (
 )
 
 type Relay interface {
-	RelayFromFeg() (protos.ErrorCode, error)
+	RelayRTR(*RTR) (protos.ErrorCode, error)
+	RelayASR(*diameter.ASR) (protos.ErrorCode, error)
 }
 
 type swxProxy struct {
@@ -128,7 +130,7 @@ func NewSwxProxyWithCache(config *SwxProxyConfig, cache *cache.Impl) (*swxProxy,
 		requestTracker: diameter.NewRequestTracker(),
 		originStateID:  originStateID,
 		cache:          cache,
-		Relay:          &fegRelayClient{},
+		Relay:          &fegRelayClient{registry: registry.NewCloudRegistry()},
 	}
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_SWX_APP_ID, Code: diam.MultimediaAuthentication, Request: false},
