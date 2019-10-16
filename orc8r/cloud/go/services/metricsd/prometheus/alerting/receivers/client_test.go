@@ -44,6 +44,7 @@ route:
       networkID: other
 receivers:
 - name: null_receiver
+- name: test_receiver
 - name: other_network_base_route
 - name: test_slack
   slack_configs:
@@ -55,22 +56,39 @@ receivers:
   - api_url: http://slack.com/54321
     channel: string
     username: string
+- name: test_webhook
+  webhook_configs:
+  - url: http://webhook.com/12345
+    send_resolved: true
 templates: []`
 )
 
 func TestClient_CreateReceiver(t *testing.T) {
+	// Create Slack Receiver
 	client, fsClient := newTestClient()
 	err := client.CreateReceiver(testNID, sampleSlackReceiver)
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+
+	// Create Webhook Receiver
+	client, fsClient = newTestClient()
+	err = client.CreateReceiver(testNID, sampleWebhookReceiver)
+	assert.NoError(t, err)
+	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+
+	// create duplicate receiver
+	err = client.CreateReceiver(testNID, Receiver{Name: "receiver"})
+	assert.EqualError(t, err, `notification config name "test_receiver" is not unique`)
 }
 
 func TestClient_GetReceivers(t *testing.T) {
 	client, _ := newTestClient()
 	recs, err := client.GetReceivers(testNID)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(recs))
-	assert.Equal(t, "slack", recs[0].Name)
+	assert.Equal(t, 3, len(recs))
+	assert.Equal(t, "receiver", recs[0].Name)
+	assert.Equal(t, "slack", recs[1].Name)
+	assert.Equal(t, "webhook", recs[2].Name)
 
 	recs, err = client.GetReceivers(otherNID)
 	assert.NoError(t, err)

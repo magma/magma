@@ -565,6 +565,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/slack_receiver'
+      webhook_configs:
+        type: array
+        items:
+          $ref: '#/definitions/webhook_receiver'
 
   slack_receiver:
     type: object
@@ -662,6 +666,41 @@ definitions:
       ok_text:
         type: string
       dismiss_text:
+        type: string
+
+  webhook_receiver:
+    type: object
+    required:
+      - url
+    properties:
+      url:
+        type: string
+      send_resolved:
+        type: boolean
+      http_config:
+        $ref: '#/definitions/http_config'
+
+  # See https://prometheus.io/docs/alerting/configuration/#http_config. Not
+  # supporting several fields which are filepaths.
+  http_config:
+    type: object
+    properties:
+      basic_auth:
+        $ref: '#/definitions/http_config_basic_auth'
+      bearer_token:
+        type: string
+      proxy_url:
+        type: string
+
+  http_config_basic_auth:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
         type: string
 
   prom_firing_alert:
