@@ -15,5 +15,9 @@ DEFINE_string(
     "/etc/devmand/devices.yml",
     "Accepts .yml or .mconfig files. Inotify watches the file, and applies necessary changes.");
 DEFINE_uint64(poll_interval, 10, "The polling interval in seconds.");
+DEFINE_uint64(
+    debug_print_interval,
+    0,
+    "The debug print interval in seconds. A value of 0 disables the printing.");
 
 } // namespace devmand
