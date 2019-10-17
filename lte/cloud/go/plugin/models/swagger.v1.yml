@@ -1757,32 +1757,27 @@ definitions:
     description: Non-EPS service configuration for a gateway
     type: object
     required:
-      - csfb_mcc
-      - csfb_mnc
-      - lac
-      - csfb_rat
-      - arfcn_2g
       - non_eps_service_control
     properties:
       csfb_mcc:
         type: string
         pattern: '^(\d{3})$'
         minLength: 1
-        x-nullable: false
         example: '001'
       csfb_mnc:
         type: string
         pattern: '^(\d{2,3})$'
         minLength: 1
-        x-nullable: false
         example: '01'
       lac:
         type: integer
         format: uint32
+        x-nullable: true
         example: 1
       csfb_rat:
         type: integer
         format: uint32
+        x-nullable: true
         enum:
           - 0
           - 1
