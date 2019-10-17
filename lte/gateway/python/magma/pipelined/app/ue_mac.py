@@ -36,6 +36,9 @@ class UEMacAddressController(MagmaController):
     def __init__(self, *args, **kwargs):
         super(UEMacAddressController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
+        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        self.next_table = \
+            self._service_manager.get_next_table_num(self.APP_NAME)
         self._datapath = None
 
     def _get_config(self, config_dict):
@@ -79,8 +82,6 @@ class UEMacAddressController(MagmaController):
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY):
         parser = self._datapath.ofproto_parser
-        tbl_num = self._service_manager.get_table_num(self.APP_NAME)
-        next_table = self._service_manager.get_next_table_num(self.APP_NAME)
 
         if action is None:
             actions = []
@@ -91,14 +92,13 @@ class UEMacAddressController(MagmaController):
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.add_resubmit_next_service_flow(self._datapath, tbl_num, match,
-                                             actions=actions,
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             match, actions=actions,
                                              priority=priority,
-                                             resubmit_table=next_table)
+                                             resubmit_table=self.next_table)
 
     def _delete_resubmit_flow(self, sid, match, action=None):
         parser = self._datapath.ofproto_parser
-        tbl_num = self._service_manager.get_table_num(self.APP_NAME)
 
         if action is None:
             actions = []
@@ -109,7 +109,7 @@ class UEMacAddressController(MagmaController):
         actions.append(
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
-        flows.delete_flow(self._datapath, tbl_num, match, actions=actions)
+        flows.delete_flow(self._datapath, self.tbl_num, match, actions=actions)
 
     def _add_dhcp_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
@@ -221,13 +221,12 @@ class UEMacAddressController(MagmaController):
 
     def _add_arp_passthrough_flows(self):
         parser = self._datapath.ofproto_parser
-        tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         next_table = self._service_manager.get_next_table_num(self.APP_NAME)
 
         # Set so inout knows to skip tables and send to egress
         actions = [load_direction(parser, Direction.PASSTHROUGH)]
         arp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP)
-        flows.add_resubmit_next_service_flow(self._datapath, tbl_num, arp_match,
-                                             actions=actions,
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             arp_match, actions=actions,
                                              priority=flows.PASSTHROUGH_PRIORITY,
                                              resubmit_table=next_table)
