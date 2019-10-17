@@ -154,7 +154,19 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 }
 
 func (m *GatewayCellularConfigs) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only exists for the non EPS configs, EPC and RAN
+	// validation are handled by the above call the Validate()
+	if m.NonEpsService == nil {
+		return nil
+	}
+	if err := m.NonEpsService.ValidateModel(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *GatewayRanConfigs) ValidateModel() error {

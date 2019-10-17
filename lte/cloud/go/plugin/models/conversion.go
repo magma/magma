@@ -187,7 +187,23 @@ func (m *LteGateway) FromBackendModels(
 }
 
 func (m *MutableLteGateway) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only for cellular and device
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Device.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
