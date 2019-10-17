@@ -87,40 +87,43 @@ func TestCreateNetwork(t *testing.T) {
 	obsidianHandlers := handlers.GetHandlers()
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.POST).HandlerFunc
 
-	// test validation
+	// test validation - include TDD and FDD configs
+	payload := &models2.LteNetwork{
+		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+		Description: "blah",
+		DNS:         models.NewDefaultDNSConfig(),
+		Features:    models.NewDefaultFeaturesConfig(),
+		ID:          "n1",
+		Name:        "foobar",
+	}
+	payload.Cellular.Ran.FddConfig = &models2.NetworkRanConfigsFddConfig{
+		Earfcndl: 17000,
+		Earfcnul: 18000,
+	}
 	tc := tests.Test{
-		Method: "POST",
-		URL:    "/magma/v1/lte",
-		Payload: tests.JSONMarshaler(
-			&models2.LteNetwork{
-				Cellular:    models2.NewDefaultTDDNetworkConfig(),
-				Description: "",
-				DNS:         models.NewDefaultDNSConfig(),
-				Features:    models.NewDefaultFeaturesConfig(),
-				ID:          "n1",
-				Name:        "foobar",
-			},
-		),
+		Method:         "POST",
+		URL:            "/magma/v1/lte",
+		Payload:        payload,
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
-			"description in body should be at least 1 chars long",
+			"only one of TDD or FDD configs can be set",
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// happy path
+	payload = &models2.LteNetwork{
+		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+		Description: "Foo Bar",
+		DNS:         models.NewDefaultDNSConfig(),
+		Features:    models.NewDefaultFeaturesConfig(),
+		ID:          "n1",
+		Name:        "foobar",
+	}
 	tc = tests.Test{
-		Method: "POST",
-		URL:    "/magma/v1/lte",
-		Payload: tests.JSONMarshaler(
-			&models2.LteNetwork{
-				Cellular:    models2.NewDefaultTDDNetworkConfig(),
-				Description: "Foo Bar",
-				DNS:         models.NewDefaultDNSConfig(),
-				Features:    models.NewDefaultFeaturesConfig(),
-				ID:          "n1",
-				Name:        "foobar",
-			},
-		),
+		Method:         "POST",
+		URL:            "/magma/v1/lte",
+		Payload:        payload,
 		Handler:        createNetwork,
 		ExpectedStatus: 201,
 	}
