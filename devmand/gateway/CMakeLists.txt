@@ -154,7 +154,8 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/FileWatcherTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp)
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp)
 
 target_link_libraries(devmantest
   devman
