@@ -74,6 +74,8 @@ tags:
     description: Endpoints related to LTE networks
   - name: LTE Gateways
     description: Endpoints related to LTE gateway management
+  - name: Policies
+    description: Endpoints related to network policy management
 
 paths:
   /lte:
@@ -1206,11 +1208,11 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/policies/rules:
+  /networks/{network_id}/policies/rules:
     get:
       summary: List policy rules
       tags:
-        - LTE Networks
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -1225,7 +1227,7 @@ paths:
     post:
       summary: Add a new policy rule
       tags:
-        - LTE Networks
+        - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - in: body
@@ -1242,11 +1244,11 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/policies/rules/{rule_id}:
+  /networks/{network_id}/policies/rules/{rule_id}:
     get:
       summary: Get policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1260,7 +1262,7 @@ paths:
     put:
       summary: Modify a policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1278,7 +1280,7 @@ paths:
     delete:
       summary: Delete a policy rule
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/rule_id'
@@ -1288,11 +1290,11 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/policies/base_names:
+  /networks/{network_id}/policies/base_names:
     get:
       summary: List Charging Rule Base Names
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -1305,7 +1307,7 @@ paths:
     post:
       summary: Create Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - in: body
@@ -1322,11 +1324,11 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/policies/base_names/{base_name}:
+  /networks/{network_id}/policies/base_names/{base_name}:
     get:
       summary: Get Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
@@ -1340,7 +1342,7 @@ paths:
     put:
       summary: Modify a Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
@@ -1358,7 +1360,7 @@ paths:
     delete:
       summary: Delete a Charging Rule Base Name
       tags:
-      - LTE Networks
+      - Policies
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       - $ref: '#/parameters/base_name'
@@ -1755,32 +1757,27 @@ definitions:
     description: Non-EPS service configuration for a gateway
     type: object
     required:
-      - csfb_mcc
-      - csfb_mnc
-      - lac
-      - csfb_rat
-      - arfcn_2g
       - non_eps_service_control
     properties:
       csfb_mcc:
         type: string
         pattern: '^(\d{3})$'
         minLength: 1
-        x-nullable: false
         example: '001'
       csfb_mnc:
         type: string
         pattern: '^(\d{2,3})$'
         minLength: 1
-        x-nullable: false
         example: '01'
       lac:
         type: integer
         format: uint32
+        x-nullable: true
         example: 1
       csfb_rat:
         type: integer
         format: uint32
+        x-nullable: true
         enum:
           - 0
           - 1

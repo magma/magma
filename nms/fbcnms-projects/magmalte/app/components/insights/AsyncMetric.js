@@ -9,7 +9,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
@@ -252,7 +252,7 @@ function useDatasetsFetcher(props: Props) {
       });
       setAllDatasets(datasets);
     });
-  }, [
+  } /* eslint-disable react-hooks/exhaustive-deps */, [
     stringedQueries,
     match,
     props.networkId,
@@ -263,6 +263,7 @@ function useDatasetsFetcher(props: Props) {
     enqueueSnackbar,
     dbHelper,
   ]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return allDatasets;
 }

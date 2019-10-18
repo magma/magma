@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 
 import useMagmaAPI from '../../common/useMagmaAPI';

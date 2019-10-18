@@ -20,9 +20,10 @@ const (
 	NetworksRoot = RestRoot + UrlSep + MagmaNetworksUrlPart
 	// "/magma/operators"
 	OperatorsRoot = RestRoot + UrlSep + MagmaOperatorsUrlPart
-)
 
-const (
+	// Supported API versions
+	V0 = ""
+	V1 = "v1"
 	// Note the trailing slash (this is actually important for apidocs to render properly)
-	V1Root = UrlSep + "magma" + UrlSep + "v1" + UrlSep
+	V1Root = RestRoot + UrlSep + V1 + UrlSep
 )

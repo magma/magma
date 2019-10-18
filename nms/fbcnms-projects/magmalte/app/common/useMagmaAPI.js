@@ -8,7 +8,7 @@
  * @format
  */
 
-import MagmaV1API from './MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';

@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from './AddGatewayDialog';
 import Button from '@material-ui/core/Button';
@@ -20,7 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';

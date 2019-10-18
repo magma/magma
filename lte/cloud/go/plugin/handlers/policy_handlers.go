@@ -27,7 +27,7 @@ func ListBaseNames(c echo.Context) error {
 		return nerr
 	}
 
-	baseNames, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntity2Type)
+	baseNames, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -63,7 +63,7 @@ func GetBaseName(c echo.Context) error {
 
 	ret, err := configurator.LoadEntity(
 		networkID,
-		lte.BaseNameEntity2Type,
+		lte.BaseNameEntityType,
 		baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 	)
@@ -94,7 +94,7 @@ func UpdateBaseName(c echo.Context) error {
 	_, err := configurator.UpdateEntity(
 		networkID,
 		configurator.EntityUpdateCriteria{
-			Type:              lte.BaseNameEntity2Type,
+			Type:              lte.BaseNameEntityType,
 			Key:               baseName,
 			AssociationsToSet: ruleNames.ToAssocs(),
 		},
@@ -115,7 +115,7 @@ func DeleteBaseName(c echo.Context) error {
 		return baseNameHTTPErr()
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.BaseNameEntity2Type, baseName)
+	err := configurator.DeleteEntity(networkID, lte.BaseNameEntityType, baseName)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -137,7 +137,7 @@ func ListRules(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntity2Type)
+	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -177,7 +177,7 @@ func GetRule(c echo.Context) error {
 
 	ent, err := configurator.LoadEntity(
 		networkID,
-		lte.PolicyRuleEntity2Type,
+		lte.PolicyRuleEntityType,
 		ruleID,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 	)
@@ -206,7 +206,7 @@ func UpdateRule(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.PolicyRuleEntity2Type, ruleID, rule)
+	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.PolicyRuleEntityType, ruleID, rule)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -223,7 +223,7 @@ func DeleteRule(c echo.Context) error {
 		return ruleIDHTTPErr()
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntity2Type, ruleID)
+	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

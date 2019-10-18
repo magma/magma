@@ -21,7 +21,7 @@ import Fade from '@material-ui/core/Fade';
 import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import grey from '@material-ui/core/colors/grey';

@@ -14,7 +14,7 @@ HEADER="/**
  */
 "
 
-OUTPUT=app/common/__generated__/MagmaAPIBindings.js
+OUTPUT=__generated__/MagmaAPIBindings.js
 
 # adding this sed command to avoid having Phabricator think this file is
 # generated since it looks for the "generated" keyword

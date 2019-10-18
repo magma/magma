@@ -31,4 +31,5 @@ export type FeatureID =
   | 'coverage_maps'
   | 'logs'
   | 'services'
-  | 'planned_equipment';
+  | 'planned_equipment'
+  | 'multi_subject_reports';
