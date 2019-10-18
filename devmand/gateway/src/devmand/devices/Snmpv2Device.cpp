@@ -105,6 +105,7 @@ std::shared_ptr<State> Snmpv2Device::getState() {
       IfMib::getSystemName(snmpChannel).thenValue([&system](auto v) {
         system["hostname"] = v;
       }));
+
   state->addRequest(
       IfMib::getSystemContact(snmpChannel).thenValue([&system](auto v) {
         system["contact"] = v;

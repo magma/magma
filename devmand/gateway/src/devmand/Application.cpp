@@ -21,6 +21,7 @@
 #include <devmand/Config.h>
 #include <devmand/ErrorHandler.h>
 #include <devmand/devices/Device.h>
+#include <devmand/utils/LifetimeTracker.h>
 
 using namespace std::chrono_literals;
 
@@ -82,6 +83,9 @@ void Application::doDebug() {
   for (auto& device : devices) {
     LOG(INFO) << "\t\t" << device.second->getId();
   }
+
+  LOG(INFO) << "\tLiving State Objects: "
+            << utils::LifetimeTracker<devices::State>::getLivingCount();
 }
 
 UnifiedView Application::getUnifiedView() {

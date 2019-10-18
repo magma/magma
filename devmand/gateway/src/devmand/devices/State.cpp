@@ -7,30 +7,36 @@
 
 #include <devmand/devices/State.h>
 
-#include <devmand/Application.h>
+#include <devmand/MetricSink.h>
 #include <devmand/devices/Device.h>
 
 namespace devmand {
 namespace devices {
 
-std::shared_ptr<State> State::make(Application& application, Device& device_) {
-  return std::shared_ptr<State>(new State(application, device_));
+std::shared_ptr<State> State::make(MetricSink& sink_, const Id& device_) {
+  return std::shared_ptr<State>(new State(sink_, device_));
 }
 
-State::State(Application& application, Device& device_)
-    : app(application), device(device_), state(folly::dynamic::object) {}
+State::State(MetricSink& sink_, const Id& device_)
+    : sink(sink_), device(device_), state(folly::dynamic::object) {}
 
 folly::Future<folly::dynamic> State::collect() {
-  // TODO how to capture errors collect?
   return folly::collect(std::move(requests))
-      .thenValue([s = shared_from_this()](auto) {
+      .thenValue([s = shared_from_this()](auto reqs) {
         s->setErrors();
         s->setStatus(true);
         for (auto& f : s->finals) {
           f();
         }
+        s->clear();
+        reqs.clear();
         return s->state;
       });
+}
+
+void State::clear() {
+  finals.clear();
+  requests.clear();
 }
 
 folly::dynamic& State::update() {
@@ -86,12 +92,12 @@ void State::setErrors() {
 }
 
 void State::setGauge(const std::string& key, double value) {
-  app.setGauge(
+  sink.setGauge(
       key,
       value,
       // adds the label deviceID = {deviceID}
       "deviceID",
-      device.getId());
+      device);
 }
 
 } // namespace devices

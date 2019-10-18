@@ -169,7 +169,7 @@ void FrinxDevice::setConfig(const folly::dynamic& config) {
 }
 
 std::shared_ptr<State> FrinxDevice::getState() {
-  auto state = State::make(app, *this);
+  auto state = State::make(app, getId());
   if (not connected) {
     return state;
   }
