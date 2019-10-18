@@ -22,6 +22,7 @@
 syntax = "proto3";
 
 import "lte/gateway/c/oai/protos/common_types.proto";
+import "lte/gateway/c/oai/protos/3gpp_types.proto";
 
 package magma.lte.gateway.spgw;
 
@@ -52,6 +53,18 @@ message PgwCbrProcedure {
     repeated SgwEpsBearerContext pending_eps_bearers = 4;
 }
 
+// ServingNetwork_t
+message ServingNetwork {
+    bytes mcc = 1;
+    bytes mnc = 2;
+}
+
+// UETimeZone_t
+message TimeZone {
+    uint32 time_zone = 1;
+    uint32 daylight_saving_time = 2;
+}
+
 // itti_s11_create_session_request_t
 message CreateSessionMessage {
     bytes trxn = 1;
@@ -61,10 +74,6 @@ message CreateSessionMessage {
     bytes mei = 5;
     bytes uli = 6;
 
-    message ServingNetwork {
-        bytes mcc = 1;
-        bytes mnc = 2;
-    }
     ServingNetwork serving_network = 7;
 
     uint32 rat_type = 10;
@@ -73,29 +82,12 @@ message CreateSessionMessage {
     bytes paa = 13;
     Ambr ambr = 14;
 
-    message Pco {
-        uint32 ext = 1;
-        uint32 spare = 2;
-        uint32 configuration_protocol = 3;
-        uint32 num_protocol_or_container_id = 4;
-        repeated PcoProtocol pco_protocol = 5;
-    }
     Pco pco = 15;
-    message Fteid {
-        uint32 ipv4_address = 1;
-        bytes ipv6_address = 2;
-        uint32 interface_type = 3;
-        uint32 teid = 4;
-    }
     Fteid sender_fteid_for_cp = 16;
 
     repeated BearerContextToBeCreated bearer_contexts_to_be_created = 20;
     uint32 peer_ip = 21;
 
-    message TimeZone {
-        uint32 time_zone = 1;
-        uint32 daylight_saving_time = 2;
-    }
     TimeZone ue_time_zone = 22;
 }
 
@@ -104,13 +96,6 @@ message BearerContextToBeCreated {
     uint32 eps_bearer_id = 1;
     TrafficFlowTemplate tft = 2;
     BearerQos bearer_level_qos = 3;
-}
-
-// pco_protocol_or_container_id
-message PcoProtocol {
-    uint32 id = 1;
-    uint32 length = 2;
-    bytes contents = 3;
 }
 
 // pgw_eps_bearer_context_information
@@ -162,12 +147,6 @@ message TrafficFlowTemplate {
     uint32 ebit = 5;
 }
 
-// sdf_template
-message SdfTemplate {
-    uint32 number_of_packet_filters = 1;
-    repeated PacketFilter sdf_filter = 2;
-}
-
 // packet_filter_list
 message PacketFilterList {
     repeated PacketFilter create_new_tft = 1;
@@ -184,54 +163,6 @@ message PacketFilter {
     uint32 eval_precedence = 4;
     uint32 length = 5;
     PacketFilterContents packet_filter_contents = 6;
-}
-
-// port_range
-message PortRange {
-    uint32 low_limit = 1;
-    uint32 high_limit = 2;
-}
-
-// packet_filter_contents
-message PacketFilterContents {
-    uint32 flags = 1;
-
-    message IpRemoteAddress {
-        uint32 addr = 1;
-        uint32 mask = 2;
-    }
-
-    repeated IpRemoteAddress ipv4_remote_addresses = 2;
-    repeated IpRemoteAddress ipv6_remote_addresses = 3;
-    uint32 protocol_identifier_nextheader = 4;
-
-    uint32 single_local_port = 10;
-    PortRange local_port_range = 11;
-    uint32 single_remote_port = 12;
-    PortRange remote_port_range = 13;
-
-    uint32 security_parameter_index = 20;
-
-    message TypeOfServiceTrafficClass {
-        uint32 value = 1;
-        uint32 mask = 2;
-    }
-
-    TypeOfServiceTrafficClass type_of_service_traffic_class = 21;
-    uint32 flow_label = 22;
-}
-
-// parameters_list
-message ParametersList {
-    repeated Parameter parameters = 1;
-    uint32 num_parameters = 2;
-}
-
-// parameter_t
-message Parameter {
-    uint32 parameter_identifier = 1;
-    uint32 length = 2;
-    bytes contents = 3;
 }
 
 // eps_bearer_qos_t
@@ -267,6 +198,12 @@ message GTPV1uData {
     uint32 fd1u = 5;
 }
 
+// sdf_template_t
+message SdfTemplate {
+    uint32 number_of_packet_filters = 1;
+    repeated PacketFilter sdf_filter = 2;
+}
+
 // pcc_rule
 message PccRule {
     string name = 1;
@@ -274,11 +211,6 @@ message PccRule {
     uint32 sdf_id = 3;
     BearerQos bearer_qos = 4;
     uint32 precedence = 5;
-
-    message SdfTemplate {
-        uint32 number_of_packet_filters = 1;
-        repeated PacketFilter sdf_filter = 2;
-    }
 
     SdfTemplate sdf_template = 10;
 }
