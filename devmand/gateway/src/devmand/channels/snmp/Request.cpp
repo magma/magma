@@ -11,7 +11,7 @@ namespace devmand {
 namespace channels {
 namespace snmp {
 
-Request::Request(Channel* channel_) : channel(channel_) {}
+Request::Request(Channel* channel_, Oid oid_) : channel(channel_), oid(oid_) {}
 
 } // namespace snmp
 } // namespace channels

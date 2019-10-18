@@ -81,9 +81,7 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
                                                            new_sub_ids)
 
         mock.DeleteSubscriber.future.assert_called_once_with(
-            DeleteSubscriberRequest(
-                imsi_list=["IMSI101", "IMSI303"]
-            ))
+            DeleteSubscriberRequest(imsi_list=["101", "303"]))
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {magmad_gateway} from './__generated__/MagmaAPIBindings';
+import type {magmad_gateway} from '@fbcnms/magma-api';
 
 export type MagmaFeatureCollection = {
   type: 'FeatureCollection',

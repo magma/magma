@@ -31,7 +31,9 @@ services:
     privileged: true
     volumes:
       - $PWD/../../../fb/config/certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem:ro
+      - $PWD/devman:/etc/devman:ro
     environment:
+      - DEVICE_CONFIG_FILE=${DEVICE_CONFIG_FILE}
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}

@@ -14,6 +14,7 @@
 #include "ServiceConfigLoader.h"
 
 using grpc::Channel;
+using grpc::ChannelCredentials;
 
 namespace magma {
 
@@ -27,6 +28,7 @@ typedef struct {
   std::string ip;
   std::string port;
   std::string authority;
+  std::shared_ptr<ChannelCredentials> creds = nullptr;
 } create_grpc_channel_args_t;
 /*
  * ServiceRegistrySingleton is a singleton used to get a grpc channel
@@ -69,6 +71,11 @@ class ServiceRegistrySingleton {
     std::string GetServiceAddrString(const std::string& service);
 
     /*
+     * Gets SSL credentials for requests directly to the cloud
+     */
+    std::shared_ptr<ChannelCredentials> GetSslCredentials();
+
+    /*
      * Gets a grpc connection to the specified service based on service name
      * and destination.
      * @param service: service name to where a connection should be open.
@@ -89,10 +96,13 @@ class ServiceRegistrySingleton {
     ServiceRegistrySingleton& operator=(const ServiceRegistrySingleton&);
     YAML::Node GetProxyConfig();
     YAML::Node GetRegistry();
+    // load a cert file as a string into the given buffer
+    std::string LoadCertFile(const std::string& file);
     const std::shared_ptr<Channel> CreateGrpcChannel(
       const std::string& ip,
       const std::string& port,
-      const std::string& authority);
+      const std::string& authority,
+      std::shared_ptr<ChannelCredentials> creds);
 private:
     ServiceConfigLoader service_config_loader_;
     std::unique_ptr<YAML::Node> proxy_config_;

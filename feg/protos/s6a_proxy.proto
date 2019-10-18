@@ -62,6 +62,7 @@ enum ErrorCode {
     AUTHORIZATION_REJECTED   = 5003;
     // Permanent Failures 7.4.3
     USER_UNKNOWN             = 5001;
+    UNKNOWN_SESSION_ID       = 5002;
     UNKNOWN_EPS_SUBSCRIPTION = 5420;
     RAT_NOT_ALLOWED          = 5421;
     ROAMING_NOT_ALLOWED      = 5004;

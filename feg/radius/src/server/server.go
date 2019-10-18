@@ -73,6 +73,12 @@ type (
 
 // New a RADIUS server instance as per config
 func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (*Server, error) {
+	// Init session storage
+	multiSessionStorage, err := initSessionStorage(config, logger)
+	if err != nil {
+		return nil, err
+	}
+
 	// Init server object
 	server := Server{
 		listeners:           make(map[string]ListenerInterface), // Will be populated by "Start" method
@@ -81,7 +87,7 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 		terminate:           make(chan bool, 1), // Internal channel used for termination of listeners
 		config:              config,             // The original config for later reference
 		logger:              logger,
-		multiSessionStorage: session.NewMultiSessionMemoryStorage(),
+		multiSessionStorage: multiSessionStorage,
 		dedupSet:            cache.New(config.DedupWindow.Duration, time.Minute),
 		counters:            monitoring.CreateServerCounters(),
 	}
@@ -214,6 +220,24 @@ func New(config config.ServerConfig, logger *zap.Logger, loader loader.Loader) (
 	// Down we go!
 	serverInitCounter.Success()
 	return &server, nil
+}
+
+func initSessionStorage(config config.ServerConfig, logger *zap.Logger) (session.GlobalStorage, error) {
+	var multiSessionStorage session.GlobalStorage
+	if config.SessionStorage == nil || config.SessionStorage.StorageType == "memory" {
+		multiSessionStorage = session.NewMultiSessionMemoryStorage()
+		logger.Info("created memory config")
+	} else if config.SessionStorage.StorageType == "redis" {
+		redis := config.SessionStorage.Redis
+		multiSessionStorage = session.NewMultiSessionRedisStorage(redis.Addr, redis.Password, redis.DB)
+		logger.Info("created redis config", zap.String("addr", redis.Addr))
+	} else {
+		logger.Error("missing session storage config")
+		err := fmt.Errorf("missing session storage config")
+		return nil, err
+	}
+
+	return multiSessionStorage, nil
 }
 
 func wrapMiddleware(listenerName string, next modules.Middleware, module Module) modules.Middleware {

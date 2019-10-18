@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +22,6 @@ func TestPreprocessQuery(t *testing.T) {
 	networkID := "network1"
 	preprocessedQuery, err := preprocessQuery(testQuery, networkID)
 	assert.NoError(t, err)
-	expectedQuery := fmt.Sprintf("%s{%s=\"%s\"}", testQuery, exporters.NetworkLabelNetwork, networkID)
+	expectedQuery := fmt.Sprintf("%s{%s=\"%s\"}", testQuery, metrics.NetworkLabelName, networkID)
 	assert.Equal(t, expectedQuery, preprocessedQuery)
 }

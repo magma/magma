@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package session
 
 import (
-	"errors"
 	"fbc/cwf/radius/monitoring"
 	"fmt"
 	"sync"
@@ -20,11 +19,6 @@ import (
 type memoryStorage struct {
 	data sync.Map
 }
-
-var (
-	// ErrInvalidDataFormat indicate we have an invalid data as state
-	ErrInvalidDataFormat = errors.New("invalid data format found in storage")
-)
 
 func (m *memoryStorage) Get(sessionID string) (*State, error) {
 	counter := ReadSessionState.Start(

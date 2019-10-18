@@ -41,6 +41,7 @@ std::unique_ptr<devices::Device> Factory::createDevice(
   PlatformBuilder builder{nullptr};
   auto builderIt = platformBuilders.find(platformLowerCase);
   if (builderIt == platformBuilders.end()) {
+    LOG(INFO) << "Didn't find matching platform so using default.";
     builder = defaultPlatformBuilder;
   } else {
     builder = builderIt->second;

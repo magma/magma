@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
@@ -57,7 +57,7 @@ func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID strin
 
 	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
 	route.Receiver = baseRouteName
-	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+	route.Match = map[string]string{metrics.NetworkLabelName: networkID}
 
 	c.Route.Routes = append(c.Route.Routes, route)
 
@@ -83,7 +83,8 @@ func (c *Config) Validate() error {
 type Receiver struct {
 	Name string `yaml:"name" json:"name"`
 
-	SlackConfigs []*SlackConfig `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	SlackConfigs   []*SlackConfig          `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs []*config.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a networkID prefix

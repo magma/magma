@@ -52,7 +52,7 @@ func (client *CloseableAbortSessionResponderClient) Close() {
 	client.conn.Close()
 }
 
-// AbortSessionResponderClient returns a client to the local abort session client. To avoid leaking
+// GetAbortSessionResponderClient returns a client to the local abort session client. To avoid leaking
 // connections, defer Close() on the returned client.
 func GetAbortSessionResponderClient(
 	cloudRegistry registry.CloudRegistry) (*CloseableAbortSessionResponderClient, error) {

@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {enodeb_configuration} from '../../common/__generated__/MagmaAPIBindings';
+import type {enodeb_configuration} from '@fbcnms/magma-api';
 
 export const EnodebDeviceClass: {
   [string]: $PropertyType<enodeb_configuration, 'device_class'>,

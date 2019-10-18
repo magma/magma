@@ -1,8 +1,18 @@
 #!/bin/bash
 
+/bin/rm -f /etc/magma/env
 for e in $(tr "\000" "\n" < /proc/1/environ); do
-  eval "export $e"
+  case "${e%%=*}" in
+    SNOWFLAKE|CLOUD_ADDRESS|BOOTSTRAP_CLOUD_ADDRESS|DEVICE_CONFIG_FILE)
+      echo "$e" >> /etc/magma/env
+      ;;
+    *)
+      ;;
+  esac
 done
+
+# shellcheck source=/dev/null
+. /etc/magma/env
 
 if [ -z "${SNOWFLAKE}" ]; then
   SNOWFLAKE="faceb00c-face-b00c-face-fbb05fbcface"

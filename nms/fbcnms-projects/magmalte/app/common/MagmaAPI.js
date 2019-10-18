@@ -10,7 +10,7 @@
 
 import type {Match} from 'react-router-dom';
 import type {Record, WifiConfig} from './MagmaAPIType';
-import type {magmad_gateway_configs} from './__generated__/MagmaAPIBindings';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import axios from 'axios';
 import url from 'url';
