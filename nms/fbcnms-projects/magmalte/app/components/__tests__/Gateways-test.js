@@ -26,7 +26,7 @@ const OFFLINE_GATEWAY: lte_gateway = {
   connected_enodeb_serials: [],
   cellular: {
     epc: {
-      ip_block: '192.168.0.1/32',
+      ip_block: '192.168.0.1/24',
       nat_enabled: true,
     },
     ran: {

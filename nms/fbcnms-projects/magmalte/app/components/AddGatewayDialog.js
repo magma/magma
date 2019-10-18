@@ -149,7 +149,7 @@ class AddGatewayDialog extends React.Component<Props, State> {
           name,
           description,
           cellular: {
-            epc: {nat_enabled: false, ip_block: '192.168.0.1/32'},
+            epc: {nat_enabled: false, ip_block: '192.168.0.1/24'},
             ran: {pci: 260, transmit_enabled: false},
             non_eps_service: undefined,
           },
