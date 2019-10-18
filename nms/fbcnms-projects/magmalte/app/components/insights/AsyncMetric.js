@@ -252,7 +252,7 @@ function useDatasetsFetcher(props: Props) {
       });
       setAllDatasets(datasets);
     });
-  }, [
+  } /* eslint-disable react-hooks/exhaustive-deps */, [
     stringedQueries,
     match,
     props.networkId,
@@ -263,6 +263,7 @@ function useDatasetsFetcher(props: Props) {
     enqueueSnackbar,
     dbHelper,
   ]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   return allDatasets;
 }
