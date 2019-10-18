@@ -55,8 +55,8 @@ secret:
 
 proxy:
   # Service configuration.
-  name: bootstrapper-orc8r-proxy
   service:
+    name: bootstrapper-orc8r-proxy
     annotations: {}
     labels: {}
     type: ClusterIP
