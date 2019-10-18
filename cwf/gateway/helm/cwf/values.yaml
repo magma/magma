@@ -17,6 +17,10 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+# Define which secrets should be mounted by pods.
+secret:
+  certs: orc8r-secrets-certs
+
 ## Key Values for docker inside VM
 cwf:
   type: cwag
