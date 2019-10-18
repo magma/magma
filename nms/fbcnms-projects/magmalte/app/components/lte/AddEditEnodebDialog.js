@@ -68,21 +68,21 @@ export default function AddEditEnodebDialog(props: Props) {
     editingEnodeb?.config.bandwidth_mhz ?? EnodebBandwidthOption['20'],
   );
   const [specialSubframePattern, setSpecialSubframePattern] = useState<string>(
-    String(editingEnodeb?.config.special_subframe_pattern || 0),
+    String(editingEnodeb?.config.special_subframe_pattern || ''),
   );
   const [subframeAssignment, setSubframeAssignment] = useState<string>(
-    String(editingEnodeb?.config.subframe_assignment || 0),
+    String(editingEnodeb?.config.subframe_assignment || ''),
   );
   const [serialId, setSerialId] = useState<string>(editingEnodeb?.serial || '');
-  const [tac, setTac] = useState(String(editingEnodeb?.config.tac || 0));
+  const [tac, setTac] = useState(String(editingEnodeb?.config.tac || ''));
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
     editingEnodeb?.config.transmit_enabled ?? false,
   );
   const [earfcndl, setEarfcndl] = useState<string>(
-    String(editingEnodeb?.config.earfcndl || 0),
+    String(editingEnodeb?.config.earfcndl || ''),
   );
   const [pci, setPci] = useState<string>(
-    String(editingEnodeb?.config.pci || 0),
+    String(editingEnodeb?.config.pci || ''),
   );
   const [enodebId, setEnodebId] = useState<string>(defaultEnodebId);
   const [name, setName] = useState<string>(editingEnodeb?.name || '');
@@ -92,20 +92,22 @@ export default function AddEditEnodebDialog(props: Props) {
   const isBandwidthMhzValid = isNumberInRange(bandwidthMhz || 0, 0, 20);
   const isCellNumberValid = isNumberInRange(cellNumber, 0, Math.pow(2, 8) - 1);
   const isCellIdValid = isNumberInRange(cellId, 0, Math.pow(2, 28) - 1);
-  const isEarfcndlValid = isNumberInRange(earfcndl, 0, 65535);
+  const isEarfcndlValid =
+    earfcndl === '' || isNumberInRange(earfcndl, 0, 65535);
   const isEnodebIdValid = isNumberInRange(enodebId, 0, Math.pow(2, 20) - 1);
-  const isPciValid = isNumberInRange(pci, 0, 504);
+  const isNameValid = name !== '';
+  const isPciValid = pci === '' || isNumberInRange(pci, 0, 504);
   const isSerialIdValid = serialId.length > 0;
-  const isSpecialSubframePatternValid = isNumberInRange(
-    specialSubframePattern,
-    0,
-    9,
-  );
-  const isSubframeAssignmentValid = isNumberInRange(subframeAssignment, 0, 6);
-  const isTacValid = isNumberInRange(tac, 0, 65535);
+  const isSpecialSubframePatternValid =
+    specialSubframePattern === '' ||
+    isNumberInRange(specialSubframePattern, 0, 9);
+  const isSubframeAssignmentValid =
+    subframeAssignment === '' || isNumberInRange(subframeAssignment, 0, 6);
+  const isTacValid = tac === '' || isNumberInRange(tac, 0, 65535);
   const isTransmitEnabledValid = typeof transmitEnabled === 'boolean';
 
   const isFormValid =
+    isNameValid &&
     isSerialIdValid &&
     isEarfcndlValid &&
     isSubframeAssignmentValid &&
@@ -125,21 +127,33 @@ export default function AddEditEnodebDialog(props: Props) {
       });
       return;
     }
-    const enb = {
+    const enb: enodeb = {
       name: name,
       serial: serialId,
       config: {
         device_class: deviceClass,
-        earfcndl: parseInt(earfcndl),
-        subframe_assignment: parseInt(subframeAssignment),
-        special_subframe_pattern: parseInt(specialSubframePattern),
-        pci: parseInt(pci),
         bandwidth_mhz: bandwidthMhz,
-        tac: parseInt(tac),
         cell_id: cellId,
         transmit_enabled: transmitEnabled,
       },
     };
+
+    if (earfcndl !== '') {
+      enb.config.earfcndl = parseInt(earfcndl);
+    }
+    if (subframeAssignment !== '') {
+      enb.config.subframe_assignment = parseInt(subframeAssignment);
+    }
+    if (specialSubframePattern !== '') {
+      enb.config.special_subframe_pattern = parseInt(specialSubframePattern);
+    }
+    if (pci !== '') {
+      enb.config.pci = parseInt(pci);
+    }
+    if (tac !== '') {
+      enb.config.tac = parseInt(tac);
+    }
+
     try {
       if (props.editingEnodeb != null) {
         await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
@@ -175,6 +189,7 @@ export default function AddEditEnodebDialog(props: Props) {
           value={name}
           onChange={({target}) => setName(target.value)}
           placeholder="Name of eNodeB, eg. 'Market NW Corner'"
+          error={!isNameValid}
         />
         <TextField
           label="eNodeB Serial ID"
