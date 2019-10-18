@@ -13,6 +13,7 @@ import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SnackbarProvider} from 'notistack';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import 'jest-dom/extend-expect';
@@ -72,9 +73,11 @@ const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
-        <Switch>
-          <Route path="/nms/:networkId" component={Gateways} />
-        </Switch>
+        <SnackbarProvider>
+          <Switch>
+            <Route path="/nms/:networkId" component={Gateways} />
+          </Switch>
+        </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>
   </MemoryRouter>
