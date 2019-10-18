@@ -25,6 +25,7 @@ import Typography from '@material-ui/core/Typography';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {toString} from './GatewayUtils';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles({
@@ -49,6 +50,7 @@ type Props = {
 export default function GatewayCellularFields(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
 
   const [natEnabled, setNatEnabled] = useState<boolean>(
     props.gateway.epc.natEnabled,
@@ -123,7 +125,13 @@ export default function GatewayCellularFields(props: Props) {
       networkId: nullthrows(match.params.networkId),
       gatewayId: id,
       config,
-    }).then(() => props.onSave(id));
+    })
+      .then(() => props.onSave(id))
+      .catch(e => {
+        enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
+          variant: 'error',
+        });
+      });
   };
 
   const nonEPSServiceControlOff = nonEPSServiceControl == 0;
