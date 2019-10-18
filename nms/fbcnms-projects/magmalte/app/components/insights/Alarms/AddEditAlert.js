@@ -13,7 +13,7 @@ import AddEditAlertConfigurationStep from './AddEditAlertConfigurationStep';
 import AddEditAlertInfoStep from './AddEditAlertInfoStep';
 import AddEditAlertNotificationStep from './AddEditAlertNotificationStep';
 import Button from '@material-ui/core/Button';
-import MagmaV1API from '../../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';

@@ -314,6 +314,128 @@ func TestDeleteNetwork(t *testing.T) {
 	assert.Equal(t, []string{"n2"}, actual)
 }
 
+func TestPartialUpdateAndGetNetwork(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	obsidianHandlers := handlers.GetHandlers()
+	baseNetworkURL := "/magma/v1/symphony/:network_id"
+	nameURL := fmt.Sprintf("%s/name", baseNetworkURL)
+	descriptionURL := fmt.Sprintf("%s/description", baseNetworkURL)
+	featuresURL := fmt.Sprintf("%s/features", baseNetworkURL)
+	updateName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, nameURL, obsidian.PUT).HandlerFunc
+	updateDescription := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, descriptionURL, obsidian.PUT).HandlerFunc
+	updateFeatures := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, featuresURL, obsidian.PUT).HandlerFunc
+	getName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, nameURL, obsidian.GET).HandlerFunc
+	getDescription := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, descriptionURL, obsidian.GET).HandlerFunc
+	getFeatures := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, featuresURL, obsidian.GET).HandlerFunc
+	nID := "n1"
+
+	updatedName := "updated network_1"
+	updatedDescription := "Updated Network 1"
+	updatedFeatures := &models.NetworkFeatures{
+		Features: map[string]string{
+			"feature_1_key": "feature_1_val",
+		},
+	}
+
+	// Test 404
+	tc := tests.Test{
+		Method:         "PUT",
+		URL:            nameURL,
+		Payload:        tests.JSONMarshaler(updatedName),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        updateName,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update name
+	seedNetworks(t)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            nameURL,
+		Payload:        tests.JSONMarshaler(updatedName),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        updateName,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actual, err := configurator.LoadNetwork("n1", true, true)
+	assert.NoError(t, err)
+	assert.Equal(t, updatedName, actual.Name)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            nameURL,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        getName,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(updatedName),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update description
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            descriptionURL,
+		Payload:        tests.JSONMarshaler(updatedDescription),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        updateDescription,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadNetwork("n1", true, true)
+	assert.NoError(t, err)
+	assert.Equal(t, updatedDescription, actual.Description)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            descriptionURL,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        getDescription,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(updatedDescription),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update features
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            featuresURL,
+		Payload:        tests.JSONMarshaler(updatedFeatures),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        updateFeatures,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadNetwork("n1", true, true)
+	assert.NoError(t, err)
+	assert.Equal(t, updatedFeatures, actual.Configs[orc8r.NetworkFeaturesConfig].(*models.NetworkFeatures))
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            featuresURL,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{nID},
+		Handler:        getFeatures,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(updatedFeatures),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func TestListAgents(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
@@ -463,7 +585,7 @@ func TestCreateAgent(t *testing.T) {
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            baseAgentsUrl,
-		Payload:        &models2.SymphonyAgent{},
+		Payload:        &models2.MutableSymphonyAgent{},
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        createAgent,
@@ -474,7 +596,7 @@ func TestCreateAgent(t *testing.T) {
 
 	// Test post new agent
 	seedPreAgent(t)
-	payload := &models2.SymphonyAgent{
+	payload := &models2.MutableSymphonyAgent{
 		Name:        "agent_1",
 		Description: "agent 1",
 		ID:          "a1",
@@ -636,7 +758,7 @@ func TestUpdateAgent(t *testing.T) {
 
 	// Test with missing agent
 	seedNetworks(t)
-	payload := &models2.SymphonyAgent{
+	payload := &models2.MutableSymphonyAgent{
 		Name:        "agent_1",
 		Description: "UPDATED agent 1",
 		ID:          "a1",

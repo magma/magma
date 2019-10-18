@@ -22,6 +22,8 @@ namespace devmand {
 namespace channels {
 namespace snmp {
 
+class Engine;
+
 using Exception = std::runtime_error;
 
 using OutstandingRequests = std::unordered_map<int, Request>;
@@ -29,6 +31,7 @@ using OutstandingRequests = std::unordered_map<int, Request>;
 class Channel final : public channels::Channel {
  public:
   Channel(
+      Engine& engine_,
       const Peer& peer_,
       const Community& community,
       const Version& version,
@@ -47,6 +50,7 @@ class Channel final : public channels::Channel {
  public:
   folly::Future<Response> asyncGet(const Oid& _oid);
   folly::Future<Response> asyncGetNext(const Oid& _oid);
+  folly::Future<Responses> walk(const channels::snmp::Oid& tree);
 
   static folly::Future<std::string> asFutureString(
       folly::Future<channels::snmp::Response>&& future);
@@ -65,11 +69,17 @@ class Channel final : public channels::Channel {
       Pdu& pdu,
       OutstandingRequests::iterator& result);
 
-  Response processResponse(snmp_pdu& response);
+  folly::Future<Responses> walk(
+      const channels::snmp::Oid& tree,
+      const channels::snmp::Oid& current,
+      Responses responses);
+
+  Response processResponse(Request* request, snmp_pdu& response);
   Response processVars(netsnmp_variable_list* vars);
   static Oid firstOid(netsnmp_variable_list* vars);
 
  private:
+  Engine& engine;
   const Peer peer;
   snmp_session* session{nullptr};
   OutstandingRequests outstandingRequests;

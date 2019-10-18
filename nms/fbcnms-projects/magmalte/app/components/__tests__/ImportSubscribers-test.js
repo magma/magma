@@ -8,13 +8,13 @@
  * @format
  */
 
-import MagmaAPIBindings from '../../common/__generated__/MagmaAPIBindings';
+import MagmaAPIBindings from '@fbcnms/magma-api';
 import axiosMock from 'axios';
 import {parseFileAndSave} from '../ImportSubscribersDialog';
 
 const match = {params: {}, isExact: true, path: '', url: ''};
 jest.mock('axios');
-jest.mock('../../common/__generated__/MagmaAPIBindings');
+jest.mock('@fbcnms/magma-api');
 
 describe('ImportSubscribers parseFileAndSave', () => {
   const setErrorMsg = jest.fn();

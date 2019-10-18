@@ -25,6 +25,9 @@ type AlertReceiverConfig struct {
 
 	// slack configs
 	SLACKConfigs []*SLACKReceiver `json:"slack_configs"`
+
+	// webhook configs
+	WebhookConfigs []*WebhookReceiver `json:"webhook_configs"`
 }
 
 // Validate validates this alert receiver config
@@ -36,6 +39,10 @@ func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSLACKConfigs(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateWebhookConfigs(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -69,6 +76,31 @@ func (m *AlertReceiverConfig) validateSLACKConfigs(formats strfmt.Registry) erro
 			if err := m.SLACKConfigs[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("slack_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *AlertReceiverConfig) validateWebhookConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.WebhookConfigs) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.WebhookConfigs); i++ {
+		if swag.IsZero(m.WebhookConfigs[i]) { // not required
+			continue
+		}
+
+		if m.WebhookConfigs[i] != nil {
+			if err := m.WebhookConfigs[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("webhook_configs" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

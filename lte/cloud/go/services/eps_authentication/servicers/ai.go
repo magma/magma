@@ -17,14 +17,14 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
+	mcommon "magma/orc8r/cloud/go/metrics"
 )
 
-func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fegprotos.AuthenticationInformationRequest) (*fegprotos.AuthenticationInformationAnswer, error) {
+func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
 	glog.V(2).Infof("received AIR from: %s", air.GetUserName())
 	metrics.AIRequests.Inc()
 	if err := validateAIR(air); err != nil {
@@ -49,8 +49,8 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 	if err != nil {
 		glog.V(2).Infof("failed to lookup subscriber '%s': %v", air.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
-		metrics.UnknowSubscribersByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
-		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
+		metrics.UnknowSubscribersByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
+		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
 	}
 
 	if subscriber.State == nil {
@@ -67,15 +67,15 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 	if err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq); err != nil {
 		glog.V(2).Infof("failed to store sequence number after resync: %v", err.Error())
 		metrics.StorageErrors.Inc()
-		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
+		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: lteprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
 
 	milenage, err := crypto.NewMilenageCipher(config.LteAuthAmf)
 	if err != nil {
 		glog.V(2).Infof("could not create milenage cipher: %v", err.Error())
 		metrics.AuthErrors.Inc()
-		metrics.AuthErrorsByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
-		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHORIZATION_REJECTED},
+		metrics.AuthErrorsByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
+		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: lteprotos.ErrorCode_AUTHORIZATION_REJECTED},
 			status.Errorf(codes.FailedPrecondition, "Could not create milenage cipher: %s", err.Error())
 	}
 
@@ -95,19 +95,19 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *fe
 	if err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq); err != nil {
 		glog.V(2).Infof("failed to store sequence number after generating auth vectors: %v", err.Error())
 		metrics.StorageErrors.Inc()
-		return &fegprotos.AuthenticationInformationAnswer{ErrorCode: fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
+		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: lteprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
 
-	metrics.AuthSuccessesByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
+	metrics.AuthSuccessesByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
 
-	return &fegprotos.AuthenticationInformationAnswer{
-		ErrorCode:     fegprotos.ErrorCode_SUCCESS,
+	return &lteprotos.AuthenticationInformationAnswer{
+		ErrorCode:     lteprotos.ErrorCode_SUCCESS,
 		EutranVectors: convertEutranVectorsToProto(vectors),
 	}, nil
 }
 
 // validateAIR returns an error iff the AIR is invalid.
-func validateAIR(air *fegprotos.AuthenticationInformationRequest) error {
+func validateAIR(air *lteprotos.AuthenticationInformationRequest) error {
 	if air == nil {
 		return errors.New("received a nil AuthenticationInformationRequest")
 	}
@@ -124,23 +124,23 @@ func validateAIR(air *fegprotos.AuthenticationInformationRequest) error {
 }
 
 // convertAuthErrorToAuthenticationAnswer converts an auth error to a result which can be returned by AuthenticationInformation.
-func convertAuthErrorToAuthenticationAnswer(err error) (*fegprotos.AuthenticationInformationAnswer, error) {
-	var errorCode fegprotos.ErrorCode
+func convertAuthErrorToAuthenticationAnswer(err error) (*lteprotos.AuthenticationInformationAnswer, error) {
+	var errorCode lteprotos.ErrorCode
 	var grpcErr error
 
 	switch err.(type) {
 	case AuthRejectedError:
-		errorCode = fegprotos.ErrorCode_AUTHORIZATION_REJECTED
+		errorCode = lteprotos.ErrorCode_AUTHORIZATION_REJECTED
 		grpcErr = status.Errorf(codes.Unauthenticated, err.Error())
 	case AuthDataUnavailableError:
-		errorCode = fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE
+		errorCode = lteprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE
 		grpcErr = status.Errorf(codes.Unavailable, err.Error())
 	default:
-		errorCode = fegprotos.ErrorCode_UNDEFINED
+		errorCode = lteprotos.ErrorCode_UNDEFINED
 		grpcErr = status.Errorf(codes.Unknown, err.Error())
 	}
 
-	answer := &fegprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}
+	answer := &lteprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}
 	return answer, grpcErr
 }
 
@@ -155,10 +155,10 @@ func (srv *EPSAuthServer) setLteAuthNextSeq(subscriber *lteprotos.SubscriberData
 }
 
 // convertEutranVectorsToProto serialized a list of E-UTRAN vectors to proto.
-func convertEutranVectorsToProto(vectors []*crypto.EutranVector) []*fegprotos.AuthenticationInformationAnswer_EUTRANVector {
-	result := make([]*fegprotos.AuthenticationInformationAnswer_EUTRANVector, len(vectors))
+func convertEutranVectorsToProto(vectors []*crypto.EutranVector) []*lteprotos.AuthenticationInformationAnswer_EUTRANVector {
+	result := make([]*lteprotos.AuthenticationInformationAnswer_EUTRANVector, len(vectors))
 	for i, vector := range vectors {
-		result[i] = &fegprotos.AuthenticationInformationAnswer_EUTRANVector{
+		result[i] = &lteprotos.AuthenticationInformationAnswer_EUTRANVector{
 			Rand:  vector.Rand[:],
 			Xres:  vector.Xres[:],
 			Autn:  vector.Autn[:],

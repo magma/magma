@@ -23,11 +23,6 @@ services:
     port: 9084
     proxy_type: "clientcert"
 
-  checkind:
-    host: "localhost"
-    port: 9085
-    proxy_type: "clientcert"
-
   certifier:
     host: "localhost"
     port: 9086

@@ -24,7 +24,7 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
 import InfoIcon from '@material-ui/icons/Info';
 import LinkIcon from '@material-ui/icons/Link';
-import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';

@@ -41,18 +41,18 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL 
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		networkID := getNetworkID(c)
+		filePrefix := getFilePrefix(c)
 
 		err = client.ValidateRule(rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		if client.RuleExists(networkID, rule.Alert) {
+		if client.RuleExists(filePrefix, rule.Alert) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' already exists", rule.Alert))
 		}
 
-		err = client.WriteRule(networkID, rule)
+		err = client.WriteRule(filePrefix, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -68,8 +68,8 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL 
 func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
-		networkID := getNetworkID(c)
-		rules, err := client.ReadRules(networkID, ruleName)
+		filePrefix := getFilePrefix(c)
+		rules, err := client.ReadRules(filePrefix, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -85,11 +85,11 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
-		networkID := getNetworkID(c)
+		filePrefix := getFilePrefix(c)
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
-		err := client.DeleteRule(networkID, ruleName)
+		err := client.DeleteRule(filePrefix, ruleName)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -104,12 +104,12 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.Param(RuleNamePathParam)
-		networkID := getNetworkID(c)
+		filePrefix := getFilePrefix(c)
 		if ruleName == "" {
 			return echo.NewHTTPError(http.StatusBadRequest, "No rule name provided")
 		}
 
-		if !client.RuleExists(networkID, ruleName) {
+		if !client.RuleExists(filePrefix, ruleName) {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Rule '%s' does not exist", ruleName))
 		}
 
@@ -123,7 +123,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateRule(networkID, rule)
+		err = client.UpdateRule(filePrefix, rule)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -138,7 +138,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 
 func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		networkID := getNetworkID(c)
+		filePrefix := getFilePrefix(c)
 
 		rules, err := decodeBulkRulesPostRequest(c)
 		if err != nil {
@@ -152,7 +152,7 @@ func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient, prometheusURL
 			}
 		}
 
-		results, err := client.BulkUpdateRules(networkID, rules)
+		results, err := client.BulkUpdateRules(filePrefix, rules)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -207,8 +207,8 @@ func reloadPrometheus(url string) error {
 	return nil
 }
 
-func getNetworkID(c echo.Context) string {
-	return c.Param("network_id")
+func getFilePrefix(c echo.Context) string {
+	return c.Param("file_prefix")
 }
 
 func rulesToJSON(rules []rulefmt.Rule) ([]alert.RuleJSONWrapper, error) {

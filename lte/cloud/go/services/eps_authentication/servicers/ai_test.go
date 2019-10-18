@@ -9,8 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
+	"magma/lte/cloud/go/protos"
 
 	"golang.org/x/net/context"
 )

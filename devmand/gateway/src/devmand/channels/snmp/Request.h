@@ -19,7 +19,7 @@ class Channel;
 
 class Request final {
  public:
-  Request(Channel* channel_);
+  Request(Channel* channel_, Oid oid_);
   Request() = delete;
   ~Request() = default;
   Request(const Request&) = delete;
@@ -29,6 +29,7 @@ class Request final {
 
  public:
   Channel* channel{nullptr};
+  Oid oid;
   folly::Promise<Response> responsePromise{};
 };
 

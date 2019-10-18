@@ -75,7 +75,7 @@ var (
 )
 
 func TestClient_ValidateRule(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 
 	err := client.ValidateRule(sampleRule)
 	assert.NoError(t, err)
@@ -89,7 +89,7 @@ func TestClient_ValidateRule(t *testing.T) {
 	assert.Error(t, err)
 }
 func TestClient_RuleExists(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 	assert.True(t, client.RuleExists(testNID, "test_rule_1"))
 	assert.True(t, client.RuleExists(testNID, "test_rule_2"))
 	assert.False(t, client.RuleExists(testNID, "no_rule"))
@@ -102,13 +102,13 @@ func TestClient_RuleExists(t *testing.T) {
 }
 
 func TestClient_WriteRule(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 	err := client.WriteRule(testNID, sampleRule)
 	assert.NoError(t, err)
 }
 
 func TestClient_UpdateRule(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 
 	err := client.UpdateRule(testNID, testRule1)
 	assert.NoError(t, err)
@@ -119,7 +119,7 @@ func TestClient_UpdateRule(t *testing.T) {
 }
 
 func TestClient_ReadRules(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 
 	rules, err := client.ReadRules(testNID, "")
 	assert.NoError(t, err)
@@ -144,7 +144,7 @@ func TestClient_ReadRules(t *testing.T) {
 }
 
 func TestClient_DeleteRule(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 	err := client.DeleteRule(testNID, "test_rule_1")
 	assert.NoError(t, err)
 
@@ -153,7 +153,7 @@ func TestClient_DeleteRule(t *testing.T) {
 }
 
 func TestClient_BulkUpdateRules(t *testing.T) {
-	client := newTestClient()
+	client := newTestClient(true)
 	results, err := client.BulkUpdateRules(testNID, []rulefmt.Rule{sampleRule, testRule1})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(results.Statuses))
@@ -165,7 +165,7 @@ func TestClient_BulkUpdateRules(t *testing.T) {
 	assert.Equal(t, 1, len(results.Errors))
 }
 
-func newTestClient() alert.PrometheusAlertClient {
+func newTestClient(multitenant bool) alert.PrometheusAlertClient {
 	dClient := newHealthyDirClient("test")
 	fileLocks, _ := alert.NewFileLocker(dClient)
 	fsClient := &mocks.FSClient{}
@@ -173,5 +173,5 @@ func newTestClient() alert.PrometheusAlertClient {
 	fsClient.On("ReadFile", "test_rules/test_rules.yml").Return([]byte(testRuleFile), nil)
 	fsClient.On("ReadFile", "test_rules/other_rules.yml").Return([]byte(otherRuleFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return alert.NewClient(fileLocks, "test_rules", fsClient)
+	return alert.NewClient(fileLocks, "test_rules", fsClient, multitenant)
 }

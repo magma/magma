@@ -9,14 +9,14 @@
  */
 
 import Admin from './admin/Admin';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React from 'react';
+import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
 import useMagmaAPI from '../common/useMagmaAPI';
@@ -28,18 +28,14 @@ function Main() {
   const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
   const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
-  const appContext = {
-    ...window.CONFIG.appData,
-    networkIds,
-  };
 
   if (error) {
     return (
-      <AppContext.Provider value={appContext}>
+      <AppContextProvider>
         <ErrorLayout>
           <NetworkError error={error} />
         </ErrorLayout>
-      </AppContext.Provider>
+      </AppContextProvider>
     );
   }
 
@@ -62,18 +58,18 @@ function Main() {
   // have access.
   if (hasNoNetworks && !window.CONFIG.appData.user.isSuperUser) {
     return (
-      <AppContext.Provider value={appContext}>
+      <AppContextProvider>
         <ErrorLayout>
           <NoNetworksMessage />
         </ErrorLayout>
-      </AppContext.Provider>
+      </AppContextProvider>
     );
   }
 
   return (
-    <AppContext.Provider value={appContext}>
+    <AppContextProvider networkIDs={networkIds}>
       <Index />
-    </AppContext.Provider>
+    </AppContextProvider>
   );
 }
 

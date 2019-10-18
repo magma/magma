@@ -37,10 +37,15 @@ Application::Application()
           }) {
   ErrorHandler::executeWithCatch(
       [this]() -> void {
-        snmpEngine = addEngine<channels::snmp::Engine>(name);
+        snmpEngine = addEngine<channels::snmp::Engine>(eventBase, name);
         pingEngine = addEngine<channels::ping::Engine>(eventBase);
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
+}
+
+channels::snmp::Engine& Application::getSnmpEngine() {
+  assert(snmpEngine != nullptr);
+  return *snmpEngine;
 }
 
 channels::ping::Engine& Application::getPingEngine() {
@@ -60,6 +65,22 @@ std::string Application::getVersion() const {
 void Application::pollDevices() {
   for (auto& device : devices) {
     device.second->updateSharedView(unifiedView);
+  }
+}
+
+void Application::doDebug() {
+  LOG(INFO) << "Debug Information";
+
+  LOG(INFO) << "\tChannel Engines (" << channelEngines.size() << "):";
+  for (auto& engine : channelEngines) {
+    LOG(INFO) << "\t\t" << engine->getName()
+              << ": iterations = " << engine->getNumIterations()
+              << ", requests = " << engine->getNumRequests();
+  }
+
+  LOG(INFO) << "\tDevices (" << devices.size() << "):";
+  for (auto& device : devices) {
+    LOG(INFO) << "\t\t" << device.second->getId();
   }
 }
 
@@ -104,22 +125,19 @@ void Application::run() {
   LOG(INFO) << "Starting " << name << ".";
 
   ErrorHandler::executeWithCatch([this]() {
-    // TODO so this part is not perm. Eventually we need to tie snmp into a
-    // single epoll loop but until then just give it its own select thread
-    auto snmpEngineThread = std::async(std::launch::async, [this] {
-      assert(snmpEngine != nullptr);
-      snmpEngine->run();
-    });
-
     for (auto& service : services) {
       service->start();
     }
 
-    eventBase.runInEventBaseThread([this]() { pingEngine->start(); });
-
     // TODO move this to devices
     scheduleEvery(
         [this]() { pollDevices(); }, std::chrono::seconds(FLAGS_poll_interval));
+
+    if (FLAGS_debug_print_interval != 0) {
+      scheduleEvery(
+          [this]() { doDebug(); },
+          std::chrono::seconds(FLAGS_debug_print_interval));
+    }
 
     setGauge("devmand_running", 1);
 
@@ -134,11 +152,6 @@ void Application::run() {
     for (auto& service : services) {
       service->wait();
     }
-
-    assert(snmpEngine != nullptr);
-    snmpEngine->stopEventually();
-
-    snmpEngineThread.wait();
   });
 
   LOG(INFO) << "Stopping " << name << ".";

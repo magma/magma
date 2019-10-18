@@ -143,8 +143,8 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 	}
 
 	entUpdate := configurator.EntityUpdateCriteria{
-		Type: cwf.CwfGatewayType,
-		Key:  string(m.ID),
+		Type:      cwf.CwfGatewayType,
+		Key:       string(m.ID),
 		NewConfig: m.CarrierWifi,
 	}
 	if string(m.Name) != existingEnt.Name {

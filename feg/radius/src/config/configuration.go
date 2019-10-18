@@ -64,13 +64,27 @@ type (
 		DefaultTier  string        `json:"defaultTier"`
 	}
 
+	// RedisConfig the configuration of redus server
+	RedisConfig struct {
+		Addr     string `json:"addr"`
+		Password string `json:"password"`
+		DB       int    `json:"db"`
+	}
+
+	//SessionStorageConfig ...
+	SessionStorageConfig struct {
+		StorageType string      `json:"storageType"`
+		Redis       RedisConfig `json:"redis"`
+	}
+
 	// ServerConfig Encapsulates the configuration of a radius server
 	ServerConfig struct {
-		Secret      string            `json:"secret"`
-		DedupWindow Duration          `json:"dedupWindow"`
-		LoadBalance LoadBalanceConfig `json:"loadBalance"`
-		Listeners   []ListenerConfig  `json:"listeners"`
-		Filters     []string          `json:"filters"`
+		Secret         string                `json:"secret"`
+		DedupWindow    Duration              `json:"dedupWindow"`
+		LoadBalance    LoadBalanceConfig     `json:"loadBalance"`
+		Listeners      []ListenerConfig      `json:"listeners"`
+		Filters        []string              `json:"filters"`
+		SessionStorage *SessionStorageConfig `json:"sessionStorage"`
 	}
 
 	// MonitoringConfig ...

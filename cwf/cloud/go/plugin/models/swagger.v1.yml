@@ -22,10 +22,10 @@ magma-gen-meta:
       filename: network_carrier_wifi_configs_swaggergen.go
     - go-struct-name: GatewayCWFConfigs
       filename: gateway_cwf_configs_swaggergen.go
-    - go-struct-name: AllowedUe
-      filename: allowed_ue_swaggergen.go
-    - go-struct-name: AllowedUes
-      filename: allowed_ues_swaggergen.go
+    - go-struct-name: allowedGrePeer
+      filename: allowed_gre_peer_swaggergen.go
+    - go-struct-name: allowedGrePeers
+      filename: allowed_gre_peers_swaggergen.go
 
 
 info:
@@ -635,7 +635,7 @@ definitions:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
-  allowed_ue:
+  allowed_gre_peer:
     type: object
     required:
       - ip
@@ -651,15 +651,15 @@ definitions:
         format: uint32
         x-nullable: false
         example: 123
-  allowed_ues:
+  allowed_gre_peers:
     type: array
     items:
-      $ref: '#/definitions/allowed_ue'
+      $ref: '#/definitions/allowed_gre_peer'
   gateway_cwf_configs:
     type: object
     description: CWF configuration for a gateway
     required:
-      - allowed_ues
+      - allowed_gre_peers
     properties:
-      allowed_ues:
-        $ref: '#/definitions/allowed_ues'
+      allowed_gre_peers:
+        $ref: '#/definitions/allowed_gre_peers'

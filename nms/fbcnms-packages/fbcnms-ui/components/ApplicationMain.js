@@ -9,7 +9,6 @@
  */
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
@@ -18,18 +17,10 @@ import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
 
 type Props = {
-  appContext?: any,
   children: React.Element<*>,
 };
 
 const ApplicationMain = (props: Props) => {
-  const content = (
-    <TopBarContextProvider>
-      <CssBaseline />
-      {props.children}
-    </TopBarContextProvider>
-  );
-
   return (
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
@@ -40,13 +31,10 @@ const ApplicationMain = (props: Props) => {
             vertical: 'bottom',
             horizontal: 'right',
           }}>
-          {props.appContext ? (
-            <AppContext.Provider value={props.appContext}>
-              {content}
-            </AppContext.Provider>
-          ) : (
-            content
-          )}
+          <TopBarContextProvider>
+            <CssBaseline />
+            {props.children}
+          </TopBarContextProvider>
         </SnackbarProvider>
       </MuiStylesThemeProvider>
     </MuiThemeProvider>

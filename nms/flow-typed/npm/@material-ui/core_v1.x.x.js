@@ -1532,6 +1532,10 @@ declare module "@material-ui/core/Paper/Paper" {
   }>;
 }
 
+declare module "@material-ui/core/Popper" {
+  declare module.exports: $Exports<"@material-ui/core/Popper/Popper">;
+}
+
 declare module "@material-ui/core/Popover" {
   declare module.exports: $Exports<"@material-ui/core/Popover/Popover">;
 }

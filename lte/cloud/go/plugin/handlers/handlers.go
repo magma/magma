@@ -69,7 +69,7 @@ const (
 	DeactivateSubscriberPath = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
 	SubscriberProfilePath    = ManageSubscriberPath + obsidian.UrlSep + "lte" + obsidian.UrlSep + "sub_profile"
 
-	policiesRootPath         = ManageNetworkPath + obsidian.UrlSep + "policies"
+	policiesRootPath         = handlers.ManageNetworkPath + obsidian.UrlSep + "policies"
 	policyRuleRootPath       = policiesRootPath + obsidian.UrlSep + "rules"
 	policyRuleManagePath     = policyRuleRootPath + obsidian.UrlSep + ":rule_id"
 	policyBaseNameRootPath   = policiesRootPath + obsidian.UrlSep + "base_names"

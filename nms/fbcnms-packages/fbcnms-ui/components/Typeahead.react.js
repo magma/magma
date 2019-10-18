@@ -110,7 +110,7 @@ type Props = {
   onEntitySelected: Suggestion => void,
   onSuggestionsFetchRequested: (searchTerm: string) => void,
   onSuggestionsClearRequested?: () => void,
-  headline?: string,
+  headline?: ?string,
   value?: ?Suggestion,
   variant?: 'default' | 'small',
   displayText?: string,

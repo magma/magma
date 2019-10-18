@@ -13,6 +13,8 @@ magma-gen-meta:
       filename: symphony_network_swaggergen.go
     - go-struct-name: SymphonyAgent
       filename: symphony_agent_swaggergen.go
+    - go-struct-name: MutableSymphonyAgent
+      filename: mutable_symphony_agent_swaggergen.go
     - go-struct-name: SymphonyDevice
       filename: symphony_device_swaggergen.go
     - go-struct-name: SymphonyDeviceConfig
@@ -119,6 +121,70 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /symphony/{network_id}/name:
+    get:
+      summary: Get the name of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: name
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /symphony/{network_id}/description:
+    get:
+      summary: Get description of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /symphony/{network_id}/features:
     get:
       summary: Get feature flags for Symphony network
@@ -176,7 +242,7 @@ paths:
           description: Configuration of the Symphony agent to create
           required: true
           schema:
-            $ref: '#/definitions/symphony_agent'
+            $ref: '#/definitions/mutable_symphony_agent'
       responses:
         '201':
           description: Success
@@ -210,7 +276,7 @@ paths:
           description: Full desired configuration of the agent
           required: true
           schema:
-            $ref: '#/definitions/symphony_agent'
+            $ref: '#/definitions/mutable_symphony_agent'
       responses:
         '204':
           description: Success
@@ -592,26 +658,36 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
       tier:
         $ref: './orc8r-swagger.yml#/definitions/tier_id'
-      status:
-        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
       managed_devices:
         $ref: '#/definitions/managed_devices'
-    example:
-      symphony_agent:
-        id: agent_1
-        device:
-          hardware_key: 22ffea10-7fc4-4427-975a-b9e4ce8f6f4d
-          key:
-            key_type: ECHO
-        name: Agent 1
-        description: Sample Agent 1
-        magmad:
-          autoupgrade_enabled: true
-          autoupgrade_poll_interval: 300
-          checkin_interval: 15
-          checkin_timeout: 5
-        tier: default
-        managed_devices: ['device_1', 'device_2', 'device_3']
+      status:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+  mutable_symphony_agent:
+    type: object
+    description: Description of a Symphony agent with the read-only fields omitted
+    required:
+      - id
+      - device
+      - name
+      - description
+      - magmad
+      - tier
+      - managed_devices
+    properties:
+      id:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_id'
+      device:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_device'
+      name:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_name'
+      description:
+        $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      magmad:
+        $ref: './orc8r-swagger.yml#/definitions/magmad_gateway_configs'
+      tier:
+        $ref: './orc8r-swagger.yml#/definitions/tier_id'
+      managed_devices:
+        $ref: '#/definitions/managed_devices'
   symphony_device:
     description: Management properties for a Symphony device
     type: object

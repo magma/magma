@@ -14,5 +14,6 @@ namespace devmand {
 DECLARE_string(listen_interface);
 DECLARE_string(device_configuration_file);
 DECLARE_uint64(poll_interval);
+DECLARE_uint64(debug_print_interval);
 
 } // namespace devmand
