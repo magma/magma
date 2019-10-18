@@ -52,37 +52,36 @@ export default function GatewayCellularFields(props: Props) {
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
+  const {id, cellular, connected_enodeb_serials} = props.gateway.rawGateway;
+
   const [natEnabled, setNatEnabled] = useState<boolean>(
     props.gateway.epc.natEnabled,
   );
-  const [ipBlock, setIpBlock] = useState<string>(props.gateway.epc.ipBlock);
+  const [ipBlock, setIpBlock] = useState<string>(cellular?.epc?.ip_block);
   const [attachedEnodebSerials, setAttachedEnodebSerials] = useState<string[]>(
-    props.gateway.attachedEnodebSerials,
+    connected_enodeb_serials || [],
   );
-  const [pci, setPci] = useState<string>(toString(props.gateway.ran.pci));
+  const [pci, setPci] = useState<string>(toString(cellular?.ran?.pci));
   const [transmitEnabled, setTransmitEnabled] = useState<boolean>(
-    props.gateway.ran.transmitEnabled,
+    cellular?.ran?.transmit_enabled ?? false,
   );
   const [nonEPSServiceControl, setNonEPSServiceControl] = useState<number>(
-    props.gateway.nonEPSService.control,
+    cellular.non_eps_service?.non_eps_service_control || 0,
   );
   const [csfbRAT, setCsfbRAT] = useState<number>(
-    props.gateway.nonEPSService.csfbRAT,
+    cellular.non_eps_service?.csfb_rat || 0,
   );
   const [mcc, setMcc] = useState<string>(
-    toString(props.gateway.nonEPSService.csfbMCC),
+    toString(cellular.non_eps_service?.csfb_mcc),
   );
   const [mnc, setMnc] = useState<string>(
-    toString(props.gateway.nonEPSService.csfbMNC),
+    toString(cellular.non_eps_service?.csfb_mnc),
   );
   const [lac, setLac] = useState<string>(
-    toString(props.gateway.nonEPSService.lac),
+    toString(cellular.non_eps_service?.lac),
   );
 
   const onSave = () => {
-    const id = props.gateway.logicalID;
-    const {cellular} = props.gateway.rawGateway;
-
     // these conditions should never be true since these values are coming from
     // a selector, but they're needed for Flow
     if (
