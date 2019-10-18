@@ -13,6 +13,8 @@ import (
 	"sort"
 	"strconv"
 
+	"magma/orc8r/cloud/go/metrics"
+
 	dto "github.com/prometheus/client_model/go"
 )
 
@@ -65,15 +67,31 @@ func (s *Sample) TimestampMs() int64 {
 
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them
 // since there may be multiple Samples per a single Metric instance
-func GetSamplesForMetrics(name string,
-	metric_type dto.MetricType,
-	metric *dto.Metric,
-	entity string,
-) []Sample {
+func GetSamplesForMetrics(metricAndContext MetricAndContext, metric *dto.Metric) []Sample {
+	context := metricAndContext.Context
+	family := metricAndContext.Family
+	var entity string
 	labels := metric.Label
-	sort.Sort(ByName(labels))
+
+	switch additionalCtx := metricAndContext.Context.AdditionalContext.(type) {
+	case *CloudMetricContext:
+		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudHost)
+	case *GatewayMetricContext:
+		entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, additionalCtx.GatewayID)
+	case *PushedMetricContext:
+		gatewayID := popLabel(&labels, metrics.GatewayLabelName)
+		if gatewayID == "" {
+			entity = additionalCtx.NetworkID
+		} else {
+			entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, gatewayID)
+		}
+	}
+
+	name := context.MetricName
 	timestampMs := metric.GetTimestampMs()
-	switch metric_type {
+	sort.Sort(ByName(labels))
+
+	switch family.GetType() {
 	case dto.MetricType_COUNTER:
 		return getCounterSamples(name, labels, timestampMs, metric.GetCounter(), entity)
 	case dto.MetricType_GAUGE:
@@ -188,6 +206,23 @@ func getHistogramSamples(name string,
 		}
 	}
 	return samples
+}
+
+func popLabel(labels *[]*dto.LabelPair, labelToRemove string) string {
+	var ret string
+	for i, label := range *labels {
+		if label.GetName() == labelToRemove {
+			ret = label.GetValue()
+			*labels = removeLabel(*labels, i)
+			break
+		}
+	}
+	return ret
+}
+
+func removeLabel(labels []*dto.LabelPair, i int) []*dto.LabelPair {
+	labels[len(labels)-1], labels[i] = labels[i], labels[len(labels)-1]
+	return labels[:len(labels)-1]
 }
 
 // ByName is an interface for sorting LabelPairs by name

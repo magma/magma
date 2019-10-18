@@ -221,6 +221,11 @@ class EnforcementController(PolicyMixin, MagmaController):
                 )
                 return RuleModResult.FAILURE
 
+        if not rule.flow_list:
+            self.logger.error('The flow list for imsi %s, rule.id - %s'
+                              'is empty, this shoudn\'t happen', imsi, rule.id)
+            return RuleModResult.FAILURE
+
         flow_adds = []
         for flow in rule.flow_list:
             try:

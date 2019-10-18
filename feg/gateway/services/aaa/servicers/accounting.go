@@ -14,6 +14,8 @@ import (
 	"strings"
 	"time"
 
+	"magma/orc8r/gateway/directoryd"
+
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -115,6 +117,8 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+	} else {
+		directoryd.RemoveIMSI(sessionImsi)
 	}
 	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
 
@@ -175,6 +179,7 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
+
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
 		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
@@ -197,6 +202,8 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+	} else {
+		directoryd.RemoveIMSI(aaaCtx.GetImsi())
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)

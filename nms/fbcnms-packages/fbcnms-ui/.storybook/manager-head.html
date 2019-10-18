@@ -1,0 +1,14 @@
+<script>
+    document.title = "FBC Design System";
+    var observer = new MutationObserver(function (mutations) {
+        if (document.title.match(/Storybook$/)) {
+            document.title = "FBC Design System";
+        }
+    }).observe(document.querySelector("title"), {
+        childList: true,
+        subtree: true,
+        characterData: true
+    });
+</script>
+<link rel="shortcut icon" href="/favicon.ico">
+<link rel="icon" type="image/png" href="/favicon.png" sizes="192x192">

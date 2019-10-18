@@ -154,6 +154,30 @@ std::shared_ptr<State> Device::getState() {
     japt["model"] = v;
   }));
 
+  state->addRequest(
+      snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.4"))
+          .thenValue([](auto ssids) {
+            for (auto& ssid : ssids) {
+              LOG(INFO) << "Ssid = " << ssid.value.asString();
+            }
+          }));
+
+  state->addRequest(
+      snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.5"))
+          .thenValue([](auto bssids) {
+            for (auto& bssid : bssids) {
+              LOG(INFO) << "Bssid = " << bssid.value.asString();
+            }
+          }));
+
+  state->addRequest(
+      snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.7"))
+          .thenValue([](auto freqs) {
+            for (auto& freq : freqs) {
+              LOG(INFO) << "Freq = " << freq.value.asString();
+            }
+          }));
+
   state->addFinally([state, &papc, &papt, &jap, &japt]() {
     auto* field = state->update().get_ptr("ietf-system:system");
     if (field != nullptr and ((field = field->get_ptr("name")) != nullptr)) {

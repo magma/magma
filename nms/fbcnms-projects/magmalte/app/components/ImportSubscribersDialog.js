@@ -9,7 +9,7 @@
  */
 import type {Match} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {subscriber} from '../common/__generated__/MagmaAPIBindings';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
@@ -19,7 +19,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import DownloadIcon from '@material-ui/icons/GetApp';
 import FormLabel from '@material-ui/core/FormLabel';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';

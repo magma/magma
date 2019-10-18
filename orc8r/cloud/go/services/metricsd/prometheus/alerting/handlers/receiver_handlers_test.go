@@ -30,12 +30,21 @@ const (
 )
 
 var (
-	sampleReceiver = receivers.Receiver{
+	testWebhookURL, _ = url.Parse("http://test.com")
+	sampleReceiver    = receivers.Receiver{
 		Name: "testSlackReceiver",
 		SlackConfigs: []*receivers.SlackConfig{{
 			APIURL:   "http://slack.com/12345",
 			Channel:  "test_channel",
 			Username: "test_username",
+		}},
+		WebhookConfigs: []*config.WebhookConfig{{
+			NotifierConfig: config.NotifierConfig{
+				VSendResolved: true,
+			},
+			URL: &config.URL{
+				URL: testWebhookURL,
+			},
 		}},
 	}
 
@@ -63,7 +72,7 @@ func TestGetReceiverPostHandler(t *testing.T) {
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(errors.New("error"))
+	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(echo.NewHTTPError(http.StatusBadRequest, "error"))
 	postReceiver = GetReceiverPostHandler(client, "")
 	c, _ = buildContext(nil, http.MethodPost, "/", ReceiverPath, testNID)
 	err = postReceiver(c)

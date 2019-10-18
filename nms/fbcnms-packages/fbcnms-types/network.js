@@ -22,4 +22,32 @@ export const AllNetworkTypes: NetworkType[] = [
   RHINO,
 ];
 
-export type NetworkType = 'cellular' | 'wifi' | 'third_party' | 'wac' | 'rhino';
+export type NetworkType =
+  | 'cellular' // deprecated
+  | 'lte'
+  | 'wifi'
+  | 'third_party'
+  | 'wac'
+  | 'rhino';
+
+export function coalesceNetworkType(
+  networkID: string,
+  networkType: ?string,
+): ?NetworkType {
+  if (
+    networkType === 'lte' ||
+    networkType === 'wifi' ||
+    networkType === 'third_party' ||
+    networkType === 'wac' ||
+    networkType === 'rhino'
+  ) {
+    return networkType;
+  }
+
+  // backwards compatibility
+  if (networkID.startsWith('mesh_')) {
+    return 'wifi';
+  }
+
+  return null;
+}

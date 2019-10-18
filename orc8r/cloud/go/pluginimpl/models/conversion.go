@@ -40,10 +40,10 @@ func (m *Network) FromConfiguratorNetwork(n configurator.Network) *Network {
 	m.Type = models.NetworkType(n.Type)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
-	if cfg, exists := n.Configs[orc8r.DnsdNetworkType]; exists {
+	if cfg, exists := n.Configs[orc8r.DnsdNetworkType]; exists && cfg != nil {
 		m.DNS = cfg.(*NetworkDNSConfig)
 	}
-	if cfg, exists := n.Configs[orc8r.NetworkFeaturesConfig]; exists {
+	if cfg, exists := n.Configs[orc8r.NetworkFeaturesConfig]; exists && cfg != nil {
 		m.Features = cfg.(*NetworkFeatures)
 	}
 	return m

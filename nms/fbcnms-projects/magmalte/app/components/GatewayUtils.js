@@ -9,7 +9,7 @@
  */
 
 import type {WithStyles} from '@material-ui/core';
-import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import {withStyles} from '@material-ui/core/styles';
 

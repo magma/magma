@@ -33,12 +33,14 @@ Engine::Engine(
     folly::EventBase& _eventBase,
     const std::chrono::milliseconds& pingTimeout_,
     const std::chrono::milliseconds& timeoutFrequency_)
-    : folly::EventHandler(&_eventBase),
+    : channels::Engine("Ping"),
+      folly::EventHandler(&_eventBase),
       eventBase(_eventBase),
       pingTimeout(pingTimeout_),
       timeoutFrequency(timeoutFrequency_) {
   icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
   if (icmpSocket < 0) {
+    LOG(ERROR) << "Failed to open dgram socket";
     throw std::system_error(errno, std::generic_category());
   }
 
@@ -50,6 +52,8 @@ Engine::Engine(
       folly::NetworkSocket::fromFd(icmpSocket));
 
   registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
+
+  start();
 }
 
 Engine::~Engine() {
@@ -64,8 +68,10 @@ void Engine::start() {
   // precise timeout). Given this usecase I dont think either of these are that
   // important but I'm making this note so we know in the future we could
   // improve this by using one of the nice timeout queues that exist.
-  EventBaseUtils::scheduleEvery(
-      eventBase, [this]() { timeout(); }, timeoutFrequency);
+  eventBase.runInEventBaseThread([this]() {
+    EventBaseUtils::scheduleEvery(
+        eventBase, [this]() { timeout(); }, timeoutFrequency);
+  });
 }
 
 void Engine::timeout() {
@@ -89,6 +95,8 @@ void Engine::timeout() {
 folly::Future<Rtt> Engine::ping(
     const icmphdr& hdr,
     const folly::IPAddress& destination) {
+  incrementRequests();
+
   return sharedOutstandingRequests.withULockPtr([this, &hdr, &destination](
                                                     auto uOutstandingRequests) {
     auto outstandingRequests = uOutstandingRequests.moveFromUpgradeToWrite();

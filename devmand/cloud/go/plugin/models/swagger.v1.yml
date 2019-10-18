@@ -121,6 +121,70 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /symphony/{network_id}/name:
+    get:
+      summary: Get the name of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the name of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: name
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /symphony/{network_id}/description:
+    get:
+      summary: Get description of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Description of the network
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the description of a Symphony network
+      tags:
+        - Symphony Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          description: New name for the network
+          required: true
+          schema:
+            $ref: './orc8r-swagger-common.yml#/definitions/network_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /symphony/{network_id}/features:
     get:
       summary: Get feature flags for Symphony network

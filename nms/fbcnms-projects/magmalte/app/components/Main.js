@@ -12,7 +12,7 @@ import Admin from './admin/Admin';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React from 'react';

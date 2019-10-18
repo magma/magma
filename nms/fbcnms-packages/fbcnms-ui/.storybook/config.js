@@ -60,6 +60,7 @@ addDecorator(story => (
 
 addParameters({
   options: {
+    name: 'FBC Design System',
     isFullscreen: false,
     showNav: true,
     showPanel: false,

@@ -16,8 +16,10 @@ import (
 	"magma/orc8r/cloud/go/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	errors2 "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 	"github.com/pkg/errors"
 )
 
@@ -152,7 +154,19 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 }
 
 func (m *GatewayCellularConfigs) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only exists for the non EPS configs, EPC and RAN
+	// validation are handled by the above call the Validate()
+	if m.NonEpsService == nil {
+		return nil
+	}
+	if err := m.NonEpsService.ValidateModel(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (m *GatewayRanConfigs) ValidateModel() error {
@@ -164,7 +178,39 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 }
 
 func (m *GatewayNonEpsConfigs) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	// Don't validate sub-fields if Non-EPS control is off
+	if swag.Uint32Value(m.NonEpsServiceControl) == 0 {
+		return nil
+	}
+
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Sub-fields are actually required if non-EPS control is on - swagger
+	// doesn't support dependent validation, so we'll do this in code here
+
+	var res []error
+	if err := validate.Required("arfcn_2g", "body", m.Arfcn2g); err != nil {
+		res = append(res, err)
+	}
+	if err := validate.RequiredString("csfb_mcc", "body", string(m.CsfbMcc)); err != nil {
+		res = append(res, err)
+	}
+	if err := validate.RequiredString("csfb_mnc", "body", string(m.CsfbMnc)); err != nil {
+		res = append(res, err)
+	}
+	if err := validate.Required("csfb_rat", "body", m.CsfbRat); err != nil {
+		res = append(res, err)
+	}
+	if err := validate.Required("lac", "body", m.Lac); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors2.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *EnodebSerials) ValidateModel() error {

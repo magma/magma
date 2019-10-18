@@ -38,7 +38,9 @@ func main() {
 	}
 	protos.RegisterS6AGatewayServiceServer(srv.GrpcServer, servicer)
 	protos.RegisterCSFBGatewayServiceServer(srv.GrpcServer, servicer)
+	protos.RegisterSwxGatewayServiceServer(srv.GrpcServer, servicer)
 	lteprotos.RegisterSessionProxyResponderServer(srv.GrpcServer, servicer)
+	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, servicer)
 	// create and run GW_TO_FEG httpserver
 	gwToFeGServer := gw_to_feg_relay.NewGatewayToFegServer()
 	go gwToFeGServer.Run(fmt.Sprintf(":%d", GwToFeGServerPort))

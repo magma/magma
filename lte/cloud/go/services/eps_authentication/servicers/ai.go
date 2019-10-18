@@ -21,6 +21,7 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/eps_authentication/metrics"
 	"magma/orc8r/cloud/go/identity"
+	mcommon "magma/orc8r/cloud/go/metrics"
 )
 
 func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *lteprotos.AuthenticationInformationRequest) (*lteprotos.AuthenticationInformationAnswer, error) {
@@ -48,7 +49,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *lt
 	if err != nil {
 		glog.V(2).Infof("failed to lookup subscriber '%s': %v", air.UserName, err.Error())
 		metrics.UnknownSubscribers.Inc()
-		metrics.UnknowSubscribersByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
+		metrics.UnknowSubscribersByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
 		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: errorCode}, err
 	}
 
@@ -73,7 +74,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *lt
 	if err != nil {
 		glog.V(2).Infof("could not create milenage cipher: %v", err.Error())
 		metrics.AuthErrors.Inc()
-		metrics.AuthErrorsByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
+		metrics.AuthErrorsByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
 		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: lteprotos.ErrorCode_AUTHORIZATION_REJECTED},
 			status.Errorf(codes.FailedPrecondition, "Could not create milenage cipher: %s", err.Error())
 	}
@@ -97,7 +98,7 @@ func (srv *EPSAuthServer) AuthenticationInformation(ctx context.Context, air *lt
 		return &lteprotos.AuthenticationInformationAnswer{ErrorCode: lteprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE}, err
 	}
 
-	metrics.AuthSuccessesByNetwork.With(prometheus.Labels{"networkId": networkID}).Inc()
+	metrics.AuthSuccessesByNetwork.With(prometheus.Labels{mcommon.NetworkLabelName: networkID}).Inc()
 
 	return &lteprotos.AuthenticationInformationAnswer{
 		ErrorCode:     lteprotos.ErrorCode_SUCCESS,

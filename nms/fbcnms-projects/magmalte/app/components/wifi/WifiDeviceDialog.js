@@ -13,7 +13,7 @@ import type {
   Record,
   WifiConfig,
 } from '@fbcnms/magmalte/app/common/MagmaAPIType';
-import type {magmad_gateway_configs} from '@fbcnms/magmalte/app/common/__generated__/MagmaAPIBindings';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
@@ -27,7 +27,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaDeviceFields from '@fbcnms/magmalte/app/components/MagmaDeviceFields';
-import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';

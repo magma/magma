@@ -18,12 +18,41 @@ namespace channels {
  */
 class Engine {
  public:
-  Engine() = default;
+  Engine(const std::string& engineName_) : engineName(engineName_) {}
+
+  Engine() = delete;
   virtual ~Engine() = default;
   Engine(const Engine&) = delete;
   Engine& operator=(const Engine&) = delete;
   Engine(Engine&&) = delete;
   Engine& operator=(Engine&&) = delete;
+
+ public:
+  unsigned long long getNumIterations() const {
+    return iterations;
+  }
+
+  unsigned long long getNumRequests() const {
+    return requests;
+  }
+
+  std::string getName() const {
+    return engineName;
+  }
+
+  void incrementRequests() {
+    ++requests;
+  }
+
+ protected:
+  void incrementIterations() {
+    ++iterations;
+  }
+
+ private:
+  unsigned long long iterations{0};
+  unsigned long long requests{0};
+  std::string engineName;
 };
 
 } // namespace channels

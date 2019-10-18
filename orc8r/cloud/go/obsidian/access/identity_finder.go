@@ -37,9 +37,17 @@ func FindRequestedIdentities(c echo.Context) []*protos.Identity {
 		if strings.HasPrefix(path, MAGMA_ROOT_PART) {
 			parts := strings.Split(path[MAGMA_ROOT_PART_LEN:], obsidian.UrlSep)
 			if len(parts) > 0 {
-				finder, ok := finderRegistry[parts[0]]
+				p := parts[0]
+				registry, ok := finderRegistries[p]
+				if ok && len(parts) > 1 {
+					p = parts[1]
+				} else {
+					// fall back to "versionless" V0
+					registry, ok = finderRegistries[obsidian.V0]
+				}
+				fr, ok := registry[p]
 				if ok {
-					return finder(c)
+					return fr.finder(c)
 				}
 			}
 		}
