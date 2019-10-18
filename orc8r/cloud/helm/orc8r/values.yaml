@@ -55,6 +55,7 @@ secret:
 
 proxy:
   # Service configuration.
+  name: bootstrapper-orc8r-proxy
   service:
     annotations: {}
     labels: {}
