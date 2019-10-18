@@ -572,8 +572,10 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   bool is_lbi_found = false;
   bool send_reject = false;
   bool is_imsi_found = false;
+  bool is_ebi_found = false;
   ebi_t ebi_to_be_established[BEARERS_PER_UE] = {0};
   uint32_t no_of_bearers_to_be_est = 0;
+  uint32_t no_of_bearers_rej = 0;
   ebi_t invalid_ebi[BEARERS_PER_UE] = {0};
   teid_t s11_mme_teid = 0;
 
@@ -588,9 +590,9 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     OAILOG_FUNC_RETURN(LOG_PGW_APP, RETURNerror);
   }
 
-  //If LBI recvd is valid, default bearer has to be deactivated
+  //Check if valid LBI and EBI recvd
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!is_lbi_found)) {
+         (!is_ebi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
@@ -609,6 +611,20 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
             spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection
               .default_bearer)) {
             is_lbi_found = true;
+            //Check if the received EBI is valid
+            for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn ++) {
+              if(sgw_cm_get_eps_bearer_entry(
+                &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
+                bearer_req_p->ebi[itrn])) {
+                is_ebi_found = true;
+                ebi_to_be_established[itrn] = bearer_req_p->ebi[itrn];
+                no_of_bearers_to_be_est ++;
+              } else {
+                invalid_ebi[itrn] = bearer_req_p->ebi[itrn];
+                no_of_bearers_rej ++;
+                send_reject = true;
+              }
+            }
           }
         }
       }
@@ -616,24 +632,9 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
     i++;
   }
-  //Check if the received EBI is valid
-  for (itrn = 0; itrn < bearer_req_p->no_of_bearers; itrn ++) {
-    if(sgw_cm_get_eps_bearer_entry(
-      &spgw_ctxt_p->sgw_eps_bearer_context_information.pdn_connection,
-      bearer_req_p->ebi[itrn]) == NULL) {
-      invalid_ebi[itrn] = bearer_req_p->ebi[itrn];
-      send_reject = true;
-      OAILOG_ERROR(
-        LOG_PGW_APP,
-        "Wrong EBI (%d) received in pgw_nw_init_deactv_bearer_request \n",
-        invalid_ebi[itrn]);
-    } else {
-      ebi_to_be_established[itrn] = bearer_req_p->ebi[itrn];
-      no_of_bearers_to_be_est ++;
-    }
-  }
 
   if (send_reject) {
+    print_bearer_ids_helper(invalid_ebi, no_of_bearers_rej);
     OAILOG_INFO(
       LOG_PGW_APP,
         "Sending dedicated bearer activation reject to NW\n");
@@ -690,7 +691,12 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     sizeof(itti_s5_nw_init_deactv_bearer_request_t));
 
   itti_s5_deactv_ded_bearer_req->s11_mme_teid = s11_mme_teid;
-  itti_s5_deactv_ded_bearer_req->delete_default_bearer = is_lbi_found;
+  /* If default bearer has to be deleted then the EBI list in the received
+   * pgw_nw_init_deactv_bearer_request message contains a single entry at 0th
+   * index and LBI == bearer_req_p->ebi[0]*/
+  if (bearer_req_p->lbi == bearer_req_p->ebi[0]) {
+    itti_s5_deactv_ded_bearer_req->delete_default_bearer = true;
+  }
   itti_s5_deactv_ded_bearer_req->no_of_bearers = no_of_bearers_to_be_est;
   memcpy(
     &itti_s5_deactv_ded_bearer_req->ebi,
