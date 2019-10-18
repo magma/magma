@@ -353,7 +353,8 @@ int nas_proc_ul_transfer_ind(
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
+int nas_proc_authentication_info_answer(mme_app_desc_t *mme_app_desc_p,
+    s6a_auth_info_ans_t *aia)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
   int rc = RETURNerror;
@@ -366,7 +367,6 @@ int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
 
   OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context = mme_ue_context_exists_imsi(
     &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
   if (ue_mm_context) {

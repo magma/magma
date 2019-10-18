@@ -39,7 +39,6 @@
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
 
@@ -53,6 +52,11 @@ int s1ap_mme_itti_send_sctp_request(
   MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+      " SCTP_DATA_REQ \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   SCTP_DATA_REQ(message_p).payload = *payload;
   *payload = NULL;
   SCTP_DATA_REQ(message_p).assoc_id = assoc_id;
@@ -72,16 +76,21 @@ int s1ap_mme_itti_nas_uplink_ind(
 
   OAILOG_INFO(
     LOG_S1AP,
-    "Sending NAS Uplink indication to MME_APP, mme_ue_s1ap_id = (%u) \n",
+    "Sending NAS Uplink indication to NAS_MME_APP, mme_ue_s1ap_id = (%u) \n",
     ue_id);
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_UPLINK_DATA_IND);
-  NAS_UL_DATA_IND(message_p).ue_id = ue_id;
-  NAS_UL_DATA_IND(message_p).nas_msg = *payload;
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+      " MME_APP_UPLINK_DATA_IND \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  MME_APP_UL_DATA_IND(message_p).ue_id = ue_id;
+  MME_APP_UL_DATA_IND(message_p).nas_msg = *payload;
   *payload = NULL;
-  NAS_UL_DATA_IND(message_p).tai = *tai;
-  NAS_UL_DATA_IND(message_p).cgi = *cgi;
+  MME_APP_UL_DATA_IND(message_p).tai = *tai;
+  MME_APP_UL_DATA_IND(message_p).cgi = *cgi;
 
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -102,18 +111,23 @@ int s1ap_mme_itti_nas_downlink_cnf(
     // Drop this cnf message here since this is related to connection less S1AP message hence no need to send it to NAS module
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_DOWNLINK_DATA_CNF);
-  NAS_DL_DATA_CNF(message_p).ue_id = ue_id;
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+      " MME_APP_DOWNLINK_DATA_CNF \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  MME_APP_DL_DATA_CNF(message_p).ue_id = ue_id;
   if (is_success) {
-    NAS_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
+    MME_APP_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
   } else {
-    NAS_DL_DATA_CNF(message_p).err_code = AS_FAILURE;
+    MME_APP_DL_DATA_CNF(message_p).err_code = AS_FAILURE;
     OAILOG_ERROR(
       LOG_S1AP,
       "ERROR: Failed to send S1AP message to eNB. mme_ue_s1ap_id =  %d \n",
       ue_id);
   }
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -140,6 +154,11 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+      " S1AP_INITIAL_UE_MESSAGE \n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
 
   OAILOG_INFO(
     LOG_S1AP,
@@ -223,17 +242,22 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   MessageDef *message_p = NULL;
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_DOWNLINK_DATA_REJ);
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
+  if (NULL == message_p) {
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+      " MME_APP_DOWNLINK_DATA_REJ \n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
 
-  NAS_DL_DATA_REJ(message_p).ue_id = ue_id;
+  MME_APP_DL_DATA_REJ(message_p).ue_id = ue_id;
   /* Mapping between asn1 definition and NAS definition */
-  NAS_DL_DATA_REJ(message_p).err_code =
+  MME_APP_DL_DATA_REJ(message_p).err_code =
     s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(cause);
-  NAS_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
+  MME_APP_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
 
   // should be sent to MME_APP, but this one would forward it to NAS_MME, so send it directly to NAS_MME
   // but let's see
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 

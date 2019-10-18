@@ -45,10 +45,6 @@
 #include "common_ies.h"
 #include "nas/networkDef.h"
 
-#define NAS_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.nas_ul_data_ind
-#define NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_req
-#define NAS_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_cnf
-#define NAS_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_rej
 #define NAS_PDN_CONFIG_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_req
 #define NAS_PDN_CONFIG_RSP(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_rsp
 #define NAS_PDN_CONFIG_FAIL(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_fail
@@ -217,31 +213,6 @@ typedef struct itti_nas_info_transfer_s {
   bstring nas_msg; /* Uplink NAS message           */
 } itti_nas_info_transfer_t;
 
-typedef struct itti_nas_ul_data_ind_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
-  bstring nas_msg;        /* Uplink NAS message           */
-  tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message.  */
-  ecgi_t
-    cgi; /* Indicating the cell from which the UE has sent the NAS message.   */
-} itti_nas_ul_data_ind_t;
-
-typedef struct itti_nas_dl_data_req_s {
-  mme_ue_s1ap_id_t ue_id;              /* UE lower layer identifier        */
-  nas_error_code_t transaction_status; /* Transaction status               */
-  bstring nas_msg;                     /* Downlink NAS message             */
-} itti_nas_dl_data_req_t;
-
-typedef struct itti_nas_dl_data_cnf_s {
-  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier        */
-  nas_error_code_t err_code; /* Transaction status               */
-} itti_nas_dl_data_cnf_t;
-
-typedef struct itti_nas_dl_data_rej_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
-  bstring nas_msg;        /* Uplink NAS message           */
-  int err_code;
-} itti_nas_dl_data_rej_t;
 
 typedef struct itti_erab_setup_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */

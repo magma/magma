@@ -57,6 +57,7 @@
 #include "mme_app_state.h"
 #include "nas_message.h"
 #include "nas_procedures.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -1385,10 +1386,11 @@ static int _emm_as_send(const emm_as_t *msg)
 
     switch (as_msg.msg_id) {
       case AS_DL_INFO_TRANSFER_REQ: {
-        nas_itti_dl_data_req(
+        mme_app_handle_nas_dl_req(
           as_msg.msg.dl_info_transfer_req.ue_id,
           as_msg.msg.dl_info_transfer_req.nas_msg,
           as_msg.msg.dl_info_transfer_req.err_code);
+          as_msg.msg.dl_info_transfer_req.nas_msg = NULL;
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       } break;
 
@@ -1416,10 +1418,11 @@ static int _emm_as_send(const emm_as_t *msg)
       case AS_NAS_ESTABLISH_CNF: {
         if (as_msg.msg.nas_establish_rsp.err_code != AS_SUCCESS) {
           // This flow is to release the UE context after sending the NAS message.
-          nas_itti_dl_data_req(
+          mme_app_handle_nas_dl_req(
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.nas_msg,
             as_msg.msg.nas_establish_rsp.err_code);
+            as_msg.msg.nas_establish_rsp.nas_msg = NULL;
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           OAILOG_DEBUG(
