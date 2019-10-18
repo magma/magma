@@ -87,40 +87,43 @@ func TestCreateNetwork(t *testing.T) {
 	obsidianHandlers := handlers.GetHandlers()
 	createNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte", obsidian.POST).HandlerFunc
 
-	// test validation
+	// test validation - include TDD and FDD configs
+	payload := &models2.LteNetwork{
+		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+		Description: "blah",
+		DNS:         models.NewDefaultDNSConfig(),
+		Features:    models.NewDefaultFeaturesConfig(),
+		ID:          "n1",
+		Name:        "foobar",
+	}
+	payload.Cellular.Ran.FddConfig = &models2.NetworkRanConfigsFddConfig{
+		Earfcndl: 17000,
+		Earfcnul: 18000,
+	}
 	tc := tests.Test{
-		Method: "POST",
-		URL:    "/magma/v1/lte",
-		Payload: tests.JSONMarshaler(
-			&models2.LteNetwork{
-				Cellular:    models2.NewDefaultTDDNetworkConfig(),
-				Description: "",
-				DNS:         models.NewDefaultDNSConfig(),
-				Features:    models.NewDefaultFeaturesConfig(),
-				ID:          "n1",
-				Name:        "foobar",
-			},
-		),
+		Method:         "POST",
+		URL:            "/magma/v1/lte",
+		Payload:        payload,
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
-			"description in body should be at least 1 chars long",
+			"only one of TDD or FDD configs can be set",
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// happy path
+	payload = &models2.LteNetwork{
+		Cellular:    models2.NewDefaultTDDNetworkConfig(),
+		Description: "Foo Bar",
+		DNS:         models.NewDefaultDNSConfig(),
+		Features:    models.NewDefaultFeaturesConfig(),
+		ID:          "n1",
+		Name:        "foobar",
+	}
 	tc = tests.Test{
-		Method: "POST",
-		URL:    "/magma/v1/lte",
-		Payload: tests.JSONMarshaler(
-			&models2.LteNetwork{
-				Cellular:    models2.NewDefaultTDDNetworkConfig(),
-				Description: "Foo Bar",
-				DNS:         models.NewDefaultDNSConfig(),
-				Features:    models.NewDefaultFeaturesConfig(),
-				ID:          "n1",
-				Name:        "foobar",
-			},
-		),
+		Method:         "POST",
+		URL:            "/magma/v1/lte",
+		Payload:        payload,
 		Handler:        createNetwork,
 		ExpectedStatus: 201,
 	}
@@ -855,6 +858,53 @@ func TestCreateGateway(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actualEnts))
 	assert.Equal(t, payload.Device, actualDevice)
+
+	// Some composite validation failures - bad device key, missing required
+	// non-EPS control fields when non-EPS service control is on
+	pubkeyB64 := strfmt.Base64("fake key")
+	payload = &models2.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "foo-bar-baz-890",
+			Key: &models.ChallengeKey{
+				KeyType: "SOFTWARE_ECDSA_SHA256",
+				Key:     &pubkeyB64,
+			},
+		},
+		ID:          "g4",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular:               newDefaultGatewayConfig(),
+		ConnectedEnodebSerials: []string{},
+		Tier:                   "t1",
+	}
+	payload.Cellular.NonEpsService = &models2.GatewayNonEpsConfigs{
+		NonEpsServiceControl: swag.Uint32(1),
+	}
+
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 400,
+		ExpectedError: "validation failure list:\n" +
+			"validation failure list:\n" +
+			"arfcn_2g in body is required\n" +
+			"csfb_mcc in body is required\n" +
+			"csfb_mnc in body is required\n" +
+			"csfb_rat in body is required\n" +
+			"lac in body is required\n" +
+			"Failed to parse key: asn1: structure error: tags don't match (16 vs {class:1 tag:6 length:97 isCompound:true}) {optional:false explicit:false application:false private:false defaultValue:<nil> tag:<nil> stringType:0 timeType:0 set:false omitEmpty:false} publicKeyInfo @2",
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestListAndGetGateways(t *testing.T) {
@@ -1525,6 +1575,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	assert.Equal(t, expected, entities.ToEntitiesByID())
 
 	// validation failure
+	modifiedCellularConfig.NonEpsService.NonEpsServiceControl = swag.Uint32(1)
 	modifiedCellularConfig.NonEpsService.CsfbMcc = "0"
 	tc = tests.Test{
 		Method:         "PUT",

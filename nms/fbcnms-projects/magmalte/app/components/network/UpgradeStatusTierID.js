@@ -9,7 +9,7 @@
  */
 
 import type {WithStyles} from '@material-ui/core';
-import type {tier} from '../../common/__generated__/MagmaAPIBindings';
+import type {tier} from '@fbcnms/magma-api';
 
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';

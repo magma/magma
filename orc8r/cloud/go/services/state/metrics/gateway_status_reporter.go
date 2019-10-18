@@ -11,39 +11,38 @@ package metrics
 import (
 	"time"
 
+	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/checkind/store"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 )
 
-type GatewayStatusReporter struct {
-	Store *store.CheckinStore
-}
-
-func NewGatewayStatusReporter(store *store.CheckinStore) (*GatewayStatusReporter, error) {
-	return &GatewayStatusReporter{Store: store}, nil
-}
-
-func (reporter *GatewayStatusReporter) ReportCheckinStatus(dur time.Duration) {
+func PeriodicallyReportGatewayStatus(dur time.Duration) {
 	for _ = range time.Tick(dur) {
-		err := reporter.reportCheckinStatus()
+		err := reportGatewayStatus()
 		if err != nil {
-			glog.Errorf("err in reportCheckinStatus: %v\n", err)
+			glog.Errorf("err in reportGatewayStatus: %v\n", err)
 		}
 	}
 }
 
-func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
+func reportGatewayStatus() error {
 	networks, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return err
 	}
 	for _, networkID := range networks {
-		magmadGatewayTypeVal := orc8r.MagmadGatewayType
-		gateways, _, err := configurator.LoadEntities(networkID, &magmadGatewayTypeVal, nil, nil, nil, configurator.EntityLoadCriteria{})
+		gateways, _, err := configurator.LoadEntities(
+			networkID,
+			swag.String(orc8r.MagmadGatewayType),
+			nil,
+			nil,
+			nil,
+			configurator.EntityLoadCriteria{},
+		)
 		if err != nil {
 			glog.Errorf("error getting gateways for network %v: %v\n", networkID, err)
 			continue
@@ -53,7 +52,9 @@ func (reporter *GatewayStatusReporter) reportCheckinStatus() error {
 			gatewayID := gatewayEntity.Key
 			status, err := state.GetGatewayStatus(networkID, gatewayEntity.PhysicalID)
 			if err != nil {
-				glog.Errorf("Failed to get state for nwID:%s gwID:%s deviceID:%s", networkID, gatewayID, gatewayEntity.PhysicalID)
+				if err != errors.ErrNotFound {
+					glog.Errorf("Error getting gateway state for network:%v, gateway:%v, %v", networkID, gatewayID, err)
+				}
 				continue
 			}
 			// last check in more than 5 minutes ago

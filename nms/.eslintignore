@@ -7,6 +7,7 @@ dist/**/*.js
 **/thrift/gen-nodejs/*.js
 config/webpack.*.js
 tgnms/**/*.js
+fbcnms-packages/fbcnms-magma-api/__generated__/*.js
 fbcnms-projects/tgnms/shared/types/*.js
 fbcnms-projects/magmalte/app/common/__generated__/*.js
 

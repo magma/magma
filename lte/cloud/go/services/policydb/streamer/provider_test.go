@@ -48,7 +48,7 @@ func TestPolicyStreamers(t *testing.T) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.PolicyRuleEntity2Type,
+			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
 			Config: &models.PolicyRule{
 				ID:            &id1,
@@ -56,7 +56,7 @@ func TestPolicyStreamers(t *testing.T) {
 			},
 		},
 		{
-			Type: lte.PolicyRuleEntity2Type,
+			Type: lte.PolicyRuleEntityType,
 			Key:  "r2",
 			Config: &models.PolicyRule{
 				ID:       &id2,
@@ -64,7 +64,7 @@ func TestPolicyStreamers(t *testing.T) {
 			},
 		},
 		{
-			Type: lte.PolicyRuleEntity2Type,
+			Type: lte.PolicyRuleEntityType,
 			Key:  "r3",
 			Config: &models.PolicyRule{
 				ID:            &id3,
@@ -75,20 +75,20 @@ func TestPolicyStreamers(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:   lte.BaseNameEntity2Type,
+			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
 			Config: &models.BaseNameRecord{Name: models.BaseName("b1")},
 			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntity2Type, Key: "r1"},
-				{Type: lte.PolicyRuleEntity2Type, Key: "r2"},
+				{Type: lte.PolicyRuleEntityType, Key: "r1"},
+				{Type: lte.PolicyRuleEntityType, Key: "r2"},
 			},
 		},
 		{
-			Type:   lte.BaseNameEntity2Type,
+			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
 			Config: &models.BaseNameRecord{Name: models.BaseName("b2")},
 			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntity2Type, Key: "r3"},
+				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
 		},
 	})

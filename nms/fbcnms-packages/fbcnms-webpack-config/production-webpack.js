@@ -21,12 +21,13 @@ type Options = {
   projectName?: string,
   extraPaths?: string[],
   entry?: Object,
+  devtool?: string,
 };
 
 function createProductionWebpackConfig(options: Options) {
   return {
     mode: 'production',
-    devtool: false,
+    devtool: options.devtool ?? false,
     entry: Object.assign(
       {
         main: [paths.appIndexJs],

@@ -10,16 +10,19 @@
 
 // TODO
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {network_cellular_configs} from '@fbcnms/magmalte/app/common/__generated__/MagmaAPIBindings';
+import type {
+  network_cellular_configs,
+  network_dns_config,
+  tier,
+} from '@fbcnms/magma-api';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
-import axios from 'axios';
 import express from 'express';
 
+import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
 import {CELLULAR} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
-import {apiUrl, httpsAgent} from '../magma';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
@@ -28,28 +31,49 @@ const router = express.Router();
 const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
   epc: {
     cloud_subscriberdb_enabled: false,
-    default_rule_id: '',
-    mcc: '001',
-    mnc: '01',
-    tac: 1,
+    default_rule_id: 'default_rule_1',
     lte_auth_amf: 'gAA=',
     lte_auth_op: 'EREREREREREREREREREREQ==',
+    mcc: '001',
+    mnc: '01',
+    network_services: ['metering', 'dpi', 'policy_enforcement'],
     relay_enabled: false,
     sub_profiles: {},
+    tac: 1,
   },
+  features: {
+    // A placeholder due to bug in serialization
+    placeholder: 'true',
+  },
+  feg_network_id: '',
   ran: {
     bandwidth_mhz: 20,
-    earfcndl: 44590,
-    special_subframe_pattern: 7,
-    subframe_assignment: 2,
-    ul_dl_ratio: 1,
+    // TODO: Add option in UI for either fdd or tdd
+    // plus config values
+    // fdd_config: {
+    //   earfcndl: 44590,
+    //   earfcnul: 18000,
+    // },
     tdd_config: {
       earfcndl: 44590,
       special_subframe_pattern: 7,
       subframe_assignment: 2,
     },
   },
-  non_eps_service: null,
+};
+
+const DEFAULT_DNS_CONFIG: network_dns_config = {
+  enable_caching: false,
+  local_ttl: 0,
+  records: [],
+};
+
+const DEFAULT_UPGRADE_TIER: tier = {
+  gateways: [],
+  id: 'default',
+  images: [],
+  name: 'Default Tier',
+  version: '0.0.0-0',
 };
 
 router.post(
@@ -57,26 +81,36 @@ router.post(
   access(AccessRoles.SUPERUSER),
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const {networkID, data} = req.body;
+    const {name, description} = data;
 
     let resp;
     try {
-      // Create network
-      resp = await axios.post(apiUrl('/magma/networks'), data, {
-        httpsAgent,
-        params: {
-          requested_id: networkID,
-          new_workflow_flag: false,
-        },
-      });
-
       if (data.features.networkType === CELLULAR) {
-        // Create default cellular config
-        await axios.post(
-          apiUrl(`/magma/networks/${networkID}/configs/cellular`),
-          DEFAULT_CELLULAR_CONFIG,
-          {httpsAgent},
-        );
+        resp = await MagmaV1API.postLte({
+          lteNetwork: {
+            cellular: DEFAULT_CELLULAR_CONFIG,
+            dns: DEFAULT_DNS_CONFIG,
+            id: networkID,
+            name,
+            description,
+          },
+        });
+      } else {
+        await MagmaV1API.postNetworks({
+          network: {
+            name,
+            description,
+            id: networkID,
+            type: data.features.networkType,
+            dns: DEFAULT_DNS_CONFIG,
+          },
+        });
       }
+
+      MagmaV1API.postNetworksByNetworkIdTiers({
+        networkId: networkID,
+        tier: DEFAULT_UPGRADE_TIER,
+      });
 
       // Add network to organization
       if (req.organization) {
@@ -103,7 +137,7 @@ router.post(
       .status(200)
       .send({
         success: true,
-        apiResponse: resp.data,
+        apiResponse: resp,
       })
       .end();
   }),
@@ -117,14 +151,18 @@ router.put(
 
     let resp;
     try {
-      // Create network
-      resp = await axios.put(apiUrl(`/magma/networks/${networkID}`), data, {
-        httpsAgent,
-        params: {
-          requested_id: networkID,
-          new_workflow_flag: false,
-        },
-      });
+      // Update network
+      if (data.features.networkType === CELLULAR) {
+        resp = await MagmaV1API.putLteByNetworkId({
+          networkId: networkID,
+          lteNetwork: data,
+        });
+      } else {
+        resp = await MagmaV1API.putNetworksByNetworkId({
+          networkId: networkID,
+          network: data,
+        });
+      }
     } catch (e) {
       logger.error(e, {
         response: e.response?.data,
@@ -144,7 +182,7 @@ router.put(
       .status(200)
       .send({
         success: true,
-        apiResponse: resp.data,
+        apiResponse: resp,
       })
       .end();
   }),

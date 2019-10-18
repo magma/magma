@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
   },
   smallText: {
     fontSize: '14px',
-    lineHeight: '18px',
+    lineHeight: '24px',
     fontWeight: 500,
   },
 }));

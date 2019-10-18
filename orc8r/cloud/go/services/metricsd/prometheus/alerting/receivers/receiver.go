@@ -83,7 +83,8 @@ func (c *Config) Validate() error {
 type Receiver struct {
 	Name string `yaml:"name" json:"name"`
 
-	SlackConfigs []*SlackConfig `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	SlackConfigs   []*SlackConfig          `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs []*config.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a networkID prefix

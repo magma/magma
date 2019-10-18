@@ -84,10 +84,12 @@ class Application final : public MetricSink {
 
   DhcpdConfig& getDhcpdConfig();
 
+  channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine();
 
  private:
   void pollDevices();
+  void doDebug();
 
   template <class EngineType, class... Args>
   EngineType* addEngine(Args&&... args) {

@@ -61,6 +61,8 @@ info:
 tags:
   - name: Metrics
     description: Viewing collected gateway metrics
+  - name: Alerts
+    description: Configuring alerting rules on time-series data
 
 basePath: /magma/v1
 
@@ -179,7 +181,7 @@ paths:
     get:
       summary: View currently firing alerts
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -196,7 +198,7 @@ paths:
     post:
       summary: Create new alerting rule
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: body
@@ -214,7 +216,7 @@ paths:
       summary: Retrive alerting rule configurations
       description: If no query parameters are included, all alerting rules for the given network are returned.
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: query
@@ -232,7 +234,7 @@ paths:
     delete:
       summary: Delete an alerting rule
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: query
@@ -250,7 +252,7 @@ paths:
     put:
       summary: Bulk update/create alerting rules
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: body
@@ -271,7 +273,7 @@ paths:
     put:
       summary: Update an alerting rule
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: path
@@ -295,7 +297,7 @@ paths:
     post:
       summary: Create new alert receiver
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: body
@@ -312,7 +314,7 @@ paths:
     get:
       summary: Retrive alert receivers
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -327,7 +329,7 @@ paths:
     delete:
       summary: Delete alert receiver
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: query
@@ -345,7 +347,7 @@ paths:
     put:
       summary: Update existing alert receiver
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: path
@@ -369,7 +371,7 @@ paths:
     get:
       summary: Retrieve alert routing tree
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -380,7 +382,7 @@ paths:
     post:
       summary: Modify alert routing tree
       tags:
-        - Metrics
+        - Alerts
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: body
@@ -565,6 +567,10 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/slack_receiver'
+      webhook_configs:
+        type: array
+        items:
+          $ref: '#/definitions/webhook_receiver'
 
   slack_receiver:
     type: object
@@ -662,6 +668,41 @@ definitions:
       ok_text:
         type: string
       dismiss_text:
+        type: string
+
+  webhook_receiver:
+    type: object
+    required:
+      - url
+    properties:
+      url:
+        type: string
+      send_resolved:
+        type: boolean
+      http_config:
+        $ref: '#/definitions/http_config'
+
+  # See https://prometheus.io/docs/alerting/configuration/#http_config. Not
+  # supporting several fields which are filepaths.
+  http_config:
+    type: object
+    properties:
+      basic_auth:
+        $ref: '#/definitions/http_config_basic_auth'
+      bearer_token:
+        type: string
+      proxy_url:
+        type: string
+
+  http_config_basic_auth:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
         type: string
 
   prom_firing_alert:

@@ -162,6 +162,12 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'multi_subject_reports',
+    title: 'Multi Subject Reports',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
