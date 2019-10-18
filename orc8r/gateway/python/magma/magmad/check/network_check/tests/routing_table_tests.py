@@ -15,7 +15,7 @@ from magma.magmad.check.network_check import routing_table
 class RoutingTableParseTests(unittest.TestCase):
     def test_parse_bad_output(self):
         expected = routing_table.RouteCommandResult(error='err',
-                                                    routing_table=None)
+                                                    routing_table=[])
         actual = routing_table.parse_route_output('output', 'err', None)
         self.assertEqual(expected, actual)
 
@@ -25,7 +25,7 @@ class RoutingTableParseTests(unittest.TestCase):
         ''').strip().encode('ascii')
         expected = routing_table.RouteCommandResult(
             error='Unexpected heading: bad',
-            routing_table=None)
+            routing_table=[])
         actual = routing_table.parse_route_output(output, '', None)
         self.assertEqual(expected, actual)
 
@@ -45,65 +45,41 @@ class RoutingTableParseTests(unittest.TestCase):
             error=None,
             routing_table=[
                 routing_table.Route(
-                    destination='0.0.0.0',
-                    gateway='10.0.2.2',
+                    destination_ip='0.0.0.0',
+                    gateway_ip='10.0.2.2',
                     genmask='0.0.0.0',
-                    flags='UG',
-                    metric='0',
-                    ref='0',
-                    use='0',
-                    interface='eth0',
-                ),
+                    network_interface_id='eth0',
+                )._asdict(),
                 routing_table.Route(
-                    destination='10.0.2.0',
-                    gateway='0.0.0.0',
+                    destination_ip='10.0.2.0',
+                    gateway_ip='0.0.0.0',
                     genmask='255.255.255.0',
-                    flags='U',
-                    metric='0',
-                    ref='0',
-                    use='0',
-                    interface='eth0',
-                ),
+                    network_interface_id='eth0',
+                )._asdict(),
                 routing_table.Route(
-                    destination='169.254.0.0',
-                    gateway='0.0.0.0',
+                    destination_ip='169.254.0.0',
+                    gateway_ip='0.0.0.0',
                     genmask='255.255.0.0',
-                    flags='U',
-                    metric='1000',
-                    ref='0',
-                    use='0',
-                    interface='eth0',
-                ),
+                    network_interface_id='eth0',
+                )._asdict(),
                 routing_table.Route(
-                    destination='192.168.60.0',
-                    gateway='0.0.0.0',
+                    destination_ip='192.168.60.0',
+                    gateway_ip='0.0.0.0',
                     genmask='255.255.255.0',
-                    flags='U',
-                    metric='0',
-                    ref='0',
-                    use='0',
-                    interface='eth1',
-                ),
+                    network_interface_id='eth1',
+                )._asdict(),
                 routing_table.Route(
-                    destination='192.168.128.0',
-                    gateway='0.0.0.0',
+                    destination_ip='192.168.128.0',
+                    gateway_ip='0.0.0.0',
                     genmask='255.255.255.0',
-                    flags='U',
-                    metric='0',
-                    ref='0',
-                    use='0',
-                    interface='gtp_br0',
-                ),
+                    network_interface_id='gtp_br0',
+                )._asdict(),
                 routing_table.Route(
-                    destination='192.168.129.0',
-                    gateway='0.0.0.0',
+                    destination_ip='192.168.129.0',
+                    gateway_ip='0.0.0.0',
                     genmask='255.255.255.0',
-                    flags='U',
-                    metric='0',
-                    ref='0',
-                    use='0',
-                    interface='eth2',
-                ),
+                    network_interface_id='eth2',
+                )._asdict(),
             ])
         actual = routing_table.parse_route_output(output, '', None)
         self.assertEqual(expected, actual)

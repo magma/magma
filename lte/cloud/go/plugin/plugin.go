@@ -13,10 +13,8 @@ import (
 	"magma/lte/cloud/go/plugin/handlers"
 	lteModels "magma/lte/cloud/go/plugin/models"
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
-	cellularState "magma/lte/cloud/go/services/cellular/state"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
 	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
-	models2 "magma/lte/cloud/go/services/policydb/obsidian/models"
 	policydbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdbh "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
@@ -51,8 +49,6 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		// TODO: remove EnodebStateProtosSerde after gateway change for reporting enodeb state has landed and stabilized
-		&cellularState.EnodebStateProtosSerde{},
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
 		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
@@ -61,8 +57,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRule{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &lteModels.PolicyRule{}),
+		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &lteModels.BaseNameRecord{}),
 		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
 	}
 }

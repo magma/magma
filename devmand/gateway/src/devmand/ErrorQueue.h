@@ -11,6 +11,7 @@
 #include <string>
 
 #include <folly/dynamic.h>
+#include <folly/Synchronized.h>
 
 namespace devmand {
 
@@ -29,8 +30,7 @@ class ErrorQueue final {
   folly::dynamic get();
 
  private:
-  // TODO make sync
-  std::list<std::string> errors;
+  folly::Synchronized<std::list<std::string>> errors;
   unsigned int maxSize{0};
 };
 

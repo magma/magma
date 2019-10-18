@@ -9,10 +9,16 @@
 package handlers
 
 import (
+	"fmt"
+
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/service/config"
+
+	"github.com/labstack/echo"
+	"github.com/olivere/elastic/v7"
 )
 
 const (
@@ -50,6 +56,8 @@ const (
 	ManageTierImagePath    = ManageTierImagesPath + obsidian.UrlSep + ":image_name"
 	ManageTierGatewaysPath = ManageTiersPath + obsidian.UrlSep + "gateways"
 	ManageTierGatewayPath  = ManageTierGatewaysPath + obsidian.UrlSep + ":gateway_id"
+
+	LogQueryPath = ManageNetworkPath + obsidian.UrlSep + "logs"
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -108,5 +116,28 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialEntityHandlers(ManageTierVersionPath, "tier_id", new(models2.TierVersion))...)
 	ret = append(ret, GetPartialEntityHandlers(ManageTierImagesPath, "tier_id", new(models2.TierImages))...)
 	ret = append(ret, GetPartialEntityHandlers(ManageTierGatewaysPath, "tier_id", new(models2.TierGateways))...)
+
+	// Elastic
+	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")
+	if err != nil {
+		ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+	} else {
+		elasticHost := elasticConfig.GetRequiredStringParam("elasticHost")
+		elasticPort := elasticConfig.GetRequiredIntParam("elasticPort")
+
+		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
+		if err != nil {
+			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		} else {
+			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: GetQueryLogHandler(client)})
+		}
+	}
+
 	return ret
+}
+
+func getInitErrorHandler(err error) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return obsidian.HttpError(fmt.Errorf("initialization Error: %v", err), 500)
+	}
 }

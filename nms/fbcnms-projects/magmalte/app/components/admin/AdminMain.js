@@ -12,14 +12,10 @@ import * as React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {getProjectLinks} from '../../common/projects';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios} from '@fbcnms/ui/hooks';
 import {useContext} from 'react';
 
 const useStyles = makeStyles(_theme => ({
@@ -33,7 +29,7 @@ type Props = {
   navRoutes: () => React.Node,
 };
 
-function AdminMain(props: Props) {
+export default function AdminMain(props: Props) {
   const classes = useStyles();
   const {tabs, user} = useContext(AppContext);
 
@@ -48,26 +44,3 @@ function AdminMain(props: Props) {
     </div>
   );
 }
-
-export default (props: Props) => {
-  const {error, isLoading, response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.networks(),
-  });
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  const networkIds = error || !response ? ['mpk_test'] : response.data.sort();
-
-  const appContext = {
-    ...window.CONFIG.appData,
-    networkIds,
-  };
-  return (
-    <ApplicationMain appContext={appContext}>
-      <AdminMain {...props} />
-    </ApplicationMain>
-  );
-};

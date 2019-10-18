@@ -33,11 +33,11 @@ func TestHistogramToGauge(t *testing.T) {
 		name := family.GetName()
 		for _, metric := range family.Metric {
 			if name == (tests.HistogramMetricName + bucketPostfix) {
-				assert.True(t, hasLabelName(metric.Label, histogramBucketLabelName))
+				assert.True(t, tests.HasLabelName(metric.Label, histogramBucketLabelName))
 			} else if name == (tests.HistogramMetricName + sumPostfix) {
-				assert.False(t, hasLabelName(metric.Label, histogramBucketLabelName))
+				assert.False(t, tests.HasLabelName(metric.Label, histogramBucketLabelName))
 			} else if name == (tests.HistogramMetricName + countPostfix) {
-				assert.False(t, hasLabelName(metric.Label, histogramBucketLabelName))
+				assert.False(t, tests.HasLabelName(metric.Label, histogramBucketLabelName))
 			} else {
 				// Unexpected family name
 				t.Fail()
@@ -55,11 +55,11 @@ func TestSummaryToGauge(t *testing.T) {
 		name := family.GetName()
 		for _, metric := range family.Metric {
 			if name == tests.SummaryMetricName {
-				assert.True(t, hasLabelName(metric.Label, summaryQuantileLabelName))
+				assert.True(t, tests.HasLabelName(metric.Label, summaryQuantileLabelName))
 			} else if name == (tests.SummaryMetricName + sumPostfix) {
-				assert.False(t, hasLabelName(metric.Label, summaryQuantileLabelName))
+				assert.False(t, tests.HasLabelName(metric.Label, summaryQuantileLabelName))
 			} else if name == (tests.SummaryMetricName + countPostfix) {
-				assert.False(t, hasLabelName(metric.Label, summaryQuantileLabelName))
+				assert.False(t, tests.HasLabelName(metric.Label, summaryQuantileLabelName))
 			} else {
 				// Unexpected family name
 				t.Fail()

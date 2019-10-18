@@ -9,10 +9,10 @@
  */
 
 import * as React from 'react';
+import SymphonyTheme from '../theme/symphony';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
-import {gray8} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -27,7 +27,7 @@ const useStyles = makeStyles(theme => ({
     fontSize: theme.typography.pxToRem(13),
   },
   slash: {
-    color: gray8,
+    color: SymphonyTheme.palette.D400,
     margin: '0 6px',
   },
   breadcrumbName: {
@@ -36,7 +36,7 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.blueGrayDark,
   },
   parentBreadcrumb: {
-    color: gray8,
+    color: SymphonyTheme.palette.D400,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
   },
   smallText: {
     fontSize: '14px',
-    lineHeight: '18px',
+    lineHeight: '24px',
     fontWeight: 500,
   },
 }));

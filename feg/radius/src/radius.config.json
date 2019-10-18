@@ -13,12 +13,17 @@
         "unique_entity": true
     },
     "server": {
+        "sessionStorage": {
+            "storageType": "memory"
+        },
         "secret": "123456",
         "dedupWindow": "500ms",
         "listeners": [
             {
                 "name": "auth",
-                "port": 1812,
+                "extra": {
+                    "port": 1812
+                },
                 "type": "udp",
                 "modules": [
                     {
@@ -46,7 +51,9 @@
             },
             {
                 "name": "acct",
-                "port": 1813,
+                "extra": {
+                    "port": 1813
+                },
                 "type": "udp",
                 "modules": [
                     {
@@ -69,7 +76,9 @@
             },
             {
                 "name": "coa_grpc",
-                "port": 9108,
+                "extra": {
+                    "port": 9108
+                },
                 "type": "grpc",
                 "modules": [
                     {

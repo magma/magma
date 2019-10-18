@@ -27,15 +27,27 @@ class EventBaseUtils final {
       folly::EventBase& eventBase,
       std::function<void()> event,
       const std::chrono::seconds& seconds) {
-    eventBase.runInEventBaseThread([&eventBase, event, seconds]() {
-      ErrorHandler::executeWithCatch([&event]() { event(); });
+    scheduleEvery(
+        eventBase,
+        event,
+        std::chrono::duration_cast<std::chrono::milliseconds>(seconds));
+  }
 
-      std::function<void()> recurse = [&eventBase, event, seconds]() {
-        scheduleEvery(eventBase, event, seconds);
-      };
+  static inline void scheduleEvery(
+      folly::EventBase& eventBase,
+      std::function<void()> event,
+      const std::chrono::milliseconds& milliseconds) {
+    if (eventBase.isRunning()) {
+      eventBase.runInEventBaseThread([&eventBase, event, milliseconds]() {
+        ErrorHandler::executeWithCatch([&event]() { event(); });
 
-      eventBase.scheduleAt(recurse, eventBase.now() + seconds);
-    });
+        std::function<void()> recurse = [&eventBase, event, milliseconds]() {
+          scheduleEvery(eventBase, event, milliseconds);
+        };
+
+        eventBase.scheduleAt(recurse, eventBase.now() + milliseconds);
+      });
+    }
   }
 
   static inline void scheduleIn(

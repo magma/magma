@@ -11,12 +11,17 @@ package servicers
 import (
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
 	"github.com/golang/glog"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/registry"
 )
 
 const (
@@ -24,10 +29,59 @@ const (
 	MaxDiamRTRetries = 1
 )
 
-type fegRelayClient struct{}
+type fegRelayClient struct {
+	registry registry.CloudRegistry
+}
 
-func (r *fegRelayClient) RelayFromFeg() (protos.ErrorCode, error) {
-	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("Relay for RTR is unimplemented")
+type CloseableSwxGatewayServiceResponderClient struct {
+	protos.SwxGatewayServiceClient
+	conn *grpc.ClientConn
+}
+
+func (client *CloseableSwxGatewayServiceResponderClient) Close() {
+	client.conn.Close()
+}
+
+// GetSwxGatewayServiceResponderClient returns a client to the local terminate registration client
+func GetSwxGatewayServiceResponderClient(
+	cloudRegistry registry.CloudRegistry) (*CloseableSwxGatewayServiceResponderClient, error) {
+
+	conn, err := cloudRegistry.GetCloudConnection(feg_relay.ServiceName)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to connect to SWx Gateway Relay: %s", err)
+	}
+	return &CloseableSwxGatewayServiceResponderClient{
+		SwxGatewayServiceClient: protos.NewSwxGatewayServiceClient(conn),
+		conn:                    conn,
+	}, nil
+}
+
+func (r *fegRelayClient) RelayRTR(rtr *RTR) (protos.ErrorCode, error) {
+	var err error
+	if r == nil || r.registry == nil {
+		err = fmt.Errorf("No relay registry for RTR")
+		return protos.ErrorCode_UNABLE_TO_DELIVER, err
+	}
+	client, err := GetSwxGatewayServiceResponderClient(r.registry)
+	if err != nil {
+		return protos.ErrorCode_UNABLE_TO_DELIVER, err
+	}
+	defer client.Close()
+
+	_, err = client.TerminateRegistration(context.Background(), &protos.RegistrationTerminationRequest{
+		UserName:   string(rtr.UserName),
+		ReasonCode: protos.RegistrationTerminationRequest_ReasonCode(rtr.DeregistrationReason.ReasonCode),
+		ReasonInfo: string(rtr.DeregistrationReason.ReasonInfo),
+		SessionId:  string(rtr.SessionID),
+	})
+	if err != nil {
+		return protos.ErrorCode_LIMITED_SUCCESS, err
+	}
+	return protos.ErrorCode_SUCCESS, nil
+}
+
+func (r *fegRelayClient) RelayASR(*diameter.ASR) (protos.ErrorCode, error) {
+	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("Relay for ASR is not implemented")
 }
 
 func handleRTR(s *swxProxy) diam.HandlerFunc {
@@ -36,17 +90,34 @@ func handleRTR(s *swxProxy) diam.HandlerFunc {
 		var rtr RTR
 		err := m.Unmarshal(&rtr)
 		if err != nil {
-			glog.Errorf("RTR Unmarshal failed for remote %s & message %s: %s", c.RemoteAddr(), m, err)
+			glog.Errorf("RTR Unmarshal failed for remote %s & message %s: %v", c.RemoteAddr(), m, err)
 			return
 		}
-		code, err := s.Relay.RelayFromFeg()
-		if err != nil {
-			glog.Error(err)
+		imsi := string(rtr.UserName)
+		if len(imsi) == 0 {
+			imsi, err = diameter.ExtractImsiFromSessionID(string(rtr.SessionID))
+			if err != nil {
+				err = fmt.Errorf("Error retreiving IMSI from Session ID %s: %s", rtr.SessionID, err)
+				glog.Error(err)
+				err = s.sendRTA(c, m, protos.ErrorCode_UNKNOWN_SESSION_ID, &rtr, MaxDiamRTRetries)
+				return
+			}
+			rtr.UserName = datatype.UTF8String(imsi)
 		}
-		err = s.sendRTA(c, m, code, &rtr, MaxDiamRTRetries)
-		if err != nil {
-			glog.Errorf("Failed to send RTA: %s", err.Error())
+		if s.cache != nil {
+			s.cache.Remove(imsi)
 		}
+		go func() {
+			code, err := s.Relay.RelayRTR(&rtr)
+			if err != nil {
+				glog.Error(err)
+			}
+
+			err = s.sendRTA(c, m, code, &rtr, MaxDiamRTRetries)
+			if err != nil {
+				glog.Errorf("Failed to send RTA: %v", err)
+			}
+		}()
 	}
 }
 

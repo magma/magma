@@ -10,10 +10,11 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {
-  MagmadConfig,
   Record,
   WifiConfig,
 } from '@fbcnms/magmalte/app/common/MagmaAPIType';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
+
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
@@ -26,6 +27,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaDeviceFields from '@fbcnms/magmalte/app/components/MagmaDeviceFields';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -67,7 +69,7 @@ type Props = ContextRouter &
 type State = {
   record: ?Record,
   macAddress: string,
-  magmaConfigs: ?MagmadConfig,
+  magmaConfigs: ?magmad_gateway_configs,
   magmaConfigsChanged: boolean,
   error: string,
   status: ?{
@@ -273,10 +275,11 @@ class WifiDeviceDialog extends React.Component<Props, State> {
 
     if (this.state.magmaConfigsChanged) {
       requests.push(
-        axios.put(
-          MagmaAPIUrls.gatewayConfigs(match, deviceID),
-          this.getMagmaConfigs(),
-        ),
+        MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
+          networkId: nullthrows(match.params.networkId),
+          gatewayId: deviceID,
+          magmad: this.getMagmaConfigs(),
+        }),
       );
     }
 
@@ -326,7 +329,7 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     };
   }
 
-  getMagmaConfigs(): MagmadConfig {
+  getMagmaConfigs(): magmad_gateway_configs {
     const magmaConfigs = nullthrows(this.state.magmaConfigs);
     return {
       ...magmaConfigs,

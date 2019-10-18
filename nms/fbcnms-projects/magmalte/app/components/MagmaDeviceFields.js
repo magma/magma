@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {MagmadConfig} from '../common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -29,7 +29,7 @@ const styles = {
 };
 
 type Props = WithStyles<typeof styles> & {
-  configs: MagmadConfig,
+  configs: magmad_gateway_configs,
   configChangeHandler: (string, any) => void,
 };
 

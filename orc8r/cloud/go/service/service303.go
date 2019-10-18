@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"magma/orc8r/cloud/go/common/metrics"
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/protos"
 
 	"golang.org/x/net/context"

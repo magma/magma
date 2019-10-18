@@ -83,14 +83,13 @@ func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, identifier uin
 	radiusP.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{
 		radius.Attribute([]byte(CalledStationID)),
 	}
+	radiusP.Attributes[rfc2869.EAPMessage_Type] = []radius.Attribute{
+		radius.Attribute([]byte(eapP)),
+	}
 	encoded, err := radiusP.Encode()
 	if err != nil {
 		return radius.Packet{}, errors.Wrap(err, "Error encoding Radius packet")
 	}
-	// Put EAP message in the EAP message Attribute.
-	encoded = append(encoded, uint8(rfc2869.EAPMessage_Type))
-	encoded = append(encoded, uint8(len(eapP)+2))
-	encoded = append(encoded, eapP...)
 
 	// Add Message-Authenticator Attribute.
 	encoded = srv.addMessageAuthenticator(encoded)

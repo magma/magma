@@ -41,15 +41,17 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
   ErrorHandler::thenError(
       getState()->collect().thenValue([idL, &sharedUnifiedView](auto data) {
         sharedUnifiedView.withULockPtr([&idL, &data](auto uUnifiedView) {
-          auto& unifiedView = *uUnifiedView.moveFromUpgradeToWrite();
+          auto unifiedView = uUnifiedView.moveFromUpgradeToWrite();
 
           // TODO this is an expensive hack... fix later. Prob. just store in
           // dyn and have the magma service convert it.
-          folly::dynamic dyn = unifiedView.find("devmand") != unifiedView.end()
-              ? folly::parseJson(unifiedView["devmand"])
+          folly::dynamic dyn =
+              unifiedView->find("devmand") != unifiedView->end()
+              ? folly::parseJson((*unifiedView)["devmand"])
               : folly::dynamic::object;
           dyn[idL] = data;
-          unifiedView["devmand"] = folly::toJson(dyn);
+          (*unifiedView)["devmand"] = folly::toJson(dyn);
+          LOG(INFO) << "state for " << idL << " is " << folly::toJson(dyn);
         });
       }));
 }

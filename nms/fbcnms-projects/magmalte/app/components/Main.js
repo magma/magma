@@ -8,116 +8,34 @@
  * @format
  */
 
-import type {$AxiosError} from 'axios';
-
 import Admin from './admin/Admin';
-import AppContent from '@fbcnms/ui/components/layout/AppContent';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
-import NetworkContext from './context/NetworkContext';
-import NetworkSelector from './NetworkSelector.react';
+import ErrorLayout from './main/ErrorLayout';
+import Index, {ROOT_PATHS} from './main/Index';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
-import React, {useContext} from 'react';
-import SectionLinks from './layout/SectionLinks';
-import SectionRoutes from './layout/SectionRoutes';
-import VersionTooltip from './VersionTooltip';
+import React from 'react';
+import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 
-import {MagmaAPIUrls} from '../common/MagmaAPI';
-import {getProjectLinks} from '../common/projects';
-import {makeStyles} from '@material-ui/styles';
+import useMagmaAPI from '../common/useMagmaAPI';
 import {sortBy} from 'lodash';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    display: 'flex',
-  },
-  toolbarIcon: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: '0 8px',
-    ...theme.mixins.toolbar,
-  },
-}));
-
-// These won't be considered networkIds
-const ROOT_PATHS = new Set(['network']);
-
-function Index(props: {noAccess: boolean}) {
-  const classes = useStyles();
-  const {match} = useRouter();
-  const {user, tabs} = useContext(AppContext);
-  const networkId = ROOT_PATHS.has(match.params.networkId)
-    ? null
-    : match.params.networkId;
-
-  return (
-    <NetworkContext.Provider value={{networkId}}>
-      <div className={classes.root}>
-        <AppSideBar
-          mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
-          secondaryItems={[<NetworkSelector key={1} />]}
-          projects={getProjectLinks(tabs, user)}
-          user={user}
-        />
-        <AppContent>
-          {props.noAccess ? <NoNetworksMessage /> : <SectionRoutes />}
-        </AppContent>
-      </div>
-    </NetworkContext.Provider>
-  );
-}
-
-function NetworkError({error}: {error: $AxiosError<string>}) {
-  const classes = useStyles();
-  const {user, tabs} = useContext(AppContext);
-  let errorMessage = error.message;
-  if (error.response && error.response.status >= 400) {
-    errorMessage = error.response?.statusText;
-  }
-  useSnackbar(
-    'Unable to communicate with magma controller: ' + errorMessage,
-    {variant: 'error'},
-    !!error,
-  );
-  return (
-    <div className={classes.root}>
-      <AppSideBar
-        mainItems={[]}
-        secondaryItems={[]}
-        projects={getProjectLinks(tabs, user)}
-        user={user}
-      />
-      <AppContent>
-        <div />
-      </AppContent>
-    </div>
-  );
-}
+import {useRouter} from '@fbcnms/ui/hooks';
 
 function Main() {
   const {match} = useRouter();
-  const {response, error, isLoading} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.networks(),
-  });
+  const {response, error} = useMagmaAPI(MagmaV1API.getNetworks, {});
 
-  const networkIds = sortBy(response?.data, [n => n.toLowerCase()]) || [
-    'mpk_test',
-  ];
-  const appContext = {
-    ...window.CONFIG.appData,
-    networkIds,
-  };
+  const networkIds = sortBy(response, [n => n.toLowerCase()]) || ['mpk_test'];
 
   if (error) {
     return (
-      <ApplicationMain appContext={appContext}>
-        <NetworkError error={error} />
-      </ApplicationMain>
+      <AppContextProvider>
+        <ErrorLayout>
+          <NetworkError error={error} />
+        </ErrorLayout>
+      </AppContextProvider>
     );
   }
 
@@ -125,26 +43,42 @@ function Main() {
     return <Redirect to={`/nms/${networkIds[0]}/map/`} />;
   }
 
-  if (
+  const hasNoNetworks =
     response &&
     networkIds.length === 0 &&
-    window.CONFIG.appData.user.isSuperUser &&
-    match.params.networkId !== 'network'
-  ) {
+    !ROOT_PATHS.has(match.params.networkId);
+
+  // If it's a superuser and there are no networks, prompt them to create a
+  // network
+  if (hasNoNetworks && window.CONFIG.appData.user.isSuperUser) {
     return <Redirect to="/nms/network/create" />;
   }
 
+  // If it's a regular user and there are no networks, then they likely dont
+  // have access.
+  if (hasNoNetworks && !window.CONFIG.appData.user.isSuperUser) {
+    return (
+      <AppContextProvider>
+        <ErrorLayout>
+          <NoNetworksMessage />
+        </ErrorLayout>
+      </AppContextProvider>
+    );
+  }
+
   return (
-    <ApplicationMain appContext={appContext}>
-      <Index noAccess={!isLoading && networkIds.length === 0} />
-    </ApplicationMain>
+    <AppContextProvider networkIDs={networkIds}>
+      <Index />
+    </AppContextProvider>
   );
 }
 
 export default () => (
-  <Switch>
-    <Route path="/nms/:networkId" component={Main} />
-    <Route path="/nms" component={Main} />
-    <Route path="/admin" component={Admin} />
-  </Switch>
+  <ApplicationMain>
+    <Switch>
+      <Route path="/nms/:networkId" component={Main} />
+      <Route path="/nms" component={Main} />
+      <Route path="/admin" component={Admin} />
+    </Switch>
+  </ApplicationMain>
 );

@@ -9,6 +9,7 @@
 package receivers
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/prometheus/alertmanager/config"
@@ -17,7 +18,8 @@ import (
 )
 
 var (
-	sampleRoute = config.Route{
+	sampleURL, _ = url.Parse("http://test.com")
+	sampleRoute  = config.Route{
 		Receiver: "testReceiver",
 		Routes: []*config.Route{
 			{
@@ -39,10 +41,21 @@ var (
 			Channel:  "slack_alert_channel",
 		}},
 	}
+	sampleWebhookReceiver = Receiver{
+		Name: "webhook_receiver",
+		WebhookConfigs: []*config.WebhookConfig{{
+			URL: &config.URL{
+				URL: sampleURL,
+			},
+			NotifierConfig: config.NotifierConfig{
+				VSendResolved: true,
+			},
+		}},
+	}
 	sampleConfig = Config{
 		Route: &sampleRoute,
 		Receivers: []*Receiver{
-			&sampleSlackReceiver, &sampleReceiver,
+			&sampleSlackReceiver, &sampleReceiver, &sampleWebhookReceiver,
 		},
 	}
 )
@@ -54,7 +67,6 @@ func TestConfig_Validate(t *testing.T) {
 		Receivers: []*Receiver{&sampleReceiver, &sampleSlackReceiver},
 		Global:    &defaultGlobalConf,
 	}
-
 	err := validConfig.Validate()
 	assert.NoError(t, err)
 
@@ -63,9 +75,8 @@ func TestConfig_Validate(t *testing.T) {
 		Receivers: []*Receiver{},
 		Global:    &defaultGlobalConf,
 	}
-
 	err = invalidConfig.Validate()
-	assert.Error(t, err)
+	assert.EqualError(t, err, `undefined receiver "testReceiver" used in route`)
 
 	invalidSlackReceiver := Receiver{
 		Name: "invalidSlack",
@@ -84,7 +95,26 @@ func TestConfig_Validate(t *testing.T) {
 		Global:    &defaultGlobalConf,
 	}
 	err = invalidSlackConfig.Validate()
-	assert.Error(t, err)
+	assert.EqualError(t, err, `unsupported scheme "" for URL`)
+
+	// Fail if action is missing a type
+	invalidSlackAction := Config{
+		Route: &config.Route{
+			Receiver: "invalidSlackAction",
+		},
+		Receivers: []*Receiver{{
+			Name: "invalidSlackAction",
+			SlackConfigs: []*SlackConfig{{
+				APIURL: "http://slack.com",
+				Actions: []*config.SlackAction{{
+					URL:  "test.com",
+					Text: "test",
+				}},
+			}},
+		}},
+	}
+	err = invalidSlackAction.Validate()
+	assert.EqualError(t, err, `missing type in Slack action configuration`)
 }
 
 func TestConfig_GetReceiver(t *testing.T) {
@@ -92,6 +122,9 @@ func TestConfig_GetReceiver(t *testing.T) {
 	assert.NotNil(t, rec)
 
 	rec = sampleConfig.GetReceiver("slack_receiver")
+	assert.NotNil(t, rec)
+
+	rec = sampleConfig.GetReceiver("webhook_receiver")
 	assert.NotNil(t, rec)
 
 	rec = sampleConfig.GetReceiver("nonRoute")

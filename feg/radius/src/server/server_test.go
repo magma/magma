@@ -389,6 +389,9 @@ func getConfigWithAuthListener(t *testing.T, moduleChain []string, moduleCount [
 			LiveTier:     config.TierRouting{},
 			Canaries:     []config.Canary{},
 		},
+		SessionStorage: config.SessionStorageConfig{
+			StorageType: "memory",
+		},
 	}
 	listenerCfg := config.ListenerConfig{
 		Name: "listener.0",

@@ -10,23 +10,47 @@ package models
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/protos"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
+	"github.com/thoas/go-funk"
 )
 
 func (m *LteNetwork) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.DNS.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Features.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -163,7 +187,23 @@ func (m *LteGateway) FromBackendModels(
 }
 
 func (m *MutableLteGateway) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only for cellular and device
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Device.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
@@ -387,4 +427,114 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscrib
 
 func (m *SubProfile) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+var formatsRegistry = strfmt.NewFormats()
+
+func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:         lte.BaseNameEntityType,
+		Key:          string(m.Name),
+		Associations: m.RuleNames.ToAssocs(),
+	}
+}
+
+func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
+	m.Name = BaseName(ent.Key)
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.PolicyRuleEntityType {
+			m.RuleNames = append(m.RuleNames, tk.Key)
+		}
+	}
+	return m
+}
+
+func (m RuleNames) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
+		},
+	).([]storage.TypeAndKey)
+}
+
+func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   lte.PolicyRuleEntityType,
+		Key:    *m.ID,
+		Config: m,
+	}
+}
+
+// PolicyRule's ToProto fills in passed protos.PolicyRule struct from
+// receiver's protos.PolicyRule
+func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
+	flowRuleProto, ok := pfrm.(*protos.PolicyRule)
+	if !ok {
+		return fmt.Errorf(
+			"Invalid Destination Type %s, *protos.PolicyRule expected",
+			reflect.TypeOf(pfrm))
+	}
+	if policyRule != nil || flowRuleProto != nil {
+		orcprotos.FillIn(policyRule, flowRuleProto)
+		trackingVal, ok := protos.PolicyRule_TrackingType_value[policyRule.TrackingType]
+		if ok {
+			flowRuleProto.TrackingType = protos.PolicyRule_TrackingType(trackingVal)
+		}
+		if flowRuleProto.FlowList == nil {
+			flowRuleProto.FlowList = flowListToProto(policyRule.FlowList)
+		}
+		if policyRule.Redirect != nil {
+			flowRuleProto.Redirect = redirectInfoToProto(policyRule.Redirect)
+		}
+		if policyRule.Priority != nil {
+			flowRuleProto.Priority = *policyRule.Priority
+		}
+		flowRuleProto.Id = *policyRule.ID
+		flowRuleProto.MonitoringKey = policyRule.MonitoringKey
+		flowRuleProto.RatingGroup = policyRule.RatingGroup
+	}
+	return nil
+}
+
+func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
+	redirectProto := &protos.RedirectInformation{}
+	orcprotos.FillIn(redirectModel, redirectProto)
+	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
+	if ok {
+		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
+	}
+	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
+	if ok {
+		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
+	}
+	return redirectProto
+}
+
+// Fill protos.PolicyRule.FlowList From passed protos.PolicyRule.FlowList
+func flowListToProto(flowList []*FlowDescription) []*protos.FlowDescription {
+	var s []*protos.FlowDescription
+	for i, flow := range flowList {
+		s = append(s, new(protos.FlowDescription))
+		orcprotos.FillIn(flow, s[i])
+		match := flow.Match
+		orcprotos.FillIn(match, s[i].Match)
+		if match.IPProto != nil {
+			protoVal, ok := protos.FlowMatch_IPProto_value[*match.IPProto]
+			if ok {
+				s[i].Match.IpProto = protos.FlowMatch_IPProto(protoVal)
+			}
+		}
+		directionVal, ok := protos.FlowMatch_Direction_value[*match.Direction]
+		if ok {
+			s[i].Match.Direction = protos.FlowMatch_Direction(directionVal)
+		}
+		if flow.Action != nil {
+			actionVal, ok := protos.FlowDescription_Action_value[*flow.Action]
+			if ok {
+				s[i].Action = protos.FlowDescription_Action(actionVal)
+			}
+		}
+	}
+	return s
 }

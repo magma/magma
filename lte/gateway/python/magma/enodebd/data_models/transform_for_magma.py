@@ -6,7 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import logging
+from magma.enodebd.logger import EnodebdLogger as logger
 import textwrap
 from typing import Optional, Union
 from magma.enodebd.exceptions import ConfigurationError
@@ -68,7 +68,7 @@ def bandwidth(bandwidth_rbs: Union[str, int, float]) -> float:
     if bandwidth_rbs in BANDWIDTH_RBS_TO_MHZ_MAP:
         return BANDWIDTH_RBS_TO_MHZ_MAP[bandwidth_rbs]
 
-    logging.debug('Unknown bandwidth_rbs (%s)', str(bandwidth_rbs))
+    logger.debug('Unknown bandwidth_rbs (%s)', str(bandwidth_rbs))
     if bandwidth_rbs in BANDWIDTH_MHZ_LIST:
         return bandwidth_rbs
     elif isinstance(bandwidth_rbs, str):

@@ -30,12 +30,13 @@ func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
 	rulesDir := flag.String("rules-dir", ".", "Directory to write rules files. Default is '.'")
 	prometheusURL := flag.String("prometheusURL", defaultPrometheusURL, fmt.Sprintf("URL of the prometheus instance that is reading these rules. Default is %s", defaultPrometheusURL))
+	multitenancy := flag.Bool("multitenant", false, "Set this flag to enable multi-tenant support, having each tenant's alerts in a separate file")
 	flag.Parse()
 
 	e := echo.New()
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
-	alertClient := alert.NewClient(fileLocks, *rulesDir, files.NewFSClient())
+	alertClient := alert.NewClient(fileLocks, *rulesDir, files.NewFSClient(), *multitenancy)
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return

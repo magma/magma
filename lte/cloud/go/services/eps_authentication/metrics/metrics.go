@@ -8,7 +8,11 @@ LICENSE file in the root directory of this source tree.
 
 package metrics
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"magma/orc8r/cloud/go/metrics"
+
+	"github.com/prometheus/client_golang/prometheus"
+)
 
 var (
 	AIRequests = prometheus.NewCounter(prometheus.CounterOpts{
@@ -58,17 +62,17 @@ var (
 	AuthErrorsByNetwork = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "auth_failures_total",
 		Help: "Total number of auth failures by network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	AuthSuccessesByNetwork = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "auth_successess_total",
 		Help: "Total number of auth successess by network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	UnknowSubscribersByNetwork = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Name: "unknown_subscribers_total",
 		Help: "Total number of unknown subscribers by network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 )
 

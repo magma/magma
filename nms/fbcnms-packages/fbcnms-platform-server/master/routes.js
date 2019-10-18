@@ -10,14 +10,13 @@
 
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
+import MagmaV1API from '../magma';
 import asyncHandler from '@fbcnms/util/asyncHandler';
-import axios from 'axios';
 import express from 'express';
 import featureConfigs from '../features';
 
 import {FeatureFlag, Organization} from '@fbcnms/sequelize-models';
 import {User} from '@fbcnms/sequelize-models';
-import {apiUrl, httpsAgent} from '../magma';
 import {getPropsToUpdate} from '@fbcnms/auth/util';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -180,10 +179,8 @@ router.delete(
 router.get(
   '/networks/async',
   asyncHandler(async (_: FBCNMSRequest, res) => {
-    const axiosResponse = await axios.get(apiUrl('/magma/networks'), {
-      httpsAgent,
-    });
-    res.status(200).send(axiosResponse.data);
+    const networks = await MagmaV1API.getNetworks();
+    res.status(200).send(networks);
   }),
 );
 

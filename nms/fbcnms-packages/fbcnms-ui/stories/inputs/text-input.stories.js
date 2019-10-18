@@ -8,8 +8,9 @@
  * @format
  */
 
+import InputAffix from '../../components/design-system/Input/InputAffix.react';
 import React, {useState} from 'react';
-import TextInput from '../../components/design-system/TextInput.react';
+import TextInput from '../../components/design-system/Input/TextInput.react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -70,6 +71,7 @@ const InputsRoot = () => {
         type="number"
         value={numberValue}
         onChange={({target}) => setNumberValue(target.value)}
+        prefix={<InputAffix>$</InputAffix>}
       />
     </div>
   );

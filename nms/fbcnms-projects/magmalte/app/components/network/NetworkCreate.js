@@ -34,6 +34,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function NetworkCreate() {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const classes = useStyles();
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -43,7 +44,7 @@ export default function NetworkCreate() {
     try {
       const payload = {
         networkID: name,
-        data: {name, features: {networkType: CELLULAR}},
+        data: {name, description, features: {networkType: CELLULAR}},
       };
       createResponse = await axios.post('/nms/network/create', payload);
       if (!createResponse?.data.success) {
@@ -82,6 +83,15 @@ export default function NetworkCreate() {
                     margin="normal"
                     value={name}
                     onChange={evt => setName(evt.target.value)}
+                  />
+                </FormGroup>
+                <FormGroup row>
+                  <TextField
+                    required
+                    label="Network Description"
+                    margin="normal"
+                    value={description}
+                    onChange={evt => setDescription(evt.target.value)}
                   />
                 </FormGroup>
               </DialogContent>

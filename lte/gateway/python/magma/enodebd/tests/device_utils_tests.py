@@ -12,6 +12,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 from unittest import TestCase
 from magma.enodebd.devices.device_utils import get_device_name, \
     _parse_sw_version, EnodebDeviceName
+from magma.enodebd.exceptions import UnrecognizedEnodebError
 
 
 class EnodebConfigUtilsTest(TestCase):
@@ -47,13 +48,13 @@ class EnodebConfigUtilsTest(TestCase):
         # Unsupported device OUI
         oui = 'beepboopbeep'
         version = 'boopboopboop'
-        with self.assertRaises(KeyError):
+        with self.assertRaises(UnrecognizedEnodebError):
             get_device_name(oui, version)
 
         # Unsupported software version for Baicells
         oui = '34ED0B'
         version = 'blingblangblong'
-        with self.assertRaises(KeyError):
+        with self.assertRaises(UnrecognizedEnodebError):
             get_device_name(oui, version)
 
     def test_parse_version(self):

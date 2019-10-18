@@ -12,8 +12,8 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	lte_models "magma/lte/cloud/go/plugin/models"
 	protos2 "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -45,7 +45,7 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 
 	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
-		ruleConfig := rule.Config.(*models.PolicyRule)
+		ruleConfig := rule.Config.(*lte_models.PolicyRule)
 		ruleProto := &protos2.PolicyRule{}
 		err = ruleConfig.ToProto(ruleProto)
 		if err != nil {
@@ -92,7 +92,7 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 
 	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		bnConfig := bn.Config.(*models.BaseNameRecord)
+		bnConfig := bn.Config.(*lte_models.BaseNameRecord)
 		ruleNames := make([]string, 0, len(bn.Associations))
 		for _, assoc := range bn.Associations {
 			ruleNames = append(ruleNames, assoc.Key)

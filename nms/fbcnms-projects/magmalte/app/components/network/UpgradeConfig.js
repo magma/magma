@@ -11,10 +11,7 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {
-  magmad_gateway,
-  tier,
-} from '../../common/__generated__/MagmaAPIBindings';
+import type {magmad_gateway, tier} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -22,7 +19,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -281,14 +278,10 @@ class UpgradeConfig extends React.Component<Props, State> {
 
   async handleGatewayUpgradeTierChangeAsync(gatewayID, newTierID) {
     const networkId = nullthrows(this.props.match.params.networkId);
-    const resp = await MagmaV1API.getNetworksByNetworkIdGatewaysByGatewayId({
+    await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
       networkId,
       gatewayId: gatewayID,
-    });
-    await MagmaV1API.putNetworksByNetworkIdGatewaysByGatewayId({
-      networkId,
-      gatewayId: gatewayID,
-      gateway: {...resp, tier: newTierID},
+      tierId: JSON.stringify(`"${newTierID}"`),
     });
     const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
       networkId,

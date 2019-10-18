@@ -31,23 +31,28 @@ import (
 // RegisterImpl sends SAR (code 301) over diameter
 // waits (blocks) for SAA and returns its RPC representation
 func (s *swxProxy) RegisterImpl(req *protos.RegistrationRequest, serverAssignmentType uint32) (*protos.RegistrationAnswer, error) {
-	res := &protos.RegistrationAnswer{}
+	sid := req.GetSessionId()
+	if len(sid) == 0 {
+		sid = s.genSID(req.GetUserName())
+	}
+	res := &protos.RegistrationAnswer{SessionId: sid}
 	err := validateRegistrationRequest(req)
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
-	_, err = s.sendSAR(req.GetUserName(), serverAssignmentType)
+	_, err = s.sendSAR(req.GetUserName(), serverAssignmentType, sid)
 	return res, err
 }
 
-func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32) (*SAA, error) {
-	return s.sendSARExt(userName, serverAssignmentType, s.config.ClientCfg.Host, s.config.ClientCfg.Realm)
+func (s *swxProxy) sendSAR(userName string, serverAssignmentType uint32, sid string) (*SAA, error) {
+	return s.sendSARExt(userName, serverAssignmentType, s.config.ClientCfg.Host, s.config.ClientCfg.Realm, sid)
 }
 
 func (s *swxProxy) sendSARExt(
-	userName string, serverAssignmentType uint32, originHost, originRealm string) (*SAA, error) {
-
-	sid := s.genSID()
+	userName string, serverAssignmentType uint32, originHost, originRealm, sid string) (*SAA, error) {
+	if len(sid) == 0 {
+		sid = s.genSID(userName)
+	}
 	ch := make(chan interface{})
 	s.requestTracker.RegisterRequest(sid, ch)
 	// if request hasn't been removed by end of transaction, remove it

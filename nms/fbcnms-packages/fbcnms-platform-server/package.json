@@ -7,6 +7,7 @@
     "@fbcnms/babel-register": "^0.1.0",
     "@fbcnms/express-middleware": "^0.1.0",
     "@fbcnms/logging": "^0.1.0",
+    "@fbcnms/magma-api": "^0.1.0",
     "@fbcnms/sequelize-models": "^0.1.0",
     "@fbcnms/types": "^0.1.0",
     "@fbcnms/util": "^0.1.0",

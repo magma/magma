@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	checkindTestInit "magma/orc8r/cloud/go/services/checkind/test_init"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -33,7 +32,6 @@ const testAgHwId = "Test-AGW-Hw-Id"
 func TestCheckind(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
-	checkindTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	restPort := tests.StartObsidian(t)
 

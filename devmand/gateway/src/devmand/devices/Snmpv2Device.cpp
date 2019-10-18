@@ -10,6 +10,7 @@
 
 #include <folly/Format.h>
 
+#include <devmand/Application.h>
 #include <devmand/ErrorHandler.h>
 #include <devmand/channels/snmp/IfMib.h>
 #include <devmand/devices/Snmpv2Device.h>
@@ -81,8 +82,9 @@ Snmpv2Device::Snmpv2Device(
     const std::string& securityName,
     const channels::snmp::SecurityLevel& securityLevel,
     oid proto[])
-    : Device(application, id_),
-      channel(
+    : PingDevice(application, id_, folly::IPAddress(peer)),
+      snmpChannel(
+          application.getSnmpEngine(),
           peer,
           community,
           version,
@@ -95,19 +97,24 @@ std::shared_ptr<State> Snmpv2Device::getState() {
   using IfMib = devmand::channels::snmp::IfMib;
   using IModel = devmand::models::interface::Model;
 
-  auto state = State::make(app, *this);
-  state->setStatus(false);
+  auto state = PingDevice::getState();
   IModel::init(state->update());
   auto& system = state->update()["ietf-system:system"] = folly::dynamic::object;
 
-  state->addRequest(IfMib::getSystemName(channel).thenValue(
-      [&system](auto v) { system["hostname"] = v; }));
-  state->addRequest(IfMib::getSystemContact(channel).thenValue(
-      [&system](auto v) { system["contact"] = v; }));
-  state->addRequest(IfMib::getSystemLocation(channel).thenValue(
-      [&system](auto v) { system["location"] = v; }));
   state->addRequest(
-      IfMib::getInterfaceNames(channel).thenValue([state](auto results) {
+      IfMib::getSystemName(snmpChannel).thenValue([&system](auto v) {
+        system["hostname"] = v;
+      }));
+  state->addRequest(
+      IfMib::getSystemContact(snmpChannel).thenValue([&system](auto v) {
+        system["contact"] = v;
+      }));
+  state->addRequest(
+      IfMib::getSystemLocation(snmpChannel).thenValue([&system](auto v) {
+        system["location"] = v;
+      }));
+  state->addRequest(
+      IfMib::getInterfaceNames(snmpChannel).thenValue([state](auto results) {
         for (auto result : results) {
           IModel::updateInterface(
               state->update(), result.index, "name", result.value);
@@ -118,35 +125,40 @@ std::shared_ptr<State> Snmpv2Device::getState() {
         }
       }));
   state->addRequest(
-      IfMib::getInterfaceOperStatuses(channel).thenValue([state](auto results) {
-        for (auto result : results) {
-          // TODO this is not valid according to the model but we need to fix
-          // the front-end.
-          IModel::updateInterface(
-              state->update(), result.index, "oper-status", result.value);
-          IModel::updateInterface(
-              state->update(), result.index, "state/oper-status", result.value);
-        }
-      }));
-
-  state->addRequest(IfMib::getInterfaceAdminStatuses(channel).thenValue(
-      [state](auto results) {
-        for (auto result : results) {
-          bool isEnabled = result.value == "UP";
-          IModel::updateInterface(
-              state->update(),
-              result.index,
-              "state/admin-status",
-              result.value);
-          IModel::updateInterface(
-              state->update(), result.index, "config/enabled", isEnabled);
-          IModel::updateInterface(
-              state->update(), result.index, "state/enabled", isEnabled);
-        }
-      }));
+      IfMib::getInterfaceOperStatuses(snmpChannel)
+          .thenValue([state](auto results) {
+            for (auto result : results) {
+              // TODO this is not valid according to the model but we need to
+              // fix the front-end.
+              IModel::updateInterface(
+                  state->update(), result.index, "oper-status", result.value);
+              IModel::updateInterface(
+                  state->update(),
+                  result.index,
+                  "state/oper-status",
+                  result.value);
+            }
+          }));
 
   state->addRequest(
-      IfMib::getInterfaceMtus(channel).thenValue([state](auto results) {
+      IfMib::getInterfaceAdminStatuses(snmpChannel)
+          .thenValue([state](auto results) {
+            for (auto result : results) {
+              bool isEnabled = result.value == "UP";
+              IModel::updateInterface(
+                  state->update(),
+                  result.index,
+                  "state/admin-status",
+                  result.value);
+              IModel::updateInterface(
+                  state->update(), result.index, "config/enabled", isEnabled);
+              IModel::updateInterface(
+                  state->update(), result.index, "state/enabled", isEnabled);
+            }
+          }));
+
+  state->addRequest(
+      IfMib::getInterfaceMtus(snmpChannel).thenValue([state](auto results) {
         for (auto result : results) {
           IModel::updateInterface(
               state->update(), result.index, "config/mtu", result.value);
@@ -156,7 +168,7 @@ std::shared_ptr<State> Snmpv2Device::getState() {
       }));
 
   state->addRequest(
-      IfMib::getInterfaceTypes(channel).thenValue([state](auto results) {
+      IfMib::getInterfaceTypes(snmpChannel).thenValue([state](auto results) {
         for (auto result : results) {
           int ifMibType = folly::to<int>(result.value);
           std::string interfaceType = getTypeString(ifMibType);
@@ -179,31 +191,42 @@ std::shared_ptr<State> Snmpv2Device::getState() {
         }
       }));
 
-  state->addRequest(
-      IfMib::getInterfaceDescriptions(channel).thenValue([state](auto results) {
-        for (auto result : results) {
-          IModel::updateInterface(
-              state->update(),
-              result.index,
-              "config/description",
-              result.value);
-          IModel::updateInterface(
-              state->update(), result.index, "state/description", result.value);
-        }
-      }));
+  state->addRequest(IfMib::getInterfaceDescriptions(snmpChannel)
+                        .thenValue([state](auto results) {
+                          for (auto result : results) {
+                            IModel::updateInterface(
+                                state->update(),
+                                result.index,
+                                "config/description",
+                                result.value);
+                            IModel::updateInterface(
+                                state->update(),
+                                result.index,
+                                "state/description",
+                                result.value);
+                          }
+                        }));
 
+  state->addRequest(IfMib::getInterfaceLastChange(snmpChannel)
+                        .thenValue([state](auto results) {
+                          for (auto result : results) {
+                            IModel::updateInterface(
+                                state->update(),
+                                result.index,
+                                "state/last-change",
+                                result.value);
+                          }
+                        }));
   state->addRequest(
-      IfMib::getInterfaceLastChange(channel).thenValue([state](auto results) {
-        for (auto result : results) {
-          IModel::updateInterface(
-              state->update(), result.index, "state/last-change", result.value);
-        }
+      snmpChannel.walk(channels::snmp::Oid(".1")).thenValue([](auto walk) {
+        LOG(INFO) << "Completed an SNMP walk with " << walk.size()
+                  << " entries";
       }));
 
   auto addRequest = [&state, this](
                         const std::string& oid, const std::string& path) {
     state->addRequest(
-        IfMib::getInterfaceField(channel, oid)
+        IfMib::getInterfaceField(snmpChannel, oid)
             .thenValue([state, path](auto results) {
               for (auto result : results) {
                 IModel::updateInterface(

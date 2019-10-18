@@ -21,6 +21,7 @@ import (
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 )
 
@@ -51,10 +52,17 @@ type GxClient struct {
 func NewConnectedGxClient(
 	diamClient *diameter.Client,
 	reAuthHandler ReAuthHandler,
+	cloudRegistry registry.CloudRegistry,
 ) *GxClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.GX_CHARGING_CONTROL_APP_ID, ccaHandler)
 	registerReAuthHandler(reAuthHandler, diamClient)
-
+	if cloudRegistry != nil {
+		diamClient.RegisterHandler(
+			diam.AbortSession,
+			diam.GX_CHARGING_CONTROL_APP_ID,
+			true,
+			credit_control.NewASRHandler(diamClient, cloudRegistry))
+	}
 	return &GxClient{
 		diamClient:          diamClient,
 		pcrf91Compliant:     *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
@@ -81,12 +89,13 @@ func NewGxClient(
 	clientCfg *diameter.DiameterClientConfig,
 	servers []*diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
+	cloudRegistry registry.CloudRegistry,
 ) *GxClient {
 	diamClient := diameter.NewClient(clientCfg)
 	for _, server := range servers {
 		diamClient.BeginConnection(server)
 	}
-	return NewConnectedGxClient(diamClient, reAuthHandler)
+	return NewConnectedGxClient(diamClient, reAuthHandler, cloudRegistry)
 }
 
 // SendCreditControlRequest sends a Gx Credit Control Requests to the

@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 package servicers
 
-import "magma/feg/cloud/go/protos"
+import "magma/lte/cloud/go/protos"
 
 func (suite *EpsAuthTestSuite) TestUpdateLocation_NilRequest() {
 	_, err := suite.UpdateLocation(nil)

@@ -42,6 +42,7 @@ func (*CwfOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &cwfmodels.NetworkCarrierWifiConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &cwfmodels.GatewayCwfConfigs{}),
 	}
 }
 

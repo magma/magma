@@ -9,12 +9,12 @@
  */
 
 import type {MagmaFeatureCollection} from '../../common/GeoJSON';
-import type {magmad_gateway} from '../../common/__generated__/MagmaAPIBindings';
+import type {magmad_gateway} from '@fbcnms/magma-api';
 
 import Alert from '@fbcnms/ui/components/Alert/Alert';
 import GatewayMapMarker from './GatewayMapMarker';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MapView from '../MapView';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
