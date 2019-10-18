@@ -93,6 +93,11 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.GET, HandlerFunc: promH.GetRetrieveAlertRouteHandler(alertmanagerConfigServiceURL)},
 		obsidian.Handler{Path: promH.AlertReceiverConfigV1URL + "/route", Methods: obsidian.POST, HandlerFunc: promH.GetUpdateAlertRouteHandler(alertmanagerConfigServiceURL)},
 
+		// Alert Silencers
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.GET, HandlerFunc: promH.GetGetSilencersHandler(alertmanagerURL)},
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.POST, HandlerFunc: promH.GetPostSilencerHandler(alertmanagerURL)},
+		obsidian.Handler{Path: promH.AlertSilencerV1URL, Methods: obsidian.DELETE, HandlerFunc: promH.GetDeleteSilencerHandler(alertmanagerURL)},
+
 		obsidian.Handler{Path: MetricsV1Root + "/push", Methods: obsidian.POST, HandlerFunc: pushHandler},
 	)
 
