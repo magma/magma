@@ -200,8 +200,9 @@ TEST_F(DevConfTest, badExtension) {
   FileUtils::write(
       "/tmp/deviceConfig.txt", formatYaml("foo", "203.0.113.1", "Foo"));
   cartography::Cartographer cartographer{add, del};
-  cartographer.addDeviceDiscoveryMethod(
-      std::make_shared<magma::DevConf>(eventBase, yamlDeviceConfig));
+  EXPECT_THROW(cartographer.addDeviceDiscoveryMethod(
+      std::make_shared<magma::DevConf>(eventBase, "/tmp/deviceConfig.txt")),
+      std::runtime_error);
   stop();
 }
 
