@@ -10,10 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
-import type {
-  enodeb,
-  enodeb_configuration,
-} from '../../common/__generated__/MagmaAPIBindings';
+import type {enodeb, enodeb_configuration} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -24,7 +21,7 @@ import EnodebPropertySelector from './EnodebPropertySelector';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import TextField from '@material-ui/core/TextField';

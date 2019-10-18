@@ -9,7 +9,7 @@
  */
 
 import type {WithStyles} from '@material-ui/core';
-import type {magmad_gateway_configs} from '../common/__generated__/MagmaAPIBindings';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';

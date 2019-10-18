@@ -20,7 +20,7 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';

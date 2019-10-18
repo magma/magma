@@ -9,7 +9,7 @@
  */
 
 import CircularProgress from '@material-ui/core/CircularProgress';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';

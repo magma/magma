@@ -8,10 +8,10 @@
  * @format
  */
 
-import MagmaAPIBindings from './__generated__/MagmaAPIBindings';
+import MagmaAPIBindings from '@fbcnms/magma-api';
 import axios from 'axios';
 
-export default class MagmaV1API extends MagmaAPIBindings {
+export default class WebClient extends MagmaAPIBindings {
   static async request(
     path: string,
     method: 'POST' | 'GET' | 'PUT' | 'DELETE' | 'OPTIONS' | 'HEAD' | 'PATCH',

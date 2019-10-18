@@ -10,7 +10,7 @@
 
 // TODO
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
-import type {network_cellular_configs} from '@fbcnms/magmalte/app/common/__generated__/MagmaAPIBindings';
+import type {network_cellular_configs} from '@fbcnms/magma-api';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
 import axios from 'axios';

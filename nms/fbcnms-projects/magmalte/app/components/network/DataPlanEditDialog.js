@@ -10,9 +10,9 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {network_epc_configs} from '../../common/__generated__/MagmaAPIBindings';
+import type {network_epc_configs} from '@fbcnms/magma-api';
 
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import {
   Button,

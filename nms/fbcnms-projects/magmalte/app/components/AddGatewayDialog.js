@@ -10,7 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
-import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -18,7 +18,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
