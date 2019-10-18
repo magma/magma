@@ -162,7 +162,9 @@ export default function GatewayCellularFields(props: Props) {
         <Typography className={classes.title} variant="h6">
           RAN Configs
         </Typography>
-        <FormField label="Registered eNB IDs">
+        <FormField
+          label="Registered eNodeBs"
+          tooltip="Comma-separated list of unique eNodeB Serial IDs">
           <Input
             className={classes.input}
             value={attachedEnodebSerials.toString()}
