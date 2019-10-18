@@ -103,8 +103,11 @@ int mme_api_get_emm_config(
   struct mme_config_s *mme_config_p)
 {
   OAILOG_FUNC_IN(LOG_NAS);
+  uint8_t num_gummei;
   AssertFatal(mme_config_p->served_tai.nb_tai >= 1, "No TAI configured");
-  //AssertFatal(mme_config_p->gummei.nb >= 1, "No GUMMEI configured");
+  OAILOG_INFO(
+    LOG_NAS,
+    "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
 
   config->tai_list.numberoflists = 0;
   // TODO actually we support only one partial TAI list.
@@ -247,9 +250,9 @@ int mme_api_get_emm_config(
         "BAD TAI list configuration, unknown TAI list type %u",
         mme_config_p->served_tai.list_type);
   }
-  // Number of GUMMEI List
+  // Read GUMMEI List
   config->gummei.num_gummei = mme_config_p->gummei.nb;
-  for (int num_gummei = 0; num_gummei < mme_config_p->gummei.nb; num_gummei++){
+  for (num_gummei = 0; num_gummei < mme_config_p->gummei.nb; num_gummei++) {
     config->gummei.gummei[num_gummei] = mme_config_p->gummei.gummei[num_gummei];
   }
 
@@ -449,13 +452,14 @@ int mme_api_new_guti(
   ue_mm_context_t *ue_context = NULL;
   imsi64_t imsi64 = imsi_to_imsi64(imsi);
   uint8_t nb_gummei;
+  uint8_t p_cnt;
 
   ue_context =
     mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
 
   if (ue_context) {
     for (nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
-      nb_gummei++){
+      nb_gummei++) {
       if (
         (ue_context->serving_cell_tai.mcc_digit2 ==
           mme_config.gummei.gummei[nb_gummei].plmn.mcc_digit2) &&
@@ -606,9 +610,9 @@ int mme_api_new_guti(
         }
         break;
       case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-        for (int p_cnt = 0;
+        for (p_cnt = 0;
           p_cnt < (_emm_data.conf.tai_list.partial_tai_list[i].
-          numberofelements + 1); p_cnt++){
+          numberofelements + 1); p_cnt++) {
           if (
             (_emm_data.conf.tai_list.partial_tai_list[i]
                .u.tai_many_plmn[p_cnt].mcc_digit1 ==
@@ -661,6 +665,7 @@ int mme_api_new_guti(
                 .tac;
             }
             j += 1;
+	    break;
           }
         }
         break;
