@@ -13,6 +13,7 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {
   network_cellular_configs,
   network_dns_config,
+  tier,
 } from '@fbcnms/magma-api';
 
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -67,6 +68,14 @@ const DEFAULT_DNS_CONFIG: network_dns_config = {
   records: [],
 };
 
+const DEFAULT_UPGRADE_TIER: tier = {
+  gateways: [],
+  id: 'default',
+  images: [],
+  name: 'Default Tier',
+  version: '0.0.0-0',
+};
+
 router.post(
   '/create',
   access(AccessRoles.SUPERUSER),
@@ -97,6 +106,11 @@ router.post(
           },
         });
       }
+
+      MagmaV1API.postNetworksByNetworkIdTiers({
+        networkId: networkID,
+        tier: DEFAULT_UPGRADE_TIER,
+      });
 
       // Add network to organization
       if (req.organization) {
