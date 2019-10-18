@@ -16,18 +16,19 @@
 
 #include <devmand/ErrorHandler.h>
 #include <devmand/ErrorQueue.h>
+#include <devmand/devices/Id.h>
+#include <devmand/utils/LifetimeTracker.h>
 
 namespace devmand {
 
-class Application;
+class MetricSink;
 
 namespace devices {
 
-class Device;
-
-class State final : public std::enable_shared_from_this<State> {
+class State final : public std::enable_shared_from_this<State>,
+                    public utils::LifetimeTracker<State> {
  private:
-  State(Application& application, Device& device_);
+  State(MetricSink& sink_, const Id& device_);
 
  public:
   State() = delete;
@@ -37,7 +38,7 @@ class State final : public std::enable_shared_from_this<State> {
   State(State&&) = delete;
   State& operator=(State&&) = delete;
 
-  static std::shared_ptr<State> make(Application& application, Device& device_);
+  static std::shared_ptr<State> make(MetricSink& sink, const Id& device_);
 
  public:
   folly::dynamic& update();
@@ -53,16 +54,18 @@ class State final : public std::enable_shared_from_this<State> {
   // NOTE a state object that is never collected will be a leak.
   folly::Future<folly::dynamic> collect();
 
+  // clears requests and finalies to break circle.
+  void clear();
+
  private:
   folly::dynamic& getFbcPlatformDevice(const std::string& key);
 
  private:
-  // A link to the application.
-  Application& app;
+  // A link to the sink.
+  MetricSink& sink;
 
-  // A link to the device which created this state.
-  // TODO handle lifetime
-  Device& device;
+  // The id of the device which created this state.
+  Id device;
 
   // The state of an object formated according to the yang models supported.
   // TODO this should prob. be rw locked. Ok for now since all is handled on

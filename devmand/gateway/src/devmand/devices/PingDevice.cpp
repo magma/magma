@@ -33,7 +33,7 @@ PingDevice::PingDevice(
     : Device(application, id_), channel(application.getPingEngine(), ip_) {}
 
 std::shared_ptr<State> PingDevice::getState() {
-  auto state = State::make(app, *this);
+  auto state = State::make(app, getId());
   state->setStatus(false);
   devmand::models::device::Model::init(state->update());
 
