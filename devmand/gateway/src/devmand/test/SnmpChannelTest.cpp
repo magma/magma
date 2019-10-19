@@ -75,7 +75,9 @@ TEST_F(SnmpChannelTest, checkSnmpWithState) {
 
   auto state = devices::State::make(*this, "testdid");
   state->setStatus(false);
-  devmand::models::interface::Model::init(state->update());
+  state->update([](auto& lockedState) {
+    devmand::models::interface::Model::init(lockedState);
+  });
 
   for (int i = 0; i < 10; ++i) {
     state->addRequest(
@@ -99,7 +101,10 @@ TEST_F(SnmpChannelTest, checkSnmpTimeoutWithState) {
 
   auto state = devices::State::make(*this, "testdid");
   state->setStatus(false);
-  devmand::models::interface::Model::init(state->update());
+  state->update([](auto& lockedState) {
+    devmand::models::interface::Model::init(lockedState);
+  });
+
 
   for (int i = 0; i < 10; ++i) {
     state->addRequest(
