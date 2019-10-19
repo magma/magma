@@ -197,8 +197,10 @@ std::shared_ptr<State> FrinxDevice::getState() {
                 v.get_ptr("frinx-openconfig-interfaces:interfaces") !=
                     nullptr) {
               state->setStatus(true);
-              state->update()["openconfig-interfaces:interfaces"] =
-                  v["frinx-openconfig-interfaces:interfaces"];
+              state->update([&v](auto& lockedState) {
+                lockedState["openconfig-interfaces:interfaces"] =
+                    v["frinx-openconfig-interfaces:interfaces"];
+              });
             } else {
               // this->connected = false;
               // this->connect();

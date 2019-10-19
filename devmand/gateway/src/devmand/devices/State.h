@@ -41,7 +41,7 @@ class State final : public std::enable_shared_from_this<State>,
   static std::shared_ptr<State> make(MetricSink& sink, const Id& device_);
 
  public:
-  folly::dynamic& update();
+  void update(std::function<void(folly::dynamic&)> func);
   void addRequest(folly::Future<folly::Unit> future);
   void setStatus(bool systemIsUp);
   void setErrors();
@@ -58,7 +58,9 @@ class State final : public std::enable_shared_from_this<State>,
   void clear();
 
  private:
-  folly::dynamic& getFbcPlatformDevice(const std::string& key);
+  folly::dynamic& getFbcPlatformDevice(
+      const std::string& key,
+      folly::dynamic& unlockedState);
 
  private:
   // A link to the sink.
@@ -68,9 +70,7 @@ class State final : public std::enable_shared_from_this<State>,
   Id device;
 
   // The state of an object formated according to the yang models supported.
-  // TODO this should prob. be rw locked. Ok for now since all is handled on
-  // poller.
-  folly::dynamic state;
+  folly::Synchronized<folly::dynamic> state;
 
   // This is a queue of errors occuring on this system.
   ErrorQueue errorQueue;

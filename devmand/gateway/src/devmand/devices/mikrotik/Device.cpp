@@ -71,87 +71,116 @@ Device::Device(
 std::shared_ptr<State> Device::getState() {
   auto state = Snmpv2Device::getState();
 
-  // fbc-symphony-device ######################################################
-  auto& geol = state->update()["fbc-symphony-device:system"]["geo-location"];
+#define GEOL(x) x["fbc-symphony-device:system"]["geo-location"]
 
+  // fbc-symphony-device ######################################################
   // TODO check units and make conversions for all of these.
   state->addRequest(
       Mib::getLongtitude(snmpChannel)
-          .thenValue([&geol](auto v) { geol["longitude"] = v; })
+          .thenValue([state](auto v) {
+            state->update([&v](auto& lockedState) {
+              GEOL(lockedState)["longitude"] = v;
+            });
+          })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
-              [&geol, this](const channels::snmp::Exception&) {
+              [state, this](const channels::snmp::Exception&) {
                 auto v =
                     lookup("fbc-symphony-device:system/geo-location/longitude");
                 if (not v.isNull()) {
-                  geol["longitude"] = v.asString();
+                  state->update([&v](auto& lockedState) {
+                    GEOL(lockedState)["longitude"] = v.asString();
+                  });
                 }
               }));
   state->addRequest(
       Mib::getLatitude(snmpChannel)
-          .thenValue([&geol](auto v) { geol["latitude"] = v; })
+          .thenValue([state](auto v) {
+            state->update([&v](auto& lockedState) {
+              GEOL(lockedState)["latitude"] = v;
+            });
+          })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
-              [&geol, this](const channels::snmp::Exception&) {
+              [state, this](const channels::snmp::Exception&) {
                 auto v =
                     lookup("fbc-symphony-device:system/geo-location/latitude");
                 if (not v.isNull()) {
-                  geol["latitude"] = v.asString();
+                  state->update([&v](auto& lockedState) {
+                    GEOL(lockedState)["latitude"] = v.asString();
+                  });
                 }
               }));
   state->addRequest(
       Mib::getAltitude(snmpChannel)
-          .thenValue([&geol](auto v) { geol["height"] = v; })
+          .thenValue([state](auto v) {
+            state->update([&v](auto& lockedState) {
+              GEOL(lockedState)["height"] = v;
+            });
+          })
           .thenError(
               folly::tag_t<channels::snmp::Exception>{},
-              [&geol, this](const channels::snmp::Exception&) {
+              [state, this](const channels::snmp::Exception&) {
                 auto v =
                     lookup("fbc-symphony-device:system/geo-location/height");
                 if (not v.isNull()) {
-                  geol["height"] = v.asString();
+                  state->update([&v](auto& lockedState) {
+                    GEOL(lockedState)["height"] = v.asString();
+                  });
                 }
               }));
 
+#undef GEOL
+
   // openconfig-wifi ##########################################################
-  devmand::models::wifi::Model::init(state->update());
 
-  auto& papRoot = state->update()["openconfig-ap-manager:provision-aps"];
-  auto& paps = papRoot["provision-ap"];
-  folly::dynamic& pap = paps[0];
-  auto& papc = pap["config"];
-  auto& papt = pap["state"];
-  auto& japRoot = state->update()["openconfig-ap-manager:joined-aps"];
-  auto& japs = japRoot["joined-ap"];
-  folly::dynamic& jap = japs[0];
-  auto& japt = jap["state"];
+#define PAP(x) x["openconfig-ap-manager:provision-aps"]["provision-ap"][0]
+#define PAPC(x) PAP(x)["config"]
+#define PAPT(x) PAP(x)["state"]
+#define JAP(x) x["openconfig-ap-manager:joined-aps"]["joined-ap"][0]
+#define JAPT(x) JAP(x)["state"]
 
-  // always enabled
-  japt["enabled"] = true;
-  // just using uptime snmp success to indicate if the device is up.
-  japt["opstate"] = "openconfig-wifi-types:DOWN";
+  state->update([](auto& lockedState) {
+    devmand::models::wifi::Model::init(lockedState);
 
-  state->addRequest(Mib::getBaseMac(snmpChannel)
-                        .thenValue([&pap, &papc, &papt, &japt](auto v) {
-                          auto hex = StringUtils::asHexString(v, ":");
-                          pap["mac"] = hex;
-                          papc["mac"] = hex;
-                          papt["mac"] = hex;
-                          japt["mac"] = hex;
-                        }));
-  state->addRequest(
-      Mib::getFirmwareVersion(snmpChannel).thenValue([&japt](auto v) {
-        japt["software-version"] = v;
-      }));
-  state->addRequest(
-      Mib::getSerialNumber(snmpChannel).thenValue([&japt](auto v) {
-        japt["serial"] = v;
-      }));
-  state->addRequest(Mib::getUpTime(snmpChannel).thenValue([&japt](auto v) {
-    japt["uptime"] = v;
-    japt["opstate"] = "openconfig-wifi-types:UP";
+    folly::dynamic& japt = JAPT(lockedState);
+    // always enabled
+    japt["enabled"] = true;
+    // just using uptime snmp success to indicate if the device is up.
+    japt["opstate"] = "openconfig-wifi-types:DOWN";
+  });
+
+  state->addRequest(Mib::getBaseMac(snmpChannel).thenValue([state](auto v) {
+    auto hex = StringUtils::asHexString(v, ":");
+    state->update([&hex](auto& lockedState) {
+      PAP(lockedState)["mac"] = hex;
+      PAPC(lockedState)["mac"] = hex;
+      PAPT(lockedState)["mac"] = hex;
+      JAPT(lockedState)["mac"] = hex;
+    });
   }));
-  state->addRequest(Mib::getModel(snmpChannel).thenValue([&japt](auto v) {
-    japt["model"] = v;
+  state->addRequest(
+      Mib::getFirmwareVersion(snmpChannel).thenValue([state](auto v) {
+        state->update([&v](auto& lockedState) {
+          JAPT(lockedState)["software-version"] = v;
+        });
+      }));
+  state->addRequest(
+      Mib::getSerialNumber(snmpChannel).thenValue([state](auto v) {
+        state->update([&v](auto& lockedState) {
+          JAPT(lockedState)["serial"] = v;
+        });
+      }));
+  state->addRequest(Mib::getUpTime(snmpChannel).thenValue([state](auto v) {
+    state->update([&v](auto& lockedState) {
+      JAPT(lockedState)["uptime"] = v;
+      JAPT(lockedState)["opstate"] = "openconfig-wifi-types:UP";
+    });
+  }));
+  state->addRequest(Mib::getModel(snmpChannel).thenValue([state](auto v) {
+    state->update([&v](auto& lockedState) {
+      JAPT(lockedState)["model"] = v;
+    });
   }));
 
   state->addRequest(
@@ -178,28 +207,41 @@ std::shared_ptr<State> Device::getState() {
             }
           }));
 
-  state->addFinally([state, &papc, &papt, &jap, &japt]() {
-    auto* field = state->update().get_ptr("ietf-system:system");
-    if (field != nullptr and ((field = field->get_ptr("name")) != nullptr)) {
-      auto hostname = field->asString();
-      papc["hostname"] = hostname;
-      papt["hostname"] = hostname;
-      jap["hostname"] = hostname;
-      japt["hostname"] = hostname;
-    }
+  state->addFinally([state]() {
+    state->update([](auto& lockedState) {
+      auto* field = lockedState.get_ptr("ietf-system:system");
+      if (field != nullptr and ((field = field->get_ptr("name")) != nullptr)) {
+        auto hostname = field->asString();
+        PAPC(lockedState)["hostname"] = hostname;
+        PAPT(lockedState)["hostname"] = hostname;
+        JAP(lockedState)["hostname"] = hostname;
+        JAPT(lockedState)["hostname"] = hostname;
+      }
+    });
   });
 
-  state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([&japt](auto v) {
-    japt["ipv4"] = v;
+  state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([state](auto v) {
+    state->update([&v](auto& lockedState) {
+      JAPT(lockedState)["ipv4"] = v;
+    });
   }));
 
-  state->addRequest(Mib::getIpv6Address(snmpChannel).thenValue([&japt](auto v) {
-    japt["ipv6"] =
-        folly::IPAddress::fromBinary(
-            folly::ByteRange(
-                reinterpret_cast<const unsigned char*>(v.data()), v.size()))
-            .str();
+  state->addRequest(Mib::getIpv6Address(snmpChannel).thenValue([state](auto v) {
+    state->update([&v](auto& lockedState) {
+      JAPT(lockedState)
+      ["ipv6"] =
+          folly::IPAddress::fromBinary(
+              folly::ByteRange(
+                  reinterpret_cast<const unsigned char*>(v.data()), v.size()))
+              .str();
+    });
   }));
+
+#undef PAP
+#undef PAPC
+#undef PAPT
+#undef JAP
+#undef JAPT
 
   /* TODO more ones to add
   papc["country-code"] = "US";

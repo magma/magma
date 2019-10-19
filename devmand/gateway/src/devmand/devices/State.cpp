@@ -30,7 +30,7 @@ folly::Future<folly::dynamic> State::collect() {
         }
         s->clear();
         reqs.clear();
-        return s->state;
+        return std::move(*(s->state.wlock()));
       });
 }
 
@@ -39,8 +39,10 @@ void State::clear() {
   requests.clear();
 }
 
-folly::dynamic& State::update() {
-  return state;
+void State::update(std::function<void(folly::dynamic&)> func) {
+  state.withWLock([&func](auto& unlockedState){
+    func(unlockedState);
+  });
 }
 
 void State::addFinally(std::function<void()>&& f) {
@@ -69,25 +71,32 @@ void State::addRequest(folly::Future<folly::Unit> future) {
           }));
 }
 
-folly::dynamic& State::getFbcPlatformDevice(const std::string& key) {
+folly::dynamic& State::getFbcPlatformDevice(
+    const std::string& key,
+    folly::dynamic& unlockedState) {
   auto k = folly::sformat("fbc-symphony-device:{}", key);
-  folly::dynamic* system = state.get_ptr(k);
+  folly::dynamic* system = unlockedState.get_ptr(k);
   if (system == nullptr) {
-    system = &(state[k] = folly::dynamic::object);
+    system = &(unlockedState[k] = folly::dynamic::object);
   }
   return *system;
 }
 
 void State::setStatus(bool systemIsUp) {
-  folly::dynamic& system = getFbcPlatformDevice("system");
-  system["status"] = systemIsUp ? "UP" : "DOWN";
+  state.withWLock([this, systemIsUp](auto& unlockedState) {
+    folly::dynamic& system =
+        this->getFbcPlatformDevice("system", unlockedState);
+    system["status"] = systemIsUp ? "UP" : "DOWN";
+  });
   setGauge("device.status", systemIsUp ? 1 : 0);
 }
 
 void State::setErrors() {
   folly::dynamic errors = errorQueue.get();
   if (not errors.empty()) {
-    state["fbc-symphony-device:errors"] = std::move(errors);
+    state.withWLock([&errors](auto& lockedState) {
+      lockedState["fbc-symphony-device:errors"] = std::move(errors);
+    });
   }
 }
 
