@@ -7,34 +7,42 @@
 
 #include <devmand/devices/State.h>
 
-#include <devmand/Application.h>
+#include <devmand/MetricSink.h>
 #include <devmand/devices/Device.h>
 
 namespace devmand {
 namespace devices {
 
-std::shared_ptr<State> State::make(Application& application, Device& device_) {
-  return std::shared_ptr<State>(new State(application, device_));
+std::shared_ptr<State> State::make(MetricSink& sink_, const Id& device_) {
+  return std::shared_ptr<State>(new State(sink_, device_));
 }
 
-State::State(Application& application, Device& device_)
-    : app(application), device(device_), state(folly::dynamic::object) {}
+State::State(MetricSink& sink_, const Id& device_)
+    : sink(sink_), device(device_), state(folly::dynamic::object) {}
 
 folly::Future<folly::dynamic> State::collect() {
-  // TODO how to capture errors collect?
   return folly::collect(std::move(requests))
-      .thenValue([s = shared_from_this()](auto) {
+      .thenValue([s = shared_from_this()](auto reqs) {
         s->setErrors();
         s->setStatus(true);
         for (auto& f : s->finals) {
           f();
         }
-        return s->state;
+        s->clear();
+        reqs.clear();
+        return std::move(*(s->state.wlock()));
       });
 }
 
-folly::dynamic& State::update() {
-  return state;
+void State::clear() {
+  finals.clear();
+  requests.clear();
+}
+
+void State::update(std::function<void(folly::dynamic&)> func) {
+  state.withWLock([&func](auto& unlockedState){
+    func(unlockedState);
+  });
 }
 
 void State::addFinally(std::function<void()>&& f) {
@@ -63,35 +71,42 @@ void State::addRequest(folly::Future<folly::Unit> future) {
           }));
 }
 
-folly::dynamic& State::getFbcPlatformDevice(const std::string& key) {
+folly::dynamic& State::getFbcPlatformDevice(
+    const std::string& key,
+    folly::dynamic& unlockedState) {
   auto k = folly::sformat("fbc-symphony-device:{}", key);
-  folly::dynamic* system = state.get_ptr(k);
+  folly::dynamic* system = unlockedState.get_ptr(k);
   if (system == nullptr) {
-    system = &(state[k] = folly::dynamic::object);
+    system = &(unlockedState[k] = folly::dynamic::object);
   }
   return *system;
 }
 
 void State::setStatus(bool systemIsUp) {
-  folly::dynamic& system = getFbcPlatformDevice("system");
-  system["status"] = systemIsUp ? "UP" : "DOWN";
+  state.withWLock([this, systemIsUp](auto& unlockedState) {
+    folly::dynamic& system =
+        this->getFbcPlatformDevice("system", unlockedState);
+    system["status"] = systemIsUp ? "UP" : "DOWN";
+  });
   setGauge("device.status", systemIsUp ? 1 : 0);
 }
 
 void State::setErrors() {
   folly::dynamic errors = errorQueue.get();
   if (not errors.empty()) {
-    state["fbc-symphony-device:errors"] = std::move(errors);
+    state.withWLock([&errors](auto& lockedState) {
+      lockedState["fbc-symphony-device:errors"] = std::move(errors);
+    });
   }
 }
 
 void State::setGauge(const std::string& key, double value) {
-  app.setGauge(
+  sink.setGauge(
       key,
       value,
       // adds the label deviceID = {deviceID}
       "deviceID",
-      device.getId());
+      device);
 }
 
 } // namespace devices

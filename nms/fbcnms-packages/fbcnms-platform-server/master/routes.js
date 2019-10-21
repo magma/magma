@@ -157,6 +157,18 @@ router.post(
         ...params,
         organization: req.params.name,
       }));
+
+      // this happens when the user is being added to an organization that
+      // uses SSO for login, give it a random password
+      if (props.password === undefined) {
+        const organization = await Organization.findOne({
+          where: {name: req.params.name},
+        });
+        if (organization && organization.ssoEntrypoint) {
+          props.password = Math.random().toString(36);
+        }
+      }
+
       const user = await User.create(props);
       res.status(200).send({user});
     } catch (error) {

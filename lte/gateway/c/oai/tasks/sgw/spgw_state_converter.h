@@ -34,6 +34,7 @@ extern "C" {
 #endif
 
 #include "state_converter.h"
+#include "lte/gateway/c/oai/protos/3gpp_types.pb.h"
 #include "lte/gateway/c/oai/protos/spgw_state.pb.h"
 #include "sgw_types.h"
 #include "pgw_types.h"
@@ -306,7 +307,7 @@ class SpgwStateConverter : StateConverter {
    * @param port_range_proto
    */
   static void port_range_to_proto(const port_range_t* port_range,
-                                  gateway::spgw::PortRange* port_range_proto);
+                                  PortRange* port_range_proto);
 
   /**
    * Converts proto to port range struct
@@ -314,7 +315,7 @@ class SpgwStateConverter : StateConverter {
    * @param port_range
    */
   static void proto_to_port_range(
-      const gateway::spgw::PortRange &port_range_proto,
+      const PortRange &port_range_proto,
       port_range_t *port_range);
 
   /**

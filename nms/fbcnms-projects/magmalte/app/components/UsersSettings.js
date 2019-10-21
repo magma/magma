@@ -54,7 +54,7 @@ function UsersSettings(props: Props) {
   const [editingUser, setEditingUser] = useState<?EditUser>(null);
   const [users, setUsers] = useState<Array<EditUser>>([]);
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const {networkIds} = useContext(AppContext);
+  const {networkIds, ssoEnabled} = useContext(AppContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {isLoading, error} = useAxios({
@@ -158,6 +158,7 @@ function UsersSettings(props: Props) {
             setShowDialog(false);
             setEditingUser(null);
           }}
+          ssoEnabled={ssoEnabled}
           allNetworkIDs={networkIds}
           onEditUser={(userId, payload) => {
             axios

@@ -148,14 +148,15 @@ target_link_libraries(devmand
   devman_service_magma)
 
 add_executable(devmantest
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/MikrotikChannelTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/FileWatcherTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp)
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/MikrotikChannelTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/SnmpChannelTest.cpp)
 
 target_link_libraries(devmantest
   devman

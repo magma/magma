@@ -31,14 +31,38 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function Settings(props: {isSuperUser?: boolean}) {
+type Config = {ssoEnabled: boolean, isSuperUser: boolean};
+
+export function shouldShowSettings(config: Config) {
+  return getTabs(config).length > 0;
+}
+
+function getTabs(config: Config) {
+  const tabs = [];
+  if (!config.ssoEnabled) {
+    tabs.push(
+      <Tab
+        component={NestedRouteLink}
+        label="Security"
+        to="/security/"
+        key="1"
+      />,
+    );
+  }
+
+  if (config.isSuperUser) {
+    tabs.push(
+      <Tab component={NestedRouteLink} label="Users" to="/users/" key="2" />,
+    );
+  }
+
+  return tabs;
+}
+
+export default function Settings(_props: {isSuperUser?: boolean}) {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, location} = useRouter();
-  const {user} = useContext(AppContext);
-  let {isSuperUser} = props;
-  if (isSuperUser === undefined) {
-    isSuperUser = user.isSuperUser;
-  }
+  const {user, ssoEnabled} = useContext(AppContext);
 
   const currentTab = findIndex(['security', 'users'], route =>
     location.pathname.startsWith(match.url + '/' + route),
@@ -52,21 +76,18 @@ export default function Settings(props: {isSuperUser?: boolean}) {
           indicatorColor="primary"
           textColor="primary"
           className={classes.tabs}>
-          <Tab component={NestedRouteLink} label="Security" to="/security/" />
-          {isSuperUser && (
-            <Tab component={NestedRouteLink} label="Users" to="/users/" />
-          )}
+          {getTabs({isSuperUser: user.isSuperUser, ssoEnabled})}
         </Tabs>
       </AppBar>
       <Switch>
         <Route path={relativePath('/security')} component={SecuritySettings} />
-        {isSuperUser && (
+        {user.isSuperUser && (
           <Route
             path={relativePath('/users')}
             render={() => <Redirect to="/admin/users" />}
           />
         )}
-        <Redirect to={relativeUrl('/security')} />
+        {!ssoEnabled && <Redirect to={relativeUrl('/security')} />}
       </Switch>
     </Paper>
   );

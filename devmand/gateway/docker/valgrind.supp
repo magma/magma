@@ -1,0 +1,21 @@
+{
+   lib_unwind_msync
+   Memcheck:Param
+   msync(start)
+   obj:/lib/x86_64-linux-gnu/libpthread-2.24.so
+   obj:/usr/lib/x86_64-linux-gnu/libunwind.so.8.0.1
+   ...
+}
+{
+   set_context_read
+   Memcheck:Addr8
+   fun:_Ux86_64_setcontext
+   ...
+}
+{
+   set_context_param
+   Memcheck:Param
+   rt_sigprocmask(set)
+   fun:_Ux86_64_setcontext
+   ...
+}
