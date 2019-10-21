@@ -11,6 +11,7 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
+from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.access_control import \
     AccessControlController
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -67,6 +68,7 @@ class AccessControlTest(unittest.TestCase):
                     testing_controller_reference
             },
             config={
+                'setup_type': 'LTE',
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'nat_iface': 'eth2',
@@ -88,7 +90,9 @@ class AccessControlTest(unittest.TestCase):
                     ]
                 }
             },
-            mconfig=None,
+            mconfig=PipelineD(
+                allowed_gre_peers=[],
+            ),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
