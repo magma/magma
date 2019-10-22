@@ -256,17 +256,6 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_ctxt_proto->set_enb_ue_s1ap_id(ue_ctxt->enb_ue_s1ap_id);
   ue_ctxt_proto->set_mme_ue_s1ap_id(ue_ctxt->mme_ue_s1ap_id);
 
-  Tai* tai = ue_ctxt_proto->mutable_serving_cell_tai();
-  char tai_digits[5];
-  tai_digits[0] = ue_ctxt->serving_cell_tai.mcc_digit2;
-  tai_digits[1] = ue_ctxt->serving_cell_tai.mcc_digit1;
-  tai_digits[2] = ue_ctxt->serving_cell_tai.mnc_digit3;
-  tai_digits[3] = ue_ctxt->serving_cell_tai.mcc_digit3;
-  tai_digits[4] = ue_ctxt->serving_cell_tai.mnc_digit2;
-  tai_digits[5] = ue_ctxt->serving_cell_tai.mnc_digit2;
-  tai->set_mcc_mnc(tai_digits);
-  tai->set_tac(ue_ctxt->serving_cell_tai.tac);
-
   Ecgi* ecgi = ue_ctxt_proto->mutable_e_utran_cgi();
 
   ue_ctxt_proto->set_cell_age((long int) ue_ctxt->cell_age);
@@ -298,12 +287,6 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->mme_ue_s1ap_id = ue_context_proto->mme_ue_s1ap_id();
 
   // TODO: all functions to be added in Nas state converter
-  //proto_to_tai(ue_context_proto->serving_cell_tai(),
-  //  state_ue_mm_context->serving_cell_tai);
-  //proto_to_tai_list(ue_context_proto->tai_list(),
-  //  state_ue_mm_context->tai_list);
-  //proto_to_tai(ue_context_proto->tai_last_tau(),
-  //  state_ue_mm_context->tai_last_tau);
   //proto_to_ecgi(ue_context_proto->e_utran_cgi(),
   //  state_ue_mm_context->e_utran_cgi);
   //proto_to_apn_config_profile(ue_context_proto->apn_config(),

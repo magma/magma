@@ -712,7 +712,6 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   }
   ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
   ue_context_p->e_utran_cgi = initial_pP->ecgi;
-  ue_context_p->serving_cell_tai = initial_pP->tai;
   // Notify S1AP about the mapping between mme_ue_s1ap_id and sctp assoc id + enb_ue_s1ap_id
   notify_s1ap_new_ue_mme_s1ap_id_association(ue_context_p);
   s_tmsi_t s_tmsi = {0};
@@ -2877,7 +2876,6 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   }
   ue_context_p->sctp_assoc_id_key = path_switch_req_p->sctp_assoc_id;
   ue_context_p->e_utran_cgi = path_switch_req_p->ecgi;
-  ue_context_p->serving_cell_tai = path_switch_req_p->tai;
   ue_network_capability.eea =
     path_switch_req_p->encryption_algorithm_capabilities;
   ue_network_capability.eia =

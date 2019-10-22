@@ -59,7 +59,7 @@ static void _esm_information_t3489_handler(void *);
 #define ESM_INFORMATION_COUNTER_MAX 3
 
 static int _esm_information(
-  emm_context_t *ue_context,
+  emm_context_t *emm_context_p,
   ebi_t ebi,
   esm_ebr_timer_data_t *const data);
 
@@ -69,13 +69,13 @@ static int _esm_information(
 
 //------------------------------------------------------------------------------
 int esm_proc_esm_information_request(
-  emm_context_t *const ue_context,
+  emm_context_t *const emm_context_p,
   const pti_t pti)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
 
   OAILOG_INFO(
@@ -103,11 +103,11 @@ int esm_proc_esm_information_request(
        */
       esm_ebr_timer_data_t *data =
         (esm_ebr_timer_data_t *) calloc(1, sizeof(*data));
-      data->ctx = ue_context;
+      data->ctx = emm_context_p;
       data->ebi = EPS_BEARER_IDENTITY_UNASSIGNED;
       data->msg = msg_req;
       data->ue_id = ue_id;
-      rc = _esm_information(ue_context, pti, data);
+      rc = _esm_information(emm_context_p, pti, data);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -115,7 +115,7 @@ int esm_proc_esm_information_request(
 
 //------------------------------------------------------------------------------
 int esm_proc_esm_information_response(
-  emm_context_t *ue_context,
+  emm_context_t *emm_context_p,
   pti_t pti,
   const_bstring const apn,
   const protocol_configuration_options_t *const pco,
@@ -127,22 +127,22 @@ int esm_proc_esm_information_response(
   /*
    * Stop T3489 timer if running
    */
-  nas_stop_T3489(&ue_context->esm_ctx);
+  nas_stop_T3489(&emm_context_p->esm_ctx);
 
   if (apn && (apn->slen > 0)) {
-    if (ue_context->esm_ctx.esm_proc_data->apn) {
-      bdestroy_wrapper(&ue_context->esm_ctx.esm_proc_data->apn);
+    if (emm_context_p->esm_ctx.esm_proc_data->apn) {
+      bdestroy_wrapper(&emm_context_p->esm_ctx.esm_proc_data->apn);
     }
-    ue_context->esm_ctx.esm_proc_data->apn = bstrcpy(apn);
+    emm_context_p->esm_ctx.esm_proc_data->apn = bstrcpy(apn);
   }
 
   if ((pco) && (pco->num_protocol_or_container_id)) {
-    if (ue_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) {
+    if (emm_context_p->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) {
       clear_protocol_configuration_options(
-        &ue_context->esm_ctx.esm_proc_data->pco);
+        &emm_context_p->esm_ctx.esm_proc_data->pco);
     }
     copy_protocol_configuration_options(
-      &ue_context->esm_ctx.esm_proc_data->pco, pco);
+      &emm_context_p->esm_ctx.esm_proc_data->pco, pco);
   }
 
   *esm_cause = ESM_CAUSE_SUCCESS;
@@ -254,7 +254,7 @@ static void _esm_information_t3489_handler(void *args)
  **                                                                        **
  ***************************************************************************/
 static int _esm_information(
-  emm_context_t *ue_context,
+  emm_context_t *emm_context_p,
   ebi_t ebi,
   esm_ebr_timer_data_t *const data)
 {
@@ -262,7 +262,7 @@ static int _esm_information(
   emm_sap_t emm_sap = {0};
   int rc;
   mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(ue_context, struct ue_mm_context_s, emm_context)
+    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
 
   /*
@@ -273,18 +273,18 @@ static int _esm_information(
 
   emm_sap.primitive = EMMESM_UNITDATA_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
-  emm_sap.u.emm_esm.ctx = ue_context;
+  emm_sap.u.emm_esm.ctx = emm_context_p;
   emm_esm->msg = bstrcpy(data->msg);
 
   rc = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
-    nas_stop_T3489(&ue_context->esm_ctx);
+    nas_stop_T3489(&emm_context_p->esm_ctx);
     /*
      * Start T3489 timer
      */
-    ue_context->esm_ctx.T3489.id = nas_timer_start(
-      ue_context->esm_ctx.T3489.sec,
+    emm_context_p->esm_ctx.T3489.id = nas_timer_start(
+      emm_context_p->esm_ctx.T3489.sec,
       0 /*usec*/,
       _esm_information_t3489_handler,
       data);
@@ -293,8 +293,8 @@ static int _esm_information(
       LOG_NAS_EMM,
       "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %ld seconds\n",
       ue_id,
-      ue_context->esm_ctx.T3489.id,
-      ue_context->esm_ctx.T3489.sec);
+      emm_context_p->esm_ctx.T3489.id,
+      emm_context_p->esm_ctx.T3489.sec);
   } else {
     bdestroy_wrapper(&data->msg);
     free_wrapper((void **) data);
