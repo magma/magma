@@ -101,7 +101,7 @@ class AccessControlController(MagmaController):
         else:
             # TODO add LTE WLAN peers
             flows.add_resubmit_next_service_flow(
-                datapath, self.tbl_num, MagmaMatch(), [],
+                datapath, self._tunnel_acl_scratch, MagmaMatch(), [],
                 priority=flows.MINIMUM_PRIORITY, resubmit_table=self.next_table)
 
     def _install_gre_allow_flows(self, datapath):
