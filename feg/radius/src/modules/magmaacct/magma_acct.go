@@ -12,13 +12,14 @@ import (
 	"context"
 	"encoding/binary"
 	"errors"
-	"fbc/cwf/radius/modules/protos"
-	"fbc/cwf/radius/session"
 	"fmt"
 	"strings"
 
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/modules/protos"
+	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
+	"fbc/lib/go/radius/rfc2865"
 	"fbc/lib/go/radius/rfc2866"
 
 	"github.com/mitchellh/mapstructure"
@@ -65,6 +66,14 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 	state, err := ctx.SessionStorage.Get()
 	if err != nil {
 		state = &session.State{}
+		attr, err := rfc2865.CallingStationID_Lookup(r.Packet)
+		if err == nil {
+			state.MACAddress = string(attr)
+		}
+		attr, err = rfc2865.CalledStationID_Lookup(r.Packet)
+		if err == nil {
+			state.CalledStationID = string(attr)
+		}
 	}
 
 	// TODO: this should be moved to the server itself (and not in a module)
@@ -92,6 +101,7 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 		Msisdn:    state.MSISDN,
 		MacAddr:   state.MACAddress,
 		IpAddr:    strings.Split(r.RemoteAddr.String(), ":")[0],
+		Apn:       state.CalledStationID,
 	}
 
 	// Call magma client
