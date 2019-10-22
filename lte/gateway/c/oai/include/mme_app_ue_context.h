@@ -352,17 +352,6 @@ typedef struct ue_mm_context_s {
   mm_state_t mm_state;
   ecm_state_t ecm_state;
 
-  // read by S6A UPDATE LOCATION REQUEST
-  // was me_identity_t // Mobile Equipment Identity - (e.g. IMEI/IMEISV) Software Version Number
-  // not set/read except read by display utility
-  //imei_t                   _imei;        /* The IMEI provided by the UE     can be found in emm_nas_context                */
-  //imeisv_t                 _imeisv;      /* The IMEISV provided by the UE   can be found in emm_nas_context                */
-
-  /* TODO: Add TAI list */
-  tai_t serving_cell_tai;
-  tai_t
-    tai_last_tau; // TAI of the TA in which the last Tracking Area Update was initiated.
-
   /* Last known cell identity */
   ecgi_t e_utran_cgi; // Last known E-UTRAN cell, set by nas_attach_req_t
   // read for S11 CREATE_SESSION_REQUEST
@@ -374,42 +363,11 @@ typedef struct ue_mm_context_s {
   /* TODO: add csg_membership */
   /* TODO Access mode: Access mode of last known ECGI when the UE was active */
 
-  // Authentication Vector Temporary authentication and key agreement data that enables an MME to
-  // engage in AKA with a particular user. An EPS Authentication Vector consists of four elements:
-  // a) network challenge RAND,
-  // b) an expected response XRES,
-  // c) Key K ASME ,
-  // d) a network authentication token AUTN.
-
-
-  /* TODO: add ue radio cap, ms classmarks, supported codecs */
-
-  // UE Network Capability  // UE network capabilities including security algorithms and key derivation functions supported by the UE
-
-  // MS Network Capability  // For a GERAN and/or UTRAN capable UE, this contains information needed by the SGSN.
-
-  /* TODO: add DRX parameter */
-  // UE Specific DRX Parameters   // UE specific DRX parameters for A/Gb mode, Iu mode and S1-mode
-
-  // Selected NAS Algorithm       // Selected NAS security algorithm
-  // eKSI                         // Key Set Identifier for the main key K ASME . Also indicates whether the UE is using
-  // security keys derived from UTRAN or E-UTRAN security association.
-
   apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
   subscriber_status_t sub_status;   // set by S6A UPDATE LOCATION ANSWER
 
-  // K ASME                       // Main key for E-UTRAN key hierarchy based on CK, IK and Serving network identity
-
-  // NAS Keys and COUNT           // K NASint , K_ NASenc , and NAS COUNT parameter.
-
-  // Selected CN operator id      // Selected core network operator identity (to support network sharing as defined in TS 23.251 [24]).
-
-  // Recovery                     // Indicates if the HSS is performing database recovery.
-
   ard_t
     access_restriction_data; // The access restriction subscription information. set by S6A UPDATE LOCATION ANSWER
-
-  // ODB for PS parameters        // Indicates that the status of the operator determined barring for packet oriented services.
 
   // APN-OI Replacement           // Indicates the domain name to replace the APN-OI when constructing the PDN GW
   // FQDN upon which to perform a DNS resolution. This replacement applies for all
@@ -417,25 +375,10 @@ typedef struct ue_mm_context_s {
   // information on the format of domain names that are allowed in this field.
   bstring apn_oi_replacement; // example: "province1.mnc012.mcc345.gprs"
 
-  // MME IP address for S11       // MME IP address for the S11 interface (used by S-GW)
-  // LOCATED IN mme_config_t.ipv4.s11
-
   // MME TEID for S11             // MME Tunnel Endpoint Identifier for S11 interface.
   // LOCATED IN THIS.subscribed_apns[MAX_APN_PER_UE].mme_teid_s11
   teid_t mme_teid_s11; // set by mme_app_send_s11_create_session_req
 
-  // S-GW IP address for S11/S4   // S-GW IP address for the S11 and S4 interfaces
-  // LOCATED IN THIS.subscribed_apns[MAX_APN_PER_UE].s_gw_address_s11_s4
-
-  // S-GW TEID for S11/S4         // S-GW Tunnel Endpoint Identifier for the S11 and S4 interfaces.
-  // LOCATED IN THIS.subscribed_apns[MAX_APN_PER_UE].s_gw_teid_s11_s4
-
-  // SGSN IP address for S3       // SGSN IP address for the S3 interface (used if ISR is activated for the GERAN and/or UTRAN capable UE)
-
-  // SGSN TEID for S3             // SGSN Tunnel Endpoint Identifier for S3 interface (used if ISR is activated for the E-UTRAN capable UE)
-
-  // eNodeB Address in Use for S1-MME // The IP address of the eNodeB currently used for S1-MME.
-  // implicit with use of SCTP through the use of sctp_assoc_id_key
   sctp_assoc_id_t sctp_assoc_id_key; // link with eNB id
 
   // eNB UE S1AP ID,  Unique identity of the UE within eNodeB.
@@ -493,7 +436,6 @@ typedef struct ue_mm_context_s {
   struct mme_app_timer_t ue_context_modification_timer;
   // Timer for retrying paging messages
   struct mme_app_timer_t paging_response_timer;
-  //
   bool send_ue_purge_request;
   bool hss_initiated_detach;
   bool location_info_confirmed_in_hss;

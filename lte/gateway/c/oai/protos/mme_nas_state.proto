@@ -31,11 +31,8 @@ message UeContext {
   uint64 enb_s1ap_id_key = 11;
   uint32 mme_ue_s1ap_id = 12;
 
-  Tai serving_cell_tai = 20;
-  TaiList tai_list = 21;
-  Tai tai_last_tau = 22;
-  Ecgi e_utran_cgi = 23;
-  uint64 cell_age = 24;
+  Ecgi e_utran_cgi = 20;
+  uint64 cell_age = 21;
 
   ApnConfigProfile apn_config = 31;
 

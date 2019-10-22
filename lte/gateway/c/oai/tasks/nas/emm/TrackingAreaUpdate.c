@@ -102,7 +102,7 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
  **                                                                        **
  ** Description:                                                           **
  **                                                                        **
- ** Inputs:  ue_ctx:  UE context                                           **
+ ** Inputs:  emm_context_p:  Pointer to EMM context                                           **
  **          emm_tau_request_ies_t: TAU Request received from UE           **
  **                                                                        **
  ** Outputs: Return:    RETURNok, RETURNerror                              **
@@ -110,7 +110,7 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
  ***************************************************************************/
 
 int _csfb_handle_tracking_area_req(
-  emm_context_t *ue_ctx,
+  emm_context_t *emm_context_p,
   emm_tau_request_ies_t *ies)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -125,20 +125,20 @@ int _csfb_handle_tracking_area_req(
      ies->eps_update_type.eps_update_type_value) ||
     ((EPS_UPDATE_TYPE_PERIODIC_UPDATING ==
       ies->eps_update_type.eps_update_type_value) &&
-     ue_ctx->csfbparams.sgs_loc_updt_status == SUCCESS)) {
+     emm_context_p->csfbparams.sgs_loc_updt_status == SUCCESS)) {
     //Store TAU update type in emm context
-    ue_ctx->tau_updt_type = ies->eps_update_type.eps_update_type_value;
+    emm_context_p->tau_updt_type = ies->eps_update_type.eps_update_type_value;
     //Store active flag
-    ue_ctx->csfbparams.tau_active_flag = ies->eps_update_type.active_flag;
+    emm_context_p->csfbparams.tau_active_flag = ies->eps_update_type.active_flag;
     //Store Additional Update
     if ((ies->additional_updatetype != NULL) &&
         (SMS_ONLY == *(ies->additional_updatetype))) {
-      ue_ctx->additional_update_type = SMS_ONLY;
+      emm_context_p->additional_update_type = SMS_ONLY;
     }
     //Send Location Update Req to MME
-    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(ue_ctx);
+    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_context_p);
     if (!tau_proc) {
-      ue_mm_context = PARENT_STRUCT(ue_ctx,
+      ue_mm_context = PARENT_STRUCT(emm_context_p,
                                     struct ue_mm_context_s, emm_context);
       tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
       nas_itti_cs_domain_location_update_req(
