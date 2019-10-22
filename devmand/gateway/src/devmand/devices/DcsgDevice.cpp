@@ -47,7 +47,7 @@ DeviceConfigType DcsgDevice::getDeviceConfigType() const {
 }
 
 std::shared_ptr<State> DcsgDevice::getState() {
-  return State::make(app, *this);
+  return State::make(app, getId());
 }
 
 void DcsgDevice::setConfig(const folly::dynamic&) {

@@ -160,4 +160,20 @@ const std::shared_ptr<Channel> ServiceRegistrySingleton::CreateGrpcChannel(
 
   return CreateCustomChannel(ss.str(), creds, arg);
 }
+
+const std::shared_ptr<Channel>
+ServiceRegistrySingleton::GetBootstrapperGrpcChannel() {
+  YAML::Node proxyConfig = *(this->proxy_config_);
+  auto ip = proxyConfig["bootstrap_address"].as<std::string>();
+  auto port = proxyConfig["bootstrap_port"].as<std::string>();
+  auto authority = ip;
+
+  SslCredentialsOptions options;
+  options.pem_root_certs = LoadCertFile(
+      proxyConfig["rootca_cert"].as<std::string>());
+  auto sslCreds = SslCredentials(options);
+
+  return CreateGrpcChannel(ip, port, authority, sslCreds);
+}
+
 }

@@ -47,6 +47,8 @@ python-pip
 python-setuptools
 python3-setuptools
 scons
+snmp
+snmpd
 strace
 valgrind
 vim

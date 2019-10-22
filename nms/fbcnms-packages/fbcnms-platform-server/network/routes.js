@@ -21,7 +21,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CELLULAR} from '@fbcnms/types/network';
+import {LTE} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -41,10 +41,6 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
     sub_profiles: {},
     tac: 1,
   },
-  features: {
-    // A placeholder due to bug in serialization
-    placeholder: 'true',
-  },
   feg_network_id: '',
   ran: {
     bandwidth_mhz: 20,
@@ -58,6 +54,15 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
       earfcndl: 44590,
       special_subframe_pattern: 7,
       subframe_assignment: 2,
+    },
+  },
+};
+
+// A placeholder due to bug in serialization
+const NETWORK_FEATURES = {
+  features: {
+    features: {
+      placeholder: 'true',
     },
   },
 };
@@ -85,7 +90,7 @@ router.post(
 
     let resp;
     try {
-      if (data.features.networkType === CELLULAR) {
+      if (data.networkType === LTE) {
         resp = await MagmaV1API.postLte({
           lteNetwork: {
             cellular: DEFAULT_CELLULAR_CONFIG,
@@ -93,6 +98,7 @@ router.post(
             id: networkID,
             name,
             description,
+            ...NETWORK_FEATURES,
           },
         });
       } else {
@@ -101,8 +107,9 @@ router.post(
             name,
             description,
             id: networkID,
-            type: data.features.networkType,
+            type: data.networkType,
             dns: DEFAULT_DNS_CONFIG,
+            ...NETWORK_FEATURES,
           },
         });
       }
@@ -117,51 +124,6 @@ router.post(
         const organization = await req.organization();
         const networkIDs = [...organization.networkIDs, networkID];
         await organization.update({networkIDs});
-      }
-    } catch (e) {
-      logger.error(e, {
-        response: e.response?.data,
-      });
-      res
-        .status(200)
-        .send({
-          success: false,
-          message: e.response?.data.message || e.toString(),
-          apiResponse: e.response?.data,
-        })
-        .end();
-      return;
-    }
-
-    res
-      .status(200)
-      .send({
-        success: true,
-        apiResponse: resp,
-      })
-      .end();
-  }),
-);
-
-router.put(
-  '/update',
-  access(AccessRoles.SUPERUSER),
-  asyncHandler(async (req: FBCNMSRequest, res) => {
-    const {networkID, data} = req.body;
-
-    let resp;
-    try {
-      // Update network
-      if (data.features.networkType === CELLULAR) {
-        resp = await MagmaV1API.putLteByNetworkId({
-          networkId: networkID,
-          lteNetwork: data,
-        });
-      } else {
-        resp = await MagmaV1API.putNetworksByNetworkId({
-          networkId: networkID,
-          network: data,
-        });
       }
     } catch (e) {
       logger.error(e, {
