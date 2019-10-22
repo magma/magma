@@ -90,7 +90,7 @@ router.post(
 
     let resp;
     try {
-      if (data.features.networkType === CELLULAR) {
+      if (data.networkType === CELLULAR) {
         resp = await MagmaV1API.postLte({
           lteNetwork: {
             cellular: DEFAULT_CELLULAR_CONFIG,
@@ -107,7 +107,7 @@ router.post(
             name,
             description,
             id: networkID,
-            type: data.features.networkType,
+            type: data.networkType,
             dns: DEFAULT_DNS_CONFIG,
             ...NETWORK_FEATURES,
           },
@@ -124,51 +124,6 @@ router.post(
         const organization = await req.organization();
         const networkIDs = [...organization.networkIDs, networkID];
         await organization.update({networkIDs});
-      }
-    } catch (e) {
-      logger.error(e, {
-        response: e.response?.data,
-      });
-      res
-        .status(200)
-        .send({
-          success: false,
-          message: e.response?.data.message || e.toString(),
-          apiResponse: e.response?.data,
-        })
-        .end();
-      return;
-    }
-
-    res
-      .status(200)
-      .send({
-        success: true,
-        apiResponse: resp,
-      })
-      .end();
-  }),
-);
-
-router.put(
-  '/update',
-  access(AccessRoles.SUPERUSER),
-  asyncHandler(async (req: FBCNMSRequest, res) => {
-    const {networkID, data} = req.body;
-
-    let resp;
-    try {
-      // Update network
-      if (data.features.networkType === CELLULAR) {
-        resp = await MagmaV1API.putLteByNetworkId({
-          networkId: networkID,
-          lteNetwork: data,
-        });
-      } else {
-        resp = await MagmaV1API.putNetworksByNetworkId({
-          networkId: networkID,
-          network: data,
-        });
       }
     } catch (e) {
       logger.error(e, {

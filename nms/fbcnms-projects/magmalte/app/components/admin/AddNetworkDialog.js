@@ -18,8 +18,6 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
@@ -29,8 +27,7 @@ import axios from 'axios';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles({
   input: {
@@ -47,41 +44,11 @@ type Props = {
 
 export default function NetworkDialog(props: Props) {
   const classes = useStyles();
-  const editingNetworkID = useRouter().match.params.networkID;
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [networkID, setNetworkId] = useState<?string>(null);
+  const [networkID, setNetworkId] = useState('');
   const [networkType, setNetworkType] = useState('');
   const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (editingNetworkID) {
-      MagmaV1API.getNetworksByNetworkId({networkId: editingNetworkID})
-        .then(data => {
-          setNetworkId(editingNetworkID);
-          setName(data.name);
-          setDescription(data.description);
-          setNetworkType(data.type);
-        })
-        .catch(error => setError(error));
-    } else {
-      setNetworkId('');
-    }
-  }, [editingNetworkID]);
-
-  if (networkID === null) {
-    return <LoadingFillerBackdrop />;
-  }
-
-  const successHandler = response => {
-    if (response.data.success) {
-      props.onSave(nullthrows(networkID));
-    } else {
-      setError(response.data.message);
-    }
-  };
-
-  const errorHandler = error => setError(error.response?.data?.error || error);
 
   const onSave = () => {
     const payload = {
@@ -89,22 +56,19 @@ export default function NetworkDialog(props: Props) {
       data: {
         name,
         description,
-        features: {
-          networkType: networkType,
-        },
+        networkType,
       },
     };
-    if (editingNetworkID) {
-      axios
-        .put('/nms/network/update/', payload)
-        .then(successHandler)
-        .catch(errorHandler);
-    } else {
-      axios
-        .post('/nms/network/create', payload)
-        .then(successHandler)
-        .catch(errorHandler);
-    }
+    axios
+      .post('/nms/network/create', payload)
+      .then(response => {
+        if (response.data.success) {
+          props.onSave(nullthrows(networkID));
+        } else {
+          setError(response.data.message);
+        }
+      })
+      .catch(error => setError(error.response?.data?.error || error));
   };
 
   return (
@@ -118,7 +82,6 @@ export default function NetworkDialog(props: Props) {
           className={classes.input}
           value={networkID}
           onChange={({target}) => setNetworkId(target.value)}
-          disabled={!!editingNetworkID}
         />
         <TextField
           name="name"
