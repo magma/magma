@@ -19,6 +19,7 @@ import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
@@ -27,7 +28,6 @@ import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes} from '@fbcnms/types/network';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -49,18 +49,19 @@ export default function NetworkDialog(props: Props) {
   const classes = useStyles();
   const editingNetworkID = useRouter().match.params.networkID;
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [networkID, setNetworkId] = useState<?string>(null);
   const [networkType, setNetworkType] = useState('');
   const [error, setError] = useState(null);
 
   useEffect(() => {
     if (editingNetworkID) {
-      axios
-        .get(MagmaAPIUrls.network(editingNetworkID))
-        .then(({data}) => {
+      MagmaV1API.getNetworksByNetworkId({networkId: editingNetworkID})
+        .then(data => {
           setNetworkId(editingNetworkID);
           setName(data.name);
-          setNetworkType(data?.features?.networkType || '');
+          setDescription(data.description);
+          setNetworkType(data.type);
         })
         .catch(error => setError(error));
     } else {
@@ -79,20 +80,30 @@ export default function NetworkDialog(props: Props) {
       setError(response.data.message);
     }
   };
+
+  const errorHandler = error => setError(error.response?.data?.error || error);
+
   const onSave = () => {
     const payload = {
       networkID,
       data: {
         name,
+        description,
         features: {
           networkType: networkType,
         },
       },
     };
     if (editingNetworkID) {
-      axios.put('/nms/network/update/', payload).then(successHandler);
+      axios
+        .put('/nms/network/update/', payload)
+        .then(successHandler)
+        .catch(errorHandler);
     } else {
-      axios.post('/nms/network/create', payload).then(successHandler);
+      axios
+        .post('/nms/network/create', payload)
+        .then(successHandler)
+        .catch(errorHandler);
     }
   };
 
@@ -116,12 +127,19 @@ export default function NetworkDialog(props: Props) {
           value={name}
           onChange={({target}) => setName(target.value)}
         />
+        <TextField
+          name="description"
+          label="Description"
+          className={classes.input}
+          value={description}
+          onChange={({target}) => setDescription(target.value)}
+        />
         <FormControl className={classes.input}>
           <InputLabel htmlFor="types">Network Type</InputLabel>
           <Select
             value={networkType}
             onChange={({target}) => setNetworkType(target.value)}
-            input={<Input id="tabs" />}>
+            input={<Input id="types" />}>
             {AllNetworkTypes.map(type => (
               <MenuItem key={type} value={type}>
                 <ListItemText primary={type} />
