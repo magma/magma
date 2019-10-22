@@ -12,8 +12,10 @@ import type {TableColumnType, TableRowDataType} from './Table.react';
 
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
+import TableRowCheckbox from './TableRowCheckbox.react';
 import Text from '../../Text.react';
 import {makeStyles} from '@material-ui/styles';
+import {useTable} from './TableContext';
 
 const useStyles = makeStyles(_theme => ({
   row: {
@@ -27,6 +29,10 @@ const useStyles = makeStyles(_theme => ({
     minHeight: '40px',
     height: '40px',
   },
+  checkBox: {
+    width: '24px',
+    paddingLeft: '8px',
+  },
 }));
 
 type Props<T> = {
@@ -37,11 +43,17 @@ type Props<T> = {
 const TableContent = <T>(props: Props<T>) => {
   const {data, columns} = props;
   const classes = useStyles();
+  const {showSelection} = useTable();
 
   return (
     <tbody>
       {data.map((d, i) => (
         <tr key={`row_${i}`} className={classes.row}>
+          {showSelection && (
+            <td className={classes.checkBox}>
+              <TableRowCheckbox id={d.id ?? i} />
+            </td>
+          )}
           {columns.map((col, i) => {
             const renderedCol = col.render(d);
             return (

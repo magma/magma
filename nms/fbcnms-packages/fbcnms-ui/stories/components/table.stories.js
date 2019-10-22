@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState} from 'react';
 import Table from '../../components/design-system/Table/Table.react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -45,13 +45,30 @@ const useStyles = makeStyles(_theme => ({
   root: {
     width: '100%',
   },
+  table1: {
+    marginBottom: '24px',
+  },
 }));
 
 const TablesRoot = () => {
   const classes = useStyles();
+  const [selectedIds, setSelectedIds] = useState([]);
   return (
     <div className={classes.root}>
       <Table
+        className={classes.table1}
+        data={DATA}
+        columns={[
+          {title: 'First Name', render: row => row.firstName},
+          {title: 'Last Name', render: row => row.lastName},
+          {title: 'Birth Date', render: row => row.birthDate},
+          {title: 'City', render: row => row.city},
+        ]}
+      />
+      <Table
+        showSelection
+        selectedIds={selectedIds}
+        onSelectionChanged={ids => setSelectedIds(ids)}
         data={DATA}
         columns={[
           {title: 'First Name', render: row => row.firstName},

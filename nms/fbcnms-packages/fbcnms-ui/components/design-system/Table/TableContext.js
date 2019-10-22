@@ -10,9 +10,13 @@
 
 import React from 'react';
 
-export type TableContextValue = {};
+export type TableContextValue = {
+  showSelection: boolean,
+};
 
-const TableContext = React.createContext<TableContextValue>({});
+const TableContext = React.createContext<TableContextValue>({
+  showSelection: false,
+});
 
 export function useTable() {
   return React.useContext(TableContext);

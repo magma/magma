@@ -12,8 +12,10 @@ import type {TableColumnType} from './Table.react';
 
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
+import TableHeaderCheckbox from './TableHeaderCheckbox.react';
 import Text from '../../Text.react';
 import {makeStyles} from '@material-ui/styles';
+import {useTable} from './TableContext';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -29,6 +31,10 @@ const useStyles = makeStyles(_theme => ({
     justifyContent: 'flex-start',
     color: SymphonyTheme.palette.D400,
   },
+  checkBox: {
+    width: '24px',
+    paddingLeft: '8px',
+  },
 }));
 
 type Props<T> = {
@@ -38,9 +44,15 @@ type Props<T> = {
 const TableHeader = <T>(props: Props<T>) => {
   const {columns} = props;
   const classes = useStyles();
+  const {showSelection} = useTable();
   return (
     <thead className={classes.root}>
       <tr>
+        {showSelection && (
+          <th className={classes.checkBox}>
+            <TableHeaderCheckbox />
+          </th>
+        )}
         {columns.map((col, i) => (
           <th key={`col_${i}`} className={classes.cell}>
             {typeof col.title === 'string' ? (

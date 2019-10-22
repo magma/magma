@@ -55,7 +55,9 @@ const Checkbox = (props: Props) => {
       className={classNames(classes.root)}
       onClick={() =>
         onChange &&
-        onChange(indeterminate ? 'checked' : checked ? 'unchecked' : 'checked')
+        onChange(
+          indeterminate ? 'unchecked' : checked ? 'unchecked' : 'checked',
+        )
       }>
       <CheckboxIcon
         className={classNames({
