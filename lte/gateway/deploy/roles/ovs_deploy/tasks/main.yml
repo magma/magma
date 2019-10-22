@@ -87,7 +87,9 @@
 
 - name: Stop all magma services.
   become: yes
-  shell: service magmad@* stop
+  service:
+    name: magma@*
+    state: stopped
 
 - name: Bring up gtp_br0
   shell: ifup gtp_br0
