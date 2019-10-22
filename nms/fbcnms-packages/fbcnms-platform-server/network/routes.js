@@ -41,10 +41,6 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
     sub_profiles: {},
     tac: 1,
   },
-  features: {
-    // A placeholder due to bug in serialization
-    placeholder: 'true',
-  },
   feg_network_id: '',
   ran: {
     bandwidth_mhz: 20,
@@ -58,6 +54,15 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
       earfcndl: 44590,
       special_subframe_pattern: 7,
       subframe_assignment: 2,
+    },
+  },
+};
+
+// A placeholder due to bug in serialization
+const NETWORK_FEATURES = {
+  features: {
+    features: {
+      placeholder: 'true',
     },
   },
 };
@@ -93,6 +98,7 @@ router.post(
             id: networkID,
             name,
             description,
+            ...NETWORK_FEATURES,
           },
         });
       } else {
@@ -103,6 +109,7 @@ router.post(
             id: networkID,
             type: data.features.networkType,
             dns: DEFAULT_DNS_CONFIG,
+            ...NETWORK_FEATURES,
           },
         });
       }
