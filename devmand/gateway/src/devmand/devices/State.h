@@ -16,18 +16,19 @@
 
 #include <devmand/ErrorHandler.h>
 #include <devmand/ErrorQueue.h>
+#include <devmand/devices/Id.h>
+#include <devmand/utils/LifetimeTracker.h>
 
 namespace devmand {
 
-class Application;
+class MetricSink;
 
 namespace devices {
 
-class Device;
-
-class State final : public std::enable_shared_from_this<State> {
+class State final : public std::enable_shared_from_this<State>,
+                    public utils::LifetimeTracker<State> {
  private:
-  State(Application& application, Device& device_);
+  State(MetricSink& sink_, const Id& device_);
 
  public:
   State() = delete;
@@ -37,10 +38,10 @@ class State final : public std::enable_shared_from_this<State> {
   State(State&&) = delete;
   State& operator=(State&&) = delete;
 
-  static std::shared_ptr<State> make(Application& application, Device& device_);
+  static std::shared_ptr<State> make(MetricSink& sink, const Id& device_);
 
  public:
-  folly::dynamic& update();
+  void update(std::function<void(folly::dynamic&)> func);
   void addRequest(folly::Future<folly::Unit> future);
   void setStatus(bool systemIsUp);
   void setErrors();
@@ -53,21 +54,23 @@ class State final : public std::enable_shared_from_this<State> {
   // NOTE a state object that is never collected will be a leak.
   folly::Future<folly::dynamic> collect();
 
- private:
-  folly::dynamic& getFbcPlatformDevice(const std::string& key);
+  // clears requests and finalies to break circle.
+  void clear();
 
  private:
-  // A link to the application.
-  Application& app;
+  folly::dynamic& getFbcPlatformDevice(
+      const std::string& key,
+      folly::dynamic& unlockedState);
 
-  // A link to the device which created this state.
-  // TODO handle lifetime
-  Device& device;
+ private:
+  // A link to the sink.
+  MetricSink& sink;
+
+  // The id of the device which created this state.
+  Id device;
 
   // The state of an object formated according to the yang models supported.
-  // TODO this should prob. be rw locked. Ok for now since all is handled on
-  // poller.
-  folly::dynamic state;
+  folly::Synchronized<folly::dynamic> state;
 
   // This is a queue of errors occuring on this system.
   ErrorQueue errorQueue;

@@ -19,6 +19,9 @@
 ###############
 # Changes to this file has to be replicated in pipelined.yml_prod
 
+# Differentiate between the setup type(CWF or LTE)
+setup_type: LTE
+
 log_level: INFO
 # Enable the services in PipelineD. Tables will be assigned to the services in
 # the same order as the list. Cloud managed services will be initialized
