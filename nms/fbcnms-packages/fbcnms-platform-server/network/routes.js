@@ -21,7 +21,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CELLULAR} from '@fbcnms/types/network';
+import {LTE} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -90,7 +90,7 @@ router.post(
 
     let resp;
     try {
-      if (data.networkType === CELLULAR) {
+      if (data.networkType === LTE) {
         resp = await MagmaV1API.postLte({
           lteNetwork: {
             cellular: DEFAULT_CELLULAR_CONFIG,

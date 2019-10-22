@@ -9,7 +9,6 @@
  */
 
 const Networks = {
-  cellular: 'cellular',
   wifi: 'wifi',
   third_party: 'third_party',
   wac: 'wac',
@@ -17,7 +16,6 @@ const Networks = {
   lte: 'lte',
 };
 
-export const CELLULAR = Networks.cellular;
 export const WIFI = Networks.wifi;
 export const THIRD_PARTY = Networks.third_party;
 export const WAC = Networks.wac;
