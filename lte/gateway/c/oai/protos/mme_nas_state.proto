@@ -19,17 +19,16 @@ message UeContext {
   uint32 imsi_len = 2;
   string msisdn = 3;
 
-  uint32 imsi_auth = 4;
-  uint32 rel_cause = 5; //enum s1cause
-  uint32 mm_state = 6; // mm_state_t
-  uint32 ecm_state = 7; // ecm_state_t
+  uint32 rel_cause = 4; //enum s1cause
+  uint32 mm_state = 5; // mm_state_t
+  uint32 ecm_state = 6; // ecm_state_t
 
-  EmmContext emm_context = 8;
-  uint32 sctp_assoc_id_key = 9;
+  EmmContext emm_context = 7;
+  uint32 sctp_assoc_id_key = 8;
 
-  uint32 enb_ue_s1ap_id = 10;
-  uint64 enb_s1ap_id_key = 11;
-  uint32 mme_ue_s1ap_id = 12;
+  uint32 enb_ue_s1ap_id = 9;
+  uint64 enb_s1ap_id_key = 10;
+  uint32 mme_ue_s1ap_id = 11;
 
   Ecgi e_utran_cgi = 20;
   uint64 cell_age = 21;

@@ -338,11 +338,6 @@ typedef struct ue_mm_context_s {
   pthread_mutex_t
     recmutex; // mutex on the ue_mm_context_t + emm_context_s + esm_context_t
 
-#define IMSI_UNAUTHENTICATED (0x0)
-#define IMSI_AUTHENTICATED (0x1)
-  /* Indicator to show the IMSI authentication state */
-  unsigned imsi_auth : 1; // set by nas_auth_resp_t
-
   bstring
     msisdn; // The basic MSISDN of the UE. The presence is dictated by its storage in the HSS.
             // set by S6A UPDATE LOCATION ANSWER

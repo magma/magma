@@ -245,7 +245,6 @@ void MmeNasStateConverter::ue_context_to_proto(
     bcstrfree(msisdn_buffer);
   }
 
-  ue_ctxt_proto->set_imsi_auth(ue_ctxt->imsi_auth);
   ue_ctxt_proto->set_rel_cause(ue_ctxt->ue_context_rel_cause);
   ue_ctxt_proto->set_mm_state(ue_ctxt->mm_state);
   ue_ctxt_proto->set_ecm_state(ue_ctxt->ecm_state);
@@ -270,7 +269,6 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->emm_context._imsi64 = ue_context_proto->imsi();
   state_ue_mm_context->emm_context._imsi.length = ue_context_proto->imsi_len();
   state_ue_mm_context->msisdn = bfromcstr(ue_context_proto->msisdn().c_str());
-  state_ue_mm_context->imsi_auth = ue_context_proto->imsi_auth();
   state_ue_mm_context->ue_context_rel_cause =
     static_cast<enum s1cause>(ue_context_proto->rel_cause());
   state_ue_mm_context->mm_state =

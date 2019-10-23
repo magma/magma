@@ -66,6 +66,7 @@ int mme_app_handle_nas_dl_req(
     OAILOG_CRITICAL(
       LOG_MME_APP,
       "DOWNLINK NAS TRANSPORT. Failed to get global mme_app_desc context \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   ue_mm_context_t *ue_context = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, ue_id);

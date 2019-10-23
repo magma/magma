@@ -1273,7 +1273,6 @@ static int _authentication_request(struct emm_context_s *emm_ctx,
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
-  ue_mm_context_t *ue_mm_context = NULL;
 
   if (auth_proc) {
     /*
@@ -1290,17 +1289,7 @@ static int _authentication_request(struct emm_context_s *emm_ctx,
     emm_sap.u.emm_as.u.security.ksi = auth_proc->ksi;
     memcpy(emm_sap.u.emm_as.u.security.rand, auth_proc->rand, AUTH_RAND_SIZE);
     memcpy(emm_sap.u.emm_as.u.security.autn, auth_proc->autn, AUTH_AUTN_SIZE);
-    /*
-     * TODO: check for pointer validity
-     */
-    ue_mm_context = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
-    if (!ue_mm_context) {
-      OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "UE MM context NULL for ue_id = "MME_UE_S1AP_ID_FMT" !\n",
-        auth_proc->ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-    }
+
     /*
      * Setup EPS NAS security data
      */
@@ -1326,7 +1315,6 @@ static int _authentication_request(struct emm_context_s *emm_ctx,
           (void *) emm_ctx);
       }
     }
-    unlock_ue_contexts(ue_mm_context);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1536,7 +1524,7 @@ static int _authentication_abort(
  **                                                                        **
  ***************************************************************************/
 static void _nas_itti_auth_info_req(
-    const mme_ue_s1ap_id_t ue_idP,
+    const mme_ue_s1ap_id_t ue_id,
     const imsi_t *const imsiP,
     const bool is_initial_reqP,
     plmn_t *const visited_plmnP,
@@ -1549,20 +1537,25 @@ static void _nas_itti_auth_info_req(
 
   OAILOG_INFO(
     LOG_NAS_EMM, "Sending Authentication Information Request message to S6A"
-   " for ue_id =" MME_UE_S1AP_ID_FMT "\n", ue_idP);
+   " for ue_id =" MME_UE_S1AP_ID_FMT "\n", ue_id);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_AUTH_INFO_REQ);
+  if(!message_p) {
+    OAILOG_CRITICAL(
+      LOG_NAS_EMM, "itti_alloc_new_message failed for Authentication Information"
+      " Request message to S6A for ue-id = "MME_UE_S1AP_ID_FMT "\n", ue_id);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
   auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
   memset(auth_info_req, 0, sizeof(s6a_auth_info_req_t));
 
   IMSI_TO_STRING(imsiP, auth_info_req->imsi, IMSI_BCD_DIGITS_MAX + 1);
   auth_info_req->imsi_length = (uint8_t) strlen(auth_info_req->imsi);
 
-  AssertFatal(
-    (auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16),
-    "Bad IMSI length %d",
-    auth_info_req->imsi_length);
-
+  if (!(auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16)) {
+    OAILOG_WARNING(LOG_NAS_EMM, "Bad IMSI length %d", auth_info_req->imsi_length);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
   auth_info_req->visited_plmn = *visited_plmnP;
   auth_info_req->nb_of_vectors = num_vectorsP;
 
@@ -1570,7 +1563,10 @@ static void _nas_itti_auth_info_req(
     auth_info_req->re_synchronization = 0;
     memset(auth_info_req->resync_param, 0, sizeof auth_info_req->resync_param);
   } else {
-    AssertFatal(auts_pP != NULL, "Autn Null during resynchronization");
+    if (!auts_pP) {
+      OAILOG_WARNING(LOG_NAS_EMM, "Auts Null during resynchronization \n");
+      OAILOG_FUNC_OUT(LOG_NAS);
+    }
     auth_info_req->re_synchronization = 1;
     memcpy(
       auth_info_req->resync_param,

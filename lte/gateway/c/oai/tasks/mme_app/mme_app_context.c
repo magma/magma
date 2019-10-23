@@ -1809,10 +1809,6 @@ bool mme_app_dump_ue_context(
     bformata(bstr_dump, "%p --------------------\n", ue_mm_context);
     bformata(
       bstr_dump,
-      "    - Authenticated ..: %s\n",
-      (ue_mm_context->imsi_auth == IMSI_UNAUTHENTICATED) ? "FALSE" : "TRUE");
-    bformata(
-      bstr_dump,
       "    - eNB UE s1ap ID .: %08x\n",
       ue_mm_context->enb_ue_s1ap_id);
     bformata(

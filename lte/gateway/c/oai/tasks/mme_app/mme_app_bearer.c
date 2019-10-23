@@ -269,10 +269,6 @@ int mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_t *mme_app_desc_p,
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
-  /*
-   * Consider the UE authenticated
-   */
-  ue_context_p->imsi_auth = IMSI_AUTHENTICATED;
   rc = mme_app_send_s11_create_session_req(mme_app_desc_p,
     ue_context_p, nas_pdn_connectivity_req_pP->pdn_cid);
   if (rc == RETURNok) {
