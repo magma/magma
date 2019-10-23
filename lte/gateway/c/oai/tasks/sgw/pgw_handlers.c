@@ -570,7 +570,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   hash_node_t *node = NULL;
   itti_s5_nw_init_deactv_bearer_request_t *itti_s5_deactv_ded_bearer_req = NULL;
   bool is_lbi_found = false;
-  bool send_reject = false;
   bool is_imsi_found = false;
   bool is_ebi_found = false;
   ebi_t ebi_to_be_deactivated[BEARERS_PER_UE] = {0};
@@ -623,10 +622,11 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
               } else {
                 invalid_ebi[no_of_bearers_rej] = bearer_req_p->ebi[itrn];
                 no_of_bearers_rej++;
-                send_reject = true;
               }
             }
           } else {
+            invalid_ebi[no_of_bearers_rej] = bearer_req_p->lbi;
+            no_of_bearers_rej++;
             OAILOG_ERROR(
               LOG_PGW_APP,
               "Unknown LBI (%d) received in pgw_nw_init_deactv_bearer_request"
@@ -634,6 +634,8 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
               bearer_req_p->lbi);
           }
         } else {
+          invalid_ebi[no_of_bearers_rej] = bearer_req_p->lbi;
+          no_of_bearers_rej++;
           OAILOG_ERROR(
             LOG_PGW_APP,
             "Unknown IMSI (%s) received in pgw_nw_init_deactv_bearer_request"
@@ -646,18 +648,11 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     i++;
   }
 
-  if ((send_reject) || (!is_lbi_found) || (!is_imsi_found)) {
-  if (no_of_bearers_rej > 0) {
-     OAILOG_ERROR(
-      LOG_PGW_APP,
-      "Unknown EBI received in pgw_nw_init_deactv_bearer_request for IMSI (%s)"
-      "\n",
-      bearer_req_p->imsi);
-      print_bearer_ids_helper(invalid_ebi, no_of_bearers_rej);
-    }
+  if ((!is_ebi_found) || (!is_lbi_found) || (!is_imsi_found)) {
     OAILOG_INFO(
       LOG_PGW_APP,
         "Sending dedicated bearer deactivation reject to NW\n");
+    print_bearer_ids_helper(invalid_ebi, no_of_bearers_rej);
     //TODO-Uncomment once implemented at PCRF
     /*rc = send_dedicated_bearer_deactv_rsp(invalid_ebi,
         REQUEST_REJECTED);*/
