@@ -196,6 +196,11 @@ ebi_t esm_ebr_context_create(
       if(sgw_fteid) {
         memcpy(&bearer_context->s_gw_fteid_s1u, sgw_fteid, sizeof(fteid_t));
       }
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      " Pruthvi - ESM-PROC  - SGW U TEID after creating bearer cntxt in NAS %x\n",
+      bearer_context->s_gw_fteid_s1u.teid);
+
       bearer_context->bearer_state |=
         BEARER_STATE_SGW_CREATED | BEARER_STATE_MME_CREATED;
       if (is_default) {

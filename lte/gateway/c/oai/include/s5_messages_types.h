@@ -63,8 +63,10 @@ typedef struct itti_s5_create_bearer_response_s {
 typedef struct itti_s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;///< linked Bearer ID
   teid_t mme_teid_S11;
+  teid_t s_gw_teid_S11_S4;
   bearer_qos_t eps_bearer_qos; ///< Bearer QoS
-  traffic_flow_template_t tft; ///< Traffic Flow Template
+  traffic_flow_template_t ul_tft; ///< UL Traffic Flow Template
+  traffic_flow_template_t dl_tft; ///< DL Traffic Flow Template
   protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
 } itti_s5_nw_init_actv_bearer_request_t;
 
