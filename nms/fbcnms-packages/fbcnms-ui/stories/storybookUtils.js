@@ -11,5 +11,6 @@
 export const STORY_CATEGORIES = {
   FOUNDATION: '1. Foundation',
   INPUTS: '2. Inputs',
-  MUI_COMPONENTS: '3. MUI Components',
+  COMPONENTS: '3. Components',
+  MUI_COMPONENTS: '4. MUI Components',
 };

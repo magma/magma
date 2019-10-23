@@ -79,10 +79,14 @@ func (m EapAkaMagmaMethod) Handle(
 	}
 
 	// Get the client MAC address
-	var clientMac string
-	calledStationIDAttr, err := rfc2865.CallingStationID_Lookup(r.Packet)
+	var clientMac, apn string
+	attr, err := rfc2865.CallingStationID_Lookup(r.Packet)
 	if err == nil {
-		clientMac = string(calledStationIDAttr)
+		clientMac = string(attr)
+	}
+	attr, err = rfc2865.CalledStationID_Lookup(r.Packet)
+	if err == nil {
+		apn = string(attr)
 	}
 
 	UnmarshalProtocolState.Start()
@@ -94,6 +98,7 @@ func (m EapAkaMagmaMethod) Handle(
 		eapContext = aaa.Context{
 			SessionId: sessionID,
 			MacAddr:   clientMac,
+			Apn:       apn,
 		}
 		eapLogger.Debug("EAP state not found, created a new state", zap.Any("state", eapContext))
 	} else {
@@ -112,8 +117,9 @@ func (m EapAkaMagmaMethod) Handle(
 	}
 
 	c.SessionStorage.Set(session.State{
-		MACAddress: clientMac,
-		MSISDN:     eapContext.GetMsisdn(),
+		MACAddress:      clientMac,
+		MSISDN:          eapContext.GetMsisdn(),
+		CalledStationID: apn,
 	})
 
 	var eapResponse *aaa.Eap

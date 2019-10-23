@@ -11,7 +11,10 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {network_cellular_configs} from '@fbcnms/magma-api';
+import type {
+  network_cellular_configs,
+  network_ran_configs,
+} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import FormControl from '@material-ui/core/FormControl';
@@ -62,16 +65,27 @@ type State = {
   isLoading: boolean,
   lteAuthOpHex: string,
   showLteAuthOP: boolean,
+  bandSelection: string,
+  tddConfig: ?TDDConfig,
+  fddConfig: ?FDDConfig,
 };
 
 type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 
-class DataPlanConfig extends React.Component<Props, State> {
+const TDD = 'tdd';
+const FDD = 'fdd';
+type TDDConfig = $PropertyType<network_ran_configs, 'tdd_config'>;
+type FDDConfig = $PropertyType<network_ran_configs, 'fdd_config'>;
+
+class NetworkConfig extends React.Component<Props, State> {
   state = {
     config: null,
     isLoading: true,
     lteAuthOpHex: '',
     showLteAuthOP: false,
+    bandSelection: '',
+    fddConfig: null,
+    tddConfig: null,
   };
 
   componentDidMount() {
@@ -83,6 +97,16 @@ class DataPlanConfig extends React.Component<Props, State> {
           config: response,
           isLoading: false,
           lteAuthOpHex: base64ToHex(response.epc.lte_auth_op),
+          bandSelection: response.ran.fdd_config ? FDD : TDD,
+          tddConfig: response.ran.tdd_config || {
+            earfcndl: 0,
+            special_subframe_pattern: 0,
+            subframe_assignment: 0,
+          },
+          fddConfig: response.ran.fdd_config || {
+            earfcndl: 0,
+            earfcnul: 0,
+          },
         }),
       )
       .catch(error => {
@@ -130,6 +154,19 @@ class DataPlanConfig extends React.Component<Props, State> {
   handleMncChanged = this.updateNetworkConfigField('epc', 'mnc');
   handleTacChanged = this.updateNetworkConfigField('epc', 'tac');
 
+  handleTddOrFddConfigChanged = (
+    tddOrFdd: 'tddConfig' | 'fddConfig',
+    field: string,
+  ) => {
+    return evt =>
+      this.setState({
+        [tddOrFdd]: {
+          ...this.state[tddOrFdd],
+          [field]: evt.target.value,
+        },
+      });
+  };
+
   handleMouseDownPassword = event => {
     event.preventDefault();
   };
@@ -147,6 +184,65 @@ class DataPlanConfig extends React.Component<Props, State> {
     const {config, lteAuthOpHex, showLteAuthOP} = this.state;
     if (!config) {
       return <LoadingFiller />;
+    }
+
+    let bandeSelectionFields;
+    if (this.state.bandSelection === FDD) {
+      bandeSelectionFields = (
+        <FormGroup row className={classes.formGroup}>
+          <TextField
+            required
+            label="EARFCNDL"
+            margin="normal"
+            className={classes.textField}
+            value={this.state.fddConfig?.earfcndl}
+            onChange={this.handleTddOrFddConfigChanged('fddConfig', 'earfcndl')}
+          />
+          <TextField
+            required
+            label="EARFCNUL"
+            margin="normal"
+            className={classes.textField}
+            value={this.state.fddConfig?.earfcnul}
+            onChange={this.handleTddOrFddConfigChanged('fddConfig', 'earfcnul')}
+          />
+        </FormGroup>
+      );
+    } else {
+      bandeSelectionFields = (
+        <FormGroup row className={classes.formGroup}>
+          <TextField
+            required
+            label="EARFCNDL"
+            margin="normal"
+            className={classes.textField}
+            value={this.state.tddConfig?.earfcndl}
+            onChange={this.handleTddOrFddConfigChanged('tddConfig', 'earfcndl')}
+          />
+          <TextField
+            required
+            label="Special Subframe Pattern"
+            margin="normal"
+            className={classes.textField}
+            value={this.state.tddConfig?.special_subframe_pattern}
+            onChange={this.handleTddOrFddConfigChanged(
+              'tddConfig',
+              'special_subframe_pattern',
+            )}
+          />
+          <TextField
+            required
+            label="Subframe Assignment"
+            margin="normal"
+            className={classes.textField}
+            value={this.state.tddConfig?.subframe_assignment}
+            onChange={this.handleTddOrFddConfigChanged(
+              'tddConfig',
+              'subframe_assignment',
+            )}
+          />
+        </FormGroup>
+      );
     }
 
     return (
@@ -219,6 +315,21 @@ class DataPlanConfig extends React.Component<Props, State> {
           </FormControl>
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
+          <FormControl className={classes.select}>
+            <InputLabel htmlFor="band_selection">Band Selection</InputLabel>
+            <Select
+              inputProps={{id: 'bend_selection'}}
+              value={this.state.bandSelection}
+              onChange={({target}) => {
+                this.setState({bandSelection: target.value});
+              }}>
+              <MenuItem value={TDD}>TDD</MenuItem>
+              <MenuItem value={FDD}>FDD</MenuItem>
+            </Select>
+          </FormControl>
+        </FormGroup>
+        {bandeSelectionFields}
+        <FormGroup row className={classes.formGroup}>
           <Button
             disabled={!this.canSubmitForm()}
             className={classes.saveButton}
@@ -234,10 +345,33 @@ class DataPlanConfig extends React.Component<Props, State> {
 
   handleSave = () => {
     const config = nullthrows(this.state.config);
+    const bandSeletionConfig: {|
+      tdd_config?: TDDConfig,
+      fdd_config?: FDDConfig,
+    |} = {tdd_config: undefined, fdd_config: undefined};
+    if (this.state.bandSelection === TDD) {
+      const tddConfig = nullthrows(this.state.tddConfig);
+      bandSeletionConfig.tdd_config = {
+        earfcndl: parseInt(tddConfig.earfcndl),
+        special_subframe_pattern: parseInt(tddConfig.special_subframe_pattern),
+        subframe_assignment: parseInt(tddConfig.subframe_assignment),
+      };
+    } else {
+      const fddConfig = nullthrows(this.state.fddConfig);
+      bandSeletionConfig.fdd_config = {
+        earfcndl: parseInt(fddConfig.earfcndl),
+        earfcnul: parseInt(fddConfig.earfcnul),
+      };
+    }
+
     MagmaV1API.putLteByNetworkIdCellular({
       networkId: nullthrows(this.props.match.params.networkId),
       config: {
         ...config,
+        ran: {
+          ...config.ran,
+          ...bandSeletionConfig,
+        },
         epc: {
           ...config.epc,
           tac: parseInt(config.epc.tac),
@@ -251,4 +385,4 @@ class DataPlanConfig extends React.Component<Props, State> {
   };
 }
 
-export default withStyles(styles)(withAlert(withRouter(DataPlanConfig)));
+export default withStyles(styles)(withAlert(withRouter(NetworkConfig)));

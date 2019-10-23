@@ -120,7 +120,7 @@ const NetworkSelector = () => {
                 }}
                 button
                 component="a"
-                href="/nms/network/create">
+                href="/admin/networks/new">
                 <Typography className={classes.networkItemText}>
                   Create Network
                 </Typography>

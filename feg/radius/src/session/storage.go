@@ -22,6 +22,7 @@ type (
 		Tier              string
 		RadiusSessionFBID uint64 // the FBID of the XWFEntRadiusSession created for this RADIUS session
 		AcctSessionID     string
+		CalledStationID   string
 	}
 
 	// GlobalStorage an interface for session-level storage, which allows

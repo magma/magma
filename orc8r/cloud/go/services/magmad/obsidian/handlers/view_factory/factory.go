@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/thoas/go-funk"
 )
 
@@ -63,7 +64,7 @@ func (f *FullGatewayViewFactoryImpl) GetGatewayViewsForNetwork(networkID string)
 func (f *FullGatewayViewFactoryImpl) GetGatewayViews(networkID string, gatewayIDs []string) (map[string]*GatewayState, error) {
 	ret := make(map[string]*GatewayState, len(gatewayIDs))
 	gatewayTKs := funk.Map(gatewayIDs, func(id string) storage.TypeAndKey { return storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id} }).([]storage.TypeAndKey)
-	loadedGateways, _, err := configurator.LoadEntities(networkID, nil, nil, nil, gatewayTKs, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadMetadata: true})
+	loadedGateways, _, err := configurator.LoadEntities(networkID, swag.String(orc8r.MagmadGatewayType), nil, nil, gatewayTKs, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadMetadata: true})
 	if err != nil {
 		return nil, err
 	}

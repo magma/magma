@@ -51,7 +51,7 @@ function Main() {
   // If it's a superuser and there are no networks, prompt them to create a
   // network
   if (hasNoNetworks && window.CONFIG.appData.user.isSuperUser) {
-    return <Redirect to="/nms/network/create" />;
+    return <Redirect to="/admin/networks" />;
   }
 
   // If it's a regular user and there are no networks, then they likely dont
@@ -60,7 +60,10 @@ function Main() {
     return (
       <AppContextProvider>
         <ErrorLayout>
-          <NoNetworksMessage />
+          <NoNetworksMessage>
+            You currently do not have access to any networks. Please contact
+            your system administrator to be added
+          </NoNetworksMessage>
         </ErrorLayout>
       </AppContextProvider>
     );
