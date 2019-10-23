@@ -83,6 +83,8 @@ spec:
                 secretKeyRef:
                   name: magmalte-mysql-secrets
                   key: MYSQL_USER
+            - name: NODE_ENV
+              value: production
           livenessProbe:
             exec:
               command:
