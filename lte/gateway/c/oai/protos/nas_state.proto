@@ -331,12 +331,11 @@ message EmmContext {
 
   bool is_dynamic = 31;
   bool is_attached = 32;
-  bool is_has_been_attached = 33;
-  bool is_initial_identity_imsi = 34;
-  bool is_guti_based_attach = 35;
-  bool is_guti_set = 36;
-  bool is_imsi_only_detach = 37;
-  bool is_emergency = 38;
+  bool is_initial_identity_imsi = 33;
+  bool is_guti_based_attach = 34;
+  bool is_guti_set = 35;
+  bool is_imsi_only_detach = 36;
+  bool is_emergency = 37;
 
   uint32 additional_update_type = 41;
   uint32 tau_updt_type = 42;

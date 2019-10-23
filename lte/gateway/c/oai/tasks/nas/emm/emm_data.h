@@ -150,7 +150,6 @@ typedef struct emm_context_s {
   bool is_dynamic;   /* Dynamically allocated context indicator         */
   bool is_attached;  /* Attachment indicator                            */
   bool is_emergency; /* Emergency bearer services indicator             */
-  bool is_has_been_attached; /* Attachment indicator                   */
   bool
     is_initial_identity_imsi; // If the IMSI was used for identification in the initial NAS message
   bool is_guti_based_attach;
