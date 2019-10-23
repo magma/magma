@@ -120,10 +120,37 @@ case "$dist" in
       awk '/Hardware UUID: / {print tolower($3)}'| tail -c 13)
     ;;
   *debian*|*ubuntu*)
-    echo "${RED}This is an untested distro!${RESET}"
-    if ! type docker-compose > /dev/null 2>&1 ; then
-      sudo apt-get --yes --force-yes install -qq docker-compose
+    # NOTE: docker and docker-compose need to be installed directly from docker - the "apt" package
+    # is broken for now. Once it's fixed, we can remove this warning. Link to the issues:
+    # https://bugs.launchpad.net/ubuntu/+source/golang-github-docker-docker-credential-helpers/+bug/1794307
+    # https://github.com/docker/compose/issues/6023
+
+    docker_links="\n\tdocker: https://docs.docker.com/install/linux/docker-ce/ubuntu/"
+    docker_links+="\n\tdocker-compose: https://docs.docker.com/compose/install/"
+
+    # they don't have docker or docker-compose installed
+    if ! type docker-compose > /dev/null 2>&1 || ! type docker > /dev/null 2>&1 ; then
+      echo -e "${RED}docker and docker-compose must be installed via docker's official" \
+        "instructions.${docker_links} ${RESET} "
+      exit 1
     fi
+
+    # make sure they installed docker via the official instructions (not apt)
+    # use || true to avoid exit because of `set -e`
+    docker_ce_count=$(dpkg -l | grep -c "docker-ce") || true
+    if [[ $docker_ce_count -eq 0 ]] ; then
+      echo -e "${RED}You have docker and docker-compose but installed via apt-get."\
+        "\nThe apt package currently does not work."\
+        "\nPlease uninstall them and re-install from the official docker instructions at:"\
+        "${docker_links} ${RESET}"
+      exit 1
+    fi
+    
+    # generate a UID
+    for eth in /sys/class/net/ens*/address ; do
+      uid="$(sed 's/://g' "${eth}")"
+      break
+    done
     ;;
   *)
     if ! type docker-compose > /dev/null 2>&1 ; then
@@ -138,7 +165,7 @@ case "$dist" in
 esac
 
 ###############################################################################
-echo -n "${GREEN}Do you want to connect your symphony agent to the symphony cloud?${RESET} "
+echo -n "${GREEN}Do you want to connect your symphony agent to the symphony cloud? (y/n)${RESET} "
 read -t 60 -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]] ; then
@@ -157,7 +184,7 @@ fi
 ###############################################################################
 
 echo "${GREEN}I need a unique id which will identify your device in the cloud.${RESET}"
-read -t 60 -p "${GREEN}Do you want to auto-generated one?${RESET} " -n 1 -r
+read -t 60 -p "${GREEN}Do you want to auto-generated one? (y/n)${RESET} " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]] ; then
   SNOWFLAKE="faceb00c-face-b00c-face-${uid}"
