@@ -63,7 +63,6 @@ const autoSuggestStyles = theme => ({
 
 const useStyles = makeStyles(theme => ({
   container: {
-    minWidth: '250px',
     width: '100%',
   },
   suggestionRoot: {
