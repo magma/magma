@@ -116,15 +116,20 @@ export default function GatewayCellularFields(props: Props) {
         csfb_mnc: mnc,
         lac: parseInt(lac),
       },
-      // Override the registered eNodeB devices with new values
-      attached_enodeb_serials: attachedEnodebSerials,
     };
 
-    MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
-      networkId: nullthrows(match.params.networkId),
-      gatewayId: id,
-      config,
-    })
+    Promise.all([
+      MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
+        networkId: nullthrows(match.params.networkId),
+        gatewayId: id,
+        config,
+      }),
+      MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
+        networkId: nullthrows(match.params.networkId),
+        gatewayId: id,
+        serials: attachedEnodebSerials,
+      }),
+    ])
       .then(() => props.onSave(id))
       .catch(e => {
         enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
