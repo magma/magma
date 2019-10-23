@@ -15,8 +15,11 @@ import (
 	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
+	"log"
 	"math/rand"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"sort"
@@ -37,6 +40,16 @@ func main() {
 	if err != nil {
 		logger.Error("Failed to read configuration", zap.Error(err))
 		return
+	}
+
+	// Initialize pprof debug interface
+	if config.Debug != nil {
+		if config.Debug.Enabled {
+			logger.Info("Enabling Server Debugging", zap.Int("port", config.Debug.Port))
+			go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Debug.Port), nil))
+		} else {
+			logger.Info("Server Debugging interface is disabled")
+		}
 	}
 
 	// Initialize monitoring

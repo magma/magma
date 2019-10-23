@@ -29,6 +29,7 @@ export type AppContextType = {
   showExpandButton: () => void,
   hideExpandButton: () => void,
   isFeatureEnabled: FeatureID => boolean,
+  ssoEnabled: boolean,
 };
 
 const AppContext = React.createContext<AppContextType>({
@@ -40,6 +41,7 @@ const AppContext = React.createContext<AppContextType>({
   showExpandButton: emptyFunction,
   hideExpandButton: emptyFunction,
   isFeatureEnabled: () => false,
+  ssoEnabled: false,
 });
 
 type Props = {|

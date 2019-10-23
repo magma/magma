@@ -38,7 +38,6 @@ function NavItems() {
   const {relativeUrl} = useRouter();
   const {isFeatureEnabled} = React.useContext(AppContext);
   const auditLogEnabled = isFeatureEnabled('audit_log_view');
-  const networkManagementEnabled = isFeatureEnabled('magma_network_management');
 
   return (
     <>
@@ -54,13 +53,11 @@ function NavItems() {
           icon={<AssignmentIcon />}
         />
       )}
-      {networkManagementEnabled && (
-        <NavListItem
-          label="Networks"
-          path={relativeUrl('/networks')}
-          icon={<SignalCellularAlt />}
-        />
-      )}
+      <NavListItem
+        label="Networks"
+        path={relativeUrl('/networks')}
+        icon={<SignalCellularAlt />}
+      />
     </>
   );
 }

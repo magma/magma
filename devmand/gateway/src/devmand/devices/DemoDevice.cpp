@@ -21,8 +21,10 @@ DemoDevice::DemoDevice(Application& application, const Id& id_)
     : Device(application, id_) {}
 
 std::shared_ptr<State> DemoDevice::getState() {
-  auto state = State::make(app, *this);
-  state->update() = std::move(DemoDevice::getDemoState());
+  auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
+  state->update([](auto& lockedState) {
+    lockedState = std::move(DemoDevice::getDemoState());
+  });
   return state;
 }
 

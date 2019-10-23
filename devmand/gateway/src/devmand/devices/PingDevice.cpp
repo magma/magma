@@ -33,13 +33,17 @@ PingDevice::PingDevice(
     : Device(application, id_), channel(application.getPingEngine(), ip_) {}
 
 std::shared_ptr<State> PingDevice::getState() {
-  auto state = State::make(app, *this);
+  auto state = State::make(app, getId());
   state->setStatus(false);
-  devmand::models::device::Model::init(state->update());
+  state->update([](auto& lockedState) {
+    devmand::models::device::Model::init(lockedState);
+  });
 
   state->addRequest(channel.ping().thenValue([state](auto rtt) {
-    devmand::models::device::Model::addLatency(
-        state->update(), "ping", "agent", "device", rtt);
+    state->update([rtt](auto& lockedState) {
+      devmand::models::device::Model::addLatency(
+          lockedState, "ping", "agent", "device", rtt);
+    });
   }));
   return state;
 }

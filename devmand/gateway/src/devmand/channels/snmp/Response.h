@@ -29,6 +29,10 @@ class Response {
 
   bool isError() const;
 
+  friend bool operator==(const Response& lhs, const Response& rhs) {
+    return lhs.oid == rhs.oid and lhs.value == lhs.value;
+  }
+
  public:
   Oid oid;
   folly::dynamic value;

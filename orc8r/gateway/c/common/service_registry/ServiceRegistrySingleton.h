@@ -88,6 +88,11 @@ class ServiceRegistrySingleton {
       const std::string& service,
       const std::string& destination);
 
+    /*
+     * Returns a grpc connection to the bootstrapper service
+     */
+    const std::shared_ptr<Channel> GetBootstrapperGrpcChannel();
+
   private:
     ServiceRegistrySingleton(); // Prevent construction
     // Prevent construction by copying
