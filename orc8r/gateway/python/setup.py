@@ -75,5 +75,7 @@ setup(
         'python-dateutil>=1.4',
         # force same requests version as lte/gateway/python/setup.py
         'requests==2.22.0',
+        # pin six >=1.12 due to transitive dependency mismatch
+        'six>=1.12.0',
     ]
 )
