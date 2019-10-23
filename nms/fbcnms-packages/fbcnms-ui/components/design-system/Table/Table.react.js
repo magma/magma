@@ -29,7 +29,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-export type TableRowDataType<T> = {id?: string} & T;
+export type TableRowDataType<T> = {key?: string} & T;
 
 export type TableColumnType<T> = {
   key: string,
@@ -76,7 +76,7 @@ const Table = <T>(props: Props<T>) => {
     </table>
   );
 
-  const allIds = useMemo(() => data.map((d, i) => d.id ?? i), [data]);
+  const allIds = useMemo(() => data.map((d, i) => d.key ?? i), [data]);
   return (
     <TableContext.Provider value={{showSelection: showSelection ?? false}}>
       {showSelection ? (

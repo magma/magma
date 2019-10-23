@@ -101,7 +101,9 @@ const TableHeader = <T>({onSortClicked, columns}: Props<T>) => {
             className={classNames(classes.cell, {
               [classes.sortableCell]: col.sortable,
             })}
-            onClick={() => onSortClicked && onSortClicked(col.key)}>
+            onClick={() =>
+              col.sortable && onSortClicked && onSortClicked(col.key)
+            }>
             <div className={classes.cellContent}>
               {typeof col.title === 'string' ? (
                 <Text className={classes.cellText} variant="body2">
