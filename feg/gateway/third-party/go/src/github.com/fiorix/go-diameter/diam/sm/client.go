@@ -325,7 +325,7 @@ func getLocalAddresses(c diam.Conn) ([]datatype.Address, error) {
 	}
 	addr, _, err := net.SplitHostPort(addrStr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse local ip %q: %s", c.LocalAddr(), err)
+		return nil, fmt.Errorf("failed to parse local ip %s [%q]: %s", addrStr, c.LocalAddr(), err)
 	}
 	hostIPs := strings.Split(addr, "/")
 	addresses := make([]datatype.Address, 0, len(hostIPs))

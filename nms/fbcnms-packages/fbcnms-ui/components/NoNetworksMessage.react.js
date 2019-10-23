@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 import Typography from '@material-ui/core/Typography';
 import WifiTethering from '@material-ui/icons/WifiTethering';
 
@@ -29,15 +29,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function() {
+export default function({children}: {children: React.Node}) {
   const classes = useStyles();
   return (
     <Typography variant="h6" className={classes.noAccess}>
       <div>
         <WifiTethering className={classes.icon} />
       </div>
-      You currently do not have access to any networks. Please contact your
-      system administrator to be added
+      {children}
     </Typography>
   );
 }

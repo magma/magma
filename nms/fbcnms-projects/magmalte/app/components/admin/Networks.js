@@ -8,13 +8,15 @@
  * @format
  */
 
+import AddNetworkDialog from './AddNetworkDialog';
 import Button from '@material-ui/core/Button';
 import EditIcon from '@material-ui/icons/Edit';
+import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import NetworkDialog from './NetworkDialog';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -39,6 +41,9 @@ const useStyles = makeStyles({
   },
   paper: {
     margin: '10px',
+  },
+  noNetworks: {
+    height: '70vh',
   },
 });
 
@@ -81,21 +86,30 @@ function Networks() {
           </Button>
         </NestedRouteLink>
       </div>
-      <Paper className={classes.tableRoot} elevation={2}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Network ID</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>{rows}</TableBody>
-        </Table>
-      </Paper>
+      {rows.length === 0 ? (
+        <div className={classes.noNetworks}>
+          <NoNetworksMessage>
+            You currently do not have any networks configured. Click "Add
+            Network" to create a new network
+          </NoNetworksMessage>
+        </div>
+      ) : (
+        <Paper className={classes.tableRoot} elevation={2}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Network ID</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>{rows}</TableBody>
+          </Table>
+        </Paper>
+      )}
       <Route
         path={relativePath('/new')}
         render={() => (
-          <NetworkDialog
+          <AddNetworkDialog
             onClose={closeDialog}
             onSave={networkID => {
               setNetworks([...networks, networkID]);
@@ -110,7 +124,7 @@ function Networks() {
       <Route
         path={relativePath('/edit/:networkID')}
         render={() => (
-          <NetworkDialog
+          <EditNetworkDialog
             onClose={closeDialog}
             onSave={_ => {
               enqueueSnackbar('Network updated successfully', {

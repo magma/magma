@@ -36,6 +36,11 @@ class Oid final {
   size_t getLength() const;
   std::string toString() const;
 
+  friend bool operator==(const Oid& lhs, const Oid& rhs) {
+    return snmp_oid_compare(lhs.buffer, lhs.length, rhs.buffer, lhs.length) ==
+        0;
+  }
+
   friend bool operator<(const Oid& lhs, const Oid& rhs) {
     return snmp_oid_compare(lhs.buffer, lhs.length, rhs.buffer, lhs.length) ==
         -1;

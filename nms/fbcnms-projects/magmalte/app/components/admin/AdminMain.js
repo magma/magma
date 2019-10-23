@@ -31,7 +31,7 @@ type Props = {
 
 export default function AdminMain(props: Props) {
   const classes = useStyles();
-  const {tabs, user} = useContext(AppContext);
+  const {tabs, user, ssoEnabled} = useContext(AppContext);
 
   return (
     <div className={classes.root}>
@@ -39,6 +39,7 @@ export default function AdminMain(props: Props) {
         mainItems={props.navItems()}
         projects={getProjectLinks(tabs, user)}
         user={nullthrows(user)}
+        showSettings={!ssoEnabled}
       />
       <AppContent>{props.navRoutes()}</AppContent>
     </div>

@@ -113,11 +113,6 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'magma_network_management',
-    title: 'Magma Network Management',
-    enabledByDefault: false,
-  },
-  {
     id: 'file_categories',
     title: 'File Categories (for IpT)',
     enabledByDefault: false,

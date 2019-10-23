@@ -15,7 +15,7 @@ include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
-set(MAGMA_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/../magma_common")
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 add_definitions(-DLOG_WITH_GLOG)
 
 include_directories("${OUTPUT_DIR}")

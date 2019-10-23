@@ -4,7 +4,7 @@ set(asn1c_call "${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1")
 set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
 
 # compile required protos
-set(SPGW_LTE_CPP_PROTOS spgw_state common_types)
+set(SPGW_LTE_CPP_PROTOS spgw_state common_types 3gpp_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 

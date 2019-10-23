@@ -45,6 +45,23 @@ export type alert_routing_tree = {
     routes ? : Array < alert_routing_tree >
         ,
 };
+export type allowed_gre_peer = {
+    ip: string,
+    key: number,
+};
+export type allowed_gre_peers = Array < allowed_gre_peer >
+;
+export type base_name = string;
+export type base_name_record = {
+    name: base_name,
+    rule_names: rule_names,
+};
+export type cambium_channel = {
+    client_id ? : string,
+    client_ip ? : string,
+    client_mac ? : string,
+    client_secret ? : string,
+};
 export type challenge_key = {
     key ? : string,
     key_type: "ECHO" | "SOFTWARE_ECDSA_SHA256",
@@ -54,6 +71,7 @@ export type config_info = {
     mconfig_created_at ? : number,
 };
 export type cwf_gateway = {
+    carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
     device: gateway_device,
     id: gateway_id,
@@ -118,6 +136,19 @@ export type eap_aka_timeouts = {
     error_notification_ms ? : number,
     session_authenticated_ms ? : number,
     session_ms ? : number,
+};
+export type elastic_hit = {
+    _id: string,
+    _index: string,
+    _primary_term ? : string,
+    _score ? : number,
+    _seq_no ? : number,
+    _sort ? : Array < number >
+        ,
+    _source: {
+        [string]: string,
+    },
+    _type: string,
 };
 export type enodeb = {
     attached_gateway_id ? : string,
@@ -187,6 +218,24 @@ export type feg_network = {
     name: network_name,
 };
 export type feg_network_id = string;
+export type flow_description = {
+    action: "PERMIT" | "DENY",
+    match: flow_match,
+};
+export type flow_match = {
+    direction: "UPLINK" | "DOWNLINK",
+    ip_proto: "IPPROTO_IP" | "IPPROTO_TCP" | "IPPROTO_UDP" | "IPPROTO_ICMP",
+    ipv4_dst ? : string,
+    ipv4_src ? : string,
+    tcp_dst ? : number,
+    tcp_src ? : number,
+    udp_dst ? : number,
+    udp_src ? : number,
+};
+export type flow_qos = {
+    max_req_bw_dl: number,
+    max_req_bw_ul: number,
+};
 export type flow_record = {
     bytes_rx: number,
     bytes_tx: number,
@@ -194,10 +243,24 @@ export type flow_record = {
     pkts_tx: number,
     subscriber_id: string,
 };
+export type frinx_channel = {
+    authorization ? : string,
+    device_type ? : string,
+    device_version ? : string,
+    frinx_port ? : number,
+    host ? : string,
+    password ? : string,
+    port ? : number,
+    transport_type ? : string,
+    username ? : string,
+};
 export type gateway_cellular_configs = {
     epc: gateway_epc_configs,
     non_eps_service ? : gateway_non_eps_configs,
     ran: gateway_ran_configs,
+};
+export type gateway_cwf_configs = {
+    allowed_gre_peers: allowed_gre_peers,
 };
 export type gateway_description = string;
 export type gateway_device = {
@@ -357,11 +420,14 @@ export type magmad_gateway_configs = {
         [string]: boolean,
     },
 };
+export type managed_devices = Array < string >
+;
 export type metric_datapoint = Array < string >
 ;
 export type metric_datapoints = Array < metric_datapoint >
 ;
 export type mutable_cwf_gateway = {
+    carrier_wifi: gateway_cwf_configs,
     description: gateway_description,
     device: gateway_device,
     id: gateway_id,
@@ -385,6 +451,15 @@ export type mutable_lte_gateway = {
     device: gateway_device,
     id: gateway_id,
     magmad: magmad_gateway_configs,
+    name: gateway_name,
+    tier: tier_id,
+};
+export type mutable_symphony_agent = {
+    description: gateway_description,
+    device: gateway_device,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    managed_devices: managed_devices,
     name: gateway_name,
     tier: tier_id,
 };
@@ -489,6 +564,11 @@ export type network_ran_configs = {
     },
 };
 export type network_type = string;
+export type other_channel = {
+    channel_props ? : {
+        [string]: string,
+    },
+};
 export type package_type = {
     name ? : string,
     version ? : string,
@@ -518,6 +598,17 @@ export type platform_info = {
     packages ? : Array < package_type >
         ,
     vpn_ip ? : string,
+};
+export type policy_rule = {
+    flow_list: Array < flow_description >
+        ,
+    id: string,
+    monitoring_key ? : string,
+    priority: number,
+    qos ? : flow_qos,
+    rating_group ? : number,
+    redirect ? : redirect_information,
+    tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
 };
 export type prom_alert_config = {
     alert: string,
@@ -581,6 +672,11 @@ export type pushed_metric = {
     timestamp ? : string,
     value: number,
 };
+export type redirect_information = {
+    address_type: "IPv4" | "IPv6" | "URL" | "SIP_URI",
+    server_address: string,
+    support: "DISABLED" | "ENABLED",
+};
 export type release_channel = {
     id: channel_id,
     name ? : string,
@@ -593,6 +689,9 @@ export type route = {
     genmask ? : string,
     network_interface_id ? : string,
 };
+export type rule_id = string;
+export type rule_names = Array < string >
+;
 export type s6a = {
     server ? : diameter_client_configs,
 };
@@ -640,6 +739,10 @@ export type slack_receiver = {
     title ? : string,
     username ? : string,
 };
+export type snmp_channel = {
+    community ? : string,
+    version ? : string,
+};
 export type sub_profile = string;
 export type subscriber = {
     id: string,
@@ -656,6 +759,36 @@ export type swx = {
     server ? : diameter_client_configs,
     verify_authorization ? : boolean,
 };
+export type symphony_agent = {
+    description: gateway_description,
+    device: gateway_device,
+    id: gateway_id,
+    magmad: magmad_gateway_configs,
+    managed_devices: managed_devices,
+    name: gateway_name,
+    status ? : gateway_status,
+    tier: tier_id,
+};
+export type symphony_device = {
+    config: symphony_device_config,
+    id: symphony_device_id,
+    name: symphony_device_name,
+};
+export type symphony_device_config = {
+    channels ? : {
+        cambium_channel ? : cambium_channel,
+        frinx_channel ? : frinx_channel,
+        other_channel ? : other_channel,
+        snmp_channel ? : snmp_channel,
+    },
+    device_config ? : string,
+    device_type ? : Array < string >
+        ,
+    host ? : string,
+    platform ? : string,
+};
+export type symphony_device_id = string;
+export type symphony_device_name = string;
 export type symphony_network = {
     description: network_description,
     features ? : network_features,
@@ -1102,6 +1235,62 @@ export default class MagmaAPIBindings {
 
         if (parameters['gateway'] !== undefined) {
             body = parameters['gateway'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdGatewaysByGatewayIdCarrierWifi(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < gateway_cwf_configs >
+        {
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/carrier_wifi';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdGatewaysByGatewayIdCarrierWifi(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'config': gateway_cwf_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/gateways/{gateway_id}/carrier_wifi';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['config'] === undefined) {
+            throw new Error('Missing required  parameter: config');
+        }
+
+        if (parameters['config'] !== undefined) {
+            body = parameters['config'];
         }
 
         return await this.request(path, 'PUT', query, body);
@@ -1599,8 +1788,9 @@ export default class MagmaAPIBindings {
             parameters: {
                 'networkId': string,
             }
-        ): Promise < Array < federation_gateway >
-        >
+        ): Promise < {
+            [string]: federation_gateway,
+        } >
         {
             let path = '/feg/{network_id}/gateways';
             let body;
@@ -3473,6 +3663,251 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdPoliciesBaseNames(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < rule_names >
+        {
+            let path = '/lte/{network_id}/policies/base_names';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postLteByNetworkIdPoliciesBaseNames(
+            parameters: {
+                'networkId': string,
+                'chargingRuleBaseName': base_name_record,
+            }
+        ): Promise < base_name >
+        {
+            let path = '/lte/{network_id}/policies/base_names';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['chargingRuleBaseName'] === undefined) {
+                throw new Error('Missing required  parameter: chargingRuleBaseName');
+            }
+
+            if (parameters['chargingRuleBaseName'] !== undefined) {
+                body = parameters['chargingRuleBaseName'];
+            }
+
+            return await this.request(path, 'POST', query, body);
+        }
+    static async deleteLteByNetworkIdPoliciesBaseNamesByBaseName(
+        parameters: {
+            'networkId': string,
+            'baseName': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/policies/base_names/{base_name}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['baseName'] === undefined) {
+            throw new Error('Missing required  parameter: baseName');
+        }
+
+        path = path.replace('{base_name}', `${parameters['baseName']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getLteByNetworkIdPoliciesBaseNamesByBaseName(
+            parameters: {
+                'networkId': string,
+                'baseName': string,
+            }
+        ): Promise < rule_names >
+        {
+            let path = '/lte/{network_id}/policies/base_names/{base_name}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['baseName'] === undefined) {
+                throw new Error('Missing required  parameter: baseName');
+            }
+
+            path = path.replace('{base_name}', `${parameters['baseName']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdPoliciesBaseNamesByBaseName(
+        parameters: {
+            'networkId': string,
+            'baseName': string,
+            'chargingRuleBaseName': rule_names,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/policies/base_names/{base_name}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['baseName'] === undefined) {
+            throw new Error('Missing required  parameter: baseName');
+        }
+
+        path = path.replace('{base_name}', `${parameters['baseName']}`);
+
+        if (parameters['chargingRuleBaseName'] === undefined) {
+            throw new Error('Missing required  parameter: chargingRuleBaseName');
+        }
+
+        if (parameters['chargingRuleBaseName'] !== undefined) {
+            body = parameters['chargingRuleBaseName'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getLteByNetworkIdPoliciesRules(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < Array < rule_id >
+        >
+        {
+            let path = '/lte/{network_id}/policies/rules';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postLteByNetworkIdPoliciesRules(
+            parameters: {
+                'networkId': string,
+                'policyRule': policy_rule,
+            }
+        ): Promise < rule_id >
+        {
+            let path = '/lte/{network_id}/policies/rules';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['policyRule'] === undefined) {
+                throw new Error('Missing required  parameter: policyRule');
+            }
+
+            if (parameters['policyRule'] !== undefined) {
+                body = parameters['policyRule'];
+            }
+
+            return await this.request(path, 'POST', query, body);
+        }
+    static async deleteLteByNetworkIdPoliciesRulesByRuleId(
+        parameters: {
+            'networkId': string,
+            'ruleId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/policies/rules/{rule_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['ruleId'] === undefined) {
+            throw new Error('Missing required  parameter: ruleId');
+        }
+
+        path = path.replace('{rule_id}', `${parameters['ruleId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getLteByNetworkIdPoliciesRulesByRuleId(
+            parameters: {
+                'networkId': string,
+                'ruleId': string,
+            }
+        ): Promise < policy_rule >
+        {
+            let path = '/lte/{network_id}/policies/rules/{rule_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['ruleId'] === undefined) {
+                throw new Error('Missing required  parameter: ruleId');
+            }
+
+            path = path.replace('{rule_id}', `${parameters['ruleId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdPoliciesRulesByRuleId(
+        parameters: {
+            'networkId': string,
+            'ruleId': string,
+            'policyRule': policy_rule,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/policies/rules/{rule_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['ruleId'] === undefined) {
+            throw new Error('Missing required  parameter: ruleId');
+        }
+
+        path = path.replace('{rule_id}', `${parameters['ruleId']}`);
+
+        if (parameters['policyRule'] === undefined) {
+            throw new Error('Missing required  parameter: policyRule');
+        }
+
+        if (parameters['policyRule'] !== undefined) {
+            body = parameters['policyRule'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getLteByNetworkIdSubscribers(
             parameters: {
                 'networkId': string,
@@ -4060,8 +4495,9 @@ export default class MagmaAPIBindings {
             parameters: {
                 'networkId': string,
             }
-        ): Promise < Array < magmad_gateway >
-        >
+        ): Promise < {
+            [string]: magmad_gateway,
+        } >
         {
             let path = '/networks/{network_id}/gateways';
             let body;
@@ -4604,6 +5040,54 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getNetworksByNetworkIdLogs(
+            parameters: {
+                'networkId': string,
+                'simpleQuery' ? : string,
+                'fields' ? : string,
+                'filters' ? : string,
+                'size' ? : string,
+                'start' ? : string,
+                'end' ? : string,
+            }
+        ): Promise < Array < elastic_hit >
+        >
+        {
+            let path = '/networks/{network_id}/logs';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['simpleQuery'] !== undefined) {
+                query['simple_query'] = parameters['simpleQuery'];
+            }
+
+            if (parameters['fields'] !== undefined) {
+                query['fields'] = parameters['fields'];
+            }
+
+            if (parameters['filters'] !== undefined) {
+                query['filters'] = parameters['filters'];
+            }
+
+            if (parameters['size'] !== undefined) {
+                query['size'] = parameters['size'];
+            }
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async postNetworksByNetworkIdMetricsPush(
         parameters: {
             'networkId': string,
@@ -5667,6 +6151,640 @@ export default class MagmaAPIBindings {
 
         if (parameters['symphonyNetwork'] !== undefined) {
             body = parameters['symphonyNetwork'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgents(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < symphony_agent >
+        {
+            let path = '/symphony/{network_id}/agents';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postSymphonyByNetworkIdAgents(
+        parameters: {
+            'networkId': string,
+            'symphonyAgent': mutable_symphony_agent,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['symphonyAgent'] === undefined) {
+            throw new Error('Missing required  parameter: symphonyAgent');
+        }
+
+        if (parameters['symphonyAgent'] !== undefined) {
+            body = parameters['symphonyAgent'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteSymphonyByNetworkIdAgentsByAgentId(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentId(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < symphony_agent >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentId(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'agent': mutable_symphony_agent,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['agent'] === undefined) {
+            throw new Error('Missing required  parameter: agent');
+        }
+
+        if (parameters['agent'] !== undefined) {
+            body = parameters['agent'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdDescription(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < gateway_description >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/description';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdDescription(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'description': gateway_description,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/description';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['description'] === undefined) {
+            throw new Error('Missing required  parameter: description');
+        }
+
+        if (parameters['description'] !== undefined) {
+            body = parameters['description'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdDevice(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < gateway_device >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/device';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdDevice(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'device': gateway_device,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/device';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['device'] === undefined) {
+            throw new Error('Missing required  parameter: device');
+        }
+
+        if (parameters['device'] !== undefined) {
+            body = parameters['device'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdMagmad(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < magmad_gateway_configs >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/magmad';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdMagmad(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'magmad': magmad_gateway_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/magmad';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['magmad'] === undefined) {
+            throw new Error('Missing required  parameter: magmad');
+        }
+
+        if (parameters['magmad'] !== undefined) {
+            body = parameters['magmad'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdManagedDevices(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < managed_devices >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/managed_devices';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdManagedDevices(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'managedDevices': managed_devices,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/managed_devices';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['managedDevices'] === undefined) {
+            throw new Error('Missing required  parameter: managedDevices');
+        }
+
+        if (parameters['managedDevices'] !== undefined) {
+            body = parameters['managedDevices'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdName(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < gateway_name >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/name';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdName(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'name': gateway_name,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/name';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['name'] === undefined) {
+            throw new Error('Missing required  parameter: name');
+        }
+
+        if (parameters['name'] !== undefined) {
+            body = parameters['name'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdAgentsByAgentIdTier(
+            parameters: {
+                'networkId': string,
+                'agentId': string,
+            }
+        ): Promise < tier_id >
+        {
+            let path = '/symphony/{network_id}/agents/{agent_id}/tier';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['agentId'] === undefined) {
+                throw new Error('Missing required  parameter: agentId');
+            }
+
+            path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdAgentsByAgentIdTier(
+        parameters: {
+            'networkId': string,
+            'agentId': string,
+            'tier': tier_id,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/agents/{agent_id}/tier';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['agentId'] === undefined) {
+            throw new Error('Missing required  parameter: agentId');
+        }
+
+        path = path.replace('{agent_id}', `${parameters['agentId']}`);
+
+        if (parameters['tier'] === undefined) {
+            throw new Error('Missing required  parameter: tier');
+        }
+
+        if (parameters['tier'] !== undefined) {
+            body = parameters['tier'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdDevices(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < symphony_device >
+        {
+            let path = '/symphony/{network_id}/devices';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postSymphonyByNetworkIdDevices(
+        parameters: {
+            'networkId': string,
+            'symphonyDevice': symphony_device,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/devices';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['symphonyDevice'] === undefined) {
+            throw new Error('Missing required  parameter: symphonyDevice');
+        }
+
+        if (parameters['symphonyDevice'] !== undefined) {
+            body = parameters['symphonyDevice'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteSymphonyByNetworkIdDevicesByDeviceId(
+        parameters: {
+            'networkId': string,
+            'deviceId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/devices/{device_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['deviceId'] === undefined) {
+            throw new Error('Missing required  parameter: deviceId');
+        }
+
+        path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getSymphonyByNetworkIdDevicesByDeviceId(
+            parameters: {
+                'networkId': string,
+                'deviceId': string,
+            }
+        ): Promise < symphony_device >
+        {
+            let path = '/symphony/{network_id}/devices/{device_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['deviceId'] === undefined) {
+                throw new Error('Missing required  parameter: deviceId');
+            }
+
+            path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdDevicesByDeviceId(
+        parameters: {
+            'networkId': string,
+            'deviceId': string,
+            'symphonyDevice': symphony_device,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/devices/{device_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['deviceId'] === undefined) {
+            throw new Error('Missing required  parameter: deviceId');
+        }
+
+        path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+        if (parameters['symphonyDevice'] === undefined) {
+            throw new Error('Missing required  parameter: symphonyDevice');
+        }
+
+        if (parameters['symphonyDevice'] !== undefined) {
+            body = parameters['symphonyDevice'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getSymphonyByNetworkIdDevicesByDeviceIdName(
+            parameters: {
+                'networkId': string,
+                'deviceId': string,
+            }
+        ): Promise < symphony_device_id >
+        {
+            let path = '/symphony/{network_id}/devices/{device_id}/name';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['deviceId'] === undefined) {
+                throw new Error('Missing required  parameter: deviceId');
+            }
+
+            path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdDevicesByDeviceIdName(
+        parameters: {
+            'networkId': string,
+            'deviceId': string,
+            'name': symphony_device_name,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/devices/{device_id}/name';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['deviceId'] === undefined) {
+            throw new Error('Missing required  parameter: deviceId');
+        }
+
+        path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+        if (parameters['name'] === undefined) {
+            throw new Error('Missing required  parameter: name');
+        }
+
+        if (parameters['name'] !== undefined) {
+            body = parameters['name'];
         }
 
         return await this.request(path, 'PUT', query, body);

@@ -183,7 +183,7 @@ func TestGetNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        getNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -259,7 +259,7 @@ func TestUpdateNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        updateNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -305,7 +305,7 @@ func TestDeleteNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        deleteNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -316,7 +316,7 @@ func TestDeleteNetwork(t *testing.T) {
 
 func TestPartialUpdateAndGetNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)

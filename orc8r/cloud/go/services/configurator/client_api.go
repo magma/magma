@@ -560,6 +560,8 @@ func GetNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, erro
 }
 
 // LoadEntities loads entities specified by the parameters.
+// typeFilter, keyFilter, physicalID, and ids are all used to define a filter to
+// filter out results - if they are all nil, it will return all network entities
 func LoadEntities(
 	networkID string,
 	typeFilter *string,

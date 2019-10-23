@@ -39,7 +39,7 @@ import {map, sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
 type State = {
-  gateways: ?(magmad_gateway[]),
+  gateways: ?{[string]: magmad_gateway},
   errorMessage: ?string,
   saving: boolean,
   networkUpgradeTiers: ?(tier[]),
@@ -111,7 +111,7 @@ const SupportedVersionsTable = (props: {supportedVersions: string[]}) => {
 };
 
 const GatewayUpgradeStatusTable = (props: {
-  tableData: Array<magmad_gateway>,
+  tableData: {[string]: magmad_gateway},
   networkUpgradeTiers: ?(tier[]),
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {

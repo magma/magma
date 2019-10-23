@@ -241,7 +241,9 @@ Response Channel::processVars(netsnmp_variable_list* vars) {
       case ASN_BOOLEAN:
         return Response(oid, static_cast<bool>(*vars->val.integer));
       case ASN_OBJECT_ID:
-        return Response(oid, Oid(vars->val.objid, vars->val_len).toString());
+        return Response(
+            oid,
+            Oid(vars->val.objid, vars->val_len / sizeof(::oid)).toString());
       case ASN_BIT_STR:
       case ASN_NULL:
       default:

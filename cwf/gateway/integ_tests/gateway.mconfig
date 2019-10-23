@@ -106,7 +106,7 @@
    "services": [
    ],
    "allowedGrePeers": [
-    {"ip": "1.1.1.1", "key":123}
+    {"ip": "192.168.70.102", "key":5001}
    ]
   },
   "session_proxy": {

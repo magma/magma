@@ -94,8 +94,15 @@ type (
 		Scuba  *Scuba         `json:"scuba"`
 	}
 
+	// DebugConfig ...
+	DebugConfig struct {
+		Enabled bool `json:"enabled"`
+		Port    int  `json:"port"`
+	}
+
 	// RadiusConfig the configuration file format
 	RadiusConfig struct {
+		Debug      *DebugConfig      `json:"debug"`
 		Monitoring *MonitoringConfig `json:"monitoring"`
 		Server     ServerConfig      `json:"server"`
 	}
