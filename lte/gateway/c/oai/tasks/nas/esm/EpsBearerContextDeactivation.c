@@ -453,27 +453,35 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       ebi = esm_ebr_timer_data->ebi;
       ue_id = esm_ebr_timer_data->ue_id;
       // Find the index in which the bearer id is stored
-      for (bid = 0; bid < BEARERS_PER_UE; (bid)++) {
+      for (bid = 0; bid < BEARERS_PER_UE; bid++) {
         if (ue_mm_context->bearer_contexts[bid]) {
           if (ue_mm_context->bearer_contexts[bid]->ebi == ebi) {
             break;
           }
         }
       }
+      if (bid > BEARERS_PER_UE) {
+        OAILOG_WARNING(
+          LOG_NAS_ESM,
+          "ESM-PROC  - Did not find bearer context for (ue_id="
+          MME_UE_S1AP_ID_FMT", ebi=%d), \n",
+          ue_id, ebi);
+        OAILOG_FUNC_OUT(LOG_NAS_ESM);
+      }
       // Fetch pdn id using bearer index
-      pdn_cid_t pid = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
+      pdn_cid_t pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
 
       // Send bearer_deactivation_reject to MME
       teid_t s_gw_teid_s11_s4 =
-        ue_mm_context->pdn_contexts[pid]->s_gw_teid_s11_s4;
+        ue_mm_context->pdn_contexts[pdn_id]->s_gw_teid_s11_s4;
 
-      if (ue_mm_context->pdn_contexts[pid]->default_ebi == ebi) {
+      if (ue_mm_context->pdn_contexts[pdn_id]->default_ebi == ebi) {
         delete_default_bearer = true;
         // Release the default bearer
         /*
          * Delete the PDN connection entry
          */
-        _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pid);
+        _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
       }
       nas_itti_dedicated_eps_bearer_deactivation_reject(
         ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
@@ -481,7 +489,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
        * Deactivate the EPS bearer context locally without peer-to-peer
        * * * * signalling between the UE and the MME
        */
-      rc = _eps_bearer_release(esm_ebr_timer_data->ctx, ebi, &pid, &bid);
+      rc = _eps_bearer_release(esm_ebr_timer_data->ctx, ebi, &pdn_id, &bid);
 
       if (rc == RETURNerror) {
         OAILOG_WARNING(

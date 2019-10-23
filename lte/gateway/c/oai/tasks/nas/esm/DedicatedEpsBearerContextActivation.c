@@ -457,7 +457,8 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
 
       /*
        * Release the dedicated EPS bearer context, enter state INACTIVE and
-       * stop T3485 timer
+       * stop T3485 timer. Timer is stopped inside
+       * esm_proc_eps_bearer_context_deactivate()
        */
       rc = esm_proc_eps_bearer_context_deactivate(
         esm_ebr_timer_data->ctx,
