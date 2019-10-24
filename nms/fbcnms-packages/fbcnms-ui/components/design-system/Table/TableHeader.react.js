@@ -15,7 +15,7 @@ import ArrowUpIcon from '../Icons/ArrowUp';
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import TableHeaderCheckbox from './TableHeaderCheckbox.react';
-import Text from '../../Text.react';
+import Text from '../Text.react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';

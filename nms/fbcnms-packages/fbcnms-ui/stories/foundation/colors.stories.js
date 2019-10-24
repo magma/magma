@@ -11,7 +11,7 @@
 import ColorBlock from './ColorBlock.react';
 import React from 'react';
 import SymphonyTheme, {BLUE, DARK} from '../../theme/symphony';
-import Text from '../../components/Text.react';
+import Text from '../../components/design-system/Text.react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 

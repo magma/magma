@@ -13,7 +13,7 @@ import type {TableColumnType, TableRowDataType} from './Table.react';
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import TableRowCheckbox from './TableRowCheckbox.react';
-import Text from '../../Text.react';
+import Text from '../Text.react';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
 
