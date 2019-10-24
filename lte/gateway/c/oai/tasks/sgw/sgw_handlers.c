@@ -2203,11 +2203,6 @@ int sgw_handle_nw_initiated_actv_bearer_req(
 
     eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up =
       s11_actv_bearer_request->s1_u_sgw_fteid.teid;
-  OAILOG_INFO(
-    LOG_SPGW_APP,
-    "**** Pruthvi sgw s1u teid n s11_actv_bearer_request %x\n",
-    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-
 
     eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up.pdn_type = IPv4;
     eps_bearer_ctxt_p->s_gw_ip_address_S1u_S12_S4_up =
@@ -2226,6 +2221,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     // Put in cache the sgw_eps_bearer_entry_t
     pgw_ni_cbr_proc_t *pgw_ni_cbr_proc =
       pgw_create_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
+
     struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_wrapper =
       calloc(1, sizeof(*sgw_eps_bearer_entry_wrapper));
     sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry = eps_bearer_ctxt_p;
@@ -2292,12 +2288,6 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
         eps_bearer_ctxt_p =
           sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry;
-  OAILOG_INFO(
-    LOG_SPGW_APP,
-    "**** Pruthvi sgw s1u teid n 11_actv_bearer_rsp %x %x\n",
-    s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index].s1u_sgw_fteid.teid,
-    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-
 
         if (
           s11_actv_bearer_rsp->bearer_contexts.
@@ -2345,6 +2335,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           sgw_eps_bearer_entry_wrapper = sgw_eps_bearer_entry_wrapper2;
           break;
         }
+        sgw_eps_bearer_entry_wrapper =
+          LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
       }
       sgw_eps_bearer_entry_wrapper =
         LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
@@ -2363,7 +2355,6 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
       "UE rejected the request for EBI %d\n",
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .eps_bearer_id);
-
   }
 
   //Send ACTIVATE_DEDICATED_BEARER_RSP to PGW
