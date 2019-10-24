@@ -377,7 +377,7 @@ int emm_proc_attach_request(
       }
       if (EMM_REGISTERED == fsm_state) {
         REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_f);
-        if (imsi_ue_mm_ctx->emm_context.is_has_been_attached) {
+        if (imsi_ue_mm_ctx->emm_context.is_attached) {
           OAILOG_TRACE(
             LOG_NAS_EMM, "EMM-PROC  - the new ATTACH REQUEST is progressed\n");
           // Trigger clean up
