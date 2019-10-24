@@ -9,18 +9,10 @@ LICENSE file in the root directory of this source tree.
 package access
 
 import (
-	"strings"
-
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/protos"
 
 	"github.com/labstack/echo"
-)
-
-const (
-	MAGMA_ROOT_PART     = obsidian.RestRoot + obsidian.UrlSep
-	MAGMA_ROOT_PART_LEN = len(MAGMA_ROOT_PART)
 )
 
 // FindRequestedIdentities examines the request URL and finds Identities of
@@ -32,25 +24,9 @@ const (
 // which would correspond to an ACL typical for a supervisor/admin "can do all"
 // operators
 func FindRequestedIdentities(c echo.Context) []*protos.Identity {
-	if c != nil {
-		path := c.Path()
-		if strings.HasPrefix(path, MAGMA_ROOT_PART) {
-			parts := strings.Split(path[MAGMA_ROOT_PART_LEN:], obsidian.UrlSep)
-			if len(parts) > 0 {
-				p := parts[0]
-				registry, ok := finderRegistries[p]
-				if ok && len(parts) > 1 {
-					p = parts[1]
-				} else {
-					// fall back to "versionless" V0
-					registry, ok = finderRegistries[obsidian.V0]
-				}
-				fr, ok := registry[p]
-				if ok {
-					return fr.finder(c)
-				}
-			}
-		}
+	finder := GetIdentityFinder(c)
+	if finder != nil {
+		return finder(c)
 	}
 	return SupervisorWildcards()
 }
