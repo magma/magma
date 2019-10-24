@@ -44,6 +44,10 @@ std::shared_ptr<State> PingDevice::getState() {
       devmand::models::device::Model::addLatency(
           lockedState, "ping", "agent", "device", rtt);
     });
+
+    state->setGauge<unsigned long int>(
+        "/fbc-symphony-device:system/latencies/latency[type=ping and src=agent and dst=device]/rtt",
+        rtt);
   }));
   return state;
 }

@@ -17,11 +17,10 @@
 #include <devmand/ErrorHandler.h>
 #include <devmand/ErrorQueue.h>
 #include <devmand/devices/Id.h>
+#include <devmand/MetricSink.h>
 #include <devmand/utils/LifetimeTracker.h>
 
 namespace devmand {
-
-class MetricSink;
 
 namespace devices {
 
@@ -46,7 +45,19 @@ class State final : public std::enable_shared_from_this<State>,
   void setStatus(bool systemIsUp);
   void setErrors();
   void addError(std::string&& error);
-  void setGauge(const std::string& key, double value);
+
+  template <class T>
+  void setGauge(const std::string& key, T value)
+  {
+    sink.setGauge(
+        key,
+        folly::to<double>(value),
+        // adds the label deviceID = {deviceID}
+        "deviceID",
+        device);
+  }
+
+  void setGauge(const std::string& key, long unsigned int value);
 
   // Adds a callback to be executed on collect.
   void addFinally(std::function<void()>&& f);
