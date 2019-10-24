@@ -19,4 +19,5 @@ TESTS=magma/common/redis/tests \
       magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \
       magma/magmad/generic_command/tests \
+      magma/state/tests \
       magma/tests
