@@ -47,17 +47,19 @@ const TableContent = <T>(props: Props<T>) => {
 
   return (
     <tbody>
-      {data.map((d, i) => (
-        <tr key={`row_${i}`} className={classes.row}>
+      {data.map((d, rowIndex) => (
+        <tr key={`row_${rowIndex}`} className={classes.row}>
           {showSelection && (
             <td className={classes.checkBox}>
-              <TableRowCheckbox id={d.id ?? i} />
+              <TableRowCheckbox id={d.key ?? rowIndex} />
             </td>
           )}
-          {columns.map((col, i) => {
+          {columns.map((col, colIndex) => {
             const renderedCol = col.render(d);
             return (
-              <td key={d.id ?? `col_${i}`} className={classes.cell}>
+              <td
+                key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                className={classes.cell}>
                 {typeof renderedCol === 'string' ? (
                   <Text variant="body2">{renderedCol}</Text>
                 ) : (

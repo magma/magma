@@ -11,7 +11,6 @@ package handlers_test
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -30,7 +29,6 @@ import (
 )
 
 func TestMagmad(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)

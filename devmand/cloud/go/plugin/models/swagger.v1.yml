@@ -228,7 +228,9 @@ paths:
         '200':
           description: List of all Symphony agents in the network
           schema:
-            $ref: '#/definitions/symphony_agent'
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/symphony_agent'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:

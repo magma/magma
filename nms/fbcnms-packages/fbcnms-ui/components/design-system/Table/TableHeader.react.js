@@ -10,10 +10,13 @@
 
 import type {TableColumnType} from './Table.react';
 
+import ArrowDownIcon from '../Icons/ArrowDown';
+import ArrowUpIcon from '../Icons/ArrowUp';
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
 import TableHeaderCheckbox from './TableHeaderCheckbox.react';
 import Text from '../../Text.react';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
 
@@ -35,16 +38,55 @@ const useStyles = makeStyles(_theme => ({
     width: '24px',
     paddingLeft: '8px',
   },
+  cellContent: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  sortIcon: {
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sortableCell: {
+    cursor: 'pointer',
+    '&:hover $cellText': {
+      color: SymphonyTheme.palette.primary,
+    },
+    '&:hover $hidden': {
+      visibility: 'visible',
+    },
+  },
+  hidden: {
+    visibility: 'hidden',
+  },
 }));
 
 type Props<T> = {
   columns: Array<TableColumnType<T>>,
+  onSortClicked?: (colKey: string) => void,
 };
 
-const TableHeader = <T>(props: Props<T>) => {
-  const {columns} = props;
+const TableHeader = <T>({onSortClicked, columns}: Props<T>) => {
   const classes = useStyles();
   const {showSelection} = useTable();
+
+  const getSortIcon = col => {
+    if (!col.sortable) {
+      return null;
+    }
+
+    return (
+      <div
+        className={classNames(classes.sortIcon, {
+          [classes.hidden]: !Boolean(col.sortDirection),
+        })}>
+        {col.sortDirection === 'asc' ? <ArrowUpIcon /> : <ArrowDownIcon />}
+      </div>
+    );
+  };
+
   return (
     <thead className={classes.root}>
       <tr>
@@ -53,15 +95,25 @@ const TableHeader = <T>(props: Props<T>) => {
             <TableHeaderCheckbox />
           </th>
         )}
-        {columns.map((col, i) => (
-          <th key={`col_${i}`} className={classes.cell}>
-            {typeof col.title === 'string' ? (
-              <Text className={classes.cellText} variant="body2">
-                {col.title}
-              </Text>
-            ) : (
-              col.title
-            )}
+        {columns.map(col => (
+          <th
+            key={col.key}
+            className={classNames(classes.cell, {
+              [classes.sortableCell]: col.sortable,
+            })}
+            onClick={() =>
+              col.sortable && onSortClicked && onSortClicked(col.key)
+            }>
+            <div className={classes.cellContent}>
+              {typeof col.title === 'string' ? (
+                <Text className={classes.cellText} variant="body2">
+                  {col.title}
+                </Text>
+              ) : (
+                col.title
+              )}
+              {getSortIcon(col)}
+            </div>
           </th>
         ))}
       </tr>

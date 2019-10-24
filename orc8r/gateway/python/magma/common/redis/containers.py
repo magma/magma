@@ -8,8 +8,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from copy import deepcopy
-
 import redis_collections
+
+from orc8r.protos.redis_pb2 import RedisState
 
 # NOTE: these containers replace the serialization methods exposed by
 # the redis-collection objects. Although the methods are hinted to be
@@ -146,8 +147,37 @@ class RedisDict(redis_collections.DefaultDict):
         super().__init__(
             default_factory, redis=client, key=key, writeback=writeback)
 
+    def __setitem__(self, key, value):
+        """Set ``d[key]`` to *value*.
+
+        Override in order to increment version on each update
+        """
+        version = self.get_version(key)
+        pickled_key = self._pickle_key(key)
+        pickled_value = self._pickle_value(value, version + 1)
+        self.redis.hset(self.key, pickled_key, pickled_value)
+
+        if self.writeback:
+            self.cache[key] = value
+
     def __copy__(self):
         return {key: self[key] for key in self}
 
     def __deepcopy__(self, memo):
         return {key: deepcopy(self[key], memo) for key in self}
+
+    def get_version(self, key):
+        """Return the version of the value for key *key*. Returns 0 if
+        key is not in the map
+        """
+        try:
+            value = self.cache[key]
+        except KeyError:
+            pickled_key = self._pickle_key(key)
+            value = self.redis.hget(self.key, pickled_key)
+            if value is None:
+                return 0
+
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(value)
+        return proto_wrapper.version
