@@ -31,6 +31,6 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi())
+	err = tr.GenULTraffic(ue.GetImsi(), nil)
 	assert.NoError(t, err)
 }

@@ -23,6 +23,7 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -244,11 +245,15 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
-// Magma traffic server.
-func (testRunner *TestRunner) GenULTraffic(imsi string) error {
+// Magma traffic server. volume, if provided, specifies the volume of data
+// generated and it should be in the form of "1024K", "2048M" etc
+func (testRunner *TestRunner) GenULTraffic(imsi string, volume *string) error {
 	fmt.Printf("************************* Generating Traffic for UE with IMSI: %s\n", imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi: imsi,
+	}
+	if volume != nil {
+		req.Volume = &wrappers.StringValue{Value: *volume}
 	}
 	return uesim.GenTraffic(req)
 }
