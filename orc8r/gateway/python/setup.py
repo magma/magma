@@ -32,6 +32,7 @@ setup(
         'magma.magmad.check.network_check',
         'magma.magmad.logging',
         'magma.magmad.upgrade',
+        'magma.state',
     ],
     scripts=[
         'scripts/checkin_cli.py',
