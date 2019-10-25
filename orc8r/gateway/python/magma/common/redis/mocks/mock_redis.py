@@ -29,8 +29,9 @@ class MockRedis(object):
 
     def delete(self, key):
         """Mock delete."""
-        if key in self.redis:
-            del self.redis[key]
+        skey = self.serialize_key(key)
+        if skey in self.redis:
+            del self.redis[skey]
             return 1
         return 0
 
@@ -40,11 +41,13 @@ class MockRedis(object):
 
     def get(self, key):
         """Mock get."""
-        return self.redis[key] if key in self.redis else None
+        skey = self.serialize_key(key)
+        return self.redis[skey] if skey in self.redis else None
 
     def set(self, key, value):
         """Mock set."""
-        self.redis[key] = value
+        skey = self.serialize_key(key)
+        self.redis[skey] = value
 
     def keys(self):
         """ Mock keys."""

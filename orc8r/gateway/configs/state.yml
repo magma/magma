@@ -7,6 +7,8 @@
 ## LICENSE file in the root directory of this source tree. An additional grant
 ## of patent rights can be found in the PATENTS file in the same directory.
 
+log_level: INFO
+
 #state_protos:
 #  - proto_file:  - file to load proto from
 #    proto_msg:   - msg to load from proto file
