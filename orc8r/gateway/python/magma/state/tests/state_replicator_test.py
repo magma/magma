@@ -17,9 +17,9 @@ from orc8r.protos.state_pb2 import ReportStatesResponse, \
 from unittest.mock import MagicMock
 from orc8r.protos.service303_pb2 import LogVerbosity
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisHashDict
+from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer
+    get_proto_serializer, RedisSerde
 from magma.state.state_replicator import StateReplicator
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.mocks.mock_redis import MockRedis
@@ -27,9 +27,9 @@ from orc8r.protos.state_pb2_grpc import StateServiceStub
 from orc8r.protos.common_pb2 import NetworkID, IDList
 from google.protobuf.json_format import MessageToDict
 
-NID_TYPE = 'unittest:NetworkID'
-IDList_TYPE = 'unittest:IDList'
-LOG_TYPE = 'unittest:LogVerbosity'
+NID_TYPE = 'network_id'
+IDList_TYPE = 'id_list'
+LOG_TYPE = 'log_verbosity'
 
 def get_mock_snowflake():
     return "aaa-bbb"
@@ -105,19 +105,20 @@ class StateReplicatorTests(TestCase):
         # Create a rpc stub
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
-        self.nid_mock_client = RedisHashDict(get_default_client(),
-                                               NID_TYPE,
-                                               get_proto_serializer(),
-                                               get_proto_deserializer(
-                                                   NetworkID))
-        self.id_mock_client = RedisHashDict(get_default_client(),
-                                            IDList_TYPE,
-                                            get_proto_serializer(),
-                                            get_proto_deserializer(IDList))
-        self.log_mock_client = RedisHashDict(get_default_client(),
-                                          LOG_TYPE,
-                                          get_proto_serializer(),
-                                          get_proto_deserializer(LogVerbosity))
+        serde1 = RedisSerde(NID_TYPE,
+                            get_proto_serializer(),
+                            get_proto_deserializer(NetworkID))
+        serde2 = RedisSerde(IDList_TYPE,
+                            get_proto_serializer(),
+                            get_proto_deserializer(IDList))
+        serde3 = RedisSerde(LOG_TYPE,
+                            get_proto_serializer(),
+                            get_proto_deserializer(LogVerbosity))
+        serde_map = {}
+        serde_map[NID_TYPE] = serde1
+        serde_map[IDList_TYPE] = serde2
+        serde_map[LOG_TYPE] = serde3
+        self.mock_client = RedisFlatDict(get_default_client(), serde_map)
 
         # Set up and start state replicating loop
         grpc_client_manager = GRPCClientManager(
@@ -148,27 +149,30 @@ class StateReplicatorTests(TestCase):
     def test_collect_states_to_replicate(self):
         async def test():
             # Ensure setup is initialized properly
-            self.nid_mock_client.clear()
-            self.id_mock_client.clear()
-            self.log_mock_client.clear()
+            self.mock_client.clear()
 
-            self.nid_mock_client['id1'] = NetworkID(id='foo')
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            nid_key = 'id1:' + NID_TYPE
+            idlist_key = 'id1:' + IDList_TYPE
 
-            exp1 = self.convert_proto_to_state(self.nid_mock_client['id1'])
-            exp2 = self.convert_proto_to_state(self.id_mock_client['id1'])
+            self.mock_client[nid_key] = NetworkID(id='foo')
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
+
+            exp1 = self.convert_proto_to_state(self.mock_client[nid_key])
+            exp2 = self.convert_proto_to_state(self.mock_client[idlist_key])
 
             req = await self.state_replicator._collect_states_to_replicate()
             self.assertEqual(2, len(req.states))
-            self.assertEqual(NID_TYPE, req.states[0].type)
-            self.assertEqual('id1', req.states[0].deviceID)
-            self.assertEqual(1, req.states[0].version)
-            self.assertEqual(exp1, req.states[0].value)
-
-            self.assertEqual(IDList_TYPE, req.states[1].type)
-            self.assertEqual('aaa-bbb:id1', req.states[1].deviceID)
-            self.assertEqual(1, req.states[1].version)
-            self.assertEqual(exp2, req.states[1].value)
+            for state in req.states:
+                if state.type == NID_TYPE:
+                    self.assertEqual('id1', state.deviceID)
+                    self.assertEqual(1, state.version)
+                    self.assertEqual(exp1, state.value)
+                elif state.type == IDList_TYPE:
+                    self.assertEqual('aaa-bbb:id1', state.deviceID)
+                    self.assertEqual(1, state.version)
+                    self.assertEqual(exp2, state.value)
+                else:
+                    self.fail("Unknown state type %s" % state.type)
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
@@ -181,15 +185,16 @@ class StateReplicatorTests(TestCase):
         async def test():
             get_rpc_mock.return_value = self.channel
 
-            # Add initial state to be replicated
-            self.nid_mock_client.clear()
-            self.id_mock_client.clear()
-            self.log_mock_client.clear()
+            # Ensure setup is initialized properly
+            self.mock_client.clear()
 
-            self.nid_mock_client['id1'] = NetworkID(id='foo')
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            nid_key = 'id1:' + NID_TYPE
+            idlist_key = 'id1:' + IDList_TYPE
+
+            self.mock_client[nid_key] = NetworkID(id='foo')
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
             # Increment version
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
 
             req = await self.state_replicator._collect_states_to_replicate()
             self.assertEqual(len(req.states), 2)
@@ -197,23 +202,25 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(2, len(self.state_replicator._state_versions))
-            mem_key1 = NID_TYPE + ':id1'
-            mem_key2 = IDList_TYPE + ':aaa-bbb:id1'
+            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
+            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+                                                          IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
                              self.state_replicator._state_versions[mem_key2])
 
             # Now add new state and update some existing state
-            self.nid_mock_client['id2'] = NetworkID(id='bar')
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'foo'])
+            nid_key2 = 'id2:' + NID_TYPE
+            self.mock_client[nid_key2] = NetworkID(id='bar')
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'foo'])
             req = await self.state_replicator._collect_states_to_replicate()
             self.assertEqual(2, len(req.states))
 
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(3, len(self.state_replicator._state_versions))
-            mem_key3 = NID_TYPE + ':id2'
+            mem_key3 = self.state_replicator.make_mem_key('id2', NID_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(3,
@@ -233,16 +240,18 @@ class StateReplicatorTests(TestCase):
             get_grpc_mock.return_value = self.channel
 
             # Add initial state to be replicated
-            self.nid_mock_client.clear()
-            self.id_mock_client.clear()
-            self.log_mock_client.clear()
+            self.mock_client.clear()
 
-            self.nid_mock_client['id1'] = NetworkID(id='foo')
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            nid_key = 'id1:' + NID_TYPE
+            idlist_key = 'id1:' + IDList_TYPE
+            log_key = 'id2:' + LOG_TYPE
+
+            self.mock_client[nid_key] = NetworkID(id='foo')
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
             # Increment version
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
             # Set state that will be 'unreplicated'
-            self.log_mock_client['id2'] = LogVerbosity(verbosity=5)
+            self.mock_client[log_key] = LogVerbosity(verbosity=5)
 
             req = await self.state_replicator._collect_states_to_replicate()
             self.assertEqual(3, len(req.states))
@@ -250,8 +259,9 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly for successful replications
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(2, len(self.state_replicator._state_versions))
-            mem_key1 = NID_TYPE + ':id1'
-            mem_key2 = IDList_TYPE + ':aaa-bbb:id1'
+            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
+            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+                                                          IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
@@ -274,20 +284,22 @@ class StateReplicatorTests(TestCase):
     def test_resync_success(self, get_grpc_mock):
         async def test():
             get_grpc_mock.return_value = self.channel
-            self.nid_mock_client.clear()
-            self.id_mock_client.clear()
-            self.log_mock_client.clear()
+            self.mock_client.clear()
+
+            nid_key = 'id1:' + NID_TYPE
+            idlist_key = 'id1:' + IDList_TYPE
 
             # Set state that will be 'unsynced'
-            self.nid_mock_client['id1'] = NetworkID(id='foo')
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            self.mock_client[nid_key] = NetworkID(id='foo')
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
             # Increment state's version
-            self.id_mock_client['id1'] = IDList(ids=['bar', 'blah'])
+            self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
 
             await self.state_replicator._resync()
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
-            mem_key = IDList_TYPE + ':aaa-bbb:id1'
+            mem_key = self.state_replicator.make_mem_key('aaa-bbb:id1',
+                                                         IDList_TYPE)
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
         # Cancel the replicator's loop so there are no other activities
@@ -300,12 +312,11 @@ class StateReplicatorTests(TestCase):
     def test_resync_failure(self, get_grpc_mock):
         async def test():
             get_grpc_mock.return_value = self.channel
-            self.nid_mock_client.clear()
-            self.id_mock_client.clear()
-            self.log_mock_client.clear()
+            self.mock_client.clear()
 
             # Set state that will trigger the RpcError
-            self.log_mock_client['id1'] = LogVerbosity(verbosity=5)
+            log_key = 'id1:' + LOG_TYPE
+            self.mock_client[log_key] = LogVerbosity(verbosity=5)
 
             try:
                 await self.state_replicator._resync()
@@ -315,6 +326,43 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(False,
                              self.state_replicator._has_resync_completed)
             self.assertEqual(0, len(self.state_replicator._state_versions))
+
+        # Cancel the replicator's loop so there are no other activities
+        self.state_replicator._periodic_task.cancel()
+        self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_invalid_key(self):
+        async def test():
+            self.mock_client.clear()
+
+            bad_key = 'id1'
+            # Force bad state format into mocked redis server
+            self.mock_client.redis.set(bad_key, NetworkID(id='foo'))
+
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertEqual(None, req)
+
+        # Cancel the replicator's loop so there are no other activities
+        self.state_replicator._periodic_task.cancel()
+        self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_invalid_serde(self):
+        async def test():
+            self.mock_client.clear()
+
+            bad_serde_key = 'id1:missing_serde'
+            good_serde_key = 'id1:' + NID_TYPE
+            # Force bad serde into mocked redis server
+            self.mock_client.redis.set(bad_serde_key, NetworkID(id='foo'))
+            self.mock_client[good_serde_key] = NetworkID(id='bar')
+
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertEqual(1, len(req.states))
+            self.assertEqual(NID_TYPE, req.states[0].type)
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
