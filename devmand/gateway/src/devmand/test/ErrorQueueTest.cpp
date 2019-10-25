@@ -6,9 +6,9 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include <devmand/ErrorQueue.h>
-#include <devmand/test/EventBaseTest.h>
 #include <folly/json.h>
 #include <future>
+#include <gtest/gtest.h>
 
 namespace devmand {
 namespace test {
