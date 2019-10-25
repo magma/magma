@@ -13,6 +13,7 @@ import type {cwf_gateway} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@material-ui/core/Button';
+import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -36,6 +37,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '../GatewayUtils';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';
+import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
@@ -176,7 +178,9 @@ function CWFGateways(props: WithAlert & {}) {
         </TableCell>
         <TableCell>{gateway.device.hardware_id}</TableCell>
         <TableCell>
-          <IconButton color="primary">
+          <IconButton
+            color="primary"
+            onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
             <EditIcon />
           </IconButton>
           <IconButton color="primary" onClick={() => deleteGateway(gateway)}>
@@ -223,6 +227,24 @@ function CWFGateways(props: WithAlert & {}) {
           <AddGatewayDialog
             onClose={() => history.push(relativeUrl(''))}
             onSave={addGateway}
+          />
+        )}
+      />
+      <Route
+        path={relativePath('/edit/:gatewayID')}
+        render={({match}) => (
+          <CWFEditGatewayDialog
+            gateway={nullthrows(
+              gateways.find(gw => gw.id === match.params.gatewayID),
+            )}
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={gateway => {
+              const newGateways = [...gateways];
+              const i = findIndex(newGateways, g => g.id === gateway.id);
+              newGateways[i] = gateway;
+              setGateways(newGateways);
+              history.push(relativeUrl(''));
+            }}
           />
         )}
       />
