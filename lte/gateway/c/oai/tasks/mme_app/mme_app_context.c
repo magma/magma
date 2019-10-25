@@ -1845,7 +1845,10 @@ bool mme_app_dump_ue_context(
      * Display UE info only if we know them
      */
     if (SUBSCRIPTION_KNOWN == ue_mm_context->subscription_known) {
-      // TODO bformata (bstr_dump, "    - Status .........: %s\n", (ue_mm_context->sub_status == SS_SERVICE_GRANTED) ? "Granted" : "Barred");
+      /* TODO bformata (bstr_dump, "    - Status .........: %s\n",
+       * (ue_mm_context->subscriber_status == SS_SERVICE_GRANTED) ?
+       * "Granted" : "Barred");
+       */
 #define DISPLAY_BIT_MASK_PRESENT(mASK)                                         \
   ((ue_mm_context->access_restriction_data & mASK) ? 'X' : 'O')
       bformata(

@@ -1390,7 +1390,6 @@ static int _emm_as_send(const emm_as_t *msg)
           as_msg.msg.dl_info_transfer_req.ue_id,
           as_msg.msg.dl_info_transfer_req.nas_msg,
           as_msg.msg.dl_info_transfer_req.err_code);
-          as_msg.msg.dl_info_transfer_req.nas_msg = NULL;
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       } break;
 

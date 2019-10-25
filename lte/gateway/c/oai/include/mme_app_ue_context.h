@@ -72,9 +72,11 @@ typedef struct {
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 
 bool mme_app_is_imsi_empty(mme_app_imsi_t const *imsi);
+
 bool mme_app_imsi_compare(
   mme_app_imsi_t const *imsi_a,
   mme_app_imsi_t const *imsi_b);
+
 void mme_app_copy_imsi(
   mme_app_imsi_t *imsi_dst,
   mme_app_imsi_t const *imsi_src);
@@ -82,18 +84,23 @@ void mme_app_copy_imsi(
 void mme_app_string_to_imsi(
   mme_app_imsi_t *const imsi_dst,
   char const *const imsi_string_src);
+
 void mme_app_imsi_to_string(
   char *const imsi_dst,
   mme_app_imsi_t const *const imsi_src);
 
 uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src);
+
 void mme_app_ue_context_uint_to_imsi(
   uint64_t imsi_src,
   mme_app_imsi_t *imsi_dst);
+
 void mme_app_convert_imsi_to_imsi_mme(
   mme_app_imsi_t *imsi_dst,
   const imsi_t *imsi_src);
+
 mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(void);
+
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
  * failed to be started)
@@ -109,7 +116,6 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(void);
 #define BEARER_STATE_ENB_CREATED (1 << 2)
 #define BEARER_STATE_ACTIVE (1 << 3)
 #define BEARER_STATE_S1_RELEASED (1 << 4)
-// EURECOM LG TODO REMOVE OR CLEAN
 typedef uint8_t mme_app_bearer_state_t;
 
 #define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2 // In seconds
@@ -126,148 +132,139 @@ struct mme_app_timer_t {
  *  @brief Parameters that should be kept for an eps bearer.
  */
 typedef struct bearer_context_s {
-  // EPS Bearer ID: An EPS bearer identity uniquely identifies an EP S bearer for one UE accessing via E-UTRAN
+  /* EPS Bearer ID: An EPS bearer identity uniquely identifies
+   * an EP S bearer for one UE accessing via E-UTRAN
+   */
   ebi_t ebi;
 
-  // TI Transaction Identifier
+  /* Procedure Transaction Identifier */
   proc_tid_t transaction_identifier;
 
-  // S-GW IP address for S1-u: IP address of the S-GW for the S1-u interfaces.
-  // S-GW TEID for S1u: Tunnel Endpoint Identifier of the S-GW for the S1-u interface.
-  fteid_t s_gw_fteid_s1u; // set by S11 CREATE_SESSION_RESPONSE
+  /* S-GW IP address for S1-u interfaces.
+   * S-GW TEID for S1-u interface.
+   * set by S11 CREATE_SESSION_RESPONSE
+   */
+  fteid_t s_gw_fteid_s1u;
 
-  // PDN GW TEID for S5/S8 (user plane): P-GW Tunnel Endpoint Identifier for the S5/S8 interface for the user plane. (Used for S-GW change only).
-  // NOTE:
-  // The PDN GW TEID is needed in MME context as S-GW relocation is triggered without interaction with the source S-GW, e.g. when a TAU
-  // occurs. The Target S-GW requires this Information Element, so it must be stored by the MME.
-  // PDN GW IP address for S5/S8 (user plane): P GW IP address for user plane for the S5/S8 interface for the user plane. (Used for S-GW change only).
-  // NOTE:
-  // The PDN GW IP address for user plane is needed in MME context as S-GW relocation is triggered without interaction with the source S-GW,
-  // e.g. when a TAU occurs. The Target S GW requires this Information Element, so it must be stored by the MME.
+  /* PDN GW TEID for S5/S8 (user plane), Used for S-GW change only
+   * PDN GW IP address for S5/S8 (user plane), Used for S-GW change only
+   *
+   * NOTE:
+   *      The PDN GW TEID and PDN GW IP address for user plane are needed
+   *      in MME context as S-GW relocation is triggered without interaction
+   *      with the source S-GW,
+   *      e.g. when a TAU occurs. The Target SGW requires this Information Element,
+   *      so it must be stored by the MME.
+   */
   fteid_t p_gw_fteid_s5_s8_up;
 
-  // EPS bearer QoS: QCI and ARP, optionally: GBR and MBR for GBR bearer
-  qci_t qci;
-
-  // TFT: Traffic Flow Template. (For PMIP-based S5/S8 only)
-  //traffic_flow_template_t          *tft_pmip;
-
-  // extra 23.401 spec members
   pdn_cid_t pdn_cx_id;
   mme_app_bearer_state_t bearer_state;
   esm_ebr_context_t esm_ebr_context;
   fteid_t enb_fteid_s1u;
 
   /* QoS for this bearer */
+  qci_t qci;
   priority_level_t priority_level;
   pre_emption_vulnerability_t preemption_vulnerability;
   pre_emption_capability_t preemption_capability;
-  /*Save QoS and TFT to be sent to SGW.
-  * AT SGW context will be created after
-  * receiving itti_s11_pcrf_ded_bearer_actv_rsp_t
-  */
+
+  /* Save QoS and TFT to be sent to SGW.
+   * At SGW, context will be created after
+   * receiving itti_s11_pcrf_ded_bearer_actv_rsp_t
+   */
   traffic_flow_template_t  *saved_tft;
   bearer_qos_t             *saved_qos;
 } bearer_context_t;
 
-/** @struct subscribed_apn_t
- *  @brief Parameters that should be kept for a subscribed apn by the UE.
+/** @struct pdn_context_s
+ *  Parameters that should be kept for a subscribed apn by the UE.
  */
-// For each active PDN connection:
 typedef struct pdn_context_s {
-  context_identifier_t context_identifier; // key
+  context_identifier_t context_identifier;
 
-  //APN in Use: The APN currently used. This APN shall be composed of the APN Network
-  //            Identifier and the default APN Operator Identifier, as specified in TS 23.003 [9],
-  //            clause 9.1.2 (EURECOM: "mnc<MNC>.mcc<MCC>.gprs"). Any received value in the APN OI Replacement field is not applied
-  //            here.
-  bstring
-    apn_in_use; // an ID for P-GW through which a user can access the Subscribed APN
+  /* APN in Use: an ID at P-GW through which a user can access the Subscribed APN
+   *            This APN shall be composed of the APN Network
+   *            Identifier and the default APN Operator Identifier, as specified in TS 23.003 [9],
+   *            clause 9.1.2 (EURECOM: "mnc<MNC>.mcc<MCC>.gprs").
+   *            Any received value in the APN OI Replacement field is not applied
+   *            here.
+   */
+  bstring apn_in_use;
 
-  // APN Restriction: Denotes the restriction on the combination of types of APN for the APN associated
-  //                  with this EPS bearer Context.
-
-  // APN Subscribed: The subscribed APN received from the HSS.
+  /* APN Subscribed: The subscribed APN received from the HSS */
   bstring apn_subscribed;
 
-  // PDN Type: IPv4, IPv6 or IPv4v6
+  /* PDN Type: IPv4, IPv6 or IPv4v6 */
   pdn_type_t pdn_type;
 
-  // IP Address(es): IPv4 address and/or IPv6 prefix
-  //                 NOTE:
-  //                 The MME might not have information on the allocated IPv4 address.
-  //                 Alternatively, following mobility involving a pre-release 8 SGSN, this
-  //                 IPv4 address might not be the one allocated to the UE.
-  paa_t paa; // set by S11 CREATE_SESSION_RESPONSE
+  /* paa: IPv4 address and/or IPv6 prefix of UE set by
+   *          S11 CREATE_SESSION_RESPONSE
+   *          NOTE:
+   *          The MME might not have information on the allocated IPv4 address.
+   *          Alternatively, following mobility involving a pre-release 8 SGSN, this
+   *          IPv4 address might not be the one allocated to the UE.
+   */
+  paa_t paa;
 
-  // EPS PDN Charging Characteristics: The charging characteristics of this PDN connection, e.g. normal, prepaid, flat-rate
-  // and/or hot billing.
-
-  // APN-OI Replacement: APN level APN-OI Replacement which has same role as UE level APN-OI
-  // Replacement but with higher priority than UE level APN-OI Replacement. This is
-  // an optional parameter. When available, it shall be used to construct the PDN GW
-  // FQDN instead of UE level APN-OI Replacement.
+  /* APN-OI Replacement: APN level APN-OI Replacement which has same role as
+   *            UE level APN-OI Replacement but with higher priority than
+   *            UE level APN-OI Replacement. This is and optional parameter.
+   *            When available, it shall be used to construct the PDN GW
+   *            FQDN instead of UE level APN-OI Replacement.
+   */
   bstring apn_oi_replacement;
 
-  // SIPTO permissions: Indicates whether the traffic associated with this APN is allowed or prohibited for SIPTO
-  // LIPA permissions: Indicates whether the PDN can be accessed via Local IP Access. Possible values
-  //                   are: LIPA-prohibited, LIPA-only and LIPA-conditional.
-
-  // VPLMN Address Allowed: Specifies whether the UE is allowed to use the APN in the domain of the HPLMN
-  //                        only, or additionally the APN in the domain of the VPLMN.
-
-  // PDN GW Address in Use(control plane): The IP address of the PDN GW currently used for sending control plane signalling.
+  /* PDN GW Address in Use(control plane): The IP address of the PDN GW currently
+   *            used for sending control plane signalling.
+   */
   ip_address_t p_gw_address_s5_s8_cp;
 
-  // PDN GW TEID for S5/S8 (control plane): PDN GW Tunnel Endpoint Identifier for the S5/S8 interface for the control plane.
-  //                                        (For GTP-based S5/S8 only).
+  /* PDN GW TEID for S5/S8 (control plane), for GTP-based S5/S8 only */
   teid_t p_gw_teid_s5_s8_cp;
 
-  // MS Info Change Reporting Action: Need to communicate change in User Location Information to the PDN GW with this EPS bearer Context.
-
-  // CSG Information Reporting Action: Need to communicate change in User CSG Information to the PDN GW with this
-  //                                   EPS bearer Context.
-  //                                   This field denotes separately whether the MME/SGSN are requested to send
-  //                                   changes in User CSG Information for (a) CSG cells, (b) hybrid cells in which the
-  //                                   subscriber is a CSG member and (c) hybrid cells in which the subscriber is not a
-  //                                   CSG member.
-
-  // EPS subscribed QoS profile: The bearer level QoS parameter values for that APN's default bearer (QCI and
-  // ARP) (see clause 4.7.3).
+  /* EPS subscribed QoS profile:
+   *            The bearer level QoS parameter values for that
+   *            APN's default bearer's QCI and ARP (see clause 4.7.3).
+   */
   eps_subscribed_qos_profile_t default_bearer_eps_subscribed_qos_profile;
 
-  // Subscribed APN-AMBR: The Maximum Aggregated uplink and downlink MBR values to be shared across
-  //                      all Non-GBR bearers, which are established for this APN, according to the
-  //                      subscription of the user.
+  /* Subscribed APN-AMBR: The Maximum Aggregated uplink and downlink MBR values
+   *            to be shared across all Non-GBR bearers,
+   *             which are established for this APN, according to the
+   *            subscription of the user.
+   */
   ambr_t subscribed_apn_ambr;
 
-  // APN-AMBR: The Maximum Aggregated uplink and downlink MBR values to be shared across
-  // all Non-GBR bearers, which are established for this APN, as decided by the PDN GW.
+  /* p_gw_apn_ambr: The Maximum Aggregated uplink and downlink MBR values to be
+   *           shared across all Non-GBR bearers, which are established for this
+   *           APN, as decided by the PDN GW.
+   */
   ambr_t p_gw_apn_ambr;
 
-  // PDN GW GRE Key for uplink traffic (user plane): PDN GW assigned GRE Key for the S5/S8 interface for the user plane for uplink traffic. (For PMIP-based S5/S8 only)
-
-  // Default bearer: Identifies the EPS Bearer Id of the default bearer within the given PDN connection.
+  /* default_ebi: Identifies the EPS Bearer Id of the default bearer
+   * within the given PDN connection.
+   */
   ebi_t default_ebi;
 
-  int bearer_contexts
-    [BEARERS_PER_UE]; // contains bearer indexes in ue_mm_context_t.bearer_contexts[], or -1
+  /* bearer_contexts[]: contains bearer indexes in
+   *           ue_mm_context_t.bearer_contexts[], or -1
+   */
+  int bearer_contexts [BEARERS_PER_UE];
 
-  //apn_configuration_t         apn_configuration; // set by S6A UPDATE LOCATION ANSWER
-  //bstring                     pgw_id;            // an ID for P-GW through which a user can access the Subscribed APN
+  /* S-GW teid and IP address for User-Plane
+   * set by S11 CREATE_SESSION_RESPONSE
+   */
 
-  /* S-GW IP address for User-Plane */
   ip_address_t s_gw_address_s11_s4;
-  teid_t s_gw_teid_s11_s4; // set by S11 CREATE_SESSION_RESPONSE
+  teid_t s_gw_teid_s11_s4;
 
   esm_pdn_t esm_data;
+  /* is_active == true indicates, PDN is active */
   bool is_active;
-  protocol_configuration_options_t *
-    pco; // temp storage of information waiting for activation of required procedure
 
+  protocol_configuration_options_t* pco;
 } pdn_context_t;
-
-#define SGS_TIMER_INACTIVE_ID (-1)
 
 typedef enum {
   GRANTED_SERVICE_EPS_ONLY,
@@ -289,45 +286,69 @@ typedef enum csfb_service_type_e {
 typedef struct sgs_context_s {
   sgs_fsm_state_t sgs_state;
   bool vlr_reliable;
-  bool neaf; /* Non EPS Alert Flag */
+#define SET_NEAF true;
+#define RESET_NEAF false;
+  /* Non EPS Alert Flag */
+  bool neaf;
+  /* SGS Location update timer */
   struct mme_app_timer_t ts6_1_timer;
-  struct mme_app_timer_t ts8_timer; /* SGS EPS DETACH INDICATION timer */
+
 #define EPS_DETACH_RETRANSMISSION_COUNTER_MAX 2
 #define IMSI_DETACH_RETRANSMISSION_COUNTER_MAX 2
 #define IMPLICIT_IMSI_DETACH_RETRANSMISSION_COUNTER_MAX 2
 #define IMPLICIT_EPS_DETACH_RETRANSMISSION_COUNTER_MAX 2
-  unsigned int
-    ts8_retransmission_count; /* SGS EPS DETACH INDICATION retransmission counter*/
-  struct mme_app_timer_t ts9_timer; /* SGS IMSI DETACH INDICATION timer */
-  unsigned int
-    ts9_retransmission_count; /* SGS IMSI DETACH INDICATION retransmission counter*/
-  struct mme_app_timer_t
-    ts10_timer; /* SGS IMPLICIT IMSI DETACH INDICATION timer */
 
-  unsigned int
-    ts10_retransmission_count; /* SGS IMPLICT IMSI DETACH INDICATION retransmission counter*/
-  struct mme_app_timer_t
-    ts13_timer; /* SGS IMPLICIT EPS DETACH INDICATION timer */
-  unsigned int
-    ts13_retransmission_count; /* SGS IMPLICIT EPS DETACH INDICATION retransmission counter*/
-  MessageDef *
-    message_p; /*To store S1AP NAS DL DATA REQ in case of UE initiated IMSI or combined
-                                           EPS/IMSI detach and send after recieving SGS IMSI Detach Ack */
-  void *sgsap_msg;
+  /* SGS EPS Detach indication timer */
+  struct mme_app_timer_t ts8_timer;
+  unsigned int ts8_retransmission_count;
+  /* SGS IMSI Detach indication timer */
+  struct mme_app_timer_t ts9_timer;
+  unsigned int ts9_retransmission_count;
+  /* SGS IMPLICIT IMSI DETACH INDICATION timer */
+  struct mme_app_timer_t ts10_timer;
+  unsigned int ts10_retransmission_count;
+  /* SGS IMPLICIT EPS DETACH INDICATION timer */
+  struct mme_app_timer_t ts13_timer;
+  unsigned int ts13_retransmission_count;
+
+  /* message_p: To store S1AP NAS DL DATA REQ in case of UE initiated IMSI or
+   *             combined EPS/IMSI detach and
+   *             send after recieving SGS IMSI Detach Ack
+   */
+  MessageDef* message_p;
+
+  /* sgsap_msg: Received message over SGS interface */
+  void* sgsap_msg;
+
+  /* ongoing_procedure_t: SGS Location update procedure initiated due combined
+   *             attach procedure or TAU procedure
+   */
   ongoing_procedure_t ongoing_procedure;
+
+  /* tau_active_flag: Value of active flagreceived in TAU Request */
   uint8_t tau_active_flag : 1;
-  /* store the requested service, that shall be sent in Service Request
-  * while UE in idle mode
-  */
-  uint8_t service_indicator; /* Indicates SMS or CS call */
-#define SET_NEAF true;
-#define RESET_NEAF false;
-  csfb_service_type_t csfb_service_type; /* Indicates ongoing CSFB procedure */
-  bool call_cancelled;                   /* Call Cancelled flag to be set on
-                                                                 reception of SGS SERVICE ABORT message fom MSC/VLR*/
-  bool mt_call_in_progress; /* Indicates if MT call is in progress, used when
-                                                                 SERVICE ABORT is received from MSC*/
-  bool is_emergency_call; /* True - if the call is of type Emergency call */
+
+  /* service_indicator: store the requested service (SMS or call),
+   *             that shall be sent in SGS-Service Request
+   *             while UE is in idle mode
+   */
+  uint8_t service_indicator;
+
+  /* Indicates ongoing CSFB procedure */
+  csfb_service_type_t csfb_service_type;
+
+  /* Call Cancelled: is set on reception of SGS SERVICE ABORT message
+   *             fom MSC to cancel the ongoing MT call
+   */
+  bool call_cancelled;
+
+  /* mt_call_in_progress: If true, indicates MT call is in progress,
+   *              used when SERVICE ABORT is received from MSC
+   */
+  bool mt_call_in_progress;
+
+  /* is_emergency_call: True - if the call is of type Emergency call */
+  bool is_emergency_call;
 } sgs_context_t;
 
 /** @struct ue_mm_context_t
@@ -335,132 +356,123 @@ typedef struct sgs_context_s {
  * according to 3GPP TS.23.401 #5.7.2
  */
 typedef struct ue_mm_context_s {
-  pthread_mutex_t
-    recmutex; // mutex on the ue_mm_context_t + emm_context_s + esm_context_t
+  /* mutex on the ue_mm_context_t + emm_context_s + esm_context_t */
+  pthread_mutex_t recmutex;
 
-  bstring
-    msisdn; // The basic MSISDN of the UE. The presence is dictated by its storage in the HSS.
-            // set by S6A UPDATE LOCATION ANSWER
+  /* msisdn: The basic MSISDN of the UE. The presence is dictated by its storage in the HSS.
+   *        set by S6A UPDATE LOCATION ANSWER
+   */
+  bstring msisdn;
 
   enum s1cause ue_context_rel_cause;
-
   mm_state_t mm_state;
   ecm_state_t ecm_state;
 
-  /* Last known cell identity */
-  ecgi_t e_utran_cgi; // Last known E-UTRAN cell, set by nas_attach_req_t
-  // read for S11 CREATE_SESSION_REQUEST
-  /* Time when the cell identity was acquired */
-  time_t
-    cell_age; // Time elapsed since the last E-UTRAN Cell Global Identity was acquired. set by nas_auth_param_req_t
+  /* Last known E-UTRAN cell, set by nas_attach_req_t */
+  ecgi_t e_utran_cgi;
 
+  /* cell_age: Time elapsed since the last E-UTRAN Cell Global Identity was acquired.
+   *           set by nas_auth_param_req_t
+   */
+  time_t cell_age;
   /* TODO: add csg_id */
   /* TODO: add csg_membership */
   /* TODO Access mode: Access mode of last known ECGI when the UE was active */
 
-  apn_config_profile_t apn_config_profile; // set by S6A UPDATE LOCATION ANSWER
-  subscriber_status_t sub_status;   // set by S6A UPDATE LOCATION ANSWER
+  /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
+  apn_config_profile_t apn_config_profile;
 
-  ard_t
-    access_restriction_data; // The access restriction subscription information. set by S6A UPDATE LOCATION ANSWER
+  /* access_restriction_data: The access restriction subscription information.
+   * set by S6A UPDATE LOCATION ANSWER
+   */
+  ard_t access_restriction_data;
 
-  // APN-OI Replacement           // Indicates the domain name to replace the APN-OI when constructing the PDN GW
-  // FQDN upon which to perform a DNS resolution. This replacement applies for all
-  // the APNs in the subscriber's profile. See TS 23.003 [9] clause 9.1.2 for more
-  // information on the format of domain names that are allowed in this field.
-  bstring apn_oi_replacement; // example: "province1.mnc012.mcc345.gprs"
+  /* apn_oi_replacement: Indicates the domain name to replace the APN-OI
+   * when constructing the PDN GW FQDN upon which to perform a DNS resolution.
+   * This replacement applies for all the APNs provided in the subscriber's profile.
+   *  See TS 23.003 [9] clause 9.1.2 for more
+   */
+  bstring apn_oi_replacement;
+  teid_t mme_teid_s11;
+  /* SCTP assoc id */
+  sctp_assoc_id_t sctp_assoc_id_key;
 
-  // MME TEID for S11             // MME Tunnel Endpoint Identifier for S11 interface.
-  // LOCATED IN THIS.subscribed_apns[MAX_APN_PER_UE].mme_teid_s11
-  teid_t mme_teid_s11; // set by mme_app_send_s11_create_session_req
-
-  sctp_assoc_id_t sctp_assoc_id_key; // link with eNB id
-
-  // eNB UE S1AP ID,  Unique identity of the UE within eNodeB.
+  /* eNB UE S1AP ID,  Unique identity the UE within eNodeB */
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
-  enb_s1ap_id_key_t enb_s1ap_id_key; // key uniq among all connected eNBs
+  /* enb_s1ap_id_key = enb-ue-s1ap-id <24 bits> | enb-id <8 bits> */
+  enb_s1ap_id_key_t enb_s1ap_id_key;
 
-  // MME UE S1AP ID, Unique identity of the UE within MME.
+  /* MME UE S1AP ID, Unique identity the UE within MME */
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
 
-  // Subscribed UE-AMBR: The Maximum Aggregated uplink and downlink MBR values to be shared across all Non-GBR bearers according to the subscription of the user.
-  ambr_t subscribed_ue_ambr; // set by S6A UPDATE LOCATION ANSWER
-  // UE-AMBR: The currently used Maximum Aggregated uplink and downlink MBR values to be shared across all Non-GBR bearers.
+  /* Subscribed UE-AMBR: The Maximum Aggregated uplink and downlink MBR values
+   * to be shared across all Non-GBR bearers according to the subscription of
+   * the user. Set by S6A UPDATE LOCATION ANSWER
+   */
+  ambr_t subscribed_ue_ambr;
+  /* used_ue_ambr: The currently used Maximum Aggregated uplink and downlink MBR values
+   * to be shared across all Non-GBR bearers. Set by S6A UPDATE LOCATION ANSWER
+   */
   ambr_t used_ue_ambr;
-  // EPS Subscribed Charging Characteristics: The charging characteristics for the MS e.g. normal, prepaid, flat rate and/or hot billing.
-  // Subscribed RFSP Index: An index to specific RRM configuration in the E-UTRAN that is received from the HSS.
-  // RFSP Index in Use: An index to specific RRM configuration in the E-UTRAN that is currently in use.
-  // Trace reference: Identifies a record or a collection of records for a particular trace.
-  // Trace type: Indicates the type of trace
-  // Trigger id: Identifies the entity that initiated the trace
-  // OMC identity: Identifies the OMC that shall receive the trace record(s).
-  // URRP-MME: URRP-MME indicating that the HSS has requested the MME to notify the HSS regarding UE reachability at the MME.
-  // CSG Subscription Data: The CSG Subscription Data is a list of CSG IDs for the visiting PLMN and for each
-  //   CSG ID optionally an associated expiration date which indicates the point in time when the subscription to the CSG ID
-  //   expires; an absent expiration date indicates unlimited subscription. For a CSG ID that can be used to access specific PDNs via Local IP Access, the
-  //   CSG ID entry includes the corresponding APN(s).
-  // LIPA Allowed: Specifies whether the UE is allowed to use LIPA in this PLMN.
+  /* rau_tau_timer: Indicates a subscribed Periodic RAU/TAU Timer value
+   * Set by S6A UPDATE LOCATION ANSWER
+   */
+  rau_tau_timer_t rau_tau_timer;
 
-  // Subscribed Periodic RAU/TAU Timer: Indicates a subscribed Periodic RAU/TAU Timer value.
-  rau_tau_timer_t rau_tau_timer; // set by S6A UPDATE LOCATION ANSWER
-
-  // MPS CS priority: Indicates that the UE is subscribed to the eMLPP or 1x RTT priority service in the CS domain.
-
-  // MPS EPS priority: Indicates that the UE is subscribed to MPS in the EPS domain.
-
-  // For each active PDN connection:
-  pdn_context_t *pdn_contexts[MAX_APN_PER_UE]; // index is of type pdn_cid_t
   int nb_active_pdn_contexts;
+  pdn_context_t *pdn_contexts[MAX_APN_PER_UE];
 
-  // Not in spec members
   emm_context_t emm_context;
   bearer_context_t *bearer_contexts[BEARERS_PER_UE];
 
-  /* Store the radio capabilities as received in S1AP UE capability indication
-   * message.
+  /* ue_radio_capability: Store the radio capabilities as received in
+   * S1AP UE capability indication message
    */
   bstring ue_radio_capability;
 
-  // Mobile Reachability Timer-Start when UE moves to idle state. Stop when UE moves to connected state
+  /* mobile_reachability_timer: Start when UE moves to idle state.
+   * Stop when UE moves to connected state
+   */
   struct mme_app_timer_t mobile_reachability_timer;
-  // Implicit Detach Timer-Start at the expiry of Mobile Reachability timer. Stop when UE moves to connected state
+  /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
+   * Stop when UE moves to connected state
+   */
   struct mme_app_timer_t implicit_detach_timer;
-  // Initial Context Setup Procedure Guard timer
+  /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
-  // UE Context Modification Procedure Guard timer
+  /* UE Context Modification Procedure Guard timer */
   struct mme_app_timer_t ue_context_modification_timer;
-  // Timer for retrying paging messages
+  /* Timer for retrying paging messages */
   struct mme_app_timer_t paging_response_timer;
+  /* send_ue_purge_request: If true MME shall send S6a- Purge Req to
+   * delete contexts at HSS
+   */
   bool send_ue_purge_request;
+
   bool hss_initiated_detach;
   bool location_info_confirmed_in_hss;
-  // Timer for update location request
+  /* S6a- update location request guard timer */
   struct mme_app_timer_t ulr_response_timer;
-  // SGS Context
   sgs_context_t *sgs_context;
-  //Attach type
   uint8_t attach_type;
-  //TAU Update Type
-  uint8_t tau_updt_type; /*TAU Update type - Normal Update, Periodic,
-                                            combined TAU,combined TAU with IMSI*/
   lai_t lai;
   int cs_fallback_indicator;
-  uint8_t detach_type; /* SGS Detach type*/
-                       // granted_service_t informs the granted service to UE
+  uint8_t sgs_detach_type;
+  /* granted_service_t: informs the granted service to UE */
   granted_service_t granted_service;
   /*  paging_proceeding_flag (PPF) shall set to true, when UE moves to connected.
    * Indicates that paging procedure can be prooceeded,
    * Is set to false, due to "Inactivity of UE including lack of periodic TAU"
    */
-  bool ppf; //Paging proceeding flag
+  bool ppf;
 
 #define SUBSCRIPTION_UNKNOWN false
 #define SUBSCRIPTION_KNOWN true
-  bool subscription_known; // set by S6A UPDATE LOCATION ANSWER
+  bool subscription_known;
   ambr_t used_ambr;
-  subscriber_status_t subscriber_status; // set by S6A UPDATE LOCATION ANSWER
-  network_access_mode_t
-    network_access_mode; // set by S6A UPDATE LOCATION ANSWER
+  subscriber_status_t subscriber_status;
+  network_access_mode_t network_access_mode;
+
   bool path_switch_req;
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;

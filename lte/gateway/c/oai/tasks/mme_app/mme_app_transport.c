@@ -92,9 +92,9 @@ int mme_app_handle_nas_dl_req(
    */
   if (ue_context->sgs_context != NULL) {
     if (
-      ((ue_context->detach_type ==
+      ((ue_context->sgs_detach_type ==
         SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-       (ue_context->detach_type ==
+       (ue_context->sgs_detach_type ==
         SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
       (ue_context->sgs_context->ts9_timer.id != MME_APP_TIMER_INACTIVE_ID)) {
       ue_context->sgs_context->message_p = message_p;

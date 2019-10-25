@@ -52,7 +52,7 @@ int s1ap_mme_itti_send_sctp_request(
   MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
       " SCTP_DATA_REQ \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -79,7 +79,7 @@ int s1ap_mme_itti_nas_uplink_ind(
     "Sending NAS Uplink indication to NAS_MME_APP, mme_ue_s1ap_id = (%u) \n",
     ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
       " MME_APP_UPLINK_DATA_IND \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -112,7 +112,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_CNF \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -154,7 +154,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
       " S1AP_INITIAL_UE_MESSAGE \n");
     OAILOG_FUNC_OUT(LOG_S1AP);
@@ -243,7 +243,7 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_REJ \n");
     OAILOG_FUNC_OUT(LOG_S1AP);
@@ -277,7 +277,7 @@ int s1ap_mme_itti_s1ap_path_switch_request(
 
   MessageDef *message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
-  if (NULL == message_p) {
+  if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }

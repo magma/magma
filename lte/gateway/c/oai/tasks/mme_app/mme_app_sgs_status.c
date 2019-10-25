@@ -201,9 +201,9 @@ static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
 
   if (ue_context_p->sgs_context) {
     //Send the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach
-    if((ue_context_p->detach_type ==
+    if((ue_context_p->sgs_detach_type ==
         SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-      (ue_context_p->detach_type ==
+      (ue_context_p->sgs_detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
       itti_send_msg_to_task (TASK_S1AP, INSTANCE_DEFAULT,
                                   ue_context_p->sgs_context->message_p);
@@ -213,9 +213,9 @@ static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
        free s1 context locally,if the ue requested for combined EPS/IMSI detach
        if the ue is in idle state and requested for IMSI detach
       */
-      if((ue_context_p->detach_type ==
+      if((ue_context_p->sgs_detach_type ==
           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) ||
-         ((ue_context_p->detach_type ==
+         ((ue_context_p->sgs_detach_type ==
           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) &&
          (ue_context_p->ue_context_rel_cause ==
           S1AP_RADIO_EUTRAN_GENERATED_REASON)))  {

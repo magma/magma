@@ -905,9 +905,9 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
        Do not send UE Context Release Command to eNB before receiving SGs IMSI Detach Ack from MSC/VLR */
     if (ue_context_p->sgs_context != NULL) {
       if (
-        ((ue_context_p->detach_type !=
+        ((ue_context_p->sgs_detach_type !=
           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-         (ue_context_p->detach_type !=
+         (ue_context_p->sgs_detach_type !=
           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
         (ue_context_p->sgs_context->ts9_timer.id ==
          MME_APP_TIMER_INACTIVE_ID)) {
