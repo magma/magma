@@ -210,7 +210,10 @@ class RedisFlatDict(collections_abc.MutableMapping):
     def __iter__(self):
         """Return an iterator over the keys of the dictionary."""
         for k in self.redis.keys():
-            yield k.decode('utf-8')
+            try:
+                yield k.decode('utf-8')
+            except AttributeError:
+                yield k
 
     def __contains__(self, key):
         """Return ``True`` if *key* is present, else ``False``."""
