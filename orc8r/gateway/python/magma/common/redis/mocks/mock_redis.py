@@ -31,6 +31,8 @@ class MockRedis(object):
         """Mock delete."""
         if key in self.redis:
             del self.redis[key]
+            return 1
+        return 0
 
     def exists(self, key):
         """Mock exists."""
@@ -39,6 +41,14 @@ class MockRedis(object):
     def get(self, key):
         """Mock get."""
         return self.redis[key] if key in self.redis else None
+
+    def set(self, key, value):
+        """Mock set."""
+        self.redis[key] = value
+
+    def keys(self):
+        """ Mock keys."""
+        return list(self.redis.keys())
 
     def hget(self, hashkey, key):
         """Mock hget."""

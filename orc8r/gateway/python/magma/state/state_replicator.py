@@ -16,7 +16,7 @@ import grpc
 
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisDict
+from magma.common.redis.containers import RedisHashDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer
 from magma.common.service import MagmaService
@@ -33,9 +33,9 @@ DEFAULT_GRPC_TIMEOUT = 10
 MINIMUM_SYNC_INTERVAL = 30
 
 
-class StateDict(RedisDict):
+class StateDict(RedisHashDict):
     """
-    StateDict is a wrapper around RedisDict, allowing for storage of state
+    StateDict is a wrapper around RedisHashDict, allowing for storage of state
     metadata
     """
     def __init__(self, redis_key, proto_msg, state_scope):
