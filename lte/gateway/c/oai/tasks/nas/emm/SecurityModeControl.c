@@ -597,6 +597,29 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+/**
+ * When the NAS security procedures are restored from data store, the
+ * references to callback functions need to be re-populated with the local
+ * function pointers. The functions below populate these callbacks from
+ * security mode controle procedure.
+ * The memory for each procedure is allocated by the caller
+ */
+
+void set_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc)
+{
+  smc_proc->emm_com_proc.emm_proc.not_delivered =
+    _security_ll_failure;
+  smc_proc->emm_com_proc.emm_proc.not_delivered_ho =
+    _security_non_delivered_ho;
+  smc_proc->emm_com_proc.emm_proc.base_proc.abort = _security_abort;
+  smc_proc->emm_com_proc.emm_proc.base_proc.fail_in =
+    NULL;
+  smc_proc->emm_com_proc.emm_proc.base_proc.fail_out =
+    NULL;
+  smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
+    _security_t3460_handler;
+}
+
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/

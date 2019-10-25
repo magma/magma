@@ -334,6 +334,9 @@ int emm_send_service_reject_in_dl_nas(
   const mme_ue_s1ap_id_t ue_id,
   const uint8_t emm_cause);
 int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg);
+
+void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc);
+void set_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc);
 /*
  *---------------------------------------------------------------------------
  *             Network indication handlers
