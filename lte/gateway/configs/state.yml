@@ -16,3 +16,9 @@ log_level: INFO
 #    state_scope: - state scope used to determine deviceID.
 #                   Either 'network' or 'gateway' (defaults to 'gateway')
 state_protos:
+
+#json_state:
+#  - redis_key:   - redis key to store state with (i.e. state type)
+#    state_scope: - state scope used to determine deviceID.
+#                   Either 'network' or 'gateway' (defaults to 'gateway')
+json_state:
