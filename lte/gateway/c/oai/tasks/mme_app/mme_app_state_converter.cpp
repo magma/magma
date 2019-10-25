@@ -27,6 +27,8 @@ extern "C" {
 }
 
 #include "mme_app_state_converter.h"
+#include "nas_state_converter.h"
+#include "spgw_state_converter.h"
 
 namespace magma {
 namespace lte {
@@ -180,8 +182,11 @@ void MmeNasStateConverter::proto_to_guti_table(
   for (auto const& kv : proto_map) {
     const std::string& guti_str = kv.first;
     mme_ue_s1ap_id_t mme_ue_id = kv.second;
-    guti_t* guti_p = nullptr; //TODO string_to_guti(guti_str);
+    Guti guti_proto;
+    guti_proto.ParseFromString(guti_str);
 
+    guti_t* guti_p = (guti_t*) calloc(1, sizeof(guti_t));
+    NasStateConverter::proto_to_guti(guti_proto, guti_p);
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
       guti_htbl, guti_p, sizeof(*guti_p), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
@@ -256,8 +261,8 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_ctxt_proto->set_mm_state(ue_ctxt->mm_state);
   ue_ctxt_proto->set_ecm_state(ue_ctxt->ecm_state);
 
-  //TODO EmmContext* emm_ctx = ue_ctxt_proto->mutable_emm_context();
-  //emm_context_to_proto(&ue_ctxt->emm_context, emm_ctx);
+  EmmContext* emm_ctx = ue_ctxt_proto->mutable_emm_context();
+  NasStateConverter::emm_context_to_proto(&ue_ctxt->emm_context, emm_ctx);
   ue_ctxt_proto->set_sctp_assoc_id_key(ue_ctxt->sctp_assoc_id_key);
   ue_ctxt_proto->set_enb_ue_s1ap_id(ue_ctxt->enb_ue_s1ap_id);
   ue_ctxt_proto->set_mme_ue_s1ap_id(ue_ctxt->mme_ue_s1ap_id);

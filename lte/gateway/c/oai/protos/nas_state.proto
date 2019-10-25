@@ -26,7 +26,7 @@ message TaiList {
   repeated PartialTaiList partial_tai_lists = 2;
 }
 
-// tai_T
+// tai_t
 message Tai {
   bytes mcc_mnc = 1; // 6 digits representing mcc and mnc
   uint32 tac = 2;
@@ -69,14 +69,16 @@ message AuthInfoProc {
   uint32 nas_cause = 3;
   uint32 ue_id = 4;
   bool resync = 5;
-  
+
   Timer timer_s6a = 200;
 }
 
 // nas_cn_proc_t
 message NasCnProc {
   NasBaseProc base_proc = 1;
-  uint32 type = 2;
+  oneof MessageTypes {
+    AuthInfoProc auth_info_proc = 2;
+  }
 }
 
 // MobileStationClassmark2
@@ -140,7 +142,7 @@ message AttachProc {
   uint32 ksi = 8;
   uint32 emm_cause = 9;
 
-  Timer T3450 = 200;
+  Timer t3450 = 200;
 }
 
 // emm_detach_request_ies_t
