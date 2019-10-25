@@ -34,6 +34,7 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from './GatewayUtils';
+import {MAGMAD_DEFAULT_CONFIGS} from './AddGatewayDialog';
 import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -135,7 +136,10 @@ class Gateways extends React.Component<Props, State> {
           )}
         </Paper>
         {this.state.showDialog && (
-          <AddGatewayDialog onClose={this.hideDialog} onSave={this.onSave} />
+          <AddGatewayDialog
+            onClose={this.hideDialog}
+            onSave={this.onGatewayAdd}
+          />
         )}
         <EditGatewayDialog
           key={this.state.editingGateway && this.state.editingGateway.logicalID}
@@ -150,6 +154,47 @@ class Gateways extends React.Component<Props, State> {
   showDialog = () => this.setState({showDialog: true});
   hideDialog = () => this.setState({showDialog: false});
   editGateway = editingGateway => this.setState({editingGateway});
+
+  onGatewayAdd = async ({
+    gatewayID,
+    name,
+    description,
+    hardwareID,
+    challengeKey,
+    tier,
+  }) => {
+    const networkID = nullthrows(this.props.match.params.networkId);
+    await MagmaV1API.postLteByNetworkIdGateways({
+      networkId: networkID,
+      gateway: {
+        id: gatewayID,
+        name,
+        description,
+        cellular: {
+          epc: {nat_enabled: false, ip_block: '192.168.0.1/24'},
+          ran: {pci: 260, transmit_enabled: false},
+          non_eps_service: undefined,
+        },
+        magmad: MAGMAD_DEFAULT_CONFIGS,
+        device: {
+          hardware_id: hardwareID,
+          key: {
+            key: challengeKey,
+            key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
+          },
+        },
+        connected_enodeb_serials: [],
+        tier,
+      },
+    });
+    const gatewayPayload = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId(
+      {
+        networkId: networkID,
+        gatewayId: gatewayID,
+      },
+    );
+    this.onSave(gatewayPayload);
+  };
 
   onSave = gatewayPayload => {
     const gateway = this._buildGatewayFromPayload(gatewayPayload);

@@ -8,8 +8,6 @@
  * @format
  */
 
-import type {lte_gateway} from '@fbcnms/magma-api';
-
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -38,9 +36,25 @@ const useStyles = makeStyles({
   },
 });
 
+type GatewayData = {
+  gatewayID: string,
+  name: string,
+  description: string,
+  hardwareID: string,
+  challengeKey: string,
+  tier: string,
+};
+
+export const MAGMAD_DEFAULT_CONFIGS = {
+  autoupgrade_enabled: true,
+  autoupgrade_poll_interval: 300,
+  checkin_interval: 60,
+  checkin_timeout: 10,
+};
+
 type Props = {|
   onClose: () => void,
-  onSave: lte_gateway => void,
+  onSave: GatewayData => Promise<void>,
 |};
 
 export default function AddGatewayDialog(props: Props) {
@@ -73,39 +87,14 @@ export default function AddGatewayDialog(props: Props) {
     }
 
     try {
-      await MagmaV1API.postLteByNetworkIdGateways({
-        networkId: networkID,
-        gateway: {
-          id: gatewayID,
-          name,
-          description,
-          cellular: {
-            epc: {nat_enabled: false, ip_block: '192.168.0.1/24'},
-            ran: {pci: 260, transmit_enabled: false},
-            non_eps_service: undefined,
-          },
-          magmad: {
-            autoupgrade_enabled: true,
-            autoupgrade_poll_interval: 300,
-            checkin_interval: 60,
-            checkin_timeout: 10,
-          },
-          device: {
-            hardware_id: hardwareID,
-            key: {
-              key: challengeKey,
-              key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
-            },
-          },
-          connected_enodeb_serials: [],
-          tier,
-        },
+      await props.onSave({
+        gatewayID,
+        name,
+        description,
+        hardwareID,
+        challengeKey,
+        tier,
       });
-      const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
-        networkId: networkID,
-        gatewayId: gatewayID,
-      });
-      props.onSave(gateway);
     } catch (e) {
       enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
         variant: 'error',

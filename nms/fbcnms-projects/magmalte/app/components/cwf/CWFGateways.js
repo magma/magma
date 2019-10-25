@@ -11,6 +11,7 @@
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {cwf_gateway} from '@fbcnms/magma-api';
 
+import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@material-ui/core/Button';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -18,6 +19,7 @@ import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -32,6 +34,8 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '../GatewayUtils';
+import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
+import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
 import {useCallback, useState} from 'react';
@@ -79,7 +83,7 @@ const FIVE_MINS = 5 * 60 * 1000;
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const {match} = useRouter();
+  const {match, history, relativePath, relativeUrl} = useRouter();
   const networkId = nullthrows(match.params.networkId);
   const classes = useStyles();
 
@@ -106,6 +110,44 @@ function CWFGateways(props: WithAlert & {}) {
           );
         }
       });
+  };
+
+  const addGateway = async ({
+    gatewayID,
+    name,
+    description,
+    hardwareID,
+    challengeKey,
+    tier,
+  }) => {
+    await MagmaV1API.postCwfByNetworkIdGateways({
+      networkId,
+      gateway: {
+        carrier_wifi: {
+          allowed_gre_peers: [],
+        },
+        description,
+        device: {
+          hardware_id: hardwareID,
+          key: {
+            key: challengeKey,
+            key_type: 'SOFTWARE_ECDSA_SHA256', // default key type
+          },
+        },
+        id: gatewayID,
+        magmad: MAGMAD_DEFAULT_CONFIGS,
+        name,
+        tier,
+      },
+    });
+
+    const gateway = await MagmaV1API.getCwfByNetworkIdGatewaysByGatewayId({
+      networkId,
+      gatewayId: gatewayID,
+    });
+
+    setGateways([...gateways, gateway]);
+    history.push(relativeUrl(''));
   };
 
   const rows = gateways.map(gateway => (
@@ -157,9 +199,11 @@ function CWFGateways(props: WithAlert & {}) {
     <div className={classes.paper}>
       <div className={classes.header}>
         <Typography variant="h5">Configure Gateways</Typography>
-        <Button variant="contained" color="primary">
-          Add Gateway
-        </Button>
+        <NestedRouteLink to="/new">
+          <Button variant="contained" color="primary">
+            Add Gateway
+          </Button>
+        </NestedRouteLink>
       </div>
       <Paper elevation={2}>
         <Table>
@@ -173,6 +217,15 @@ function CWFGateways(props: WithAlert & {}) {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
+      <Route
+        path={relativePath('/new')}
+        render={() => (
+          <AddGatewayDialog
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={addGateway}
+          />
+        )}
+      />
     </div>
   );
 }
