@@ -176,6 +176,16 @@ router.use(
 );
 
 router.use(
+  '/magma/v1/cwf/:networkID',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: networkIdFilter,
+    userResDecorator: auditLoggingDecorator,
+    proxyErrorHandler,
+  }),
+);
+
+router.use(
   '/magma/channels/:channel',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
