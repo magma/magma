@@ -9,6 +9,27 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from orc8r.protos.redis_pb2 import RedisState
 
+
+class RedisSerde:
+    """
+    serialize (function (any) -> bytes):
+                function called to serialize a value
+    deserialize (function (bytes) -> any):
+                function called to deserialize a value
+    """
+
+    def __init__(self, typeval, serializer, deserializer):
+        self.type = typeval
+        self.serializer = serializer
+        self.deserializer = deserializer
+
+    def serialize(self, msg, version=0):
+        return self.serializer(msg, version)
+
+    def deserialize(self, obj):
+        return self.deserializer(obj)
+
+
 def get_proto_serializer():
     """
     Return a proto serializer that serializes the proto, adds the associated
