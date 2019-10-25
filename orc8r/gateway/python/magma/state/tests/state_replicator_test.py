@@ -19,7 +19,8 @@ from orc8r.protos.service303_pb2 import LogVerbosity
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, RedisSerde
+    get_proto_serializer, get_json_deserializer, get_json_serializer, \
+    RedisSerde
 from magma.state.state_replicator import StateReplicator
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.mocks.mock_redis import MockRedis
@@ -30,6 +31,7 @@ from google.protobuf.json_format import MessageToDict
 NID_TYPE = 'network_id'
 IDList_TYPE = 'id_list'
 LOG_TYPE = 'log_verbosity'
+FOO_TYPE = 'foo'
 
 def get_mock_snowflake():
     return "aaa-bbb"
@@ -89,7 +91,9 @@ class StateReplicatorTests(TestCase):
                              {'proto_file': 'orc8r.protos.service303_pb2',
                               'proto_msg': 'LogVerbosity',
                               'redis_key': LOG_TYPE,
-                              'state_scope': 'gateway'}]
+                              'state_scope': 'gateway'}],
+            'json_state': [{'redis_key': FOO_TYPE,
+                              'state_scope': 'network'}]
         }
         service.loop = self.loop
 
@@ -114,10 +118,15 @@ class StateReplicatorTests(TestCase):
         serde3 = RedisSerde(LOG_TYPE,
                             get_proto_serializer(),
                             get_proto_deserializer(LogVerbosity))
+        serde4 = RedisSerde(FOO_TYPE,
+                            get_json_serializer(),
+                            get_json_deserializer())
         serde_map = {}
         serde_map[NID_TYPE] = serde1
         serde_map[IDList_TYPE] = serde2
         serde_map[LOG_TYPE] = serde3
+        serde_map[FOO_TYPE] = serde4
+
         self.mock_client = RedisFlatDict(get_default_client(), serde_map)
 
         # Set up and start state replicating loop
@@ -139,8 +148,11 @@ class StateReplicatorTests(TestCase):
         self.state_replicator.stop()
         self.loop.close()
 
-    def convert_proto_to_state(self, redis_state):
-        json_converted_state = MessageToDict(redis_state)
+    def convert_msg_to_state(self, redis_state, is_proto=True):
+        if is_proto:
+            json_converted_state = MessageToDict(redis_state)
+        else:
+            json_converted_state = redis_state
         serialized_json_state = json.dumps(json_converted_state)
         return serialized_json_state.encode("utf-8")
 
@@ -153,15 +165,19 @@ class StateReplicatorTests(TestCase):
 
             nid_key = 'id1:' + NID_TYPE
             idlist_key = 'id1:' + IDList_TYPE
+            foo_key = 'id1:' + FOO_TYPE
+            foo = {'blah': 'bar', 'foo_id': 3}
 
             self.mock_client[nid_key] = NetworkID(id='foo')
             self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
+            self.mock_client[foo_key] = foo
 
-            exp1 = self.convert_proto_to_state(self.mock_client[nid_key])
-            exp2 = self.convert_proto_to_state(self.mock_client[idlist_key])
+            exp1 = self.convert_msg_to_state(self.mock_client[nid_key])
+            exp2 = self.convert_msg_to_state(self.mock_client[idlist_key])
+            exp3 = self.convert_msg_to_state(self.mock_client[foo_key], False)
 
             req = await self.state_replicator._collect_states_to_replicate()
-            self.assertEqual(2, len(req.states))
+            self.assertEqual(3, len(req.states))
             for state in req.states:
                 if state.type == NID_TYPE:
                     self.assertEqual('id1', state.deviceID)
@@ -171,6 +187,10 @@ class StateReplicatorTests(TestCase):
                     self.assertEqual('aaa-bbb:id1', state.deviceID)
                     self.assertEqual(1, state.version)
                     self.assertEqual(exp2, state.value)
+                elif state.type == FOO_TYPE:
+                    self.assertEqual('id1', state.deviceID)
+                    self.assertEqual(1, state.version)
+                    self.assertEqual(exp3, state.value)
                 else:
                     self.fail("Unknown state type %s" % state.type)
 
@@ -190,25 +210,30 @@ class StateReplicatorTests(TestCase):
 
             nid_key = 'id1:' + NID_TYPE
             idlist_key = 'id1:' + IDList_TYPE
-
+            foo_key = 'id1:' + FOO_TYPE
+            foo = {'blah': 'bar', 'foo_id': 3}
             self.mock_client[nid_key] = NetworkID(id='foo')
             self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
+            self.mock_client[foo_key] = foo
             # Increment version
             self.mock_client[idlist_key] = IDList(ids=['bar', 'blah'])
 
             req = await self.state_replicator._collect_states_to_replicate()
-            self.assertEqual(len(req.states), 2)
+            self.assertEqual(3, len(req.states))
 
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
-            self.assertEqual(2, len(self.state_replicator._state_versions))
+            self.assertEqual(3, len(self.state_replicator._state_versions))
             mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
             mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
                                                           IDList_TYPE)
+            mem_key3 = self.state_replicator.make_mem_key('id1', FOO_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
                              self.state_replicator._state_versions[mem_key2])
+            self.assertEqual(1,
+                             self.state_replicator._state_versions[mem_key3])
 
             # Now add new state and update some existing state
             nid_key2 = 'id2:' + NID_TYPE
@@ -219,14 +244,16 @@ class StateReplicatorTests(TestCase):
 
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
-            self.assertEqual(3, len(self.state_replicator._state_versions))
-            mem_key3 = self.state_replicator.make_mem_key('id2', NID_TYPE)
+            self.assertEqual(4, len(self.state_replicator._state_versions))
+            mem_key4 = self.state_replicator.make_mem_key('id2', NID_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(3,
                              self.state_replicator._state_versions[mem_key2])
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key3])
+            self.assertEqual(1,
+                             self.state_replicator._state_versions[mem_key4])
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()

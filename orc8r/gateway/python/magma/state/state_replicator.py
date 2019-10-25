@@ -18,7 +18,8 @@ from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, RedisSerde
+    get_proto_serializer, get_json_deserializer, get_json_serializer, \
+    RedisSerde
 from magma.common.service import MagmaService
 from magma.common.sdwatchdog import SDWatchdogTask
 from orc8r.protos.state_pb2 import ReportStatesRequest, SyncStatesRequest, \
@@ -32,17 +33,17 @@ DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 MINIMUM_SYNC_INTERVAL = 30
 REDIS_KEY_DELIMITER = ':'
+PROTO_FORMAT = 0
+JSON_FORMAT = 1
 
 
 class StateSerde(RedisSerde):
-    """
-    StateDict is a wrapper around RedisFlatDict, allowing for storage of state
-    metadata
-    """
-    def __init__(self, redis_key, serializer, deserializer, state_scope):
+
+    def __init__(self, redis_key, serializer, deserializer, state_scope, state_format):
         super().__init__(redis_key, serializer, deserializer)
         # Scope determines the deviceID to report the state with
         self.state_scope = state_scope
+        self.state_format = state_format
 
 
 class StateReplicator(SDWatchdogTask):
@@ -60,6 +61,7 @@ class StateReplicator(SDWatchdogTask):
         # Serdes for each type of state to replicate
         self._serdes = {}
         self._get_proto_redis_serdes()
+        self._get_json_redis_serdes()
         self._redis_client = RedisFlatDict(get_default_client(),
                                            self._serdes)
 
@@ -78,24 +80,43 @@ class StateReplicator(SDWatchdogTask):
                              'redis_key' not in proto_cfg or \
                              'state_scope' not in proto_cfg
             if is_invalid_cfg:
-                    logging.warning("Invalid proto config found in state_"
-                                    "protos configuration: %s", proto_cfg)
-                    continue
-            logging.info('Importing proto %s from module %s',
-                         proto_cfg['proto_msg'],
-                         proto_cfg['proto_file'])
+                logging.warning("Invalid proto config found in state_protos "
+                                "configuration: %s", proto_cfg)
+                continue
             try:
                 proto_module = importlib.import_module(proto_cfg['proto_file'])
                 msg = getattr(proto_module, proto_cfg['proto_msg'])
                 redis_key = proto_cfg['redis_key']
+                logging.info('Initializing RedisSerde for proto state %s',
+                             proto_cfg['redis_key'])
                 serde = StateSerde(redis_key,
                                    get_proto_serializer(),
                                    get_proto_deserializer(msg),
-                                   proto_cfg['state_scope'])
+                                   proto_cfg['state_scope'],
+                                   PROTO_FORMAT)
                 self._serdes[redis_key] = serde
 
             except (ImportError, AttributeError) as err:
                 logging.error(err)
+
+    def _get_json_redis_serdes(self):
+        json_state = self._service.config.get('json_state', []) or []
+        for json_cfg in json_state:
+            is_invalid_cfg = 'redis_key' not in json_cfg or \
+                             'state_scope' not in json_cfg
+            if is_invalid_cfg:
+                logging.warning("Invalid json state config found in json_state"
+                                "configuration: %s", json_cfg)
+                continue
+            logging.info('Initializing RedisSerde for json state %s',
+                         json_cfg['redis_key'])
+            redis_key = json_cfg['redis_key']
+            serde = StateSerde(redis_key,
+                               get_json_serializer(),
+                               get_json_deserializer(),
+                               json_cfg['state_scope'],
+                               JSON_FORMAT)
+            self._serdes[redis_key] = serde
 
     async def _run(self):
         if not self._has_resync_completed:
@@ -169,8 +190,11 @@ class StateReplicator(SDWatchdogTask):
                 continue
 
             redis_state = self._redis_client.get(key)
-            json_converted_state = MessageToDict(redis_state)
-            serialized_json_state = json.dumps(json_converted_state)
+            if self._serdes[state_type].state_format == PROTO_FORMAT:
+                state_to_serialize = MessageToDict(redis_state)
+            else:
+                state_to_serialize = redis_state
+            serialized_json_state = json.dumps(state_to_serialize)
             state_proto = State(type=state_type,
                   deviceID=device_id,
                   value=serialized_json_state.encode("utf-8"),
