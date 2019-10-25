@@ -9,6 +9,7 @@
 package integ_tests
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -19,11 +20,14 @@ import (
 )
 
 func TestAuthenticateUplinkTraffic(t *testing.T) {
+	fmt.Printf("Running TestAuthenticateUplinkTraffic...\n")
 	tr := NewTestRunner()
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
 	ue := ues[0]
+	err = tr.AddPassThroughPCRFRules(ue.GetImsi())
+	assert.NoError(t, err)
 	radiusP, err := tr.Authenticate(ue.GetImsi())
 	assert.NoError(t, err)
 
@@ -33,4 +37,7 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 
 	err = tr.GenULTraffic(ue.GetImsi(), nil)
 	assert.NoError(t, err)
+
+	// Clear hss, ocs, and pcrf
+	assert.NoError(t, tr.CleanUp())
 }
