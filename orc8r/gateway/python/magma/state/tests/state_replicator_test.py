@@ -17,7 +17,7 @@ from orc8r.protos.state_pb2 import ReportStatesResponse, \
 from unittest.mock import MagicMock
 from orc8r.protos.service303_pb2 import LogVerbosity
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisDict
+from magma.common.redis.containers import RedisHashDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer
 from magma.state.state_replicator import StateReplicator
@@ -105,16 +105,16 @@ class StateReplicatorTests(TestCase):
         # Create a rpc stub
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
-        self.nid_mock_client = RedisDict(get_default_client(),
+        self.nid_mock_client = RedisHashDict(get_default_client(),
                                                NID_TYPE,
                                                get_proto_serializer(),
                                                get_proto_deserializer(
                                                    NetworkID))
-        self.id_mock_client = RedisDict(get_default_client(),
+        self.id_mock_client = RedisHashDict(get_default_client(),
                                             IDList_TYPE,
                                             get_proto_serializer(),
                                             get_proto_deserializer(IDList))
-        self.log_mock_client = RedisDict(get_default_client(),
+        self.log_mock_client = RedisHashDict(get_default_client(),
                                           LOG_TYPE,
                                           get_proto_serializer(),
                                           get_proto_deserializer(LogVerbosity))
