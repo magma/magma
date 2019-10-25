@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {cwf_gateway} from '@fbcnms/magma-api';
-import type {magmad_gateway_configs} from '@fbcnms/magma-api';
+import type {cwf_gateway, magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -25,6 +25,7 @@ import Tabs from '@material-ui/core/Tabs';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
@@ -44,34 +45,49 @@ type Props = {
 export default function(props: Props) {
   const [tab, setTab] = useState(0);
   const [magmaConfigs, setMagmaConfigs] = useState(props.gateway.magmad);
+  const [allowedGREPeers, setAllowedGREPeers] = useState(
+    props.gateway.carrier_wifi.allowed_gre_peers,
+  );
   const classes = useStyles();
   const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
 
   const gatewayID = nullthrows(match.params.gatewayID);
   const networkID = nullthrows(match.params.networkId);
   const onSave = async () => {
-    await MagmaV1API.putCwfByNetworkIdGatewaysByGatewayId({
-      networkId: networkID,
-      gatewayId: gatewayID,
-      gateway: {
-        ...props.gateway,
-        magmad: getMagmaConfigs(magmaConfigs),
-      },
-    });
-    props.onSave(
-      await MagmaV1API.getCwfByNetworkIdGatewaysByGatewayId({
+    try {
+      await MagmaV1API.putCwfByNetworkIdGatewaysByGatewayId({
         networkId: networkID,
         gatewayId: gatewayID,
-      }),
-    );
+        gateway: {
+          ...props.gateway,
+          carrier_wifi: {
+            allowed_gre_peers: allowedGREPeers,
+          },
+          magmad: getMagmaConfigs(magmaConfigs),
+        },
+      });
+      props.onSave(
+        await MagmaV1API.getCwfByNetworkIdGatewaysByGatewayId({
+          networkId: networkID,
+          gatewayId: gatewayID,
+        }),
+      );
+    } catch (e) {
+      enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
+        variant: 'error',
+      });
+    }
   };
 
   let content;
   switch (tab) {
     case 0:
       content = (
-        // TODO
-        <div />
+        <CWFGatewayConfigFields
+          allowedGREPeers={allowedGREPeers}
+          onChange={setAllowedGREPeers}
+        />
       );
       break;
     case 1:
