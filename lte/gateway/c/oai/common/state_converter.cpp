@@ -45,8 +45,8 @@ void StateConverter::guti_to_proto(const guti_t& state_guti, Guti* guti_proto)
 {
   guti_proto->Clear();
 
-  char *plmn_array = (char *) malloc(sizeof(plmn_t));
-  memcpy(plmn_array, &state_guti.gummei.plmn, sizeof(plmn_t));
+  char plmn_array[PLMN_BYTES];
+  plmn_to_chars(state_guti.gummei.plmn, plmn_array);
   guti_proto->set_plmn(plmn_array);
   guti_proto->set_mme_gid(state_guti.gummei.mme_gid);
   guti_proto->set_mme_code(state_guti.gummei.mme_code);

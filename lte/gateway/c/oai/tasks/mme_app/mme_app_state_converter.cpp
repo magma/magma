@@ -77,10 +77,10 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
 {
   mme_ue_s1ap_id_t mme_ue_id;
 
-  ue_mm_context_t* ue_context_p = nullptr;
-
   for (auto const& kv : proto_map) {
     mme_ue_id = (mme_ue_s1ap_id_t) kv.first;
+    ue_mm_context_t* ue_context_p =
+        (ue_mm_context_t*)calloc(1, sizeof(*ue_context_p));
     proto_to_ue_mm_context(&kv.second, ue_context_p);
     hashtable_rc_t ht_rc = hashtable_ts_insert(
       state_htbl, (const hash_key_t) mme_ue_id, (void*) ue_context_p);
@@ -245,15 +245,17 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_ctxt_proto->set_imsi_len(ue_ctxt->imsi_len);
   ue_ctxt_proto->set_member_present_mask(ue_ctxt->member_present_mask);
 
-  memcpy(
+  NasStateConverter::identity_tuple_to_proto<imeisv_t>(
+    &ue_ctxt->imeisv,
     ue_ctxt_proto->mutable_imeisv(),
-    &ue_ctxt->imeisv.u.value,
     IMEISV_BCD8_SIZE);
 
   char* msisdn_buffer = bstr2cstr(ue_ctxt->msisdn, (char) '?');
   if (msisdn_buffer) {
     ue_ctxt_proto->set_msisdn(msisdn_buffer);
     bcstrfree(msisdn_buffer);
+  } else {
+    ue_ctxt_proto->set_msisdn("");
   }
 
   ue_ctxt_proto->set_imsi_auth(ue_ctxt->imsi_auth);
@@ -293,9 +295,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->imsi_len = ue_context_proto->imsi_len();
   state_ue_mm_context->member_present_mask =
     ue_context_proto->member_present_mask();
-  strcpy(
-    (char*) state_ue_mm_context->imeisv.u.value,
-    ue_context_proto->imeisv().c_str());
+  NasStateConverter::proto_to_identity_tuple<imeisv_t>(ue_context_proto->imeisv(),
+                                    &state_ue_mm_context->imeisv,
+                                    IMEISV_BCD8_SIZE);
   state_ue_mm_context->msisdn = bfromcstr(ue_context_proto->msisdn().c_str());
   state_ue_mm_context->imsi_auth = ue_context_proto->imsi_auth();
   state_ue_mm_context->ue_context_rel_cause =
@@ -391,9 +393,10 @@ void MmeNasStateConverter::mme_nas_state_to_proto(
     mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl(),
     "enb_ue_s1ap_id_ue_context_htbl");
-  guti_table_to_proto(
+  /* TODO: fix libprotobuf error
+    guti_table_to_proto(
     mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
-    mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());
+    mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());*/
   return;
 }
 
@@ -437,9 +440,10 @@ void MmeNasStateConverter::mme_nas_proto_to_state(
     mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
     mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl,
     "enb_ue_s1ap_id_ue_context_htbl");
-  proto_to_guti_table(
+  /* TODO: fix libprotobuf error
+    proto_to_guti_table(
     mme_ue_ctxts_proto.guti_ue_id_htbl(),
-    mme_ue_ctxt_state->guti_ue_context_htbl);
+    mme_ue_ctxt_state->guti_ue_context_htbl);*/
 }
 } // namespace lte
 } // namespace magma

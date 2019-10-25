@@ -77,7 +77,7 @@ message UeContext {
   uint64 imsi = 1;
   uint32 imsi_len = 2;
   uint32 member_present_mask = 3;
-  bytes imeisv = 4; // imeisv_t
+  IdentityTuple imeisv = 4; // imeisv_t
   string msisdn = 5;
 
   uint32 imsi_auth = 6;

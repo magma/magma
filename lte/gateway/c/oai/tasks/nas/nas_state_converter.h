@@ -73,6 +73,27 @@ class NasStateConverter : StateConverter {
     const EmmContext& emm_context_proto,
     emm_context_t* state_emm_context);
 
+  template<typename NodeType>
+  static void identity_tuple_to_proto(
+    NodeType* state_identity,
+    IdentityTuple* identity_proto,
+    int size)
+  {
+    identity_proto->set_value(state_identity->u.value, size);
+    identity_proto->set_num_digits(state_identity->length);
+  }
+
+  template<typename NodeType>
+  static void proto_to_identity_tuple(
+    const IdentityTuple& identity_proto,
+    NodeType* state_identity,
+    int size)
+  {
+    strncpy(
+      (char*) &state_identity->u.value, identity_proto.value().c_str(), size);
+    state_identity->length = identity_proto.num_digits();
+  }
+
   // TODO: To be moved to base state converter class
   static void proto_to_guti(const Guti& guti_proto, guti_t* state_guti);
 

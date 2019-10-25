@@ -475,24 +475,41 @@ void NasStateConverter::emm_attach_request_ies_to_proto(
   attach_request_ies_proto->set_ksi(state_emm_attach_request_ies->ksi);
   attach_request_ies_proto->set_is_native_guti(
     state_emm_attach_request_ies->is_native_guti);
-  guti_to_proto(
-    *state_emm_attach_request_ies->guti,
-    attach_request_ies_proto->mutable_guti());
-  attach_request_ies_proto->set_imsi(
-    (void*) state_emm_attach_request_ies->imsi->u.value,
-    state_emm_attach_request_ies->imsi->length);
-  attach_request_ies_proto->set_imei(
-    (void*) state_emm_attach_request_ies->imei->u.value,
-    state_emm_attach_request_ies->imei->length);
+  if (state_emm_attach_request_ies->guti) {
+    guti_to_proto(
+      *state_emm_attach_request_ies->guti,
+      attach_request_ies_proto->mutable_guti());
+  }
+  if (state_emm_attach_request_ies->imsi) {
+    identity_tuple_to_proto<imsi_t>(
+      state_emm_attach_request_ies->imsi,
+      attach_request_ies_proto->mutable_imsi(),
+      IMSI_BCD8_SIZE);
+  }
+
+  if (state_emm_attach_request_ies->imei) {
+    identity_tuple_to_proto<imei_t>(
+      state_emm_attach_request_ies->imei,
+      attach_request_ies_proto->mutable_imei(),
+      IMEI_BCD8_SIZE);
+  }
+
+  if (state_emm_attach_request_ies->last_visited_registered_tai) {
     tai_to_proto(
       state_emm_attach_request_ies->last_visited_registered_tai,
       attach_request_ies_proto->mutable_last_visited_tai());
+  }
+
+  if (state_emm_attach_request_ies->originating_tai) {
     tai_to_proto(
       state_emm_attach_request_ies->originating_tai,
       attach_request_ies_proto->mutable_origin_tai());
+  }
+  if (state_emm_attach_request_ies->originating_ecgi) {
     ecgi_to_proto(
       *state_emm_attach_request_ies->originating_ecgi,
       attach_request_ies_proto->mutable_origin_ecgi());
+  }
   ue_network_capability_to_proto(
     &state_emm_attach_request_ies->ue_network_capability,
     attach_request_ies_proto->mutable_ue_nw_capability());
@@ -528,35 +545,46 @@ void NasStateConverter::proto_to_emm_attach_request_ies(
   state_emm_attach_request_ies->ksi = attach_request_ies_proto.ksi();
   state_emm_attach_request_ies->is_native_guti =
     attach_request_ies_proto.is_native_guti();
-  proto_to_guti(
-    attach_request_ies_proto.guti(), state_emm_attach_request_ies->guti);
-  state_emm_attach_request_ies->imsi->length =
-    attach_request_ies_proto.imsi().length();
-  strncpy(
-    (char*) state_emm_attach_request_ies->imsi->u.value,
-    attach_request_ies_proto.imsi().c_str(),
-    state_emm_attach_request_ies->imsi->length);
-  state_emm_attach_request_ies->imei->length =
-    attach_request_ies_proto.imei().length();
-  strncpy(
-    (char*) state_emm_attach_request_ies->imei->u.value,
-    attach_request_ies_proto.imei().c_str(),
-    state_emm_attach_request_ies->imei->length);
+  if (attach_request_ies_proto.has_guti()) {
+    state_emm_attach_request_ies->guti = (guti_t*) calloc(1, sizeof(guti_t));
+    proto_to_guti(
+      attach_request_ies_proto.guti(), state_emm_attach_request_ies->guti);
+  }
+  if (attach_request_ies_proto.has_imsi()) {
+    state_emm_attach_request_ies->imsi = (imsi_t*) calloc(1, sizeof(imsi_t));
+    proto_to_identity_tuple<imsi_t>(
+      attach_request_ies_proto.imsi(),
+      state_emm_attach_request_ies->imsi,
+      IMSI_BCD8_SIZE);
+  }
+  if (attach_request_ies_proto.has_imei()) {
+    state_emm_attach_request_ies->imei = (imei_t*) calloc(1, sizeof(imei_t));
+    proto_to_identity_tuple<imei_t>(
+      attach_request_ies_proto.imei(),
+      state_emm_attach_request_ies->imei,
+      IMEI_BCD8_SIZE);
+  }
+  if (attach_request_ies_proto.has_last_visited_tai()) {
     state_emm_attach_request_ies->last_visited_registered_tai =
       (tai_t*) calloc(1, sizeof(tai_t));
     proto_to_tai(
       attach_request_ies_proto.last_visited_tai(),
       state_emm_attach_request_ies->last_visited_registered_tai);
+  }
+  if (attach_request_ies_proto.has_origin_tai()) {
     state_emm_attach_request_ies->originating_tai =
       (tai_t*) calloc(1, sizeof(tai_t));
     proto_to_tai(
       attach_request_ies_proto.origin_tai(),
       state_emm_attach_request_ies->originating_tai);
+  }
+  if (attach_request_ies_proto.has_origin_ecgi()) {
     state_emm_attach_request_ies->originating_ecgi =
       (ecgi_t*) calloc(1, sizeof(ecgi_t));
     proto_to_ecgi(
       attach_request_ies_proto.origin_ecgi(),
       state_emm_attach_request_ies->originating_ecgi);
+  }
   proto_to_ue_network_capability(
     attach_request_ies_proto.ue_nw_capability(),
     &state_emm_attach_request_ies->ue_network_capability);
@@ -590,11 +618,17 @@ void NasStateConverter::nas_attach_proc_to_proto(
 
   char* esm_msg_buffer =
     bstr2cstr(state_nas_attach_proc->esm_msg_out, (char) '?');
-  attach_proc_proto->set_esm_msg_out(esm_msg_buffer);
-  bcstrfree(esm_msg_buffer);
+  if (esm_msg_buffer) {
+    attach_proc_proto->set_esm_msg_out(esm_msg_buffer);
+    bcstrfree(esm_msg_buffer);
+  } else {
+    attach_proc_proto->set_esm_msg_out("");
+  }
 
-  emm_attach_request_ies_to_proto(
-    state_nas_attach_proc->ies, attach_proc_proto->mutable_ies());
+  if (state_nas_attach_proc->ies) {
+    emm_attach_request_ies_to_proto(
+      state_nas_attach_proc->ies, attach_proc_proto->mutable_ies());
+  }
   attach_proc_proto->set_ue_id(state_nas_attach_proc->ue_id);
   attach_proc_proto->set_ksi(state_nas_attach_proc->ksi);
   attach_proc_proto->set_emm_cause(state_nas_attach_proc->emm_cause);
@@ -620,8 +654,12 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
   proto_to_guti(attach_proc_proto.guti(), &state_nas_emm_attach_proc->guti);
   state_nas_emm_attach_proc->esm_msg_out =
     bfromcstr(attach_proc_proto.esm_msg_out().c_str());
-  proto_to_emm_attach_request_ies(
-    attach_proc_proto.ies(), state_nas_emm_attach_proc->ies);
+  if (attach_proc_proto.has_ies()) {
+    state_nas_emm_attach_proc->ies = (emm_attach_request_ies_t*) calloc(
+      1, sizeof(*(state_nas_emm_attach_proc->ies)));
+    proto_to_emm_attach_request_ies(
+      attach_proc_proto.ies(), state_nas_emm_attach_proc->ies);
+  }
   state_nas_emm_attach_proc->ue_id = attach_proc_proto.ue_id();
   state_nas_emm_attach_proc->ksi = attach_proc_proto.ksi();
   state_nas_emm_attach_proc->emm_cause = attach_proc_proto.emm_cause();
@@ -643,12 +681,14 @@ void NasStateConverter::emm_detach_request_ies_to_proto(
   guti_to_proto(
     *state_emm_detach_request_ies->guti,
     detach_request_ies_proto->mutable_guti());
-  detach_request_ies_proto->set_imsi(
-    (void*) state_emm_detach_request_ies->imsi->u.value,
-    state_emm_detach_request_ies->imsi->length);
-  detach_request_ies_proto->set_imei(
-    (void*) state_emm_detach_request_ies->imei->u.value,
-    state_emm_detach_request_ies->imei->length);
+  identity_tuple_to_proto<imsi_t>(
+    state_emm_detach_request_ies->imsi,
+    detach_request_ies_proto->mutable_imsi(),
+    IMSI_BCD8_SIZE);
+  identity_tuple_to_proto<imei_t>(
+    state_emm_detach_request_ies->imei,
+    detach_request_ies_proto->mutable_imei(),
+    IMEI_BCD8_SIZE);
   nas_message_decode_status_to_proto(
     &state_emm_detach_request_ies->decode_status,
     detach_request_ies_proto->mutable_decode_status());
@@ -667,19 +707,18 @@ void NasStateConverter::proto_to_emm_detach_request_ies(
   state_emm_detach_request_ies->ksi = detach_request_ies_proto.ksi();
   proto_to_guti(
     detach_request_ies_proto.guti(), state_emm_detach_request_ies->guti);
-  state_emm_detach_request_ies->imsi->length =
-    detach_request_ies_proto.imsi().length();
-  strncpy(
-    (char*) state_emm_detach_request_ies->imsi->u.value,
-    detach_request_ies_proto.imsi().c_str(),
-    state_emm_detach_request_ies->imsi->length);
 
-  state_emm_detach_request_ies->imei->length =
-    detach_request_ies_proto.imei().length();
-  strncpy(
-    (char*) state_emm_detach_request_ies->imei->u.value,
-    detach_request_ies_proto.imei().c_str(),
-    state_emm_detach_request_ies->imei->length);
+  state_emm_detach_request_ies->imsi = (imsi_t*) calloc(1, sizeof(imsi_t));
+  proto_to_identity_tuple<imsi_t>(
+    detach_request_ies_proto.imsi(),
+    state_emm_detach_request_ies->imsi,
+    IMSI_BCD8_SIZE);
+  state_emm_detach_request_ies->imei = (imei_t*) calloc(1, sizeof(imei_t));
+  proto_to_identity_tuple<imei_t>(
+    detach_request_ies_proto.imei(),
+    state_emm_detach_request_ies->imei,
+    IMEI_BCD8_SIZE);
+
   proto_to_nas_message_decode_status(
     detach_request_ies_proto.decode_status(),
     &state_emm_detach_request_ies->decode_status);
@@ -729,12 +768,15 @@ void NasStateConverter::nas_emm_auth_proc_to_proto(
     state_nas_emm_auth_proc->is_cause_is_attach);
   auth_proc_proto->set_ksi(state_nas_emm_auth_proc->ksi);
   auth_proc_proto->set_rand(
-    (void*) state_nas_emm_auth_proc->rand, AUTH_RAND_SIZE);
+    (char*) state_nas_emm_auth_proc->rand, AUTH_RAND_SIZE);
   auth_proc_proto->set_autn(
-    (void*) state_nas_emm_auth_proc->autn, AUTH_AUTN_SIZE);
-  auth_proc_proto->set_unchecked_imsi(
-    state_nas_emm_auth_proc->unchecked_imsi->u.value,
-    state_nas_emm_auth_proc->unchecked_imsi->length);
+    (char*) state_nas_emm_auth_proc->autn, AUTH_AUTN_SIZE);
+  if (state_nas_emm_auth_proc->unchecked_imsi) {
+    identity_tuple_to_proto<imsi_t>(
+      state_nas_emm_auth_proc->unchecked_imsi,
+      auth_proc_proto->mutable_unchecked_imsi(),
+      IMSI_BCD8_SIZE);
+  }
   auth_proc_proto->set_emm_cause(state_nas_emm_auth_proc->emm_cause);
   nas_timer_to_proto(
     state_nas_emm_auth_proc->T3460, auth_proc_proto->mutable_t3460());
@@ -766,12 +808,16 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
     (char*) state_nas_emm_auth_proc->autn,
     auth_proc_proto.autn().c_str(),
     AUTH_AUTN_SIZE);
-  state_nas_emm_auth_proc->unchecked_imsi->length =
-    auth_proc_proto.unchecked_imsi().length();
-  strncpy(
-    (char*) state_nas_emm_auth_proc->unchecked_imsi,
-    auth_proc_proto.unchecked_imsi().c_str(),
-    state_nas_emm_auth_proc->unchecked_imsi->length);
+
+  if (auth_proc_proto.has_unchecked_imsi()) {
+    state_nas_emm_auth_proc->unchecked_imsi =
+      (imsi_t*) calloc(1, sizeof(imsi_t));
+    proto_to_identity_tuple<imsi_t>(
+      auth_proc_proto.unchecked_imsi(),
+      state_nas_emm_auth_proc->unchecked_imsi,
+      IMSI_BCD8_SIZE);
+  }
+
   state_nas_emm_auth_proc->emm_cause = auth_proc_proto.emm_cause();
   proto_to_nas_timer(auth_proc_proto.t3460(), &state_nas_emm_auth_proc->T3460);
   // update callback functions for auth proc
@@ -1267,9 +1313,11 @@ void NasStateConverter::emm_procedures_to_proto(
   NasEmmProcWithType* emm_proc_with_type =
     emm_procedures_proto->mutable_emm_con_mngt_proc();
 
+  if (state_emm_procedures->emm_con_mngt_proc) {
     emm_proc_to_proto(
       &state_emm_procedures->emm_con_mngt_proc->emm_proc,
       emm_proc_with_type->mutable_emm_proc());
+  }
 
   emm_procedures_proto->set_nas_proc_mess_sign_next_location(
     state_emm_procedures->nas_proc_mess_sign_next_location);
@@ -1297,9 +1345,11 @@ void NasStateConverter::proto_to_emm_procedures(
   proto_to_nas_cn_proc(emm_procedures_proto, state_emm_procedures);
   state_emm_procedures->emm_con_mngt_proc =
     (nas_emm_con_mngt_proc_t*) calloc(1, sizeof(nas_emm_con_mngt_proc_t));
-  proto_to_nas_emm_proc(
-    emm_procedures_proto.emm_con_mngt_proc().emm_proc(),
-    &state_emm_procedures->emm_con_mngt_proc->emm_proc);
+  if (emm_procedures_proto.has_emm_con_mngt_proc()) {
+    proto_to_nas_emm_proc(
+      emm_procedures_proto.emm_con_mngt_proc().emm_proc(),
+      &state_emm_procedures->emm_con_mngt_proc->emm_proc);
+  }
   state_emm_procedures->nas_proc_mess_sign_next_location =
     emm_procedures_proto.nas_proc_mess_sign_next_location();
   proto_to_mess_sign_array(emm_procedures_proto, state_emm_procedures);
@@ -1465,23 +1515,29 @@ void NasStateConverter::emm_context_to_proto(
   EmmContext* emm_context_proto)
 {
   emm_context_proto->set_imsi64(state_emm_context->_imsi64);
-  emm_context_proto->set_imsi(
-    (const void*) &state_emm_context->_imsi.u.value,
-    state_emm_context->_imsi.length);
+  identity_tuple_to_proto<imsi_t>(
+    &state_emm_context->_imsi,
+    emm_context_proto->mutable_imsi(),
+    IMSI_BCD8_SIZE);
   emm_context_proto->set_saved_imsi64(state_emm_context->saved_imsi64);
-  emm_context_proto->set_imei(
-    (const void*) &state_emm_context->_imei.u.value,
-    state_emm_context->_imei.length);
-  emm_context_proto->set_imeisv(
-    (const void*) &state_emm_context->_imeisv.u.value,
-    state_emm_context->_imeisv.length);
+  identity_tuple_to_proto<imei_t>(
+    &state_emm_context->_imei,
+    emm_context_proto->mutable_imei(),
+    IMEI_BCD8_SIZE);
+  identity_tuple_to_proto<imeisv_t>(
+    &state_emm_context->_imeisv,
+    emm_context_proto->mutable_imeisv(),
+    IMEISV_BCD8_SIZE);
   ecgi_to_proto(state_emm_context->ecgi, emm_context_proto->mutable_ecgi());
   emm_context_proto->set_emm_cause(state_emm_context->emm_cause);
   emm_context_proto->set_emm_fsm_state(state_emm_context->_emm_fsm_state);
   emm_context_proto->set_attach_type(state_emm_context->attach_type);
+
+  if (state_emm_context->emm_procedures) {
     emm_procedures_to_proto(
       state_emm_context->emm_procedures,
       emm_context_proto->mutable_emm_procedures());
+  }
   emm_context_proto->set_common_proc_mask(state_emm_context->common_proc_mask);
   esm_context_to_proto(
     &state_emm_context->esm_ctx, emm_context_proto->mutable_esm_ctx());
@@ -1533,26 +1589,14 @@ void NasStateConverter::proto_to_emm_context(
   emm_context_t* state_emm_context)
 {
   state_emm_context->_imsi64 = emm_context_proto.imsi64();
-
-  state_emm_context->_imsi.length = emm_context_proto.imsi().length();
-  strncpy(
-    (char*) state_emm_context->_imsi.u.value,
-    emm_context_proto.imsi().c_str(),
-    state_emm_context->_imsi.length);
-
+  proto_to_identity_tuple<imsi_t>(
+    emm_context_proto.imsi(), &state_emm_context->_imsi, IMSI_BCD8_SIZE);
   state_emm_context->saved_imsi64 = emm_context_proto.saved_imsi64();
 
-  state_emm_context->_imei.length = emm_context_proto.imei().length();
-  strncpy(
-    (char*) state_emm_context->_imei.u.value,
-    emm_context_proto.imei().c_str(),
-    state_emm_context->_imei.length);
-
-  state_emm_context->_imeisv.length = emm_context_proto.imeisv().length();
-  strncpy(
-    (char*) state_emm_context->_imeisv.u.value,
-    emm_context_proto.imeisv().c_str(),
-    state_emm_context->_imeisv.length);
+  proto_to_identity_tuple<imei_t>(
+    emm_context_proto.imei(), &state_emm_context->_imei, IMEI_BCD8_SIZE);
+  proto_to_identity_tuple<imeisv_t>(
+    emm_context_proto.imeisv(), &state_emm_context->_imeisv, IMEISV_BCD8_SIZE);
 
   proto_to_ecgi(emm_context_proto.ecgi(), &state_emm_context->ecgi);
   state_emm_context->emm_cause = emm_context_proto.emm_cause();

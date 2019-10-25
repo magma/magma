@@ -12,7 +12,18 @@ message Timer {
   uint64 sec = 2; // long
 }
 
-// Messages for tracking area identity
+/*****************************************************************/
+/*           Messages for mobile identity                        */
+/*****************************************************************/
+// imsi_t or imei_t or imeisv_t
+message IdentityTuple {
+  bytes value = 1;
+  uint32 num_digits = 2;
+}
+
+/*****************************************************************/
+/*           Messages for tracking area identity                 */
+/*****************************************************************/
 // partial_tai_list_t
 message PartialTaiList {
   uint32 type_of_list = 1;
@@ -40,14 +51,6 @@ message Tai {
 message NasBaseProc {
  uint64 nas_puid = 1;
  uint32 type = 2;
-
- // function pointers
- uint64 success_notif = 100;
- uint64 failure_notif = 101;
- uint64 abort = 102;
- uint64 fail_in = 103;
- uint64 fail_out = 104;
- uint64 time_out = 105;
 }
 
 // nas_emm_proc_t
@@ -55,11 +58,6 @@ message NasEmmProc {
   NasBaseProc base_proc = 1;
   uint32 type = 2;
   uint32 previous_emm_fsm_state = 3;
-
-  // function pointers
-  uint64 delivered = 100;
-  uint64 not_delivered = 101;
-  uint64 not_delivered_ho = 102;
 }
 
 // nas_auth_info_proc_t
@@ -117,8 +115,8 @@ message AttachRequestIes {
   uint32 ksi = 5;
   bool is_native_guti = 6;
   Guti guti = 7;
-  bytes imsi = 8;
-  bytes imei = 9;
+  IdentityTuple imsi = 8; // imsi_t
+  IdentityTuple imei = 9; // imei_t
   Tai last_visited_tai = 10;
   Tai origin_tai = 11;
   Ecgi origin_ecgi = 12;
@@ -136,7 +134,7 @@ message AttachProc {
   bool attach_reject_sent = 2;
   bool attach_complete_received = 3;
   Guti guti = 4;
-  string esm_msg_out = 5;
+  bytes esm_msg_out = 5;
   AttachRequestIes ies = 6;
   uint32 ue_id = 7;
   uint32 ksi = 8;
@@ -152,8 +150,8 @@ message DetachRequestIes {
   bool is_native_sc = 3;
   uint32 ksi = 4;
   Guti guti = 5;
-  bytes imsi = 6;
-  bytes imei = 7;
+  IdentityTuple imsi = 6;
+  IdentityTuple imei = 7;
   NasMsgDecodeStatus decode_status = 8;
 }
 
@@ -177,7 +175,7 @@ message AuthProc {
   uint32 ksi = 6;
   bytes rand = 7;
   bytes autn = 8;
-  bytes unchecked_imsi = 9;
+  IdentityTuple unchecked_imsi = 9;
   uint32 emm_cause = 10;
 
   Timer T3460 = 200;
@@ -380,10 +378,10 @@ message EsmEbrContext {
 // emm_context_t
 message EmmContext {
   uint64 imsi64 = 1; //imsi64_t
-  bytes imsi = 2; // imsi_t
+  IdentityTuple imsi = 2; // imsi_t
   uint64 saved_imsi64 = 3;
-  bytes imei = 4; //imei_t
-  bytes imeisv = 5; // imeisv_t
+  IdentityTuple imei = 4; //imei_t
+  IdentityTuple imeisv = 5; // imeisv_t
   Ecgi ecgi = 6;
   uint32 emm_cause = 7;
   uint32 emm_fsm_state = 8; // emm_fsm_state_t
