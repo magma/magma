@@ -134,11 +134,9 @@ class Gateways extends React.Component<Props, State> {
             <LoadingFiller />
           )}
         </Paper>
-        <AddGatewayDialog
-          open={this.state.showDialog}
-          onClose={this.hideDialog}
-          onSave={this.onSave}
-        />
+        {this.state.showDialog && (
+          <AddGatewayDialog onClose={this.hideDialog} onSave={this.onSave} />
+        )}
         <EditGatewayDialog
           key={this.state.editingGateway && this.state.editingGateway.logicalID}
           gateway={this.state.editingGateway}

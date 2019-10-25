@@ -15,11 +15,17 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
+import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../common/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -33,7 +39,6 @@ const useStyles = makeStyles({
 });
 
 type Props = {|
-  open: boolean,
   onClose: () => void,
   onSave: lte_gateway => void,
 |};
@@ -46,11 +51,20 @@ export default function AddGatewayDialog(props: Props) {
   const [hardwareID, setHardwareID] = useState('');
   const [gatewayID, setGatewayID] = useState('');
   const [challengeKey, setChallengeKey] = useState('');
+  const [tier, setTier] = useState('');
 
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const networkID = nullthrows(match.params.networkId);
+  const {response: tiers, isLoading} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdTiers,
+    {networkId: networkID},
+  );
+
+  if (isLoading || !tiers) {
+    return <LoadingFillerBackdrop />;
+  }
 
   const onSave = async () => {
     if (!name || !description || !hardwareID || !gatewayID || !challengeKey) {
@@ -84,7 +98,7 @@ export default function AddGatewayDialog(props: Props) {
             },
           },
           connected_enodeb_serials: [],
-          tier: 'default',
+          tier,
         },
       });
       const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
@@ -100,7 +114,7 @@ export default function AddGatewayDialog(props: Props) {
   };
 
   return (
-    <Dialog open={props.open} onClose={props.onClose}>
+    <Dialog open={true} onClose={props.onClose}>
       <DialogTitle>Add Gateway</DialogTitle>
       <DialogContent>
         <TextField
@@ -138,6 +152,19 @@ export default function AddGatewayDialog(props: Props) {
           onChange={({target}) => setChallengeKey(target.value)}
           placeholder="A base64 bytestring of the key in DER format"
         />
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="types">Upgrade Tier</InputLabel>
+          <Select
+            className={classes.input}
+            value={tier}
+            onChange={({target}) => setTier(target.value)}>
+            {tiers.map(tier => (
+              <MenuItem key={tier} value={tier}>
+                {tier}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose} color="primary">
