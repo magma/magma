@@ -11,3 +11,6 @@ services:
   control_proxy:
     ip_address: 127.0.0.1
     port: 50053
+  state:
+    ip_address: 127.0.0.1
+    port: 50074

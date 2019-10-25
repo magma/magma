@@ -26,22 +26,28 @@ const useStyles = makeStyles(({symphony}) => ({
   body2: symphony.typography.body2,
   caption: symphony.typography.caption,
   overline: symphony.typography.overline,
-  light: {
+  lightColor: {
     color: symphony.palette.white,
   },
-  dark: {
+  regularColor: {
     color: symphony.palette.D900,
   },
-  light: {
+  primaryColor: {
+    color: symphony.palette.primary,
+  },
+  errorColor: {
+    color: symphony.palette.R600,
+  },
+  lightWeight: {
     fontWeight: 300,
   },
-  regular: {
+  regularWeight: {
     fontWeight: 400,
   },
-  medium: {
+  mediumWeight: {
     fontWeight: 500,
   },
-  bold: {
+  boldWeight: {
     fontWeight: 600,
   },
 }));
@@ -63,19 +69,19 @@ type Props = {
     | 'caption'
     | 'overline',
   className?: string,
-  light?: boolean,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
+  color?: 'light' | 'regular' | 'primary' | 'error',
 };
 
 const Text = (props: Props) => {
-  const {children, variant, className, light, weight} = props;
+  const {children, variant, className, color, weight} = props;
   const classes = useStyles();
   return (
     <span
       className={classNames(
         classes[variant],
-        classes[light ? 'light' : 'dark'],
-        classes[weight ? weight : 'inhreit'],
+        classes[`${color ?? 'regular'}Color`],
+        classes[`${weight ? weight : 'inhreit'}Weight`],
         className,
       )}>
       {children}
@@ -85,7 +91,7 @@ const Text = (props: Props) => {
 
 Text.defaultProps = {
   variant: 'body1',
-  light: false,
+  color: 'regular',
   weight: 'inherit',
 };
 
