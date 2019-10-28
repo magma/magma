@@ -127,7 +127,7 @@ export default function GatewayCellularFields(props: Props) {
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
         networkId: nullthrows(match.params.networkId),
         gatewayId: id,
-        serials: attachedEnodebSerials,
+        serials: attachedEnodebSerials.filter(i => i.length > 0),
       }),
     ])
       .then(() => props.onSave(id))
