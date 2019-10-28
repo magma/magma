@@ -163,6 +163,11 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'equipment_live_status',
+    title: 'Equipment Live Status',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

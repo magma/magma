@@ -31,4 +31,5 @@ export type FeatureID =
   | 'logs'
   | 'services'
   | 'planned_equipment'
-  | 'multi_subject_reports';
+  | 'multi_subject_reports'
+  | 'equipment_live_status';
