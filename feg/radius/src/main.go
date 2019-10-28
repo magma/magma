@@ -15,7 +15,6 @@ import (
 	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -46,7 +45,12 @@ func main() {
 	if config.Debug != nil {
 		if config.Debug.Enabled {
 			logger.Info("Enabling Server Debugging", zap.Int("port", config.Debug.Port))
-			go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Debug.Port), nil))
+			go func() {
+				err = http.ListenAndServe(fmt.Sprintf(":%d", config.Debug.Port), nil)
+				if err != nil {
+					logger.Fatal("Debug pprof endpint failed", zap.Error(err))
+				}
+			}()
 		} else {
 			logger.Info("Server Debugging interface is disabled")
 		}
