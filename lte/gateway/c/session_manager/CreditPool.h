@@ -145,6 +145,8 @@ class UsageMonitoringCreditPool :
   struct Monitor {
     SessionCredit credit;
     MonitoringLevel level;
+
+    Monitor(): credit(CreditType::MONITORING) {}
   };
 
   std::unordered_map<std::string, std::unique_ptr<Monitor>> monitor_map_;
