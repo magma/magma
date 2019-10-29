@@ -268,8 +268,7 @@ std::shared_ptr<State> CambiumDevice::getState() {
                parsed["data"][0]["config"]["variables"]["VLAN_1_IP"];
 
   auto state = State::make(app, getId());
-  state->update(
-      [&data](auto& lockedState) { lockedState = std::move(data); });
+  state->update([&data](auto& lockedState) { lockedState = std::move(data); });
   return state;
 }
 
@@ -309,9 +308,7 @@ void CambiumDevice::updateYang(
     case folly::dynamic::DOUBLE:
     case folly::dynamic::INT64:
     case folly::dynamic::STRING:
-    default: {
-      return;
-    }
+    default: { return; }
   }
 }
 

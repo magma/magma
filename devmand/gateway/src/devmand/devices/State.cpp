@@ -40,9 +40,7 @@ void State::clear() {
 }
 
 void State::update(std::function<void(folly::dynamic&)> func) {
-  state.withWLock([&func](auto& unlockedState){
-    func(unlockedState);
-  });
+  state.withWLock([&func](auto& unlockedState) { func(unlockedState); });
 }
 
 void State::addFinally(std::function<void()>&& f) {

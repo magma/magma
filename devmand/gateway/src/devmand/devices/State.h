@@ -16,8 +16,8 @@
 
 #include <devmand/ErrorHandler.h>
 #include <devmand/ErrorQueue.h>
-#include <devmand/devices/Id.h>
 #include <devmand/MetricSink.h>
+#include <devmand/devices/Id.h>
 #include <devmand/utils/LifetimeTracker.h>
 
 namespace devmand {
@@ -47,8 +47,7 @@ class State final : public std::enable_shared_from_this<State>,
   void addError(std::string&& error);
 
   template <class T>
-  void setGauge(const std::string& key, T value)
-  {
+  void setGauge(const std::string& key, T value) {
     sink.setGauge(
         key,
         folly::to<double>(value),
