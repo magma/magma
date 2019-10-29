@@ -105,7 +105,6 @@ TEST_F(SnmpChannelTest, checkSnmpTimeoutWithState) {
     devmand::models::interface::Model::init(lockedState);
   });
 
-
   for (int i = 0; i < 10; ++i) {
     state->addRequest(
         channel->walk(channels::snmp::Oid{".1"}).thenValue([](auto) {}));

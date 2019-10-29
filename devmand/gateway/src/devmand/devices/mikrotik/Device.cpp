@@ -178,9 +178,7 @@ std::shared_ptr<State> Device::getState() {
     });
   }));
   state->addRequest(Mib::getModel(snmpChannel).thenValue([state](auto v) {
-    state->update([&v](auto& lockedState) {
-      JAPT(lockedState)["model"] = v;
-    });
+    state->update([&v](auto& lockedState) { JAPT(lockedState)["model"] = v; });
   }));
 
   state->addRequest(
@@ -221,9 +219,7 @@ std::shared_ptr<State> Device::getState() {
   });
 
   state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([state](auto v) {
-    state->update([&v](auto& lockedState) {
-      JAPT(lockedState)["ipv4"] = v;
-    });
+    state->update([&v](auto& lockedState) { JAPT(lockedState)["ipv4"] = v; });
   }));
 
   state->addRequest(Mib::getIpv6Address(snmpChannel).thenValue([state](auto v) {
