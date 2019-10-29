@@ -124,5 +124,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 }
 
 var defaultgwConfig = &models.GatewayCwfConfigs{
-	AllowedGrePeers: models.AllowedGrePeers{{IP: "1.1.1.1", Key: 111}},
+	AllowedGrePeers: models.AllowedGrePeers{
+		{IP: "1.1.1.1", Key: swag.Uint32(111)},
+	},
 }
