@@ -147,7 +147,13 @@ case "$dist" in
     fi
     
     # generate a UID
-    for eth in /sys/class/net/ens*/address ; do
+    if [ "$dist" == "debian" ] ; then
+      mac_addr_file="/sys/class/net/eth*/address"
+    else
+      mac_addr_file="/sys/class/net/ens*/address"
+    fi
+
+    for eth in $mac_addr_file ; do
       uid="$(sed 's/://g' "${eth}")"
       break
     done
