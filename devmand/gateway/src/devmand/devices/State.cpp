@@ -100,14 +100,5 @@ void State::setErrors() {
   }
 }
 
-void State::setGauge(const std::string& key, double value) {
-  sink.setGauge(
-      key,
-      value,
-      // adds the label deviceID = {deviceID}
-      "deviceID",
-      device);
-}
-
 } // namespace devices
 } // namespace devmand
