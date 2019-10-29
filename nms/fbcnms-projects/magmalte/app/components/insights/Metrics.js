@@ -23,8 +23,8 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 import TimeRangeSelector from './TimeRangeSelector';
-import Typography from '@material-ui/core/Typography';
 import {Route} from 'react-router-dom';
 
 import useMagmaAPI from '../../common/useMagmaAPI';
@@ -156,9 +156,7 @@ function Metrics(props: {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Typography component="h6" variant="h6">
-                  {config.label}
-                </Typography>
+                <Text variant="h6">{config.label}</Text>
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}

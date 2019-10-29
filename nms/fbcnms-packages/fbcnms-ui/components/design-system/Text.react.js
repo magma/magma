@@ -53,7 +53,7 @@ const useStyles = makeStyles(({symphony}) => ({
 }));
 
 type Props = {
-  children: React.Node,
+  children: ?React.Node,
   variant?:
     | 'h1'
     | 'h2'

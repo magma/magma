@@ -29,7 +29,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -118,7 +118,7 @@ class Subscribers extends React.Component<Props, State> {
     return (
       <div className={this.props.classes.paper}>
         <div className={this.props.classes.header}>
-          <Typography variant="h5">Subscribers</Typography>
+          <Text variant="h5">Subscribers</Text>
           <div className={this.props.classes.buttons}>
             <Button
               style={{marginRight: '10px'}}
@@ -165,9 +165,9 @@ class Subscribers extends React.Component<Props, State> {
           )}
         </Paper>
         <div style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-          <Typography color="error" variant="body2">
-            {this.state.errorMessage}
-          </Typography>
+          <Text color="error" variant="body2">
+            {this.state.errorMessage ?? ''}
+          </Text>
         </div>
         <AddEditSubscriberDialog
           key={(this.state.editingSubscriber || {}).id || 'new'}

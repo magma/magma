@@ -28,7 +28,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -114,7 +114,7 @@ class Gateways extends React.Component<Props, State> {
     return (
       <div className={this.props.classes.paper}>
         <div className={this.props.classes.header}>
-          <Typography variant="h5">Configure Gateways</Typography>
+          <Text variant="h5">Configure Gateways</Text>
           <Button variant="contained" color="primary" onClick={this.showDialog}>
             Add Gateway
           </Button>
