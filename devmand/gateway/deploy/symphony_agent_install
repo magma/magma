@@ -217,6 +217,7 @@ services:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+      - DEVICE_CONFIG_FILE=/var/opt/magma/configs/gateway.mconfig
 EOF
 
 ###############################################################################
