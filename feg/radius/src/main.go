@@ -27,14 +27,34 @@ import (
 	"go.uber.org/zap"
 )
 
-func main() {
-	// Get a simple stdout logger
-	logger, err := zap.NewProduction()
+func createLogger(encoding string) (*zap.Logger, error) {
+	if encoding == "json" {
+		return zap.NewProduction()
+	}
+	return zap.Config{
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Sampling: &zap.SamplingConfig{
+			Initial:    100,
+			Thereafter: 100,
+		},
+		Encoding:         "console",
+		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+	}.Build()
+}
 
+func main() {
+	var configFilename, logEncoding string
 	// Get configuration
-	var configFilename string
 	flag.StringVar(&configFilename, "config", "radius.config.json", "The configuration filename")
+	flag.StringVar(&logEncoding, "log_fmt", "json", "Log encoding format, accepted values: 'json', 'console'")
 	flag.Parse()
+
+	// Get a simple stdout logger
+	logger, err := createLogger(logEncoding)
+
 	config, err := config.Read(configFilename)
 	if err != nil {
 		logger.Error("Failed to read configuration", zap.Error(err))

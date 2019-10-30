@@ -87,6 +87,8 @@ func (m EapAkaMagmaMethod) Handle(
 	attr, err = rfc2865.CalledStationID_Lookup(r.Packet)
 	if err == nil {
 		apn = string(attr)
+	} else {
+		eapLogger.Warn("Error Getting Called-Station_ID ", zap.Error(err))
 	}
 
 	UnmarshalProtocolState.Start()
@@ -113,6 +115,10 @@ func (m EapAkaMagmaMethod) Handle(
 				zap.String("previous", eapContext.MacAddr),
 				zap.String("current", clientMac),
 			)
+		}
+		if len(eapContext.Apn) == 0 {
+			eapLogger.Warn("Empty Context APN,", zap.String("setting to Called-Station-Id", apn))
+			eapContext.Apn = apn
 		}
 	}
 

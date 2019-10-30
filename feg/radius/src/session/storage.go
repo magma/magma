@@ -46,8 +46,9 @@ type (
 // sessionStorage a wrapper implementation for globalStorage to get/set
 // in a session-specific state
 type sessionStorage struct {
-	globalStorage GlobalStorage
-	sessionID     string
+	globalStorage      GlobalStorage
+	sessionID          string
+	generatedSessionID string
 }
 
 var (
@@ -56,7 +57,14 @@ var (
 )
 
 func (s *sessionStorage) Get() (*State, error) {
-	return s.globalStorage.Get(s.sessionID)
+	state, err := s.globalStorage.Get(s.sessionID)
+	if (err != nil || state == nil) && len(s.generatedSessionID) > 0 && s.generatedSessionID != s.sessionID {
+		stateGen, errGen := s.globalStorage.Get(s.generatedSessionID)
+		if errGen == nil && stateGen != nil {
+			state, err = stateGen, errGen
+		}
+	}
+	return state, err
 }
 
 func (s *sessionStorage) Set(state State) error {
@@ -67,10 +75,16 @@ func (s *sessionStorage) Reset() error {
 	return s.globalStorage.Reset(s.sessionID)
 }
 
+// NewSessionStorageExt returns a session-specific storage with generated Session ID "backup" key for use by listeners
+func NewSessionStorageExt(globalStorage GlobalStorage, sessionID, generatedSessionID string) Storage {
+	return &sessionStorage{
+		globalStorage:      globalStorage,
+		sessionID:          sessionID,
+		generatedSessionID: generatedSessionID,
+	}
+}
+
 // NewSessionStorage returns a session-specific storage for use by listeners
 func NewSessionStorage(globalStorage GlobalStorage, sessionID string) Storage {
-	return &sessionStorage{
-		globalStorage: globalStorage,
-		sessionID:     sessionID,
-	}
+	return NewSessionStorageExt(globalStorage, sessionID, "")
 }
