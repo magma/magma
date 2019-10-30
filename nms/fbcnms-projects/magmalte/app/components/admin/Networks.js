@@ -16,7 +16,7 @@ import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';

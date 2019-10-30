@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import SectionedCard from '../../components/SectionedCard.react';
+import SectionedCard from '../../components/SectionedCard';
 import Typography from '@material-ui/core/Typography';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

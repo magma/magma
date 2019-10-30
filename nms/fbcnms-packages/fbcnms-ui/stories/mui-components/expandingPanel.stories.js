@@ -9,7 +9,7 @@
  */
 
 import AddIcon from '@material-ui/icons/Add';
-import ExpandingPanel from '../../components/ExpandingPanel.react';
+import ExpandingPanel from '../../components/ExpandingPanel';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {STORY_CATEGORIES} from '../storybookUtils';

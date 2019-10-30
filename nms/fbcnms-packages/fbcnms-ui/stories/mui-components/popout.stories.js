@@ -9,7 +9,7 @@
  */
 
 import Button from '@material-ui/core/Button';
-import Popout from '../../components/Popout.react';
+import Popout from '../../components/Popout';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {STORY_CATEGORIES} from '../storybookUtils';

@@ -8,7 +8,7 @@
  * @format
  */
 
-import PageFooter from '../../components/PageFooter.react';
+import PageFooter from '../../components/PageFooter';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import {STORY_CATEGORIES} from '../storybookUtils';

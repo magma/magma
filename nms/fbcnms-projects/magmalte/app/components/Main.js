@@ -14,7 +14,7 @@ import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkError from './main/NetworkError';
-import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
 import React from 'react';
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {Redirect, Route, Switch} from 'react-router-dom';

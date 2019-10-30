@@ -10,8 +10,8 @@
 
 import Button from '@material-ui/core/Button';
 import React, {useState} from 'react';
-import SideBar from '../../components/layout/SideBar.react';
-import TopPageBar from '../../components/layout/TopPageBar.react';
+import SideBar from '../../components/layout/SideBar';
+import TopPageBar from '../../components/layout/TopPageBar';
 import Typography from '@material-ui/core/Typography';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';

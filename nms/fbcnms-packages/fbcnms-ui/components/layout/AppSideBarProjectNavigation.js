@@ -11,7 +11,7 @@
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 
 import AppsIcon from '@material-ui/icons/Apps';
-import Popout from '../Popout.react';
+import Popout from '../Popout';
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';

@@ -8,9 +8,9 @@
  * @format
  */
 
-import type {BreadcrumbData} from './Breadcrumb.react';
+import type {BreadcrumbData} from './Breadcrumb';
 
-import Breadcrumb from './Breadcrumb.react';
+import Breadcrumb from './Breadcrumb';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popover from '@material-ui/core/Popover';

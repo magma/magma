@@ -13,7 +13,7 @@ import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from './context/NetworkContext';
-import Popout from '@fbcnms/ui/components/Popout.react';
+import Popout from '@fbcnms/ui/components/Popout';
 import React, {useContext, useState} from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Tooltip from '@material-ui/core/Tooltip';

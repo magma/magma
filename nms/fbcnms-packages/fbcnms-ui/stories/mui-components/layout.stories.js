@@ -15,7 +15,7 @@ import {storiesOf} from '@storybook/react';
 import AppContent from '../../components/layout/AppContent';
 import AppDrawer from '../../components/layout/AppDrawer';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import NavListItem from '@fbcnms/ui/components/NavListItem.react';
+import NavListItem from '@fbcnms/ui/components/NavListItem';
 import PublicIcon from '@material-ui/icons/Public';
 import TopBar from '../../components/layout/TopBar';
 import {STORY_CATEGORIES} from '../storybookUtils';

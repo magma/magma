@@ -11,8 +11,8 @@
 import AppContext from '@fbcnms/ui/context/AppContext';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import Popout from '@fbcnms/ui/components/Popout.react';
-import ProfileIcon from '../icons/ProfileIcon.react';
+import Popout from '@fbcnms/ui/components/Popout';
+import ProfileIcon from '../icons/ProfileIcon';
 import React, {useContext, useState} from 'react';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';

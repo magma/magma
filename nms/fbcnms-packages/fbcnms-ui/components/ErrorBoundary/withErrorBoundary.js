@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react';
-import ErrorBoundary from './ErrorBoundary.react';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function withErrorBoundary<TComponent: React.ComponentType<*>>(
   Component: TComponent,

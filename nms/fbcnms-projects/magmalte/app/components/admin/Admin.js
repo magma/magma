@@ -15,7 +15,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
-import NavListItem from '@fbcnms/ui/components/NavListItem.react';
+import NavListItem from '@fbcnms/ui/components/NavListItem';
 import Networks from './Networks';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';

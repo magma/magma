@@ -8,7 +8,7 @@
  * @format
  */
 
-import Breadcrumbs from '../../components/Breadcrumbs.react';
+import Breadcrumbs from '../../components/Breadcrumbs';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

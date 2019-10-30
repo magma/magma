@@ -22,7 +22,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
-import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TimeRangeSelector from '../insights/TimeRangeSelector';

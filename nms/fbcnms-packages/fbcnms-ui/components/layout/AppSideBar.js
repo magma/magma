@@ -10,9 +10,9 @@
 
 import type {ProjectLink} from './AppDrawerProjectNavigation';
 
-import AppSideBarProjectNavigation from './AppSideBarProjectNavigation.react';
-import ExpandButton from './ExpandButton.react';
-import ProfileButton from '../ProfileButton.react';
+import AppSideBarProjectNavigation from './AppSideBarProjectNavigation';
+import ExpandButton from './ExpandButton';
+import ProfileButton from '../ProfileButton';
 import React, {useState} from 'react';
 import {makeStyles} from '@material-ui/styles';
 
