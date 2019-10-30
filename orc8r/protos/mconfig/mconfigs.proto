@@ -85,3 +85,10 @@ message DirectoryD {
 message MetricsD {
     orc8r.LogLevel log_level = 1;
 }
+
+//------------------------------------------------------------------------------
+// State configs
+//------------------------------------------------------------------------------
+message State {
+    orc8r.LogLevel log_level = 1;
+}

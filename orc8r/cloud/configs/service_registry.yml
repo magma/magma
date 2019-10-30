@@ -38,11 +38,6 @@ services:
     port: 9091
     proxy_type: "clientcert"
 
-  magmad:
-    host: "localhost"
-    port: 9092
-    proxy_type: "clientcert"
-
   obsidian:
     host: "localhost"
     port: 9093
@@ -56,11 +51,6 @@ services:
   dispatcher:
     host: "localhost"
     port: 9096
-    proxy_type: "clientcert"
-
-  config:
-    host: "localhost"
-    port: 9099
     proxy_type: "clientcert"
 
   directoryd:

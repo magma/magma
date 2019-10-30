@@ -69,6 +69,7 @@ export default function() {
           name: req.body.organization,
           tabs: req.body.tabs,
           networkIDs: [],
+          csvCharset: '',
           customDomains: [],
           ssoCert: '',
           ssoEntrypoint: '',

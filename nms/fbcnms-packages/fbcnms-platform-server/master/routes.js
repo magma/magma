@@ -111,6 +111,7 @@ router.post(
       networkIDs: req.body.networkIDs,
       customDomains: req.body.customDomains,
       tabs: req.body.tabs,
+      csvCharset: '',
       ssoCert: '',
       ssoEntrypoint: '',
       ssoIssuer: '',

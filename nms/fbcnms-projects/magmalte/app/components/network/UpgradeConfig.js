@@ -116,11 +116,16 @@ const GatewayUpgradeStatusTable = (props: {
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {
   const {networkUpgradeTiers, onUpgradeTierChange, tableData} = props;
-  const sortedTableData = sortBy(tableData, row => row.name.toLowerCase());
+  const sortedTableData = sortBy(
+    Object.keys(tableData).map(k => tableData[k]),
+    row => row.name.toLowerCase(),
+  );
 
-  const getGatewayVersionString = (state): string => {
-    return (state.status && state.status.version) || 'Not Reported';
+  const getGatewayVersionString = (gateway): string => {
+    const packages = gateway.status?.platform_info?.packages || [];
+    return packages.find(p => p.name === 'magma')?.version || 'Not Reported';
   };
+
   return (
     <Table>
       <TableHead>

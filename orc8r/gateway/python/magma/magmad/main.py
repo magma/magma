@@ -10,6 +10,8 @@ import importlib
 import logging
 import typing
 import snowflake
+
+from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
@@ -26,7 +28,6 @@ from .config_manager import CONFIG_STREAM_NAME, ConfigManager
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
-from .grpc_client_manager import GRPCClientManager
 from .state_reporter import StateReporter
 from .gateway_status import KernelVersionsPoller, GatewayStatusFactory
 from .service_poller import ServicePoller

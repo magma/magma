@@ -26,7 +26,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -106,7 +106,7 @@ class Enodebs extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Configure eNodeB Devices</Typography>
+            <Text variant="h5">Configure eNodeB Devices</Text>
             <Button
               variant="contained"
               color="primary"

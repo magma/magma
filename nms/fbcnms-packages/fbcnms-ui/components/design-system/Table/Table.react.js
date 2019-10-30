@@ -29,11 +29,14 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-export type TableRowDataType<T> = {id?: string} & T;
+export type TableRowDataType<T> = {key?: string} & T;
 
 export type TableColumnType<T> = {
+  key: string,
   title: React.Node | string,
-  render: (rowData: TableRowDataType<T>) => React.Node,
+  render: (rowData: TableRowDataType<T>) => React.Node | string,
+  sortable?: boolean,
+  sortDirection?: 'asc' | 'desc',
 };
 
 export type TableSelectionType = 'all' | 'none' | 'single_item_toggled';
@@ -51,6 +54,7 @@ type Props<T> = {
   className?: string,
   selectedIds?: Array<string | number>,
   onSelectionChanged?: SelectionCallbackType,
+  onSortClicked?: (colKey: string) => void,
 };
 
 const Table = <T>(props: Props<T>) => {
@@ -61,17 +65,18 @@ const Table = <T>(props: Props<T>) => {
     showSelection,
     onSelectionChanged,
     columns,
+    onSortClicked,
   } = props;
   const classes = useStyles();
 
   const renderChildren = () => (
     <table className={classNames(classes.table, className)}>
-      <TableHeader columns={columns} />
+      <TableHeader columns={columns} onSortClicked={onSortClicked} />
       <TableContent columns={columns} data={data} />
     </table>
   );
 
-  const allIds = useMemo(() => data.map((d, i) => d.id ?? i), [data]);
+  const allIds = useMemo(() => data.map((d, i) => d.key ?? i), [data]);
   return (
     <TableContext.Provider value={{showSelection: showSelection ?? false}}>
       {showSelection ? (

@@ -256,12 +256,21 @@ func deleteGateway(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func getLegacyOrV1GatewayID(c echo.Context) (string, *echo.HTTPError) {
+	v1GwID := c.Param("gateway_id")
+	if v1GwID != "" {
+		return v1GwID, nil
+	}
+
+	return obsidian.GetLogicalGwId(c)
+}
+
 func rebootGateway(c echo.Context) error {
 	networkId, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	gatewayId, gerr := getLegacyOrV1GatewayID(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -282,7 +291,7 @@ func restartServices(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	gatewayId, gerr := getLegacyOrV1GatewayID(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -308,7 +317,7 @@ func gatewayPing(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	gatewayId, gerr := getLegacyOrV1GatewayID(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -342,7 +351,7 @@ func gatewayGenericCommand(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	gatewayId, gerr := getLegacyOrV1GatewayID(c)
 	if gerr != nil {
 		return gerr
 	}
@@ -378,7 +387,7 @@ func tailGatewayLogs(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	gatewayId, gerr := obsidian.GetLogicalGwId(c)
+	gatewayId, gerr := getLegacyOrV1GatewayID(c)
 	if gerr != nil {
 		return gerr
 	}

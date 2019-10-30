@@ -294,13 +294,14 @@ func (store *sqlConfiguratorStorage) processPermissionUpdates(networkID string, 
 
 // entToUpdateOut is an output parameter
 func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update EntityUpdateCriteria, entToUpdateOut *entWithPk) error {
-	if funk.IsEmpty(update.AssociationsToSet) && funk.IsEmpty(update.AssociationsToAdd) && funk.IsEmpty(update.AssociationsToDelete) {
+	assocsToSetSpecified := update.AssociationsToSet != nil
+	if !assocsToSetSpecified && funk.IsEmpty(update.AssociationsToAdd) && funk.IsEmpty(update.AssociationsToDelete) {
 		return nil
 	}
 
 	// If we want to set associations all at once, we'll first delete all
 	// associations
-	if !funk.IsEmpty(update.AssociationsToSet) {
+	if assocsToSetSpecified {
 		_, err := store.builder.Delete(entityAssocTable).
 			Where(sq.Eq{aFrCol: entToUpdateOut.pk}).
 			RunWith(store.tx).
@@ -340,7 +341,7 @@ func (store *sqlConfiguratorStorage) processEdgeUpdates(networkID string, update
 	// we need to do a connected component search. If we come up with multiple
 	// components, then each new component needs to be updated with a new
 	// graph ID.
-	if funk.IsEmpty(update.AssociationsToDelete) && funk.IsEmpty(update.AssociationsToSet) {
+	if funk.IsEmpty(update.AssociationsToDelete) && update.AssociationsToSet == nil {
 		return nil
 	}
 

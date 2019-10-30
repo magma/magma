@@ -13,8 +13,8 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import RefreshIcon from '@material-ui/icons/Refresh';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/styles';
 
@@ -51,7 +51,7 @@ export default function AlarmsHeader(props: Props) {
   return (
     <>
       <div className={classes.header} {...divProps}>
-        <Typography variant="h5">{title}</Typography>
+        <Text variant="h5">{title}</Text>
         <div>
           <Grid container spacing={1} justify="flex-end" alignItems="center">
             <Grid item>

@@ -11,12 +11,10 @@ package obsidian_test
 import (
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/config/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -27,7 +25,6 @@ import (
 )
 
 func commonSetupGateways(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	serde.UnregisterSerdesForDomain(t, configurator.NetworkEntitySerdeDomain)
 	err := serde.RegisterSerdes(
 		configurator.NewNetworkEntityConfigSerde("cfg_gateway", &configType{}),

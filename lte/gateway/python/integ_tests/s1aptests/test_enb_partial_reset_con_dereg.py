@@ -91,15 +91,15 @@ class TestEnbPartialReset(unittest.TestCase):
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
-        #reset_req.u = s1ap_types.U()
-        reset_req.u.partialRst = s1ap_types.PartialReset()
-        reset_req.u.partialRst.numOfConn = num_ues
-        reset_req.u.partialRst.ueIdLst = \
-            (ctypes.c_ubyte * reset_req.u.partialRst.numOfConn)()
-        for indx in range(reset_req.u.partialRst.numOfConn):
-            reset_req.u.partialRst.ueIdLst[indx] = ue_ids[indx]
-            print("Reset_req.u.partialRst.ueIdLst[indx]",
-                  reset_req.u.partialRst.ueIdLst[indx], indx)
+        reset_req.r = s1ap_types.R()
+        reset_req.r.partialRst = s1ap_types.PartialReset()
+        reset_req.r.partialRst.numOfConn = num_ues
+        reset_req.r.partialRst.ueIdLst = \
+            (ctypes.c_ubyte * reset_req.r.partialRst.numOfConn)()
+        for indx in range(reset_req.r.partialRst.numOfConn):
+            reset_req.r.partialRst.ueIdLst[indx] = ue_ids[indx]
+            print("Reset_req.r.partialRst.ueIdLst[indx]",
+                  reset_req.r.partialRst.ueIdLst[indx], indx)
         print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.RESET_REQ, reset_req)

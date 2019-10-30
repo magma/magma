@@ -18,142 +18,32 @@ import (
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/services/testcore/hss"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
-	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
 )
 
 // todo make Op configurable, or export it in the UESimServer.
 const (
-	Op             = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
-	Secret         = "123456"
-	MockHSSRemote  = "HSS_REMOTE"
-	MockPCRFRemote = "PCRF_REMOTE"
-	MockOCSRemote  = "OCS_REMOTE"
-	CwagIP         = "192.168.70.101"
-	HSSPort        = 9204
-	OCSPort        = 9201
-	PCRFPort       = 9202
+	Op              = "\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"
+	Secret          = "123456"
+	MockHSSRemote   = "HSS_REMOTE"
+	MockPCRFRemote  = "PCRF_REMOTE"
+	MockOCSRemote   = "OCS_REMOTE"
+	PipelinedRemote = "pipelined.local"
+	CwagIP          = "192.168.70.101"
+	HSSPort         = 9204
+	OCSPort         = 9201
+	PCRFPort        = 9202
+	PipelinedPort   = 8443
 
 	defaultMSISDN = "5100001234"
 )
 
 type TestRunner struct {
-	Imsis map[string]bool
-}
-
-// Wrapper for GRPC Client functionality
-type hssClient struct {
-	fegprotos.HSSConfiguratorClient
-	cc *grpc.ClientConn
-}
-
-// Wrapper for GRPC Client functionality
-type pcrfClient struct {
-	fegprotos.MockPCRFClient
-	cc *grpc.ClientConn
-}
-
-// Wrapper for GRPC Client functionality
-type ocsClient struct {
-	fegprotos.MockOCSClient
-	cc *grpc.ClientConn
-}
-
-// getHSSClient is a utility function to getHSSClient a RPC connection to a
-// remote HSS service.
-func getHSSClient() (*hssClient, error) {
-	var conn *grpc.ClientConn
-	var err error
-	conn, err = registry.GetConnection(MockHSSRemote)
-	if err != nil {
-		errMsg := fmt.Sprintf("HSS client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &hssClient{
-		fegprotos.NewHSSConfiguratorClient(conn),
-		conn,
-	}, err
-}
-
-// getPCRFClient is a utility function to get an RPC connection to a
-// remote PCRF service.
-func getPCRFClient() (*pcrfClient, error) {
-	var conn *grpc.ClientConn
-	var err error
-	conn, err = registry.GetConnection(MockPCRFRemote)
-	if err != nil {
-		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &pcrfClient{
-		fegprotos.NewMockPCRFClient(conn),
-		conn,
-	}, err
-}
-
-// getOCSClient is a utility function to an RPC connection to a
-// remote OCS service.
-func getOCSClient() (*ocsClient, error) {
-	var conn *grpc.ClientConn
-	var err error
-	conn, err = registry.GetConnection(MockOCSRemote)
-	if err != nil {
-		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &ocsClient{
-		fegprotos.NewMockOCSClient(conn),
-		conn,
-	}, err
-}
-
-// addSubscriber tries to add this subscriber to the HSS server.
-// This function returns an AlreadyExists error if the subscriber has already
-// been added.
-// Input: The subscriber data which will be added.
-func addSubscriberToHss(sub *lteprotos.SubscriberData) error {
-	err := hss.VerifySubscriberData(sub)
-	if err != nil {
-		errMsg := fmt.Errorf("Invalid AddSubscriberRequest provided: %s", err)
-		return errors.New(errMsg.Error())
-	}
-	cli, err := getHSSClient()
-	if err != nil {
-		return err
-	}
-	_, err = cli.AddSubscriber(context.Background(), sub)
-	return err
-}
-
-// addSubscriber tries to add this subscriber to the PCRF server.
-// Input: The subscriber data which will be added.
-func addSubscriberToPcrf(sub *lteprotos.SubscriberID) error {
-	cli, err := getPCRFClient()
-	if err != nil {
-		return err
-	}
-	_, err = cli.CreateAccount(context.Background(), sub)
-	return err
-}
-
-// addSubscriber tries to add this subscriber to the OCS server.
-// Input: The subscriber data which will be added.
-func addSubscriberToOcs(sub *lteprotos.SubscriberID) error {
-	cli, err := getOCSClient()
-	if err != nil {
-		return err
-	}
-	_, err = cli.CreateAccount(context.Background(), sub)
-	return err
+	imsis map[string]bool
 }
 
 // NewTestRunner initializes a new TestRunner by making a UESim client and
@@ -162,13 +52,15 @@ func NewTestRunner() *TestRunner {
 	fmt.Println("************************* TestRunner setup")
 	testRunner := &TestRunner{}
 
-	testRunner.Imsis = make(map[string]bool)
+	testRunner.imsis = make(map[string]bool)
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
 	fmt.Printf("Adding Mock PCRF service at %s:%d\n", CwagIP, PCRFPort)
 	registry.AddService(MockPCRFRemote, CwagIP, PCRFPort)
 	fmt.Printf("Adding Mock OCS service at %s:%d\n", CwagIP, OCSPort)
 	registry.AddService(MockOCSRemote, CwagIP, OCSPort)
+	fmt.Printf("Adding Pipelined service at %s:%d\n", CwagIP, PipelinedPort)
+	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
 
 	return testRunner
 }
@@ -181,34 +73,34 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 	for i := 0; i < numUEs; i++ {
 		imsi := ""
 		for {
-			imsi = RandImsi()
-			_, present := testRunner.Imsis[imsi]
+			imsi = getRandomIMSI()
+			_, present := testRunner.imsis[imsi]
 			if !present {
 				break
 			}
 		}
-		key, opc, err := RandKeyOpcFromOp([]byte(Op))
+		key, opc, err := getRandKeyOpcFromOp([]byte(Op))
 		if err != nil {
 			return nil, err
 		}
-		seq := RandSeq()
+		seq := getRandSeq()
 
-		ue := MakeUE(imsi, key, opc, seq)
-		sub := MakeSubscriber(imsi, key, opc, seq+1)
+		ue := makeUE(imsi, key, opc, seq)
+		sub := makeSubscriber(imsi, key, opc, seq+1)
 
 		err = uesim.AddUE(ue)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding UE to UESimServer")
 		}
-		err = addSubscriberToHss(sub)
+		err = addSubscriberToHSS(sub)
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to HSS")
 		}
-		err = addSubscriberToPcrf(sub.GetSid())
+		err = addSubscriberToPCRF(sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to PCRF")
 		}
-		err = addSubscriberToOcs(sub.GetSid())
+		err = addSubscriberToOCS(sub.GetSid())
 		if err != nil {
 			return nil, errors.Wrap(err, "Error adding Subscriber to OCS")
 		}
@@ -216,7 +108,7 @@ func (testRunner *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, erro
 		ues = append(ues, ue)
 		fmt.Printf("Added UE to Simulator, HSS, PCRF, and OCS:\n"+
 			"\tIMSI: %s\tKey: %x\tOpc: %x\tSeq: %d\n", imsi, key, opc, seq)
-		testRunner.Imsis[imsi] = true
+		testRunner.imsis[imsi] = true
 	}
 	fmt.Println("Successfully configured UE(s)")
 	return ues, nil
@@ -244,17 +136,90 @@ func (testRunner *TestRunner) Authenticate(imsi string) (*radius.Packet, error) 
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
-// Magma traffic server.
-func (testRunner *TestRunner) GenULTraffic(imsi string) error {
+// Magma traffic server. volume, if provided, specifies the volume of data
+// generated and it should be in the form of "1024K", "2048M" etc
+func (testRunner *TestRunner) GenULTraffic(imsi string, volume *string) error {
 	fmt.Printf("************************* Generating Traffic for UE with IMSI: %s\n", imsi)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi: imsi,
 	}
+	if volume != nil {
+		req.Volume = &wrappers.StringValue{Value: *volume}
+	}
 	return uesim.GenTraffic(req)
 }
 
-// RandImsi makes a random 15-digit IMSI that is not added to the UESim or HSS.
-func RandImsi() string {
+// Remove subscribers, rules, flows, and monitors to clean up the state for
+// consecutive test runs
+func (testRunner *TestRunner) CleanUp() error {
+	for imsi, _ := range testRunner.imsis {
+		err := deleteSubscribersFromHSS(imsi)
+		if err != nil {
+			return err
+		}
+		err = deactivateSubscriberFlows(imsi)
+		if err != nil {
+			return err
+		}
+	}
+	err := clearSubscribersFromPCRF()
+	if err != nil {
+		return err
+	}
+	err = clearSubscribersFromOCS()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Add an enforcement rule that passes the subscriber from any ip to any ip.
+func (tr *TestRunner) AddPassThroughPCRFRules(imsi string) error {
+	fmt.Printf("************************* Adding Pass-through PCRF Rule for UE with IMSI: %s\n", imsi)
+	rules := &fegprotos.AccountRules{
+		Imsi:          imsi,
+		RuleNames:     []string{},
+		RuleBaseNames: []string{},
+		RuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				ChargineRuleName: makeRuleIDFromIMSI(imsi),
+				Precedence:       100,
+				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
+			},
+		},
+	}
+	return addPCRFRules(rules)
+}
+
+func (tr *TestRunner) AddPCRFRules(rules *fegprotos.AccountRules) error {
+	fmt.Printf("************************* Adding PCRF Rule for UE with IMSI: %s\n", rules.Imsi)
+	return addPCRFRules(rules)
+}
+
+func (tr *TestRunner) AddPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorInfo) error {
+	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", monitorInfo.Imsi)
+	return addPCRFUsageMonitors(monitorInfo)
+}
+
+func (tr *TestRunner) GetPolicyUsage() (map[string]*lteprotos.RuleRecord, error) {
+	recordsBySubID := map[string]*lteprotos.RuleRecord{}
+	table, err := getPolicyUsage()
+	if err != nil {
+		return recordsBySubID, err
+	}
+	for _, record := range table.Records {
+		recordsBySubID[record.Sid] = record
+	}
+	return recordsBySubID, nil
+}
+
+func makeRuleIDFromIMSI(imsi string) string {
+	return "dynrule1-" + imsi
+}
+
+// getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.
+func getRandomIMSI() string {
 	imsi := ""
 	for len(imsi) < 15 {
 		imsi += strconv.Itoa(rand.Intn(10))
@@ -263,7 +228,7 @@ func RandImsi() string {
 }
 
 // RandKeyOpc makes a random 16-byte key and calculates the Opc based off the Op.
-func RandKeyOpcFromOp(op []byte) (key, opc []byte, err error) {
+func getRandKeyOpcFromOp(op []byte) (key, opc []byte, err error) {
 	key = make([]byte, 16)
 	rand.Read(key)
 
@@ -275,13 +240,13 @@ func RandKeyOpcFromOp(op []byte) (key, opc []byte, err error) {
 	return
 }
 
-// RandSeq makes a random 43-bit Seq.
-func RandSeq() uint64 {
+// getRandSeq makes a random 43-bit Seq.
+func getRandSeq() uint64 {
 	return rand.Uint64() >> 21
 }
 
-// MakeUE creates a new UE using the given values.
-func MakeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig {
+// makeUE creates a new UE using the given values.
+func makeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig {
 	return &cwfprotos.UEConfig{
 		Imsi:    imsi,
 		AuthKey: key,
@@ -291,7 +256,7 @@ func MakeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig
 }
 
 // MakeSubcriber creates a new Subscriber using the given values.
-func MakeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.SubscriberData {
+func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.SubscriberData {
 	return &lteprotos.SubscriberData{
 		Sid: &lteprotos.SubscriberID{
 			Id:   imsi,

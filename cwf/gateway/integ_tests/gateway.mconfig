@@ -104,6 +104,7 @@
    "defaultRuleId": "default_rule_1",
    "relayEnabled": true,
    "services": [
+      "ENFORCEMENT"
    ],
    "allowedGrePeers": [
     {"ip": "192.168.70.102", "key":5001}

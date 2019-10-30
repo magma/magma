@@ -187,7 +187,7 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
    * in no GSUs present in Gy:CCA-I
    */
   uint64_t default_volume = 0;
-  auto credit = std::make_unique<SessionCredit>();
+  auto credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
   receive_charging_credit_with_default(
     *credit,
     update.credit().granted_units(),
@@ -247,7 +247,7 @@ ChargingReAuthAnswer::Result ChargingCreditPool::reauth_key(
     return ChargingReAuthAnswer::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
-  auto credit = std::make_unique<SessionCredit>(SERVICE_DISABLED);
+  auto credit = std::make_unique<SessionCredit>(CreditType::CHARGING, SERVICE_DISABLED);
   credit->reauth();
   credit_map_[charging_key] = std::move(credit);
   return ChargingReAuthAnswer::UPDATE_INITIATED;

@@ -10,8 +10,8 @@
 #include <list>
 #include <string>
 
-#include <folly/dynamic.h>
 #include <folly/Synchronized.h>
+#include <folly/dynamic.h>
 
 namespace devmand {
 

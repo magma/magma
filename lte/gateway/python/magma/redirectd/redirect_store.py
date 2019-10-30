@@ -10,14 +10,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 from lte.protos.policydb_pb2 import RedirectInformation
 
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisDict
+from magma.common.redis.containers import RedisHashDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer
 
 
-class RedirectDict(RedisDict):
+class RedirectDict(RedisHashDict):
     """
-    RedirectDict uses the RedisDict collection to store a mapping of ips
+    RedirectDict uses the RedisHashDict collection to store a mapping of ips
     to RedirectInformation. Setting and deleting items in the dictionary syncs
     with Redis automatically
     """

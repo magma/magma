@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
-import Text from '../../Text.react';
+import Text from '../Text.react';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useInput} from './InputContext';

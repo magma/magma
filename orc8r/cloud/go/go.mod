@@ -58,3 +58,5 @@ require (
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.2
 )
+
+go 1.13

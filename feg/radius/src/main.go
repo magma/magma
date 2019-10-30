@@ -15,7 +15,6 @@ import (
 	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -28,14 +27,34 @@ import (
 	"go.uber.org/zap"
 )
 
-func main() {
-	// Get a simple stdout logger
-	logger, err := zap.NewProduction()
+func createLogger(encoding string) (*zap.Logger, error) {
+	if encoding == "json" {
+		return zap.NewProduction()
+	}
+	return zap.Config{
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Sampling: &zap.SamplingConfig{
+			Initial:    100,
+			Thereafter: 100,
+		},
+		Encoding:         "console",
+		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
+		OutputPaths:      []string{"stderr"},
+		ErrorOutputPaths: []string{"stderr"},
+	}.Build()
+}
 
+func main() {
+	var configFilename, logEncoding string
 	// Get configuration
-	var configFilename string
 	flag.StringVar(&configFilename, "config", "radius.config.json", "The configuration filename")
+	flag.StringVar(&logEncoding, "log_fmt", "json", "Log encoding format, accepted values: 'json', 'console'")
 	flag.Parse()
+
+	// Get a simple stdout logger
+	logger, err := createLogger(logEncoding)
+
 	config, err := config.Read(configFilename)
 	if err != nil {
 		logger.Error("Failed to read configuration", zap.Error(err))
@@ -46,7 +65,12 @@ func main() {
 	if config.Debug != nil {
 		if config.Debug.Enabled {
 			logger.Info("Enabling Server Debugging", zap.Int("port", config.Debug.Port))
-			go log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Debug.Port), nil))
+			go func() {
+				err = http.ListenAndServe(fmt.Sprintf(":%d", config.Debug.Port), nil)
+				if err != nil {
+					logger.Fatal("Debug pprof endpint failed", zap.Error(err))
+				}
+			}()
 		} else {
 			logger.Info("Server Debugging interface is disabled")
 		}

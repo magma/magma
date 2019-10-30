@@ -40,9 +40,7 @@ void State::clear() {
 }
 
 void State::update(std::function<void(folly::dynamic&)> func) {
-  state.withWLock([&func](auto& unlockedState){
-    func(unlockedState);
-  });
+  state.withWLock([&func](auto& unlockedState) { func(unlockedState); });
 }
 
 void State::addFinally(std::function<void()>&& f) {
@@ -98,15 +96,6 @@ void State::setErrors() {
       lockedState["fbc-symphony-device:errors"] = std::move(errors);
     });
   }
-}
-
-void State::setGauge(const std::string& key, double value) {
-  sink.setGauge(
-      key,
-      value,
-      // adds the label deviceID = {deviceID}
-      "deviceID",
-      device);
 }
 
 } // namespace devices
