@@ -8,14 +8,14 @@
  * @format
  */
 
-import type {TableColumnType} from './Table.react';
+import type {TableColumnType} from './Table';
 
 import ArrowDownIcon from '../Icons/ArrowDown';
 import ArrowUpIcon from '../Icons/ArrowUp';
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
-import TableHeaderCheckbox from './TableHeaderCheckbox.react';
-import Text from '../Text.react';
+import TableHeaderCheckbox from './TableHeaderCheckbox';
+import Text from '../Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';

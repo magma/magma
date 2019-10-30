@@ -8,9 +8,9 @@
  * @format
  */
 
-import type {SelectionType} from '../Checkbox/Checkbox.react';
+import type {SelectionType} from '../Checkbox/Checkbox';
 
-import Checkbox from '../Checkbox/Checkbox.react';
+import Checkbox from '../Checkbox/Checkbox';
 import React, {useMemo} from 'react';
 import {useSelection} from './TableSelectionContext';
 

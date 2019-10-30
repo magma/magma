@@ -9,7 +9,7 @@
  */
 
 import React from 'react';
-import Text from '../../components/design-system/Text.react';
+import Text from '../../components/design-system/Text';
 import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';

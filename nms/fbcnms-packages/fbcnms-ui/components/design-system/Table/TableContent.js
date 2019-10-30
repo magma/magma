@@ -8,12 +8,12 @@
  * @format
  */
 
-import type {TableColumnType, TableRowDataType} from './Table.react';
+import type {TableColumnType, TableRowDataType} from './Table';
 
 import React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
-import TableRowCheckbox from './TableRowCheckbox.react';
-import Text from '../Text.react';
+import TableRowCheckbox from './TableRowCheckbox';
+import Text from '../Text';
 import {makeStyles} from '@material-ui/styles';
 import {useTable} from './TableContext';
 

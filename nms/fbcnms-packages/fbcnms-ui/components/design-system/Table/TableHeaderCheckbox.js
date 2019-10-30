@@ -8,7 +8,7 @@
  * @format
  */
 
-import Checkbox from '../Checkbox/Checkbox.react';
+import Checkbox from '../Checkbox/Checkbox';
 import React from 'react';
 import {useSelection} from './TableSelectionContext';
 

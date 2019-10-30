@@ -8,13 +8,13 @@
  * @format
  */
 
-import type {SelectionType} from '../Checkbox/Checkbox.react';
+import type {SelectionType} from '../Checkbox/Checkbox';
 
 import * as React from 'react';
 import SymphonyTheme from '../../../theme/symphony';
-import TableContent from './TableContent.react';
+import TableContent from './TableContent';
 import TableContext from './TableContext';
-import TableHeader from './TableHeader.react';
+import TableHeader from './TableHeader';
 import classNames from 'classnames';
 import {TableSelectionContextProvider} from './TableSelectionContext';
 import {makeStyles} from '@material-ui/styles';
