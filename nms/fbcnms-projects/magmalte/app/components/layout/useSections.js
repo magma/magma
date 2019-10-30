@@ -14,11 +14,12 @@ import type {SectionsConfigs} from '../layout/Section';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
 import NetworkContext from '../context/NetworkContext';
-import axios from 'axios';
+import {coalesceNetworkType} from '@fbcnms/types/network';
 import {useContext, useEffect, useState} from 'react';
 
-import {CELLULAR, RHINO, THIRD_PARTY, WAC, WIFI} from '@fbcnms/types/network';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import {CWF, LTE, RHINO, THIRD_PARTY, WAC, WIFI} from '@fbcnms/types/network';
+import {getCWFSections} from '../cwf/CWFSections';
 import {getDevicesSections} from '@fbcnms/magmalte/app/components/devices/DevicesSections';
 import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
@@ -34,9 +35,9 @@ export default function useSections(): SectionsConfigs {
 
   useEffect(() => {
     if (networkId) {
-      axios
-        .get(MagmaAPIUrls.network(networkId))
-        .then(({data}) => setNetworkType(data?.features?.networkType || ''));
+      MagmaV1API.getNetworksByNetworkIdType({networkId}).then(networkType =>
+        setNetworkType(coalesceNetworkType(networkId, networkType)),
+      );
     }
   }, [networkId]);
 
@@ -53,7 +54,9 @@ export default function useSections(): SectionsConfigs {
       return getWACSections();
     case RHINO:
       return getRhinoSections();
-    case CELLULAR:
+    case CWF:
+      return getCWFSections();
+    case LTE:
     default:
       return getLteSections(alertsEnabled, logsEnabled);
   }

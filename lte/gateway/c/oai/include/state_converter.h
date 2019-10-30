@@ -28,6 +28,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "3gpp_23.003.h"
+#include "common_types.h"
 #include "hashtable.h"
 #include "log.h"
 
@@ -43,6 +44,14 @@ namespace magma {
 namespace lte {
 
 #define PLMN_BYTES 6
+#define BSTRING_TO_STRING(bstr, str_ptr)                                       \
+  do {                                                                         \
+    *str_ptr = std::string(bdata(bstr), blength(bstr));                        \
+  } while (0) /* Convert bstring to std::string */
+#define STRING_TO_BSTRING(str, bstr)                                           \
+  do {                                                                         \
+    bstr = bfromcstr(str.c_str());                                             \
+  } while (0) /* Convert bstring to std::string */
 
 /**
  * StateConverter is a base class for state conversion between tasks state
@@ -54,12 +63,6 @@ class StateConverter {
  protected:
   StateConverter();
   ~StateConverter();
-
-  static void guti_to_proto(const guti_t &guti_state, Guti *guti_proto);
-
-  static void ecgi_to_proto(const ecgi_t &state_ecgi, Ecgi *ecgi_proto);
-
-  static void proto_to_ecgi(const Ecgi &ecgi_proto, ecgi_t *state_ecgi);
 
   /**
    * Function that converts hashtable struct to protobuf Map instance, using
@@ -74,24 +77,24 @@ class StateConverter {
    */
   template<typename NodeType, typename ProtoMessage>
   static void hashtable_ts_to_proto(
-    hash_table_ts_t *state_ht,
-    google::protobuf::Map<unsigned int, ProtoMessage> *proto_map,
-    std::function<void(NodeType *, ProtoMessage *)> conversion_callable,
+    hash_table_ts_t* state_ht,
+    google::protobuf::Map<unsigned int, ProtoMessage>* proto_map,
+    std::function<void(NodeType*, ProtoMessage*)> conversion_callable,
     log_proto_t log_task_level)
   {
-    hashtable_key_array_t *ht_keys = hashtable_ts_get_keys(state_ht);
+    hashtable_key_array_t* ht_keys = hashtable_ts_get_keys(state_ht);
     hashtable_rc_t ht_rc;
     if (ht_keys == nullptr) {
       return;
     }
 
     for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
-      NodeType *node;
+      NodeType* node;
       ht_rc = hashtable_ts_get(
-        state_ht, (hash_key_t) ht_keys->keys[i], (void **) &node);
+        state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);
       if (ht_rc == HASH_TABLE_OK) {
         ProtoMessage proto;
-        conversion_callable((NodeType *) node, &proto);
+        conversion_callable((NodeType*) node, &proto);
         (*proto_map)[ht_keys->keys[i]] = proto;
       } else {
         OAILOG_ERROR(
@@ -105,15 +108,15 @@ class StateConverter {
 
   template<typename ProtoMessage, typename NodeType>
   static void proto_to_hashtable_ts(
-    const google::protobuf::Map<unsigned int, ProtoMessage> &proto_map,
-    hash_table_ts_t *state_ht,
-    std::function<void(const ProtoMessage &, NodeType *)> conversion_callable,
+    const google::protobuf::Map<unsigned int, ProtoMessage>& proto_map,
+    hash_table_ts_t* state_ht,
+    std::function<void(const ProtoMessage&, NodeType*)> conversion_callable,
     log_proto_t log_task_level)
   {
-    for (const auto &entry : proto_map) {
+    for (const auto& entry : proto_map) {
       auto proto = entry.second;
-      NodeType *node_type;
-      node_type = (NodeType *) calloc(1, sizeof(NodeType));
+      NodeType* node_type;
+      node_type = (NodeType*) calloc(1, sizeof(NodeType));
       conversion_callable(proto, node_type);
       auto ht_rc = hashtable_ts_insert(state_ht, entry.first, node_type);
       if (ht_rc != HASH_TABLE_OK) {
@@ -129,8 +132,36 @@ class StateConverter {
     }
   }
 
+  static void guti_to_proto(const guti_t& guti_state, Guti* guti_proto);
+
+  static void ecgi_to_proto(const ecgi_t& state_ecgi, Ecgi* ecgi_proto);
+
+  static void proto_to_ecgi(const Ecgi& ecgi_proto, ecgi_t* state_ecgi);
+
+  static void eps_subscribed_qos_profile_to_proto(
+    const eps_subscribed_qos_profile_t& state_eps_subscribed_qos_profile,
+    EpsSubscribedQosProfile* eps_subscribed_qos_profile_proto);
+  static void ambr_to_proto(const ambr_t& state_ambr, Ambr* ambr_proto);
+  static void apn_configuration_to_proto(
+    const apn_configuration_t& state_apn_configuration,
+    ApnConfig* apn_config_proto);
+  static void apn_config_profile_to_proto(
+    const apn_config_profile_t& state_apn_config_profile,
+    ApnConfigProfile* apn_config_profile_proto);
+
+  static void proto_to_eps_subscribed_qos_profile(
+    const EpsSubscribedQosProfile& eps_subscribed_qos_profile_proto,
+    eps_subscribed_qos_profile_t* state_eps_subscribed_qos_profile);
+  static void proto_to_ambr(const Ambr& ambr_proto, ambr_t* state_ambr);
+  static void proto_to_apn_configuration(
+    const ApnConfig& apn_config_proto,
+    apn_configuration_t* state_apn_configuration);
+  static void proto_to_apn_config_profile(
+    const ApnConfigProfile& apn_config_profile_proto,
+    apn_config_profile_t* state_apn_config_profile);
+
  private:
-  static void plmn_to_chars(const plmn_t &state_plmn, char *plmn_array);
+  static void plmn_to_chars(const plmn_t& state_plmn, char* plmn_array);
 };
 
 } // namespace lte

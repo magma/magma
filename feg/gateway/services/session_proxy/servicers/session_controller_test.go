@@ -226,7 +226,7 @@ func standardUsageTest(
 		mock.Anything,
 		mock.MatchedBy(getGyCCRMatcher(multiReqType)),
 	).Return(nil).Run(returnDefaultGyResponse).Once()
-	createResponse, _ := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
 		Subscriber: &protos.SubscriberID{
 			Id: IMSI1,
 		},

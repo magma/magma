@@ -20,16 +20,6 @@ func GetLegacyBootstrapperDesc() *grpc.ServiceDesc {
 	}
 }
 
-func GetLegacyCheckinDesc() *grpc.ServiceDesc {
-	return &grpc.ServiceDesc{
-		ServiceName: "magma.Checkind",
-		HandlerType: _Checkind_serviceDesc.HandlerType,
-		Methods:     _Checkind_serviceDesc.Methods,
-		Streams:     _Checkind_serviceDesc.Streams,
-		Metadata:    _Checkind_serviceDesc.Metadata,
-	}
-}
-
 func GetLegacyDispatcherDesc() *grpc.ServiceDesc {
 	return &grpc.ServiceDesc{
 		ServiceName: "magma.SyncRPCService",

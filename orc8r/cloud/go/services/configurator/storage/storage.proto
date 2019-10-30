@@ -225,7 +225,9 @@ message EntityUpdateCriteria {
     // A nil value here indicates no update.
     google.protobuf.BytesValue new_config = 23;
 
-    repeated EntityID associations_to_set = 30;
+    // Wrap the repeated field in a message because a nil struct and a struct
+    // with an empty associations list mean different things.
+    EntityAssociationsToSet associations_to_set = 30;
     repeated EntityID associations_to_add = 31;
     repeated EntityID associations_to_delete = 32;
 
@@ -233,6 +235,10 @@ message EntityUpdateCriteria {
     repeated ACL permissions_to_create = 40;
     repeated ACL permissions_to_update = 41;
     repeated string permissions_to_delete = 42;
+}
+
+message EntityAssociationsToSet {
+    repeated EntityID associations_to_set = 1;
 }
 
 // EntityGraph represents a DAG of associated network entities.

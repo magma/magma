@@ -94,7 +94,7 @@ message PipelineD {
     repeated NetworkServices services = 8;
     message AllowedGrePeer {
       string ip = 1;
-      int32 key = 2;
+      uint32 key = 2;
     }
     repeated AllowedGrePeer allowed_gre_peers = 9;
     // DEPRECATED

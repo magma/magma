@@ -66,6 +66,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
+  showSettings: boolean,
   user: {
     email: string,
     isSuperUser: boolean,
@@ -88,19 +89,21 @@ const ProfileButton = (props: Props) => {
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
             <Typography className={classes.profileItemText}>{email}</Typography>
           </ListItem>
-          <ListItem
-            classes={{gutters: classes.itemGutters}}
-            button
-            onClick={() => {
-              GeneralLogger.info(Events.SETTINGS_CLICKED);
-              toggleProfileMenu(false);
-              history.push(relativeUrl('/settings'));
-            }}
-            component="a">
-            <Typography className={classes.profileItemText}>
-              Settings
-            </Typography>
-          </ListItem>
+          {props.showSettings && (
+            <ListItem
+              classes={{gutters: classes.itemGutters}}
+              button
+              onClick={() => {
+                GeneralLogger.info(Events.SETTINGS_CLICKED);
+                toggleProfileMenu(false);
+                history.push(relativeUrl('/settings'));
+              }}
+              component="a">
+              <Typography className={classes.profileItemText}>
+                Settings
+              </Typography>
+            </ListItem>
+          )}
           {showDocs && (
             <ListItem
               classes={{gutters: classes.itemGutters}}

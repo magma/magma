@@ -33,20 +33,20 @@ func TestPolicyDBHandlers(t *testing.T) {
 	obsidianHandlers := handlers.GetHandlers()
 	seedNetworks(t)
 
-	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/rules", obsidian.GET).HandlerFunc
-	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/rules", obsidian.POST).HandlerFunc
-	getPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/rules/:rule_id", obsidian.GET).HandlerFunc
-	updatePolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/rules/:rule_id", obsidian.PUT).HandlerFunc
-	deletePolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/rules/:rule_id", obsidian.DELETE).HandlerFunc
-	listNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/base_names", obsidian.GET).HandlerFunc
-	createName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/base_names", obsidian.POST).HandlerFunc
-	getName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/base_names/:base_name", obsidian.GET).HandlerFunc
-	updateName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/base_names/:base_name", obsidian.PUT).HandlerFunc
-	deleteName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policies/base_names/:base_name", obsidian.DELETE).HandlerFunc
+	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.GET).HandlerFunc
+	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc
+	getPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules/:rule_id", obsidian.GET).HandlerFunc
+	updatePolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules/:rule_id", obsidian.PUT).HandlerFunc
+	deletePolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules/:rule_id", obsidian.DELETE).HandlerFunc
+	listNames := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/base_names", obsidian.GET).HandlerFunc
+	createName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/base_names", obsidian.POST).HandlerFunc
+	getName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/base_names/:base_name", obsidian.GET).HandlerFunc
+	updateName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/base_names/:base_name", obsidian.PUT).HandlerFunc
+	deleteName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/base_names/:base_name", obsidian.DELETE).HandlerFunc
 	// Test empty response
 	tc := tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -81,7 +81,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	}
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        testRule,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -93,7 +93,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Check that policy rule was added
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -106,7 +106,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Test Read Rule Using URL based ID
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules/PolicyRule1",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "PolicyRule1"},
@@ -123,7 +123,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	testRule.Priority, testRule.RatingGroup, testRule.TrackingType = swag.Uint32(10), *swag.Uint32(3), "ONLY_OCS"
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            "/magma/v1/lte/n1/policies/rules/PolicyRule1",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
 		Payload:        testRule,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "PolicyRule1"},
@@ -135,7 +135,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Verify update results
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules/PolicyRule1",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "PolicyRule1"},
@@ -148,7 +148,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Delete a rule
 	tc = tests.Test{
 		Method:         "DELETE",
-		URL:            "/magma/v1/lte/n1/policies/rules/PolicyRule1",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "PolicyRule1"},
@@ -160,7 +160,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Confirm delete
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -203,7 +203,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	}
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        testRule,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -215,7 +215,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Test Read Rule Using URL based ID
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules/Test_mult",
+		URL:            "/magma/v1/networks/n1/policies/rules/Test_mult",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "Test_mult"},
@@ -239,7 +239,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	}
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        testRule,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -251,7 +251,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Check that QoS rule was added
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules/Test_qos",
+		URL:            "/magma/v1/networks/n1/policies/rules/Test_qos",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "Test_qos"},
@@ -276,7 +276,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	}
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules",
 		Payload:        testRule,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -288,7 +288,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Check that rule with redirect was added
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/rules/Test_redirect",
+		URL:            "/magma/v1/networks/n1/policies/rules/Test_redirect",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "rule_id"},
 		ParamValues:    []string{"n1", "Test_redirect"},
@@ -303,7 +303,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Test Listing All Base Names
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -320,7 +320,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	}
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names",
 		Payload:        baseNameRecord,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -332,7 +332,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Test Read BaseName Using URL based name
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/base_names/Test",
+		URL:            "/magma/v1/networks/n1/policies/base_names/Test",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "base_name"},
 		ParamValues:    []string{"n1", "Test"},
@@ -345,7 +345,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Test Update BaseName Using URL based name
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            "/magma/v1/lte/n1/policies/base_names/Test",
+		URL:            "/magma/v1/networks/n1/policies/base_names/Test",
 		Payload:        tests.JSONMarshaler([]string{"Test_qos"}),
 		ParamNames:     []string{"network_id", "base_name"},
 		ParamValues:    []string{"n1", "Test"},
@@ -357,7 +357,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Verify update BaseName
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/base_names/Test",
+		URL:            "/magma/v1/networks/n1/policies/base_names/Test",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "base_name"},
 		ParamValues:    []string{"n1", "Test"},
@@ -370,7 +370,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Get all BaseNames
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -383,7 +383,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Delete a BaseName
 	tc = tests.Test{
 		Method:         "DELETE",
-		URL:            "/magma/v1/lte/n1/policies/base_names/Test",
+		URL:            "/magma/v1/networks/n1/policies/base_names/Test",
 		Payload:        nil,
 		ParamNames:     []string{"network_id", "base_name"},
 		ParamValues:    []string{"n1", "Test"},
@@ -395,7 +395,7 @@ func TestPolicyDBHandlers(t *testing.T) {
 	// Confirm delete
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},

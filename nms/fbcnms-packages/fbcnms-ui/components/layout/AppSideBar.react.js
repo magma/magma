@@ -64,6 +64,7 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   mainItems: any,
   secondaryItems?: any,
+  showSettings: boolean,
   user: {
     email: string,
     isSuperUser: boolean,
@@ -111,7 +112,7 @@ const AppSideBar = (props: Props) => {
       )}
       <div className={classes.secondaryItems}>
         {secondaryItems}
-        <ProfileButton user={user} />
+        <ProfileButton showSettings={props.showSettings} user={user} />
       </div>
       <AppSideBarProjectNavigation projects={projects} />
     </div>

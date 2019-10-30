@@ -15,6 +15,7 @@ magma_services:
   - dnsd
   - policydb
   - sctpd
+  - state
   # Uncomment td-agent-bit to enable fluent-bit and log fowarding
   # - td-agent-bit
 
@@ -108,6 +109,7 @@ metricsd:
     - magmad
     - enodebd
     - pipelined
+    - state
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

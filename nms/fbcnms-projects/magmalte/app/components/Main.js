@@ -12,7 +12,7 @@ import Admin from './admin/Admin';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkError from './main/NetworkError';
 import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
 import React from 'react';
@@ -51,7 +51,7 @@ function Main() {
   // If it's a superuser and there are no networks, prompt them to create a
   // network
   if (hasNoNetworks && window.CONFIG.appData.user.isSuperUser) {
-    return <Redirect to="/nms/network/create" />;
+    return <Redirect to="/admin/networks" />;
   }
 
   // If it's a regular user and there are no networks, then they likely dont
@@ -60,7 +60,10 @@ function Main() {
     return (
       <AppContextProvider>
         <ErrorLayout>
-          <NoNetworksMessage />
+          <NoNetworksMessage>
+            You currently do not have access to any networks. Please contact
+            your system administrator to be added
+          </NoNetworksMessage>
         </ErrorLayout>
       </AppContextProvider>
     );

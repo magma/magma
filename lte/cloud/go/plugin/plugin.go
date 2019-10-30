@@ -15,7 +15,6 @@ import (
 	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
 	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
 	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
-	models2 "magma/lte/cloud/go/services/policydb/obsidian/models"
 	policydbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdbh "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
@@ -58,10 +57,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &models2.PolicyRule{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &models2.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntity2Type, &lteModels.PolicyRule{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntity2Type, &lteModels.BaseNameRecord{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &lteModels.PolicyRule{}),
+		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &lteModels.BaseNameRecord{}),
 		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
 	}
 }

@@ -113,11 +113,6 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'magma_network_management',
-    title: 'Magma Network Management',
-    enabledByDefault: false,
-  },
-  {
     id: 'file_categories',
     title: 'File Categories (for IpT)',
     enabledByDefault: false,
@@ -161,6 +156,22 @@ const arrayConfigs = [
     title: 'Planned Equipment',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'multi_subject_reports',
+    title: 'Multi Subject Reports',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'equipment_live_status',
+    title: 'Equipment Live Status',
+    enabledByDefault: false,
+  },
+  {
+    id: 'upload_location_properties_on_equipment',
+    title: 'Upload Location Properties On Equipment ',
+    enabledByDefault: true,
   },
 ];
 

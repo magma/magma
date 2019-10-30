@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include <folly/dynamic.h>
 
 #include <devmand/channels/snmp/Oid.h>
@@ -27,6 +29,10 @@ class Response {
 
   bool isError() const;
 
+  friend bool operator==(const Response& lhs, const Response& rhs) {
+    return lhs.oid == rhs.oid and lhs.value == lhs.value;
+  }
+
  public:
   Oid oid;
   folly::dynamic value;
@@ -42,6 +48,8 @@ class ErrorResponse final : public Response {
   ErrorResponse(ErrorResponse&&) = default;
   ErrorResponse& operator=(ErrorResponse&&) = default;
 };
+
+using Responses = std::vector<Response>;
 
 } // namespace snmp
 } // namespace channels

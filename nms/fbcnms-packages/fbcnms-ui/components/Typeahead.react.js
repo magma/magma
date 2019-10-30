@@ -41,7 +41,7 @@ const autoSuggestStyles = theme => ({
     fontSize: theme.typography.subtitle1.fontSize,
     fontWeight: theme.typography.subtitle1.fontWeight,
     position: 'absolute',
-    top: '42px',
+    top: '32px',
     minWidth: '100%',
     zIndex: '2',
     boxShadow: theme.shadows[2],
@@ -63,7 +63,6 @@ const autoSuggestStyles = theme => ({
 
 const useStyles = makeStyles(theme => ({
   container: {
-    minWidth: '250px',
     width: '100%',
   },
   suggestionRoot: {
@@ -110,7 +109,7 @@ type Props = {
   onEntitySelected: Suggestion => void,
   onSuggestionsFetchRequested: (searchTerm: string) => void,
   onSuggestionsClearRequested?: () => void,
-  headline?: string,
+  headline?: ?string,
   value?: ?Suggestion,
   variant?: 'default' | 'small',
   displayText?: string,

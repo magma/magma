@@ -21,6 +21,7 @@
 #include <devmand/Config.h>
 #include <devmand/ErrorHandler.h>
 #include <devmand/devices/Device.h>
+#include <devmand/utils/LifetimeTracker.h>
 
 using namespace std::chrono_literals;
 
@@ -37,10 +38,15 @@ Application::Application()
           }) {
   ErrorHandler::executeWithCatch(
       [this]() -> void {
-        snmpEngine = addEngine<channels::snmp::Engine>(name);
+        snmpEngine = addEngine<channels::snmp::Engine>(eventBase, name);
         pingEngine = addEngine<channels::ping::Engine>(eventBase);
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
+}
+
+channels::snmp::Engine& Application::getSnmpEngine() {
+  assert(snmpEngine != nullptr);
+  return *snmpEngine;
 }
 
 channels::ping::Engine& Application::getPingEngine() {
@@ -61,6 +67,35 @@ void Application::pollDevices() {
   for (auto& device : devices) {
     device.second->updateSharedView(unifiedView);
   }
+}
+
+void Application::doDebug() {
+  LOG(INFO) << "Debug Information";
+
+  LOG(INFO) << "\tChannel Engines (" << channelEngines.size() << "):";
+  for (auto& engine : channelEngines) {
+    LOG(INFO) << "\t\t" << engine->getName()
+              << ": iterations = " << engine->getNumIterations()
+              << ", requests = " << engine->getNumRequests();
+    setGauge(
+        folly::sformat("channel.{}.engine.iterations", engine->getName()),
+        engine->getNumIterations());
+    setGauge(
+        folly::sformat("channel.{}.engine.requests", engine->getName()),
+        engine->getNumRequests());
+  }
+
+  LOG(INFO) << "\tDevices (" << devices.size() << "):";
+  for (auto& device : devices) {
+    LOG(INFO) << "\t\t" << device.second->getId();
+  }
+  setGauge("device.count", devices.size());
+
+  LOG(INFO) << "\tLiving State Objects: "
+            << utils::LifetimeTracker<devices::State>::getLivingCount();
+  setGauge(
+      "device.living_state_objects",
+      utils::LifetimeTracker<devices::State>::getLivingCount());
 }
 
 UnifiedView Application::getUnifiedView() {
@@ -104,28 +139,25 @@ void Application::run() {
   LOG(INFO) << "Starting " << name << ".";
 
   ErrorHandler::executeWithCatch([this]() {
-    // TODO so this part is not perm. Eventually we need to tie snmp into a
-    // single epoll loop but until then just give it its own select thread
-    auto snmpEngineThread = std::async(std::launch::async, [this] {
-      assert(snmpEngine != nullptr);
-      snmpEngine->run();
-    });
-
     for (auto& service : services) {
       service->start();
     }
-
-    eventBase.runInEventBaseThread([this]() { pingEngine->start(); });
 
     // TODO move this to devices
     scheduleEvery(
         [this]() { pollDevices(); }, std::chrono::seconds(FLAGS_poll_interval));
 
-    setGauge("devmand_running", 1);
+    if (FLAGS_debug_print_interval != 0) {
+      scheduleEvery(
+          [this]() { doDebug(); },
+          std::chrono::seconds(FLAGS_debug_print_interval));
+    }
+
+    setGauge("running", 1);
 
     eventBase.loopForever();
 
-    setGauge("devmand_running", 0);
+    setGauge("running", 0);
 
     for (auto& service : services) {
       service->stop();
@@ -134,11 +166,6 @@ void Application::run() {
     for (auto& service : services) {
       service->wait();
     }
-
-    assert(snmpEngine != nullptr);
-    snmpEngine->stopEventually();
-
-    snmpEngineThread.wait();
   });
 
   LOG(INFO) << "Stopping " << name << ".";
@@ -169,6 +196,24 @@ void Application::add(std::unique_ptr<devices::Device>&& device) {
             std::forward<std::unique_ptr<devices::Device>>(device));
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
+}
+
+void Application::setGauge(const std::string& key, int value) {
+  setGauge(key, static_cast<double>(value), "", "");
+}
+
+void Application::setGauge(const std::string& key, size_t value) {
+  setGauge(key, static_cast<double>(value), "", "");
+}
+
+void Application::setGauge(const std::string& key, unsigned int value) {
+  setGauge(key, static_cast<double>(value), "", "");
+}
+
+void Application::setGauge(
+    const std::string& key,
+    long long unsigned int value) {
+  setGauge(key, static_cast<double>(value), "", "");
 }
 
 void Application::setGauge(const std::string& key, double value) {

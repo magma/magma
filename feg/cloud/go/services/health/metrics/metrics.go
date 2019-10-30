@@ -9,6 +9,7 @@ package metrics
 
 import (
 	"magma/feg/cloud/go/protos"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,19 +21,19 @@ var (
 			Name: "active_gateway_changed_total",
 			Help: "increases everytime the active gateway for a network is updated",
 		},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	TotalGatewayCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_total_count",
 			Help: "Total number of gateways that are in the network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 	HealthyGatewayCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "gateway_health_count",
 			Help: "Number of gateways that are healthy in the network"},
-		[]string{"networkId"},
+		[]string{metrics.NetworkLabelName},
 	)
 )
 

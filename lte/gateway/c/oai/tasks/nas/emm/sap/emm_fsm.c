@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -198,7 +198,7 @@ emm_fsm_state_t emm_fsm_get_state(const struct emm_context_s *const emm_context)
   if (emm_context) {
     AssertFatal(
       (emm_context->_emm_fsm_state < EMM_STATE_MAX) &&
-        (emm_context->_emm_fsm_state > EMM_STATE_MIN),
+        (emm_context->_emm_fsm_state >= EMM_STATE_MIN),
       "ue_id " MME_UE_S1AP_ID_FMT " BAD EMM state %d",
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
         ->mme_ue_s1ap_id,

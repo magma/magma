@@ -20,29 +20,24 @@ import (
 type GatewayNonEpsConfigs struct {
 
 	// arfcn 2g
-	// Required: true
 	Arfcn2g []uint32 `json:"arfcn_2g"`
 
 	// csfb mcc
-	// Required: true
 	// Min Length: 1
 	// Pattern: ^(\d{3})$
-	CsfbMcc string `json:"csfb_mcc"`
+	CsfbMcc string `json:"csfb_mcc,omitempty"`
 
 	// csfb mnc
-	// Required: true
 	// Min Length: 1
 	// Pattern: ^(\d{2,3})$
-	CsfbMnc string `json:"csfb_mnc"`
+	CsfbMnc string `json:"csfb_mnc,omitempty"`
 
 	// csfb rat
-	// Required: true
 	// Enum: [0 1]
-	CsfbRat *uint32 `json:"csfb_rat"`
+	CsfbRat *uint32 `json:"csfb_rat,omitempty"`
 
 	// lac
-	// Required: true
-	Lac *uint32 `json:"lac"`
+	Lac *uint32 `json:"lac,omitempty"`
 
 	// non eps service control
 	// Required: true
@@ -53,10 +48,6 @@ type GatewayNonEpsConfigs struct {
 // Validate validates this gateway non eps configs
 func (m *GatewayNonEpsConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
-
-	if err := m.validateArfcn2g(formats); err != nil {
-		res = append(res, err)
-	}
 
 	if err := m.validateCsfbMcc(formats); err != nil {
 		res = append(res, err)
@@ -70,10 +61,6 @@ func (m *GatewayNonEpsConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateLac(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateNonEpsServiceControl(formats); err != nil {
 		res = append(res, err)
 	}
@@ -84,19 +71,10 @@ func (m *GatewayNonEpsConfigs) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *GatewayNonEpsConfigs) validateArfcn2g(formats strfmt.Registry) error {
-
-	if err := validate.Required("arfcn_2g", "body", m.Arfcn2g); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *GatewayNonEpsConfigs) validateCsfbMcc(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("csfb_mcc", "body", string(m.CsfbMcc)); err != nil {
-		return err
+	if swag.IsZero(m.CsfbMcc) { // not required
+		return nil
 	}
 
 	if err := validate.MinLength("csfb_mcc", "body", string(m.CsfbMcc), 1); err != nil {
@@ -112,8 +90,8 @@ func (m *GatewayNonEpsConfigs) validateCsfbMcc(formats strfmt.Registry) error {
 
 func (m *GatewayNonEpsConfigs) validateCsfbMnc(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("csfb_mnc", "body", string(m.CsfbMnc)); err != nil {
-		return err
+	if swag.IsZero(m.CsfbMnc) { // not required
+		return nil
 	}
 
 	if err := validate.MinLength("csfb_mnc", "body", string(m.CsfbMnc), 1); err != nil {
@@ -149,21 +127,12 @@ func (m *GatewayNonEpsConfigs) validateCsfbRatEnum(path, location string, value 
 
 func (m *GatewayNonEpsConfigs) validateCsfbRat(formats strfmt.Registry) error {
 
-	if err := validate.Required("csfb_rat", "body", m.CsfbRat); err != nil {
-		return err
+	if swag.IsZero(m.CsfbRat) { // not required
+		return nil
 	}
 
 	// value enum
 	if err := m.validateCsfbRatEnum("csfb_rat", "body", *m.CsfbRat); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *GatewayNonEpsConfigs) validateLac(formats strfmt.Registry) error {
-
-	if err := validate.Required("lac", "body", m.Lac); err != nil {
 		return err
 	}
 

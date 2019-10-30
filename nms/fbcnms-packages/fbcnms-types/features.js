@@ -15,7 +15,6 @@ export type FeatureID =
   | 'audit_log_view'
   | 'third_party_devices'
   | 'network_topology'
-  | 'magma_network_management'
   | 'upload_rural'
   | 'upload_xwf'
   | 'upload_ftth'
@@ -31,4 +30,7 @@ export type FeatureID =
   | 'coverage_maps'
   | 'logs'
   | 'services'
-  | 'planned_equipment';
+  | 'planned_equipment'
+  | 'multi_subject_reports'
+  | 'equipment_live_status'
+  | 'upload_location_properties_on_equipment';

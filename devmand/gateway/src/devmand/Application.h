@@ -75,6 +75,11 @@ class Application final : public MetricSink {
       std::function<void()> event,
       const std::chrono::seconds& seconds);
 
+  // TODO should these conversion types just be in metrics sink?
+  void setGauge(const std::string& key, int value);
+  void setGauge(const std::string& key, size_t value);
+  void setGauge(const std::string& key, unsigned int value);
+  void setGauge(const std::string& key, long long unsigned int value);
   void setGauge(const std::string& key, double value) override;
   void setGauge(
       const std::string& key,
@@ -84,10 +89,12 @@ class Application final : public MetricSink {
 
   DhcpdConfig& getDhcpdConfig();
 
+  channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine();
 
  private:
   void pollDevices();
+  void doDebug();
 
   template <class EngineType, class... Args>
   EngineType* addEngine(Args&&... args) {

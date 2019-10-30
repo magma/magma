@@ -10,7 +10,7 @@
 
 import React from 'react';
 import SymphonyTheme from '../../theme/symphony';
-import Text from '../../components/Text.react';
+import Text from '../../components/design-system/Text.react';
 import classNames from 'classnames';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';

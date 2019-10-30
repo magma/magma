@@ -13,7 +13,7 @@ import AlarmsHeader from './AlarmsHeader';
 import AlarmsTable from './AlarmsTable';
 import Button from '@material-ui/core/Button';
 import EditAllAlerts from './EditAllAlerts';
-import MagmaV1API from '../../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 

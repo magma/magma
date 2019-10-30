@@ -117,3 +117,21 @@ func MakeStringPointer(s string) *string {
 func MakeMetricTypePointer(t dto.MetricType) *dto.MetricType {
 	return &t
 }
+
+func HasLabelName(labels []*dto.LabelPair, name string) bool {
+	for _, label := range labels {
+		if label.GetName() == name {
+			return true
+		}
+	}
+	return false
+}
+
+func HasLabel(labels []*dto.LabelPair, name, value string) bool {
+	for _, label := range labels {
+		if label.GetName() == name {
+			return label.GetValue() == value
+		}
+	}
+	return false
+}

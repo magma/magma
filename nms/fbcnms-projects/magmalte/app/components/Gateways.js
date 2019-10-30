@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {lte_gateway} from '../common/__generated__/MagmaAPIBindings';
+import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from './AddGatewayDialog';
 import Button from '@material-ui/core/Button';
@@ -20,7 +20,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -28,12 +28,13 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text.react';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from './GatewayUtils';
+import {MAGMAD_DEFAULT_CONFIGS} from './AddGatewayDialog';
 import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -113,7 +114,7 @@ class Gateways extends React.Component<Props, State> {
     return (
       <div className={this.props.classes.paper}>
         <div className={this.props.classes.header}>
-          <Typography variant="h5">Configure Gateways</Typography>
+          <Text variant="h5">Configure Gateways</Text>
           <Button variant="contained" color="primary" onClick={this.showDialog}>
             Add Gateway
           </Button>
@@ -134,11 +135,12 @@ class Gateways extends React.Component<Props, State> {
             <LoadingFiller />
           )}
         </Paper>
-        <AddGatewayDialog
-          open={this.state.showDialog}
-          onClose={this.hideDialog}
-          onSave={this.onSave}
-        />
+        {this.state.showDialog && (
+          <AddGatewayDialog
+            onClose={this.hideDialog}
+            onSave={this.onGatewayAdd}
+          />
+        )}
         <EditGatewayDialog
           key={this.state.editingGateway && this.state.editingGateway.logicalID}
           gateway={this.state.editingGateway}
@@ -152,6 +154,47 @@ class Gateways extends React.Component<Props, State> {
   showDialog = () => this.setState({showDialog: true});
   hideDialog = () => this.setState({showDialog: false});
   editGateway = editingGateway => this.setState({editingGateway});
+
+  onGatewayAdd = async ({
+    gatewayID,
+    name,
+    description,
+    hardwareID,
+    challengeKey,
+    tier,
+  }) => {
+    const networkID = nullthrows(this.props.match.params.networkId);
+    await MagmaV1API.postLteByNetworkIdGateways({
+      networkId: networkID,
+      gateway: {
+        id: gatewayID,
+        name,
+        description,
+        cellular: {
+          epc: {nat_enabled: false, ip_block: '192.168.0.1/24'},
+          ran: {pci: 260, transmit_enabled: false},
+          non_eps_service: undefined,
+        },
+        magmad: MAGMAD_DEFAULT_CONFIGS,
+        device: {
+          hardware_id: hardwareID,
+          key: {
+            key: challengeKey,
+            key_type: 'SOFTWARE_ECDSA_SHA256', // default key/challenge type
+          },
+        },
+        connected_enodeb_serials: [],
+        tier,
+      },
+    });
+    const gatewayPayload = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId(
+      {
+        networkId: networkID,
+        gatewayId: gatewayID,
+      },
+    );
+    this.onSave(gatewayPayload);
+  };
 
   onSave = gatewayPayload => {
     const gateway = this._buildGatewayFromPayload(gatewayPayload);

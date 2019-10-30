@@ -50,14 +50,6 @@ const timeUnits = [
     value: 'h',
     label: 'hours',
   },
-  {
-    value: 'd',
-    label: 'days',
-  },
-  {
-    value: 'w',
-    label: 'weeks',
-  },
 ];
 
 export default function AddEditAlertNotificationStep(props: Props) {

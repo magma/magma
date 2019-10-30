@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import FormFieldContext from './FormFieldContext';
-import Text from '../../Text.react';
+import Text from '../Text.react';
 import classNames from 'classnames';
 import nullthrows from 'nullthrows';
 import {makeStyles} from '@material-ui/styles';

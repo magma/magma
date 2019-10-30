@@ -12,7 +12,7 @@ from typing import Any
 
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
-from lte.protos.subscriberdb_pb2 import SubscriberData
+from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
 
@@ -30,7 +30,14 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
         return None
 
     def process_update(self, stream_name, updates, resync):
-
+        """
+        The cloud streams ALL subscribers registered, both active and inactive.
+        Since we don't have a good way of knowing whether a detach succeeds or
+        fails to update the local database correctly, we have to send down all
+        subscribers to keep trying to delete inactive subscribers.
+        TODO we can optimize a bit on the MME side to not detach already
+        detached subscribers.
+        """
         logging.info("Processing %d subscriber updates (resync=%s)",
                      len(updates), resync)
 
@@ -39,13 +46,18 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
             # - handle database exceptions
             keys = []
             subscribers = []
+            active_subscriber_ids = []
             for update in updates:
                 sub = SubscriberData()
                 sub.ParseFromString(update.value)
                 subscribers.append(sub)
                 keys.append(update.key)
+                if sub.lte.state == LTESubscription.ACTIVE:
+                    active_subscriber_ids.append(update.key)
             old_sub_ids = self._store.list_subscribers()
-            self.detach_deleted_subscribers(old_sub_ids, keys)
+            # Only compare active subscribers against the database to decide
+            # what to detach.
+            self.detach_deleted_subscribers(old_sub_ids, active_subscriber_ids)
             logging.debug("Resync with subscribers: %s", ','.join(keys))
             self._store.resync(subscribers)
         else:
@@ -59,7 +71,7 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
         Then send grpc DeleteSubscriber request to mme to detach all the
         deleted subscribers.
         :param old_sub_ids: a list of old subscriber ids in the store.
-        :param new_sub_ids: a list of new subscriber ids
+        :param new_sub_ids: a list of new active subscriber ids
                 just streamed from the cloud
         :return: n/a
         """
@@ -85,7 +97,11 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
                                                ServiceRegistry.LOCAL)
         client = S6aServiceStub(chan)
         req = DeleteSubscriberRequest()
-        req.imsi_list.extend(deleted_sub_ids)
+
+        # mme expects a list of IMSIs without "IMSI" prefix
+        imsis_to_delete_without_prefix = [sub[4:] for sub in deleted_sub_ids]
+
+        req.imsi_list.extend(imsis_to_delete_without_prefix)
         future = client.DeleteSubscriber.future(req)
         future.add_done_callback(lambda future:
                                  self._loop.call_soon_threadsafe(
@@ -93,7 +109,8 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
                                      future)
                                  )
 
-    def detach_deleted_subscribers_done(self, delete_future):
+    @staticmethod
+    def detach_deleted_subscribers_done(delete_future):
         """
         Detach deleted subscribers callback to handle exceptions
         """

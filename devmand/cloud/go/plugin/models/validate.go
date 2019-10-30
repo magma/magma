@@ -12,6 +12,10 @@ import (
 	"github.com/go-openapi/strfmt"
 )
 
+func (m *SymphonyNetwork) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *SymphonyAgent) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

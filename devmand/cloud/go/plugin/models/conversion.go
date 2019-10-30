@@ -24,6 +24,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
+func (m *SymphonyNetwork) GetEmptyNetwork() handlers.NetworkModel {
+	return &SymphonyNetwork{}
+}
+
 func (m *SymphonyNetwork) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
 		ID:          string(m.ID),
@@ -47,7 +51,7 @@ func (m *SymphonyNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria 
 	}
 }
 
-func (m *SymphonyNetwork) FromConfiguratorNetwork(n configurator.Network) *SymphonyNetwork {
+func (m *SymphonyNetwork) FromConfiguratorNetwork(n configurator.Network) interface{} {
 	m.ID = models.NetworkID(n.ID)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)

@@ -9,17 +9,23 @@
 package main
 
 import (
+	"time"
+
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/metrics"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/golang/glog"
 )
+
+// how often to report gateway status
+const gatewayStatusReportInterval = time.Second * 60
 
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, state.ServiceName)
@@ -41,6 +47,10 @@ func main() {
 		glog.Fatalf("Error creating state server: %s", err)
 	}
 	protos.RegisterStateServiceServer(srv.GrpcServer, server)
+
+	// periodically go through all existing gateways and log metrics
+	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error running service: %s", err)

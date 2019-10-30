@@ -31,10 +31,12 @@ import (
 )
 
 const (
-	SymphonyNetworks          = "symphony"
-	BaseNetworksPath          = obsidian.V1Root + SymphonyNetworks
-	ManageNetworkPath         = BaseNetworksPath + obsidian.UrlSep + ":network_id"
-	ManageNetworkFeaturesPath = ManageNetworkPath + obsidian.UrlSep + "features"
+	SymphonyNetworks             = "symphony"
+	BaseNetworksPath             = obsidian.V1Root + SymphonyNetworks
+	ManageNetworkPath            = BaseNetworksPath + obsidian.UrlSep + ":network_id"
+	ManageNetworkNamePath        = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
 
 	BaseAgentsPath                = ManageNetworkPath + obsidian.UrlSep + "agents"
 	ManageAgentPath               = BaseAgentsPath + obsidian.UrlSep + ":agent_id"
@@ -55,12 +57,6 @@ const (
 // GetHandlers returns all obsidian handlers for Symphony
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: BaseNetworksPath, Methods: obsidian.GET, HandlerFunc: listNetworks},
-		{Path: BaseNetworksPath, Methods: obsidian.POST, HandlerFunc: createNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.GET, HandlerFunc: getNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.PUT, HandlerFunc: updateNetwork},
-		{Path: ManageNetworkPath, Methods: obsidian.DELETE, HandlerFunc: deleteNetwork},
-
 		handlers.GetListGatewaysHandler(BaseAgentsPath, devmand.SymphonyAgentType, makeSymphonyAgents),
 		{Path: BaseAgentsPath, Methods: obsidian.POST, HandlerFunc: createAgent},
 		{Path: ManageAgentPath, Methods: obsidian.GET, HandlerFunc: getAgent},
@@ -73,7 +69,9 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageDevicePath, Methods: obsidian.PUT, HandlerFunc: updateDevice},
 		{Path: ManageDevicePath, Methods: obsidian.DELETE, HandlerFunc: deleteDevice},
 	}
-
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(BaseNetworksPath, ManageNetworkPath, devmand.SymphonyNetworkType, &symphonymodels.SymphonyNetwork{})...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 
 	aParam := "agent_id"

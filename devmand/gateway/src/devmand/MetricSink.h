@@ -28,6 +28,7 @@ class MetricSink {
       double value,
       const std::string& label_name,
       const std::string& label_value) = 0;
+  // TODO this shouldn't be virtual as it can just call the above.
   virtual void setGauge(const std::string& key, double value) = 0;
 };
 

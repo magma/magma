@@ -7,10 +7,12 @@
 #
 [Unit]
 Description=Devmand
+After=magmad.service
 
 [Service]
+EnvironmentFile=/etc/magma/env
 WorkingDirectory=/usr/bin
-ExecStart=/bin/devmand --logtostderr=1 --device_configuration_file=/var/opt/magma/configs/gateway.mconfig
+ExecStart=/bin/devmand --logtostderr=1 --device_configuration_file=${DEVICE_CONFIG_FILE}
 KillMode=mixed
 Restart=always
 Delegate=yes
