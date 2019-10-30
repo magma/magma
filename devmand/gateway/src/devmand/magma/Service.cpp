@@ -16,15 +16,8 @@ namespace magma {
 Service::Service(Application& application)
     : ::devmand::Service(application),
       magmaService(app.getName(), app.getVersion()) {
-  magmaService.SetServiceInfoCallback([this]() {
-    auto uv = app.getUnifiedView();
-
-    std::cerr << "publishing :=\n";
-    for (auto& kv : uv) {
-      std::cerr << "\t\"" << kv.first << "\" : \"" << kv.second << "\"\n";
-    }
-    return uv;
-  });
+  magmaService.SetServiceInfoCallback(
+      [this]() { return app.getUnifiedView(); });
 }
 
 void Service::setGauge(const std::string& key, double value) {

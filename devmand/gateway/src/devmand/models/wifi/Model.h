@@ -9,6 +9,8 @@
 
 #include <folly/dynamic.h>
 
+#include <devmand/YangUtils.h>
+
 namespace devmand {
 namespace models {
 namespace wifi {
@@ -24,6 +26,24 @@ class Model {
 
  public:
   static void init(folly::dynamic& state);
+  static void updateRadio(
+      folly::dynamic& state,
+      int index,
+      const YangPath& path,
+      const folly::dynamic& value);
+
+  static void updateSsid(
+      folly::dynamic& state,
+      int index,
+      const YangPath& path,
+      const folly::dynamic& value);
+
+  static void updateSsidBssid(
+      folly::dynamic& state,
+      int indexSsid,
+      int indexBssid,
+      const YangPath& path,
+      const folly::dynamic& value);
 };
 
 } // namespace wifi

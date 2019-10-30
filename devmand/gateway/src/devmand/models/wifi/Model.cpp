@@ -5,11 +5,145 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <folly/GLog.h>
+
 #include <devmand/models/wifi/Model.h>
 
 namespace devmand {
 namespace models {
 namespace wifi {
+
+void Model::updateRadio(
+    folly::dynamic& state,
+    int index,
+    const YangPath& path,
+    const folly::dynamic& value) {
+  auto& ap = state["openconfig-access-points:access-points"]["access-point"][0];
+  auto& radios = ap["radios"]["radio"];
+  auto* radio = radios.get_ptr(index);
+  if (radio == nullptr) {
+    folly::dynamic rad = folly::dynamic::object;
+    rad["id"] = index;
+    auto& radc = rad["config"] = folly::dynamic::object;
+    radc["id"] = index;
+    // clang-format off
+  /*
+|     |  +--rw enabled?                  boolean
+|     |  +--rw transmit-power?           uint8
+|     |  +--rw channel?                  uint8
+|     |  +--rw channel-width?            uint8
+|     |  +--rw dca?                      boolean
+|     |  +--rw allowed-channels*         oc-wifi-types:channels-type
+|     |  +--rw dtp?                      boolean
+|     |  +--rw dtp-min?                  uint8
+|     |  +--rw dtp-max?                  uint8
+|     |  +--rw antenna-gain?             int8
+|     |  +--rw scanning?                 boolean
+|     |  +--rw scanning-interval?        uint8
+|     |  +--rw scanning-dwell-time?      uint16
+|     |  +--rw scanning-defer-clients?   uint8
+|     |  +--rw scanning-defer-traffic?   boolean
+  */
+    auto& rads = rad["state"] = folly::dynamic::object;
+    rads["id"] = index;
+  /*
+|     |  +--ro enabled?                        boolean
+|     |  +--ro transmit-power?                 uint8
+|     |  +--ro channel?                        uint8
+|     |  +--ro channel-width?                  uint8
+|     |  +--ro dca?                            boolean
+|     |  +--ro allowed-channels*               oc-wifi-types:channels-type
+|     |  +--ro dtp?                            boolean
+|     |  +--ro dtp-min?                        uint8
+|     |  +--ro dtp-max?                        uint8
+|     |  +--ro antenna-gain?                   int8
+|     |  +--ro scanning?                       boolean
+|     |  +--ro scanning-interval?              uint8
+|     |  +--ro scanning-dwell-time?            uint16
+|     |  +--ro scanning-defer-clients?         uint8
+|     |  +--ro scanning-defer-traffic?         boolean
+|     |  +--ro base-radio-mac?                 oc-yang:mac-address
+|     |  +--ro dfs-hit-time?                   oc-types:timeticks64
+|     |  +--ro channel-change-reason?          identityref
+|     |  +--ro total-channel-utilization?      oc-types:percentage
+|     |  +--ro rx-dot11-channel-utilization?   oc-types:percentage
+|     |  +--ro rx-noise-channel-utilization?   oc-types:percentage
+|     |  +--ro tx-dot11-channel-utilization?   oc-types:percentage
+  */
+    rads["counters"] = folly::dynamic::object;
+  /*
+|     |     +--ro failed-fcs-frames?   oc-yang:counter64
+|     |     +--ro noise-floor?         int8
+|     +--rw neighbors
+|        +--ro neighbor* [bssid]
+|           +--ro bssid    -> ../state/bssid
+|           +--ro state
+|              +--ro bssid?             oc-yang:mac-address
+|              +--ro ssid?              string
+|              +--ro rssi?              int8
+|              +--ro channel?           uint16
+|              +--ro primary-channel?   uint16
+|              +--ro last-seen?         oc-types:timeticks64
+  */
+    // clang-format on
+    radios.push_back(rad);
+  }
+  radio = radios.get_ptr(index);
+
+  YangUtils::set(*radio, path, value);
+}
+
+void Model::updateSsid(
+    folly::dynamic& state,
+    int index,
+    const YangPath& path,
+    const folly::dynamic& value) {
+  auto& ap = state["openconfig-access-points:access-points"]["access-point"][0];
+  auto& ssids = ap["ssids"]["ssid"];
+  auto* ssid = ssids.get_ptr(index);
+  if (ssid == nullptr) {
+    folly::dynamic s = folly::dynamic::object;
+    s["config"] = folly::dynamic::object;
+    s["state"] = folly::dynamic::object;
+    auto& bssids = s["bssids"] = folly::dynamic::object;
+    bssids["bssid"] = folly::dynamic::array;
+    ssids.push_back(s);
+  }
+  ssid = ssids.get_ptr(index);
+
+  YangUtils::set(*ssid, path, value);
+}
+
+void Model::updateSsidBssid(
+    folly::dynamic& state,
+    int indexSsid,
+    int indexBssid,
+    const YangPath& path,
+    const folly::dynamic& value) {
+  auto& ap = state["openconfig-access-points:access-points"]["access-point"][0];
+  auto& ssids = ap["ssids"]["ssid"];
+  auto* ssid = ssids.get_ptr(indexSsid);
+  if (ssid == nullptr) {
+    folly::dynamic s = folly::dynamic::object;
+    s["config"] = folly::dynamic::object;
+    s["state"] = folly::dynamic::object;
+    auto& bssids = s["bssids"] = folly::dynamic::object;
+    bssids["bssid"] = folly::dynamic::array;
+    ssids.push_back(s);
+  }
+  ssid = ssids.get_ptr(indexSsid);
+
+  auto& bssids = (*ssid)["bssids"]["bssid"];
+  auto* bssid = bssids.get_ptr(indexBssid);
+  if (bssid == nullptr) {
+    folly::dynamic b = folly::dynamic::object;
+    b["state"] = folly::dynamic::object;
+    bssids.push_back(b);
+  }
+  bssid = bssids.get_ptr(indexBssid);
+
+  YangUtils::set(*bssid, path, value);
+}
 
 void Model::init(folly::dynamic& state) {
   // openconfig-ap-manager ####################################################
@@ -35,84 +169,21 @@ void Model::init(folly::dynamic& state) {
   folly::dynamic ap = folly::dynamic::object;
   //+--rw hostname                oc-inet:domain-name
   auto& raRoot = ap["radios"] = folly::dynamic::object;
-  auto& ras = raRoot["radio"] = folly::dynamic::array;
-  folly::dynamic ra = folly::dynamic::object;
-  //    |     +--rw id           -> ../config/id
-  ra["config"] = folly::dynamic::object;
-  /*
-|     |  +--rw id?                       uint8
-|     |  +--rw operating-frequency?      identityref
-|     |  +--rw enabled?                  boolean
-|     |  +--rw transmit-power?           uint8
-|     |  +--rw channel?                  uint8
-|     |  +--rw channel-width?            uint8
-|     |  +--rw dca?                      boolean
-|     |  +--rw allowed-channels*         oc-wifi-types:channels-type
-|     |  +--rw dtp?                      boolean
-|     |  +--rw dtp-min?                  uint8
-|     |  +--rw dtp-max?                  uint8
-|     |  +--rw antenna-gain?             int8
-|     |  +--rw scanning?                 boolean
-|     |  +--rw scanning-interval?        uint8
-|     |  +--rw scanning-dwell-time?      uint16
-|     |  +--rw scanning-defer-clients?   uint8
-|     |  +--rw scanning-defer-traffic?   boolean
-  */
-  auto& rast = ra["state"] = folly::dynamic::object;
-  // clang-format off
-  /*
-|     |  +--ro id?                             uint8
-|     |  +--ro operating-frequency?            identityref
-|     |  +--ro enabled?                        boolean
-|     |  +--ro transmit-power?                 uint8
-|     |  +--ro channel?                        uint8
-|     |  +--ro channel-width?                  uint8
-|     |  +--ro dca?                            boolean
-|     |  +--ro allowed-channels*               oc-wifi-types:channels-type
-|     |  +--ro dtp?                            boolean
-|     |  +--ro dtp-min?                        uint8
-|     |  +--ro dtp-max?                        uint8
-|     |  +--ro antenna-gain?                   int8
-|     |  +--ro scanning?                       boolean
-|     |  +--ro scanning-interval?              uint8
-|     |  +--ro scanning-dwell-time?            uint16
-|     |  +--ro scanning-defer-clients?         uint8
-|     |  +--ro scanning-defer-traffic?         boolean
-|     |  +--ro base-radio-mac?                 oc-yang:mac-address
-|     |  +--ro dfs-hit-time?                   oc-types:timeticks64
-|     |  +--ro channel-change-reason?          identityref
-|     |  +--ro total-channel-utilization?      oc-types:percentage
-|     |  +--ro rx-dot11-channel-utilization?   oc-types:percentage
-|     |  +--ro rx-noise-channel-utilization?   oc-types:percentage
-|     |  +--ro tx-dot11-channel-utilization?   oc-types:percentage
-  */
-  rast["counters"] = folly::dynamic::object;
-  /*
-|     |     +--ro failed-fcs-frames?   oc-yang:counter64
-|     |     +--ro noise-floor?         int8
-|     +--rw neighbors
-|        +--ro neighbor* [bssid]
-|           +--ro bssid    -> ../state/bssid
-|           +--ro state
-|              +--ro bssid?             oc-yang:mac-address
-|              +--ro ssid?              string
-|              +--ro rssi?              int8
-|              +--ro channel?           uint16
-|              +--ro primary-channel?   uint16
-|              +--ro last-seen?         oc-types:timeticks64
-  */
-  ras.push_back(ra);
-  /*
+  raRoot["radio"] = folly::dynamic::array;
+  auto& ssidRoot = ap["ssids"] = folly::dynamic::object;
+  ssidRoot["ssid"] = folly::dynamic::array;
+  aps.push_back(ap);
+}
+
+// clang-format off
+/*
 +--rw ssids
 |  +--rw ssid* [name]
-|     +--rw name             -> ../config/name
 |     +--rw config
-|     |  +--rw name?                    string
 |     |  +--rw enabled?                 boolean
 |     |  +--rw hidden?                  boolean
 |     |  +--rw default-vlan?            oc-vlan-types:vlan-id
 |     |  +--rw vlan-list*               oc-vlan-types:vlan-id
-|     |  +--rw operating-frequency?     identityref
 |     |  +--rw basic-data-rates*        identityref
 |     |  +--rw supported-data-rates*    identityref
 |     |  +--rw broadcast-filter?        boolean
@@ -134,12 +205,10 @@ void Model::init(folly::dynamic& state) {
 |     |  +--rw dot11k?                  boolean
 |     |  +--rw okc?                     boolean
 |     +--ro state
-|     |  +--ro name?                    string
 |     |  +--ro enabled?                 boolean
 |     |  +--ro hidden?                  boolean
 |     |  +--ro default-vlan?            oc-vlan-types:vlan-id
 |     |  +--ro vlan-list*               oc-vlan-types:vlan-id
-|     |  +--ro operating-frequency?     identityref
 |     |  +--ro basic-data-rates*        identityref
 |     |  +--ro supported-data-rates*    identityref
 |     |  +--ro broadcast-filter?        boolean
@@ -349,10 +418,8 @@ void Model::init(folly::dynamic& state) {
          +--ro ap-manager-ipv4-address?   oc-inet:ipv4-address
          +--ro ap-manager-ipv6-address*   oc-inet:ipv6-address
          +--ro joined?                    boolean
-  */
-  // clang-format on
-  aps.push_back(ap);
-}
+*/
+// clang-format on
 
 } // namespace wifi
 } // namespace models
