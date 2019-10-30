@@ -466,6 +466,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           "ESM-PROC  - Did not find bearer context for (ue_id="
           MME_UE_S1AP_ID_FMT", ebi=%d), \n",
           ue_id, ebi);
+        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
       // Fetch pdn id using bearer index

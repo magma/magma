@@ -468,7 +468,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
         &bid,
         NULL);
 
-      //Send dedicated_eps_bearer_reject to MME
+      // Send dedicated_eps_bearer_reject to MME APP
       if (rc != RETURNerror) {
         nas_itti_dedicated_eps_bearer_reject(ue_id, ebi);
       }
