@@ -880,7 +880,7 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
 
-  /* If VoLTE is enabled and UE has sent sent PDN Disconnect
+  /* If VoLTE is enabled and UE has sent PDN Disconnect
    * send nas_itti_pdn_disconnect_rsp to NAS.
    * NAS will trigger deactivate Bearer Context Req to UE
    */
@@ -890,6 +890,7 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
     mme_app_itti_pdn_disconnect_rsp(
       ue_context_p->mme_ue_s1ap_id,
       delete_sess_resp_pP->lbi);
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -3060,7 +3061,7 @@ void mme_app_handle_erab_rel_cmd(mme_app_desc_t *mme_app_desc_p,
     s1ap_e_rab_rel_cmd->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
     s1ap_e_rab_rel_cmd->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
 
-    // E-RAB to Be Setup List
+    // E-RAB to be released list
     if (itti_erab_rel_cmd->bearers_to_be_rel) {
       s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items =
         itti_erab_rel_cmd->n_bearers;

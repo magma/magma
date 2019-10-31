@@ -387,7 +387,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
        */
       pid = emm_context->esm_ctx.esm_proc_data->pdn_cid + 1;
       int rc = esm_proc_default_eps_bearer_context(
-        emm_context, pti, pdn_cid, new_ebi, esm_data->bearer_qos.qci, &esm_cause);
+        emm_context, pti, pdn_cid, new_ebi, esm_data->bearer_qos.qci,
+        &esm_cause);
 
       if (rc != RETURNerror) {
         esm_cause = ESM_CAUSE_SUCCESS;
