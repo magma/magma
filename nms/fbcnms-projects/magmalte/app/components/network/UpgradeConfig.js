@@ -180,21 +180,31 @@ class UpgradeConfig extends React.Component<Props, State> {
     this.loadData();
   }
 
-  loadData() {
-    const networkId = nullthrows(this.props.match.params.networkId);
-    Promise.all([
-      MagmaV1API.getChannelsByChannelId({channelId: 'stable'}),
-      MagmaV1API.getNetworksByNetworkIdGateways({networkId}),
-      fetchAllNetworkUpgradeTiers(networkId || ''),
-    ])
-      .then(([channelResp, gateways, networkUpgradeTiers]) => {
-        this.setState({
-          gateways,
-          networkUpgradeTiers,
-          supportedVersions: channelResp.supported_versions,
-        });
-      })
-      .catch(this.props.alert);
+  async loadData() {
+    try {
+      const networkId = nullthrows(this.props.match.params.networkId);
+      const networkUpgradeTiers = await fetchAllNetworkUpgradeTiers(networkId);
+      const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
+        networkId,
+      });
+
+      let supportedVersions = [];
+      try {
+        supportedVersions = (await MagmaV1API.getChannelsByChannelId({
+          channelId: 'stable',
+        })).supported_versions;
+      } catch (e) {
+        this.props.alert('Unable to fetch stable releases');
+      }
+
+      this.setState({
+        gateways,
+        networkUpgradeTiers,
+        supportedVersions,
+      });
+    } catch (e) {
+      this.props.alert(e);
+    }
   }
 
   render() {
