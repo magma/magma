@@ -85,11 +85,10 @@
     name: openvswitch-switch
     state: started
 
+# Ansible's service module doesn't support wildcards so we have to use shell
 - name: Stop all magma services.
   become: yes
-  service:
-    name: magma@*
-    state: stopped
+  shell: service magma@* stop
 
 - name: Bring up gtp_br0
   shell: ifup gtp_br0
