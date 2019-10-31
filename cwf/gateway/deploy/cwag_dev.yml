@@ -12,10 +12,11 @@
     - user: "{{ ansible_user }}"
     - full_provision: true
   roles:
-    - role: apt_cache
-    - role: pkgrepo
+    - role: gateway_dev
       vars:
         distribution: "bionic"
+        config_dir: "cwf/gateway/configs"
+        preburn: false
     - role: ovs
     - role: golang
     - role: cwag
