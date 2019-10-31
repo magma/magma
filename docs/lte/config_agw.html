@@ -69,10 +69,10 @@ successful Orchestrator installation.</p>
 <code>/var/opt/magma/configs/control_proxy.yml</code> with cloud_address and cloud_port
 overrides:</p></li>
 </ol>
-<pre><code class="hljs">cloud_address: controller<span class="hljs-selector-class">.yourdomain</span><span class="hljs-selector-class">.com</span>
-cloud_port: <span class="hljs-number">443</span>
-bootstrap_address: bootstrapper-controller<span class="hljs-selector-class">.yourdomain</span><span class="hljs-selector-class">.com</span>
-bootstrap_port: <span class="hljs-number">443</span>
+<pre><code class="hljs"><span class="hljs-attr">cloud_address:</span> <span class="hljs-string">controller.yourdomain.com</span>
+<span class="hljs-attr">cloud_port:</span> <span class="hljs-number">443</span>
+<span class="hljs-attr">bootstrap_address:</span> <span class="hljs-string">bootstrapper-controller.yourdomain.com</span>
+<span class="hljs-attr">bootstrap_port:</span> <span class="hljs-number">443</span>
 </code></pre>
 <ol start="3">
 <li><p>On AGW host, run <code>show_gateway_info.py</code> to get the AGW's hardware ID and

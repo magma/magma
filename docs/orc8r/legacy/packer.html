@@ -28,12 +28,12 @@ packer validate debian-stretch-virtualbox.json
 <pre><code class="hljs">packer <span class="hljs-keyword">validate</span> debian-stretch-aws.json
 </code></pre>
 <p>and then</p>
-<pre><code class="hljs">packer build -force \
--<span class="hljs-selector-tag">var</span> <span class="hljs-string">"aws_access_key=YOUR_ACCESS_KEY"</span> \
--<span class="hljs-selector-tag">var</span> <span class="hljs-string">"aws_secret_key=Your_SECRET_KEY"</span> \
--<span class="hljs-selector-tag">var</span> <span class="hljs-string">"subnet=YOUR_SUBNET"</span> \
--<span class="hljs-selector-tag">var</span> <span class="hljs-string">"vpc=YOUR_VPC"</span> \
-debian-stretch-aws<span class="hljs-selector-class">.json</span>
+<pre><code class="hljs">packer build -force <span class="hljs-string">\</span>
+-<span class="hljs-keyword">var</span> <span class="hljs-string">"aws_access_key=YOUR_ACCESS_KEY"</span> <span class="hljs-string">\</span>
+-<span class="hljs-keyword">var</span> <span class="hljs-string">"aws_secret_key=Your_SECRET_KEY"</span> <span class="hljs-string">\</span>
+-<span class="hljs-keyword">var</span> <span class="hljs-string">"subnet=YOUR_SUBNET"</span> <span class="hljs-string">\</span>
+-<span class="hljs-keyword">var</span> <span class="hljs-string">"vpc=YOUR_VPC"</span> <span class="hljs-string">\</span>
+debian-stretch-aws.json
 </code></pre>
 <p>where YOUR_SUBNET and YOUR_VPC are existing subnets and vpcs on your aws
 region. The choice of subnet and vpc won't affect the final box, they are

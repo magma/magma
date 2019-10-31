@@ -84,17 +84,17 @@ cls.<span class="hljs-attr">testing_controller</span> = testing_controller_refer
 <h3><a class="anchor" aria-hidden="true" id="unit-test-example"></a><a href="#unit-test-example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unit test example</h3>
 <p><strong>Setup basic information/constants</strong></p>
 <pre><code class="hljs"><span class="hljs-comment"># Setup subscriber info imsi, ip and a PolicyRule</span>
-<span class="hljs-attr">imsi</span> = 'IMSI010000000088888'
-<span class="hljs-attr">sub_ip</span> = '<span class="hljs-number">192.168</span>.<span class="hljs-number">128.74</span>'
-<span class="hljs-attr">flow_list1</span> = [FlowDescription(
-    <span class="hljs-attr">match=FlowMatch(</span>
-        <span class="hljs-attr">ipv4_dst='45.10.0.0/24',</span> <span class="hljs-attr">direction=FlowMatch.UPLINK),</span>
-    <span class="hljs-attr">action=FlowDescription.PERMIT)</span>
-]
-<span class="hljs-attr">policy</span> = PolicyRule(<span class="hljs-attr">id='simple_match',</span> <span class="hljs-attr">priority=2,</span> <span class="hljs-attr">flow_list=flow_list1)</span>
+imsi = <span class="hljs-string">'IMSI010000000088888'</span>
+sub_ip = <span class="hljs-string">'192.168.128.74'</span>
+flow_list1 = [FlowDescription(
+    <span class="hljs-attribute">match</span>=FlowMatch(
+        <span class="hljs-attribute">ipv4_dst</span>=<span class="hljs-string">'45.10.0.0/24'</span>, <span class="hljs-attribute">direction</span>=FlowMatch.UPLINK),
+    <span class="hljs-attribute">action</span>=FlowDescription.PERMIT)
+]<span class="hljs-built_in">
+policy </span>= PolicyRule(<span class="hljs-attribute">id</span>=<span class="hljs-string">'simple_match'</span>, <span class="hljs-attribute">priority</span>=2, <span class="hljs-attribute">flow_list</span>=flow_list1)
 
-<span class="hljs-attr">pkts_matched</span> = <span class="hljs-number">256</span>
-<span class="hljs-attr">pkts_sent</span> = <span class="hljs-number">4096</span>
+pkts_matched = 256
+pkts_sent = 4096
 </code></pre>
 <p><strong>Setup the testing framework classes</strong></p>
 <pre><code class="hljs"><span class="hljs-comment"># Create a subscriber context, used for adding PolicyRules</span>

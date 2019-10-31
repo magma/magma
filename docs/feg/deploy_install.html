@@ -113,35 +113,35 @@ is provided below:</li>
 <span class="hljs-comment"># LICENSE file in the root directory of this source tree. An additional grant</span>
 <span class="hljs-comment"># of patent rights can be found in the PATENTS file in the same directory.</span>
 
-<span class="hljs-attr">COMPOSE_PROJECT_NAME</span>=feg
-<span class="hljs-attr">DOCKER_REGISTRY</span>=&lt;registry&gt;
-<span class="hljs-attr">DOCKER_USERNAME</span>=&lt;username&gt;
-<span class="hljs-attr">DOCKER_PASSWORD</span>=&lt;password&gt;
-<span class="hljs-attr">IMAGE_VERSION</span>=latest
+<span class="hljs-attribute">COMPOSE_PROJECT_NAME</span>=feg
+<span class="hljs-attribute">DOCKER_REGISTRY</span>=&lt;registry&gt;
+<span class="hljs-attribute">DOCKER_USERNAME</span>=&lt;username&gt;
+<span class="hljs-attribute">DOCKER_PASSWORD</span>=&lt;password&gt;
+<span class="hljs-attribute">IMAGE_VERSION</span>=latest
 
-<span class="hljs-attr">ROOTCA_PATH</span>=/var/opt/magma/certs/rootCA.pem
-<span class="hljs-attr">CONTROL_PROXY_PATH</span>=/etc/magma/control_proxy.yml
-<span class="hljs-attr">SNOWFLAKE_PATH</span>=/etc/snowflake
+<span class="hljs-attribute">ROOTCA_PATH</span>=/var/opt/magma/certs/rootCA.pem
+<span class="hljs-attribute">CONTROL_PROXY_PATH</span>=/etc/magma/control_proxy.yml
+<span class="hljs-attribute">SNOWFLAKE_PATH</span>=/etc/snowflake
 
-<span class="hljs-attr">CERTS_VOLUME</span>=/var/opt/magma/certs
-<span class="hljs-attr">CONFIGS_VOLUME</span>=/var/opt/magma/configs
+<span class="hljs-attribute">CERTS_VOLUME</span>=/var/opt/magma/certs
+<span class="hljs-attribute">CONFIGS_VOLUME</span>=/var/opt/magma/configs
 
 <span class="hljs-comment"># This section is unnecessary if using host networking</span>
-<span class="hljs-attr">S6A_LOCAL_PORT</span>=<span class="hljs-number">3868</span>
-<span class="hljs-attr">S6A_HOST_PORT</span>=<span class="hljs-number">3868</span>
-<span class="hljs-attr">S6A_NETWORK</span>=sctp
+<span class="hljs-attribute">S6A_LOCAL_PORT</span>=3868
+<span class="hljs-attribute">S6A_HOST_PORT</span>=3868
+<span class="hljs-attribute">S6A_NETWORK</span>=sctp
 
-<span class="hljs-attr">SWX_LOCAL_PORT</span>=<span class="hljs-number">3869</span>
-<span class="hljs-attr">SWX_HOST_PORT</span>=<span class="hljs-number">3869</span>
-<span class="hljs-attr">SWX_NETWORK</span>=sctp
+<span class="hljs-attribute">SWX_LOCAL_PORT</span>=3869
+<span class="hljs-attribute">SWX_HOST_PORT</span>=3869
+<span class="hljs-attribute">SWX_NETWORK</span>=sctp
 
-<span class="hljs-attr">GX_LOCAL_PORT</span>=<span class="hljs-number">3870</span>
-<span class="hljs-attr">GX_HOST_PORT</span>=<span class="hljs-number">3870</span>
-<span class="hljs-attr">GX_NETWORK</span>=tcp
+<span class="hljs-attribute">GX_LOCAL_PORT</span>=3870
+<span class="hljs-attribute">GX_HOST_PORT</span>=3870
+<span class="hljs-attribute">GX_NETWORK</span>=tcp
 
-<span class="hljs-attr">GY_LOCAL_PORT</span>=<span class="hljs-number">3871</span>
-<span class="hljs-attr">GY_HOST_PORT</span>=<span class="hljs-number">3871</span>
-<span class="hljs-attr">GY_NETWORK</span>=tcp
+<span class="hljs-attribute">GY_LOCAL_PORT</span>=3871
+<span class="hljs-attribute">GY_HOST_PORT</span>=3871
+<span class="hljs-attribute">GY_NETWORK</span>=tcp
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="installation"></a><a href="#installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
 <p>The installation is done using the <code>install_gateway.sh</code> script located at

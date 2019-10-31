@@ -22,14 +22,14 @@
 <pre><code class="hljs"><span class="hljs-comment"># magmad.yml</span>
 
 <span class="hljs-attr">generic_command_config:</span>
-<span class="hljs-attr">  module:</span> <span class="hljs-string">magma.magmad.generic_command.shell_command_executor</span>
-<span class="hljs-attr">  class:</span> <span class="hljs-string">ShellCommandExecutor</span>
-<span class="hljs-attr">  shell_commands:</span>
-<span class="hljs-attr">    - name:</span> <span class="hljs-string">tail_syslog</span>
-<span class="hljs-attr">      command:</span> <span class="hljs-string">"sudo tail /var/log/syslog -n 20"</span>
-<span class="hljs-attr">    - name:</span> <span class="hljs-string">echo</span>
-<span class="hljs-attr">      command:</span> <span class="hljs-string">"echo {}"</span>
-<span class="hljs-attr">      allow_params:</span> <span class="hljs-literal">True</span>
+  <span class="hljs-attr">module:</span> <span class="hljs-string">magma.magmad.generic_command.shell_command_executor</span>
+  <span class="hljs-attr">class:</span> <span class="hljs-string">ShellCommandExecutor</span>
+  <span class="hljs-attr">shell_commands:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">tail_syslog</span>
+      <span class="hljs-attr">command:</span> <span class="hljs-string">"sudo tail /var/log/syslog -n 20"</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">echo</span>
+      <span class="hljs-attr">command:</span> <span class="hljs-string">"echo {}"</span>
+      <span class="hljs-attr">allow_params:</span> <span class="hljs-literal">True</span>
 </code></pre>
 <p>We can then use the API endpoint to execute the command. For example:</p>
 <pre><code class="hljs">POST `<span class="hljs-regexp">/networks/</span>{network_id}<span class="hljs-regexp">/gateways/</span>{gateway_id}<span class="hljs-regexp">/command/g</span>eneric

@@ -213,133 +213,133 @@ kubectl create namespace magma
 own (e.g. adjancent to your terraform scripts). Fill in the values in caps
 with the correct values for your docker registry and Orchestrator hostname:</p>
 <pre><code class="hljs"><span class="hljs-attr">imagePullSecrets:</span>
-<span class="hljs-attr">  - name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
+  <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
 
 <span class="hljs-attr">secrets:</span>
-<span class="hljs-attr">  create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">  docker:</span>
-<span class="hljs-attr">    registry:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY</span>
-<span class="hljs-attr">    username:</span> <span class="hljs-string">YOUR-DOCKER-USERNAME</span>
-<span class="hljs-attr">    password:</span> <span class="hljs-string">YOUR-DOCKER-PASSWORD</span>
+  <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+  <span class="hljs-attr">docker:</span>
+    <span class="hljs-attr">registry:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY</span>
+    <span class="hljs-attr">username:</span> <span class="hljs-string">YOUR-DOCKER-USERNAME</span>
+    <span class="hljs-attr">password:</span> <span class="hljs-string">YOUR-DOCKER-PASSWORD</span>
   
 
 <span class="hljs-attr">proxy:</span>
-<span class="hljs-attr">  image:</span>
-<span class="hljs-attr">    repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/proxy</span>
-<span class="hljs-attr">    tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+  <span class="hljs-attr">image:</span>
+    <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/proxy</span>
+    <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
 
-<span class="hljs-attr">  replicas:</span> <span class="hljs-number">2</span>
+  <span class="hljs-attr">replicas:</span> <span class="hljs-number">2</span>
 
-<span class="hljs-attr">  service:</span>
-<span class="hljs-attr">    type:</span> <span class="hljs-string">LoadBalancer</span>
+  <span class="hljs-attr">service:</span>
+    <span class="hljs-attr">type:</span> <span class="hljs-string">LoadBalancer</span>
 
-<span class="hljs-attr">  spec:</span>
-<span class="hljs-attr">    hostname:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
+  <span class="hljs-attr">spec:</span>
+    <span class="hljs-attr">hostname:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
 
-<span class="hljs-attr">  node-selector:</span>
-<span class="hljs-attr">    worker-type:</span> <span class="hljs-string">controller</span>
+  <span class="hljs-attr">node-selector:</span>
+    <span class="hljs-attr">worker-type:</span> <span class="hljs-string">controller</span>
 
 <span class="hljs-attr">controller:</span>
-<span class="hljs-attr">  image:</span>
-<span class="hljs-attr">    repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/controller</span>
-<span class="hljs-attr">    tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+  <span class="hljs-attr">image:</span>
+    <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/controller</span>
+    <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
 
-<span class="hljs-attr">  replicas:</span> <span class="hljs-number">2</span>
+  <span class="hljs-attr">replicas:</span> <span class="hljs-number">2</span>
 
-<span class="hljs-attr">  migration:</span>
-<span class="hljs-attr">    new_handlers:</span> <span class="hljs-number">1</span>
-<span class="hljs-attr">    new_mconfigs:</span> <span class="hljs-number">1</span>
+  <span class="hljs-attr">migration:</span>
+    <span class="hljs-attr">new_handlers:</span> <span class="hljs-number">1</span>
+    <span class="hljs-attr">new_mconfigs:</span> <span class="hljs-number">1</span>
 
-<span class="hljs-attr">  node-selector:</span>
-<span class="hljs-attr">    worker-type:</span> <span class="hljs-string">controller</span>
+  <span class="hljs-attr">node-selector:</span>
+    <span class="hljs-attr">worker-type:</span> <span class="hljs-string">controller</span>
 
 <span class="hljs-attr">metrics:</span>
-<span class="hljs-attr">  imagePullSecrets:</span>
-<span class="hljs-attr">    - name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
+  <span class="hljs-attr">imagePullSecrets:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
 
-<span class="hljs-attr">  metrics:</span>
-<span class="hljs-attr">    volumes:</span>
-<span class="hljs-attr">      prometheusData:</span>
-<span class="hljs-attr">        volumeSpec:</span>
-<span class="hljs-attr">          hostPath:</span>
-<span class="hljs-attr">            path:</span> <span class="hljs-string">/prometheusData</span>
-<span class="hljs-attr">            type:</span> <span class="hljs-string">DirectoryOrCreate</span>
-<span class="hljs-attr">      prometheusConfig:</span>
-<span class="hljs-attr">        volumeSpec:</span>
-<span class="hljs-attr">          hostPath:</span>
-<span class="hljs-attr">            path:</span> <span class="hljs-string">/configs/prometheus</span>
-<span class="hljs-attr">            type:</span> <span class="hljs-string">DirectoryOrCreate</span>
+  <span class="hljs-attr">metrics:</span>
+    <span class="hljs-attr">volumes:</span>
+      <span class="hljs-attr">prometheusData:</span>
+        <span class="hljs-attr">volumeSpec:</span>
+          <span class="hljs-attr">hostPath:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/prometheusData</span>
+            <span class="hljs-attr">type:</span> <span class="hljs-string">DirectoryOrCreate</span>
+      <span class="hljs-attr">prometheusConfig:</span>
+        <span class="hljs-attr">volumeSpec:</span>
+          <span class="hljs-attr">hostPath:</span>
+            <span class="hljs-attr">path:</span> <span class="hljs-string">/configs/prometheus</span>
+            <span class="hljs-attr">type:</span> <span class="hljs-string">DirectoryOrCreate</span>
 
-<span class="hljs-attr">  prometheus:</span>
-<span class="hljs-attr">    create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">    nodeSelector:</span>
-<span class="hljs-attr">      worker-type:</span> <span class="hljs-string">metrics</span>
+  <span class="hljs-attr">prometheus:</span>
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
-<span class="hljs-attr">  configmanager:</span>
-<span class="hljs-attr">    create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">    image:</span>
-<span class="hljs-attr">      repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/config-manager</span>
-<span class="hljs-attr">      tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
-<span class="hljs-attr">    nodeSelector:</span>
-<span class="hljs-attr">      worker-type:</span> <span class="hljs-string">metrics</span>
+  <span class="hljs-attr">configmanager:</span>
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/config-manager</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
-<span class="hljs-attr">  alertmanger:</span> 
-<span class="hljs-attr">    create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">    nodeSelector:</span>
-<span class="hljs-attr">      worker-type:</span> <span class="hljs-string">metrics</span>
+  <span class="hljs-attr">alertmanger:</span> 
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
-<span class="hljs-attr">  prometheusCache:</span>
-<span class="hljs-attr">    create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">    image:</span>
-<span class="hljs-attr">      repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/prometheus-cache</span>
-<span class="hljs-attr">      tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
-<span class="hljs-attr">    limit:</span> <span class="hljs-number">500000</span>
-<span class="hljs-attr">    nodeSelector:</span>
-<span class="hljs-attr">      worker-type:</span> <span class="hljs-string">metrics</span>
+  <span class="hljs-attr">prometheusCache:</span>
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/prometheus-cache</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">limit:</span> <span class="hljs-number">500000</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
-<span class="hljs-attr">  grafana:</span>
-<span class="hljs-attr">    create:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">    image:</span>
-<span class="hljs-attr">      repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/grafana</span>
-<span class="hljs-attr">      tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
-<span class="hljs-attr">    nodeSelector:</span>
-<span class="hljs-attr">      worker-type:</span> <span class="hljs-string">metrics</span>
+  <span class="hljs-attr">grafana:</span>
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/grafana</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
 <span class="hljs-attr">nms:</span>
-<span class="hljs-attr">  imagePullSecrets:</span>
-<span class="hljs-attr">    - name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
+  <span class="hljs-attr">imagePullSecrets:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
 
-<span class="hljs-attr">  magmalte:</span>
-<span class="hljs-attr">    manifests:</span>
-<span class="hljs-attr">      secrets:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      deployment:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      service:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      rbac:</span> <span class="hljs-literal">false</span>
+  <span class="hljs-attr">magmalte:</span>
+    <span class="hljs-attr">manifests:</span>
+      <span class="hljs-attr">secrets:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">deployment:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">service:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">rbac:</span> <span class="hljs-literal">false</span>
 
-<span class="hljs-attr">    image:</span>
-<span class="hljs-attr">      repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/magmalte</span>
-<span class="hljs-attr">      tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/magmalte</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
 
-<span class="hljs-attr">    env:</span>
-<span class="hljs-attr">      api_host:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
-<span class="hljs-attr">      mysql_host:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">HOST</span>
-<span class="hljs-attr">      mysql_user:</span> <span class="hljs-string">magma</span>
-<span class="hljs-attr">      mysql_pass:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">PASSWORD</span>
-<span class="hljs-attr">  nginx:</span>
-<span class="hljs-attr">    manifests:</span>
-<span class="hljs-attr">      configmap:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      secrets:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      deployment:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      service:</span> <span class="hljs-literal">false</span>
-<span class="hljs-attr">      rbac:</span> <span class="hljs-literal">false</span>
+    <span class="hljs-attr">env:</span>
+      <span class="hljs-attr">api_host:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
+      <span class="hljs-attr">mysql_host:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">HOST</span>
+      <span class="hljs-attr">mysql_user:</span> <span class="hljs-string">magma</span>
+      <span class="hljs-attr">mysql_pass:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">PASSWORD</span>
+  <span class="hljs-attr">nginx:</span>
+    <span class="hljs-attr">manifests:</span>
+      <span class="hljs-attr">configmap:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">secrets:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">deployment:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">service:</span> <span class="hljs-literal">false</span>
+      <span class="hljs-attr">rbac:</span> <span class="hljs-literal">false</span>
 
-<span class="hljs-attr">    service:</span>
-<span class="hljs-attr">      type:</span> <span class="hljs-string">LoadBalancer</span>
+    <span class="hljs-attr">service:</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">LoadBalancer</span>
 
-<span class="hljs-attr">    deployment:</span>
-<span class="hljs-attr">      spec:</span>
-<span class="hljs-attr">        ssl_cert_name:</span> <span class="hljs-string">controller.crt</span>
-<span class="hljs-attr">        ssl_cert_key_name:</span> <span class="hljs-string">controller.key</span>
+    <span class="hljs-attr">deployment:</span>
+      <span class="hljs-attr">spec:</span>
+        <span class="hljs-attr">ssl_cert_name:</span> <span class="hljs-string">controller.crt</span>
+        <span class="hljs-attr">ssl_cert_key_name:</span> <span class="hljs-string">controller.key</span>
 </code></pre>
 <p>NMS won't work without a client certificate, so we've turned off those
 deployments for now. We'll create an admin cert and upgrade the deployment
@@ -389,40 +389,40 @@ directly (on MacOS, double-click this file and add it to your keychain).</p>
 <p>Now that we've got an admin operator cert, we can deploy NMS. Edit the
 <code>vals.yml</code> from above, and change the <code>nms</code> section to the following:</p>
 <pre><code class="hljs"><span class="hljs-attr">nms:</span>
-<span class="hljs-attr">  imagePullSecrets:</span>
-<span class="hljs-attr">    - name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
+  <span class="hljs-attr">imagePullSecrets:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">orc8r-secrets-registry</span>
 
-<span class="hljs-attr">  magmalte:</span>
-<span class="hljs-attr">    manifests:</span>
-<span class="hljs-attr">      secrets:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      deployment:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      service:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      rbac:</span> <span class="hljs-literal">false</span>
+  <span class="hljs-attr">magmalte:</span>
+    <span class="hljs-attr">manifests:</span>
+      <span class="hljs-attr">secrets:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">deployment:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">service:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">rbac:</span> <span class="hljs-literal">false</span>
 
-<span class="hljs-attr">    image:</span>
-<span class="hljs-attr">      repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/magmalte</span>
-<span class="hljs-attr">      tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/magmalte</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
 
-<span class="hljs-attr">    env:</span>
-<span class="hljs-attr">      api_host:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
-<span class="hljs-attr">      mysql_host:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">HOST</span>
-<span class="hljs-attr">      mysql_user:</span> <span class="hljs-string">magma</span>
-<span class="hljs-attr">      mysql_pass:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">PASSWORD</span>
-<span class="hljs-attr">  nginx:</span>
-<span class="hljs-attr">    manifests:</span>
-<span class="hljs-attr">      configmap:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      secrets:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      deployment:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      service:</span> <span class="hljs-literal">true</span>
-<span class="hljs-attr">      rbac:</span> <span class="hljs-literal">false</span>
+    <span class="hljs-attr">env:</span>
+      <span class="hljs-attr">api_host:</span> <span class="hljs-string">controller.YOURDOMAIN.COM</span>
+      <span class="hljs-attr">mysql_host:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">HOST</span>
+      <span class="hljs-attr">mysql_user:</span> <span class="hljs-string">magma</span>
+      <span class="hljs-attr">mysql_pass:</span> <span class="hljs-string">YOUR</span> <span class="hljs-string">RDS</span> <span class="hljs-string">MYSQL</span> <span class="hljs-string">PASSWORD</span>
+  <span class="hljs-attr">nginx:</span>
+    <span class="hljs-attr">manifests:</span>
+      <span class="hljs-attr">configmap:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">secrets:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">deployment:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">service:</span> <span class="hljs-literal">true</span>
+      <span class="hljs-attr">rbac:</span> <span class="hljs-literal">false</span>
 
-<span class="hljs-attr">    service:</span>
-<span class="hljs-attr">      type:</span> <span class="hljs-string">LoadBalancer</span>
+    <span class="hljs-attr">service:</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">LoadBalancer</span>
 
-<span class="hljs-attr">    deployment:</span>
-<span class="hljs-attr">      spec:</span>
-<span class="hljs-attr">        ssl_cert_name:</span> <span class="hljs-string">controller.crt</span>
-<span class="hljs-attr">        ssl_cert_key_name:</span> <span class="hljs-string">controller.key</span>
+    <span class="hljs-attr">deployment:</span>
+      <span class="hljs-attr">spec:</span>
+        <span class="hljs-attr">ssl_cert_name:</span> <span class="hljs-string">controller.crt</span>
+        <span class="hljs-attr">ssl_cert_key_name:</span> <span class="hljs-string">controller.key</span>
 </code></pre>
 <p>You'll just flip all the <code>manifests</code> keys to <code>true</code> except <code>rbac</code>.</p>
 <p>Next, copy your <code>secrets</code> directory back to the chart (to pick up the admin
