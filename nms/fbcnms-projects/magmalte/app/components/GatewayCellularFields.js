@@ -160,7 +160,6 @@ export default function GatewayCellularFields(props: Props) {
             value={ipBlock}
             onChange={({target}) => setIpBlock(target.value)}
             placeholder="E.g. 20.20.20.0/24"
-            disabled={natEnabled}
           />
         </FormField>
         <Divider className={classes.divider} />
