@@ -17,13 +17,13 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
-	"magma/orc8r/cloud/go/service/config"
  	platform_registry "magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/service/config"
 )
 
 const (
-	grpcMaxTimeoutSec = 60
-	grpcMaxDelaySec   = 10
+	grpcMaxTimeoutSec       = 60
+	grpcMaxDelaySec         = 10
 	controlProxyServiceName = "CONTROL_PROXY"
 )
 

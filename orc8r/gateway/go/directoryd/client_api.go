@@ -24,7 +24,7 @@ import (
 
 const (
 	ServiceName = "DIRECTORYD"
-	ImsiPrefix = "IMSI"
+	ImsiPrefix  = "IMSI"
 )
 
 // Get a thin RPC client to the directory service.
@@ -49,8 +49,8 @@ func AddIMSI(imsi string) error {
 	}
 
 	req := &protos.UpdateDirectoryLocationRequest{
-		Table:  protos.TableID_IMSI_TO_HWID,
-		Id:     PrependImsiPrefix(imsi),
+		Table: protos.TableID_IMSI_TO_HWID,
+		Id:    PrependImsiPrefix(imsi),
 		// request Record will be populated by directoryd cloud service
 	}
 	ctx := context.Background()
