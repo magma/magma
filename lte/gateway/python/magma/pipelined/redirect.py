@@ -42,6 +42,8 @@ class RedirectionManager:
 
     REDIRECT_NOT_PROCESSED = REG_ZERO_VAL
     REDIRECT_PROCESSED = 0x1
+    # Globa redirect address, workaround for CWAG not providing a client IP
+    REDIRECT_ADDRESS = ''
 
     RedirectRequest = namedtuple(
         'RedirectRequest',
@@ -80,7 +82,16 @@ class RedirectionManager:
         if rule.redirect.address_type == rule.redirect.IPv6:
             raise RedirectException("No ipv6 support, so no ipv6 redirect")
 
-        self._save_redirect_entry(ip_addr, rule.redirect)
+        # As a TEMP fix for CWAG we'll allow redirection without knowing the
+        # subcriber IP by redirecting to the last provided server address
+        # last writter wins for this.
+        if ip_addr:
+            self._save_redirect_entry(ip_addr, rule.redirect)
+        else:
+            if not rule.redirect.server_address:
+                raise RedirectException("Rule doesn't contain server_address")
+            self.REDIRECT_ADDRESS = rule.redirect.server_address
+
         self._install_redirect_flows(datapath, loop, imsi, rule, rule_num,
                                      priority)
         return

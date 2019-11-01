@@ -11,6 +11,7 @@ import logging
 from collections import namedtuple
 
 from magma.redirectd.redirect_store import RedirectDict
+from magma.pipelined.redirect import RedirectionManager
 
 import wsgiserver
 from flask import Flask, redirect, request, render_template
@@ -62,7 +63,11 @@ def setup_flask_server(scribe_client):
         TODO: not sure what to do with SIP_URI
         """
         if src_ip not in url_dict:
-            return ServerResponse(NOT_FOUND_HTML, HTTP_NOT_FOUND)
+            # TODO fix temporary workaround for CWAG no sub IP redirection
+            # return ServerResponse(NOT_FOUND_HTML, HTTP_NOT_FOUND)
+            return ServerResponse(
+                'http://' + RedirectionManager.REDIRECT_ADDRESS + '/',
+                HTTP_REDIRECT)
 
         redirect_addr = url_dict[src_ip].server_address
         if url_dict[src_ip].address_type == url_dict[src_ip].IPv4:
