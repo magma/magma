@@ -9,10 +9,13 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"magma/feg/cloud/go/feg"
 	fegmodels "magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/health"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
@@ -29,12 +32,14 @@ const (
 	ListFegNetworksPath            = obsidian.V1Root + FederationNetworks
 	ManageFegNetworkPath           = ListFegNetworksPath + "/:network_id"
 	ManageFegNetworkFederationPath = ManageFegNetworkPath + obsidian.UrlSep + "federation"
+	ManageNetworkClusterStatusPath = ManageFegNetworkPath + obsidian.UrlSep + "cluster_status"
 
-	Gateways                    = "gateways"
-	ListGatewaysPath            = ManageFegNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath           = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
-	ManageGatewayStatePath      = ManageGatewayPath + obsidian.UrlSep + "status"
-	ManageGatewayFederationPath = ManageGatewayPath + obsidian.UrlSep + "federation"
+	Gateways                      = "gateways"
+	ListGatewaysPath              = ManageFegNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath             = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayStatePath        = ManageGatewayPath + obsidian.UrlSep + "status"
+	ManageGatewayFederationPath   = ManageGatewayPath + obsidian.UrlSep + "federation"
+	ManageGatewayHealthStatusPath = ManageGatewayPath + obsidian.UrlSep + "health_status"
 
 	FederatedLteNetworks              = "feg_lte"
 	ListFegLteNetworksPath            = obsidian.V1Root + FederatedLteNetworks
@@ -51,6 +56,8 @@ func GetHandlers() []obsidian.Handler {
 		handlers.GetDeleteGatewayHandler(ManageGatewayPath, feg.FegGatewayType),
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
+		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
+		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegmodels.FegNetwork{})...)
@@ -148,4 +155,52 @@ func makeFederationGateways(
 		ret[key] = (&fegmodels.FederationGateway{}).FromBackendModels(ents.magmadGateway, ents.federationGateway, devCasted, statusesByID[hwID])
 	}
 	return ret
+}
+
+func getClusterStatusHandler(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	network, err := configurator.LoadNetwork(nid, true, true)
+	if err == merrors.ErrNotFound {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if network.Type != feg.FederationNetworkType {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, feg.FederationNetworkType))
+	}
+	activeGw, err := health.GetActiveGateway(nid)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	ret := &fegmodels.FederationNetworkClusterStatus{
+		ActiveGateway: activeGw,
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func getHealthStatusHandler(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
+	if err == merrors.ErrNotFound || len(pid) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	res, err := health.GetHealth(nid, gid)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	ret := &fegmodels.FederationGatewayHealthStatus{
+		Status:      res.GetHealth().GetHealth().String(),
+		Description: res.GetHealth().GetHealthMessage(),
+	}
+	return c.JSON(http.StatusOK, ret)
 }
