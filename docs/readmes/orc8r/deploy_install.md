@@ -273,7 +273,7 @@ metrics:
     nodeSelector:
       worker-type: metrics
 
-  alertmanger: 
+  alertmanager: 
     create: true
     nodeSelector:
       worker-type: metrics
