@@ -17,62 +17,60 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin"
+	models2 "orc8r/devmand/cloud/go/plugin/models"
 	"orc8r/devmand/cloud/go/protos/mconfig"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build(t *testing.T) {
-	nw := configurator.Network{ID: "n1"}
-	devmandDevice1 := configurator.NetworkEntity{
-		Type:   devmand.DeviceType,
-		Key:    "device1",
-		Config: models.NewDefaultManagedDeviceModel(),
+	nID := "n1"
+	nw := configurator.Network{ID: nID}
+	device := configurator.NetworkEntity{
+		Type: devmand.SymphonyDeviceType, Key: "d1",
+		Config:             models2.NewDefaultSymphonyDeviceConfig(),
+		ParentAssociations: []storage.TypeAndKey{storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: "a1"}},
 	}
-	devmandGW := configurator.NetworkEntity{
-		Type:         devmand.DevmandGatewayType,
-		Key:          "gw1",
-		Config:       &models.GatewayDevmandConfigs{},
-		Associations: []storage.TypeAndKey{devmandDevice1.GetTypeAndKey()},
+	agent := configurator.NetworkEntity{
+		Type: devmand.SymphonyAgentType, Key: "a1",
+		Associations: []storage.TypeAndKey{
+			{Type: devmand.SymphonyDeviceType, Key: "d1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "a1"}},
 	}
-	magmadGW := configurator.NetworkEntity{
-		Type:         orc8r.MagmadGatewayType,
-		Key:          "gw1",
-		Associations: []storage.TypeAndKey{devmandGW.GetTypeAndKey()},
+	gateway := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "a1",
+		Associations: []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: "a1"}},
 	}
-
-	devmandDevice1.ParentAssociations = []storage.TypeAndKey{devmandGW.GetTypeAndKey()}
-	devmandGW.ParentAssociations = []storage.TypeAndKey{magmadGW.GetTypeAndKey()}
 
 	graph := configurator.EntityGraph{
-		Entities: []configurator.NetworkEntity{magmadGW, devmandGW, devmandDevice1},
+		Entities: []configurator.NetworkEntity{gateway, agent, device},
 		Edges: []configurator.GraphEdge{
-			{From: magmadGW.GetTypeAndKey(), To: devmandGW.GetTypeAndKey()},
-			{From: devmandGW.GetTypeAndKey(), To: devmandDevice1.GetTypeAndKey()},
+			{From: gateway.GetTypeAndKey(), To: agent.GetTypeAndKey()},
+			{From: agent.GetTypeAndKey(), To: device.GetTypeAndKey()},
 		},
 	}
 
 	actual := map[string]proto.Message{}
 	builder := plugin.Builder{}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	err := builder.Build("n1", "a1", graph, nw, actual)
 	assert.NoError(t, err)
 
 	expected := map[string]proto.Message{
 		"devmand": &mconfig.DevmandGatewayConfig{
 			ManagedDevices: map[string]*mconfig.ManagedDevice{
-				"device1": {
-					DeviceConfig: "config_json",
-					DeviceType:   []string{"type_descriptor_1"},
+				"d1": {
+					DeviceConfig: "{}",
+					DeviceType:   []string{"device_type 1", "device_type 2"},
 					Channels: &mconfig.Channels{
-						FrinxChannel:   &mconfig.FrinxChannel{},
-						CambiumChannel: &mconfig.CambiumChannel{},
-						OtherChannel:   &mconfig.OtherChannel{ChannelProps: map[string]string{}},
-						SnmpChannel:    &mconfig.SNMPChannel{},
+						SnmpChannel: &mconfig.SNMPChannel{
+							Community: "snmp community",
+							Version:   "1",
+						},
 					},
-					Host:     "hostname",
-					Platform: "platform_name",
+					Host:     "device_host",
+					Platform: "device_platform",
 				},
 			},
 		},
