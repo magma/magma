@@ -506,7 +506,9 @@ paths:
         '200':
           description: A map of all Symphony devices and their respective configs
           schema:
-            $ref: '#/definitions/symphony_device'
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/symphony_device'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
