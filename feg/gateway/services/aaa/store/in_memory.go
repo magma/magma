@@ -109,16 +109,18 @@ func (st *memSessionTable) AddSession(
 	st.rwl.Lock()
 	if oldSession, ok := st.sm[sid]; ok {
 		if len(overwrite) > 0 && overwrite[0] {
-			oldSession.StopTimeout()
 			if oldSession != nil {
 				oldImsi := oldSession.imsi
+				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
+					sid, oldImsi, imsi)
+
+				oldSession.StopTimeout()
+
 				if oldImsi != imsi {
 					if oldSid, ok := st.sids[oldImsi]; ok && oldSid == sid {
 						delete(st.sids, oldImsi)
 					}
 				}
-				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
-					sid, oldImsi, imsi)
 			}
 		} else {
 			st.rwl.Unlock() // return old session is "best effort", done outside of the table lock

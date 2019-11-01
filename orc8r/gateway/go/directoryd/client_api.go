@@ -41,7 +41,9 @@ func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
 // AddIMSI associates given IMSI (UE) with the calling GW's HW ID
 func AddIMSI(imsi string) error {
 	if len(imsi) == 0 {
-		return fmt.Errorf("Empty IMSI")
+		err := fmt.Errorf("Empty IMSI")
+		glog.Error(err)
+		return err
 	}
 	client, err := GetDirectorydClient()
 	if err != nil {
