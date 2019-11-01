@@ -1,7 +1,8 @@
 ---
-id: introduction
+id: version-1.0.0-introduction
 title: Introduction
 hide_title: true
+original_id: introduction
 ---
 # Introduction
 

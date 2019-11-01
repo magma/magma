@@ -1,8 +1,9 @@
 ---
-id: setup_deb
+id: version-1.0.0-setup_deb
 title: AGW Setup (Bare Metal)
 sidebar_label: Setup (Bare Metal)
 hide_title: true
+original_id: setup_deb
 ---
 # Access Gateway Setup (On Bare Metal)
 ## Prerequisites

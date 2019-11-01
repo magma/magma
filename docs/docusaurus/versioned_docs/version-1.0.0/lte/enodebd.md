@@ -1,7 +1,8 @@
 ---
-id: enodebd
+id: version-1.0.0-enodebd
 title: eNodeB Configuration
 hide_title: true
+original_id: enodebd
 ---
 # eNodeB Configuration
 ## Prerequisites

@@ -1,7 +1,8 @@
 ---
-id: deploy_install
+id: version-1.0.0-deploy_install
 title: Installing Orchestrator
 hide_title: true
+original_id: deploy_install
 ---
 # Installing Orchestrator
 

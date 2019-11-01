@@ -1,7 +1,8 @@
 ---
-id: prerequisites
+id: version-1.0.0-prerequisites
 title: Prerequisites
 hide_title: true
+original_id: prerequisites
 ---
 # Prerequisites
 

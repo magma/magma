@@ -1,8 +1,9 @@
 ---
-id: config_agw
+id: version-1.0.0-config_agw
 title: AGW Configuration
 sidebar_label: AGW Configuration
 hide_title: true
+original_id: config_agw
 ---
 # Access Gateway Configuration
 ## Prerequisites

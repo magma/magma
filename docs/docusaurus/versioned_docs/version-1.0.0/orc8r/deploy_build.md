@@ -1,7 +1,8 @@
 ---
-id: deploy_build
+id: version-1.0.0-deploy_build
 title: Building Orchestrator
 hide_title: true
+original_id: deploy_build
 ---
 
 # Building Orchestrator Components
