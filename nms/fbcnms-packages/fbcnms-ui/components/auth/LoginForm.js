@@ -10,7 +10,7 @@
 
 import type {ElementRef} from 'react';
 
-import Button from '@material-ui/core/Button';
+import Button from '../design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
@@ -72,11 +72,9 @@ class LoginForm extends React.Component<Props, State> {
           </CardContent>
           <CardActions className={classes.footer}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={() =>
-                (window.location = (ssoAction || '') + window.location.search)
-              }>
+              onClick={() => {
+                window.location = (ssoAction || '') + window.location.search;
+              }}>
               Sign In
             </Button>
           </CardActions>
@@ -112,12 +110,7 @@ class LoginForm extends React.Component<Props, State> {
             />
           </CardContent>
           <CardActions className={classes.footer}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => this.form.submit()}>
-              Login
-            </Button>
+            <Button onClick={() => this.form.submit()}>Login</Button>
           </CardActions>
         </form>
       </Card>

@@ -11,7 +11,7 @@
 import type {cwf_gateway, magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import CWFGatewayConfigFields from './CWFGatewayConfigFields';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -135,12 +135,10 @@ export default function(props: Props) {
       </AppBar>
       <DialogContent>{content}</DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} color="primary">
+        <Button onClick={props.onCancel} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

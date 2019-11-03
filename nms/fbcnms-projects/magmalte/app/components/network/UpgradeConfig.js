@@ -13,7 +13,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 import type {magmad_gateway, tier} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -255,9 +255,7 @@ class UpgradeConfig extends React.Component<Props, State> {
               </Typography>
               <div>
                 <NestedRouteLink to={`/tier/edit/`}>
-                  <Button color="primary" variant="contained">
-                    Add Tier
-                  </Button>
+                  <Button>Add Tier</Button>
                 </NestedRouteLink>
               </div>
             </Toolbar>

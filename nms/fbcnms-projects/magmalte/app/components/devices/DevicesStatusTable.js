@@ -9,7 +9,7 @@
  */
 import type {DevicesGatewayPayload} from './DevicesUtils';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DevicesDeviceDialog from './DevicesDeviceDialog';
 import DevicesEditManagedDeviceDialog from './DevicesEditManagedDeviceDialog';
 import DevicesManagedDeviceRow from './DevicesManagedDeviceRow';
@@ -123,7 +123,10 @@ export default function DevicesStatusTable() {
             setRawGateways(newGateways);
           } catch (err) {
             console.error(
-              `Warning: cannot refresh gateway id '${gateway.gateway_id}'. ${err}`,
+              // eslint-disable-next-line prettier/prettier
+              `Warning: cannot refresh gateway id '${
+                gateway.gateway_id
+              }'. ${err}`,
             );
           }
         }),
@@ -166,9 +169,7 @@ export default function DevicesStatusTable() {
         <div className={classes.header}>
           <Typography variant="h5">Devices</Typography>
           <NestedRouteLink to="/add_device/">
-            <Button variant="contained" color="primary">
-              New Device
-            </Button>
+            <Button>New Device</Button>
           </NestedRouteLink>
         </div>
         {errorMessage && <Typography color="error">{errorMessage}</Typography>}

@@ -10,7 +10,7 @@
 
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from '../insights/AsyncMetric';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Close from '@material-ui/icons/Close';
@@ -147,11 +147,7 @@ export default function() {
           value={timeRange}
           onChange={setTimeRange}
         />
-        <Button
-          onClick={onAdd}
-          variant="contained"
-          color="primary"
-          className={classes.addButton}>
+        <Button onClick={onAdd} className={classes.addButton}>
           Add Chart
         </Button>
       </AppBar>

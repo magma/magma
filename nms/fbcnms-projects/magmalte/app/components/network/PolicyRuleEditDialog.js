@@ -14,7 +14,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -99,12 +99,10 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
           ))}
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onCancel} color="primary">
+          <Button onClick={this.props.onCancel} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </Dialog>
     );

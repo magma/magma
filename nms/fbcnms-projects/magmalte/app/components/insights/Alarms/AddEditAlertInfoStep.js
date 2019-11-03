@@ -9,7 +9,7 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -41,6 +41,9 @@ const useStyles = makeStyles(() => ({
   },
   inputColumn: {
     flexGrow: 1,
+  },
+  cancelButton: {
+    marginRight: '8px',
   },
 }));
 
@@ -139,17 +142,12 @@ export default function AddEditAlertInfoStep(props: Props) {
         </div>
         <div className={classes.buttonGroup}>
           <Button
-            style={{marginRight: '10px'}}
-            variant="contained"
-            color="secondary"
+            className={classes.cancelButton}
+            skin="regular"
             onClick={() => props.onPrevious()}>
             Previous
           </Button>
-          <Button
-            className={classes.button}
-            variant="contained"
-            color="primary"
-            onClick={() => props.onNext()}>
+          <Button className={classes.button} onClick={() => props.onNext()}>
             Next
           </Button>
         </div>

@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -108,9 +108,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
                 </IconButton>
               </Tooltip>
               <NestedRouteLink to="/add_mesh/">
-                <Button variant="contained" color="primary">
-                  New Mesh
-                </Button>
+                <Button>New Mesh</Button>
               </NestedRouteLink>
             </div>
           </div>

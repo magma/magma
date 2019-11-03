@@ -9,7 +9,7 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -31,6 +31,9 @@ type Props = {
 const useStyles = makeStyles(() => ({
   body: alertsTheme.formBody,
   buttonGroup: alertsTheme.buttonGroup,
+  cancelButton: {
+    marginRight: '8px',
+  },
 }));
 
 const timeUnits = [
@@ -126,18 +129,12 @@ export default function AddEditAlertNotificationStep(props: Props) {
         </div>
         <div className={classes.buttonGroup}>
           <Button
-            style={{marginRight: '10px'}}
-            variant="contained"
-            color="secondary"
+            className={classes.cancelButton}
+            skin="regular"
             onClick={() => props.onPrevious()}>
             Previous
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => props.onSave()}>
-            Save
-          </Button>
+          <Button onClick={() => props.onSave()}>Save</Button>
         </div>
       </div>
     </>

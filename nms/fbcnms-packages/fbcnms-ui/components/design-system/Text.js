@@ -10,9 +10,10 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
+import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(({symphony}) => ({
+const useStyles = makeStyles({
   h1: symphony.typography.h1,
   h2: symphony.typography.h2,
   h3: symphony.typography.h3,
@@ -50,7 +51,7 @@ const useStyles = makeStyles(({symphony}) => ({
   boldWeight: {
     fontWeight: 600,
   },
-}));
+});
 
 type Props = {
   children: ?React.Node,

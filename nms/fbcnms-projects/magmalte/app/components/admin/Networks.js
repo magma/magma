@@ -9,7 +9,7 @@
  */
 
 import AddNetworkDialog from './AddNetworkDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
@@ -81,9 +81,7 @@ function Networks() {
       <div className={classes.header}>
         <div />
         <NestedRouteLink to="/new">
-          <Button variant="contained" color="primary">
-            Add Network
-          </Button>
+          <Button>Add Network</Button>
         </NestedRouteLink>
       </div>
       {rows.length === 0 ? (

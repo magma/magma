@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
@@ -95,9 +95,7 @@ class SecuritySettings extends React.Component<Props, State> {
           />
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </FormGroup>
       </div>
     );

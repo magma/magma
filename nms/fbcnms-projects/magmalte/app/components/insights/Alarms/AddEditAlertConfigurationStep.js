@@ -9,7 +9,7 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
@@ -71,12 +71,7 @@ export default function AddEditAlertConfigurationStep(props: Props) {
             </Grid>
           </Grid>
         </div>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => props.onNext()}>
-          Next
-        </Button>
+        <Button onClick={() => props.onNext()}>Next</Button>
       </div>
     </>
   );

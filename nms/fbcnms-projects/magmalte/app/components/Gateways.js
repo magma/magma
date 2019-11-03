@@ -15,7 +15,7 @@ import type {WithStyles} from '@material-ui/core';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from './AddGatewayDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
@@ -115,9 +115,7 @@ class Gateways extends React.Component<Props, State> {
       <div className={this.props.classes.paper}>
         <div className={this.props.classes.header}>
           <Text variant="h5">Configure Gateways</Text>
-          <Button variant="contained" color="primary" onClick={this.showDialog}>
-            Add Gateway
-          </Button>
+          <Button onClick={this.showDialog}>Add Gateway</Button>
         </div>
         <Paper elevation={2}>
           {gateways ? (

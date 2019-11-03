@@ -21,6 +21,10 @@ const useStyles = makeStyles(_theme => ({
     '&:focus': {
       outline: 'none',
     },
+    display: 'inline-flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   primarySkin: {},
   redSkin: {},
@@ -77,6 +81,7 @@ const useStyles = makeStyles(_theme => ({
   },
   buttonText: {},
   textVariant: {
+    display: 'inline-block',
     background: 'none',
     padding: 0,
     '&$primarySkin': {
@@ -124,7 +129,7 @@ const useStyles = makeStyles(_theme => ({
 type Props = {
   className?: string,
   children: React.Node,
-  onClick: () => void,
+  onClick?: void | (() => void | Promise<void>),
   skin: 'primary' | 'regular' | 'red',
   variant: 'contained' | 'text',
   disabled: boolean,
@@ -133,6 +138,24 @@ type Props = {
 const Button = (props: Props) => {
   const {className, children, skin, disabled, variant, onClick} = props;
   const classes = useStyles();
+  const textifiedChildren = Array.isArray(children) ? (
+    children.map(c =>
+      typeof c === 'string' ? (
+        <Text variant="body2" weight="medium" className={classes.buttonText}>
+          {c}
+        </Text>
+      ) : (
+        c
+      ),
+    )
+  ) : typeof children === 'string' ? (
+    <Text variant="body2" weight="medium" className={classes.buttonText}>
+      {children}
+    </Text>
+  ) : (
+    children
+  );
+
   return (
     <button
       className={classNames(
@@ -144,13 +167,7 @@ const Button = (props: Props) => {
       )}
       disabled={disabled}
       onClick={onClick}>
-      {typeof children === 'string' ? (
-        <Text variant="body2" weight="medium" className={classes.buttonText}>
-          {children}
-        </Text>
-      ) : (
-        children
-      )}
+      {textifiedChildren}
     </button>
   );
 };

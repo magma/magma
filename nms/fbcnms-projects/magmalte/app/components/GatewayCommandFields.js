@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -109,7 +109,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
           <FormField
             label="Reboot Device"
             tooltip="Reboot the Magma gateway server">
-            <Button onClick={this.handleRebootGateway} color="primary">
+            <Button
+              variant="text"
+              onClick={this.handleRebootGateway}
+              skin="primary">
               Reboot
             </Button>
             <Fade in={this.state.showRebootCheck} timeout={500}>
@@ -120,7 +123,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
             <FormField
               label="Restart Services"
               tooltip="Restart all MagmaD services on this gateway">
-              <Button onClick={this.handleRestartServices} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleRestartServices}
+                skin="primary">
                 Restart Services
               </Button>
               <Fade in={this.state.showRestartCheck} timeout={500}>
@@ -145,7 +151,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handleRebootEnodeb} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleRebootEnodeb}
+                skin="primary">
                 Reboot
               </Button>
             </FormField>
@@ -182,7 +191,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handlePing} color="primary">
+              <Button variant="text" onClick={this.handlePing} skin="primary">
                 Ping
               </Button>
             </FormField>
@@ -218,7 +227,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handleGeneric} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleGeneric}
+                skin="primary">
                 Execute
               </Button>
             </FormField>
@@ -232,7 +244,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
         </DialogContent>
         {this.props.onClose && (
           <DialogActions>
-            <Button onClick={this.props.onClose} color="primary">
+            <Button variant="text" onClick={this.props.onClose} skin="primary">
               Close
             </Button>
           </DialogActions>

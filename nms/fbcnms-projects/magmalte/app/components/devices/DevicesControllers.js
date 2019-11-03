@@ -11,7 +11,7 @@
 import type {DevicesGateway} from './DevicesUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import DevicesEditControllerDialog from './DevicesEditControllerDialog';
@@ -132,9 +132,7 @@ function DevicesControllers(props: Props) {
       <div className={classes.header}>
         <Typography variant="h5">Configure Controllers</Typography>
         <NestedRouteLink to="/new">
-          <Button variant="contained" color="primary">
-            Add Controller
-          </Button>
+          <Button>Add Controller</Button>
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>

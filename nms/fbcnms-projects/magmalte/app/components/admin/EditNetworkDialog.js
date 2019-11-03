@@ -10,7 +10,7 @@
 
 import type {network} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -113,12 +113,10 @@ export default function NetworkDialog(props: Props) {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

@@ -8,7 +8,7 @@
  * @format
  */
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -153,7 +153,7 @@ const JSONDialog = props => {
         <JSONTree data={props.json} theme={THEME} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Close
         </Button>
       </DialogActions>

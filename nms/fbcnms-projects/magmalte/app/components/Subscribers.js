@@ -14,7 +14,7 @@ import type {WithStyles} from '@material-ui/core';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -50,6 +50,9 @@ const styles = theme => ({
   },
   paper: {
     margin: theme.spacing(3),
+  },
+  importButton: {
+    marginRight: '8px',
   },
 });
 
@@ -121,18 +124,11 @@ class Subscribers extends React.Component<Props, State> {
           <Text variant="h5">Subscribers</Text>
           <div className={this.props.classes.buttons}>
             <Button
-              style={{marginRight: '10px'}}
-              variant="contained"
-              color="primary"
+              className={this.props.classes.importButton}
               onClick={this.showImportDialog}>
               Import
             </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.showAddEditDialog}>
-              Add Subscriber
-            </Button>
+            <Button onClick={this.showAddEditDialog}>Add Subscriber</Button>
           </div>
         </div>
         <Paper elevation={2}>

@@ -9,7 +9,7 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import ClipboardLink from '@fbcnms/ui/components/ClipboardLink';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -17,6 +17,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import React from 'react';
+import {default as MUIButton} from '@material-ui/core/Button';
 
 type Props = {
   open: boolean,
@@ -35,22 +36,22 @@ export default function ViewDeleteAlertDialog(props: Props) {
         <PrettyJSON jsonObject={alertConfig} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} color="primary">
+        <Button onClick={onClose} skin="regular">
           {deletingAlert ? 'Cancel' : 'Close'}
         </Button>
         {deletingAlert ? (
-          <Button onClick={onDelete} color="primary" variant="contained">
+          <Button onClick={onDelete} skin="red">
             Delete
           </Button>
         ) : (
           <ClipboardLink>
             {({copyString}) => (
-              <Button
+              <MUIButton
                 onClick={() => copyString(JSON.stringify(alertConfig))}
                 color="primary"
                 variant="contained">
                 Copy
-              </Button>
+              </MUIButton>
             )}
           </ClipboardLink>
         )}
