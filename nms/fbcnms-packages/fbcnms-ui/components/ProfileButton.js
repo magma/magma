@@ -14,7 +14,7 @@ import ListItem from '@material-ui/core/ListItem';
 import Popout from '@fbcnms/ui/components/Popout';
 import ProfileIcon from '../icons/ProfileIcon';
 import React, {useContext, useState} from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import {Events, GeneralLogger} from '@fbcnms/ui/utils/Logging';
 import {makeStyles} from '@material-ui/styles';
@@ -87,7 +87,7 @@ const ProfileButton = (props: Props) => {
       content={
         <List component="nav" className={classes.profileList}>
           <ListItem classes={{gutters: classes.itemGutters}} disabled={true}>
-            <Typography className={classes.profileItemText}>{email}</Typography>
+            <Text className={classes.profileItemText}>{email}</Text>
           </ListItem>
           {props.showSettings && (
             <ListItem
@@ -99,9 +99,7 @@ const ProfileButton = (props: Props) => {
                 history.push(relativeUrl('/settings'));
               }}
               component="a">
-              <Typography className={classes.profileItemText}>
-                Settings
-              </Typography>
+              <Text className={classes.profileItemText}>Settings</Text>
             </ListItem>
           )}
           {showDocs && (
@@ -113,9 +111,7 @@ const ProfileButton = (props: Props) => {
                 GeneralLogger.info(Events.DOCUMENTATION_LINK_CLICKED)
               }
               component="a">
-              <Typography className={classes.profileItemText}>
-                Documentation
-              </Typography>
+              <Text className={classes.profileItemText}>Documentation</Text>
             </ListItem>
           )}
           <ListItem
@@ -123,7 +119,7 @@ const ProfileButton = (props: Props) => {
             button
             href="/user/logout"
             component="a">
-            <Typography className={classes.profileItemText}>Logout</Typography>
+            <Text className={classes.profileItemText}>Logout</Text>
           </ListItem>
         </List>
       }

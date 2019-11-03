@@ -23,7 +23,7 @@ import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
 
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -103,9 +103,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
     return (
       <>
         <DialogContent>
-          <Typography className={this.props.classes.title} variant="subtitle1">
+          <Text className={this.props.classes.title} variant="subtitle1">
             Reboot
-          </Typography>
+          </Text>
           <FormField
             label="Reboot Device"
             tooltip="Reboot the Magma gateway server">
@@ -137,11 +137,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           <div
             style={this.props.showRebootEnodebCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Reboot eNodeB
-            </Typography>
+            </Text>
             <FormField label="eNodeB Serial ID">
               <Input
                 className={this.props.classes.input}
@@ -167,11 +165,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           </div>
           <div style={this.props.showPingCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Ping
-            </Typography>
+            </Text>
             <FormField label="Host(s) (one per line)">
               <Input
                 className={this.props.classes.input}
@@ -204,11 +200,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           </div>
           <div style={this.props.showGenericCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Generic
-            </Typography>
+            </Text>
             <FormField label="Command">
               <Input
                 className={this.props.classes.input}

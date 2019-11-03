@@ -11,8 +11,8 @@
 import CheckIcon from '@material-ui/icons/Check';
 import EditIcon from '@material-ui/icons/Edit';
 import React, {useState} from 'react';
+import Text from './design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -76,11 +76,11 @@ export default function EditableField(props: Props) {
     return (
       <div className={classes.root}>
         {props.value || props.editDisabled ? (
-          <Typography variant="body2">{props.value}</Typography>
+          <Text variant="body2">{props.value}</Text>
         ) : (
-          <Typography variant="body2" color="textSecondary">
+          <Text variant="body2" color="regular">
             Set...
-          </Typography>
+          </Text>
         )}
         <EditIcon
           className={classes.button}

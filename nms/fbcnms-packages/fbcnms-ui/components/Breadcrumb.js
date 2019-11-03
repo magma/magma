@@ -10,8 +10,8 @@
 
 import * as React from 'react';
 import SymphonyTheme from '../theme/symphony';
+import Text from './design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -85,12 +85,14 @@ const Breadcrumb = (props: Props) => {
           placement="top"
           title={
             typeof subtext === 'string' ? (
-              <Typography className={classes.subtext}>{subtext}</Typography>
+              <Text className={classes.subtext} color="light">
+                {subtext}
+              </Text>
             ) : (
               subtext ?? ''
             )
           }>
-          <Typography
+          <Text
             className={classNames({
               [classes.breadcrumbName]: true,
               [classes.parentBreadcrumb]: !isLastBreadcrumb,
@@ -99,13 +101,11 @@ const Breadcrumb = (props: Props) => {
             })}
             onClick={() => onClick && onClick(id)}>
             {name}
-          </Typography>
+          </Text>
         </Tooltip>
       </div>
       {!isLastBreadcrumb && (
-        <Typography className={classNames([classes.slash, textClass])}>
-          {'/'}
-        </Typography>
+        <Text className={classNames([classes.slash, textClass])}>{'/'}</Text>
       )}
     </div>
   );

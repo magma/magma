@@ -12,7 +12,7 @@ import type {WithStyles} from '@material-ui/core';
 
 import ErrorIcon from '@material-ui/icons/Error';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../design-system/Text';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
@@ -54,7 +54,7 @@ class ErrorBoundary extends React.Component<Props, State> {
       return (
         <div className={classes.root}>
           <ErrorIcon size="small" className={classes.errorIcon} />
-          <Typography variant="body1">Oops, something went wrong.</Typography>
+          <Text variant="body1">Oops, something went wrong.</Text>
         </div>
       );
     }

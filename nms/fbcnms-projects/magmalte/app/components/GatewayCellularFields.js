@@ -20,7 +20,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
@@ -142,9 +142,9 @@ export default function GatewayCellularFields(props: Props) {
   return (
     <>
       <DialogContent>
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           EPC Configs
-        </Typography>
+        </Text>
         <FormField label="NAT Enabled">
           <Select
             className={classes.input}
@@ -163,9 +163,9 @@ export default function GatewayCellularFields(props: Props) {
           />
         </FormField>
         <Divider className={classes.divider} />
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           RAN Configs
-        </Typography>
+        </Text>
         <FormField
           label="Registered eNodeBs"
           tooltip="Comma-separated list of unique eNodeB Serial IDs">
@@ -196,9 +196,9 @@ export default function GatewayCellularFields(props: Props) {
           </Select>
         </FormField>
         <Divider className={classes.divider} />
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           NonEPS Configs
-        </Typography>
+        </Text>
         <FormField label="NonEPS Service Control">
           <Select
             className={classes.input}

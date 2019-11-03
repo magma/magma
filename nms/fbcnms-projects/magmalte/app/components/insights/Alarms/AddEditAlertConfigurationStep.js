@@ -14,9 +14,9 @@ import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import alertsTheme from '@fbcnms/ui/theme/alerts';
 
 import {makeStyles} from '@material-ui/styles';
@@ -36,10 +36,10 @@ export default function AddEditAlertConfigurationStep(props: Props) {
 
   return (
     <>
-      <Typography variant="h6">CREATE YOUR NEW ALERT</Typography>
+      <Text variant="h6">CREATE YOUR NEW ALERT</Text>
       <div className={classes.body}>
         <div>
-          <Typography variant="subtitle1">Configure the alert</Typography>
+          <Text variant="subtitle1">Configure the alert</Text>
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField

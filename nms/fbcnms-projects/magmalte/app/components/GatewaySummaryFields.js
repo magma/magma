@@ -23,7 +23,7 @@ import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import {GatewayStatus} from './GatewayUtils';
 
@@ -114,7 +114,7 @@ class GatewaySummaryFields extends React.Component<Props, State> {
             Connected
           </FormField>
           <Divider className={this.props.classes.divider} />
-          <Typography variant="subtitle1">Commands</Typography>
+          <Text variant="subtitle1">Commands</Text>
           <FormField label="Reboot Gateway">
             <Button
               onClick={this.handleRebootGateway}

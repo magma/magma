@@ -15,7 +15,7 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Popover from '@material-ui/core/Popover';
 import React, {useState} from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import {gray8} from '@fbcnms/ui/theme/colors';
 import {makeStyles} from '@material-ui/styles';
@@ -103,17 +103,15 @@ const Breadcrumbs = (props: Props) => {
       ))}
       {hasCollapsedBreadcrumbs && (
         <div className={classes.moreIcon}>
-          <Typography
+          <Text
             className={classNames([classes.moreIconButton, textClass])}
             onClick={e => {
               toggleBreadcrumbsMenuOpen(true);
               setAnchorEl(e.currentTarget);
             }}>
             {'...'}
-          </Typography>
-          <Typography className={classNames([classes.slash, textClass])}>
-            {'/'}
-          </Typography>
+          </Text>
+          <Text className={classNames([classes.slash, textClass])}>{'/'}</Text>
         </div>
       )}
       {endBreadcrumbs.map((b, i) => (
@@ -149,8 +147,8 @@ const Breadcrumbs = (props: Props) => {
                 toggleBreadcrumbsMenuOpen(false);
                 setAnchorEl(null);
               }}>
-              <Typography>{b.name}</Typography>
-              <Typography className={classes.subtext}>{b.subtext}</Typography>
+              <Text>{b.name}</Text>
+              <Text className={classes.subtext}>{b.subtext}</Text>
             </ListItem>
           ))}
         </List>

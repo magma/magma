@@ -11,6 +11,7 @@
 import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';
+import Text from './design-system/Text';
 import Typography from '@material-ui/core/Typography';
 
 import {withStyles} from '@material-ui/core/styles';
@@ -43,9 +44,9 @@ class FormField extends React.Component<Props> {
     const {classes, label, value} = this.props;
     return (
       <div className={classes.root}>
-        <Typography className={classes.labelName} variant="body2">
+        <Text className={classes.labelName} variant="body2">
           {label}:
-        </Typography>
+        </Text>
         <Typography
           className={classes.value}
           variant="body2"

@@ -16,8 +16,8 @@ import NetworkContext from './context/NetworkContext';
 import Popout from '@fbcnms/ui/components/Popout';
 import React, {useContext, useState} from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -106,7 +106,7 @@ const NetworkSelector = () => {
               button
               component="a"
               href={`/nms/${id}`}>
-              <Typography className={classes.networkItemText}>{id}</Typography>
+              <Text className={classes.networkItemText}>{id}</Text>
             </ListItem>
           ))}
           {appContext.user.isSuperUser && (
@@ -121,9 +121,7 @@ const NetworkSelector = () => {
                 button
                 component="a"
                 href="/admin/networks/new">
-                <Typography className={classes.networkItemText}>
-                  Create Network
-                </Typography>
+                <Text className={classes.networkItemText}>Create Network</Text>
               </ListItem>
             </>
           )}

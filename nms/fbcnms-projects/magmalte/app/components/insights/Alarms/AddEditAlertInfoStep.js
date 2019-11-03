@@ -14,9 +14,9 @@ import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import alertsTheme from '@fbcnms/ui/theme/alerts';
 
 import {SEVERITY_STYLE} from './AlarmsTable';
@@ -86,11 +86,11 @@ export default function AddEditAlertInfoStep(props: Props) {
 
   return (
     <>
-      <Typography variant="h6">ALERT INFO</Typography>
+      <Text variant="h6">ALERT INFO</Text>
       <div className={classes.body}>
         <div className={classes.inputArea}>
           <div className={classes.inputColumn}>
-            <Typography variant="subtitle1">Name your new alert</Typography>
+            <Text variant="subtitle1">Name your new alert</Text>
             <AlertInput
               required
               label="Required"
@@ -98,15 +98,15 @@ export default function AddEditAlertInfoStep(props: Props) {
               value={alert}
               onChange={fieldChangedHandler('name')}
             />
-            <Typography variant="subtitle1">Describe your new alert</Typography>
+            <Text variant="subtitle1">Describe your new alert</Text>
             <AlertInput
               placeholder="Ex: The service is down at xyz."
               value={annotations?.description || ''}
               onChange={fieldChangedHandler('description')}
             />
-            <Typography variant="subtitle1">
+            <Text variant="subtitle1">
               What would be the severity of this alert?
-            </Typography>
+            </Text>
             <AlertInput
               select
               placeholder="Ex: Critical"
@@ -120,7 +120,7 @@ export default function AddEditAlertInfoStep(props: Props) {
             </AlertInput>
           </div>
           <div className={classes.inputColumn}>
-            <Typography variant="subtitle1">What team?</Typography>
+            <Text variant="subtitle1">What team?</Text>
             <Grid container spacing={1} alignItems="flex-end">
               <Grid item>
                 <TextField disabled value="operations" />

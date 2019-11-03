@@ -9,8 +9,8 @@
  */
 
 import React from 'react';
+import Text from './design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -20,6 +20,7 @@ const useStyles = makeStyles(theme => ({
     lineHeight: '24px',
     color: theme.palette.blueGrayDark,
     marginBottom: '4px',
+    display: 'block',
   },
   nameField: {
     width: '50%',
@@ -69,7 +70,7 @@ const NameDescriptionSection = ({
   const classes = useStyles();
   return (
     <>
-      <Typography className={classes.fieldName}>{title ?? 'Name'} *</Typography>
+      <Text className={classes.fieldName}>{title ?? 'Name'} *</Text>
       <TextField
         name="name"
         className={classes.nameField}
@@ -79,10 +80,9 @@ const NameDescriptionSection = ({
         value={name}
         onChange={event => onNameChange && onNameChange(event.target.value)}
       />
-      <Typography
-        className={classNames(classes.fieldName, classes.descriptionTitle)}>
+      <Text className={classNames(classes.fieldName, classes.descriptionTitle)}>
         Description
-      </Typography>
+      </Text>
       <TextField
         name="Description"
         InputProps={{

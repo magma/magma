@@ -10,7 +10,7 @@
 
 import PageFooter from '../../components/PageFooter';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -18,7 +18,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/PageFooter`, module).add(
   'string',
   () => (
     <PageFooter>
-      <Typography>Wow</Typography>
+      <Text>Wow</Text>
     </PageFooter>
   ),
 );

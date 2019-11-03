@@ -16,8 +16,8 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
 
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -60,7 +60,7 @@ class SecuritySettings extends React.Component<Props, State> {
 
     return (
       <div className={classes.formContainer}>
-        <Typography variant="h5">Change Password</Typography>
+        <Text variant="h5">Change Password</Text>
         {this.state.error ? (
           <FormLabel error>{this.state.error}</FormLabel>
         ) : null}

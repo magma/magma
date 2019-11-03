@@ -13,7 +13,7 @@ import type {ProjectLink} from './AppDrawerProjectNavigation';
 import AppsIcon from '@material-ui/icons/Apps';
 import Popout from '../Popout';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../../hooks';
@@ -133,9 +133,9 @@ export default function AppSideBarProjectNavigation(props: Props) {
                 })}
                 disabled={match.url.startsWith(item.url)}
                 onClick={_event => history.push(item.url)}>
-                <Typography className={classes.menuItemText} variant="body2">
+                <Text className={classes.menuItemText} variant="body2">
                   {item.secondary}
-                </Typography>
+                </Text>
               </div>
             ))}
           </div>

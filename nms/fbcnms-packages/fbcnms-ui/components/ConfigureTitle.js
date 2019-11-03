@@ -11,7 +11,7 @@
 import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';
-import {Typography} from '@material-ui/core';
+import Text from './design-system/Text';
 import {gray13} from '../theme/colors';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -21,17 +21,11 @@ type Props = {
   className?: string,
 } & WithStyles<typeof styles>;
 
-const styles = theme => ({
+const styles = _theme => ({
   title: {
-    fontSize: '20px',
-    lineHeight: '24px',
-    fontWeight: 500,
-    color: theme.palette.blueGrayDark,
+    display: 'block',
   },
   subtitle: {
-    fontSize: '14px',
-    lineHeight: '24px',
-    fontWeight: 500,
     color: gray13,
   },
 });
@@ -40,8 +34,12 @@ const ConfigureTitle = (props: Props) => {
   const {title, subtitle, classes, className} = props;
   return (
     <div className={className}>
-      <Typography className={classes.title}>{title}</Typography>
-      <Typography className={classes.subtitle}>{subtitle}</Typography>
+      <Text className={classes.title} variant="h6">
+        {title}
+      </Text>
+      <Text className={classes.subtitle} variant="subtitle2">
+        {subtitle}
+      </Text>
     </div>
   );
 };

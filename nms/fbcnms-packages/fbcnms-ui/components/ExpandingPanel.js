@@ -13,7 +13,7 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -83,7 +83,7 @@ const ExpandingPanel = ({className, children, title, rightContent}: Props) => {
         }}
         expandIcon={<ExpandMoreIcon className={classes.expandButton} />}
         IconButtonProps={{onClick: () => setIsExpanded(!isExpanded)}}>
-        <Typography className={classes.panelTitle}>{title}</Typography>
+        <Text className={classes.panelTitle}>{title}</Text>
         {rightContent}
       </ExpansionPanelSummary>
       <ExpansionPanelDetails className={classes.panelDetails}>

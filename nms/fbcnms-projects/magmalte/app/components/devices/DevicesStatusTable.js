@@ -22,7 +22,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import axios from 'axios';
 import {Route} from 'react-router-dom';
 
@@ -167,12 +167,12 @@ export default function DevicesStatusTable() {
     <>
       <div className={classes.paper}>
         <div className={classes.header}>
-          <Typography variant="h5">Devices</Typography>
+          <Text variant="h5">Devices</Text>
           <NestedRouteLink to="/add_device/">
             <Button>New Device</Button>
           </NestedRouteLink>
         </div>
-        {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+        {errorMessage && <Text color="error">{errorMessage}</Text>}
         <Paper>
           <Table>
             <TableHead>

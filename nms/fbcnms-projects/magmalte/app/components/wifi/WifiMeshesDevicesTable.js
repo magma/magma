@@ -24,8 +24,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import WifiDeviceDialog from './WifiDeviceDialog';
 import WifiMeshDialog from './WifiMeshDialog';
 import WifiMeshRow from './WifiMeshRow';
@@ -97,7 +97,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Devices</Typography>
+            <Text variant="h5">Devices</Text>
             <div>
               <Tooltip title={'Last refreshed: ' + this.state.lastRefreshTime}>
                 <IconButton
@@ -112,7 +112,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
               </NestedRouteLink>
             </div>
           </div>
-          <Typography color="error">{this.state.errorMessage}</Typography>
+          <Text color="error">{this.state.errorMessage}</Text>
           <Paper elevation={2}>
             {this.state.isLoading ? <LinearProgress /> : null}
             <Table>

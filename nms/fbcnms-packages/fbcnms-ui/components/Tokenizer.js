@@ -13,7 +13,7 @@ import type {Theme, WithStyles} from '@material-ui/core';
 import * as React from 'react';
 import Autosuggest from 'react-autosuggest';
 import ClearIcon from '@material-ui/icons/Clear';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import {blue05, gray10, gray11, gray12, gray9} from '@fbcnms/ui/theme/colors';
 import {withStyles, withTheme} from '@material-ui/core/styles';
@@ -193,7 +193,7 @@ class Tokenizer extends React.Component<Props, State> {
               [classes.chip]: true,
               [classes.enumChip]: searchSource === 'UserInput',
             })}>
-            <Typography className={classes.chipLabel}>{token.label}</Typography>
+            <Text className={classes.chipLabel}>{token.label}</Text>
             <ClearIcon
               className={classNames({
                 [classes.chipDeleteIcon]: true,

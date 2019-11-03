@@ -9,8 +9,8 @@
  */
 
 import React, {useCallback, useState} from 'react';
+import Text from './design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import {Link} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -103,9 +103,9 @@ export default function NavListItem(props: Props) {
         placement="right"
         title={
           <>
-            <Typography className={classes.tooltipLabel} variant="body2">
+            <Text className={classes.tooltipLabel} variant="body2">
               {props.label}
-            </Typography>
+            </Text>
             <span className={classes.arrow} ref={handleArrowRef} />
           </>
         }

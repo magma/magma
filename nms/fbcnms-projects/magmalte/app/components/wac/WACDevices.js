@@ -20,7 +20,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import WACDeviceDialog from './WACDeviceDialog';
 import WifiMeshDialog from '../wifi/WifiMeshDialog';
 import WifiMeshRow from '../wifi/WifiMeshRow';
@@ -106,7 +106,7 @@ class WACDevices extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Devices</Typography>
+            <Text variant="h5">Devices</Text>
             <NestedRouteLink to="/add_group/">
               <Button>Add Group</Button>
             </NestedRouteLink>

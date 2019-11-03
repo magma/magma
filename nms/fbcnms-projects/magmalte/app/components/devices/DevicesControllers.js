@@ -28,7 +28,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -113,7 +113,7 @@ function DevicesControllers(props: Props) {
       <TableCell>
         {gateway.hardware_id}
         {gateway.devmand_config === undefined && (
-          <Typography color="error">missing devmand config</Typography>
+          <Text color="error">missing devmand config</Text>
         )}
       </TableCell>
       <TableCell>
@@ -130,7 +130,7 @@ function DevicesControllers(props: Props) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Typography variant="h5">Configure Controllers</Typography>
+        <Text variant="h5">Configure Controllers</Text>
         <NestedRouteLink to="/new">
           <Button>Add Controller</Button>
         </NestedRouteLink>

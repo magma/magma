@@ -25,7 +25,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import axios from 'axios';
 import {UserRoles} from '@fbcnms/auth/types';
 
@@ -129,7 +129,7 @@ function UsersSettings(props: Props) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Typography variant="h5">Users</Typography>
+        <Text variant="h5">Users</Text>
         <Button onClick={() => setShowDialog(true)}>Add User</Button>
       </div>
       <Paper elevation={2}>

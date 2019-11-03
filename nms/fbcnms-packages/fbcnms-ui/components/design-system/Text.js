@@ -75,10 +75,11 @@ type Props = {
 };
 
 const Text = (props: Props) => {
-  const {children, variant, className, color, weight} = props;
+  const {children, variant, className, color, weight, ...rest} = props;
   const classes = useStyles();
   return (
     <span
+      {...rest}
       className={classNames(
         classes[variant],
         classes[`${color ?? 'regular'}Color`],

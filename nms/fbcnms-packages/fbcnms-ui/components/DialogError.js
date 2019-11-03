@@ -10,7 +10,7 @@
 
 import * as React from 'react';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
@@ -39,9 +39,9 @@ const DialogError = ({message}: Props) => {
   return (
     <div className={classes.root}>
       <ErrorOutlineIcon className={classes.errorIcon} />
-      <Typography variant="subtitle2" color="error">
+      <Text variant="subtitle2" color="error">
         {message}
-      </Typography>
+      </Text>
     </div>
   );
 };

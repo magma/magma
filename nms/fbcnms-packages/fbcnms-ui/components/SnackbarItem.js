@@ -13,7 +13,7 @@ import CheckCircleIcon from '@material-ui/icons/CheckCircle';
 import CloseIcon from '@material-ui/icons/Close';
 import ErrorIcon from '@material-ui/icons/Error';
 import InfoIcon from '@material-ui/icons/Info';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import WarningIcon from '@material-ui/icons/Warning';
 import classNames from 'classnames';
 import {blue60, gray4, green, red, yellow} from '../theme/colors';
@@ -117,7 +117,7 @@ const SnackbarItem = withForwardRef((props: Props) => {
       <div className={classNames(classes.bar, classes[variant + 'Bar'])} />
       <div className={classes.content}>
         <Icon className={classNames(classes.icon, classes[variant + 'Icon'])} />
-        <Typography className={classes.message}>{message}</Typography>
+        <Text className={classes.message}>{message}</Text>
         <CloseIcon
           className={classes.closeButton}
           onClick={() => closeSnackbar(id)}

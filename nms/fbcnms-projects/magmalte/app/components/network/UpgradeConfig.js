@@ -27,8 +27,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -226,9 +226,9 @@ class UpgradeConfig extends React.Component<Props, State> {
         {gateways && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Gateway Upgrade Status
-              </Typography>
+              </Text>
             </Toolbar>
             <GatewayUpgradeStatusTable
               networkUpgradeTiers={networkUpgradeTiers}
@@ -240,9 +240,9 @@ class UpgradeConfig extends React.Component<Props, State> {
         {supportedVersions && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Current Supported Versions
-              </Typography>
+              </Text>
             </Toolbar>
             <SupportedVersionsTable supportedVersions={supportedVersions} />
           </>
@@ -250,9 +250,9 @@ class UpgradeConfig extends React.Component<Props, State> {
         {networkUpgradeTiers && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Upgrade Tiers
-              </Typography>
+              </Text>
               <div>
                 <NestedRouteLink to={`/tier/edit/`}>
                   <Button>Add Tier</Button>

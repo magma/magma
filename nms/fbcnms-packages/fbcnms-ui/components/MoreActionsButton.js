@@ -14,7 +14,7 @@ import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import Popover from '@material-ui/core/Popover';
 import React, {useState} from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -77,7 +77,7 @@ const MoreActionsButton = (props: Props) => {
                 toggleMenuOpen(false);
                 setAnchorEl(null);
               }}>
-              <Typography className={classes.itemText}>{item.name}</Typography>
+              <Text className={classes.itemText}>{item.name}</Text>
             </ListItem>
           ))}
         </List>
