@@ -15,6 +15,7 @@ const Networks = {
   rhino: 'rhino',
   lte: 'lte',
   carrier_wifi_network: 'carrier_wifi_network',
+  feg: 'feg',
 };
 
 export const WIFI = Networks.wifi;
@@ -23,6 +24,7 @@ export const WAC = Networks.wac;
 export const RHINO = Networks.rhino;
 export const LTE = Networks.lte;
 export const CWF = Networks.carrier_wifi_network;
+export const FEG = Networks.feg;
 
 export const AllNetworkTypes: NetworkType[] = Object.keys(Networks);
 

@@ -20,7 +20,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CWF, LTE} from '@fbcnms/types/network';
+import {CWF, FEG, LTE} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -118,6 +118,23 @@ router.post(
               default_rule_id: '',
               eap_aka: {},
               network_services: [],
+            },
+          },
+        });
+      } else if (data.networkType === FEG) {
+        resp = await MagmaV1API.postFeg({
+          fegNetwork: {
+            ...commonField,
+            federation: {
+              aaa_server: {},
+              eap_aka: {},
+              gx: {},
+              gy: {},
+              health: {},
+              hss: {},
+              s6a: {},
+              served_network_ids: [],
+              swx: {},
             },
           },
         });
