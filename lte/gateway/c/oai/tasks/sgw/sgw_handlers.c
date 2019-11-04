@@ -2269,34 +2269,34 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   // EPS bearer entry
   //--------------------------------------
   // TODO several bearers
-  if (s11_actv_bearer_rsp->cause.cause_value == REQUEST_ACCEPTED) {
-    sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
-    struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_wrapper =
-      NULL;
-    struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_wrapper2 =
-      NULL;
+  sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
+  struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_wrapper =
+    NULL;
+  struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_wrapper2 =
+    NULL;
 
-    pgw_ni_cbr_proc_t *pgw_ni_cbr_proc =
-      pgw_get_procedure_create_bearer(spgw_context);
+  pgw_ni_cbr_proc_t *pgw_ni_cbr_proc =
+    pgw_get_procedure_create_bearer(spgw_context);
 
-    if (pgw_ni_cbr_proc) {
-      sgw_eps_bearer_entry_wrapper =
-        LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-      while (sgw_eps_bearer_entry_wrapper != NULL) {
-        // Save
-        sgw_eps_bearer_entry_wrapper2 =
-          LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
-        eps_bearer_ctxt_p =
-          sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry;
+  if (pgw_ni_cbr_proc) {
+    sgw_eps_bearer_entry_wrapper =
+      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+    while (sgw_eps_bearer_entry_wrapper != NULL) {
+      // Save
+      sgw_eps_bearer_entry_wrapper2 =
+        LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
+      eps_bearer_ctxt_p =
+        sgw_eps_bearer_entry_wrapper->sgw_eps_bearer_entry;
 
-        if (
-          s11_actv_bearer_rsp->bearer_contexts.
-          bearer_contexts[msg_bearer_index].s1u_sgw_fteid.teid ==
-          eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up) {
-          // List management
-          LIST_REMOVE(sgw_eps_bearer_entry_wrapper, entries);
-          free_wrapper((void **) &sgw_eps_bearer_entry_wrapper);
+      if (
+        s11_actv_bearer_rsp->bearer_contexts.
+        bearer_contexts[msg_bearer_index].s1u_sgw_fteid.teid ==
+        eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up) {
+        // List management
+        LIST_REMOVE(sgw_eps_bearer_entry_wrapper, entries);
+        free_wrapper((void **) &sgw_eps_bearer_entry_wrapper);
 
+        if (s11_actv_bearer_rsp->cause.cause_value == REQUEST_ACCEPTED) {
           eps_bearer_ctxt_p->eps_bearer_id =
             s11_actv_bearer_rsp->bearer_contexts.
             bearer_contexts[msg_bearer_index].eps_bearer_id;
@@ -2307,7 +2307,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
             bearer_contexts[msg_bearer_index].s1u_enb_fteid,
             &eps_bearer_ctxt_p->enb_ip_address_S1u);
           eps_bearer_ctxt_p->enb_teid_S1u =
-           s11_actv_bearer_rsp->bearer_contexts.
+            s11_actv_bearer_rsp->bearer_contexts.
             bearer_contexts[msg_bearer_index].s1u_enb_fteid.teid;
 
           eps_bearer_ctxt_p = sgw_cm_insert_eps_bearer_ctxt_in_collection(
@@ -2331,32 +2331,31 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               "Successfully created new EPS bearer entry with EBI %d\n",
               eps_bearer_ctxt_p->eps_bearer_id);
           }
-          // Restore
-          sgw_eps_bearer_entry_wrapper = sgw_eps_bearer_entry_wrapper2;
-          break;
+        } else {
+          OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "Did not create new EPS bearer entry as"
+            "UE rejected the request for EBI %d\n",
+          s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+            .eps_bearer_id);
         }
-        sgw_eps_bearer_entry_wrapper =
-          LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
+        // Restore
+        sgw_eps_bearer_entry_wrapper = sgw_eps_bearer_entry_wrapper2;
+        break;
       }
       sgw_eps_bearer_entry_wrapper =
-        LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
-      if (!sgw_eps_bearer_entry_wrapper) {
-        LIST_INIT(pgw_ni_cbr_proc->pending_eps_bearers);
-        free_wrapper((void **) &pgw_ni_cbr_proc->pending_eps_bearers);
-
-        LIST_REMOVE((pgw_base_proc_t *) pgw_ni_cbr_proc, entries);
-        pgw_free_procedure_create_bearer(&pgw_ni_cbr_proc);
-      }
+        LIST_NEXT(sgw_eps_bearer_entry_wrapper, entries);
     }
-  } else {
-    OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "Did not create new EPS bearer entry as"
-      "UE rejected the request for EBI %d\n",
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
-        .eps_bearer_id);
-  }
+    sgw_eps_bearer_entry_wrapper =
+      LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
+    if (!sgw_eps_bearer_entry_wrapper) {
+      LIST_INIT(pgw_ni_cbr_proc->pending_eps_bearers);
+      free_wrapper((void **) &pgw_ni_cbr_proc->pending_eps_bearers);
 
+      LIST_REMOVE((pgw_base_proc_t *) pgw_ni_cbr_proc, entries);
+      pgw_free_procedure_create_bearer(&pgw_ni_cbr_proc);
+    }
+  }
   //Send ACTIVATE_DEDICATED_BEARER_RSP to PGW
   MessageDef *message_p = NULL;
   message_p =
