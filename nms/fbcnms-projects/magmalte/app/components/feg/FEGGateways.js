@@ -14,6 +14,7 @@ import type {federation_gateway} from '@fbcnms/magma-api';
 import Button from '@material-ui/core/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
+import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -31,6 +32,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '../GatewayUtils';
+import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -71,7 +73,7 @@ const FIVE_MINS = 5 * 60 * 1000;
 
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(federation_gateway[])>(null);
-  const {match, history, relativeUrl} = useRouter();
+  const {match, history, relativePath, relativeUrl} = useRouter();
   const networkId = nullthrows(match.params.networkId);
   const classes = useStyles();
 
@@ -156,6 +158,18 @@ function CWFGateways(props: WithAlert & {}) {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
+      <Route
+        path={relativePath('/new')}
+        render={() => (
+          <FEGGatewayDialog
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={gateway => {
+              setGateways([...gateways, gateway]);
+              history.push(relativeUrl(''));
+            }}
+          />
+        )}
+      />
     </div>
   );
 }
