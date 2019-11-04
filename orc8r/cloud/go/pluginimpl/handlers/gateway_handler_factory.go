@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -216,19 +217,32 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-
-			// for each ID, we want to load the carrier wifi gateway and the magmad gateway
-			entityTKs := make([]storage.TypeAndKey, 0, len(ids)*2)
+			// for each ID, we want to load the gateway and the magmad gateway
+			magmadTKs := make([]storage.TypeAndKey, 0, len(ids))
 			for _, id := range ids {
-				entityTKs = append(
-					entityTKs,
+				magmadTKs = append(
+					magmadTKs,
 					storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id},
+				)
+			}
+			gwTKs := make([]storage.TypeAndKey, 0, len(ids))
+			for _, id := range ids {
+				gwTKs = append(
+					gwTKs,
 					storage.TypeAndKey{Type: gatewayType, Key: id},
 				)
 			}
-			ents, _, err := configurator.LoadEntities(nid, nil, nil, nil, entityTKs, configurator.FullEntityLoadCriteria())
-			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+
+			// we need the two calls because LoadEntities only takes one type filter per call
+			// and we need the type filters in case the TKs are empty
+			magmadGWEnts, _, err := configurator.LoadEntities(nid, swag.String(orc8r.MagmadGatewayType), nil, nil, magmadTKs, configurator.FullEntityLoadCriteria())
+			gwEnts, _, err := configurator.LoadEntities(nid, swag.String(gatewayType), nil, nil, gwTKs, configurator.FullEntityLoadCriteria())
+			ents := configurator.NetworkEntities{}
+			for _, m := range magmadGWEnts {
+				ents = append(ents, m)
+			}
+			for _, g := range gwEnts {
+				ents = append(ents, g)
 			}
 			entsByTK := ents.ToEntitiesByID()
 

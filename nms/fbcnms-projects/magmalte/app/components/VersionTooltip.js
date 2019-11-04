@@ -11,8 +11,8 @@
 import React from 'react';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -37,9 +37,9 @@ export default function VersionTooltip() {
             onClick={() =>
               navigator.clipboard.writeText(version.split(' ')[0])
             }>
-            <Typography className={classes.version} variant="caption">
+            <Text className={classes.version} variant="caption">
               Version
-            </Typography>
+            </Text>
           </Tooltip>
         )
       }

@@ -13,7 +13,7 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import Text from '@fbcnms/ui/components/design-system/Text.react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import {makeStyles} from '@material-ui/styles';

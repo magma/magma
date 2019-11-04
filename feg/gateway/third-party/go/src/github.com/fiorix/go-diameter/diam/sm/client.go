@@ -133,9 +133,10 @@ func (cli *Client) dial(f dialFunc) (diam.Conn, error) {
 	}
 	c, err := f()
 	if err != nil {
-		return nil, err
+		return c, err
 	}
-	return cli.handshake(c)
+	c, err = cli.handshake(c)
+	return c, err
 }
 
 func (cli *Client) validate() error {
@@ -197,7 +198,8 @@ func (cli *Client) handshake(c diam.Conn) (diam.Conn, error) {
 	} else {
 		hostAddresses, err = getLocalAddresses(c)
 		if err != nil {
-			return nil, err
+			c.Close()
+			return nil, fmt.Errorf("diameter handshake failure: %v", err)
 		}
 	}
 

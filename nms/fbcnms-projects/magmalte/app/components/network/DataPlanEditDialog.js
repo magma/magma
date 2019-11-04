@@ -12,10 +12,10 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {network_epc_configs} from '@fbcnms/magma-api';
 
+import Button from '@fbcnms/ui/components/design-system/Button';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import {
-  Button,
   Dialog,
   DialogActions,
   DialogContent,
@@ -154,12 +154,10 @@ class DataPlanEditDialog extends React.Component<Props, State> {
           </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onCancel} color="primary">
+          <Button onClick={this.props.onCancel} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </Dialog>
     );

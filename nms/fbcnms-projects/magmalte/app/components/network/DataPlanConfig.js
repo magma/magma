@@ -14,7 +14,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 import type {network_epc_configs} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DataPlanEditDialog from './DataPlanEditDialog';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
@@ -142,9 +142,7 @@ class DataPlanConfig extends React.Component<Props, State> {
               <TableCell>Subscriber Count</TableCell>
               <TableCell>
                 <NestedRouteLink to="/edit/">
-                  <Button color="primary" variant="contained">
-                    Add Data Plan
-                  </Button>
+                  <Button>Add Data Plan</Button>
                 </NestedRouteLink>
               </TableCell>
             </TableRow>

@@ -147,7 +147,7 @@ down, then continue:
 ```bash
 mkdir -p ~/secrets/envdir
 cd ~/secrets/envdir
-echo "STREAMER,SUBSCRIBERDB,METRICSD,MAGMAD,CONFIG,CHECKIND,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD" > CONTROLLER_SERVICES
+echo "STREAMER,SUBSCRIBERDB,METRICSD,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD" > CONTROLLER_SERVICES
 echo "dbname=orc8r user=orc8r password=<YOUR ORC8R DB PASSWORD> host=<YOUR ORC8R RDS ENDPOINT>" > DATABASE_SOURCE
 ```
 
@@ -197,7 +197,7 @@ kubectl create namespace magma
 ```
 
 Next, create a `vals.yml` somewhere in a source controlled directory that you
-own (e.g. adjancent to your terraform scripts). Fill in the values in caps
+own (e.g. adjacent to your terraform scripts). Fill in the values in caps
 with the correct values for your docker registry and Orchestrator hostname:
 
 ```
@@ -220,12 +220,13 @@ proxy:
   replicas: 2
 
   service:
+    name: orc8r-bootstrap-legacy
     type: LoadBalancer
 
   spec:
     hostname: controller.YOURDOMAIN.COM
 
-  node-selector:
+  nodeSelector:
     worker-type: controller
 
 controller:
@@ -239,7 +240,7 @@ controller:
     new_handlers: 1
     new_mconfigs: 1
 
-  node-selector:
+  nodeSelector:
     worker-type: controller
 
 metrics:
@@ -272,7 +273,7 @@ metrics:
     nodeSelector:
       worker-type: metrics
 
-  alertmanger: 
+  alertmanager: 
     create: true
     nodeSelector:
       worker-type: metrics
@@ -350,19 +351,22 @@ First, find a `orc8r-controller-` pod in k8s:
 $ kubectl -n magma get pods
 
 NAME                                      READY   STATUS    RESTARTS   AGE
-orc8r-controller-655ccf99b-bbq7x          1/1     Running   0          X
-orc8r-controller-655ccf99b-v8zjv          1/1     Running   0          X
-orc8r-grafana-7b4c447865-972xx            1/1     Running   0          X
-orc8r-metrics-645ffcd47-phf2b             3/3     Running   0          X
-orc8r-prometheus-cache-574c457b89-m6f8g   1/1     Running   0          X
-orc8r-proxy-64bd4fdb5-77t7r               1/1     Running   0          X
-orc8r-proxy-64bd4fdb5-rw9nh               1/1     Running   0          X
+orc8r-configmanager-896d784bc-chqr7       1/1     Running   0          X
+orc8r-controller-7757567bf5-cm4wn         1/1     Running   0          X
+orc8r-controller-7757567bf5-jshpv         1/1     Running   0          X
+orc8r-alertmanager-c8dc7cdb5-crzpl        1/1     Running   0          X
+orc8r-grafana-6446b97885-ck6g8            1/1     Running   0          X
+orc8r-prometheus-6c67bcc9d8-6lx22         1/1     Running   0          X
+orc8r-prometheus-cache-6bf7648446-9t9hx   1/1     Running   0          X
+orc8r-proxy-57cf989fcc-cg54z              1/1     Running   0          X
+orc8r-proxy-57cf989fcc-xn2cw              1/1     Running   0          X
 ```
 
 Then:
 
 ```bash
-$ kubectl exec -it orc8r-controller-POD-ID bash
+export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -it ${CNTLR_POD} bash
 
 # The following commands are to be run inside the pod
 (pod)$ cd /var/opt/magma/bin
@@ -380,9 +384,10 @@ just created into the secrets directory:
 
 ```bash
 cd ~/secrets/certs
-kubectl cp orc8r-controller-POD-ID:/var/opt/magma/bin/admin_operator.pem ./admin_operator.pem
-kubectl cp orc8r-controller-POD-ID:/var/opt/magma/bin/admin_operator.key.pem ./admin_operator.key.pem
-kubectl cp orc8r-controller-POD-ID:/var/opt/magma/bin/admin_operator.pfx ./admin_operator.pfx
+for certfile in admin_operator.pem admin_operator.key.pem admin_operator.pfx
+do
+    kubectl cp ${CNTLR_POD}:/var/opt/magma/bin/${certfile} ./${certfile}
+done
 ```
 
 `admin_operator.pem` and `admin_operator.key.pem` are the files that NMS will

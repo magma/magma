@@ -11,7 +11,7 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -20,7 +20,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import WACDeviceDialog from './WACDeviceDialog';
 import WifiMeshDialog from '../wifi/WifiMeshDialog';
 import WifiMeshRow from '../wifi/WifiMeshRow';
@@ -106,11 +106,9 @@ class WACDevices extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Devices</Typography>
+            <Text variant="h5">Devices</Text>
             <NestedRouteLink to="/add_group/">
-              <Button variant="contained" color="primary">
-                Add Group
-              </Button>
+              <Button>Add Group</Button>
             </NestedRouteLink>
           </div>
           <Paper elevation={2}>

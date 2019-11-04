@@ -11,7 +11,7 @@
 import AddEditAlert from './AddEditAlert';
 import AlarmsHeader from './AlarmsHeader';
 import AlarmsTable from './AlarmsTable';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import EditAllAlerts from './EditAllAlerts';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -92,14 +92,10 @@ function FiringAlerts() {
         onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}
         data-testid="firing-alerts">
         <NestedRouteLink to={'/edit_alerts'}>
-          <Button variant="contained" color="secondary">
-            Edit Alerts
-          </Button>
+          <Button skin="regular">Edit Alerts</Button>
         </NestedRouteLink>
         <NestedRouteLink to={'/new_alert'}>
-          <Button variant="contained" color="primary">
-            New Alert
-          </Button>
+          <Button>New Alert</Button>
         </NestedRouteLink>
       </AlarmsHeader>
       <AlarmsTable alertsColumnName="Firing Alerts" alertData={alertData} />

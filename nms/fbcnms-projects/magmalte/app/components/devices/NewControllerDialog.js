@@ -9,7 +9,7 @@
  */
 import type {Match} from 'react-router-dom';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -85,13 +85,11 @@ export default function NewControllerDialog(props: Props) {
         </FormGroup>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
         <Button
-          onClick={() => onSave(match, hardwareId, name).then(props.onSave)}
-          color="primary"
-          variant="contained">
+          onClick={() => onSave(match, hardwareId, name).then(props.onSave)}>
           Save
         </Button>
       </DialogActions>

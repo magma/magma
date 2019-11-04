@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {SelectionCallbackType} from './Table.react';
-import type {SelectionType} from '../Checkbox/Checkbox.react';
+import type {SelectionCallbackType} from './Table';
+import type {SelectionType} from '../Checkbox/Checkbox';
 
 import * as React from 'react';
 import emptyFunction from '../../../../fbcnms-util/emptyFunction';

@@ -7,8 +7,8 @@
 
 #include <devmand/ErrorQueue.h>
 #include <folly/json.h>
-#include <future>
 #include <gtest/gtest.h>
+#include <future>
 
 namespace devmand {
 namespace test {

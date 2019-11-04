@@ -8,7 +8,7 @@
  * @format
  */
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -26,6 +26,7 @@ import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes} from '@fbcnms/types/network';
+import {CWF} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -48,6 +49,7 @@ export default function NetworkDialog(props: Props) {
   const [description, setDescription] = useState('');
   const [networkID, setNetworkId] = useState('');
   const [networkType, setNetworkType] = useState('');
+  const [fegNetworkID, setFegNetworkID] = useState('');
   const [error, setError] = useState(null);
 
   const onSave = () => {
@@ -57,6 +59,7 @@ export default function NetworkDialog(props: Props) {
         name,
         description,
         networkType,
+        fegNetworkID,
       },
     };
     axios
@@ -110,14 +113,21 @@ export default function NetworkDialog(props: Props) {
             ))}
           </Select>
         </FormControl>
+        {networkType === CWF && (
+          <TextField
+            name="fegNetworkID"
+            label="Federation Network ID"
+            className={classes.input}
+            value={fegNetworkID}
+            onChange={({target}) => setFegNetworkID(target.value)}
+          />
+        )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

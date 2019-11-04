@@ -10,9 +10,9 @@
 
 import Button from '@material-ui/core/Button';
 import React, {useState} from 'react';
-import SideBar from '../../components/layout/SideBar.react';
-import TopPageBar from '../../components/layout/TopPageBar.react';
-import Typography from '@material-ui/core/Typography';
+import SideBar from '../../components/layout/SideBar';
+import Text from '../../components/design-system/Text';
+import TopPageBar from '../../components/layout/TopPageBar';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -29,7 +29,7 @@ const Container = () => {
   return (
     <div className={classes.root}>
       <TopPageBar>
-        <Typography variant="body2">I'm a Header</Typography>
+        <Text variant="body2">I'm a Header</Text>
         <Button onClick={() => setIsShown(true)}>Open Drawer</Button>
       </TopPageBar>
       <SideBar isShown={isShown} top={60} onClose={() => setIsShown(false)}>

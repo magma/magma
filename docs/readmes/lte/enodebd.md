@@ -12,13 +12,20 @@ installation of Orchestrator and the instructions in "[AGW Configuration](
 https://facebookincubator.github.io/magma/docs/lte/config_agw)" to provision and
 configure your Access Gateway (AGW).
 
-You should be able to access the orchestrator REST API and validate successful
-periodic check-in(s) between the AGW and Orchestrator.
-
 ## S1 interface
 Connect your eNodeB to the `eth1` interface of Magma gateway. Magma uses `eth1`
 as the default `S1` interface. If you have more than one eNodeB, use an L2
-switch to connect all `S1` interfaces.
+switch to connect all `S1` interfaces. For debugging purposes, you may find it
+particularly useful to do the following:
+
+1. Configure a managed L2 switch (e.g. [this NETGEAR](https://www.amazon.com/NETGEAR-GS108T-200NAS-GS108Tv2-Lifetime-Protection/dp/B07PS6Z162/))
+to mirror port X and port Y to port Z.
+2. Connect port X of that switch to the `eth1` interface on your AGW.
+3. Connect the WAN interface on your enodeB to port Y on the switch.
+4. Connect your host to port Z on the switch.
+
+This will allow you to do live packet captures with Wireshark from your host to
+debug the S1 interface between the enodeB and the AGW (filter for SCTP).
 
 ## Automatic configuration
 *Magma officially supports auto-configuration of the following devices:*
@@ -26,6 +33,7 @@ switch to connect all `S1` interfaces.
   - Firmware Version: BaiBS_RTS_3.1.6
 * Baicells mBS1100 LTE-TDD Base Station
   - Firmware Version: BaiStation_V100R001C00B110SPC003
+* Baicells Neutrino-244 ID FDD/TDD enodeB
 
 *Magma supports the following management protocols:*
 * TR-069 (CWMP)
@@ -42,30 +50,25 @@ the O&M interface between Magma and any connected eNodeB. The `enodebd` service
 can be disabled if you configure your eNodeB devices manually.
 
 ### Baicells
-*1. Set eNodeB management server URL to `baiomc.cloudapp.net:48080`*
 
-Magma uses DNS hijacking to point the eNodeB to the configuration server
-being run by enodebd. `baiomc.cloudapp.net:48080` will point to
-`192.88.99.142`, the IP address that the configuration server is being hosted
-on.
+Use the enodeB's management interface to set the management server URL to
+`baiomc.cloudapp.net:48080`. Magma uses DNS hijacking to point the eNodeB to
+the configuration server being run by enodebd. `baiomc.cloudapp.net:48080`
+will point to `192.88.99.142`, the IP address that the TR-069 ACS is
+being hosted on.
 
-*2. Create eNodeB configurations on the NMS*
+## Provisioning Your eNodeB on NMS
 
-In the network management system, you'll want to create a new eNodeB
-configuration for each one you are using in your network. You'll need to
-double-check that you have the correct serial ID inputted for each eNodeB,
-otherwise the AGW auto-configuration of connected eNodeB devices will not work.
+Get the serial number of your eNodeB, you'll need it to register the device.
+On the NMS, navigate to "eNodeB Devices" in the sidebar, and hit "Add EnodeB".
+Configure the RAN parameters as necessary. Note that fields left blank will
+be inherited from either the network or gateway LTE parameters:
 
-After creating your eNodeB configurations, you'll want to go back and edit
-your AGW settings on NMS. Under the LTE tab of your AGW settings, enter in
-the serial IDs of the eNodeB devices that you are connecting to your AGW. Only
-registered eNB devices will be configured by the AGW.
+![Configuring an eNodeB](assets/nms/configure_enb.png)
 
-After you have finished your configurations on NMS, network configuration
-settings are propagated to the AGW. This should take about a minute if your
-AGW is actively checking-in to your orchestrator. You can also double check
-by viewing `/var/opt/magma/gateway.mconfig` in your AGW, which should be
-updated when configuration updates are streamed from the orchestrator.
+Then, go back to the "Gateways" page and edit the LTE configuration of your
+AGW. Enter the serial number of the enodeB you just provisioned into the
+"Registered eNodeBs" field, then hit save.
 
 ### Basic Troubleshooting
 After connecting your eNodeB(s) to the gateway through the `eth1` interface, you
@@ -146,35 +149,23 @@ Source        Destination    Protocol  Length   Info
 ```
 
 # Connecting your first user
-### Adding subscribers
-Once your eNodeB starts transmitting, UEs may attempt to attach to your network.
-Network will reject these attach requests due to authentication failure. To add
-a subscriber to the subscriber database, we can use the swagger API again.
-Navigate to `/lte/{network_id}/subscribers` and use the provided sample
-json to add a subscriber to the network.
 
-```
-{
-  "id": "IMSI123456789012345",
-  "lte": {
-    "auth_algo": "MILENAGE",
-    "auth_key": ""
-    "auth_opc": "",
-    "state": "ACTIVE"
-  }
-}
-```
+## Adding subscribers
 
-Note that the ID field is the letters “IMSI” followed by the 15 digit IMSI
-(e.g. IMSI value 123456789012345 is stored as "IMSI123456789012345")
-. `auth_key` and `auth_opc` are both base 64-encoded binaries. HEX to base64
-conversion can be done using command line tools  (e.g. openssl, base64, etc.) or
-this [online tool]( https://cryptii.com/pipes/hex-to-base64).
+Once your eNodeB starts transmitting, UEs may attempt to attach to your
+network. Your AGW will reject these attach requests due to authentication
+failure until you add the corresponding IMSI to the subscriber database.
+
+On the NMS, go to "Subscribers", then "Add Subscriber". The SIM secrets can be
+entered either in hex or base64-encoded binary:
+
+![Adding a subscriber](assets/nms/add_sub.png)
 
 Subscriber information will eventually propagate to the AGW. You can verify
 using the CLI command `"subscriber_cli.py list"`
 
-### Validating UE connectivity
+## Validating UE connectivity
+
 Validating UE connectivity can be done from the UE side, MME side, or by
 listening to traffic on the `S1` interface.
 Below is a typical UE attach procedure as captured on the `S1` interface.
