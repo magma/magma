@@ -33,6 +33,7 @@ import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {GatewayStatus} from '../GatewayUtils';
 import {Route} from 'react-router-dom';
+import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -165,6 +166,24 @@ function CWFGateways(props: WithAlert & {}) {
             onClose={() => history.push(relativeUrl(''))}
             onSave={gateway => {
               setGateways([...gateways, gateway]);
+              history.push(relativeUrl(''));
+            }}
+          />
+        )}
+      />
+      <Route
+        path={relativePath('/edit/:gatewayID')}
+        render={({match}) => (
+          <FEGGatewayDialog
+            editingGateway={nullthrows(
+              gateways.find(gw => gw.id === match.params.gatewayID),
+            )}
+            onClose={() => history.push(relativeUrl(''))}
+            onSave={gateway => {
+              const newGateways = [...gateways];
+              const i = findIndex(newGateways, g => g.id === gateway.id);
+              newGateways[i] = gateway;
+              setGateways(newGateways);
               history.push(relativeUrl(''));
             }}
           />
