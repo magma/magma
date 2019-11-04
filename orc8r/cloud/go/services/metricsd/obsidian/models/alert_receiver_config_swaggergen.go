@@ -19,6 +19,9 @@ import (
 // swagger:model alert_receiver_config
 type AlertReceiverConfig struct {
 
+	// email configs
+	EmailConfigs []*EmailReceiver `json:"email_configs"`
+
 	// name
 	// Required: true
 	Name *string `json:"name"`
@@ -33,6 +36,10 @@ type AlertReceiverConfig struct {
 // Validate validates this alert receiver config
 func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateEmailConfigs(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
@@ -49,6 +56,31 @@ func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *AlertReceiverConfig) validateEmailConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EmailConfigs) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.EmailConfigs); i++ {
+		if swag.IsZero(m.EmailConfigs[i]) { // not required
+			continue
+		}
+
+		if m.EmailConfigs[i] != nil {
+			if err := m.EmailConfigs[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("email_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
