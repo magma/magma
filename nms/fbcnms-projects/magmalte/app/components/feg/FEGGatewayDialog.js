@@ -8,7 +8,11 @@
  * @format
  */
 
-import type {federation_gateway, gx} from '@fbcnms/magma-api';
+import type {
+  federation_gateway,
+  gateway_federation_configs,
+  gx,
+} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -48,6 +52,7 @@ const useStyles = makeStyles({
 type Props = {|
   onClose: () => void,
   onSave: federation_gateway => void,
+  editingGateway?: federation_gateway,
 |};
 
 type DiameterValues = {
@@ -60,19 +65,21 @@ type DiameterValues = {
   product_name: string,
 };
 
-const DEFAULT_DIAMETER_VALUES = {
-  address: '',
-  dest_host: '',
-  dest_realm: '',
-  host: '',
-  realm: '',
-  local_address: '',
-  product_name: '',
-};
-
 function getDiameterConfigs(cfg: DiameterValues): gx {
   return {
     server: {...cfg},
+  };
+}
+
+function getInitialDiameterConfigs(cfg: ?gx): DiameterValues {
+  return {
+    address: cfg?.server?.address || '',
+    dest_host: cfg?.server?.dest_host || '',
+    dest_realm: cfg?.server?.dest_realm || '',
+    host: cfg?.server?.host || '',
+    realm: cfg?.server?.realm || '',
+    local_address: cfg?.server?.local_address || '',
+    product_name: cfg?.server?.product_name || '',
   };
 }
 
@@ -81,11 +88,18 @@ export default function FEGGatewayDialog(props: Props) {
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const [tab, setTab] = useState(0);
+  const {editingGateway} = props;
+  const [tab, setTab] = useState(editingGateway ? 'gx' : 'general');
   const [generalFields, setGeneralFields] = useState(EMPTY_GATEWAY_FIELDS);
-  const [gx, setGx] = useState<DiameterValues>(DEFAULT_DIAMETER_VALUES);
-  const [gy, setGy] = useState<DiameterValues>(DEFAULT_DIAMETER_VALUES);
-  const [s6a, setS6A] = useState<DiameterValues>(DEFAULT_DIAMETER_VALUES);
+  const [gx, setGx] = useState<DiameterValues>(
+    getInitialDiameterConfigs(editingGateway?.federation?.gx),
+  );
+  const [gy, setGy] = useState<DiameterValues>(
+    getInitialDiameterConfigs(editingGateway?.federation?.gy),
+  );
+  const [s6a, setS6A] = useState<DiameterValues>(
+    getInitialDiameterConfigs(editingGateway?.federation?.s6a),
+  );
 
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
@@ -97,40 +111,50 @@ export default function FEGGatewayDialog(props: Props) {
     return <LoadingFillerBackdrop />;
   }
 
+  const getFederationConfigs = (): gateway_federation_configs => ({
+    aaa_server: {},
+    eap_aka: {},
+    gx: getDiameterConfigs(gx),
+    gy: {server: getDiameterConfigs(gy).server},
+    health: {},
+    hss: {},
+    s6a: getDiameterConfigs(s6a),
+    served_network_ids: [],
+    swx: {},
+  });
+
   const onSave = async () => {
     try {
-      await MagmaV1API.postFegByNetworkIdGateways({
-        networkId: networkID,
-        gateway: {
-          device: {
-            hardware_id: generalFields.hardwareID,
-            key: {
-              key: generalFields.challengeKey,
-              key_type: 'ECHO',
+      if (editingGateway) {
+        await MagmaV1API.putFegByNetworkIdGatewaysByGatewayIdFederation({
+          networkId: networkID,
+          gatewayId: editingGateway.id,
+          config: getFederationConfigs(),
+        });
+      } else {
+        await MagmaV1API.postFegByNetworkIdGateways({
+          networkId: networkID,
+          gateway: {
+            device: {
+              hardware_id: generalFields.hardwareID,
+              key: {
+                key: generalFields.challengeKey,
+                key_type: 'ECHO',
+              },
             },
+            federation: getFederationConfigs(),
+            magmad: MAGMAD_DEFAULT_CONFIGS,
+            id: generalFields.gatewayID,
+            description: generalFields.description,
+            name: generalFields.name,
+            tier: generalFields.tier,
           },
-          federation: {
-            aaa_server: {},
-            eap_aka: {},
-            gx: getDiameterConfigs(gx),
-            gy: {server: getDiameterConfigs(gy).server},
-            health: {},
-            hss: {},
-            s6a: getDiameterConfigs(s6a),
-            served_network_ids: [],
-            swx: {},
-          },
-          magmad: MAGMAD_DEFAULT_CONFIGS,
-          id: generalFields.gatewayID,
-          description: generalFields.description,
-          name: generalFields.name,
-          tier: generalFields.tier,
-        },
-      });
+        });
+      }
 
       const gateway = await MagmaV1API.getFegByNetworkIdGatewaysByGatewayId({
         networkId: networkID,
-        gatewayId: generalFields.gatewayID,
+        gatewayId: editingGateway?.id || generalFields.gatewayID,
       });
       props.onSave(gateway);
     } catch (e) {
@@ -142,7 +166,7 @@ export default function FEGGatewayDialog(props: Props) {
 
   let content;
   switch (tab) {
-    case 0:
+    case 'general':
       content = (
         <AddGatewayFields
           onChange={setGeneralFields}
@@ -151,13 +175,13 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       break;
-    case 1:
+    case 'gx':
       content = <DiameterFields onChange={setGx} values={gx} />;
       break;
-    case 2:
+    case 'gy':
       content = <DiameterFields onChange={setGy} values={gy} />;
       break;
-    case 3:
+    case 's6a':
       content = <DiameterFields onChange={setS6A} values={s6a} />;
       break;
   }
@@ -170,10 +194,10 @@ export default function FEGGatewayDialog(props: Props) {
           textColor="primary"
           value={tab}
           onChange={(event, tab) => setTab(tab)}>
-          <Tab label="General" />
-          <Tab label="Gx" />
-          <Tab label="Gy" />
-          <Tab label="S6A" />
+          {!editingGateway && <Tab label="General" values="general" />}
+          <Tab label="Gx" value="gx" />
+          <Tab label="Gy" value="gy" />
+          <Tab label="S6A" value="s6a" />
         </Tabs>
       </AppBar>
       <DialogContent>{content}</DialogContent>
