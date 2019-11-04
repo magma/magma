@@ -1197,9 +1197,11 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			storage.EntityUpdateCriteria{
 				Type: "foo",
 				Key:  "bar",
-				AssociationsToSet: []*storage.EntityID{
-					{Type: "bar", Key: "baz"},
-					{Type: "baz", Key: "quz"},
+				AssociationsToSet: &storage.EntityAssociationsToSet{
+					AssociationsToSet: []*storage.EntityID{
+						{Type: "bar", Key: "baz"},
+						{Type: "baz", Key: "quz"},
+					},
 				},
 			},
 			expectedEntQueryResult{"foo", "bar", "1", "", "g1", 0},
@@ -1312,6 +1314,31 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "g1", Version: 1},
 	}
 	runCase(t, partitionCase)
+
+	clearEdgesCase := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			// Load and change version, then clear assocs
+			expectBasicEntityQueries(m, getBasicQueryExpect("foo", "bar"))
+			m.ExpectExec("UPDATE cfg_entities").WithArgs("foobar").WillReturnResult(mockResult)
+			m.ExpectExec("DELETE FROM cfg_assocs").WithArgs("foobar").WillReturnResult(mockResult)
+
+			// Graph loading
+			expectBulkEntityQuery(
+				m,
+				[]driver.Value{"g1"},
+				getBasicQueryExpect("foo", "bar"),
+				getBasicQueryExpect("bar", "baz"),
+			)
+			expectAssocQuery(m, []driver.Value{"barbaz", "foobar", "barbaz", "foobar"})
+
+			// Graph partition update
+			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "barbaz").WillReturnResult(mockResult)
+		},
+		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", AssociationsToSet: &storage.EntityAssociationsToSet{}}),
+		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "g1", Version: 1},
+	}
+	runCase(t, clearEdgesCase)
+
 }
 
 func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
@@ -1607,8 +1634,8 @@ func getTestCaseForEntityUpdate(
 	if !funk.IsEmpty(update.AssociationsToAdd) {
 		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
 	}
-	if !funk.IsEmpty(update.AssociationsToSet) {
-		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToSet...)
+	if update.AssociationsToSet != nil {
+		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToSet.AssociationsToSet...)
 	}
 
 	if !funk.IsEmpty(expectedGraphMerges) {
@@ -1653,10 +1680,10 @@ func getTestCaseForEntityUpdate(
 			}
 
 			// Graph
-			if !funk.IsEmpty(update.AssociationsToSet) {
+			if update.AssociationsToSet != nil {
 				m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(entToUpdate.pk).WillReturnResult(mockResult)
-				expectEdgeQueries(m, update.AssociationsToSet, edgeLoadsByTk)
-				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToSet, edgeLoadsByTk))
+				expectEdgeQueries(m, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk)
+				expectEdgeInsertions(m, assocsToEdges(entToUpdate.pk, update.AssociationsToSet.AssociationsToSet, edgeLoadsByTk))
 				if !funk.IsEmpty(expectedGraphMerges) {
 					expectMergeGraphs(m, expectedGraphMerges)
 				}

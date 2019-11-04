@@ -23,42 +23,15 @@ import type {WithStyles} from '@material-ui/core';
 
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
+import {getDefaultMapStyle} from './map/styles';
 import {isEqual} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
-
-import 'mapbox-gl/dist/mapbox-gl.css';
-
-mapboxgl.accessToken = window.CONFIG.MAPBOX_ACCESS_TOKEN;
 
 const styles = {
   mapContainer: {
     height: '100%',
     width: '100%',
   },
-};
-
-const mapboxVectorStyle = 'mapbox://styles/mapbox/outdoors-v10';
-const osmStyle = {
-  version: 8,
-  sources: {
-    'osm-raster': {
-      type: 'raster',
-      tiles: [
-        '//a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        '//b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-    },
-  },
-  layers: [
-    {
-      id: 'osm-raster',
-      type: 'raster',
-      source: 'osm-raster',
-      minzoom: 0,
-      maxzoom: 22,
-    },
-  ],
 };
 
 type State = {
@@ -121,7 +94,7 @@ class MapView extends React.Component<Props, State> {
       attributionControl: false,
       container: this.mapContainer,
       hash: false,
-      style: mapboxgl.accessToken ? mapboxVectorStyle : osmStyle,
+      style: getDefaultMapStyle(),
       zoom: 2,
       center: [0, 0],
     });

@@ -8,6 +8,7 @@
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "google/protobuf/wrappers.proto";
 
 package magma.cwf;
 option go_package = "magma/cwf/cloud/go/protos";
@@ -39,6 +40,7 @@ message AuthenticateResponse {
 
 message GenTrafficRequest {
     string imsi = 1;
+    google.protobuf.StringValue volume = 2;
 }
 
 // --------------------------------------------------------------------------

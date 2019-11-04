@@ -9,6 +9,7 @@
 package handlers_test
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -16,6 +17,8 @@ import (
 	plugin2 "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/plugin/handlers"
 	models2 "magma/feg/cloud/go/plugin/models"
+	healthTestInit "magma/feg/cloud/go/services/health/test_init"
+	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
 	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/plugin/models"
@@ -26,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
@@ -42,6 +46,9 @@ func TestFederationNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	testHealthServicer, err := healthTestInit.StartTestService(t)
+	assert.NoError(t, err)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -51,6 +58,7 @@ func TestFederationNetworks(t *testing.T) {
 	updateNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id", obsidian.PUT).HandlerFunc
 	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id", obsidian.DELETE).HandlerFunc
 	getNetworkFederationConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/federation", obsidian.GET).HandlerFunc
+	getNetworkFederationStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/cluster_status", obsidian.GET).HandlerFunc
 
 	// Test ListNetworks
 	tc := tests.Test{
@@ -190,6 +198,39 @@ func TestFederationNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// setup fixtures in backend
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		},
+	)
+	assert.NoError(t, err)
+
+	seedFederationGateway(t)
+
+	ctx := protos.NewGatewayIdentity("hw1", "n1", "g1").NewContextWithIdentity(context.Background())
+	req := healthTestUtils.GetHealthyRequest()
+	_, err = testHealthServicer.UpdateHealth(ctx, req)
+	assert.NoError(t, err)
+
+	expectedRes := &models2.FederationNetworkClusterStatus{
+		ActiveGateway: "g1",
+	}
+
+	// Test Get Network HA status
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/feg/n1/status",
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getNetworkFederationStatus,
+		ExpectedStatus: 200,
+		ExpectedResult: expectedRes,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test DeleteNetwork
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -221,6 +262,8 @@ func TestFederationGateways(t *testing.T) {
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
+	testHealthServicer, err := healthTestInit.StartTestService(t)
+	assert.NoError(t, err)
 
 	e := echo.New()
 
@@ -230,11 +273,11 @@ func TestFederationGateways(t *testing.T) {
 	getGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/gateways/:gateway_id", obsidian.GET).HandlerFunc
 	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
-
+	getHealth := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/gateways/:gateway_id/health_status", obsidian.GET).HandlerFunc
 	seedFederationNetworks(t)
 
 	// setup fixtures in backend
-	_, err := configurator.CreateEntities(
+	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
@@ -382,6 +425,28 @@ func TestFederationGateways(t *testing.T) {
 		ExpectedResult: expectedGet,
 	}
 	tests.RunUnitTest(t, e, tc)
+
+	// Test Get Health Status
+	ctx = protos.NewGatewayIdentity("hw1", "n1", "g1").NewContextWithIdentity(context.Background())
+	req := healthTestUtils.GetHealthyRequest()
+	_, err = testHealthServicer.UpdateHealth(ctx, req)
+	assert.NoError(t, err)
+
+	expectedRes := &models2.FederationGatewayHealthStatus{
+		Status:      models2.FederationGatewayHealthStatusStatusHEALTHY,
+		Description: "OK",
+	}
+
+	// Test Health Gateway
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/feg/n1/gateways/g1/health_status",
+		Handler:        getHealth,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedRes,
+	}
 
 	// Test DeleteGateway
 	tc = tests.Test{
@@ -651,4 +716,39 @@ func seedFederatedLteNetworks(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
+}
+
+func seedFederationGateway(t *testing.T) {
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg/:network_id/gateways", obsidian.POST).HandlerFunc
+
+	// Test CreateGateway
+	payload := &models2.MutableFederationGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g1",
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          5,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Federation: models2.NewDefaultGatewayFederationConfig(),
+		Tier:       "t1",
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/feg/n1/gateways",
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
 }

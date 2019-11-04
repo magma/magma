@@ -18,6 +18,7 @@
 #include <devmand/UnifiedView.h>
 #include <devmand/YangUtils.h>
 #include <devmand/cartography/DeviceConfig.h>
+#include <devmand/devices/Id.h>
 #include <devmand/devices/State.h>
 
 namespace devmand {
@@ -25,8 +26,6 @@ namespace devmand {
 class Application;
 
 namespace devices {
-
-using Id = std::string;
 
 enum class DeviceConfigType { YangJson, NativeConfigJson };
 

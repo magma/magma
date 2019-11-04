@@ -24,4 +24,4 @@ Magma has three major components:
 
 * **Federation Gateway:** The Federation Gateway integrates the MNO core network with Magma by using standard 3GPP interfaces to existing MNO components.  It acts as a proxy between the Magma AGW and the operator's network and facilitates core functions, such as authentication, data plans, policy enforcement, and charging to stay uniform between an existing MNO network and the expanded network with Magma.
 
-![Magma architecture diagram](../assets/magma_overview.png?raw=true "Magma Architecture")
+![Magma architecture diagram](assets/magma_overview.png?raw=true "Magma Architecture")

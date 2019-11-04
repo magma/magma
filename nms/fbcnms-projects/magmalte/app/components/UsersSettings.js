@@ -12,7 +12,7 @@ import type {EditUser} from '@fbcnms/ui/components/auth/EditUserDialog';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import EditUserDialog from '@fbcnms/ui/components/auth/EditUserDialog';
@@ -25,7 +25,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import axios from 'axios';
 import {UserRoles} from '@fbcnms/auth/types';
 
@@ -54,7 +54,7 @@ function UsersSettings(props: Props) {
   const [editingUser, setEditingUser] = useState<?EditUser>(null);
   const [users, setUsers] = useState<Array<EditUser>>([]);
   const [showDialog, setShowDialog] = useState<boolean>(false);
-  const {networkIds} = useContext(AppContext);
+  const {networkIds, ssoEnabled} = useContext(AppContext);
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {isLoading, error} = useAxios({
@@ -129,13 +129,8 @@ function UsersSettings(props: Props) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Typography variant="h5">Users</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setShowDialog(true)}>
-          Add User
-        </Button>
+        <Text variant="h5">Users</Text>
+        <Button onClick={() => setShowDialog(true)}>Add User</Button>
       </div>
       <Paper elevation={2}>
         <Table>
@@ -158,6 +153,7 @@ function UsersSettings(props: Props) {
             setShowDialog(false);
             setEditingUser(null);
           }}
+          ssoEnabled={ssoEnabled}
           allNetworkIDs={networkIds}
           onEditUser={(userId, payload) => {
             axios

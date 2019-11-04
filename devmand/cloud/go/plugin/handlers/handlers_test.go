@@ -183,7 +183,7 @@ func TestGetNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        getNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -259,7 +259,7 @@ func TestUpdateNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        updateNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -305,7 +305,7 @@ func TestDeleteNetwork(t *testing.T) {
 		ParamValues:    []string{"n2"},
 		Handler:        deleteNetwork,
 		ExpectedStatus: 400,
-		ExpectedError:  "network n2 is not a Symphony network",
+		ExpectedError:  "network n2 is not a <symphony> network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -316,7 +316,7 @@ func TestDeleteNetwork(t *testing.T) {
 
 func TestPartialUpdateAndGetNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &plugin2.WifiOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1245,13 +1245,16 @@ func TestDeleteAgent(t *testing.T) {
 	getAgent := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, agentUrl, obsidian.GET).HandlerFunc
 	deleteAgent := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, agentUrl, obsidian.DELETE).HandlerFunc
 
+	baseAgentsUrl := "/magma/v1/symphony/:network_id/agents"
+	listAgents := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, baseAgentsUrl, obsidian.GET).HandlerFunc
+
 	networkId := "n1"
 	agentId := "a1"
 
 	seedNetworks(t)
 	seedAgents(t)
 
-	expectedResult := tests.JSONMarshaler(models2.SymphonyAgent{
+	payload := tests.JSONMarshaler(models2.SymphonyAgent{
 		Name:        "agent_1",
 		Description: "agent 1",
 		Device: &models.GatewayDevice{
@@ -1278,7 +1281,7 @@ func TestDeleteAgent(t *testing.T) {
 		ParamNames:     []string{"network_id", "agent_id"},
 		ParamValues:    []string{networkId, agentId},
 		Handler:        getAgent,
-		ExpectedResult: expectedResult,
+		ExpectedResult: payload,
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -1304,6 +1307,58 @@ func TestDeleteAgent(t *testing.T) {
 		Handler:        getAgent,
 		ExpectedStatus: 404,
 		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Make sure the gateways are not in the network
+	expectedEnts := configurator.NetworkEntities{
+		{
+			NetworkID: networkId,
+			Type:      devmand.SymphonyDeviceType,
+			Key:       "d1",
+			GraphID:   "14",
+			Name:      "Device 1",
+			Config:    models2.NewDefaultSymphonyDeviceConfig(),
+		},
+		{
+			NetworkID: networkId,
+			Type:      devmand.SymphonyDeviceType,
+			Key:       "d2",
+			GraphID:   "10",
+			Name:      "Device 2",
+			Config:    models2.NewDefaultSymphonyDeviceConfig(),
+		},
+		{
+			NetworkID: networkId,
+			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
+			GraphID: "13",
+			Version: 0,
+		},
+		{
+			NetworkID: networkId,
+			Type:      orc8r.UpgradeTierEntityType, Key: "t2",
+			GraphID: "12",
+			Version: 0,
+		},
+	}
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, nil, nil, nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+
+	// Make sure they're not showing up here either
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            baseAgentsUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        listAgents,
+		ExpectedResult: tests.JSONMarshaler(map[string]models2.SymphonyAgent{}),
+		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -1546,7 +1601,7 @@ func TestUpdateDevice(t *testing.T) {
 		},
 	}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
@@ -1599,7 +1654,7 @@ func TestDeleteDevice(t *testing.T) {
 	// See that it's now gone
 	expectedEnts := configurator.NetworkEntities{}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
@@ -1749,16 +1804,12 @@ func TestPartialUpdateAndGetDevice(t *testing.T) {
 		},
 	}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnts, actualEnts)
-}
-
-func strPtr(str string) *string {
-	return &str
 }
 
 // n1 is a symphony network, n2 is not

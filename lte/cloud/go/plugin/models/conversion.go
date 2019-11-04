@@ -397,7 +397,9 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
 	m.Serial = ent.Key
-	m.Config = ent.Config.(*EnodebConfiguration)
+	if ent.Config != nil {
+		m.Config = ent.Config.(*EnodebConfiguration)
+	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayType {
 			m.AttachedGatewayID = tk.Key

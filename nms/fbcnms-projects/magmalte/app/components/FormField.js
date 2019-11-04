@@ -10,6 +10,7 @@
 
 import HelpIcon from '@material-ui/icons/Help';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 
@@ -49,14 +50,14 @@ export default function FormField(props: Props) {
   const {tooltip} = props;
   return (
     <div className={classes.root}>
-      <Typography className={classes.heading} variant="body2">
+      <Text className={classes.heading} variant="body2">
         {props.label}
         {tooltip && (
           <Tooltip title={tooltip} placement="bottom-start">
             <HelpIcon className={classes.icon} />
           </Tooltip>
         )}
-      </Typography>
+      </Text>
       <Typography
         className={classes.secondaryHeading}
         component="div"

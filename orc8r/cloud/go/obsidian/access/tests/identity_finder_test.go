@@ -20,6 +20,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const RegisterLteNetworkV1 = "/magma/v1/lte"
+const ManageLteNetworkV1 = RegisterLteNetworkV1 + "/:network_id"
+const RegisterNetworkV1 = "/magma/v1/networks"
+const ManageNetworkV1 = RegisterNetworkV1 + "/:network_id"
+
 func TestIdentityFinder(t *testing.T) {
 	e := startTestIdentityServer(t)
 	listener := WaitForTestServer(t, e)
@@ -29,6 +34,10 @@ func TestIdentityFinder(t *testing.T) {
 
 		// Test a network entity
 		testGet(t, urlPrefix+magmadh.RegisterNetwork+"/"+TEST_NETWORK_ID)
+		// Test V1 network entity
+		testGet(t, urlPrefix+RegisterNetworkV1+"/"+TEST_NETWORK_ID)
+		// Test V1 LTE network entity
+		testGet(t, urlPrefix+RegisterLteNetworkV1+"/"+TEST_NETWORK_ID)
 		// Test network wildcard
 		testGet(t, urlPrefix+magmadh.RegisterNetwork)
 		// Test operator entity
@@ -81,6 +90,28 @@ func startTestIdentityServer(t *testing.T) *echo.Echo {
 
 	// Endpoint requiring a specific Network Entity Access Permissions
 	e.GET(magmadh.ManageNetwork, func(c echo.Context) error {
+		assert.NotNil(t, c)
+		ents := access.FindRequestedIdentities(c)
+		assert.Len(t, ents, 1)
+		networkIdentity, ok := ents[0].Value.(*protos.Identity_Network)
+		assert.True(t, ok)
+		assert.Equal(t, networkIdentity.Network, TEST_NETWORK_ID)
+		return c.String(http.StatusOK, "All good!")
+	})
+
+	// V1 Endpoint requiring a specific Network Entity Access Permissions
+	e.GET(ManageNetworkV1, func(c echo.Context) error {
+		assert.NotNil(t, c)
+		ents := access.FindRequestedIdentities(c)
+		assert.Len(t, ents, 1)
+		networkIdentity, ok := ents[0].Value.(*protos.Identity_Network)
+		assert.True(t, ok)
+		assert.Equal(t, networkIdentity.Network, TEST_NETWORK_ID)
+		return c.String(http.StatusOK, "All good!")
+	})
+
+	// V1 LTE Endpoint requiring a specific Network Entity Access Permissions
+	e.GET(ManageLteNetworkV1, func(c echo.Context) error {
 		assert.NotNil(t, c)
 		ents := access.FindRequestedIdentities(c)
 		assert.Len(t, ents, 1)

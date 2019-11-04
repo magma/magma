@@ -8,7 +8,7 @@
  * @format
  */
 
-import NameDescriptionSection from '../../components/NameDescriptionSection.react';
+import NameDescriptionSection from '../../components/NameDescriptionSection';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

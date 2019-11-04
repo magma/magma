@@ -174,8 +174,8 @@ func (m *EntityUpdateCriteria) GetTypeAndKey() storage.TypeAndKey {
 }
 
 func (m *EntityUpdateCriteria) getEdgesToCreate() []*EntityID {
-	if !funk.IsEmpty(m.AssociationsToSet) {
-		return m.AssociationsToSet
+	if m.AssociationsToSet != nil {
+		return m.AssociationsToSet.AssociationsToSet
 	}
 	return m.AssociationsToAdd
 }

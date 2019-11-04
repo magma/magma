@@ -43,7 +43,7 @@ from ipaddress import ip_address
 import redis
 
 import magma.mobilityd.serialize_utils as serialize_utils
-from magma.common.redis.containers import RedisDict, RedisSet
+from magma.common.redis.containers import RedisHashDict, RedisSet
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
 
@@ -145,7 +145,7 @@ class IPAllocator():
                 serialize_utils.deserialize_ip_block)
             self._ip_states = defaultdict_key(
                 lambda key: cleared_ip_states(client, key))
-            self._sid_ips_map = RedisDict(
+            self._sid_ips_map = RedisHashDict(
                 client,
                 'mobilityd:sid_to_descriptors',
                 serialize_utils.serialize_ip_descs,
@@ -344,7 +344,7 @@ class IPAllocator():
                     logging.debug("SID %s IP %s REAPED => ALLOCATED",
                                   sid, old_ip)
                 else:
-                    assert False, "Unexpected internal state"
+                    raise AssertionError("Unexpected internal state")
                 logging.info("Allocating the same IP %s for sid %s",
                              old_ip, sid)
 
@@ -380,7 +380,7 @@ class IPAllocator():
         with self._lock:
             if sid in self._sid_ips_map:
                 if not self._sid_ips_map[sid]:
-                    assert False, "Unexpected internal state"
+                    raise AssertionError("Unexpected internal state")
                 else:
                     return self._sid_ips_map[sid][0]
             return None
@@ -537,7 +537,7 @@ class IPAllocator():
         for state in IPState:
             if self._test_ip_state(ip, state):
                 return state
-        assert False, "IP %s not found in any states" % ip
+        raise AssertionError("IP %s not found in any states" % ip)
 
     def _list_ips(self, state):
         """ return a list of IPs in state X """
@@ -620,7 +620,7 @@ class SubscriberNotFoundError(Exception):
 
 def cleared_ip_states(client, key):
     """ Get cleared Redis view of IP states. """
-    redis_dict = RedisDict(
+    redis_dict = RedisHashDict(
         client,
         'mobilityd:ip_to_descriptor:{}'.format(key),
         serialize_utils.serialize_ip_desc,

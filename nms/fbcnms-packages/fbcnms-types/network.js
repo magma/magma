@@ -8,40 +8,32 @@
  * @format
  */
 
-export const CELLULAR = 'cellular';
-export const WIFI = 'wifi';
-export const THIRD_PARTY = 'third_party';
-export const WAC = 'wac';
-export const RHINO = 'rhino';
+const Networks = {
+  wifi: 'wifi',
+  third_party: 'third_party',
+  wac: 'wac',
+  rhino: 'rhino',
+  lte: 'lte',
+  carrier_wifi_network: 'carrier_wifi_network',
+};
 
-export const AllNetworkTypes: NetworkType[] = [
-  CELLULAR,
-  WIFI,
-  THIRD_PARTY,
-  WAC,
-  RHINO,
-];
+export const WIFI = Networks.wifi;
+export const THIRD_PARTY = Networks.third_party;
+export const WAC = Networks.wac;
+export const RHINO = Networks.rhino;
+export const LTE = Networks.lte;
+export const CWF = Networks.carrier_wifi_network;
 
-export type NetworkType =
-  | 'cellular' // deprecated
-  | 'lte'
-  | 'wifi'
-  | 'third_party'
-  | 'wac'
-  | 'rhino';
+export const AllNetworkTypes: NetworkType[] = Object.keys(Networks);
+
+export type NetworkType = $Keys<typeof Networks>;
 
 export function coalesceNetworkType(
   networkID: string,
   networkType: ?string,
 ): ?NetworkType {
-  if (
-    networkType === 'lte' ||
-    networkType === 'wifi' ||
-    networkType === 'third_party' ||
-    networkType === 'wac' ||
-    networkType === 'rhino'
-  ) {
-    return networkType;
+  if (networkType && Networks[networkType]) {
+    return (networkType: any);
   }
 
   // backwards compatibility
