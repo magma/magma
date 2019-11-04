@@ -266,6 +266,35 @@ function getDefaultRouteIpList(device: WifiGateway): string[] {
     .filter(Boolean);
 }
 
+export function calculateLinkLocalMac(ipv6: string): ?string {
+  // Get local-link mac address (no colons) given a v6 IP
+  // See https://tools.ietf.org/html/rfc4291 appendix A
+  // expecting fe80::xxxx:xxff:fexx:xxxx
+  // where "x" portion is based on mac address
+
+  // ** this is not intended to be a perfect calculation - this is intended only
+  // to work in the wifi specific use case.
+
+  const res = ipv6.toLowerCase().split('::');
+  if (res.length != 2 || res[0] !== 'fe80') {
+    return null;
+  }
+
+  // expecting xxxx:xxff:fexx:xxxx
+  let ipMac = res[1].replace(/:/g, '');
+  if (ipMac.length !== 16) {
+    return null;
+  }
+  ipMac = ipMac.substring(0, 6) + ipMac.substring(10);
+
+  // flip second-to-last bit in first octet
+  const firstOctet = parseInt(ipMac.substring(0, 2), 16);
+  const flippedOctet = firstOctet ^ parseInt('00000010', 2);
+  ipMac = flippedOctet.toString(16) + ipMac.substring(2);
+
+  return ipMac;
+}
+
 function _gatherOpenrData(
   prefix: string,
   device: WifiGateway,
@@ -285,8 +314,12 @@ function _gatherOpenrData(
   if (
     getDefaultRouteIpList(device).filter(
       ip =>
+        /* if v4 IP matches */
         ip === meta[`openr_${macOther}_ip`] ||
-        ip === meta[`openr_${macOther}_ipv6`],
+        /* if v6 IP matches */
+        ip === meta[`openr_${macOther}_ipv6`] ||
+        /* if v6 local-link address matches */
+        calculateLinkLocalMac(ip) === macOther,
     ).length > 0
   ) {
     data[`${prefix}_isDefaultRoute`] = true;
