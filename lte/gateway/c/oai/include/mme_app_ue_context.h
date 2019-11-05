@@ -166,8 +166,6 @@ typedef struct bearer_context_s {
   * AT SGW context will be created after
   * receiving itti_s11_pcrf_ded_bearer_actv_rsp_t
   */
-  traffic_flow_template_t  *saved_tft;
-  bearer_qos_t             *saved_qos;
 } bearer_context_t;
 
 /** @struct subscribed_apn_t
