@@ -40,6 +40,7 @@ import (
 type FullRADIUSSessiontWithAnalyticsModulesTestParam struct {
 	CallingStationID string
 	CalledStationID  string
+	AcctSessionID    string
 	FramedIPAddr     net.IP
 	NasIdentifier    string
 	AnalyticsModIdx  int                 // the index of the Analytics module within the module chain
@@ -65,7 +66,7 @@ func TestAnalyticsModulesAccountingStart(t *testing.T) {
 	testFullRADIUSSessiontWithAnalyticsModulesAccountingStart(t, logger, testParam, true)
 	// case 2: create the session state we expect would be created by the AuthRequest & then fire the packet
 	server := testParam.Server
-	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, "")
+	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, testParam.AcctSessionID)
 	stg := server.getSessionStateAPI(sessionID)
 	stg.Set(session.State{RadiusSessionFBID: 123 /* non-zero value*/})
 	testFullRADIUSSessiontWithAnalyticsModulesAccountingStart(t, logger, testParam, false)
@@ -93,11 +94,12 @@ func TestAnalyticsModulesAccountingStop(t *testing.T) {
 	logger, err := zap.NewDevelopment()
 	require.NoError(t, err, "failed to get logger")
 	testParam := analyticsModuleTestEnvCreate(t, logger)
+	testParam.AcctSessionID = "1003/1.0.0.6/567" // Test With AP's Accounting Session ID
 	// case 1: run the packet as if the Auth packet was dropped & not received. we should ignore the packet bcz we didnt create the XWFEntRadiusSession
 	testFullRADIUSSessiontWithAnalyticsModulesAccountingStop(t, logger, testParam, true)
 	// case 2: create the session state we expect would be created by the AuthRequest & then fire the packet
 	server := testParam.Server
-	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, "")
+	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, testParam.AcctSessionID)
 	stg := server.getSessionStateAPI(sessionID)
 	stg.Set(session.State{RadiusSessionFBID: 123 /* non-zero value*/})
 	testFullRADIUSSessiontWithAnalyticsModulesAccountingStop(t, logger, testParam, false)
@@ -389,7 +391,7 @@ func getConfigWithAuthListener(t *testing.T, moduleChain []string, moduleCount [
 			LiveTier:     config.TierRouting{},
 			Canaries:     []config.Canary{},
 		},
-		SessionStorage: config.SessionStorageConfig{
+		SessionStorage: &config.SessionStorageConfig{
 			StorageType: "memory",
 		},
 	}
@@ -464,7 +466,7 @@ func testFullRADIUSSessiontWithAnalyticsModulesAuthenticate(
 	rfc2865.NASIPAddress_Add(pkt, net.IP{1, 0, 0, 2})
 	rfc2865.CalledStationID_SetString(pkt, testParam.CalledStationID)
 	rfc2865.NASIdentifier_SetString(pkt, testParam.NasIdentifier)
-	rfc2866.AcctSessionID_SetString(pkt, "1.0.0.5")
+	rfc2866.AcctSessionID_SetString(pkt, testParam.AcctSessionID)
 	rfc2865.CallingStationID_SetString(pkt, testParam.CallingStationID)
 	port := config.Listeners[testParam.AnalyticsModIdx].Extra["Port"].(int)
 
@@ -484,7 +486,7 @@ func testFullRADIUSSessiontWithAnalyticsModulesAuthenticate(
 	)
 
 	// Read the session state & verify the accounting counters were updated (if we decide to save them)
-	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, "")
+	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, testParam.AcctSessionID)
 	sessionState, err := server.getSessionState(sessionID)
 	require.NoError(t, err, "cant find session state for pkt we just sent")
 	require.NotEqual(t, sessionState.RadiusSessionFBID, 0)
@@ -550,6 +552,9 @@ func testFullRADIUSSessiontWithAnalyticsModulesAccountingUpdate(
 	rfc2866.AcctStatusType_Set(pkt, rfc2866.AcctStatusType_Value_InterimUpdate)
 	rfc2865.CalledStationID_SetString(pkt, testParam.CalledStationID)
 	rfc2865.CallingStationID_SetString(pkt, testParam.CallingStationID)
+	if len(testParam.AcctSessionID) > 0 {
+		rfc2866.AcctSessionID_SetString(pkt, testParam.AcctSessionID)
+	}
 	rfc2865.NASIdentifier_SetString(pkt, testParam.NasIdentifier)
 	rfc2866.AcctInputOctets_Set(pkt, 1111)
 	rfc2869.AcctInputGigawords_Set(pkt, 0)
@@ -573,7 +578,7 @@ func testFullRADIUSSessiontWithAnalyticsModulesAccountingUpdate(
 	)
 
 	// Read the session state & verify the accounting counters were updated (if we decide to save them)
-	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, "")
+	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, testParam.AcctSessionID)
 	sessionState, err := server.getSessionState(sessionID)
 	if shouldFail {
 		require.Error(t, err, "expecting no session state for pkt we just sent")
@@ -598,6 +603,9 @@ func testFullRADIUSSessiontWithAnalyticsModulesAccountingStop(
 	rfc2866.AcctStatusType_Set(pkt, rfc2866.AcctStatusType_Value_Stop)
 	rfc2865.CalledStationID_SetString(pkt, testParam.CalledStationID)
 	rfc2865.CallingStationID_SetString(pkt, testParam.CallingStationID)
+	if len(testParam.AcctSessionID) > 0 {
+		rfc2866.AcctSessionID_SetString(pkt, testParam.AcctSessionID)
+	}
 	rfc2865.NASIdentifier_SetString(pkt, testParam.NasIdentifier)
 	rfc2866.AcctInputOctets_Set(pkt, 1111)
 	rfc2869.AcctInputGigawords_Set(pkt, 1)
@@ -621,7 +629,7 @@ func testFullRADIUSSessiontWithAnalyticsModulesAccountingStop(
 	)
 
 	// Read the session state & verify the accounting counters were updated (if we decide to save them)
-	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, "")
+	sessionID := getSessionIDStrings(server, testParam.CallingStationID, testParam.CalledStationID, testParam.AcctSessionID)
 	sessionState, err := server.getSessionState(sessionID)
 	if shouldFail {
 		require.Error(t, err, "expecting no session state for pkt we just sent")

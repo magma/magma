@@ -13,7 +13,7 @@ import type {GatewayV1} from './GatewayUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -23,7 +23,7 @@ import FormField from './FormField';
 import Input from '@material-ui/core/Input';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import {GatewayStatus} from './GatewayUtils';
 
@@ -114,9 +114,12 @@ class GatewaySummaryFields extends React.Component<Props, State> {
             Connected
           </FormField>
           <Divider className={this.props.classes.divider} />
-          <Typography variant="subtitle1">Commands</Typography>
+          <Text variant="subtitle1">Commands</Text>
           <FormField label="Reboot Gateway">
-            <Button onClick={this.handleRebootGateway} color="primary">
+            <Button
+              onClick={this.handleRebootGateway}
+              variant="text"
+              color="primary">
               Reboot
             </Button>
             <Fade in={this.state.showRebootCheck} timeout={500}>
@@ -124,7 +127,10 @@ class GatewaySummaryFields extends React.Component<Props, State> {
             </Fade>
           </FormField>
           <FormField label="">
-            <Button onClick={this.handleRestartServices} color="primary">
+            <Button
+              onClick={this.handleRestartServices}
+              variant="text"
+              color="primary">
               Restart services
             </Button>
             <Fade in={this.state.showRestartCheck} timeout={500}>
@@ -133,12 +139,10 @@ class GatewaySummaryFields extends React.Component<Props, State> {
           </FormField>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
+          <Button onClick={this.props.onClose} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </>
     );

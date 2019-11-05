@@ -42,7 +42,7 @@ module.exports = {
           createdAt: new Date(),
           updatedAt: new Date(),
           networkIDs: '["mpk_test"]',
-          tabs: '["inventory", "nms", "workorders"]',
+          tabs: '["inventory", "nms", "workorders", "automation"]',
         },
       ],
       {},

@@ -10,14 +10,14 @@
 
 import type {ElementRef} from 'react';
 
-import Button from '@material-ui/core/Button';
+import Button from '../design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
+import Text from '../design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import {withStyles} from '@material-ui/core/styles';
 
 const ENTER_KEY = 13;
@@ -34,6 +34,11 @@ const styles = {
   footer: {
     marginTop: '10px',
     float: 'right',
+  },
+  title: {
+    marginBottom: '16px',
+    textAlign: 'center',
+    display: 'block',
   },
 };
 
@@ -65,18 +70,16 @@ class LoginForm extends React.Component<Props, State> {
       return (
         <Card raised={true} className={classes.card}>
           <CardContent>
-            <Typography variant="h5" align="center" gutterBottom>
+            <Text className={classes.title} variant="h5">
               {this.props.title}
-            </Typography>
+            </Text>
             {error}
           </CardContent>
           <CardActions className={classes.footer}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={() =>
-                (window.location = (ssoAction || '') + window.location.search)
-              }>
+              onClick={() => {
+                window.location = (ssoAction || '') + window.location.search;
+              }}>
               Sign In
             </Button>
           </CardActions>
@@ -93,9 +96,9 @@ class LoginForm extends React.Component<Props, State> {
           <input type="hidden" name="_csrf" value={csrfToken} />
           <input type="hidden" name="to" value={to} />
           <CardContent>
-            <Typography variant="h5" align="center" gutterBottom>
+            <Text className={classes.title} variant="h5">
               {this.props.title}
-            </Typography>
+            </Text>
             {error}
             <TextField
               name="email"
@@ -112,12 +115,7 @@ class LoginForm extends React.Component<Props, State> {
             />
           </CardContent>
           <CardActions className={classes.footer}>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => this.form.submit()}>
-              Login
-            </Button>
+            <Button onClick={() => this.form.submit()}>Login</Button>
           </CardActions>
         </form>
       </Card>

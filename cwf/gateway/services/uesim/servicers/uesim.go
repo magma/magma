@@ -143,7 +143,13 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 		return &protos.Void{}, fmt.Errorf("Nil GenTrafficRequest provided")
 	}
 	var cmd *exec.Cmd
-	cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
+
+	if req.Volume == nil {
+		cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS)
+	} else {
+		cmd = exec.Command("iperf3", "-c", trafficSrvIP, "-M", trafficMSS, "-n", req.Volume.Value)
+	}
+
 	cmd.Dir = "/usr/bin"
 	_, err := cmd.Output()
 	return &protos.Void{}, err

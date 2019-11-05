@@ -21,11 +21,11 @@ builds are completed.
 When this job finishes, upload these images to your image registry:
 
 ```bash
-../../tools/docker/publish.sh -r REGISTRY -i proxy
-../../tools/docker/publish.sh -r REGISTRY -i controller
-../../tools/docker/publish.sh -r REGISTRY -i prometheus-cache
-../../tools/docker/publish.sh -r REGISTRY -i config-manager
-../../tools/docker/publish.sh -r REGISTRY -i grafana
+export MAGMA_TAG=v1.0.0
+for image in proxy controller prometheus-cache config-manager grafana
+do
+    ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i ${image} -v ${MAGMA_TAG}
+done
 ```
 
 While we're here, you can build and publish the NMS containers as well:
@@ -33,5 +33,5 @@ While we're here, you can build and publish the NMS containers as well:
 ```bash
 cd magma/nms/fbcnms-projects/magmalte
 docker-compose build magmalte
-COMPOSE_PROJECT_NAME=magmalte ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i magmalte
+COMPOSE_PROJECT_NAME=magmalte ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i magmalte -v ${MAGMA_TAG}
 ```

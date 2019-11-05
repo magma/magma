@@ -430,6 +430,7 @@ func DeleteEntity(networkID string, entityType string, entityKey string) error {
 }
 
 // DeleteEntity deletes the entity specified by networkID, type, key
+// We also have cascading deletes to delete foreign keys for assocs
 func DeleteEntities(networkID string, ids []storage2.TypeAndKey) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
@@ -560,6 +561,8 @@ func GetNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, erro
 }
 
 // LoadEntities loads entities specified by the parameters.
+// typeFilter, keyFilter, physicalID, and ids are all used to define a filter to
+// filter out results - if they are all nil, it will return all network entities
 func LoadEntities(
 	networkID string,
 	typeFilter *string,

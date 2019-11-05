@@ -9,14 +9,14 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useEffect, useState} from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import alertsTheme from '@fbcnms/ui/theme/alerts';
 
 import {makeStyles} from '@material-ui/styles';
@@ -31,6 +31,9 @@ type Props = {
 const useStyles = makeStyles(() => ({
   body: alertsTheme.formBody,
   buttonGroup: alertsTheme.buttonGroup,
+  cancelButton: {
+    marginRight: '8px',
+  },
 }));
 
 const timeUnits = [
@@ -88,10 +91,10 @@ export default function AddEditAlertNotificationStep(props: Props) {
 
   return (
     <>
-      <Typography variant="h6">SET YOUR NOTIFICATIONS</Typography>
+      <Text variant="h6">SET YOUR NOTIFICATIONS</Text>
       <div className={classes.body}>
         <div>
-          <Typography variant="subtitle1">Grace Period</Typography>
+          <Text variant="subtitle1">Grace Period</Text>
           <Grid container spacing={1} alignItems="flex-end">
             <Grid item>
               <TextField
@@ -126,18 +129,12 @@ export default function AddEditAlertNotificationStep(props: Props) {
         </div>
         <div className={classes.buttonGroup}>
           <Button
-            style={{marginRight: '10px'}}
-            variant="contained"
-            color="secondary"
+            className={classes.cancelButton}
+            skin="regular"
             onClick={() => props.onPrevious()}>
             Previous
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => props.onSave()}>
-            Save
-          </Button>
+          <Button onClick={() => props.onSave()}>Save</Button>
         </div>
       </div>
     </>

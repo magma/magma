@@ -8,11 +8,11 @@
  * @format
  */
 import React, {useState} from 'react';
-import Tokenizer from '../../components/Tokenizer.react';
+import Tokenizer from '../../components/Tokenizer';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
-import type {Entry} from '../../components/Tokenizer.react';
+import type {Entry} from '../../components/Tokenizer';
 
 const useStyles = makeStyles(_theme => ({
   root: {

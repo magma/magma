@@ -79,6 +79,7 @@ LTE_BAND_INFO = {
     28: LTEBandInfo(DuplexMode.FDD, range(9210, 9660), 758, 27210, 703),
     # TDD bands
     # duplex_mode, EARFCNDL, start_freq_dl
+    38: LTEBandInfo(DuplexMode.TDD, range(37750, 38250), 2570),
     39: LTEBandInfo(DuplexMode.TDD, range(38250, 38650), 1880),
     40: LTEBandInfo(DuplexMode.TDD, range(38650, 39650), 2300),
     41: LTEBandInfo(DuplexMode.TDD, range(39650, 41590), 2496),

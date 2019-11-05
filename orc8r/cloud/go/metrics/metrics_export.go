@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	NetworkLabelName = "networkID"
-	GatewayLabelName = "gatewayID"
+	NetworkLabelName   = "networkID"
+	GatewayLabelName   = "gatewayID"
+	CloudHostLabelName = "cloudHost"
 )
 
 // This method gathers metrics from prometheus' default registry,

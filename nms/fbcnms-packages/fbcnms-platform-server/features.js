@@ -103,6 +103,11 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
+    id: 'alerts_experimental',
+    title: 'Alerts Experimental Features',
+    enabledByDefault: false,
+  },
+  {
     id: 'logs',
     title: 'Logs',
     enabledByDefault: false,
@@ -111,11 +116,6 @@ const arrayConfigs = [
     id: 'equipment_export',
     title: 'Equipment Export',
     enabledByDefault: true,
-  },
-  {
-    id: 'magma_network_management',
-    title: 'Magma Network Management',
-    enabledByDefault: false,
   },
   {
     id: 'file_categories',
@@ -167,6 +167,16 @@ const arrayConfigs = [
     title: 'Multi Subject Reports',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'equipment_live_status',
+    title: 'Equipment Live Status',
+    enabledByDefault: false,
+  },
+  {
+    id: 'upload_location_properties_on_equipment',
+    title: 'Upload Location Properties On Equipment ',
+    enabledByDefault: true,
   },
 ];
 

@@ -20,6 +20,7 @@ import 'jest-dom/extend-expect';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
+import useMagmaAPI from '../../common/useMagmaAPI';
 
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
@@ -68,6 +69,7 @@ const OFFLINE_GATEWAY: lte_gateway = {
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
+jest.mock('../../common/useMagmaAPI');
 
 const Wrapper = () => (
   <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
@@ -93,6 +95,12 @@ describe('<Gateways />', () => {
     MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValueOnce({
       murt_usa: OFFLINE_GATEWAY,
     });
+    // $FlowFixme: jest functions aren't implemented on normal function
+    (useMagmaAPI: any).mockImplementation(() => ({
+      response: ['default'],
+      error: '',
+      isLoading: false,
+    }));
   });
 
   afterEach(() => {
@@ -122,6 +130,7 @@ describe('<Gateways />', () => {
     expect(getByText('Gateway Name')).toBeInTheDocument();
     expect(getByText('Gateway ID')).toBeInTheDocument();
     expect(getByText('Challenge Key')).toBeInTheDocument();
+    expect(getByText('Upgrade Tier')).toBeInTheDocument();
   });
 
   it('shows prompt when delete is clicked', async () => {

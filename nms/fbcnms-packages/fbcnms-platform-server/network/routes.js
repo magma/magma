@@ -8,7 +8,6 @@
  * @format
  */
 
-// TODO
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {
   network_cellular_configs,
@@ -21,7 +20,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {LTE} from '@fbcnms/types/network';
+import {CWF, FEG, LTE} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -87,6 +86,14 @@ router.post(
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const {networkID, data} = req.body;
     const {name, description} = data;
+    const commonField = {
+      name,
+      description,
+      id: networkID,
+      type: data.networkType,
+      dns: DEFAULT_DNS_CONFIG,
+      ...NETWORK_FEATURES,
+    };
 
     let resp;
     try {
@@ -101,15 +108,40 @@ router.post(
             ...NETWORK_FEATURES,
           },
         });
+      } else if (data.networkType === CWF) {
+        resp = await MagmaV1API.postCwf({
+          cwfNetwork: {
+            ...commonField,
+            federation: {feg_network_id: data.fegNetworkID},
+            carrier_wifi: {
+              aaa_server: {},
+              default_rule_id: '',
+              eap_aka: {},
+              network_services: [],
+            },
+          },
+        });
+      } else if (data.networkType === FEG) {
+        resp = await MagmaV1API.postFeg({
+          fegNetwork: {
+            ...commonField,
+            federation: {
+              aaa_server: {},
+              eap_aka: {},
+              gx: {},
+              gy: {},
+              health: {},
+              hss: {},
+              s6a: {},
+              served_network_ids: [],
+              swx: {},
+            },
+          },
+        });
       } else {
         await MagmaV1API.postNetworks({
           network: {
-            name,
-            description,
-            id: networkID,
-            type: data.networkType,
-            dns: DEFAULT_DNS_CONFIG,
-            ...NETWORK_FEATURES,
+            ...commonField,
           },
         });
       }

@@ -290,6 +290,24 @@ const WifiDeviceDetails = (props: Props) => {
               />
 
               <InfoRow
+                label="Carrier Detected"
+                data={
+                  status.meta?.carrier_detected && (
+                    <SpanSplit field={status.meta?.carrier_detected} />
+                  )
+                }
+              />
+
+              <InfoRow
+                label="Public IP"
+                data={
+                  status.meta?.public_ip && (
+                    <SpanSplit field={status.meta?.public_ip} />
+                  )
+                }
+              />
+
+              <InfoRow
                 label="VPN IP"
                 data={
                   status.meta?.tun_vpn_ip && (

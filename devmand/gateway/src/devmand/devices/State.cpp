@@ -5,6 +5,8 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <numeric>
+
 #include <devmand/devices/State.h>
 
 #include <devmand/MetricSink.h>
@@ -28,8 +30,13 @@ folly::Future<folly::dynamic> State::collect() {
         for (auto& f : s->finals) {
           f();
         }
+
+        auto averageRequestDuration = getAverageRequestDuration(reqs).count();
+        s->setGauge("device.request.duration.avg", averageRequestDuration);
+
+        LOG(INFO) << s->device << " average request duration was "
+                  << averageRequestDuration << " usec";
         s->clear();
-        reqs.clear();
         return std::move(*(s->state.wlock()));
       });
 }
@@ -40,9 +47,7 @@ void State::clear() {
 }
 
 void State::update(std::function<void(folly::dynamic&)> func) {
-  state.withWLock([&func](auto& unlockedState){
-    func(unlockedState);
-  });
+  state.withWLock([&func](auto& unlockedState) { func(unlockedState); });
 }
 
 void State::addFinally(std::function<void()>&& f) {
@@ -54,21 +59,59 @@ void State::addError(std::string&& error) {
 }
 
 void State::addRequest(folly::Future<folly::Unit> future) {
-  auto lifetimeFuture = std::move(future).thenValue(
-      [s = shared_from_this()](auto v) { return v; });
+  auto request = std::make_shared<Request>();
+
+  // In theory this end could already have occured but that's fine this isn't
+  // very precise anyways.
+  request->start = utils::Time::now();
+
+  // Here we capture the state object as a shared ref and store it in the
+  // request. This way if the user doesn't hold the ref. we have ensured someone
+  // did.
+  request->state = shared_from_this();
+
   requests.push_back(
-      std::move(lifetimeFuture)
+      std::move(future)
+          .thenValue([request](auto) {
+            request->end = utils::Time::now();
+            return request;
+          })
           .thenError(
               folly::tag_t<std::exception>{},
-              [s = shared_from_this()](std::exception const& e) {
+              [request](std::exception const& e) {
+                request->end = utils::Time::now();
+                request->isError = true;
+
                 LOG(ERROR) << "Caught exception from future: " << e.what();
-                s->errorQueue.add(folly::sformat(
+                request->state->errorQueue.add(folly::sformat(
                     "Caught exception from future: {}", e.what()));
+                return request;
               })
-          .thenError([s = shared_from_this()](folly::exception_wrapper) {
+          .thenError([request](folly::exception_wrapper) {
+            request->end = utils::Time::now();
+            request->isError = true;
+
             LOG(ERROR) << "Caught unknown exception from future";
-            s->errorQueue.add("Caught unknown exception from future");
+            request->state->errorQueue.add(
+                "Caught unknown exception from future");
+            return request;
           }));
+}
+
+std::chrono::microseconds State::getAverageRequestDuration(
+    std::vector<std::shared_ptr<Request>> reqs) {
+  return reqs.empty()
+      ? std::chrono::microseconds(0)
+      : std::accumulate(
+            reqs.begin(),
+            reqs.end(),
+            std::chrono::microseconds(0),
+            [](const std::chrono::microseconds& a,
+               const std::shared_ptr<Request>& b) {
+              return std::chrono::duration_cast<std::chrono::microseconds>(
+                  a + (b->end - b->start));
+            }) /
+          static_cast<long int>(reqs.size());
 }
 
 folly::dynamic& State::getFbcPlatformDevice(
@@ -98,15 +141,6 @@ void State::setErrors() {
       lockedState["fbc-symphony-device:errors"] = std::move(errors);
     });
   }
-}
-
-void State::setGauge(const std::string& key, double value) {
-  sink.setGauge(
-      key,
-      value,
-      // adds the label deviceID = {deviceID}
-      "deviceID",
-      device);
 }
 
 } // namespace devices

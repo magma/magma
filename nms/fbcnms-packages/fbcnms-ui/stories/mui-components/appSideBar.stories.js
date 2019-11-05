@@ -8,7 +8,7 @@
  * @format
  */
 
-import AppSideBar from '../../components/layout/AppSideBar.react';
+import AppSideBar from '../../components/layout/AppSideBar';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ListIcon from '@material-ui/icons/List';
 import React, {useState} from 'react';

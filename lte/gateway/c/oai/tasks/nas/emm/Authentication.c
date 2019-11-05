@@ -1037,9 +1037,42 @@ int emm_proc_authentication_complete(
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
+  } else {
+    OAILOG_ERROR(LOG_NAS_EMM, "Auth proc is null");
   }
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+/**
+ * When the NAS authentication procedures are restored from data store, the
+ * references to callback functions need to be re-populated with the local
+ * function pointers. The functions below populate these callbacks from
+ * authentication information procedure and authentication procedure.
+ * The memory for each procedure is allocated by the caller
+ */
+
+void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t *auth_info_proc)
+{
+  auth_info_proc->success_notif = _auth_info_proc_success_cb;
+  auth_info_proc->failure_notif = _auth_info_proc_failure_cb;
+  auth_info_proc->cn_proc.base_proc.time_out =
+    s6a_auth_info_rsp_timer_expiry_handler;
+}
+
+void set_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc)
+{
+  auth_proc->emm_com_proc.emm_proc.not_delivered =
+    _authentication_ll_failure;
+  auth_proc->emm_com_proc.emm_proc.not_delivered_ho =
+    _authentication_non_delivered_ho;
+  auth_proc->emm_com_proc.emm_proc.base_proc.abort = _authentication_abort;
+  auth_proc->emm_com_proc.emm_proc.base_proc.fail_in =
+    NULL;
+  auth_proc->emm_com_proc.emm_proc.base_proc.fail_out =
+    _authentication_reject;
+  auth_proc->emm_com_proc.emm_proc.base_proc.time_out =
+    _authentication_t3460_handler;
 }
 
 /****************************************************************************/

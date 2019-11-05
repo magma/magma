@@ -29,6 +29,12 @@ const allTabs = [
     secondary: 'Network Management',
     url: '/nms',
   },
+  {
+    id: 'automation',
+    name: 'Automation',
+    secondary: 'Automation Management',
+    url: '/automation',
+  },
 ];
 
 const ADMIN = {

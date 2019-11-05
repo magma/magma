@@ -18,8 +18,18 @@ import {coalesceNetworkType} from '@fbcnms/types/network';
 import {useContext, useEffect, useState} from 'react';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import {LTE, RHINO, THIRD_PARTY, WAC, WIFI} from '@fbcnms/types/network';
+import {
+  CWF,
+  FEG,
+  LTE,
+  RHINO,
+  THIRD_PARTY,
+  WAC,
+  WIFI,
+} from '@fbcnms/types/network';
+import {getCWFSections} from '../cwf/CWFSections';
 import {getDevicesSections} from '@fbcnms/magmalte/app/components/devices/DevicesSections';
+import {getFEGSections} from '../feg/FEGSections';
 import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
@@ -53,6 +63,10 @@ export default function useSections(): SectionsConfigs {
       return getWACSections();
     case RHINO:
       return getRhinoSections();
+    case CWF:
+      return getCWFSections();
+    case FEG:
+      return getFEGSections();
     case LTE:
     default:
       return getLteSections(alertsEnabled, logsEnabled);

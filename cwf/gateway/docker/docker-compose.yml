@@ -98,6 +98,11 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  policydb:
+    <<: *ltepyservice
+    container_name: policydb
+    command: python3 -m magma.policydb.main
+
   redirectd:
     <<: *ltepyservice
     container_name: redirectd

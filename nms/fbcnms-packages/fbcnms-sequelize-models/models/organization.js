@@ -18,6 +18,7 @@ export type OrganizationRawType = {
   tabs?: Array<string>,
   customDomains?: Array<string>,
   networkIDs: Array<string>,
+  csvCharset: string,
   ssoCert: string,
   ssoEntrypoint: string,
   ssoIssuer: string,
@@ -51,6 +52,7 @@ export default (
         allowNull: false,
         defaultValue: [],
       },
+      csvCharset: types.STRING,
       customDomains: {
         type: types.JSON,
         allowNull: false,
