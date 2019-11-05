@@ -22,6 +22,7 @@ ExecStart=/usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tm
 MemoryAccounting=yes
 MemoryLimit=512M
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_oai_config.py
+ExecStopPost=/home/vagrant/magma/orc8r/gateway/python/scripts/service_util.py mme
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=mme
