@@ -91,3 +91,10 @@
       - python-protobuf
       - libsystemd-dev
   when: preburn
+
+- name: Setup pip3 dependencies
+  pip:
+    executable: pip3
+    name:
+      - setuptools>41.0.1 # Dependency to fix https://github.com/pypa/pip/issues/6264
+  when: preburn

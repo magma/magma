@@ -171,4 +171,5 @@
       - iperf3
       - libsystemd-dev
       - pkg-config
+      - setuptools
   when: preburn
