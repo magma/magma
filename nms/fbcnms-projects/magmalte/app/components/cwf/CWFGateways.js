@@ -12,7 +12,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {cwf_gateway} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from '../AddGatewayDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
@@ -28,7 +28,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -202,11 +202,9 @@ function CWFGateways(props: WithAlert & {}) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Typography variant="h5">Configure Gateways</Typography>
+        <Text variant="h5">Configure Gateways</Text>
         <NestedRouteLink to="/new">
-          <Button variant="contained" color="primary">
-            Add Gateway
-          </Button>
+          <Button>Add Gateway</Button>
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>

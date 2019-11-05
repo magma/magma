@@ -23,7 +23,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import Text from '@fbcnms/ui/components/design-system/Text.react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from './TimeRangeSelector';
 import {Route} from 'react-router-dom';
 

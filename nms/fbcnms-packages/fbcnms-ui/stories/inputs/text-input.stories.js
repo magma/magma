@@ -8,9 +8,9 @@
  * @format
  */
 
-import InputAffix from '../../components/design-system/Input/InputAffix.react';
+import InputAffix from '../../components/design-system/Input/InputAffix';
 import React, {useState} from 'react';
-import TextInput from '../../components/design-system/Input/TextInput.react';
+import TextInput from '../../components/design-system/Input/TextInput';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 

@@ -8,10 +8,10 @@
  * @format
  */
 
-import ColorBlock from './ColorBlock.react';
+import ColorBlock from './ColorBlock';
 import React from 'react';
 import SymphonyTheme, {BLUE, DARK} from '../../theme/symphony';
-import Text from '../../components/design-system/Text.react';
+import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 

@@ -48,7 +48,7 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: nms-app
           image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
           imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
 {{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "nms.kubernetes_resources" | indent 10 }}

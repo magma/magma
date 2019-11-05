@@ -19,10 +19,20 @@
 #include <devmand/MetricSink.h>
 #include <devmand/devices/Id.h>
 #include <devmand/utils/LifetimeTracker.h>
+#include <devmand/utils/Time.h>
 
 namespace devmand {
 
 namespace devices {
+
+class State;
+
+struct Request {
+  std::shared_ptr<State> state{nullptr};
+  utils::TimePoint start{};
+  utils::TimePoint end{};
+  bool isError{false};
+};
 
 class State final : public std::enable_shared_from_this<State>,
                     public utils::LifetimeTracker<State> {
@@ -72,6 +82,9 @@ class State final : public std::enable_shared_from_this<State>,
       const std::string& key,
       folly::dynamic& unlockedState);
 
+  static std::chrono::microseconds getAverageRequestDuration(
+      std::vector<std::shared_ptr<Request>> reqs);
+
  private:
   // A link to the sink.
   MetricSink& sink;
@@ -91,7 +104,7 @@ class State final : public std::enable_shared_from_this<State>,
 
   // This is a vector of futures which will be collected for the final
   // coalescing of state.
-  std::vector<folly::Future<folly::Unit>> requests;
+  std::vector<folly::Future<std::shared_ptr<Request>>> requests;
 };
 
 } // namespace devices

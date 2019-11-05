@@ -26,6 +26,10 @@
       "allowedGrePeers": [
       ]
     },
+    "policydb": {
+      "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
+      "logLevel": "INFO"
+    },
     "sessiond": {
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",

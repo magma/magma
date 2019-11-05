@@ -20,7 +20,7 @@ import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
 import ListItem from '@material-ui/core/ListItem';
 import PerfectScrollbar from 'react-perfect-scrollbar';
-import Typography from '@material-ui/core/Typography';
+import Text from './design-system/Text';
 import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {withStyles, withTheme} from '@material-ui/core/styles';
@@ -250,9 +250,9 @@ class TreeView extends React.Component<Props, State> {
         <div className={classes.headerRoot}>
           <div className={classes.headerContainer}>
             <div className={classes.dummyContainer}>
-              <Typography className={classes.addLocationToRootTitle}>
+              <Text className={classes.addLocationToRootTitle}>
                 {dummyNodeTitle}
-              </Typography>
+              </Text>
               {hoverRightContent}
             </div>
           </div>
@@ -286,10 +286,8 @@ class TreeView extends React.Component<Props, State> {
     const treeItemHeader = (
       <div className={classes.headerContainer}>
         <div className={classes.headerLeftContent}>
-          <Typography className={classes.heading}>{title}</Typography>
-          <Typography className={classes.secondaryHeading}>
-            {subtitle}
-          </Typography>
+          <Text className={classes.heading}>{title}</Text>
+          <Text className={classes.secondaryHeading}>{subtitle}</Text>
         </div>
         <div className={classes.hoverRightContent}>{hoverRightContent}</div>
       </div>
@@ -390,9 +388,9 @@ class TreeView extends React.Component<Props, State> {
     return (
       <div className={classes.root}>
         <div className={classes.titleContainer}>
-          <Typography variant="h6" className={classes.title}>
+          <Text variant="h6" className={classes.title}>
             {title}
-          </Typography>
+          </Text>
         </div>
         <div className={classes.treeContainer}>
           <PerfectScrollbar>

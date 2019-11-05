@@ -5,6 +5,8 @@
 package sm
 
 import (
+	"fmt"
+
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
@@ -72,7 +74,7 @@ func errorCEA(sm *StateMachine, c diam.Conn, m *diam.Message, cer *smparser.CER,
 	} else {
 		hostAddresses, err = getLocalAddresses(c)
 		if err != nil {
-			return err
+			return fmt.Errorf("Error CEA '%s' create failure: %v", errMessage, err)
 		}
 	}
 
@@ -100,6 +102,9 @@ func errorCEA(sm *StateMachine, c diam.Conn, m *diam.Message, cer *smparser.CER,
 		a.NewAVP(avp.FirmwareRevision, 0, 0, sm.cfg.FirmwareRevision)
 	}
 	_, err = a.WriteTo(c)
+	if err != nil {
+		err = fmt.Errorf("Error CEA '%s' send failure: %v", errMessage, err)
+	}
 	return err
 }
 

@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -23,7 +23,7 @@ import Input from '@material-ui/core/Input';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
 
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -103,13 +103,16 @@ class GatewayCommandFields extends React.Component<Props, State> {
     return (
       <>
         <DialogContent>
-          <Typography className={this.props.classes.title} variant="subtitle1">
+          <Text className={this.props.classes.title} variant="subtitle1">
             Reboot
-          </Typography>
+          </Text>
           <FormField
             label="Reboot Device"
             tooltip="Reboot the Magma gateway server">
-            <Button onClick={this.handleRebootGateway} color="primary">
+            <Button
+              variant="text"
+              onClick={this.handleRebootGateway}
+              skin="primary">
               Reboot
             </Button>
             <Fade in={this.state.showRebootCheck} timeout={500}>
@@ -120,7 +123,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
             <FormField
               label="Restart Services"
               tooltip="Restart all MagmaD services on this gateway">
-              <Button onClick={this.handleRestartServices} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleRestartServices}
+                skin="primary">
                 Restart Services
               </Button>
               <Fade in={this.state.showRestartCheck} timeout={500}>
@@ -131,11 +137,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           <div
             style={this.props.showRebootEnodebCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Reboot eNodeB
-            </Typography>
+            </Text>
             <FormField label="eNodeB Serial ID">
               <Input
                 className={this.props.classes.input}
@@ -145,7 +149,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handleRebootEnodeb} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleRebootEnodeb}
+                skin="primary">
                 Reboot
               </Button>
             </FormField>
@@ -158,11 +165,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           </div>
           <div style={this.props.showPingCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Ping
-            </Typography>
+            </Text>
             <FormField label="Host(s) (one per line)">
               <Input
                 className={this.props.classes.input}
@@ -182,7 +187,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handlePing} color="primary">
+              <Button variant="text" onClick={this.handlePing} skin="primary">
                 Ping
               </Button>
             </FormField>
@@ -195,11 +200,9 @@ class GatewayCommandFields extends React.Component<Props, State> {
           </div>
           <div style={this.props.showGenericCommand ? {} : {display: 'none'}}>
             <Divider className={this.props.classes.divider} />
-            <Typography
-              className={this.props.classes.title}
-              variant="subtitle1">
+            <Text className={this.props.classes.title} variant="subtitle1">
               Generic
-            </Typography>
+            </Text>
             <FormField label="Command">
               <Input
                 className={this.props.classes.input}
@@ -218,7 +221,10 @@ class GatewayCommandFields extends React.Component<Props, State> {
               />
             </FormField>
             <FormField label="">
-              <Button onClick={this.handleGeneric} color="primary">
+              <Button
+                variant="text"
+                onClick={this.handleGeneric}
+                skin="primary">
                 Execute
               </Button>
             </FormField>
@@ -232,7 +238,7 @@ class GatewayCommandFields extends React.Component<Props, State> {
         </DialogContent>
         {this.props.onClose && (
           <DialogActions>
-            <Button onClick={this.props.onClose} color="primary">
+            <Button variant="text" onClick={this.props.onClose} skin="primary">
               Close
             </Button>
           </DialogActions>

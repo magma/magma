@@ -571,6 +571,44 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/webhook_receiver'
+      email_configs:
+        type: array
+        items:
+          $ref: '#/definitions/email_receiver'
+
+  email_receiver:
+    type: object
+    required:
+      - to
+      - from
+      - smarthost
+    properties:
+      send_resolved:
+        type: boolean
+      to:
+        type: string
+      from:
+        type: string
+      smarthost:
+        type: string
+      hello:
+        type: string
+      auth_username:
+        type: string
+      auth_password:
+        type: string
+      auth_secret:
+        type: string
+      auth_identity:
+        type: string
+      html:
+        type: string
+      text:
+        type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
 
   slack_receiver:
     type: object

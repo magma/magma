@@ -9,9 +9,11 @@
  */
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
+import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import React from 'react';
+import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 
 export function getCWFSections(): SectionsConfigs {
   const sections = [
@@ -20,6 +22,12 @@ export function getCWFSections(): SectionsConfigs {
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: CWFGateways,
+    },
+    {
+      path: 'configure',
+      label: 'Configure',
+      icon: <SettingsCellIcon />,
+      component: CWFConfigure,
     },
   ];
 

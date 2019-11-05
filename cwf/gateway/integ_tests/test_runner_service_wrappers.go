@@ -206,11 +206,13 @@ func getPipelinedClient() (*pipelinedClient, error) {
 }
 
 func deactivateSubscriberFlows(imsi string) error {
-	cli, _ := getPipelinedClient()
-	_, err := cli.DeactivateFlows(context.Background(), &lteprotos.DeactivateFlowsRequest{
-		Sid:     &lteprotos.SubscriberID{Id: imsi},
-		RuleIds: []string{makeRuleIDFromIMSI(imsi)},
-	})
+	cli, err := getPipelinedClient()
+	if err == nil && cli != nil {
+		_, err = cli.DeactivateFlows(context.Background(), &lteprotos.DeactivateFlowsRequest{
+			Sid:     &lteprotos.SubscriberID{Id: imsi},
+			RuleIds: []string{makeRuleIDFromIMSI(imsi)},
+		})
+	}
 	return err
 }
 

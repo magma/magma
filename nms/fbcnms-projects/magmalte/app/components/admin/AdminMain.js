@@ -11,7 +11,7 @@
 import * as React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
+import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {getProjectLinks} from '../../common/projects';

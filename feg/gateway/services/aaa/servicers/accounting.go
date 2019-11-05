@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -103,7 +104,9 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	sid := req.GetCtx().GetSessionId()
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, Errorf(codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
+		// Log error and return OK, no need to stop accounting for already removed session
+		log.Printf("Accounting Stop: Session %s is not found", sid)
+		return &protos.AcctResp{}, nil
 	}
 
 	s.Lock()

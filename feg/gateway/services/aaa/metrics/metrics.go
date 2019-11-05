@@ -29,7 +29,7 @@ var (
 			Name: "active_sessions",
 			Help: "Number of active user sessions partitioned by APN",
 		},
-		[]string{"apn"},
+		[]string{"apn", "imsi", "id"},
 	)
 
 	SessionTimeouts = prometheus.NewCounterVec(

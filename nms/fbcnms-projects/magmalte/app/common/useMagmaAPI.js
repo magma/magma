@@ -44,7 +44,7 @@ export default function<TParams: {...}, TResponse>(
         setError(err);
         setResponse(null);
         setIsLoading(false);
-        if (err.response.status === 503) {
+        if (err?.response?.status === 503) {
           enqueueSnackbar(
             'There was a problem connecting to the Orchestrator server',
             {variant: 'error'},
