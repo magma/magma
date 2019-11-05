@@ -23,6 +23,19 @@ class TestX2HandOverPingPong(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_x2_handoverPingPong(self):
+        """ Multi Enb Multi UE attach detach """
+        num_of_enbs = 2
+        # column is a enb parameter,  row is a number of enb
+        """            Cell Id,   Tac, EnbType, PLMN Id """
+        enb_list = list([[1,       1,     1,    "001010"],
+                         [2,       2,     1,    "001010"]])
+
+        assert (num_of_enbs == len(enb_list)), "Number of enbs configured"
+        "not equal to enbs in the list!!!"
+
+        self._s1ap_wrapper.multiEnbConfig(num_of_enbs, enb_list)
+
+        time.sleep(2)
         """ Attach to Src eNB, HO to TeNB  """
         """ HO back to Src enb"""
         self._s1ap_wrapper.configUEDevice(1)
