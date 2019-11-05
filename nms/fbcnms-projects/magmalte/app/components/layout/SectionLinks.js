@@ -11,7 +11,7 @@
 import * as React from 'react';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import NavListItem from '@fbcnms/ui/components/NavListItem.react';
+import NavListItem from '@fbcnms/ui/components/NavListItem';
 import NetworkContext from '../context/NetworkContext';
 
 import useSections from './useSections';

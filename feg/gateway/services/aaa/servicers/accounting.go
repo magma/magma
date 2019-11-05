@@ -10,9 +10,12 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"log"
 	"net"
 	"strings"
 	"time"
+
+	"magma/orc8r/gateway/directoryd"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -101,7 +104,9 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	sid := req.GetCtx().GetSessionId()
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, Errorf(codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
+		// Log error and return OK, no need to stop accounting for already removed session
+		log.Printf("Accounting Stop: Session %s is not found", sid)
+		return &protos.AcctResp{}, nil
 	}
 
 	s.Lock()
@@ -115,6 +120,8 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+	} else {
+		directoryd.RemoveIMSI(sessionImsi)
 	}
 	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
 
@@ -175,6 +182,7 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
+
 	conn, err := registry.GetConnection(registry.RADIUS)
 	if err != nil {
 		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
@@ -197,6 +205,8 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+	} else {
+		directoryd.RemoveIMSI(aaaCtx.GetImsi())
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)

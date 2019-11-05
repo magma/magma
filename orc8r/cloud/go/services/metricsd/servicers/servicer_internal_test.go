@@ -1,48 +1,80 @@
-/*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
 package servicers
 
 import (
 	"testing"
 
+	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/metricsd/exporters"
+
+	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+
+	prometheusProto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	testCloudName   = "gateway_checkin_status_gatewayId_idfaceb00cfaceb00cface6031973e8372_networkId_mesh_tobias_dogfooding"
-	testRegularName = "regular_metric_name"
-	testNoGatewayID = "no_gwID_networkId=test_network"
+var (
+	testLabels = []*prometheusProto.LabelPair{{Name: tests.MakeStringPointer("labelName"), Value: tests.MakeStringPointer("labelValue")}}
 )
 
-func TestParseCloudMetricName(t *testing.T) {
-	networkID, gatewayID := unpackCloudMetricName(testCloudName)
-	assert.Equal(t, "mesh_tobias_dogfooding", networkID)
-	assert.Equal(t, "idfaceb00cfaceb00cface6031973e8372", gatewayID)
+func TestPreprocessCloudMetrics(t *testing.T) {
+	testFamily := tests.MakeTestMetricFamily(prometheusProto.MetricType_GAUGE, 1, testLabels)
+	metricAndContext := preprocessCloudMetrics(testFamily, "hostA")
 
-	networkID, gatewayID = unpackCloudMetricName(testRegularName)
-	assert.Equal(t, "", networkID)
-	assert.Equal(t, "", gatewayID)
+	assert.NotNil(t, metricAndContext.Context.AdditionalContext)
+	assert.Equal(t, "hostA", metricAndContext.Context.AdditionalContext.(*exporters.CloudMetricContext).CloudHost)
 
-	networkID, gatewayID = unpackCloudMetricName(testNoGatewayID)
-	assert.Equal(t, "test_network", networkID)
-	assert.Equal(t, "", gatewayID)
+	labels := metricAndContext.Family.GetMetric()[0].Label
+	assert.Equal(t, 2, len(labels))
+	assert.True(t, tests.HasLabel(labels, "cloudHost", "hostA"))
+	assert.True(t, tests.HasLabel(labels, testLabels[0].GetName(), testLabels[0].GetValue()))
 }
 
-func TestRemoveCloudMetricLabels(t *testing.T) {
-	expectedName := "gateway_checkin_status"
-	strippedName := removeCloudMetricLabels(testCloudName)
-	assert.Equal(t, expectedName, strippedName)
+func TestMetricsContainerToMetricAndContexts(t *testing.T) {
+	testFamily := tests.MakeTestMetricFamily(prometheusProto.MetricType_GAUGE, 1, testLabels)
+	container := protos.MetricsContainer{
+		GatewayId: "gw1",
+		Family:    []*prometheusProto.MetricFamily{testFamily},
+	}
 
-	strippedName = removeCloudMetricLabels(testRegularName)
-	assert.Equal(t, testRegularName, strippedName)
+	metricAndContext := metricsContainerToMetricAndContexts(&container, "testNetwork", "gw1")
 
-	expectedName = "no_gwID"
-	strippedName = removeCloudMetricLabels(testNoGatewayID)
-	assert.Equal(t, expectedName, strippedName)
+	assert.Equal(t, 1, len(metricAndContext))
+	ctx := metricAndContext[0].Context
+	family := metricAndContext[0].Family
+	assert.NotNil(t, ctx.AdditionalContext)
+	assert.Equal(t, "gw1", ctx.AdditionalContext.(*exporters.GatewayMetricContext).GatewayID)
+	assert.Equal(t, "testNetwork", ctx.AdditionalContext.(*exporters.GatewayMetricContext).NetworkID)
+
+	labels := family.GetMetric()[0].Label
+	assert.Equal(t, 3, len(labels))
+	assert.True(t, tests.HasLabel(labels, metrics.NetworkLabelName, "testNetwork"))
+	assert.True(t, tests.HasLabel(labels, metrics.GatewayLabelName, "gw1"))
+	assert.True(t, tests.HasLabel(labels, testLabels[0].GetName(), testLabels[0].GetValue()))
+}
+
+func TestPushedMetricsToMetricsAndContext(t *testing.T) {
+	container := protos.PushedMetricsContainer{
+		NetworkId: "testNetwork",
+		Metrics: []*protos.PushedMetric{{
+			MetricName:  "metricA",
+			Value:       10,
+			TimestampMS: 1234,
+			Labels:      []*protos.LabelPair{{Name: "labelName", Value: "labelValue"}},
+		},
+		},
+	}
+
+	metricAndContext := pushedMetricsToMetricsAndContext(&container)
+
+	assert.Equal(t, 1, len(metricAndContext))
+	ctx := metricAndContext[0].Context
+	family := metricAndContext[0].Family
+	assert.NotNil(t, ctx.AdditionalContext)
+	assert.Equal(t, "testNetwork", ctx.AdditionalContext.(*exporters.PushedMetricContext).NetworkID)
+
+	labels := family.GetMetric()[0].Label
+	assert.Equal(t, 2, len(labels))
+	assert.True(t, tests.HasLabel(labels, metrics.NetworkLabelName, "testNetwork"))
+	assert.True(t, tests.HasLabel(labels, "labelName", "labelValue"))
 }

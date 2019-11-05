@@ -12,7 +12,7 @@ import * as React from 'react';
 import MapButton from '@fbcnms/ui/components/map/MapButton';
 import MapToggleButtonGroup from '@fbcnms/ui/components/map/MapToggleButtonGroup';
 import MapToggleContainer from '@fbcnms/ui/components/map/MapToggleContainer';
-import Typography from '@material-ui/core/Typography';
+import Text from '../design-system/Text';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -54,9 +54,7 @@ const MapButtonGroup = (props: Props) => {
                 }}
                 icon={
                   typeof button.item === 'string' ? (
-                    <Typography className={classes.text}>
-                      {button.item}
-                    </Typography>
+                    <Text className={classes.text}>{button.item}</Text>
                   ) : (
                     button.item
                   )

@@ -341,6 +341,31 @@ func DecodeSessionID(diamSid string) string {
 	return diamSid // not magma encoded SID, return as is
 }
 
+// ExtractImsiFromSessionID extracts and returns IMSI (without 'IMSI' prefix) from diameter session ID if available,
+// or original diam SessionId (diamSid) string otherwise
+// Input: OriginHost;[rand1#;rand2#;]IMSIxyz
+// Returns: xyz
+func ExtractImsiFromSessionID(diamSid string) (string, error) {
+	split := strings.Split(diamSid, ";")
+	n1 := len(split) - 1
+	if n1 > 0 {
+		imsi := strings.TrimSpace(split[n1])
+		if strings.HasPrefix(imsi, "IMSI") {
+			imsi = imsi[4:]
+			if len(imsi) < 10 || len(imsi) > 16 {
+				return diamSid, fmt.Errorf("Invalid length of IMSI: %s, SessionID: %s", imsi, diamSid)
+			}
+			for p, l := range imsi {
+				if l < '0' || l > '9' {
+					return diamSid, fmt.Errorf("Invalid char '%c' in IMSI[%d]: %s, SessionID: %s", l, p, imsi, diamSid)
+				}
+			}
+			return imsi, nil
+		}
+	}
+	return diamSid, fmt.Errorf("Non Magma SessionID: %s", diamSid)
+}
+
 // EncodeSessionID encodes SessionID in rfc6733 compliant form:
 // <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
 // OriginHost;rand#;rand#;IMSIxyz

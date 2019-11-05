@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
+	"magma/orc8r/cloud/go/metrics"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
@@ -57,7 +57,7 @@ func (c *Config) initializeNetworkBaseRoute(route *config.Route, networkID strin
 
 	c.Receivers = append(c.Receivers, &Receiver{Name: baseRouteName})
 	route.Receiver = baseRouteName
-	route.Match = map[string]string{exporters.NetworkLabelNetwork: networkID}
+	route.Match = map[string]string{metrics.NetworkLabelName: networkID}
 
 	c.Route.Routes = append(c.Route.Routes, route)
 
@@ -83,7 +83,9 @@ func (c *Config) Validate() error {
 type Receiver struct {
 	Name string `yaml:"name" json:"name"`
 
-	SlackConfigs []*SlackConfig `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	SlackConfigs   []*SlackConfig          `yaml:"slack_configs,omitempty" json:"slack_configs,omitempty"`
+	WebhookConfigs []*config.WebhookConfig `yaml:"webhook_configs,omitempty" json:"webhook_configs,omitempty"`
+	EmailConfigs   []*EmailConfig          `yaml:"email_configs,omitempty" json:"email_configs,omitempty"`
 }
 
 // Secure replaces the receiver's name with a networkID prefix
@@ -130,6 +132,36 @@ type SlackConfig struct {
 	ThumbURL    string                `yaml:"thumb_url,omitempty" json:"thumb_url,omitempty"`
 	LinkNames   bool                  `yaml:"link_names,omitempty" json:"link_names,omitempty"`
 	Actions     []*config.SlackAction `yaml:"actions,omitempty" json:"actions,omitempty"`
+}
+
+// EmailConfig uses string instead of Secret for the AuthPassword and AuthSecret
+// field so that it is marshaled as is instead of being obscured which is how
+// alertmanager handles secrets. Otherwise the secrets would be obscured on write
+// to the yml file, making it unusable.
+type EmailConfig struct {
+	config.NotifierConfig `yaml:",inline" json:",inline"`
+
+	To           string            `yaml:"to,omitempty" json:"to,omitempty"`
+	From         string            `yaml:"from,omitempty" json:"from,omitempty"`
+	Hello        string            `yaml:"hello,omitempty" json:"hello,omitempty"`
+	Smarthost    string            `yaml:"smarthost,omitempty" json:"smarthost,omitempty"`
+	AuthUsername string            `yaml:"auth_username,omitempty" json:"auth_username,omitempty"`
+	AuthPassword string            `yaml:"auth_password,omitempty" json:"auth_password,omitempty"`
+	AuthSecret   string            `yaml:"auth_secret,omitempty" json:"auth_secret,omitempty"`
+	AuthIdentity string            `yaml:"auth_identity,omitempty" json:"auth_identity,omitempty"`
+	Headers      map[string]string `yaml:"headers,omitempty" json:"headers,omitempty"`
+	HTML         string            `yaml:"html,omitempty" json:"html,omitempty"`
+	Text         string            `yaml:"text,omitempty" json:"text,omitempty"`
+	RequireTLS   *bool             `yaml:"require_tls,omitempty" json:"require_tls,omitempty"`
+}
+
+// MarshalYAML implements the yaml.Marshaler interface for EmailConfig and
+// forces RequireTLS to be false. RequireTLS must be false since we don't support
+// storing certificate files.
+func (e EmailConfig) MarshalYAML() (interface{}, error) {
+	valFalse := false
+	e.RequireTLS = &valFalse
+	return e, nil
 }
 
 // RouteJSONWrapper Provides a struct to marshal/unmarshal into a rulefmt.Rule

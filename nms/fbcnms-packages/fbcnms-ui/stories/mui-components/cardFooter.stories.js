@@ -7,7 +7,7 @@
  * @flow
  * @format
  */
-import CardFooter from '../../components/CardFooter.react';
+import CardFooter from '../../components/CardFooter';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

@@ -12,6 +12,7 @@
 #include <folly/ScopeGuard.h>
 
 #include <devmand/channels/snmp/Channel.h>
+#include <devmand/channels/snmp/Engine.h>
 
 namespace devmand {
 namespace channels {
@@ -65,6 +66,7 @@ static inline int parseSecurityLevel(const SecurityLevel& lvl) {
 }
 
 Channel::Channel(
+    Engine& engine_,
     const Peer& peer_,
     const Community& community,
     const Version& version,
@@ -72,7 +74,7 @@ Channel::Channel(
     const std::string& securityName,
     const SecurityLevel& securityLevel,
     oid proto[])
-    : peer(peer_) {
+    : engine(engine_), peer(peer_) {
   snmp_session sessionIn;
 
   snmp_sess_init(&sessionIn);
@@ -125,7 +127,7 @@ void Channel::handleAsyncResponse(
     snmp_pdu* response) {
   switch (operation) {
     case NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE: {
-      Response pr = processResponse(*response);
+      Response pr = processResponse(request, *response);
       if (not pr.isError()) {
         request->responsePromise.setValue(pr);
       } else {
@@ -134,8 +136,8 @@ void Channel::handleAsyncResponse(
       break;
     }
     case NETSNMP_CALLBACK_OP_TIMED_OUT:
-      request->responsePromise.setException(
-          Exception(folly::sformat("snmp timeout {}", peer)));
+      request->responsePromise.setException(Exception(folly::sformat(
+          "snmp timeout {} on oid {}", peer, request->oid.toString())));
       break;
     default:
       request->responsePromise.setException(Exception("snmp error"));
@@ -162,6 +164,7 @@ folly::Future<Response> Channel::asyncSend(
     return 1;
   };
 
+  engine.incrementRequests();
   if (snmp_async_send(session, pdu.get(), handler, &result->second)) {
     pdu.release();
     return result->second.responsePromise.getFuture();
@@ -176,7 +179,7 @@ folly::Future<Response> Channel::asyncGet(const Oid& _oid) {
   auto result = outstandingRequests.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(pdu.get()->reqid),
-      std::forward_as_tuple(Request{this}));
+      std::forward_as_tuple(Request{this, _oid}));
   if (result.second) {
     return asyncSend(pdu, result.first);
   } else {
@@ -189,7 +192,7 @@ folly::Future<Response> Channel::asyncGetNext(const Oid& _oid) {
   auto result = outstandingRequests.emplace(
       std::piecewise_construct,
       std::forward_as_tuple(pdu.get()->reqid),
-      std::forward_as_tuple(Request{this}));
+      std::forward_as_tuple(Request{this, _oid}));
   if (result.second) {
     return asyncSend(pdu, result.first);
   } else {
@@ -209,6 +212,10 @@ Response Channel::processVars(netsnmp_variable_list* vars) {
   for (; vars != nullptr; vars = vars->next_variable) {
     Oid oid(vars->name, vars->name_length);
     switch (vars->type) {
+      case SNMP_ENDOFMIBVIEW:
+      case SNMP_NOSUCHOBJECT:
+      case SNMP_NOSUCHINSTANCE:
+        return Response(oid, nullptr);
       case ASN_OCTET_STR:
         return Response(
             oid,
@@ -233,6 +240,10 @@ Response Channel::processVars(netsnmp_variable_list* vars) {
         return Response(oid, *vars->val.integer);
       case ASN_BOOLEAN:
         return Response(oid, static_cast<bool>(*vars->val.integer));
+      case ASN_OBJECT_ID:
+        return Response(
+            oid,
+            Oid(vars->val.objid, vars->val_len / sizeof(::oid)).toString());
       case ASN_BIT_STR:
       case ASN_NULL:
       default:
@@ -244,18 +255,55 @@ Response Channel::processVars(netsnmp_variable_list* vars) {
   return ErrorResponse("error");
 }
 
-Response Channel::processResponse(snmp_pdu& response) {
+Response Channel::processResponse(Request* request, snmp_pdu& response) {
   switch (response.errstat) {
     case SNMP_ERR_NOERROR:
       return processVars(response.variables);
     case SNMPERR_TIMEOUT:
-      return ErrorResponse(folly::sformat("snmp timeout {}", peer));
-    default:
-      return ErrorResponse(
-          std::string("snmp packet error ") +
-          snmp_errstring(static_cast<int>(response.errstat)) + " for oid " +
-          firstOid(response.variables).toString());
+      return ErrorResponse(folly::sformat(
+          "snmp timeout {} on oid {}", peer, request->oid.toString()));
+    case SNMP_ERR_NOSUCHNAME:
+      for (netsnmp_variable_list* vars = response.variables; vars != nullptr;
+           vars = vars->next_variable) {
+        Oid oid(vars->name, vars->name_length);
+        switch (vars->type) {
+          case SNMP_ENDOFMIBVIEW:
+          case SNMP_NOSUCHOBJECT:
+          case SNMP_NOSUCHINSTANCE:
+          case ASN_NULL:
+            return Response(oid, nullptr);
+          default:
+            break;
+        }
+      }
+      [[fallthrough]] default
+          : return ErrorResponse(
+                std::string("snmp packet error ") +
+                snmp_errstring(static_cast<int>(response.errstat)) +
+                " for oid " + firstOid(response.variables).toString() +
+                " errno " + folly::to<std::string>(response.errstat));
   }
+}
+
+folly::Future<Responses> Channel::walk(const channels::snmp::Oid& tree) {
+  return walk(tree, tree, {});
+}
+
+folly::Future<Responses> Channel::walk(
+    const channels::snmp::Oid& tree,
+    const channels::snmp::Oid& current,
+    Responses responses) {
+  return asyncGetNext(current).thenValue(
+      [this, tree, current, responses = std::move(responses)](
+          auto response) mutable {
+        // TODO handle error
+        if (not response.value.isNull() and response.oid.isDescendant(tree)) {
+          responses.emplace_back(response);
+          return this->walk(tree, response.oid, std::move(responses));
+        } else {
+          return folly::makeFuture<Responses>(std::move(responses));
+        }
+      });
 }
 
 } // namespace snmp

@@ -39,7 +39,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 	return func(c echo.Context) error {
 		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, fmt.Sprintf("%s", err))
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		err = client.CreateReceiver(getFilePrefix(c), receiver)
 		if err != nil {

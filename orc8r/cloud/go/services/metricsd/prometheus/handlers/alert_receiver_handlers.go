@@ -81,12 +81,12 @@ func getHandlerWithRouteFunc(configManagerURL string, handlerImplFunc func(echo.
 func configureAlertReceiver(c echo.Context, url string) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	sendErr := sendConfig(receiver, url, http.MethodPost)
-	if err != nil {
-		return obsidian.HttpError(sendErr, sendErr.Code)
+	if sendErr != nil {
+		return obsidian.HttpError(fmt.Errorf("%s", sendErr.Message), sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }
@@ -115,7 +115,7 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 func updateAlertReceiver(c echo.Context, url string) error {
 	receiver, err := buildReceiverFromContext(c)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	receiverName := c.Param(ReceiverNamePathParam)
 	if receiverName == "" {
@@ -127,7 +127,7 @@ func updateAlertReceiver(c echo.Context, url string) error {
 	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
 	sendErr := sendConfig(receiver, url, http.MethodPut)
-	if err != nil {
+	if sendErr != nil {
 		return obsidian.HttpError(sendErr, sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
@@ -186,8 +186,8 @@ func updateAlertRoute(c echo.Context, url string) error {
 	}
 
 	sendErr := sendConfig(route, url, http.MethodPost)
-	if err != nil {
-		return obsidian.HttpError(fmt.Errorf("error updating alert route: %v", sendErr), sendErr.Code)
+	if sendErr != nil {
+		return obsidian.HttpError(fmt.Errorf("error updating alert route: %v", sendErr.Message), sendErr.Code)
 	}
 	return c.NoContent(http.StatusOK)
 }

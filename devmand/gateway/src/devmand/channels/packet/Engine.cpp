@@ -27,7 +27,7 @@ namespace devmand {
 namespace channels {
 namespace packet {
 
-Engine::Engine(const std::string& interfaceName) {
+Engine::Engine(const std::string& interfaceName) : channels::Engine("Packet") {
   LOG(INFO) << "Listening on interface " << interfaceName;
 
   fd = ::socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));

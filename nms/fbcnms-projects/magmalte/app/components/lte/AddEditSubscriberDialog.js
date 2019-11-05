@@ -10,9 +10,9 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
-import type {subscriber} from '../../common/__generated__/MagmaAPIBindings';
+import type {subscriber} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -25,7 +25,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {withRouter} from 'react-router-dom';
@@ -154,12 +154,10 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
+          <Button onClick={this.props.onClose} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </Dialog>
     );

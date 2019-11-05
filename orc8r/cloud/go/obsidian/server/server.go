@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian/access"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 func Start() {
@@ -28,6 +29,7 @@ func Start() {
 	obsidian.AttachAll(e)
 	// metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
+	e.Use(middleware.Recover())
 	// Serve static pages for the API docs
 	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
 	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")

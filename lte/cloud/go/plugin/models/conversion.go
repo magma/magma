@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -31,7 +32,25 @@ import (
 )
 
 func (m *LteNetwork) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.DNS.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Features.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -168,7 +187,23 @@ func (m *LteGateway) FromBackendModels(
 }
 
 func (m *MutableLteGateway) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only for cellular and device
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Device.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
@@ -362,7 +397,9 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
 	m.Serial = ent.Key
-	m.Config = ent.Config.(*EnodebConfiguration)
+	if ent.Config != nil {
+		m.Config = ent.Config.(*EnodebConfiguration)
+	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayType {
 			m.AttachedGatewayID = tk.Key
@@ -394,11 +431,9 @@ func (m *SubProfile) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-var formatsRegistry = strfmt.NewFormats()
-
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:         lte.BaseNameEntity2Type,
+		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
 		Associations: m.RuleNames.ToAssocs(),
 	}
@@ -407,7 +442,7 @@ func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.PolicyRuleEntity2Type {
+		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
 		}
 	}
@@ -418,14 +453,14 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.PolicyRuleEntity2Type, Key: rn}
+			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:   lte.PolicyRuleEntity2Type,
+		Type:   lte.PolicyRuleEntityType,
 		Key:    *m.ID,
 		Config: m,
 	}
@@ -464,7 +499,6 @@ func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
 
 func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
 	redirectProto := &protos.RedirectInformation{}
-	orcprotos.FillIn(redirectModel, redirectProto)
 	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
 	if ok {
 		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
@@ -472,6 +506,9 @@ func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInf
 	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
 	if ok {
 		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
+	}
+	if redirectModel.ServerAddress != nil {
+		redirectProto.ServerAddress = *redirectModel.ServerAddress
 	}
 	return redirectProto
 }

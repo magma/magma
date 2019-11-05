@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
@@ -25,6 +26,7 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
+	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
 
 	"github.com/golang/glog"
 	dto "github.com/prometheus/client_model/go"
@@ -50,11 +52,11 @@ var _ = flag.Set("vmodule", "*=2")
 
 func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error {
 	for _, metricAndContext := range metrics {
-		family, ctx := metricAndContext.Family, metricAndContext.Context
+		family := metricAndContext.Family
 		for _, metric := range family.GetMetric() {
 			e.queue = append(
 				e.queue,
-				exporters.GetSamplesForMetrics(ctx.MetricName, family.GetType(), metric, ctx.OriginatingEntity)...,
+				exporters.GetSamplesForMetrics(metricAndContext, metric)...,
 			)
 		}
 	}
@@ -140,7 +142,8 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
 	// check that label protos are converted
-	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
+	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
 	// clear queue
 	e.queue = e.queue[:0]
 
@@ -149,7 +152,9 @@ func TestCollect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
+	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
+	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect summaries
@@ -158,7 +163,9 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, 2, len(e.queue))
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[0].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
-	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
+	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
+	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Collect histograms
@@ -169,7 +176,9 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[1].Value())
 	assert.Equal(t, strconv.FormatFloat(float, 'E', -1, 64), e.queue[2].Value())
 	assert.Equal(t, strconv.FormatUint(int_val, 10), e.queue[3].Value())
-	assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
+	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
+	//assert.Equal(t, protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name), e.queue[0].Labels()[0].GetName())
 	e.queue = e.queue[:0]
 
 	// Test Collect with empty collection
@@ -219,27 +228,29 @@ func TestPush(t *testing.T) {
 
 	metricName := "test_metric"
 	value := 8.2
-	label := &protos.LabelPair{Name: "labelName", Value: "labelValue"}
+	testLabel := &protos.LabelPair{Name: "labelName", Value: "labelValue"}
 	timestamp := int64(123456)
 
 	protoMet := protos.PushedMetric{
 		MetricName:  metricName,
 		Value:       value,
 		TimestampMS: timestamp,
-		Labels:      []*protos.LabelPair{label},
+		Labels:      []*protos.LabelPair{testLabel},
 	}
-	metrics := protos.PushedMetricsContainer{
+	pushedMetrics := protos.PushedMetricsContainer{
 		NetworkId: networkID,
 		Metrics:   []*protos.PushedMetric{&protoMet},
 	}
 
-	_, err := srv.Push(ctx, &metrics)
+	_, err := srv.Push(ctx, &pushedMetrics)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, metricName, e.queue[0].Name())
-	assert.Equal(t, 1, len(e.queue[0].Labels()))
-	assert.Equal(t, "labelName", *e.queue[0].Labels()[0].Name)
-	assert.Equal(t, "labelValue", *e.queue[0].Labels()[0].Value)
+	assert.Equal(t, 2, len(e.queue[0].Labels()))
+	assert.Equal(t, testLabel.Name, *e.queue[0].Labels()[0].Name)
+	assert.Equal(t, testLabel.Value, *e.queue[0].Labels()[0].Value)
+	assert.Equal(t, metrics.NetworkLabelName, *e.queue[0].Labels()[1].Name)
+	assert.Equal(t, networkID, *e.queue[0].Labels()[1].Value)
 	assert.Equal(t, timestamp, e.queue[0].TimestampMs())
 	assert.Equal(t, strconv.FormatFloat(value, 'f', -1, 64), e.queue[0].Value())
 }

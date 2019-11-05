@@ -51,6 +51,7 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
               : folly::dynamic::object;
           dyn[idL] = data;
           (*unifiedView)["devmand"] = folly::toJson(dyn);
+          LOG(INFO) << "state for " << idL << " is " << folly::toJson(dyn);
         });
       }));
 }

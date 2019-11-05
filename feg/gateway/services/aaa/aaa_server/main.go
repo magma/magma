@@ -14,11 +14,13 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
 	"magma/feg/gateway/services/aaa/store"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
 	managed_configs "magma/orc8r/gateway/mconfig"
 )
@@ -45,6 +47,8 @@ func main() {
 	}
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
+	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, acct)
+	fegprotos.RegisterSwxGatewayServiceServer(srv.GrpcServer, acct)
 
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)

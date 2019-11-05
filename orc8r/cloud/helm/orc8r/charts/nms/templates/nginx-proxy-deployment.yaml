@@ -51,7 +51,7 @@ spec:
       {{- end }}
       restartPolicy: Always
       containers:
-        - name: {{ .Chart.Name }}
+        - name: nms-nginx
           image: "{{ .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}"
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
 {{ tuple $envAll $envAll.Values.pod.resources.nginx | include "nms.kubernetes_resources" | indent 10 }}

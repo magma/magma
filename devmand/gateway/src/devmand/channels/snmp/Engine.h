@@ -7,9 +7,14 @@
 
 #pragma once
 
+#include <list>
+#include <memory>
 #include <string>
 
+#include <folly/io/async/EventHandler.h>
+
 #include <devmand/channels/Engine.h>
+#include <devmand/channels/snmp/EventHandler.h>
 
 namespace devmand {
 namespace channels {
@@ -17,7 +22,7 @@ namespace snmp {
 
 class Engine final : public channels::Engine {
  public:
-  Engine(const std::string& appName);
+  Engine(folly::EventBase& eventBase_, const std::string& appName);
 
   Engine() = delete;
   ~Engine() override = default;
@@ -27,11 +32,17 @@ class Engine final : public channels::Engine {
   Engine& operator=(Engine&&) = delete;
 
  public:
-  void run();
-  void stopEventually();
+  folly::EventBase& getEventBase();
+  void sync();
 
  private:
-  bool stopping{false};
+  void timeout();
+
+  void enableDebug();
+
+ private:
+  folly::EventBase& eventBase;
+  std::list<std::unique_ptr<EventHandler>> handlers;
 };
 
 } // namespace snmp

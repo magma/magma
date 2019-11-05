@@ -19,17 +19,27 @@ import (
 // swagger:model alert_receiver_config
 type AlertReceiverConfig struct {
 
+	// email configs
+	EmailConfigs []*EmailReceiver `json:"email_configs"`
+
 	// name
 	// Required: true
 	Name *string `json:"name"`
 
 	// slack configs
 	SLACKConfigs []*SLACKReceiver `json:"slack_configs"`
+
+	// webhook configs
+	WebhookConfigs []*WebhookReceiver `json:"webhook_configs"`
 }
 
 // Validate validates this alert receiver config
 func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateEmailConfigs(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
@@ -39,9 +49,38 @@ func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateWebhookConfigs(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *AlertReceiverConfig) validateEmailConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EmailConfigs) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.EmailConfigs); i++ {
+		if swag.IsZero(m.EmailConfigs[i]) { // not required
+			continue
+		}
+
+		if m.EmailConfigs[i] != nil {
+			if err := m.EmailConfigs[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("email_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
 	return nil
 }
 
@@ -69,6 +108,31 @@ func (m *AlertReceiverConfig) validateSLACKConfigs(formats strfmt.Registry) erro
 			if err := m.SLACKConfigs[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("slack_configs" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+func (m *AlertReceiverConfig) validateWebhookConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.WebhookConfigs) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.WebhookConfigs); i++ {
+		if swag.IsZero(m.WebhookConfigs[i]) { // not required
+			continue
+		}
+
+		if m.WebhookConfigs[i] != nil {
+			if err := m.WebhookConfigs[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("webhook_configs" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

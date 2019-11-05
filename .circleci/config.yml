@@ -54,6 +54,29 @@ jobs:
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
 
+  southpoll_lint:
+    docker:
+      - image: fedora:latest
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "devmand"
+      - run:
+          name: Running lints on the devmand image
+          command: |
+            sudo dnf update -y
+            sudo dnf install -y clang-format
+            cd ./devmand/gateway/
+            ./format
+            if [[ $(git diff HEAD --name-only) ]]; then
+               echo "############################"
+               echo "Changes required!"
+               git diff HEAD | less
+               echo "Please run the format script"
+               echo "############################"
+               exit 1
+            fi
+
   southpoll_test:
     machine:
       image: circleci/classic:latest
@@ -124,11 +147,14 @@ workflows:
 
   southpoll_test_and_publish:
     jobs:
+      - southpoll_lint
       - southpoll_test
       - southpoll_publish_dev:
           requires:
+            - southpoll_lint
             - southpoll_test
       - southpoll_publish_prod:
           requires:
+            - southpoll_lint
             - southpoll_test
           <<: *only_master

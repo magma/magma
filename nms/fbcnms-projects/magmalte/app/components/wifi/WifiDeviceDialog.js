@@ -13,13 +13,13 @@ import type {
   Record,
   WifiConfig,
 } from '@fbcnms/magmalte/app/common/MagmaAPIType';
-import type {magmad_gateway_configs} from '@fbcnms/magmalte/app/common/__generated__/MagmaAPIBindings';
+import type {magmad_gateway_configs} from '@fbcnms/magma-api';
 
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -27,7 +27,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaDeviceFields from '@fbcnms/magmalte/app/components/MagmaDeviceFields';
-import MagmaV1API from '@fbcnms/magmalte/app/common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -224,15 +224,10 @@ class WifiDeviceDialog extends React.Component<Props, State> {
           {content}
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onCancel} color="primary">
+          <Button onClick={this.props.onCancel} skin="regular">
             Cancel
           </Button>
-          <Button
-            onClick={deviceID ? this.onEdit : this.onCreate}
-            color="primary"
-            variant="contained">
-            Save
-          </Button>
+          <Button onClick={deviceID ? this.onEdit : this.onCreate}>Save</Button>
         </DialogActions>
       </Dialog>
     );

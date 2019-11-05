@@ -11,16 +11,16 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {subscriber} from '../common/__generated__/MagmaAPIBindings';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import AddEditSubscriberDialog from './lte/AddEditSubscriberDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import ImportSubscribersDialog from './ImportSubscribersDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -29,7 +29,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableFooter from '@material-ui/core/TableFooter';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -50,6 +50,9 @@ const styles = theme => ({
   },
   paper: {
     margin: theme.spacing(3),
+  },
+  importButton: {
+    marginRight: '8px',
   },
 });
 
@@ -118,21 +121,14 @@ class Subscribers extends React.Component<Props, State> {
     return (
       <div className={this.props.classes.paper}>
         <div className={this.props.classes.header}>
-          <Typography variant="h5">Subscribers</Typography>
+          <Text variant="h5">Subscribers</Text>
           <div className={this.props.classes.buttons}>
             <Button
-              style={{marginRight: '10px'}}
-              variant="contained"
-              color="primary"
+              className={this.props.classes.importButton}
               onClick={this.showImportDialog}>
               Import
             </Button>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.showAddEditDialog}>
-              Add Subscriber
-            </Button>
+            <Button onClick={this.showAddEditDialog}>Add Subscriber</Button>
           </div>
         </div>
         <Paper elevation={2}>
@@ -165,9 +161,9 @@ class Subscribers extends React.Component<Props, State> {
           )}
         </Paper>
         <div style={this.state.errorMessage !== null ? {} : {display: 'none'}}>
-          <Typography color="error" variant="body2">
-            {this.state.errorMessage}
-          </Typography>
+          <Text color="error" variant="body2">
+            {this.state.errorMessage ?? ''}
+          </Text>
         </div>
         <AddEditSubscriberDialog
           key={(this.state.editingSubscriber || {}).id || 'new'}

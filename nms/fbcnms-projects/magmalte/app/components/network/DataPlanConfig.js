@@ -12,15 +12,15 @@ import type {ContextRouter, Match} from 'react-router-dom';
 import type {Theme} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
-import type {network_epc_configs} from '../../common/__generated__/MagmaAPIBindings';
+import type {network_epc_configs} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DataPlanEditDialog from './DataPlanEditDialog';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '../../common/MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -142,9 +142,7 @@ class DataPlanConfig extends React.Component<Props, State> {
               <TableCell>Subscriber Count</TableCell>
               <TableCell>
                 <NestedRouteLink to="/edit/">
-                  <Button color="primary" variant="contained">
-                    Add Data Plan
-                  </Button>
+                  <Button>Add Data Plan</Button>
                 </NestedRouteLink>
               </TableCell>
             </TableRow>

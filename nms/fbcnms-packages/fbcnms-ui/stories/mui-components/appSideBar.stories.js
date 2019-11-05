@@ -8,7 +8,7 @@
  * @format
  */
 
-import AppSideBar from '../../components/layout/AppSideBar.react';
+import AppSideBar from '../../components/layout/AppSideBar';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import ListIcon from '@material-ui/icons/List';
 import React, {useState} from 'react';
@@ -22,6 +22,7 @@ const ExpandablePanel = () => {
   return (
     <div style={{display: 'flex'}}>
       <AppSideBar
+        showSettings={true}
         user={{email: 'user@fb.com', isSuperUser: false}}
         projects={[]}
         mainItems={[
@@ -51,6 +52,7 @@ const ExpandablePanel = () => {
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   .add('default', () => (
     <AppSideBar
+      showSettings={true}
       user={{email: 'user@fb.com', isSuperUser: true}}
       projects={[
         {
@@ -77,6 +79,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   ))
   .add('Not super user', () => (
     <AppSideBar
+      showSettings={true}
       user={{email: 'user@fb.com', isSuperUser: false}}
       projects={[
         {
@@ -101,6 +104,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/AppSideBar`, module)
   ))
   .add('No projects', () => (
     <AppSideBar
+      showSettings={true}
       user={{email: 'user@fb.com', isSuperUser: false}}
       projects={[]}
       mainItems={[

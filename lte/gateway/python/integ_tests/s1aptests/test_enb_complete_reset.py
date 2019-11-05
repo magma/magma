@@ -54,8 +54,8 @@ class TestEnbCompleteReset(unittest.TestCase):
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
-        reset_req.u = s1ap_types.U()
-        reset_req.u.completeRst = s1ap_types.CompleteReset()
+        reset_req.r = s1ap_types.R()
+        reset_req.r.completeRst = s1ap_types.CompleteReset()
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.RESET_REQ, reset_req)
         response = self._s1ap_wrapper.s1_util.get_response()

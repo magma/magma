@@ -44,7 +44,7 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 		var err error
 		imsi := string(asr.UserName)
 		if len(imsi) == 0 {
-			imsi, err = relay.GetIMSIFromSessionID(diameter.DecodeSessionID(asr.SessionID))
+			imsi, err = diameter.ExtractImsiFromSessionID(asr.SessionID)
 			if err != nil {
 				glog.Errorf("Error retreiving IMSI from Session ID %s: %s", asr.SessionID, err)
 				h.sendASA(conn, m, asr.SessionID, diam.UnknownSessionID)
@@ -58,6 +58,7 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 			return
 		}
 		defer client.Close()
+
 		res, err := client.AbortSession(context.Background(), &protos.AbortSessionRequest{
 			UserName:  imsi,
 			SessionId: asr.SessionID,

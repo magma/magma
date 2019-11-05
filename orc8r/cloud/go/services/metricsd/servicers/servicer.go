@@ -12,9 +12,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"strings"
 	"time"
 
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -59,7 +59,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
 
-	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, hardwareID, gatewayID)
+	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, gatewayID)
 	for _, e := range srv.exporters {
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
@@ -74,32 +74,29 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 // forever.
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheusProto.MetricFamily, hostName string) error {
 	for family := range inputChan {
+		metricsToSubmit := preprocessCloudMetrics(family, hostName)
 		for _, e := range srv.exporters {
-			decodedName := protos.GetDecodedName(family)
-			networkID, gatewayID := unpackCloudMetricName(decodedName)
-			if networkID == "" {
-				networkID = exporters.CloudMetricID
-			}
-			if gatewayID == "" {
-				gatewayID = hostName
-			}
-			ctx := exporters.MetricsContext{
-				MetricName:        removeCloudMetricLabels(decodedName),
-				NetworkID:         networkID,
-				GatewayID:         gatewayID,
-				OriginatingEntity: networkID + "." + gatewayID,
-				DecodedName:       decodedName,
-			}
-			for _, metric := range family.Metric {
-				metric.Label = protos.GetDecodedLabel(metric)
-			}
-			err := e.Submit([]exporters.MetricAndContext{{Family: family, Context: ctx}})
+			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
 			if err != nil {
 				glog.Error(err)
 			}
 		}
 	}
 	return nil
+}
+
+func preprocessCloudMetrics(family *prometheusProto.MetricFamily, hostName string) exporters.MetricAndContext {
+	ctx := exporters.MetricsContext{
+		MetricName: protos.GetDecodedName(family),
+		AdditionalContext: &exporters.CloudMetricContext{
+			CloudHost: hostName,
+		},
+	}
+	for _, metric := range family.Metric {
+		metric.Label = protos.GetDecodedLabel(metric)
+		addRequiredLabelToMetric(metric, metrics.CloudHostLabelName, hostName)
+	}
+	return exporters.MetricAndContext{Family: family, Context: ctx}
 }
 
 func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exporters.Exporter {
@@ -109,20 +106,21 @@ func (srv *MetricsControllerServer) RegisterExporter(e exporters.Exporter) []exp
 
 func metricsContainerToMetricAndContexts(
 	in *protos.MetricsContainer,
-	networkID string, hardwareID string, gatewayID string,
+	networkID, gatewayID string,
 ) []exporters.MetricAndContext {
 	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
 	for _, fam := range in.Family {
 		ctx := exporters.MetricsContext{
-			MetricName:        protos.GetDecodedName(fam),
-			NetworkID:         networkID,
-			HardwareID:        hardwareID,
-			GatewayID:         gatewayID,
-			OriginatingEntity: networkID + "." + gatewayID,
-			DecodedName:       protos.GetDecodedName(fam),
+			MetricName: protos.GetDecodedName(fam),
+			AdditionalContext: &exporters.GatewayMetricContext{
+				NetworkID: networkID,
+				GatewayID: gatewayID,
+			},
 		}
 		for _, metric := range fam.Metric {
 			metric.Label = protos.GetDecodedLabel(metric)
+			addRequiredLabelToMetric(metric, metrics.NetworkLabelName, networkID)
+			addRequiredLabelToMetric(metric, metrics.GatewayLabelName, gatewayID)
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}
@@ -133,85 +131,54 @@ func pushedMetricsToMetricsAndContext(in *protos.PushedMetricsContainer) []expor
 	ret := make([]exporters.MetricAndContext, 0, len(in.Metrics))
 	for _, metric := range in.Metrics {
 		ctx := exporters.MetricsContext{
-			MetricName:  metric.MetricName,
-			DecodedName: metric.MetricName,
-			NetworkID:   in.NetworkId,
+			MetricName: metric.MetricName,
+			AdditionalContext: &exporters.PushedMetricContext{
+				NetworkID: in.NetworkId,
+			},
 		}
-		gaugeType := prometheusProto.MetricType_GAUGE
+
+		ts := metric.TimestampMS
+		if ts == 0 {
+			ts = time.Now().Unix() * 1000
+		}
 
 		prometheusLabels := make([]*prometheusProto.LabelPair, 0, len(metric.Labels))
 		for _, label := range metric.Labels {
 			prometheusLabels = append(prometheusLabels, &prometheusProto.LabelPair{Name: &label.Name, Value: &label.Value})
 		}
-		ts := metric.TimestampMS
-		if ts == 0 {
-			ts = time.Now().Unix() * 1000
+		promoMetric := &prometheusProto.Metric{
+			Label: prometheusLabels,
+			Gauge: &prometheusProto.Gauge{
+				Value: &metric.Value,
+			},
+			TimestampMs: &ts,
 		}
+		addRequiredLabelToMetric(promoMetric, metrics.NetworkLabelName, in.NetworkId)
+
+		gaugeType := prometheusProto.MetricType_GAUGE
 		fam := &prometheusProto.MetricFamily{
-			Name: &metric.MetricName,
-			Type: &gaugeType,
-			Metric: []*prometheusProto.Metric{{
-				Label: prometheusLabels,
-				Gauge: &prometheusProto.Gauge{
-					Value: &metric.Value,
-				},
-				TimestampMs: &ts,
-			},
-			},
+			Name:   &metric.MetricName,
+			Type:   &gaugeType,
+			Metric: []*prometheusProto.Metric{promoMetric},
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}
 	return ret
 }
 
-// unpackCloudMetricName takes a "cloud" metric name and attempts to parse out
-// the networkID and gatewayID from the name. Returns an error if either do not
-// exist.
-func unpackCloudMetricName(metricName string) (string, string) {
-	const (
-		networkLabel = "networkId"
-		gatewayLabel = "gatewayId"
-	)
-	var networkID, gatewayID string
-
-	networkLabelIndex := strings.Index(metricName, networkLabel)
-	gatewayLabelIndex := strings.Index(metricName, gatewayLabel)
-	if gatewayLabelIndex == -1 {
-		if networkLabelIndex == -1 {
-			return "", ""
+func addRequiredLabelToMetric(metric *prometheusProto.Metric, labelName, labelValue string) {
+	labelAdded := false
+	for _, label := range metric.Label {
+		if label.GetName() == labelName {
+			label.Value = &labelValue
+			labelAdded = true
 		}
-		networkStart := networkLabelIndex + len(networkLabel) + 1
-		networkID = metricName[networkStart:]
-		return networkID, ""
 	}
-
-	networkStart := networkLabelIndex + len(networkLabel) + 1
-	gatewayStart := gatewayLabelIndex + len(gatewayLabel) + 1
-
-	gatewayID = metricName[gatewayStart : networkLabelIndex-1]
-	networkID = metricName[networkStart:]
-
-	return networkID, gatewayID
+	if !labelAdded {
+		metric.Label = append(metric.Label, &prometheusProto.LabelPair{Name: makeStringPointer(labelName), Value: &labelValue})
+	}
 }
 
-// removeCloudMetricLabels takes a cloud metric name and removes the networkID
-// and gatewayID labels from the name if they exist
-func removeCloudMetricLabels(metricName string) string {
-	const (
-		networkLabel = "networkId"
-		gatewayLabel = "gatewayId"
-	)
-	networkLabelIndex := strings.Index(metricName, networkLabel)
-	gatewayLabelIndex := strings.Index(metricName, gatewayLabel)
-	if gatewayLabelIndex == -1 {
-		if networkLabelIndex == -1 {
-			return metricName
-		}
-		networkStart := networkLabelIndex - 1
-		return metricName[:networkStart]
-	}
-
-	gatewayStart := gatewayLabelIndex - 1
-
-	return metricName[:gatewayStart]
+func makeStringPointer(s string) *string {
+	return &s
 }

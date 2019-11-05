@@ -8,7 +8,7 @@
  * @format
  */
 
-import MagmaV1API from './MagmaV1API';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -44,7 +44,7 @@ export default function<TParams: {...}, TResponse>(
         setError(err);
         setResponse(null);
         setIsLoading(false);
-        if (err.response.status === 503) {
+        if (err?.response?.status === 503) {
           enqueueSnackbar(
             'There was a problem connecting to the Orchestrator server',
             {variant: 'error'},

@@ -150,7 +150,6 @@ typedef struct emm_context_s {
   bool is_dynamic;   /* Dynamically allocated context indicator         */
   bool is_attached;  /* Attachment indicator                            */
   bool is_emergency; /* Emergency bearer services indicator             */
-  bool is_has_been_attached; /* Attachment indicator                   */
   bool
     is_initial_identity_imsi; // If the IMSI was used for identification in the initial NAS message
   bool is_guti_based_attach;
@@ -498,6 +497,9 @@ void emm_ctx_set_drx_parameter(emm_context_t *const ctxt, drx_parameter_t *drx)
 void emm_ctx_set_valid_drx_parameter(
   emm_context_t *const ctxt,
   drx_parameter_t *drx) __attribute__((nonnull));
+
+void free_emm_ctx_memory(emm_context_t* const ctxt,
+  const mme_ue_s1ap_id_t ue_id);
 
 struct emm_context_s *emm_context_get(
   emm_data_t *emm_data,

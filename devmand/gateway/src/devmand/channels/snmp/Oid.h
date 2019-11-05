@@ -14,6 +14,7 @@
 #undef WRITE
 
 #include <folly/Conv.h>
+#include <folly/GLog.h>
 
 namespace devmand {
 namespace channels {
@@ -34,6 +35,21 @@ class Oid final {
   const oid* const get() const;
   size_t getLength() const;
   std::string toString() const;
+
+  friend bool operator==(const Oid& lhs, const Oid& rhs) {
+    return snmp_oid_compare(lhs.buffer, lhs.length, rhs.buffer, lhs.length) ==
+        0;
+  }
+
+  friend bool operator<(const Oid& lhs, const Oid& rhs) {
+    return snmp_oid_compare(lhs.buffer, lhs.length, rhs.buffer, lhs.length) ==
+        -1;
+  }
+
+  bool isDescendant(const Oid& tree) const {
+    return tree.length <= length and
+        snmp_oidtree_compare(tree.buffer, tree.length, buffer, length) == 0;
+  }
 
  public:
   static const Oid error;
