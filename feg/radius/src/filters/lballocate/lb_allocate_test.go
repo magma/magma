@@ -419,16 +419,39 @@ func TestLBAllocateFromCanaryWithNoMatchingCanaryDefinition(t *testing.T) {
 
 func doTestLBAllocateFails(t *testing.T, serverConfig *config.ServerConfig, state *session.State, listenerName string) {
 	// Arrange
-	var sessionID = "sessionID"
+	var (
+		sessionID    = "sessionID"
+		genSessionID = "genSessionID"
+	)
 	Init(serverConfig)
 
 	logger, _ := zap.NewDevelopment()
 
-	sessionStorage := session.NewSessionStorage(session.NewMultiSessionMemoryStorage(), sessionID)
+	// Test a case of initially missing Acct-Session-ID (generated SessionID is used) and then provided Acct-Session-ID
+	// for a session with generated SID already in the storage...
+	globalStorage := session.NewMultiSessionMemoryStorage()
+	// Missing Acct-Session-ID -> use genSessionID to add session to storage
+	sessionStorage := session.NewSessionStorageExt(globalStorage, genSessionID, genSessionID)
 	sessionStorage.Set(*state)
 
 	// Act
 	err := Process(
+		&modules.RequestContext{
+			RequestID:      0,
+			Logger:         logger,
+			SessionStorage: sessionStorage,
+		},
+		listenerName,
+		createRadiusRequest(),
+	)
+
+	// Assert
+	require.NotNil(t, err)
+
+	// Provided Acct-Session-ID -> use storage with previously genSessionID mapping
+	sessionStorage = session.NewSessionStorageExt(globalStorage, sessionID, genSessionID)
+	// Act
+	err = Process(
 		&modules.RequestContext{
 			RequestID:      0,
 			Logger:         logger,

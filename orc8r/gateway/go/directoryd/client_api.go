@@ -24,7 +24,7 @@ import (
 
 const (
 	ServiceName = "DIRECTORYD"
-	ImsiPrefix = "IMSI"
+	ImsiPrefix  = "IMSI"
 )
 
 // Get a thin RPC client to the directory service.
@@ -41,7 +41,9 @@ func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
 // AddIMSI associates given IMSI (UE) with the calling GW's HW ID
 func AddIMSI(imsi string) error {
 	if len(imsi) == 0 {
-		return fmt.Errorf("Empty IMSI")
+		err := fmt.Errorf("Empty IMSI")
+		glog.Error(err)
+		return err
 	}
 	client, err := GetDirectorydClient()
 	if err != nil {
@@ -49,8 +51,8 @@ func AddIMSI(imsi string) error {
 	}
 
 	req := &protos.UpdateDirectoryLocationRequest{
-		Table:  protos.TableID_IMSI_TO_HWID,
-		Id:     PrependImsiPrefix(imsi),
+		Table: protos.TableID_IMSI_TO_HWID,
+		Id:    PrependImsiPrefix(imsi),
 		// request Record will be populated by directoryd cloud service
 	}
 	ctx := context.Background()

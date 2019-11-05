@@ -66,6 +66,12 @@ module fbc-symphony-device {
             }
         }
 
+        leaf venue {
+            type string;
+            description "A string identifier of the location this device is at.
+                E.g. this could be a hotspot group.";
+        }
+
         container latencies {
             description "Latencies related to this system.";
 

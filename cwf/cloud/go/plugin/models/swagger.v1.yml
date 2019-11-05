@@ -649,8 +649,8 @@ definitions:
       key:
         type: integer
         format: uint32
-        x-nullable: false
-        example: 123
+        x-nullable: true
+        example: 1
   allowed_gre_peers:
     type: array
     items:

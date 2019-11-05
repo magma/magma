@@ -84,7 +84,7 @@ func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([
 	return updates, nil
 }
 
-// Mock GW Cloud Service Registry
+// Mock GW Cloud Service registry
 type mockCloudRegistry struct{}
 
 func (cr mockCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {

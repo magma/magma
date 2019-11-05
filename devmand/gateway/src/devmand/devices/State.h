@@ -16,14 +16,23 @@
 
 #include <devmand/ErrorHandler.h>
 #include <devmand/ErrorQueue.h>
+#include <devmand/MetricSink.h>
 #include <devmand/devices/Id.h>
 #include <devmand/utils/LifetimeTracker.h>
+#include <devmand/utils/Time.h>
 
 namespace devmand {
 
-class MetricSink;
-
 namespace devices {
+
+class State;
+
+struct Request {
+  std::shared_ptr<State> state{nullptr};
+  utils::TimePoint start{};
+  utils::TimePoint end{};
+  bool isError{false};
+};
 
 class State final : public std::enable_shared_from_this<State>,
                     public utils::LifetimeTracker<State> {
@@ -46,7 +55,18 @@ class State final : public std::enable_shared_from_this<State>,
   void setStatus(bool systemIsUp);
   void setErrors();
   void addError(std::string&& error);
-  void setGauge(const std::string& key, double value);
+
+  template <class T>
+  void setGauge(const std::string& key, T value) {
+    sink.setGauge(
+        key,
+        folly::to<double>(value),
+        // adds the label deviceID = {deviceID}
+        "deviceID",
+        device);
+  }
+
+  void setGauge(const std::string& key, long unsigned int value);
 
   // Adds a callback to be executed on collect.
   void addFinally(std::function<void()>&& f);
@@ -61,6 +81,9 @@ class State final : public std::enable_shared_from_this<State>,
   folly::dynamic& getFbcPlatformDevice(
       const std::string& key,
       folly::dynamic& unlockedState);
+
+  static std::chrono::microseconds getAverageRequestDuration(
+      std::vector<std::shared_ptr<Request>> reqs);
 
  private:
   // A link to the sink.
@@ -81,7 +104,7 @@ class State final : public std::enable_shared_from_this<State>,
 
   // This is a vector of futures which will be collected for the final
   // coalescing of state.
-  std::vector<folly::Future<folly::Unit>> requests;
+  std::vector<folly::Future<std::shared_ptr<Request>>> requests;
 };
 
 } // namespace devices

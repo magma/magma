@@ -38,5 +38,5 @@ std::ostream& operator<<(
   std::time_t epoch =
       std::chrono::duration_cast<std::chrono::seconds>(time.time_since_epoch())
           .count();
-  return stream << std::put_time(std::localtime(&epoch), "%F %T");
+  return stream << std::put_time(std::localtime(&epoch), "%c");
 }

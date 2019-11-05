@@ -213,6 +213,8 @@ int emm_proc_attach_complete(
   int emm_cause,
   const nas_message_decode_status_t status);
 
+void set_callbacks_for_attach_proc(nas_emm_attach_proc_t *attach_proc);
+
 void free_emm_tau_request_ies(emm_tau_request_ies_t **const ies);
 
 int emm_proc_tracking_area_update_request(
@@ -304,6 +306,9 @@ int emm_proc_authentication_complete(
 
 int emm_attach_security(struct emm_context_s *emm_context);
 
+void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc);
+void set_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc);
+void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t *auth_info_proc);
 /*
  * --------------------------------------------------------------------------
  *          Security mode control procedure
@@ -329,6 +334,9 @@ int emm_send_service_reject_in_dl_nas(
   const mme_ue_s1ap_id_t ue_id,
   const uint8_t emm_cause);
 int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg);
+
+void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc);
+void set_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc);
 /*
  *---------------------------------------------------------------------------
  *             Network indication handlers

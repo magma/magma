@@ -10,7 +10,7 @@
 
 import type {enodeb, enodeb_configuration} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -289,14 +289,10 @@ export default function AddEditEnodebDialog(props: Props) {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button
-          disabled={!isFormValid}
-          onClick={onSave}
-          color="primary"
-          variant="contained">
+        <Button disabled={!isFormValid} onClick={onSave}>
           Save
         </Button>
       </DialogActions>

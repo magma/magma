@@ -23,8 +23,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 import Select from '@material-ui/core/Select';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {withStyles} from '@material-ui/core/styles';
@@ -66,7 +66,7 @@ class PolicyFlowFields extends React.Component<Props> {
           <ExpansionPanelSummary
             classes={{root: classes.root, expanded: classes.expanded}}
             expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="body2">Flow {this.props.index + 1}</Typography>
+            <Text variant="body2">Flow {this.props.index + 1}</Text>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails classes={{root: classes.block}}>
             <div className={classes.flex}>

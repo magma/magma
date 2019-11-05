@@ -11,6 +11,7 @@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
@@ -275,7 +276,7 @@ export default function AsyncMetric(props: Props) {
   }
 
   if (allDatasets?.length === 0) {
-    return 'No Data';
+    return <Text variant="body2">No Data</Text>;
   }
 
   return (

@@ -19,30 +19,65 @@ import (
 	"magma/orc8r/cloud/go/protos"
 )
 
+const (
+	MAGMA_ROOT_PART     = obsidian.RestRoot + obsidian.UrlSep
+	MAGMA_ROOT_PART_LEN = len(MAGMA_ROOT_PART)
+)
+
+// RequestIdentityFinder Identity finder type
 type RequestIdentityFinder func(c echo.Context) []*protos.Identity
 
-type finderRegistryType map[string]struct {
-	finder       RequestIdentityFinder
-	identityRoot string
+// GetIdentityFinder returns an Identity finder for the request
+func GetIdentityFinder(c echo.Context) RequestIdentityFinder {
+	if c != nil {
+		path := c.Path()
+		if strings.HasPrefix(path, MAGMA_ROOT_PART) {
+			parts := strings.Split(path[MAGMA_ROOT_PART_LEN:], obsidian.UrlSep)
+			if len(parts) > 0 {
+				p := parts[0]
+				registry, ok := finderRegistries[p]
+				if ok && len(parts) > 1 {
+					p = parts[1]
+				} else {
+					// fall back to "versionless" V0
+					registry, ok = finderRegistries[obsidian.V0]
+				}
+				if ok {
+					fr, ok := registry.finderMap[p]
+					if ok {
+						return fr
+					}
+					return registry.defaultFinder
+				}
+			}
+		}
+	}
+	return nil
 }
 
+// finderRegistries declares Versioned API Identity finders,
+// add an entry for every new API Version
 var finderRegistries = map[string]finderRegistryType{
 	obsidian.V0: makeFinderRegistry(obsidian.V0),
 	obsidian.V1: makeFinderRegistry(obsidian.V1),
 }
 
+type finderMap map[string]RequestIdentityFinder
+type finderRegistryType struct {
+	finderMap
+	defaultFinder RequestIdentityFinder
+}
+
 func makeFinderRegistry(version string) finderRegistryType {
+	magmaRoot := makeVersionedRoot(version, "")
 	networkRoot := makeVersionedRoot(version, obsidian.MagmaNetworksUrlPart)
 	operatorRoot := makeVersionedRoot(version, obsidian.MagmaOperatorsUrlPart)
 	return finderRegistryType{
-		obsidian.MagmaNetworksUrlPart: {
-			finder:       func(c echo.Context) []*protos.Identity { return getNetworkIdentity(c, version, networkRoot) },
-			identityRoot: networkRoot,
+		finderMap: finderMap{
+			obsidian.MagmaNetworksUrlPart:  func(c echo.Context) []*protos.Identity { return getNetworkIdentity(c, networkRoot) },
+			obsidian.MagmaOperatorsUrlPart: func(c echo.Context) []*protos.Identity { return getOperatorIdentity(c, operatorRoot) },
 		},
-		obsidian.MagmaOperatorsUrlPart: {
-			finder:       func(c echo.Context) []*protos.Identity { return getOperatorIdentity(c, version, operatorRoot) },
-			identityRoot: operatorRoot,
-		},
+		defaultFinder: func(c echo.Context) []*protos.Identity { return getDefaultNetworkIdentity(c, magmaRoot) },
 	}
 }
 
@@ -55,8 +90,8 @@ func makeVersionedRoot(version, part string) string {
 }
 
 // Network Identity Finder
-func getNetworkIdentity(c echo.Context, version, identityRoot string) []*protos.Identity {
-	if c != nil && strings.HasPrefix(c.Path(), identityRoot) {
+func getNetworkIdentity(c echo.Context, networkRoot string) []*protos.Identity {
+	if c != nil && strings.HasPrefix(c.Path(), networkRoot) {
 		nid, err := obsidian.GetNetworkId(c)
 		if err == nil && len(nid) > 0 {
 			// All checks pass - return a Network Identity
@@ -69,8 +104,19 @@ func getNetworkIdentity(c echo.Context, version, identityRoot string) []*protos.
 	return SupervisorWildcards()
 }
 
+// Default Network Identity Finder, similar to getNetworkIdentity(), but returns SupervisorWildcards if :network_id
+// is not found. To be used for default finders where we cannot be sure if the request is actually network scoped
+func getDefaultNetworkIdentity(c echo.Context, versionRoot string) []*protos.Identity {
+	if c != nil && strings.HasPrefix(c.Path(), versionRoot) {
+		if nid, err := obsidian.GetNetworkId(c); err == nil && len(nid) > 0 {
+			return []*protos.Identity{identity.NewNetwork(nid)}
+		}
+	}
+	return SupervisorWildcards()
+}
+
 // Operator Identity Finder
-func getOperatorIdentity(c echo.Context, version, identityRoot string) []*protos.Identity {
+func getOperatorIdentity(c echo.Context, identityRoot string) []*protos.Identity {
 	if c != nil && strings.HasPrefix(c.Path(), identityRoot) {
 		oid, err := obsidian.GetOperatorId(c)
 		if err == nil && len(oid) > 0 {

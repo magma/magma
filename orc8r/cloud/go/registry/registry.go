@@ -88,7 +88,7 @@ func GetServiceAddress(service string) (string, error) {
 	registry.RLock()
 	defer registry.RUnlock()
 
-	location, ok := registry.serviceLocations[string(service)]
+	location, ok := registry.serviceLocations[service]
 	if !ok {
 		return "", fmt.Errorf("Service %s not registered", service)
 	}
@@ -103,7 +103,7 @@ func GetServiceAddress(service string) (string, error) {
 func GetServiceProxyAliases(service string) (map[string]int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.serviceLocations[string(service)]
+	location, ok := registry.serviceLocations[service]
 	if !ok {
 		return nil, fmt.Errorf("Service %s not registered", service)
 	}
@@ -128,12 +128,9 @@ func GetServicePort(service string) (int, error) {
 
 // GetConnection provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	if conn, ok := registry.serviceConnections[service]; ok && conn != nil {
-		return conn, nil
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), GrpxMaxTimeoutSec*time.Second)
 	defer cancel()
-	return getConnection(
+	return GetConnectionImpl(
 		ctx,
 		service,
 		grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second),
@@ -141,7 +138,7 @@ func GetConnection(service string) (*grpc.ClientConn, error) {
 	)
 }
 
-func getConnection(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
+func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	addr, err := GetServiceAddress(service)
 	if err != nil {
 		return nil, err

@@ -13,10 +13,21 @@ import (
 
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
+	"fbc/lib/go/radius/rfc2866"
 )
+
+const MinAccSessionIdLen = 7
 
 // GetSessionID Extracts the radius session id from the given radius request
 func (s *Server) GetSessionID(r *radius.Request) string {
+	if asid, err := rfc2866.AcctSessionID_LookupString(r.Packet); err == nil && len(asid) >= MinAccSessionIdLen {
+		return asid
+	}
+	return s.GenSessionID(r)
+}
+
+// GenSessionID generates radius session id from the request's CalledStationID & CallingStationID
+func (s *Server) GenSessionID(r *radius.Request) string {
 	calledStationIDAttr, _ := rfc2865.CalledStationID_Lookup(r.Packet)
 	callingStationIDAttr, _ := rfc2865.CallingStationID_Lookup(r.Packet)
 

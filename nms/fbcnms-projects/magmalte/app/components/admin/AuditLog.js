@@ -8,7 +8,7 @@
  * @format
  */
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -26,7 +26,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -112,7 +112,7 @@ export default function() {
     <>
       <div className={classes.paper}>
         <div className={classes.header}>
-          <Typography variant="h5">Audit Log</Typography>
+          <Text variant="h5">Audit Log</Text>
         </div>
         <Paper elevation={2}>
           <Table>
@@ -153,7 +153,7 @@ const JSONDialog = props => {
         <JSONTree data={props.json} theme={THEME} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Close
         </Button>
       </DialogActions>

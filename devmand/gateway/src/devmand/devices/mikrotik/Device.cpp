@@ -178,33 +178,82 @@ std::shared_ptr<State> Device::getState() {
     });
   }));
   state->addRequest(Mib::getModel(snmpChannel).thenValue([state](auto v) {
-    state->update([&v](auto& lockedState) {
-      JAPT(lockedState)["model"] = v;
-    });
+    state->update([&v](auto& lockedState) { JAPT(lockedState)["model"] = v; });
   }));
+
+  // TODO so this will need to be a lot more complicated as we need to combine
+  // ssids that match into one in the yang model. Perhaps have a shared data
+  // struct that all the requests populate into and the put it into the real
+  // state in a finally at the end that also has this shared data struct.
 
   state->addRequest(
       snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.4"))
-          .thenValue([](auto ssids) {
-            for (auto& ssid : ssids) {
-              LOG(INFO) << "Ssid = " << ssid.value.asString();
-            }
+          .thenValue([state](auto ssids) {
+            state->update([&ssids](auto& lockedState) {
+              int index{0};
+              for (auto& ssid : ssids) {
+                devmand::models::wifi::Model::updateSsid(
+                    lockedState, index, "name", ssid.value.asString());
+                devmand::models::wifi::Model::updateSsid(
+                    lockedState, index, "config/name", ssid.value.asString());
+                devmand::models::wifi::Model::updateSsid(
+                    lockedState, index, "state/name", ssid.value.asString());
+                ++index;
+              }
+            });
           }));
 
   state->addRequest(
       snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.5"))
-          .thenValue([](auto bssids) {
-            for (auto& bssid : bssids) {
-              LOG(INFO) << "Bssid = " << bssid.value.asString();
-            }
+          .thenValue([state](auto bssids) {
+            state->update([&bssids](auto& lockedState) {
+              int index{0};
+              for (auto& bssid : bssids) {
+                // Mikrotik sets the bssid to an empty string. idk why...
+                devmand::models::wifi::Model::updateSsidBssid(
+                    lockedState, index, 0, "bssid", bssid.value.asString());
+                devmand::models::wifi::Model::updateSsidBssid(
+                    lockedState,
+                    index,
+                    0,
+                    "state/bssid",
+                    bssid.value.asString());
+                devmand::models::wifi::Model::updateSsidBssid(
+                    lockedState, index, 0, "state/radio-id", index);
+                ++index;
+              }
+            });
           }));
 
   state->addRequest(
       snmpChannel.walk(channels::snmp::Oid(".1.3.6.1.4.1.14988.1.1.1.3.1.7"))
-          .thenValue([](auto freqs) {
-            for (auto& freq : freqs) {
-              LOG(INFO) << "Freq = " << freq.value.asString();
-            }
+          .thenValue([state](auto freqs) {
+            state->update([&freqs](auto& lockedState) {
+              int index{0};
+              for (auto& freq : freqs) {
+                devmand::models::wifi::Model::updateSsid(
+                    lockedState,
+                    index,
+                    "config/operating-frequency",
+                    freq.value.asString());
+                devmand::models::wifi::Model::updateSsid(
+                    lockedState,
+                    index,
+                    "state/operating-frequency",
+                    freq.value.asString());
+                devmand::models::wifi::Model::updateRadio(
+                    lockedState,
+                    index,
+                    "config/operating-frequency",
+                    freq.value.asString());
+                devmand::models::wifi::Model::updateRadio(
+                    lockedState,
+                    index,
+                    "state/operating-frequency",
+                    freq.value.asString());
+                ++index;
+              }
+            });
           }));
 
   state->addFinally([state]() {
@@ -220,10 +269,15 @@ std::shared_ptr<State> Device::getState() {
     });
   });
 
-  state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([state](auto v) {
-    state->update([&v](auto& lockedState) {
-      JAPT(lockedState)["ipv4"] = v;
+  auto venue = lookup("fbc-symphony-device:system/venue");
+  if (not venue.isNull()) {
+    state->update([&venue](auto& lockedState) {
+      YangUtils::set(lockedState, "fbc-symphony-device:system/venue", venue);
     });
+  }
+
+  state->addRequest(Mib::getIpv4Address(snmpChannel).thenValue([state](auto v) {
+    state->update([&v](auto& lockedState) { JAPT(lockedState)["ipv4"] = v; });
   }));
 
   state->addRequest(Mib::getIpv6Address(snmpChannel).thenValue([state](auto v) {

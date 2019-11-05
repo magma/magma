@@ -6,8 +6,8 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include <devmand/ErrorQueue.h>
-#include <devmand/test/EventBaseTest.h>
 #include <folly/json.h>
+#include <gtest/gtest.h>
 #include <future>
 
 namespace devmand {
@@ -42,8 +42,8 @@ TEST(ErrorQueueTest, SimpleEnqueueDequeue) {
   EXPECT_EQ(errs3, expected3);
 }
 
-static int doManyAdds(
-    int addCount, int getInterval, std::shared_ptr<ErrorQueue> errors) {
+static int
+doManyAdds(int addCount, int getInterval, std::shared_ptr<ErrorQueue> errors) {
   // "add" lots of errors
   for (int i = 0; i < addCount; ++i) {
     errors->add(std::move(folly::to<std::string>(i)));

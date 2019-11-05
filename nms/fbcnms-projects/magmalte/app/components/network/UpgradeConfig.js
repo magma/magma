@@ -13,7 +13,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 import type {magmad_gateway, tier} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -27,8 +27,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import UpgradeStatusTierID from './UpgradeStatusTierID';
 import UpgradeTierEditDialog from './UpgradeTierEditDialog';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -116,11 +116,16 @@ const GatewayUpgradeStatusTable = (props: {
   onUpgradeTierChange: (gatewayID: string, tierID: string) => void,
 }) => {
   const {networkUpgradeTiers, onUpgradeTierChange, tableData} = props;
-  const sortedTableData = sortBy(tableData, row => row.name.toLowerCase());
+  const sortedTableData = sortBy(
+    Object.keys(tableData).map(k => tableData[k]),
+    row => row.name.toLowerCase(),
+  );
 
-  const getGatewayVersionString = (state): string => {
-    return (state.status && state.status.version) || 'Not Reported';
+  const getGatewayVersionString = (gateway): string => {
+    const packages = gateway.status?.platform_info?.packages || [];
+    return packages.find(p => p.name === 'magma')?.version || 'Not Reported';
   };
+
   return (
     <Table>
       <TableHead>
@@ -175,21 +180,31 @@ class UpgradeConfig extends React.Component<Props, State> {
     this.loadData();
   }
 
-  loadData() {
-    const networkId = nullthrows(this.props.match.params.networkId);
-    Promise.all([
-      MagmaV1API.getChannelsByChannelId({channelId: 'stable'}),
-      MagmaV1API.getNetworksByNetworkIdGateways({networkId}),
-      fetchAllNetworkUpgradeTiers(networkId || ''),
-    ])
-      .then(([channelResp, gateways, networkUpgradeTiers]) => {
-        this.setState({
-          gateways,
-          networkUpgradeTiers,
-          supportedVersions: channelResp.supported_versions,
-        });
-      })
-      .catch(this.props.alert);
+  async loadData() {
+    try {
+      const networkId = nullthrows(this.props.match.params.networkId);
+      const networkUpgradeTiers = await fetchAllNetworkUpgradeTiers(networkId);
+      const gateways = await MagmaV1API.getNetworksByNetworkIdGateways({
+        networkId,
+      });
+
+      let supportedVersions = [];
+      try {
+        supportedVersions = (await MagmaV1API.getChannelsByChannelId({
+          channelId: 'stable',
+        })).supported_versions;
+      } catch (e) {
+        this.props.alert('Unable to fetch stable releases');
+      }
+
+      this.setState({
+        gateways,
+        networkUpgradeTiers,
+        supportedVersions,
+      });
+    } catch (e) {
+      this.props.alert(e);
+    }
   }
 
   render() {
@@ -211,9 +226,9 @@ class UpgradeConfig extends React.Component<Props, State> {
         {gateways && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Gateway Upgrade Status
-              </Typography>
+              </Text>
             </Toolbar>
             <GatewayUpgradeStatusTable
               networkUpgradeTiers={networkUpgradeTiers}
@@ -225,9 +240,9 @@ class UpgradeConfig extends React.Component<Props, State> {
         {supportedVersions && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Current Supported Versions
-              </Typography>
+              </Text>
             </Toolbar>
             <SupportedVersionsTable supportedVersions={supportedVersions} />
           </>
@@ -235,14 +250,12 @@ class UpgradeConfig extends React.Component<Props, State> {
         {networkUpgradeTiers && (
           <>
             <Toolbar>
-              <Typography className={classes.header} variant="h5">
+              <Text className={classes.header} variant="h5">
                 Upgrade Tiers
-              </Typography>
+              </Text>
               <div>
                 <NestedRouteLink to={`/tier/edit/`}>
-                  <Button color="primary" variant="contained">
-                    Add Tier
-                  </Button>
+                  <Button>Add Tier</Button>
                 </NestedRouteLink>
               </div>
             </Toolbar>

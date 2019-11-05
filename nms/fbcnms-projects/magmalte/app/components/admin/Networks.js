@@ -9,14 +9,14 @@
  */
 
 import AddNetworkDialog from './AddNetworkDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage.react';
+import NoNetworksMessage from '@fbcnms/ui/components/NoNetworksMessage';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -81,9 +81,7 @@ function Networks() {
       <div className={classes.header}>
         <div />
         <NestedRouteLink to="/new">
-          <Button variant="contained" color="primary">
-            Add Network
-          </Button>
+          <Button>Add Network</Button>
         </NestedRouteLink>
       </div>
       {rows.length === 0 ? (

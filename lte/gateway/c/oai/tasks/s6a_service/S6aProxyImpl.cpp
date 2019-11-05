@@ -61,6 +61,9 @@ Status S6aProxyImpl::CancelLocation(
     auto imsi_len = imsi.length();
     delete_subscriber_request(imsi.c_str(), imsi_len);
   }
+  if (answer != NULL) {
+    answer->set_error_code(ErrorCode::SUCCESS);
+  }
   // return success regardless of cancellation type
   return Status::OK;
 }

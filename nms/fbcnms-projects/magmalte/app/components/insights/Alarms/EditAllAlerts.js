@@ -10,7 +10,7 @@
 
 import AlarmsHeader from './AlarmsHeader';
 import AlarmsTable from './AlarmsTable';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -101,15 +101,10 @@ export default function EditAllAlerts(props: Props) {
         isLoading={isLoading}
         lastRefreshTime={lastRefreshTime}
         onRefreshClick={refreshTime => setLastRefreshTime(refreshTime)}>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={props.onFiringAlerts}>
+        <Button skin="regular" onClick={props.onFiringAlerts}>
           Firing Alerts
         </Button>
-        <Button variant="contained" color="primary" onClick={props.onNewAlert}>
-          New Alert
-        </Button>
+        <Button onClick={props.onNewAlert}>New Alert</Button>
       </AlarmsHeader>
       <AlarmsTable
         alertsColumnName="All Alerts"

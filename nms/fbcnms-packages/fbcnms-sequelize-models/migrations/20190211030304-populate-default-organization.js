@@ -29,7 +29,7 @@ module.exports = {
           customDomains: '[]',
           name: 'fb-test',
           networkIDs: '["mpk_test"]',
-          tabs: '["nms", "inventory", "workorders"]',
+          tabs: '["nms", "inventory", "workorders", "automation"]',
           createdAt: '2019-02-11 20:05:05',
           updatedAt: '2019-02-11 20:05:05',
         },

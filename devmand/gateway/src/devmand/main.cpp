@@ -27,6 +27,7 @@
 
 int main(int argc, char* argv[]) {
   // TODO Work around for magma issue. Get rid of this...
+  // rename devmand to magma@devmand.service and remove from startup
   std::this_thread::sleep_for(std::chrono::seconds(10));
 
   folly::init(&argc, &argv);
