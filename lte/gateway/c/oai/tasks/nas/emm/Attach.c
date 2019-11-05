@@ -377,7 +377,7 @@ int emm_proc_attach_request(
       }
       if (EMM_REGISTERED == fsm_state) {
         REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_f);
-        if (imsi_ue_mm_ctx->emm_context.is_has_been_attached) {
+        if (imsi_ue_mm_ctx->emm_context.is_attached) {
           OAILOG_TRACE(
             LOG_NAS_EMM, "EMM-PROC  - the new ATTACH REQUEST is progressed\n");
           // Trigger clean up
@@ -823,6 +823,38 @@ int emm_proc_attach_complete(
 
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+/**
+ * When the NAS EMM procedures are restored from data store, the references to
+ * callback functions need to be re-populated with the local scope. The function
+ * below set these callbacks for attach, authentication, scurity mode control
+ * and other procedures.
+ * The memory for the EMM procedure is allocated by the caller
+ */
+
+void set_callbacks_for_attach_proc(nas_emm_attach_proc_t *attach_proc)
+{
+  ((nas_base_proc_t *) attach_proc)->abort = _emm_attach_abort;
+  ((nas_base_proc_t *) attach_proc)->fail_in = NULL;
+  ((nas_base_proc_t *) attach_proc)->time_out = _emm_attach_t3450_handler;
+  ((nas_base_proc_t *) attach_proc)->fail_out = _emm_attach_reject;
+}
+
+void set_notif_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc)
+{
+  auth_proc->emm_com_proc.emm_proc.base_proc.success_notif =
+      _emm_attach_success_authentication_cb;
+  auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif =
+      _emm_attach_failure_authentication_cb;
+}
+
+void set_notif_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc)
+{
+  smc_proc->emm_com_proc.emm_proc.base_proc.success_notif =
+      _emm_attach_success_security_cb;
+  smc_proc->emm_com_proc.emm_proc.base_proc.failure_notif =
+      _emm_attach_failure_security_cb;
 }
 
 /****************************************************************************/

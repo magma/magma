@@ -9,20 +9,20 @@
  */
 
 import AddIcon from '@material-ui/icons/Add';
-import ExpandingPanel from '../../components/ExpandingPanel.react';
+import ExpandingPanel from '../../components/ExpandingPanel';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/ExpandingPanel`, module)
   .add('default', () => (
     <ExpandingPanel title="Expanding Panel">
-      <Typography>This is the content</Typography>
+      <Text>This is the content</Text>
     </ExpandingPanel>
   ))
   .add('right button', () => (
     <ExpandingPanel title="Expanding Panel" rightContent={<AddIcon />}>
-      <Typography>This is the content</Typography>
+      <Text>This is the content</Text>
     </ExpandingPanel>
   ));

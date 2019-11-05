@@ -11,8 +11,8 @@ package lbcanary
 import (
 	"errors"
 	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/modules"
+	"fbc/cwf/radius/monitoring"
 	"fbc/cwf/radius/session"
 	"fbc/lib/go/radius"
 	"math/rand"

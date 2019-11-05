@@ -143,13 +143,14 @@ func generatePacketHandler(
 		// Get session ID from the request, if exists, and setup correlation ID
 		var correlationField = zap.Uint32("correlation", rand.Uint32())
 		sessionID := server.GetSessionID(r)
+		generatedSessionID := server.GenSessionID(r)
 
 		// Create request context
 		requestContext := modules.RequestContext{
 			RequestID:      correlationField.Integer,
 			Logger:         server.logger.With(correlationField),
 			SessionID:      sessionID,
-			SessionStorage: session.NewSessionStorage(server.multiSessionStorage, sessionID),
+			SessionStorage: session.NewSessionStorageExt(server.multiSessionStorage, sessionID, generatedSessionID),
 		}
 
 		// Execute filters

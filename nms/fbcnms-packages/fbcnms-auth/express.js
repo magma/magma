@@ -177,6 +177,15 @@ function userMiddleware(options: Options): express.Router {
           params => injectOrganizationParams(req, params),
         );
         userProperties = await injectOrganizationParams(req, userProperties);
+
+        // this happens when the user is being added to an organization that
+        // uses SSO for login, give it a random password
+        if (req.organization && userProperties.password === undefined) {
+          const organization = await req.organization();
+          if (organization.ssoEntrypoint) {
+            userProperties.password = Math.random().toString(36);
+          }
+        }
         const user = await User.create(userProperties);
 
         res.status(201).send({user});

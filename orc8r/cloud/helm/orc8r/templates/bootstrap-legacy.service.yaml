@@ -15,7 +15,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-bootstrap-legacy
+  name: {{ required "Bootstrapping name is required" .Values.proxy.service.name }}
   labels:
     app.kubernetes.io/component: proxy
 {{ include "labels" . | indent 4 }}

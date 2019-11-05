@@ -15,7 +15,7 @@ import ListAltIcon from '@material-ui/icons/ListAlt';
 import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
 import MapIcon from '@material-ui/icons/Map';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -57,11 +57,11 @@ const AddTextButton = () => {
       onIconClicked={() => {}}
       buttons={[
         {
-          item: <Typography className={classes.text}>Status</Typography>,
+          item: <Text className={classes.text}>Status</Text>,
           id: 'status',
         },
         {
-          item: <Typography className={classes.text}>Technician</Typography>,
+          item: <Text className={classes.text}>Technician</Text>,
           id: 'Technician',
         },
       ]}

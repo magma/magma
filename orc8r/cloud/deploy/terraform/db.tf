@@ -45,5 +45,5 @@ resource "aws_db_instance" "nms" {
   skip_final_snapshot = true
   # we only need this as a placeholder value for `terraform destroy` to work,
   # this won't actually create a final snapshot on destroy
-  final_snapshot_identifier = "nms_foo"
+  final_snapshot_identifier = "nms-foo"
 }

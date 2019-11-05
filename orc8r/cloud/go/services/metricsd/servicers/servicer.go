@@ -94,7 +94,7 @@ func preprocessCloudMetrics(family *prometheusProto.MetricFamily, hostName strin
 	}
 	for _, metric := range family.Metric {
 		metric.Label = protos.GetDecodedLabel(metric)
-		addRequiredLabelToMetric(metric, "cloudHost", hostName)
+		addRequiredLabelToMetric(metric, metrics.CloudHostLabelName, hostName)
 	}
 	return exporters.MetricAndContext{Family: family, Context: ctx}
 }

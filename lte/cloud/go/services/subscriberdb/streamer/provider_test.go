@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package streamer_test
 
 import (
-	"os"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -29,7 +28,6 @@ import (
 )
 
 func TestSubscriberdbStreamer(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	cfg_test_init.StartTestService(t)
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 

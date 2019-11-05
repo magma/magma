@@ -20,7 +20,7 @@ Install the following tools:
 If you are on MacOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
 
-![Increasing docker engine resources](../assets/docker-config.png)
+![Increasing docker engine resources](assets/docker-config.png)
 
 ```bash
 brew install python3

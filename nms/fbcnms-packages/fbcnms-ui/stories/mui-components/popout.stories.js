@@ -9,9 +9,9 @@
  */
 
 import Button from '@material-ui/core/Button';
-import Popout from '../../components/Popout.react';
+import Popout from '../../components/Popout';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -22,7 +22,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Popout`, module).add(
       <Popout
         content={
           <div style={{padding: 20}}>
-            <Typography variant="body2">Content</Typography>
+            <Text variant="body2">Content</Text>
           </div>
         }>
         <Button variant="contained" color="primary">

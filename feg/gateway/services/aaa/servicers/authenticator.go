@@ -104,7 +104,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 			return resp, nil // log error, but don't pass to caller, the auth only users will still be able to connect
 		}
-		directoryd.AddIMSI(imsi)
+		go directoryd.AddIMSI(imsi) // execute in a new goroutine in case calls to directoryd take long time
 	}
 	return resp, nil
 }

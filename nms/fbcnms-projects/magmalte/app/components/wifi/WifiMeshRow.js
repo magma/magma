@@ -161,7 +161,6 @@ class WifiMeshRow extends React.Component<Props, State> {
     const {meshID, gateways, classes} = this.props;
 
     let gatewayRows;
-    let gatewayVersions;
     if (this.state.expanded) {
       gatewayRows = gateways.map(gateway => (
         <TableRow className={this.props.classes.tableRow} key={gateway.id}>
@@ -252,9 +251,12 @@ class WifiMeshRow extends React.Component<Props, State> {
           </TableCell>
         </TableRow>
       ));
+    }
 
-      // construct version list per mesh
-      const versionGroups = groupBy(gateways, device => {
+    // construct version list per mesh
+    const versionGroups: {string: Array<WifiGateway>} = groupBy(
+      gateways,
+      device => {
         if (device.versionParsed) {
           if (device.versionParsed.fbpkg !== 'none') {
             return device.versionParsed.fbpkg;
@@ -263,21 +265,40 @@ class WifiMeshRow extends React.Component<Props, State> {
           }
         }
         return device.version || 'UNKNOWN';
-      });
+      },
+    );
 
-      gatewayVersions = Object.keys(versionGroups).map(version => (
-        <div key={version}>
-          <Tooltip
-            title={`${versionGroups[version].length} device(s) with ${versionGroups[version][0].version}`}
-            enterDelay={100}
-            key={version}>
-            <span>
-              {version}: <b>{versionGroups[version].length}</b>
-            </span>
-          </Tooltip>
-        </div>
-      ));
-    }
+    // sort by device count, then version string
+    const sortedVersions: Array<string> = Object.keys(versionGroups);
+    sortedVersions.sort((a, b) => {
+      // keep "Not Reported at the bottom"
+      if (a === 'Not Reported') {
+        return 1;
+      } else if (b === 'Not Reported') {
+        return -1;
+      } else if (versionGroups[a].length === versionGroups[b].length) {
+        // if device counts are equal, then use version string
+        return a.localeCompare(b);
+      } else {
+        // sort by device count
+        return versionGroups[b].length - versionGroups[a].length;
+      }
+    });
+
+    const gatewayVersions = sortedVersions.map(version => (
+      <div key={version}>
+        <Tooltip
+          title={`${versionGroups[version].length} device(s) with ${versionGroups[version][0].version}`}
+          enterDelay={100}
+          key={version}>
+          <span style={{fontFamily: 'monospace'}}>{version}</span>
+        </Tooltip>
+        :{' '}
+        <span style={{fontSize: '88%', fontWeight: 'bold'}}>
+          {versionGroups[version].length}
+        </span>
+      </div>
+    ));
 
     return (
       <>
@@ -299,6 +320,7 @@ class WifiMeshRow extends React.Component<Props, State> {
                     gateways.length
                   }`}
                 />
+                {gatewayVersions}
                 {this.state.expanded && (
                   <>
                     <Tooltip
@@ -312,7 +334,6 @@ class WifiMeshRow extends React.Component<Props, State> {
                         toggle info
                       </Button>
                     </Tooltip>
-                    {gatewayVersions}
                   </>
                 )}
               </>
