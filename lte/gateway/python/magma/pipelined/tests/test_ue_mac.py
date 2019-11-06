@@ -68,6 +68,8 @@ class UEMacAddressTest(unittest.TestCase):
                     Future(),
             },
             config={
+                'setup_type': 'CWF',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,

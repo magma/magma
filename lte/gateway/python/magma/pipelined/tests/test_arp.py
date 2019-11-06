@@ -78,6 +78,8 @@ class ArpTableTest(unittest.TestCase):
                     testing_controller_reference
             },
             config={
+                'setup_type': 'LTE',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
