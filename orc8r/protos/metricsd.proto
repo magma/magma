@@ -102,6 +102,7 @@ enum MetricName {
   upgrader2_idle                 = 321;
   unexpected_service_restarts    = 322;
   unattended_upgrade_status      = 323;
+  service_restart_status         = 324;
 
   // Pipelined metrics
   dp_send_msg_error              = 350;
