@@ -200,7 +200,7 @@ export default function CloudMetrics() {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(config, '')}
+                    queries={resolveQuery(config, 'gatewayID', '')}
                     timeRange={timeRange}
                     legendLabels={config.legendLabels}
                   />

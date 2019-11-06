@@ -246,6 +246,7 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
                     unit={config.unit || ''}
                     queries={resolveQuery(
                       config,
+                      'gatewayID',
                       selectedDeviceId || `${selectedMeshOrDefault}_id_.*`,
                     )}
                     timeRange={timeRange}
