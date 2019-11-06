@@ -6,15 +6,15 @@ metrics:
   # alertmanager, and configmanager pods
   volumes:
     prometheusData:
-      volumeSpec:
-        hostPath:
-          path: /prometheusData
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /prometheusData
+        #   type: DirectoryOrCreate
     prometheusConfig:
-      volumeSpec:
-        hostPath:
-          path: /configs/prometheus
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /configs/prometheus
+        #   type: DirectoryOrCreate
 
 prometheus:
   # Enable/Disable chart
