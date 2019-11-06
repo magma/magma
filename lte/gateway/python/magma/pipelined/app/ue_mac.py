@@ -58,7 +58,7 @@ class UEMacAddressController(MagmaController):
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))
         self._datapath = datapath
-        self._install_default_flows(datapath)
+        self._install_default_flows()
 
     def cleanup_on_disconnect(self, datapath):
         flows.delete_all_flows_from_table(datapath,
@@ -274,7 +274,7 @@ class UEMacAddressController(MagmaController):
         #      chaddr is the client mac address
         self.add_arp_response_flow(dhcp_header.yiaddr, dhcp_header.chaddr)
 
-    def _install_default_flows(self, datapath):
+    def _install_default_flows(self):
         """
         Install default flows
         """

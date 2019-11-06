@@ -53,6 +53,8 @@ class ArpController(MagmaController):
             self.APP_NAME)
         self.dpset = kwargs['dpset']  # type: dpset.DPSet
         self.local_eth_addr = kwargs['config']['local_ue_eth_addr']
+        self.setup_type = kwargs['config']['setup_type']
+        self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
         if self.local_eth_addr:
             self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
         self._current_ues = []
@@ -76,6 +78,8 @@ class ArpController(MagmaController):
                 self.add_ue_arp_flows(datapath, ip_block,
                                        self.config.virtual_mac)
             self._install_default_eth_dst_flow(datapath)
+        if self.setup_type == 'CWF' and self.allow_unknown_uplink_arps:
+            self._install_allow_incoming_arp_flow(datapath)
 
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)
@@ -199,3 +203,16 @@ class ArpController(MagmaController):
                                              [],
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
+
+    def _install_allow_incoming_arp_flow(self, datapath):
+        """
+        Install a flow rule to allow any ARP packets coming from the UPLINK,
+        this will be hit if arp clamping doesn't recognize the address
+        """
+        egress_table = self._service_manager.get_table_num(EGRESS)
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                           direction=Direction.IN)
+
+        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
+            actions=[], priority=flows.UE_FLOW_PRIORITY - 1,
+            resubmit_table=egress_table)
