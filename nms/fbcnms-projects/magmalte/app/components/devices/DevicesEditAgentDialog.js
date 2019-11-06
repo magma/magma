@@ -38,7 +38,7 @@ type Props = {
   gateway: DevicesGateway,
 };
 
-export default function DevicesEditControllerDialog(props: Props) {
+export default function DevicesEditAgentDialog(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
 

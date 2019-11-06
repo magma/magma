@@ -39,9 +39,6 @@ services:
       # SQL_DRIVER: mysql
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       # SQL_DIALECT: maria
-
-      USE_NEW_HANDLERS: '1'
-      USE_NEW_MCONFIGS: '1'
     links:
       - fluentd
     depends_on:
