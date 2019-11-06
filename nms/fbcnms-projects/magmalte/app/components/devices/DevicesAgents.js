@@ -14,13 +14,13 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-import DevicesEditControllerDialog from './DevicesEditControllerDialog';
+import DevicesEditAgentDialog from './DevicesEditAgentDialog';
+import DevicesNewAgentDialog from './DevicesNewAgentDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import NewControllerDialog from './NewControllerDialog';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -52,7 +52,7 @@ const useStyles = makeStyles(theme => ({
 
 type Props = WithAlert & {};
 
-function DevicesControllers(props: Props) {
+function DevicesAgents(props: Props) {
   const {match, history, relativePath, relativeUrl} = useRouter();
   const [gateways, setGateways] = useState<?Array<DevicesGateway>>(null);
   const [editingGateway, setEditingGateway] = useState<?DevicesGateway>(null);
@@ -130,9 +130,9 @@ function DevicesControllers(props: Props) {
   return (
     <div className={classes.paper}>
       <div className={classes.header}>
-        <Text variant="h5">Configure Controllers</Text>
+        <Text variant="h5">Configure Agents</Text>
         <NestedRouteLink to="/new">
-          <Button>Add Controller</Button>
+          <Button>Add Agent</Button>
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>
@@ -148,7 +148,7 @@ function DevicesControllers(props: Props) {
         </Table>
       </Paper>
       {editingGateway && (
-        <DevicesEditControllerDialog
+        <DevicesEditAgentDialog
           key={editingGateway.id}
           gateway={editingGateway}
           onClose={() => setEditingGateway(null)}
@@ -158,7 +158,7 @@ function DevicesControllers(props: Props) {
       <Route
         path={relativePath('/new')}
         render={() => (
-          <NewControllerDialog
+          <DevicesNewAgentDialog
             onClose={() => history.push(relativeUrl(''))}
             onSave={rawGateway => {
               setGateways([
@@ -174,4 +174,4 @@ function DevicesControllers(props: Props) {
   );
 }
 
-export default withAlert(DevicesControllers);
+export default withAlert(DevicesAgents);

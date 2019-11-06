@@ -293,6 +293,10 @@ class TestWrapper(object):
         return self._trf_util
 
     def cleanup(self):
+        time.sleep(0.5)
+        print("************************* send SCTP SHUTDOWN")
+        self._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
         self._s1_util.cleanup()
         self._sub_util.clean_up()
         self._trf_util.cleanup()

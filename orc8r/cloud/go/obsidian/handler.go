@@ -9,15 +9,11 @@
 package obsidian
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/util"
 
 	"github.com/labstack/echo"
@@ -39,17 +35,6 @@ type Handler struct {
 	Methods HttpMethod
 
 	HandlerFunc echo.HandlerFunc
-
-	// MigratedHandlerFunc specifies a second handler function for the
-	// configurator service migration. The implementation to use will be
-	// chosen by the value of the USE_NEW_HANDLERS environment variable -
-	// set to 1 to use new handler functions in all handlers.
-	MigratedHandlerFunc echo.HandlerFunc
-
-	// If set to true, MultiplexAfterMigration will always run both
-	// MigratedHandlerFunc and HandlerFunc in serial if the migration flag is
-	// set. Otherwise, only MigratedHandlerFunc will run.
-	MultiplexAfterMigration bool
 }
 
 const (
@@ -103,51 +88,7 @@ func register(registry handlerRegistry, handler Handler) error {
 	if registered {
 		return fmt.Errorf("HandlerFunc[s] already registered for path: %q", handler.Path)
 	}
-
-	wrappedHandlerFunc := func(c echo.Context) error {
-		migrated := os.Getenv(orc8r.UseConfiguratorEnv)
-		if migrated == "1" {
-			// If there's no migrated handler, we just run the normal one
-			if handler.MigratedHandlerFunc == nil {
-				return handler.HandlerFunc(c)
-			}
-
-			// echo's context.Bind uses up the request body's reader so the
-			// multiplexed handler will see an empty request body. We can read
-			// out the entire body here and overwrite the request's reader
-			// before each handler call.
-			bodyBytes, err := ioutil.ReadAll(c.Request().Body)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, "could not read request body")
-			}
-
-			clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
-			c.Request().Body = clonedReader
-			err = handler.MigratedHandlerFunc(c)
-			if err != nil {
-				return err
-			}
-
-			if handler.MultiplexAfterMigration {
-				clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
-				c.Request().Body = clonedReader
-				// we don't want the multiplexed legacy handler to write to
-				// the response
-				c.Response().Writer = &nopWriter{writer: c.Response().Writer}
-
-				err = handler.HandlerFunc(c)
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
-		} else {
-			return handler.HandlerFunc(c)
-		}
-	}
-	registry[handler.Path] = wrappedHandlerFunc
-
+	registry[handler.Path] = handler.HandlerFunc
 	return nil
 }
 

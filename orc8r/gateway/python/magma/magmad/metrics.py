@@ -12,6 +12,7 @@ import logging
 import psutil
 from prometheus_client import Gauge, Counter
 
+from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.magmad.check.network_check import ping
 
 POLL_INTERVAL_SECONDS = 10
@@ -50,6 +51,11 @@ UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
                                   'Unattended Upgrade update status'
                                   '1 for active, 0 for inactive')
 
+
+SERVICE_RESTART_STATUS = Gauge('service_restart_status',
+                               'Count of service restarts',
+                               ['service_name', 'status'])
+
 def _get_ping_params(config):
     ping_params = []
     if 'ping_config' in config and 'hosts' in config['ping_config']:
@@ -75,7 +81,23 @@ def metrics_collection_loop(service_config, loop=None):
         if len(ping_params):
             yield from _collect_ping_metrics(ping_params, loop=loop)
         yield from _collect_load_metrics()
+        yield from _collect_service_restart_stats()
         yield from asyncio.sleep(int(config['sampling_period']))
+
+
+@asyncio.coroutine
+def _collect_service_restart_stats():
+    """
+    Collect the success and failure restarts for services
+    """
+    service_dict = ServiceStateWrapper().get_all_services_status()
+    for service_name, status in service_dict.items():
+        SERVICE_RESTART_STATUS.labels(service_name=service_name,
+                                      status="Failure").set(
+            status.num_fail_exits)
+        SERVICE_RESTART_STATUS.labels(service_name=service_name,
+                                      status="Success").set(
+            status.num_clean_exits)
 
 
 @asyncio.coroutine

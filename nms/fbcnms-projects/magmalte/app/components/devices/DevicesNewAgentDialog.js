@@ -55,7 +55,7 @@ async function onSave(match: Match, hardwareId: string, name: string): any {
   );
 }
 
-export default function NewControllerDialog(props: Props) {
+export default function DevicesNewAgentDialog(props: Props) {
   const {match} = useRouter();
   const classes = useStyles();
   const [hardwareId, setHardwareId] = useState('');
@@ -63,7 +63,7 @@ export default function NewControllerDialog(props: Props) {
 
   return (
     <Dialog open={true} onClose={props.onClose}>
-      <DialogTitle>New Controller</DialogTitle>
+      <DialogTitle>New Agent</DialogTitle>
       <DialogContent>
         <FormGroup row>
           <TextField

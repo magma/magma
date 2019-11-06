@@ -12,8 +12,8 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	lte_models "magma/lte/cloud/go/plugin/models"
-	protos2 "magma/lte/cloud/go/protos"
+	lteModels "magma/lte/cloud/go/plugin/models"
+	lteProtos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -43,10 +43,10 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 		return nil, err
 	}
 
-	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
+	ruleProtos := make([]*lteProtos.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
-		ruleConfig := rule.Config.(*lte_models.PolicyRule)
-		ruleProto := &protos2.PolicyRule{}
+		ruleConfig := rule.Config.(*lteModels.PolicyRule)
+		ruleProto := &lteProtos.PolicyRule{}
 		err = ruleConfig.ToProto(ruleProto)
 		if err != nil {
 			return nil, err
@@ -56,7 +56,7 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 	return rulesToUpdates(ruleProtos)
 }
 
-func rulesToUpdates(rules []*protos2.PolicyRule) ([]*protos.DataUpdate, error) {
+func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(rules))
 	for _, policy := range rules {
 		marshaledPolicy, err := proto.Marshal(policy)
@@ -90,23 +90,23 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 		return nil, err
 	}
 
-	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
+	bnProtos := make([]*lteProtos.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		bnConfig := bn.Config.(*lte_models.BaseNameRecord)
+		bnConfig := bn.Config.(*lteModels.BaseNameRecord)
 		ruleNames := make([]string, 0, len(bn.Associations))
 		for _, assoc := range bn.Associations {
 			ruleNames = append(ruleNames, assoc.Key)
 		}
-		bnProto := &protos2.ChargingRuleBaseNameRecord{
+		bnProto := &lteProtos.ChargingRuleBaseNameRecord{
 			Name:         string(bnConfig.Name),
-			RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
+			RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: ruleNames},
 		}
 		bnProtos = append(bnProtos, bnProto)
 	}
 	return bnsToUpdates(bnProtos)
 }
 
-func bnsToUpdates(bns []*protos2.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
+func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(bns))
 	for _, bn := range bns {
 		marshaledBN, err := proto.Marshal(bn)

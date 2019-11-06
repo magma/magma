@@ -179,10 +179,10 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 			}
 		}
 		st.rwl.Unlock()
-		metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
-		metrics.SessionStop.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
 		if found {
 			s.StopTimeout()
+			metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
+			metrics.SessionStop.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
 			return s
 		}
 	}

@@ -20,7 +20,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CWF, FEG, LTE} from '@fbcnms/types/network';
+import {CWF, FEG, LTE, SYMPHONY} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -90,8 +90,6 @@ router.post(
       name,
       description,
       id: networkID,
-      type: data.networkType,
-      dns: DEFAULT_DNS_CONFIG,
       ...NETWORK_FEATURES,
     };
 
@@ -100,18 +98,16 @@ router.post(
       if (data.networkType === LTE) {
         resp = await MagmaV1API.postLte({
           lteNetwork: {
+            ...commonField,
             cellular: DEFAULT_CELLULAR_CONFIG,
             dns: DEFAULT_DNS_CONFIG,
-            id: networkID,
-            name,
-            description,
-            ...NETWORK_FEATURES,
           },
         });
       } else if (data.networkType === CWF) {
         resp = await MagmaV1API.postCwf({
           cwfNetwork: {
             ...commonField,
+            dns: DEFAULT_DNS_CONFIG,
             federation: {feg_network_id: data.fegNetworkID},
             carrier_wifi: {
               aaa_server: {},
@@ -125,6 +121,7 @@ router.post(
         resp = await MagmaV1API.postFeg({
           fegNetwork: {
             ...commonField,
+            dns: DEFAULT_DNS_CONFIG,
             federation: {
               aaa_server: {},
               eap_aka: {},
@@ -138,10 +135,18 @@ router.post(
             },
           },
         });
+      } else if (data.networkType === SYMPHONY) {
+        resp = await MagmaV1API.postSymphony({
+          symphonyNetwork: {
+            ...commonField,
+          },
+        });
       } else {
         await MagmaV1API.postNetworks({
           network: {
             ...commonField,
+            type: data.networkType,
+            dns: DEFAULT_DNS_CONFIG,
           },
         });
       }
