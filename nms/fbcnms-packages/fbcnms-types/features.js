@@ -21,6 +21,7 @@ export type FeatureID =
   | 'python_api'
   | 'site_survey'
   | 'alerts'
+  | 'alerts_experimental'
   | 'equipment_export'
   | 'import_exported_equipemnt'
   | 'file_categories'

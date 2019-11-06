@@ -165,18 +165,9 @@ router.use(
   }),
 );
 
+const networkTypeRegex = '(feg|lte|cwf)';
 router.use(
-  '/magma/v1/lte/:networkID',
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    filter: networkIdFilter,
-    userResDecorator: auditLoggingDecorator,
-    proxyErrorHandler,
-  }),
-);
-
-router.use(
-  '/magma/v1/cwf/:networkID',
+  `/magma/v1/:networkType(${networkTypeRegex})/:networkID`,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: networkIdFilter,

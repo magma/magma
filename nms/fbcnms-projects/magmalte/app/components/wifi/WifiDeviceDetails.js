@@ -8,8 +8,7 @@
  * @format
  */
 
-// $FlowFixMe uncovered by move to flow 0.102.0
-import type {Fragment} from 'react';
+import type {Node} from 'react';
 import type {WifiGateway, WifiGatewayStatus} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
@@ -83,7 +82,7 @@ const SpanSplit = withStyles(styles)(
 
 export const InfoRow = (props: {
   label: string,
-  data: ?Fragment,
+  data: ?Node,
   className?: string,
 }) => {
   if (props.data !== null && props.data !== undefined) {
@@ -290,6 +289,24 @@ const WifiDeviceDetails = (props: Props) => {
               />
 
               <InfoRow
+                label="Carrier Detected"
+                data={
+                  status.meta?.carrier_detected && (
+                    <SpanSplit field={status.meta?.carrier_detected} />
+                  )
+                }
+              />
+
+              <InfoRow
+                label="Public IP"
+                data={
+                  status.meta?.public_ip && (
+                    <SpanSplit field={status.meta?.public_ip} />
+                  )
+                }
+              />
+
+              <InfoRow
                 label="VPN IP"
                 data={
                   status.meta?.tun_vpn_ip && (
@@ -437,8 +454,7 @@ const WifiDeviceDetails = (props: Props) => {
                         </span>
                         :{' '}
                         <span style={{whiteSpace: 'normal'}}>
-                          {/* $FlowFixMe uncovered by move to flow 0.102.0 */}
-                          {wifi_config[key][propkey]}
+                          {wifi_config[key]?.[propkey]}
                         </span>
                       </div>
                     ));

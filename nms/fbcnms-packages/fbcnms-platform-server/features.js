@@ -103,6 +103,11 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
+    id: 'alerts_experimental',
+    title: 'Alerts Experimental Features',
+    enabledByDefault: false,
+  },
+  {
     id: 'logs',
     title: 'Logs',
     enabledByDefault: false,

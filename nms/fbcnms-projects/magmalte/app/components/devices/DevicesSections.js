@@ -13,7 +13,7 @@ import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '@fbcnms/magmalte/app/components/insights/Alarms/Alarms';
 import CustomMetrics from '../lte/CustomMetrics';
 import DeviceHub from '@material-ui/icons/DeviceHub';
-import DevicesControllers from './DevicesControllers';
+import DevicesAgents from './DevicesAgents';
 import DevicesStatusTable from './DevicesStatusTable';
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
@@ -34,10 +34,10 @@ export function getDevicesSections(alertsEnabled: boolean): SectionsConfigs {
       component: CustomMetrics,
     },
     {
-      path: 'controllers',
-      label: 'Controllers',
+      path: 'agents',
+      label: 'Agents',
       icon: <DeviceHub />,
-      component: DevicesControllers,
+      component: DevicesAgents,
     },
   ];
 
