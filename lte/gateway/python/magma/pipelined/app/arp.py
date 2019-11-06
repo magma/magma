@@ -87,21 +87,32 @@ class ArpController(MagmaController):
         """
         self._set_incoming_arp_flows(datapath, ue_ip, ue_mac)
         # If we already installed an outgoing allow don't overwrite the rule
-        # TODO should manage deletion of these rules when subscriber gets nuked
+        # TODO its probably better for ue mac to manage this
         if ue_ip not in self._current_ues:
             self._current_ues.append(ue_ip)
             self._set_outgoing_arp_flows(datapath, ue_ip)
 
-    def cleanup_on_disconnect(self, datapath):
+    def cleanup_on_discnnect(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
     def _set_incoming_arp_flows(self, datapath, ip_block, src_mac):
         """
-        Install a flow rule to respond in incoming ARP requests for UE IPs.
-        Drop all other incoming ARPs.
+        Install flow rules for incoming ARPs(to UE):
+            - For ARP request: respond to incoming ARP requests.
+            - For ARP response: pass to next table.
         """
         parser = datapath.ofproto_parser
         ofproto = datapath.ofproto
+        egress_table = self._service_manager.get_table_num(EGRESS)
+
+        arp_resp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                                    direction=Direction.IN,
+                                    arp_op=arp.ARP_REPLY, arp_tpa=ip_block)
+
+        flows.add_resubmit_next_service_flow(datapath, self.table_num,
+                                             arp_resp_match, actions=[],
+                                             priority=flows.UE_FLOW_PRIORITY,
+                                             resubmit_table=egress_table)
 
         # Set up ARP responder using flow rules. Add a rule with the following
         # 1. eth_dst becomes eth_src (back to sender)
