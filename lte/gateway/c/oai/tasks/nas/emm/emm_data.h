@@ -497,6 +497,9 @@ void emm_ctx_set_valid_drx_parameter(
   emm_context_t *const ctxt,
   drx_parameter_t *drx) __attribute__((nonnull));
 
+void free_emm_ctx_memory(emm_context_t* const ctxt,
+  const mme_ue_s1ap_id_t ue_id);
+
 struct emm_context_s *emm_context_get(
   emm_data_t *emm_data,
   const mme_ue_s1ap_id_t ue_id);

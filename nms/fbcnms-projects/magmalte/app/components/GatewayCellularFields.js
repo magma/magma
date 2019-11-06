@@ -10,7 +10,7 @@
 
 import type {GatewayV1} from './GatewayUtils';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
@@ -20,7 +20,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
 import Select from '@material-ui/core/Select';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
@@ -127,7 +127,7 @@ export default function GatewayCellularFields(props: Props) {
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
         networkId: nullthrows(match.params.networkId),
         gatewayId: id,
-        serials: attachedEnodebSerials,
+        serials: attachedEnodebSerials.filter(i => i.length > 0),
       }),
     ])
       .then(() => props.onSave(id))
@@ -142,9 +142,9 @@ export default function GatewayCellularFields(props: Props) {
   return (
     <>
       <DialogContent>
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           EPC Configs
-        </Typography>
+        </Text>
         <FormField label="NAT Enabled">
           <Select
             className={classes.input}
@@ -160,13 +160,12 @@ export default function GatewayCellularFields(props: Props) {
             value={ipBlock}
             onChange={({target}) => setIpBlock(target.value)}
             placeholder="E.g. 20.20.20.0/24"
-            disabled={natEnabled}
           />
         </FormField>
         <Divider className={classes.divider} />
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           RAN Configs
-        </Typography>
+        </Text>
         <FormField
           label="Registered eNodeBs"
           tooltip="Comma-separated list of unique eNodeB Serial IDs">
@@ -197,9 +196,9 @@ export default function GatewayCellularFields(props: Props) {
           </Select>
         </FormField>
         <Divider className={classes.divider} />
-        <Typography className={classes.title} variant="h6">
+        <Text className={classes.title} variant="h6">
           NonEPS Configs
-        </Typography>
+        </Text>
         <FormField label="NonEPS Service Control">
           <Select
             className={classes.input}
@@ -251,12 +250,10 @@ export default function GatewayCellularFields(props: Props) {
         </FormField>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </>
   );

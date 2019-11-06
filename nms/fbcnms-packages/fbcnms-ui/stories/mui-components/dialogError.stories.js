@@ -8,7 +8,7 @@
  * @format
  */
 
-import DialogError from '../../components/DialogError.react';
+import DialogError from '../../components/DialogError';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

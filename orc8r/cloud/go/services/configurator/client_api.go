@@ -430,6 +430,7 @@ func DeleteEntity(networkID string, entityType string, entityKey string) error {
 }
 
 // DeleteEntity deletes the entity specified by networkID, type, key
+// We also have cascading deletes to delete foreign keys for assocs
 func DeleteEntities(networkID string, ids []storage2.TypeAndKey) error {
 	client, err := getNBConfiguratorClient()
 	if err != nil {

@@ -12,11 +12,11 @@ import type {AlertConfig} from './AlarmAPIType';
 import AddEditAlertConfigurationStep from './AddEditAlertConfigurationStep';
 import AddEditAlertInfoStep from './AddEditAlertInfoStep';
 import AddEditAlertNotificationStep from './AddEditAlertNotificationStep';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import React from 'react';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import grey from '@material-ui/core/colors/grey';
 
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -95,11 +95,8 @@ export default function AddEditAlert(props: Props) {
   return (
     <>
       <div className={classes.header}>
-        <Typography variant="h5">New Alert</Typography>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => props.onExit()}>
+        <Text variant="h5">New Alert</Text>
+        <Button skin="regular" onClick={() => props.onExit()}>
           Cancel
         </Button>
       </div>

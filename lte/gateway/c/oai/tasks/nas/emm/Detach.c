@@ -149,6 +149,7 @@ void _detach_t3422_handler(void *args)
 
 void _clear_emm_ctxt(emm_context_t *emm_context)
 {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!emm_context) {
     return;
   }
@@ -405,8 +406,8 @@ int emm_proc_detach_request(
     rc = emm_sap_send(&emm_sap);
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_sent");
-    /* 
-    * If Detach request is recieved for IMSI only then don't trigger session release and 
+    /*
+    * If Detach request is recieved for IMSI only then don't trigger session release and
     * don't clear emm context return from here
     */
     if (params->type == EMM_DETACH_TYPE_IMSI) {

@@ -163,6 +163,16 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'equipment_live_status',
+    title: 'Equipment Live Status',
+    enabledByDefault: false,
+  },
+  {
+    id: 'upload_location_properties_on_equipment',
+    title: 'Upload Location Properties On Equipment ',
+    enabledByDefault: true,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

@@ -10,8 +10,7 @@
 
 import * as React from 'react';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import MuiThemeProvider from '@material-ui/core/styles/MuiThemeProvider';
+import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '@fbcnms/ui/theme/default';
 import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
@@ -22,22 +21,20 @@ type Props = {
 
 const ApplicationMain = (props: Props) => {
   return (
-    <MuiThemeProvider theme={defaultTheme}>
-      <MuiStylesThemeProvider theme={defaultTheme}>
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={10000}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}>
-          <TopBarContextProvider>
-            <CssBaseline />
-            {props.children}
-          </TopBarContextProvider>
-        </SnackbarProvider>
-      </MuiStylesThemeProvider>
-    </MuiThemeProvider>
+    <ThemeProvider theme={defaultTheme}>
+      <SnackbarProvider
+        maxSnack={3}
+        autoHideDuration={10000}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'right',
+        }}>
+        <TopBarContextProvider>
+          <CssBaseline />
+          {props.children}
+        </TopBarContextProvider>
+      </SnackbarProvider>
+    </ThemeProvider>
   );
 };
 

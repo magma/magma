@@ -18,8 +18,8 @@ import CardContent from '@material-ui/core/CardContent';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from '../insights/TimeRangeSelector';
-import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/styles';
 import {resolveQuery} from '../insights/Metrics';
@@ -193,9 +193,9 @@ export default function CloudMetrics() {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Typography component="h6" variant="h6">
+                <Text component="h6" variant="h6">
                   {config.label}
-                </Typography>
+                </Text>
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}

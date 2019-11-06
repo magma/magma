@@ -8,10 +8,10 @@
  * @format
  */
 
-import type {Suggestion} from '../../components/Typeahead.react';
+import type {Suggestion} from '../../components/Typeahead';
 
 import React, {useState} from 'react';
-import Typeahead from '../../components/Typeahead.react';
+import Typeahead from '../../components/Typeahead';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 

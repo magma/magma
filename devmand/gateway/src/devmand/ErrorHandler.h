@@ -30,9 +30,7 @@ class ErrorHandler final {
       std::function<void()> onFailure = []() {});
 
   template <class Future>
-  static auto thenError(
-      Future&& f,
-      std::function<void()> onFailure = []() {}) {
+  static auto thenError(Future&& f, std::function<void()> onFailure = []() {}) {
     return std::move(f)
         .thenError(
             folly::tag_t<std::exception>{},

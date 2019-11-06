@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
 
@@ -37,15 +38,17 @@ func (srv *FegToGwRelayServer) CancelLocationUnverified(
 ) (*fegprotos.CancelLocationAnswer, error) {
 	hwId, err := getHwIDFromIMSI(req.UserName)
 	if err != nil {
-		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_USER_UNKNOWN},
-			fmt.Errorf("unable to get HwID from IMSI %v. err: %v",
-				req.UserName, err)
+		fmt.Printf("unable to get HwID from IMSI %v. err: %v", req.UserName, err)
+		if _, ok := err.(errors.ClientInitError); ok {
+			return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_UNABLE_TO_DELIVER}, nil
+		}
+		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_USER_UNKNOWN}, nil
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
 		gateway_registry.GwS6aService, hwId)
 	if err != nil {
-		return &fegprotos.CancelLocationAnswer{ErrorCode: 1},
-			fmt.Errorf("unable to get connection to the gateway ID: %s", hwId)
+		fmt.Printf("unable to get connection to the gateway ID: %s", hwId)
+		return &fegprotos.CancelLocationAnswer{ErrorCode: fegprotos.ErrorCode_UNABLE_TO_DELIVER}, nil
 	}
 	client := fegprotos.NewS6AGatewayServiceClient(conn)
 	return client.CancelLocation(ctx, req)

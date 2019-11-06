@@ -10,7 +10,7 @@
 
 import type {DevicesManagedDevice} from './DevicesUtils';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -342,15 +342,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
         {isLoading ? <LoadingFiller /> : content}
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} color="primary">
+        <Button onClick={props.onCancel} skin="regular">
           Cancel
         </Button>
-        <Button
-          onClick={initialDeviceID ? onEdit : onCreate}
-          color="primary"
-          variant="contained">
-          Save
-        </Button>
+        <Button onClick={initialDeviceID ? onEdit : onCreate}>Save</Button>
       </DialogActions>
     </Dialog>
   );

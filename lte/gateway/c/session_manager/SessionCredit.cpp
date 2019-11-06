@@ -26,7 +26,8 @@ const std::set<uint32_t> SessionCredit::transient_result_codes_ = {
   DIAMETER_SERVICE_TEMPORARILY_NOT_AUTHORIZED,
 };
 
-  SessionCredit::SessionCredit(ServiceState start_state):
+SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
+  credit_type_(credit_type),
   reporting_(false),
   reauth_state_(REAUTH_NOT_NEEDED),
   service_state_(start_state),
@@ -35,7 +36,10 @@ const std::set<uint32_t> SessionCredit::transient_result_codes_ = {
 }
 
 // by default, enable service
-SessionCredit::SessionCredit(): SessionCredit(SERVICE_ENABLED) {}
+SessionCredit::SessionCredit(CreditType credit_type):
+  SessionCredit(credit_type, SERVICE_ENABLED)
+{
+}
 
 void SessionCredit::set_expiry_time(uint32_t validity_time)
 {
@@ -191,7 +195,8 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
+  return credit_type_ == CreditType::CHARGING &&
+    SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
     ((no_more_grant() && quota_exhausted()) ||
       quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
 }

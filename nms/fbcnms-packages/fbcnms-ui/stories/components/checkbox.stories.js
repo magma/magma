@@ -8,7 +8,7 @@
  * @format
  */
 
-import Checkbox from '../../components/design-system/Checkbox/Checkbox.react';
+import Checkbox from '../../components/design-system/Checkbox/Checkbox';
 import React, {useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';

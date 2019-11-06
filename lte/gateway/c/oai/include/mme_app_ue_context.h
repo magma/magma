@@ -14,7 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
+ *-----------------------------------------------------------------------------
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
@@ -153,8 +153,8 @@ typedef struct bearer_context_s {
    *      The PDN GW TEID and PDN GW IP address for user plane are needed
    *      in MME context as S-GW relocation is triggered without interaction
    *      with the source S-GW,
-   *      e.g. when a TAU occurs. The Target SGW requires this Information Element,
-   *      so it must be stored by the MME.
+   *      e.g. when a TAU occurs. The Target SGW requires this Information
+   *      Element, so it must be stored by the MME.
    */
   fteid_t p_gw_fteid_s5_s8_up;
 
@@ -183,12 +183,13 @@ typedef struct bearer_context_s {
 typedef struct pdn_context_s {
   context_identifier_t context_identifier;
 
-  /* APN in Use: an ID at P-GW through which a user can access the Subscribed APN
+  /* APN in Use:an ID at P-GW through which a user can access the Subscribed APN
    *            This APN shall be composed of the APN Network
-   *            Identifier and the default APN Operator Identifier, as specified in TS 23.003 [9],
+   *            Identifier and the default APN Operator Identifier,
+   *            as specified in TS 23.003 [9],
    *            clause 9.1.2 (EURECOM: "mnc<MNC>.mcc<MCC>.gprs").
-   *            Any received value in the APN OI Replacement field is not applied
-   *            here.
+   *            Any received value in the APN OI Replacement field is not
+   *            applied here.
    */
   bstring apn_in_use;
 
@@ -202,8 +203,8 @@ typedef struct pdn_context_s {
    *          S11 CREATE_SESSION_RESPONSE
    *          NOTE:
    *          The MME might not have information on the allocated IPv4 address.
-   *          Alternatively, following mobility involving a pre-release 8 SGSN, this
-   *          IPv4 address might not be the one allocated to the UE.
+   *          Alternatively, following mobility involving a pre-release 8 SGSN,
+   *          This IPv4 address might not be the one allocated to the UE.
    */
   paa_t paa;
 
@@ -359,8 +360,8 @@ typedef struct ue_mm_context_s {
   /* mutex on the ue_mm_context_t + emm_context_s + esm_context_t */
   pthread_mutex_t recmutex;
 
-  /* msisdn: The basic MSISDN of the UE. The presence is dictated by its storage in the HSS.
-   *        set by S6A UPDATE LOCATION ANSWER
+  /* msisdn: The basic MSISDN of the UE. The presence is dictated by its storage
+   *         in the HSS, set by S6A UPDATE LOCATION ANSWER
    */
   bstring msisdn;
 
@@ -371,8 +372,8 @@ typedef struct ue_mm_context_s {
   /* Last known E-UTRAN cell, set by nas_attach_req_t */
   ecgi_t e_utran_cgi;
 
-  /* cell_age: Time elapsed since the last E-UTRAN Cell Global Identity was acquired.
-   *           set by nas_auth_param_req_t
+  /* cell_age: Time elapsed since the last E-UTRAN Cell Global Identity was
+   *           acquired. Set by nas_auth_param_req_t
    */
   time_t cell_age;
   /* TODO: add csg_id */
@@ -383,14 +384,15 @@ typedef struct ue_mm_context_s {
   apn_config_profile_t apn_config_profile;
 
   /* access_restriction_data: The access restriction subscription information.
-   * set by S6A UPDATE LOCATION ANSWER
+   *           set by S6A UPDATE LOCATION ANSWER
    */
   ard_t access_restriction_data;
 
   /* apn_oi_replacement: Indicates the domain name to replace the APN-OI
-   * when constructing the PDN GW FQDN upon which to perform a DNS resolution.
-   * This replacement applies for all the APNs provided in the subscriber's profile.
-   *  See TS 23.003 [9] clause 9.1.2 for more
+   *           when constructing the PDN GW FQDN upon which to perform a
+   *           DNS resolution.
+   *           This replacement applies for all the APNs provided in the
+   *           subscriber's profile. See TS 23.003 [9] clause 9.1.2 for more
    */
   bstring apn_oi_replacement;
   teid_t mme_teid_s11;
@@ -406,16 +408,17 @@ typedef struct ue_mm_context_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
 
   /* Subscribed UE-AMBR: The Maximum Aggregated uplink and downlink MBR values
-   * to be shared across all Non-GBR bearers according to the subscription of
-   * the user. Set by S6A UPDATE LOCATION ANSWER
+   *           to be shared across all Non-GBR bearers according to the
+   *           subscription of the user. Set by S6A UPDATE LOCATION ANSWER
    */
   ambr_t subscribed_ue_ambr;
-  /* used_ue_ambr: The currently used Maximum Aggregated uplink and downlink MBR values
-   * to be shared across all Non-GBR bearers. Set by S6A UPDATE LOCATION ANSWER
+  /* used_ue_ambr: The currently used Maximum Aggregated uplink and downlink
+   *           MBR values to be shared across all Non-GBR bearers.
+   *           Set by S6A UPDATE LOCATION ANSWER
    */
   ambr_t used_ue_ambr;
   /* rau_tau_timer: Indicates a subscribed Periodic RAU/TAU Timer value
-   * Set by S6A UPDATE LOCATION ANSWER
+   *           Set by S6A UPDATE LOCATION ANSWER
    */
   rau_tau_timer_t rau_tau_timer;
 
@@ -426,12 +429,12 @@ typedef struct ue_mm_context_s {
   bearer_context_t *bearer_contexts[BEARERS_PER_UE];
 
   /* ue_radio_capability: Store the radio capabilities as received in
-   * S1AP UE capability indication message
+   *           S1AP UE capability indication message
    */
   bstring ue_radio_capability;
 
   /* mobile_reachability_timer: Start when UE moves to idle state.
-   * Stop when UE moves to connected state
+   *             Stop when UE moves to connected state
    */
   struct mme_app_timer_t mobile_reachability_timer;
   /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.

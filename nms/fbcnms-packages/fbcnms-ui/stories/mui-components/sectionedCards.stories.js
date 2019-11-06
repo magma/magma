@@ -9,8 +9,8 @@
  */
 
 import React from 'react';
-import SectionedCard from '../../components/SectionedCard.react';
-import Typography from '@material-ui/core/Typography';
+import SectionedCard from '../../components/SectionedCard';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -19,13 +19,13 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/SectionedCard`, module).add(
   () => (
     <div>
       <SectionedCard>
-        <Typography>Card 1</Typography>
+        <Text>Card 1</Text>
       </SectionedCard>
       <SectionedCard>
-        <Typography>Card 2</Typography>
+        <Text>Card 2</Text>
       </SectionedCard>
       <SectionedCard>
-        <Typography>Card 3</Typography>
+        <Text>Card 3</Text>
       </SectionedCard>
     </div>
   ),

@@ -355,9 +355,9 @@ func ExtractImsiFromSessionID(diamSid string) (string, error) {
 			if len(imsi) < 10 || len(imsi) > 16 {
 				return diamSid, fmt.Errorf("Invalid length of IMSI: %s, SessionID: %s", imsi, diamSid)
 			}
-			for l := range imsi {
+			for p, l := range imsi {
 				if l < '0' || l > '9' {
-					return diamSid, fmt.Errorf("Invalid char %c in IMSI: %s, SessionID: %s", l, imsi, diamSid)
+					return diamSid, fmt.Errorf("Invalid char '%c' in IMSI[%d]: %s, SessionID: %s", l, p, imsi, diamSid)
 				}
 			}
 			return imsi, nil

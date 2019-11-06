@@ -10,9 +10,9 @@
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
+import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import NetworkContext from '../context/NetworkContext';
-import NetworkSelector from '../NetworkSelector.react';
+import NetworkSelector from '../NetworkSelector';
 import React, {useContext} from 'react';
 import SectionLinks from '../layout/SectionLinks';
 import SectionRoutes from '../layout/SectionRoutes';
