@@ -31,16 +31,23 @@ import {makeStyles} from '@material-ui/styles';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEffect, useState} from 'react';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => ({
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
   },
+  formContainer: {
+    paddingBottom: theme.spacing(2),
+  },
+  formGroup: {
+    marginLeft: theme.spacing(2),
+    marginBottom: theme.spacing(2),
+  },
   title: {
     margin: '15px 0 5px',
   },
-});
+}));
 
 type Props = {
   title: string,
@@ -86,16 +93,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
       2,
     ),
   );
-  const [snmpTextbox, setSnmpTextbox] = useState(
-    JSON.stringify(
-      {
-        community: 'public',
-        version: 'v1',
-      },
-      null,
-      2,
-    ),
-  );
+
+  const [snmpCommunityTextbox, setSnmpCommunityTextbox] = useState('public');
+  const [snmpVersionTextbox, setSnmpVersionTextbox] = useState('public');
+
   const [cambiumTextbox, setCambiumTextbox] = useState(
     JSON.stringify(
       {
@@ -118,7 +119,12 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
       host: hostTextbox,
       platform: platformTextbox,
       device_type: typeTextbox.length > 0 ? [typeTextbox] : [],
-      channels: {},
+      channels: {
+        snmp_channel: {
+          community: snmpCommunityTextbox,
+          version: snmpVersionTextbox,
+        },
+      },
     };
 
     function setConfigIfExist(fieldName, textbox, setter) {
@@ -135,12 +141,6 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
     setConfigIfExist('Frinx Channel', frinxTextbox, jsonValue => {
       if (config.channels) {
         config.channels.frinx_channel = jsonValue;
-      }
-    });
-
-    setConfigIfExist('SNMP Channel', snmpTextbox, jsonValue => {
-      if (config.channels) {
-        config.channels.snmp_channel = jsonValue;
       }
     });
 
@@ -210,8 +210,11 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
       setFrinxTextbox(
         JSON.stringify(initialDeviceConfig.channels?.frinx_channel, null, 2),
       );
-      setSnmpTextbox(
-        JSON.stringify(initialDeviceConfig.channels?.snmp_channel, null, 2),
+      setSnmpCommunityTextbox(
+        initialDeviceConfig.channels?.snmp_channel?.community || '',
+      );
+      setSnmpVersionTextbox(
+        initialDeviceConfig.channels?.snmp_channel?.version || '',
       );
       setCambiumTextbox(
         JSON.stringify(initialDeviceConfig.channels?.cambium_channel, null, 2),
@@ -273,47 +276,52 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   );
 
   const content = (
-    <FormGroup>
+    <div className={classes.formContainer}>
       {deviceIDcontent}
 
-      <TextField
-        required
-        label="Host IP"
-        className={classes.input}
-        onChange={({target}) => setHostTextbox(target.value)}
-        value={hostTextbox}
-      />
+      <FormLabel>Host</FormLabel>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          required
+          label="IP"
+          className={classes.input}
+          onChange={({target}) => setHostTextbox(target.value)}
+          value={hostTextbox}
+        />
+      </FormGroup>
 
       <FormLabel>Platform</FormLabel>
-      <Select
-        value={platformTextbox}
-        onChange={({target}) => setPlatformTextbox(target.value)}
-        input={<Input id="types" />}>
-        {Object.keys(availablePlatforms).map(key => (
-          <MenuItem key={key} value={key}>
-            <ListItemText primary={availablePlatforms[key]} />
-          </MenuItem>
-        ))}
-      </Select>
+      <FormGroup row className={classes.formGroup}>
+        <Select
+          value={platformTextbox}
+          onChange={({target}) => setPlatformTextbox(target.value)}
+          input={<Input id="types" />}>
+          {Object.keys(availablePlatforms).map(key => (
+            <MenuItem key={key} value={key}>
+              <ListItemText primary={availablePlatforms[key]} />
+            </MenuItem>
+          ))}
+        </Select>
 
-      <TextField
-        required
-        label="Platform value (or custom)"
-        className={classes.input}
-        onChange={({target}) => {
-          const targetString = target.value;
-          if (!(targetString in standardPlatforms)) {
-            setAvailablePlatforms({
-              ...standardPlatforms,
-              [targetString]: '<Custom Platform>',
-            });
-            setPlatformTextbox(targetString);
-          } else {
-            setPlatformTextbox(targetString);
-          }
-        }}
-        value={platformTextbox}
-      />
+        <TextField
+          required
+          label="Platform value (or custom)"
+          className={classes.input}
+          onChange={({target}) => {
+            const targetString = target.value;
+            if (!(targetString in standardPlatforms)) {
+              setAvailablePlatforms({
+                ...standardPlatforms,
+                [targetString]: '<Custom Platform>',
+              });
+              setPlatformTextbox(targetString);
+            } else {
+              setPlatformTextbox(targetString);
+            }
+          }}
+          value={platformTextbox}
+        />
+      </FormGroup>
 
       <TextField
         label="Device Type"
@@ -323,52 +331,65 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
         value={typeTextbox}
       />
 
-      <TextField
-        label="SNMP Channel Config"
-        className={classes.input}
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setSnmpTextbox(target.value)}
-        value={snmpTextbox}
-      />
+      <FormLabel>SNMP Channel Config</FormLabel>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          label="Community"
+          className={classes.input}
+          onChange={({target}) => setSnmpCommunityTextbox(target.value)}
+          value={snmpCommunityTextbox}
+        />
 
-      <TextField
-        label="Frinx Channel Config"
-        style={{display: 'none'}} // TODO: show after implemented in agent
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setFrinxTextbox(target.value)}
-        value={frinxTextbox}
-      />
+        <TextField
+          label="Version"
+          className={classes.input}
+          onChange={({target}) => setSnmpVersionTextbox(target.value)}
+          value={snmpVersionTextbox}
+        />
+      </FormGroup>
 
-      <TextField
-        label="Cambium Channel Config"
-        style={{display: 'none'}} // TODO: show after implemented in agent
-        className={classes.input}
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setCambiumTextbox(target.value)}
-        value={cambiumTextbox}
-      />
+      <FormLabel>Additional Channel Configs</FormLabel>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          label="Frinx Channel Config"
+          style={{display: 'none'}} // TODO: show after implemented in agent
+          multiline={true}
+          lines={Infinity}
+          onChange={({target}) => setFrinxTextbox(target.value)}
+          value={frinxTextbox}
+        />
 
-      <TextField
-        label="Other Channel Config Props"
-        className={classes.input}
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setOtherChannelTextbox(target.value)}
-        value={otherChannelTextbox}
-      />
+        <TextField
+          label="Cambium Channel Config"
+          style={{display: 'none'}} // TODO: show after implemented in agent
+          className={classes.input}
+          multiline={true}
+          lines={Infinity}
+          onChange={({target}) => setCambiumTextbox(target.value)}
+          value={cambiumTextbox}
+        />
 
-      <TextField
-        label="Device Config"
-        className={classes.input}
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setConfigTextbox(target.value)}
-        value={configTextbox}
-      />
-    </FormGroup>
+        <TextField
+          label="Other Channel Config Props"
+          className={classes.input}
+          multiline={true}
+          lines={Infinity}
+          onChange={({target}) => setOtherChannelTextbox(target.value)}
+          value={otherChannelTextbox}
+        />
+      </FormGroup>
+
+      <FormLabel>Device Configs</FormLabel>
+      <FormGroup row className={classes.formGroup}>
+        <TextField
+          className={classes.input}
+          multiline={true}
+          lines={Infinity}
+          onChange={({target}) => setConfigTextbox(target.value)}
+          value={configTextbox}
+        />
+      </FormGroup>
+    </div>
   );
 
   return (
