@@ -29,6 +29,7 @@ should not be accessible to apps from other services.
 # produces a parse error
 
 import asyncio
+from concurrent.futures import Future
 from collections import namedtuple, OrderedDict
 from typing import List
 
@@ -248,7 +249,8 @@ class ServiceManager:
         self._magma_service = magma_service
         # inout is a mandatory app and it occupies both table 1(for ingress)
         # and table 20(for egress).
-        self._app_modules = [InOutController.__module__]
+        self._apps = [self.App(name=InOutController.APP_NAME,
+                               module=InOutController.__module__)]
         self._table_manager = _TableManager()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
@@ -261,10 +263,10 @@ class ServiceManager:
         for each static service.
         """
         static_services = self._magma_service.config['static_services']
-        static_app_modules = \
-            [app.module for service in static_services for app in
+        static_apps = \
+            [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
-        self._app_modules.extend(static_app_modules)
+        self._apps.extend(static_apps)
 
         # Register static apps for each service to a main table. Filter out any
         # apps that do not need a table.
@@ -286,9 +288,9 @@ class ServiceManager:
         for each dynamic service.
         """
         dynamic_services = self._magma_service.mconfig.services
-        dynamic_app_modules = [app.module for service in dynamic_services for
+        dynamic_apps = [app for service in dynamic_services for
                                app in self.DYNAMIC_SERVICE_TO_APPS[service]]
-        self._app_modules.extend(dynamic_app_modules)
+        self._apps.extend(dynamic_apps)
 
         # Register dynamic apps for each service to a main table. Filter out
         # any apps that do not need a table.
@@ -303,12 +305,12 @@ class ServiceManager:
         eventloop.
         """
         manager = AppManager.get_instance()
-        manager.load_apps(self._app_modules)
+        manager.load_apps([app.module for app in self._apps])
         contexts = manager.create_contexts()
         contexts['rule_id_mapper'] = RuleIDToNumMapper()
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
-        contexts['app_futures'] = {}
+        contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['config'] = self._magma_service.config
         contexts['mconfig'] = self._magma_service.mconfig
         contexts['loop'] = self._magma_service.loop
