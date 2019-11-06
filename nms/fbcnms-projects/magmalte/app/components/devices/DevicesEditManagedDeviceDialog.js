@@ -17,8 +17,12 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
+import Input from '@material-ui/core/Input';
+import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
@@ -52,6 +56,14 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   const [deviceID, setDeviceID] = useState(initialDeviceID);
   const [error, setError] = useState('');
+
+  const standardPlatforms = {
+    snmp: 'SNMP + ping',
+    ping: 'ping',
+  };
+  const [availablePlatforms, setAvailablePlatforms] = useState<{
+    [string]: string,
+  }>(standardPlatforms);
 
   // sectioned device configs
   const [hostTextbox, setHostTextbox] = useState('0.0.0.0');
@@ -272,11 +284,34 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
         value={hostTextbox}
       />
 
+      <FormLabel>Platform</FormLabel>
+      <Select
+        value={platformTextbox}
+        onChange={({target}) => setPlatformTextbox(target.value)}
+        input={<Input id="types" />}>
+        {Object.keys(availablePlatforms).map(key => (
+          <MenuItem key={key} value={key}>
+            <ListItemText primary={availablePlatforms[key]} />
+          </MenuItem>
+        ))}
+      </Select>
+
       <TextField
         required
-        label="Platform"
+        label="Platform value (or custom)"
         className={classes.input}
-        onChange={({target}) => setPlatformTextbox(target.value)}
+        onChange={({target}) => {
+          const targetString = target.value;
+          if (!(targetString in standardPlatforms)) {
+            setAvailablePlatforms({
+              ...standardPlatforms,
+              [targetString]: '<Custom Platform>',
+            });
+            setPlatformTextbox(targetString);
+          } else {
+            setPlatformTextbox(targetString);
+          }
+        }}
         value={platformTextbox}
       />
 
