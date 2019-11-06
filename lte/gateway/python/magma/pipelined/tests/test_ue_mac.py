@@ -63,7 +63,9 @@ class UEMacAddressTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.Arp:
+                    Future(),
             },
             config={
                 'bridge_name': cls.BRIDGE,
