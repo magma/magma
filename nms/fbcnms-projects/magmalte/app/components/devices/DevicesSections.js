@@ -11,7 +11,7 @@ import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Secti
 
 import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '@fbcnms/magmalte/app/components/insights/Alarms/Alarms';
-import CustomMetrics from '../lte/CustomMetrics';
+import CustomMetrics from '../insights/CustomMetrics';
 import DeviceHub from '@material-ui/icons/DeviceHub';
 import DevicesAgents from './DevicesAgents';
 import DevicesStatusTable from './DevicesStatusTable';
