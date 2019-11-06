@@ -15,6 +15,7 @@ from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
+UE_FLOW_PRIORITY = 12
 PASSTHROUGH_PRIORITY = 15
 MINIMUM_PRIORITY = 0
 MAXIMUM_PRIORITY = 65535
