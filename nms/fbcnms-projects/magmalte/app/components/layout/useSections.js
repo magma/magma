@@ -23,6 +23,7 @@ import {
   FEG,
   LTE,
   RHINO,
+  SYMPHONY,
   THIRD_PARTY,
   WAC,
   WIFI,
@@ -57,6 +58,7 @@ export default function useSections(): SectionsConfigs {
   switch (networkType) {
     case WIFI:
       return getMeshSections(alertsEnabled);
+    case SYMPHONY:
     case THIRD_PARTY:
       return getDevicesSections(alertsEnabled);
     case WAC:
