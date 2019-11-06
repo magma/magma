@@ -54,9 +54,9 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   const [error, setError] = useState('');
 
   // sectioned device configs
-  const [typeTextbox, setTypeTextbox] = useState('cisco');
   const [hostTextbox, setHostTextbox] = useState('0.0.0.0');
-  const [platformTextbox, setPlatformTextbox] = useState('Cisco');
+  const [platformTextbox, setPlatformTextbox] = useState('Snmp');
+  const [typeTextbox, setTypeTextbox] = useState('snmp');
   const [frinxTextbox, setFrinxTextbox] = useState(
     JSON.stringify(
       {
@@ -103,9 +103,9 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   const genManagedDeviceConfig = (): DevicesManagedDevice => {
     const config: DevicesManagedDevice = {
-      device_type: typeTextbox.length > 0 ? [typeTextbox] : [],
       host: hostTextbox,
       platform: platformTextbox,
+      device_type: typeTextbox.length > 0 ? [typeTextbox] : [],
       channels: {},
     };
 
@@ -191,10 +191,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
     if (initialDeviceID) {
       const initialDeviceConfig = response?.data || {};
 
-      // TODO: support more than 1 device_type in the list
-      setTypeTextbox(initialDeviceConfig.device_type?.[0] || '');
       setHostTextbox(initialDeviceConfig.host || '');
       setPlatformTextbox(initialDeviceConfig.platform || '');
+      // TODO: support more than 1 device_type in the list
+      setTypeTextbox(initialDeviceConfig.device_type?.[0] || '');
       setFrinxTextbox(
         JSON.stringify(initialDeviceConfig.channels?.frinx_channel, null, 2),
       );
@@ -282,18 +282,10 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
       <TextField
         label="Device Type"
+        style={{display: 'none'}} // TODO: show after implemented in agent
         className={classes.input}
         onChange={({target}) => setTypeTextbox(target.value)}
         value={typeTextbox}
-      />
-
-      <TextField
-        label="Frinx Channel Config"
-        className={classes.input}
-        multiline={true}
-        lines={Infinity}
-        onChange={({target}) => setFrinxTextbox(target.value)}
-        value={frinxTextbox}
       />
 
       <TextField
@@ -306,7 +298,17 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
       />
 
       <TextField
+        label="Frinx Channel Config"
+        style={{display: 'none'}} // TODO: show after implemented in agent
+        multiline={true}
+        lines={Infinity}
+        onChange={({target}) => setFrinxTextbox(target.value)}
+        value={frinxTextbox}
+      />
+
+      <TextField
         label="Cambium Channel Config"
+        style={{display: 'none'}} // TODO: show after implemented in agent
         className={classes.input}
         multiline={true}
         lines={Infinity}
