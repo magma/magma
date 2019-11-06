@@ -8,15 +8,18 @@ LICENSE file in the root directory of this source tree.
 
 from collections import namedtuple
 
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib.packet import packet
+from ryu.lib.packet import ether_types, dhcp
+from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
+
 from .base import MagmaController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
     load_direction
-
-from ryu.lib.packet import ether_types
-from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
 
 class UEMacAddressController(MagmaController):
@@ -40,6 +43,9 @@ class UEMacAddressController(MagmaController):
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
         self._datapath = None
+        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+        self.arpd_controller_fut = kwargs['app_futures']['arpd']
+        self.arp_contoller = None
 
     def _get_config(self, config_dict):
         return self.UEMacConfig(
@@ -52,7 +58,6 @@ class UEMacAddressController(MagmaController):
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))
         self._datapath = datapath
-        self._add_arp_passthrough_flows()
 
     def cleanup_on_disconnect(self, datapath):
         flows.delete_all_flows_from_table(datapath,
@@ -110,48 +115,6 @@ class UEMacAddressController(MagmaController):
             parser.NXActionRegLoad2(dst=IMSI_REG, value=encode_imsi(sid)))
 
         flows.delete_flow(self._datapath, self.tbl_num, match, actions=actions)
-
-    def _add_dhcp_passthrough_flows(self, sid, mac_addr):
-        parser = self._datapath.ofproto_parser
-
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
-
-        uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                  ip_proto=IPPROTO_UDP,
-                                  udp_src=68,
-                                  udp_dst=67,
-                                  eth_src=mac_addr)
-        self._add_resubmit_flow(sid, uplink_match, action,
-                                flows.PASSTHROUGH_PRIORITY)
-
-        downlink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    ip_proto=IPPROTO_UDP,
-                                    udp_src=67,
-                                    udp_dst=68,
-                                    eth_dst=mac_addr)
-        self._add_resubmit_flow(sid, downlink_match, action,
-                                 flows.PASSTHROUGH_PRIORITY)
-
-    def _delete_dhcp_passthrough_flows(self, sid, mac_addr):
-        parser = self._datapath.ofproto_parser
-
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
-
-        uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                  ip_proto=IPPROTO_UDP,
-                                  udp_src=68,
-                                  udp_dst=67,
-                                  eth_src=mac_addr)
-        self._delete_resubmit_flow(sid, uplink_match, action)
-
-        downlink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    ip_proto=IPPROTO_UDP,
-                                    udp_src=67,
-                                    udp_dst=68,
-                                    eth_dst=mac_addr)
-        self._delete_resubmit_flow(sid, downlink_match, action)
 
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
@@ -219,14 +182,79 @@ class UEMacAddressController(MagmaController):
                                      eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, dlink_match_tcp, action)
 
-    def _add_arp_passthrough_flows(self):
+    def _add_dhcp_passthrough_flows(self, sid, mac_addr):
+        ofproto = self._datapath.ofproto
         parser = self._datapath.ofproto_parser
-        next_table = self._service_manager.get_next_table_num(self.APP_NAME)
 
         # Set so inout knows to skip tables and send to egress
+        action = load_direction(parser, Direction.PASSTHROUGH)
+        uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                  ip_proto=IPPROTO_UDP,
+                                  udp_src=68,
+                                  udp_dst=67,
+                                  eth_src=mac_addr)
+        self._add_resubmit_flow(sid, uplink_match, action,
+                                flows.PASSTHROUGH_PRIORITY)
+
+        downlink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                    ip_proto=IPPROTO_UDP,
+                                    udp_src=67,
+                                    udp_dst=68,
+                                    eth_dst=mac_addr)
+        next_table = self._service_manager.get_next_table_num(self.APP_NAME)
         actions = [load_direction(parser, Direction.PASSTHROUGH)]
-        arp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP)
-        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                                             arp_match, actions=actions,
-                                             priority=flows.PASSTHROUGH_PRIORITY,
-                                             resubmit_table=next_table)
+        # Set so triggers packetin and we can learn the ip to do arp response
+        flows.add_output_flow(self._datapath, self.tbl_num, downlink_match,
+                              actions, priority=flows.PASSTHROUGH_PRIORITY,
+                              output_port=ofproto.OFPP_CONTROLLER,
+                              copy_table=next_table,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
+
+    def _delete_dhcp_passthrough_flows(self, sid, mac_addr):
+        parser = self._datapath.ofproto_parser
+
+        # Set so inout knows to skip tables and send to egress
+        action = load_direction(parser, Direction.PASSTHROUGH)
+        uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                  ip_proto=IPPROTO_UDP,
+                                  udp_src=68,
+                                  udp_dst=67,
+                                  eth_src=mac_addr)
+        self._delete_resubmit_flow(sid, uplink_match, action)
+
+        actions = [load_direction(parser, Direction.PASSTHROUGH)]
+        downlink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                    ip_proto=IPPROTO_UDP,
+                                    udp_src=67,
+                                    udp_dst=68,
+                                    eth_dst=mac_addr)
+        # Set so triggers packetin and we can learn the ip to do arp response
+        flows.delete_flow(self._datapath, self.tbl_num, downlink_match,
+                          actions=actions,
+                          priority=flows.PASSTHROUGH_PRIORITY + 1)
+
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def _learn_arp_entry(self, ev):
+        """
+        Learn action to process PacketIn DHCP packets, dhcp ack packets will
+        be used to learn the ARP entry for the UE to install rules in the arp
+        table. The DHCP packets will then be sent thorugh the pipeline.
+        """
+        msg = ev.msg
+
+        if self.tbl_num != msg.table_id:
+            # Intended for other application
+            return
+
+        pkt = packet.Packet(msg.data)
+        dhcp_header = pkt.get_protocols(dhcp.dhcp)[0]
+
+        if self.arp_contoller or self.arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self.arp_contoller = self.arpd_controller_fut.result()
+            # DHCP yiaddr is the client(UE) ip addr
+            #      chaddr is the client mac address
+            self.arp_contoller._set_incoming_arp_flows(
+                self._datapath, dhcp_header.yiaddr, dhcp_header.chaddr)
+        else:
+            self.logger.error("ARPD controller not ready, ARP learn FAILED")
