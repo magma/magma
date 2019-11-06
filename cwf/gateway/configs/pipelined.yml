@@ -81,6 +81,9 @@ virtual_interface: cwag_br0
 # For CWF UE does have an eth src so we don't need to fake it
 local_ue_eth_addr: False
 
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
+
 # Interface to NAT traffic to
 nat_iface: eth2
 
