@@ -58,6 +58,7 @@ class UEMacAddressController(MagmaController):
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))
         self._datapath = datapath
+        self._install_default_flows(datapath)
 
     def cleanup_on_disconnect(self, datapath):
         flows.delete_all_flows_from_table(datapath,
@@ -69,10 +70,12 @@ class UEMacAddressController(MagmaController):
         self._add_dns_passthrough_flows(sid, mac_addr)
 
         uplink_match = MagmaMatch(eth_src=mac_addr)
-        self._add_resubmit_flow(sid, uplink_match)
+        self._add_resubmit_flow(sid, uplink_match,
+                                priority=flows.UE_FLOW_PRIORITY)
 
         downlink_match = MagmaMatch(eth_dst=mac_addr)
-        self._add_resubmit_flow(sid, downlink_match)
+        self._add_resubmit_flow(sid, downlink_match,
+                                priority=flows.UE_FLOW_PRIORITY)
 
     def delete_ue_mac_flow(self, sid, mac_addr):
         self._delete_dhcp_passthrough_flows(sid, mac_addr)
@@ -83,6 +86,15 @@ class UEMacAddressController(MagmaController):
 
         downlink_match = MagmaMatch(eth_dst=mac_addr)
         self._delete_resubmit_flow(sid, downlink_match)
+
+    def add_arp_response_flow(self, yiaddr, chaddr):
+        if self.arp_contoller or self.arpd_controller_fut.done():
+            if not self.arp_contoller:
+                self.arp_contoller = self.arpd_controller_fut.result()
+            self.arp_contoller.add_ue_arp_flows(self._datapath,
+                                                yiaddr, chaddr)
+        else:
+            self.logger.error("ARPD controller not ready, ARP learn FAILED")
 
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY):
@@ -233,6 +245,16 @@ class UEMacAddressController(MagmaController):
                           actions=actions,
                           priority=flows.PASSTHROUGH_PRIORITY + 1)
 
+    def _add_uplink_arp_allow_flow(self):
+        next_table = self._service_manager.get_next_table_num(self.APP_NAME)
+
+        actions = []
+        arp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+                                             arp_match, actions=actions,
+                                             priority=flows.DEFAULT_PRIORITY,
+                                             resubmit_table=next_table)
+
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _learn_arp_entry(self, ev):
         """
@@ -248,13 +270,16 @@ class UEMacAddressController(MagmaController):
 
         pkt = packet.Packet(msg.data)
         dhcp_header = pkt.get_protocols(dhcp.dhcp)[0]
+        # DHCP yiaddr is the client(UE) ip addr
+        #      chaddr is the client mac address
+        self.add_arp_response_flow(dhcp_header.yiaddr, dhcp_header.chaddr)
 
-        if self.arp_contoller or self.arpd_controller_fut.done():
-            if not self.arp_contoller:
-                self.arp_contoller = self.arpd_controller_fut.result()
-            # DHCP yiaddr is the client(UE) ip addr
-            #      chaddr is the client mac address
-            self.arp_contoller._set_incoming_arp_flows(
-                self._datapath, dhcp_header.yiaddr, dhcp_header.chaddr)
-        else:
-            self.logger.error("ARPD controller not ready, ARP learn FAILED")
+    def _install_default_flows(self, datapath):
+        """
+        Install default flows
+        """
+        # Allows arp packets from uplink(no eth dst set) to go to the arp table
+        self._add_uplink_arp_allow_flow()
+
+        # TODO We might want a default drop all rule with min priority, but
+        # adding it breakes all unit tests for this controller(needs work)
