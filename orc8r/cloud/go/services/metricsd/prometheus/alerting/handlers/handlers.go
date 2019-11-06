@@ -170,12 +170,19 @@ func decodeRulePostRequest(c echo.Context) (rulefmt.Rule, error) {
 	if err != nil {
 		return rulefmt.Rule{}, fmt.Errorf("error reading request body: %v", err)
 	}
+	// First try unmarshaling into prometheus rulefmt.Rule{}
 	payload := rulefmt.Rule{}
 	err = json.Unmarshal(body, &payload)
+	if err == nil {
+		return payload, nil
+	}
+	// Try to unmarshal into the RuleJSONWrapper struct if prometheus struct doesn't work
+	jsonPayload := alert.RuleJSONWrapper{}
+	err = json.Unmarshal(body, &jsonPayload)
 	if err != nil {
 		return payload, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
-	return payload, nil
+	return jsonPayload.ToRuleFmt()
 }
 
 func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
