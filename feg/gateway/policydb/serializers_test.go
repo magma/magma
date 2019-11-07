@@ -11,6 +11,7 @@ package policydb_test
 import (
 	"testing"
 
+	"magma/feg/gateway/object_store"
 	"magma/feg/gateway/policydb"
 	lteProtos "magma/lte/cloud/go/protos"
 	orc8rProtos "magma/orc8r/cloud/go/protos"
@@ -22,14 +23,8 @@ import (
 func TestPolicySerializer(t *testing.T) {
 	policy := getDefaultPolicy()
 	policySerializer := policydb.GetPolicySerializer()
-
-	// should return a serialized RedisState{SerializedMsg: <serialized policy>}
-	serializedRedisState, err := policySerializer(policy)
-	assert.NoError(t, err)
-
-	expectedSerializedPolicyRedisState := createSerializedPolicyRedisState(t, policy)
-
-	assert.Equal(t, expectedSerializedPolicyRedisState, serializedRedisState)
+	expectedString := createSerializedPolicyRedisState(t, policy)
+	testRedisStateSerializer(t, policy, policySerializer, expectedString)
 }
 
 func TestPolicyDeserializer(t *testing.T) {
@@ -43,10 +38,42 @@ func TestPolicyDeserializer(t *testing.T) {
 	assert.True(t, ok)
 
 	// clear out meta fields
-	clearOutMetaFields(policy)
-	clearOutMetaFields(deserializedPolicy)
+	clearOutMetaFieldsFromPolicy(policy)
+	clearOutMetaFieldsFromPolicy(deserializedPolicy)
 
 	assert.Equal(t, policy, deserializedPolicy)
+}
+
+func TestNameSetSerializer(t *testing.T) {
+	nameSet := getDefaultNameSet()
+	nameSetSerializer := policydb.GetBaseNameSerializer()
+	expectedString := createSerializedNameSetRedisState(t, nameSet)
+
+	testRedisStateSerializer(t, nameSet, nameSetSerializer, expectedString)
+}
+
+func TestNameSetDeserializer(t *testing.T) {
+	nameSet := getDefaultNameSet()
+	nameSetDeserializer := policydb.GetBaseNameDeserializer()
+
+	serializedPolicyRedisState := createSerializedNameSetRedisState(t, nameSet)
+	iPolicy, err := nameSetDeserializer(serializedPolicyRedisState)
+	assert.NoError(t, err)
+	deserializedPolicy, ok := iPolicy.(*lteProtos.ChargingRuleNameSet)
+	assert.True(t, ok)
+
+	// clear out meta fields
+	clearOutMetaFieldsFromNameSet(nameSet)
+	clearOutMetaFieldsFromNameSet(deserializedPolicy)
+
+	assert.Equal(t, nameSet, deserializedPolicy)
+}
+
+func testRedisStateSerializer(t *testing.T, msg proto.Message, serializer object_store.Serializer, expectedString string) {
+	// should return a serialized RedisState{SerializedMsg: <serialized policy>}
+	serializedRedisState, err := serializer(msg)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedString, serializedRedisState)
 }
 
 func getDefaultPolicy() *lteProtos.PolicyRule {
@@ -75,8 +102,32 @@ func createSerializedPolicyRedisState(t *testing.T, policy *lteProtos.PolicyRule
 	return string(serializedRedisState)
 }
 
-func clearOutMetaFields(policy *lteProtos.PolicyRule) {
+func clearOutMetaFieldsFromPolicy(policy *lteProtos.PolicyRule) {
 	policy.XXX_NoUnkeyedLiteral = struct{}{}
 	policy.XXX_unrecognized = nil
 	policy.XXX_sizecache = 0
+}
+
+func getDefaultNameSet() *lteProtos.ChargingRuleNameSet{
+	return &lteProtos.ChargingRuleNameSet{
+		RuleNames: []string{"static1"},
+	}
+}
+
+func createSerializedNameSetRedisState(t *testing.T, nameSet *lteProtos.ChargingRuleNameSet) string {
+	serializedNameSet, err := proto.Marshal(nameSet)
+	assert.NoError(t, err)
+	expectedRedisState := &orc8rProtos.RedisState{
+		SerializedMsg: serializedNameSet,
+		Version:       0,
+	}
+	serializedRedisState, err := proto.Marshal(expectedRedisState)
+	assert.NoError(t, err)
+	return string(serializedRedisState)
+}
+
+func clearOutMetaFieldsFromNameSet(nameSet *lteProtos.ChargingRuleNameSet) {
+	nameSet.XXX_NoUnkeyedLiteral = struct{}{}
+	nameSet.XXX_unrecognized = nil
+	nameSet.XXX_sizecache = 0
 }

@@ -19,20 +19,6 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func getProtoSerializer() object_store.Serializer {
-	return func(object interface{}) (string, error) {
-		msg, ok := object.(proto.Message)
-		if !ok {
-			return "", fmt.Errorf("Could not cast object to protobuf")
-		}
-		bytes, err := proto.Marshal(msg)
-		if err != nil {
-			return "", fmt.Errorf("Could not marshal message")
-		}
-		return string(bytes[:]), nil
-	}
-}
-
 func getRedisStateSerializer(serializer object_store.Serializer) object_store.Serializer {
 	return func(object interface{}) (string, error) {
 		serialized, err := serializer(object)
@@ -89,8 +75,23 @@ func GetPolicyDeserializer() object_store.Deserializer {
 	return getRedisStateDeserializer(deserializer)
 }
 
-func getBaseNameDeserializer() object_store.Deserializer {
-	return func(serialized string) (interface{}, error) {
+func GetBaseNameSerializer() object_store.Serializer {
+	serializer := func(object interface{}) (string, error) {
+		setPtr, ok := object.(*lteProtos.ChargingRuleNameSet)
+		if !ok {
+			return "", fmt.Errorf("Could not cast object to protobuf")
+		}
+		bytes, err := proto.Marshal(setPtr)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
+		}
+		return string(bytes[:]), nil
+	}
+	return getRedisStateSerializer(serializer)
+}
+
+func GetBaseNameDeserializer() object_store.Deserializer {
+	deserializer := func(serialized string) (interface{}, error) {
 		setPtr := &lteProtos.ChargingRuleNameSet{}
 		bytes := []byte(serialized)
 		err := proto.Unmarshal(bytes, setPtr)
@@ -99,4 +100,5 @@ func getBaseNameDeserializer() object_store.Deserializer {
 		}
 		return setPtr, nil
 	}
+	return getRedisStateDeserializer(deserializer)
 }
