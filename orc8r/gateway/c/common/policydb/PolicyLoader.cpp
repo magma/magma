@@ -54,24 +54,27 @@ static void do_loop(
   MLOG(MDEBUG) << "Rules synced";
 }
 
-void PolicyLoader::start_loop(
+void PolicyLoader::load_config_async(
     std::function<void(std::vector<PolicyRule>)> processor,
     uint32_t loop_interval_seconds) {
   is_running_ = true;
   auto client = std::make_shared<cpp_redis::client>();
   auto policy_map = RedisMap<PolicyRule>(
-    client,
-    "policydb:rules",
-    get_proto_serializer(),
-    get_proto_deserializer());
-  while (is_running_) {
-    do_loop(*client, policy_map, processor);
-    std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
-  }
+      client,
+      "policydb:rules",
+      get_proto_serializer(),
+      get_proto_deserializer());
+  redis_client_thread_ = std::thread ([&]() {
+    while (is_running_) {
+      do_loop(*client, policy_map, processor);
+      std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
+    }
+  });
 }
 
 void PolicyLoader::stop() {
   is_running_ = false;
+  redis_client_thread_.join();
 }
 
 }
