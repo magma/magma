@@ -27,6 +27,7 @@ declare module "@material-ui/lab/ToggleButtonGroup" {
   
 declare module "@material-ui/lab" {
   declare module.exports: {
+      Autocomplete: $Exports<"@material-ui/lab/Autocomplete">,
       ToggleButton: $Exports<"@material-ui/lab/ToggleButton">,
       ToggleButtonGroup: $Exports<"@material-ui/lab/ToggleButtonGroup">,
   };
