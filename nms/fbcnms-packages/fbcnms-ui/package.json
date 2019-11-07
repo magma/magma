@@ -5,7 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^4.0.0",
-    "@material-ui/lab": "^3.0.0-alpha.30",
+    "@material-ui/lab": "^4.0.0-alpha.30",
     "@material-ui/styles": "^4.0.0",
     "beaver-logger": "^4.0.12",
     "notistack": "^0.8.5",
