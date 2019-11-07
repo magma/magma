@@ -28,7 +28,7 @@ import IconButton from '@material-ui/core/IconButton';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import type {AlertConfig} from '../AlarmAPIType';
-import type {ApiUtil} from '../ApiUrls';
+import type {ApiUtil} from '../AlarmsApi';
 
 type Props = {
   apiUtil: ApiUtil,
