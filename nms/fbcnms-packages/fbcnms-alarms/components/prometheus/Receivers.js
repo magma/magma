@@ -18,10 +18,10 @@ import React from 'react';
 import SimpleTable from '../SimpleTable';
 
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUrls} from '../ApiUrls';
+import type {ApiUtil} from '../AlarmsApi';
 
 const useStyles = makeStyles({
   loading: {
@@ -33,10 +33,11 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  apiUrls: ApiUrls,
+  apiUtil: ApiUtil,
 };
 
 export default function Receivers(props: Props) {
+  const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentAlert, setCurrentAlert] = useState<Object>({});
   const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
@@ -62,11 +63,11 @@ export default function Receivers(props: Props) {
     }
   };
 
-  const {isLoading, error, response} = useAxios<null, Array<AlertReceiver>>({
-    method: 'get',
-    url: props.apiUrls.viewReceivers(match),
-    cacheCounter: lastRefreshTime,
-  });
+  const {isLoading, error, response} = apiUtil.useAlarmsApi(
+    apiUtil.getReceivers,
+    {networkId: match.params.networkId},
+    lastRefreshTime,
+  );
 
   if (error) {
     enqueueSnackbar(
@@ -77,9 +78,7 @@ export default function Receivers(props: Props) {
     );
   }
 
-  const receiversList = response?.data || [];
-
-  const receiversData = receiversList.map(receiver => {
+  const receiversData = (response || []).map(receiver => {
     return {
       name: receiver.name,
       type: 'slack',

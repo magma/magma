@@ -8,20 +8,18 @@
  * @format
  */
 
-import type {AlertRoutingTree} from '../AlarmAPIType';
-
 import AlertActionDialog from '../AlertActionDialog';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import SimpleTable from '../SimpleTable';
-
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUrls} from '../ApiUrls';
+
+import type {ApiUtil} from '../AlarmsApi';
 
 const useStyles = makeStyles({
   loading: {
@@ -33,10 +31,11 @@ const useStyles = makeStyles({
 });
 
 type Props = {
-  apiUrls: ApiUrls,
+  apiUtil: ApiUtil,
 };
 
 export default function Routes(props: Props) {
+  const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentAlert, setCurrentAlert] = useState<Object>({});
   const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
@@ -54,11 +53,11 @@ export default function Routes(props: Props) {
     setMenuAnchorEl(null);
   };
 
-  const {isLoading, error, response} = useAxios<null, Array<AlertRoutingTree>>({
-    method: 'get',
-    url: props.apiUrls.viewRoutes(match),
-    cacheCounter: lastRefreshTime,
-  });
+  const {isLoading, error, response} = apiUtil.useAlarmsApi(
+    apiUtil.getRoutes,
+    {networkId: match.params.networkId},
+    lastRefreshTime,
+  );
 
   if (error) {
     enqueueSnackbar(
@@ -69,7 +68,7 @@ export default function Routes(props: Props) {
     );
   }
 
-  const routesList = response?.data || [];
+  const routesList = response || [];
 
   return (
     <>

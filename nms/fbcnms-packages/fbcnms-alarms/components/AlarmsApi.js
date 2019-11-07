@@ -8,29 +8,13 @@
  * @format
  */
 
-import type {Match} from 'react-router-dom';
-
-import type {AlertConfig, FiringAlarm} from './AlarmAPIType';
-
-// DEPRECATED
-export type ApiUrls = {
-  //alerts
-  viewFiringAlerts: (nid: string | Match) => string,
-  //rules
-  viewMatchingAlerts: (nid: string | Match, alertName: string) => string,
-  alertConfig: (nid: string | Match) => string,
-  updateAlertConfig: (nid: string | Match, alertName: string) => string,
-  bulkAlertConfig: (nid: string | Match) => string,
-  //routes
-  routeConfig: (nid: string | Match) => string,
-  viewRoutes: (nid: string | Match) => string,
-  //silences
-  viewSilences: (nid: string | Match) => string,
-  // receivers
-  viewReceivers: (nid: string | Match) => string,
-  receiverConfig: (nid: string | Match) => string,
-  receiverUpdate: (nid: string | Match, receiverName: string) => string,
-};
+import type {
+  AlertConfig,
+  AlertReceiver,
+  AlertRoutingTree,
+  AlertSuppression,
+  FiringAlarm,
+} from './AlarmAPIType';
 
 export type ApiRequest = {
   networkId?: string,
@@ -57,7 +41,17 @@ export type ApiUtil = {|
     req: {expression: string} & ApiRequest,
   ) => Promise<Array<FiringAlarm>>,
   createAlertRule: (req: {rule: AlertConfig} & ApiRequest) => Promise<void>,
+  // TODO: support renaming alerts by passing old alert name separately
   editAlertRule: (req: {rule: AlertConfig} & ApiRequest) => Promise<void>,
   getAlertRules: (req: ApiRequest) => Promise<Array<AlertConfig>>,
   deleteAlertRule: (req: {ruleName: string} & ApiRequest) => Promise<void>,
+
+  // suppressions
+  getSuppressions: (req: ApiRequest) => Promise<Array<AlertSuppression>>,
+
+  // receivers
+  getReceivers: (req: ApiRequest) => Promise<Array<AlertReceiver>>,
+
+  // routes
+  getRoutes: (req: ApiRequest) => Promise<Array<AlertRoutingTree>>,
 |};

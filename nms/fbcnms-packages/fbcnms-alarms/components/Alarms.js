@@ -24,7 +24,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import type {FiringAlarm, Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
 
-import type {ApiUrls, ApiUtil} from './ApiUrls';
+import type {ApiUtil} from './AlarmsApi';
 
 const useStyles = makeStyles(_theme => ({
   appBar: {
@@ -60,20 +60,13 @@ const TABS: TabMap = {
 const DEFAULT_TAB_NAME = 'alerts';
 
 type Props = {
-  apiUrls: ApiUrls,
   apiUtil: ApiUtil,
   makeTabLink: ({match: Match, keyName: string}) => string,
   experimentalTabsEnabled: boolean,
   filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
 };
 export default function Alarms(props: Props) {
-  const {
-    apiUrls,
-    apiUtil,
-    filterLabels,
-    makeTabLink,
-    experimentalTabsEnabled,
-  } = props;
+  const {apiUtil, filterLabels, makeTabLink, experimentalTabsEnabled} = props;
   const classes = useStyles();
   const {match, location} = useRouter();
 
@@ -81,7 +74,9 @@ export default function Alarms(props: Props) {
     path: `${match.path}/:tabName`,
   });
 
-  const alarmProps = {apiUrls: apiUrls, apiUtil};
+  const alarmProps = {
+    apiUtil,
+  };
   return (
     <>
       <AppBar className={classes.appBar} color="default">
