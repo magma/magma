@@ -2189,7 +2189,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
     // Create temporary dedicated bearer context
     sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p =
       calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
-    // Copy PAA, SGW IP address and sgw c-plane teid from default bearer cntxt
+    // Copy PAA and SGW IP address from default bearer cntxt
     sgw_eps_bearer_ctxt_t *default_eps_bearer_entry_p =
       sgw_cm_get_eps_bearer_entry(
         &s_plus_p_gw_eps_bearer_ctxt_info_p

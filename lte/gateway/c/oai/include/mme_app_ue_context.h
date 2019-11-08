@@ -162,10 +162,6 @@ typedef struct bearer_context_s {
   priority_level_t priority_level;
   pre_emption_vulnerability_t preemption_vulnerability;
   pre_emption_capability_t preemption_capability;
-  /*Save QoS and TFT to be sent to SGW.
-  * AT SGW context will be created after
-  * receiving itti_s11_pcrf_ded_bearer_actv_rsp_t
-  */
 } bearer_context_t;
 
 /** @struct subscribed_apn_t
