@@ -23,7 +23,7 @@ import (
 )
 
 func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
-	tr := NewTestRunner()
+	tr, _ := NewTestRunner()
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
