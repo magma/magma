@@ -23,6 +23,11 @@ x-generic-service: &service
   restart: always
   network_mode: host
 
+# Generic python anchor to avoid repetition for orc8r python services
+x-orc8r-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
 x-feg-goservice: &feggoservice
   <<: *service
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
@@ -81,4 +86,12 @@ services:
     container_name: ocs
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=0
 
+  redis:
+    <<: *pyservice
+    container_name: redis
+    volumes:
+      - /var/opt/magma/redis.conf:/var/opt/magma/redis.conf
+    command: >
+      /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
 
