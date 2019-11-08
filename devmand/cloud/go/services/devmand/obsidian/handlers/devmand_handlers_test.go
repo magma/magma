@@ -11,17 +11,15 @@ package handlers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian"
-	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
-	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
-	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"orc8r/devmand/cloud/go/devmand"
 	devmandp "orc8r/devmand/cloud/go/plugin"
 	"orc8r/devmand/cloud/go/services/devmand/test_utils"
@@ -30,16 +28,15 @@ import (
 )
 
 func TestGetDeviceConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &devmandp.DevmandOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	restPort := obsidian_test.StartObsidian(t)
+	configuratorTestInit.StartTestService(t)
+	restPort := tests.StartObsidian(t)
 	testURLRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "Test Network 1"
 	deviceID := "test_device_1"
-	configurator_test_utils.RegisterNetwork(t, networkID, "")
+	configuratorTestUtils.RegisterNetwork(t, networkID, "")
 	registerDevice(t, networkID, deviceID)
 
 	// Happy path
@@ -48,36 +45,35 @@ func TestGetDeviceConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	expected := string(marshaledCfg)
 
-	createConfigTestCase := obsidian_test.Testcase{
+	createConfigTestCase := tests.Testcase{
 		Name:     "Create Device Config",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/configs/devices?requested_id=%s", testURLRoot, networkID, deviceID),
 		Payload:  expected,
 		Expected: `"test_device_1"`,
 	}
-	obsidian_test.RunTest(t, createConfigTestCase)
+	tests.RunTest(t, createConfigTestCase)
 
-	happyPathTestCase := obsidian_test.Testcase{
+	happyPathTestCase := tests.Testcase{
 		Name:     "Get Device Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/configs/devices/%s", testURLRoot, networkID, deviceID),
 		Payload:  "",
 		Expected: expected,
 	}
-	obsidian_test.RunTest(t, happyPathTestCase)
+	tests.RunTest(t, happyPathTestCase)
 }
 
 func TestSetDeviceConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &devmandp.DevmandOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	restPort := obsidian_test.StartObsidian(t)
+	configuratorTestInit.StartTestService(t)
+	restPort := tests.StartObsidian(t)
 	testURLRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "Test Network 1"
 	deviceID := "test_device_1"
-	configurator_test_utils.RegisterNetwork(t, networkID, "")
+	configuratorTestUtils.RegisterNetwork(t, networkID, "")
 	registerDevice(t, networkID, deviceID)
 
 	// Happy path
@@ -86,52 +82,51 @@ func TestSetDeviceConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	expected := string(marshaledCfg)
 
-	createConfigTestCase := obsidian_test.Testcase{
+	createConfigTestCase := tests.Testcase{
 		Name:     "Create Device Config",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/configs/devices?requested_id=%s", testURLRoot, networkID, deviceID),
 		Payload:  expected,
 		Expected: `"test_device_1"`,
 	}
-	obsidian_test.RunTest(t, createConfigTestCase)
+	tests.RunTest(t, createConfigTestCase)
 
 	deviceConfig.Host = "0.0.0.0"
 	marshaledCfg, err = deviceConfig.MarshalBinary()
 	assert.NoError(t, err)
 	configString := string(marshaledCfg)
 
-	setConfigTestCase := obsidian_test.Testcase{
+	setConfigTestCase := tests.Testcase{
 		Name:     "Set Device Config",
 		Method:   "PUT",
 		Url:      fmt.Sprintf("%s/%s/configs/devices/%s", testURLRoot, networkID, deviceID),
 		Payload:  configString,
 		Expected: "",
 	}
-	obsidian_test.RunTest(t, setConfigTestCase)
-	happyPathTestCase := obsidian_test.Testcase{
+	tests.RunTest(t, setConfigTestCase)
+	happyPathTestCase := tests.Testcase{
 		Name:     "Get Device Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/configs/devices/%s", testURLRoot, networkID, deviceID),
 		Payload:  "",
 		Expected: configString,
 	}
-	obsidian_test.RunTest(t, happyPathTestCase)
+	tests.RunTest(t, happyPathTestCase)
 }
 
 func TestGetGatewayConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &devmandp.DevmandOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	restPort := obsidian_test.StartObsidian(t)
+	configuratorTestInit.StartTestService(t)
+	restPort := tests.StartObsidian(t)
 	testURLRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "Test Network 1"
 	gatewayID := "g1"
 	d1 := "test_device_1"
 	d2 := "test_device_2"
-	configurator_test_utils.RegisterNetwork(t, networkID, "")
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, nil)
+	configuratorTestUtils.RegisterNetwork(t, networkID, "")
+	configuratorTestUtils.RegisterGateway(t, networkID, gatewayID, nil)
 	registerDevice(t, networkID, d1)
 	registerDevice(t, networkID, d2)
 
@@ -141,39 +136,38 @@ func TestGetGatewayConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	expected := string(marshaledCfg)
 
-	createConfigTestCase := obsidian_test.Testcase{
+	createConfigTestCase := tests.Testcase{
 		Name:     "Create Devmand Gateway Config",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  expected,
 		Expected: `"g1"`,
 	}
-	obsidian_test.RunTest(t, createConfigTestCase)
+	tests.RunTest(t, createConfigTestCase)
 
-	happyPathTestCase := obsidian_test.Testcase{
+	happyPathTestCase := tests.Testcase{
 		Name:     "Get Devmand Gateway Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: expected,
 	}
-	obsidian_test.RunTest(t, happyPathTestCase)
+	tests.RunTest(t, happyPathTestCase)
 }
 
 func TestSetGatewayConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &devmandp.DevmandOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	restPort := obsidian_test.StartObsidian(t)
+	configuratorTestInit.StartTestService(t)
+	restPort := tests.StartObsidian(t)
 	testURLRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "Test Network 1"
 	gatewayID := "g1"
 	d1 := "test_device_1"
 	d2 := "test_device_2"
-	configurator_test_utils.RegisterNetwork(t, networkID, "")
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, nil)
+	configuratorTestUtils.RegisterNetwork(t, networkID, "")
+	configuratorTestUtils.RegisterGateway(t, networkID, gatewayID, nil)
 	registerDevice(t, networkID, d1)
 	registerDevice(t, networkID, d2)
 
@@ -182,14 +176,14 @@ func TestSetGatewayConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	configString := string(marshaledCfg)
 
-	createConfigTestCase := obsidian_test.Testcase{
+	createConfigTestCase := tests.Testcase{
 		Name:     "Create Devmand Gateway Config",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  configString,
 		Expected: `"g1"`,
 	}
-	obsidian_test.RunTest(t, createConfigTestCase)
+	tests.RunTest(t, createConfigTestCase)
 
 	// Should fail if device is not registered
 	gatewayConfig.ManagedDevices = []string{"test_device_1", "test_device_2", "test_device_3"}
@@ -197,7 +191,7 @@ func TestSetGatewayConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	configString = string(marshaledCfg)
 
-	setConfigTestCase := obsidian_test.Testcase{
+	setConfigTestCase := tests.Testcase{
 		Name:                     "Set Devmand Gateway Config Without Device Registered",
 		Method:                   "PUT",
 		Url:                      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
@@ -209,44 +203,44 @@ func TestSetGatewayConfigs(t *testing.T) {
 	d3 := "test_device_3"
 	registerDevice(t, networkID, d3)
 
-	setConfigTestCase = obsidian_test.Testcase{
+	setConfigTestCase = tests.Testcase{
 		Name:    "Set Devmand Gateway Config",
 		Method:  "PUT",
 		Url:     fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload: configString,
 	}
-	obsidian_test.RunTest(t, setConfigTestCase)
+	tests.RunTest(t, setConfigTestCase)
 
-	getConfigTestCase := obsidian_test.Testcase{
+	getConfigTestCase := tests.Testcase{
 		Name:     "Get Updated Devmand Gateway Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: configString,
 	}
-	obsidian_test.RunTest(t, getConfigTestCase)
+	tests.RunTest(t, getConfigTestCase)
 
 	// remove devices from config
 	gatewayConfig.ManagedDevices = []string{"test_device_1"}
 	marshaledCfg, err = gatewayConfig.MarshalBinary()
 	assert.NoError(t, err)
 	configString = string(marshaledCfg)
-	setConfigTestCase = obsidian_test.Testcase{
+	setConfigTestCase = tests.Testcase{
 		Name:    "Set Devmand Gateway Config To Delete Device Association",
 		Method:  "PUT",
 		Url:     fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload: configString,
 	}
-	obsidian_test.RunTest(t, setConfigTestCase)
+	tests.RunTest(t, setConfigTestCase)
 
-	getConfigTestCase = obsidian_test.Testcase{
+	getConfigTestCase = tests.Testcase{
 		Name:     "Get Updated Devmand Gateway Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: configString,
 	}
-	obsidian_test.RunTest(t, getConfigTestCase)
+	tests.RunTest(t, getConfigTestCase)
 
 	// remove device entity and see configs get updated
 	err = configurator.DeleteEntity(networkID, devmand.DeviceType, d1)
@@ -255,30 +249,29 @@ func TestSetGatewayConfigs(t *testing.T) {
 	marshaledCfg, err = gatewayConfig.MarshalBinary()
 	assert.NoError(t, err)
 	configString = string(marshaledCfg)
-	getConfigTestCase = obsidian_test.Testcase{
+	getConfigTestCase = tests.Testcase{
 		Name:     "Get Updated Devmand Gateway Config",
 		Method:   "GET",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: configString,
 	}
-	obsidian_test.RunTest(t, getConfigTestCase)
+	tests.RunTest(t, getConfigTestCase)
 }
 
 func TestDeleteGatewayConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &devmandp.DevmandOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	configurator_test_init.StartTestService(t)
-	restPort := obsidian_test.StartObsidian(t)
+	configuratorTestInit.StartTestService(t)
+	restPort := tests.StartObsidian(t)
 	testURLRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
 	networkID := "Test Network 1"
 	gatewayID := "g1"
 	d1 := "test_device_1"
 	d2 := "test_device_2"
-	configurator_test_utils.RegisterNetwork(t, networkID, "")
-	configurator_test_utils.RegisterGateway(t, networkID, gatewayID, nil)
+	configuratorTestUtils.RegisterNetwork(t, networkID, "")
+	configuratorTestUtils.RegisterGateway(t, networkID, gatewayID, nil)
 	registerDevice(t, networkID, d1)
 	registerDevice(t, networkID, d2)
 
@@ -288,23 +281,23 @@ func TestDeleteGatewayConfigs(t *testing.T) {
 	assert.NoError(t, err)
 	configString := string(marshaledCfg)
 
-	createConfigTestCase := obsidian_test.Testcase{
+	createConfigTestCase := tests.Testcase{
 		Name:     "Create Devmand Gateway Config",
 		Method:   "POST",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  configString,
 		Expected: `"g1"`,
 	}
-	obsidian_test.RunTest(t, createConfigTestCase)
+	tests.RunTest(t, createConfigTestCase)
 
-	deleteConfigTestCase := obsidian_test.Testcase{
+	deleteConfigTestCase := tests.Testcase{
 		Name:     "Delete Devmand Gateway Config",
 		Method:   "DELETE",
 		Url:      fmt.Sprintf("%s/%s/gateways/%s/configs/devmand", testURLRoot, networkID, gatewayID),
 		Payload:  "",
 		Expected: "",
 	}
-	obsidian_test.RunTest(t, deleteConfigTestCase)
+	tests.RunTest(t, deleteConfigTestCase)
 
 	// test device loadedEntities still exist
 	deviceType := "device"

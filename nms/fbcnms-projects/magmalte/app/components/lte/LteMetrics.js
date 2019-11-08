@@ -12,7 +12,7 @@ import type {MetricGraphConfig} from '../insights/Metrics';
 
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Metrics from '../insights/Metrics';
+import GatewayMetrics from '../insights/GatewayMetrics';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
@@ -211,12 +211,12 @@ const INTERNAL_CONFIGS: Array<MetricGraphConfig> = [
   },
 ];
 
-function GatewayMetrics() {
-  return <Metrics configs={CONFIGS} />;
+function GatewayMetricsGraphs() {
+  return <GatewayMetrics configs={CONFIGS} />;
 }
 
 function InternalMetrics() {
-  return <Metrics configs={INTERNAL_CONFIGS} />;
+  return <GatewayMetrics configs={INTERNAL_CONFIGS} />;
 }
 
 export default function() {
@@ -224,7 +224,7 @@ export default function() {
     'lte_network_metrics',
   );
   if (!lteNetworkMetrics) {
-    return <GatewayMetrics />;
+    return <GatewayMetricsGraphs />;
   }
 
   const classes = useStyles();
@@ -248,7 +248,10 @@ export default function() {
         </Tabs>
       </AppBar>
       <Switch>
-        <Route path={relativePath('/gateways')} component={GatewayMetrics} />
+        <Route
+          path={relativePath('/gateways')}
+          component={GatewayMetricsGraphs}
+        />
         <Route path={relativePath('/network')} component={NetworkKPIs} />
         <Route path={relativePath('/internal')} component={InternalMetrics} />
         <Redirect to={relativeUrl('/gateways')} />

@@ -56,6 +56,11 @@ enum CreditUpdateType {
   CREDIT_REAUTH_REQUIRED = 3
 };
 
+enum CreditType {
+  MONITORING = 0,
+  CHARGING = 1,
+};
+
 /**
  * SessionCredit tracks all the credit volumes associated with a charging key
  * for a user. It can receive used credit, add allowed credit, and check if
@@ -73,9 +78,9 @@ class SessionCredit {
     RedirectServer redirect_server;
   };
 
-  SessionCredit();
+  SessionCredit(CreditType credit_type);
 
-  SessionCredit(ServiceState start_state);
+  SessionCredit(CreditType credit_type, ServiceState start_state);
 
   /**
    * add_used_credit increments USED_TX and USED_RX
@@ -190,6 +195,7 @@ class SessionCredit {
    */
   uint64_t usage_reporting_limit_;
   static const std::set<uint32_t> transient_result_codes_;
+  CreditType credit_type_;
 
  private:
   bool quota_exhausted(

@@ -827,11 +827,14 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		storage.EntityUpdateCriteria{
 			Type: "hello",
 			Key:  "world",
-			AssociationsToSet: []*storage.EntityID{
-				{Type: "bar", Key: "baz"},
+			AssociationsToSet: &storage.EntityAssociationsToSet{
+				AssociationsToSet: []*storage.EntityID{
+					{Type: "bar", Key: "baz"},
+				},
 			},
 		},
 	)
+	assert.NoError(t, err)
 
 	expectedHelloWorldEnt.Associations = []*storage.EntityID{{Type: "bar", Key: "baz"}}
 	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "hello", Key: "world"}}
@@ -839,6 +842,43 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedHelloWorldEnt.GraphID = "10"
 	expectedFoobarEnt.GraphID = "15"
 	expectedHelloWorldEnt.Version = 6
+
+	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
+	assert.NoError(t, err)
+	assert.NotNil(t, allEnts)
+
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedBarbazEnt,
+				&expectedFoobarEnt,
+				&expectedHelloWorldEnt,
+			},
+			EntitiesNotFound: []*storage.EntityID{},
+		},
+		allEnts,
+	)
+
+	// Clear associations using AssociationsToSet field
+	_, err = store.UpdateEntity(
+		"n1",
+		storage.EntityUpdateCriteria{
+			Type: "hello",
+			Key:  "world",
+			AssociationsToSet: &storage.EntityAssociationsToSet{
+				AssociationsToSet: []*storage.EntityID{},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	expectedHelloWorldEnt.Associations = nil
+	expectedBarbazEnt.ParentAssociations = nil
+	expectedBarbazEnt.GraphID = "16"
+	expectedHelloWorldEnt.GraphID = "10"
+	expectedFoobarEnt.GraphID = "15"
+	expectedHelloWorldEnt.Version = 7
 
 	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)

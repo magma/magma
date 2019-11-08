@@ -10,9 +10,9 @@
 
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
+import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import NetworkContext from '../context/NetworkContext';
-import NetworkSelector from '../NetworkSelector.react';
+import NetworkSelector from '../NetworkSelector';
 import React, {useContext} from 'react';
 import SectionLinks from '../layout/SectionLinks';
 import SectionRoutes from '../layout/SectionRoutes';
@@ -20,6 +20,7 @@ import VersionTooltip from '../VersionTooltip';
 
 import {getProjectLinks} from '../../common/projects';
 import {makeStyles} from '@material-ui/styles';
+import {shouldShowSettings} from '../Settings';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 // These won't be considered networkIds
@@ -41,7 +42,7 @@ const useStyles = makeStyles(theme => ({
 export default function Index() {
   const classes = useStyles();
   const {match} = useRouter();
-  const {user, tabs} = useContext(AppContext);
+  const {user, tabs, ssoEnabled} = useContext(AppContext);
   const networkId = ROOT_PATHS.has(match.params.networkId)
     ? null
     : match.params.networkId;
@@ -53,6 +54,10 @@ export default function Index() {
           mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
           secondaryItems={[<NetworkSelector key={1} />]}
           projects={getProjectLinks(tabs, user)}
+          showSettings={shouldShowSettings({
+            isSuperUser: user.isSuperUser,
+            ssoEnabled,
+          })}
           user={user}
         />
         <AppContent>

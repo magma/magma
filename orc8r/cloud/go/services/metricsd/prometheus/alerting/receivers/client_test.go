@@ -60,6 +60,14 @@ receivers:
   webhook_configs:
   - url: http://webhook.com/12345
     send_resolved: true
+- name: test_email
+  email_configs:
+  - to: test@mail.com
+    from: testUser
+    smarthost: http://mail-server.com
+    headers:
+      name: value
+      foo: bar
 templates: []`
 )
 
@@ -76,6 +84,12 @@ func TestClient_CreateReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
+	// Create Email receiver
+	client, fsClient = newTestClient()
+	err = client.CreateReceiver(testNID, sampleEmailReceiver)
+	assert.NoError(t, err)
+	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+
 	// create duplicate receiver
 	err = client.CreateReceiver(testNID, Receiver{Name: "receiver"})
 	assert.EqualError(t, err, `notification config name "test_receiver" is not unique`)
@@ -85,10 +99,11 @@ func TestClient_GetReceivers(t *testing.T) {
 	client, _ := newTestClient()
 	recs, err := client.GetReceivers(testNID)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(recs))
+	assert.Equal(t, 4, len(recs))
 	assert.Equal(t, "receiver", recs[0].Name)
 	assert.Equal(t, "slack", recs[1].Name)
 	assert.Equal(t, "webhook", recs[2].Name)
+	assert.Equal(t, "email", recs[3].Name)
 
 	recs, err = client.GetReceivers(otherNID)
 	assert.NoError(t, err)

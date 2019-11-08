@@ -20,8 +20,8 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from '@fbcnms/magmalte/app/components/insights/TimeRangeSelector';
-import Typography from '@material-ui/core/Typography';
 import WifiSelectMesh from './WifiSelectMesh';
 import {Route} from 'react-router-dom';
 import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
@@ -148,7 +148,7 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
 
   const meshes: string[] = meshesResponse.data || [];
   if (!meshes || meshes.length <= 0) {
-    return <Typography variant="h5">No meshes on this network</Typography>;
+    return <Text variant="h5">No meshes on this network</Text>;
   }
 
   const selectedMeshOrDefault = meshId || meshes[0];
@@ -224,7 +224,7 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
     return (
       <>
         {selectors}
-        <Typography variant="h5">No devices on this mesh</Typography>
+        <Text variant="h5">No devices on this mesh</Text>
       </>
     );
   }
@@ -237,15 +237,16 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Typography component="h6" variant="h6">
+                <Text component="h6" variant="h6">
                   {config.label}
-                </Typography>
+                </Text>
                 <div style={{height: 250}}>
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
                     queries={resolveQuery(
                       config,
+                      'gatewayID',
                       selectedDeviceId || `${selectedMeshOrDefault}_id_.*`,
                     )}
                     timeRange={timeRange}

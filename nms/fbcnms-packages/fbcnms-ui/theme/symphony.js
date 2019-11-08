@@ -37,6 +37,12 @@ export const BLUE = {
   B900: '#383DB7',
 };
 
+export const RED = {
+  R600: '#FA383E',
+  R700: '#E03237',
+  R800: '#C82C31',
+};
+
 export type TextVariant =
   | 'h1'
   | 'h2'
@@ -61,7 +67,7 @@ export default {
     white: '#FFFFFF',
     background: DARK.D10,
     disabled: `rgba(${hexToRgb(DARK.D900)},0.38)`,
-    R600: '#FA383E',
+    ...RED,
     G600: '#00AF5B',
     Y600: '#FFB63E',
     separator: 'rgba(0, 0, 0, 0.12)',

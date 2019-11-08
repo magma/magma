@@ -88,7 +88,8 @@ void *mme_app_thread(void *args)
      */
     itti_receive_msg(TASK_MME_APP, &received_message_p);
     DevAssert(received_message_p);
-    mme_app_desc_p = get_mme_nas_state(false);
+    OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
+    mme_app_desc_p = get_mme_nas_state(true);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {

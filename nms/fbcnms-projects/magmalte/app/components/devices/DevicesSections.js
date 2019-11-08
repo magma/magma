@@ -11,10 +11,12 @@ import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Secti
 
 import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '@fbcnms/magmalte/app/components/insights/Alarms/Alarms';
+import CustomMetrics from '../insights/CustomMetrics';
 import DeviceHub from '@material-ui/icons/DeviceHub';
-import DevicesControllers from './DevicesControllers';
+import DevicesAgents from './DevicesAgents';
 import DevicesStatusTable from './DevicesStatusTable';
 import React from 'react';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import ViewListIcon from '@material-ui/icons/ViewList';
 
 export function getDevicesSections(alertsEnabled: boolean): SectionsConfigs {
@@ -26,10 +28,16 @@ export function getDevicesSections(alertsEnabled: boolean): SectionsConfigs {
       component: DevicesStatusTable,
     },
     {
-      path: 'controllers',
-      label: 'Controllers',
+      path: 'metrics',
+      label: 'Metrics',
+      icon: <ShowChartIcon />,
+      component: CustomMetrics,
+    },
+    {
+      path: 'agents',
+      label: 'Agents',
       icon: <DeviceHub />,
-      component: DevicesControllers,
+      component: DevicesAgents,
     },
   ];
 

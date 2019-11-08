@@ -9,36 +9,11 @@
  */
 
 import type {MetricGraphConfig} from '../insights/Metrics';
-import type {TimeRange} from '../insights/AsyncMetric';
 
-import AppBar from '@material-ui/core/AppBar';
-import AsyncMetric from '../insights/AsyncMetric';
-import Card from '@material-ui/core/Card';
-import CardContent from '@material-ui/core/CardContent';
-import GridList from '@material-ui/core/GridList';
-import GridListTile from '@material-ui/core/GridListTile';
+import NetworkMetrics from '../insights/NetworkMetrics';
 import React from 'react';
-import TimeRangeSelector from '../insights/TimeRangeSelector';
-import Typography from '@material-ui/core/Typography';
 
-import {makeStyles} from '@material-ui/styles';
-import {resolveQuery} from '../insights/Metrics';
-import {useState} from 'react';
-
-const useStyles = makeStyles(theme => ({
-  formControl: {
-    minWidth: '200px',
-    padding: theme.spacing(),
-  },
-  appBar: {
-    display: 'inline-block',
-  },
-}));
-
-export default function CloudMetrics() {
-  const classes = useStyles();
-  const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
-
+export default function() {
   const chartConfigs: MetricGraphConfig[] = [
     {
       label: 'Disk Percent',
@@ -179,37 +154,5 @@ export default function CloudMetrics() {
     },
   ];
 
-  return (
-    <>
-      <AppBar className={classes.appBar} position="static" color="default">
-        <TimeRangeSelector
-          className={classes.formControl}
-          value={timeRange}
-          onChange={setTimeRange}
-        />
-      </AppBar>
-      <GridList cols={2} cellHeight={300}>
-        {chartConfigs.map((config, i) => (
-          <GridListTile key={i} cols={1}>
-            <Card>
-              <CardContent>
-                <Typography component="h6" variant="h6">
-                  {config.label}
-                </Typography>
-                <div style={{height: 250}}>
-                  <AsyncMetric
-                    label={config.label}
-                    unit={config.unit || ''}
-                    queries={resolveQuery(config, '')}
-                    timeRange={timeRange}
-                    legendLabels={config.legendLabels}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </GridListTile>
-        ))}
-      </GridList>
-    </>
-  );
+  return <NetworkMetrics configs={chartConfigs} />;
 }

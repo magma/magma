@@ -26,11 +26,9 @@ using magma::lte::gateway::spgw::CreateSessionMessage;
 using magma::lte::gateway::spgw::GTPV1uData;
 using magma::lte::gateway::spgw::MmeSgwTunnel;
 using magma::lte::gateway::spgw::PacketFilter;
-using magma::lte::gateway::spgw::Parameter;
 using magma::lte::gateway::spgw::PccRule;
 using magma::lte::gateway::spgw::PgwCbrProcedure;
 using magma::lte::gateway::spgw::PgwState;
-using magma::lte::gateway::spgw::PortRange;
 using magma::lte::gateway::spgw::S11BearerContext;
 using magma::lte::gateway::spgw::SgwEpsBearerContext;
 using magma::lte::gateway::spgw::SgwEpsBearerContextInfo;
@@ -681,7 +679,7 @@ void SpgwStateConverter::port_range_to_proto(const port_range_t* port_range,
 }
 
 void SpgwStateConverter::proto_to_port_range(
-  const gateway::spgw::PortRange &port_range_proto,
+  const PortRange &port_range_proto,
   port_range_t *port_range)
 {
   port_range->lowlimit = port_range_proto.low_limit();

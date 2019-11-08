@@ -9,7 +9,6 @@
  */
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import Network from '../network/Network';
 import React from 'react';
 import Settings from '../Settings';
 
@@ -23,7 +22,6 @@ export default function SectionRoutes() {
 
   return (
     <Switch>
-      <Route key="network" path="/nms/network" component={Network} />
       {sections.map(section => (
         <Route
           key={section.path}

@@ -82,7 +82,7 @@ func (l testListener) Update(ub *protos.DataUpdateBatch) bool {
 	return true
 }
 
-// Mock GW Cloud Service Registry
+// Mock GW Cloud Service registry
 type mockedCloudRegistry struct{}
 
 func (cr mockedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {

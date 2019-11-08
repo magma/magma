@@ -8,7 +8,8 @@ ifndef PROTO_LIST
 PROTO_LIST:=orc8r_protos
 endif
 
-TESTS=magma/common/tests \
+TESTS=magma/common/redis/tests \
+	  magma/common/tests \
       magma/configuration/tests \
       magma/magmad/check/tests \
       magma/magmad/check/kernel_check/tests \
@@ -18,4 +19,5 @@ TESTS=magma/common/tests \
       magma/magmad/logging/tests \
       magma/magmad/upgrade/tests \
       magma/magmad/generic_command/tests \
+      magma/state/tests \
       magma/tests

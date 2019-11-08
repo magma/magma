@@ -397,7 +397,9 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
 	m.Serial = ent.Key
-	m.Config = ent.Config.(*EnodebConfiguration)
+	if ent.Config != nil {
+		m.Config = ent.Config.(*EnodebConfiguration)
+	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayType {
 			m.AttachedGatewayID = tk.Key
@@ -428,8 +430,6 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscrib
 func (m *SubProfile) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
-
-var formatsRegistry = strfmt.NewFormats()
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
@@ -499,7 +499,6 @@ func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
 
 func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
 	redirectProto := &protos.RedirectInformation{}
-	orcprotos.FillIn(redirectModel, redirectProto)
 	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
 	if ok {
 		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
@@ -507,6 +506,9 @@ func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInf
 	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
 	if ok {
 		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
+	}
+	if redirectModel.ServerAddress != nil {
+		redirectProto.ServerAddress = *redirectModel.ServerAddress
 	}
 	return redirectProto
 }

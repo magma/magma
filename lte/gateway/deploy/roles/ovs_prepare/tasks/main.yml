@@ -50,7 +50,7 @@
   become: yes
   apt:
     update_cache: yes
-    upgrade: yes
+    upgrade: "yes"
 
 - name: Install build dependencies.
   become: yes

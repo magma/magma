@@ -10,14 +10,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 from lte.protos.policydb_pb2 import PolicyRule
 
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisDict
+from magma.common.redis.containers import RedisHashDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer
 
 
-class PolicyRuleDict(RedisDict):
+class PolicyRuleDict(RedisHashDict):
     """
-    PolicyRuleDict uses the RedisDict collection to store a mapping of policy
+    PolicyRuleDict uses the RedisHashDict collection to store a mapping of policy
     rule ids to PolicyRules. Setting and deleting items in the dictionary syncs
     with Redis automatically
     """

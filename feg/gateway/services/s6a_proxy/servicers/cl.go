@@ -55,22 +55,29 @@ func handleCLR(s *s6aProxy) diam.HandlerFunc {
 	}
 }
 
+func mapProtoToDiamResult(protoErr protos.ErrorCode) int {
+	switch protoErr {
+	case protos.ErrorCode_SUCCESS, protos.ErrorCode_USER_UNKNOWN, protos.ErrorCode_UNKNOWN_SESSION_ID:
+		return diam.Success
+	default:
+		if protoErr >= diam.MultiRoundAuth && protoErr <= diam.NoCommonSecurity {
+			return int(protoErr)
+		}
+		return diam.UnableToDeliver
+	}
+}
+
 func forwardCLRToGateway(clr *CLR) (uint32, error) {
 	cancelLocationType := protos.CancelLocationRequest_CancellationType(clr.CancellationType)
 	in := &protos.CancelLocationRequest{UserName: clr.UserName, CancellationType: cancelLocationType}
 	res, err := s6a_proxy.GWS6AProxyCancelLocation(in)
 	if err != nil {
-		if res != nil && res.ErrorCode == protos.ErrorCode_USER_UNKNOWN {
-			return diam.Success, err
+		if res != nil {
+			return uint32(mapProtoToDiamResult(res.ErrorCode)), err
 		}
 		return diam.UnableToDeliver, err
 	}
-	if res.ErrorCode != 0 {
-		//todo: once gateway side is implemented, check how errCode is populated, and how
-		// to translate them into go-diameter result-code.
-		return diam.UnableToComply, nil
-	}
-	return diam.Success, nil
+	return uint32(mapProtoToDiamResult(res.ErrorCode)), nil
 }
 
 func (s *s6aProxy) sendCLA(c diam.Conn, m *diam.Message, code uint32, clr *CLR, retries uint) error {

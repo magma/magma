@@ -15,7 +15,7 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
-import NavListItem from '@fbcnms/ui/components/NavListItem.react';
+import NavListItem from '@fbcnms/ui/components/NavListItem';
 import Networks from './Networks';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
@@ -38,7 +38,6 @@ function NavItems() {
   const {relativeUrl} = useRouter();
   const {isFeatureEnabled} = React.useContext(AppContext);
   const auditLogEnabled = isFeatureEnabled('audit_log_view');
-  const networkManagementEnabled = isFeatureEnabled('magma_network_management');
 
   return (
     <>
@@ -54,13 +53,11 @@ function NavItems() {
           icon={<AssignmentIcon />}
         />
       )}
-      {networkManagementEnabled && (
-        <NavListItem
-          label="Networks"
-          path={relativeUrl('/networks')}
-          icon={<SignalCellularAlt />}
-        />
-      )}
+      <NavListItem
+        label="Networks"
+        path={relativeUrl('/networks')}
+        icon={<SignalCellularAlt />}
+      />
     </>
   );
 }

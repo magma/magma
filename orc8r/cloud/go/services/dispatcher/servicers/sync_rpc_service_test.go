@@ -14,14 +14,17 @@ import (
 	"testing"
 	"time"
 
+	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/registry"
-	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
+	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	directorydTestInit "magma/orc8r/cloud/go/services/directoryd/test_init"
 	"magma/orc8r/cloud/go/services/dispatcher"
-	dispatcher_test_init "magma/orc8r/cloud/go/services/dispatcher/test_init"
-	"magma/orc8r/cloud/go/services/magmad"
-	magmad_protos "magma/orc8r/cloud/go/services/magmad/protos"
-	magmad_test_init "magma/orc8r/cloud/go/services/magmad/test_init"
+	"magma/orc8r/cloud/go/services/dispatcher/test_init"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -30,9 +33,11 @@ import (
 const TestSyncRPCAgHwId = "Test-AGW-Hw-Id"
 
 func TestSyncRPC(t *testing.T) {
-	magmad_test_init.StartTestService(t)
-	directoryd_test_init.StartTestService(t)
-	mockBroker := dispatcher_test_init.StartTestService(t)
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	directorydTestInit.StartTestService(t)
+	mockBroker := test_init.StartTestService(t)
 	gwReq := &protos.GatewayRequest{
 		GwId:      TestSyncRPCAgHwId,
 		Authority: "test_authority",
@@ -49,17 +54,11 @@ func TestSyncRPC(t *testing.T) {
 	synResp2 := &protos.SyncRPCResponse{ReqId: 1, RespBody: &protos.GatewayResponse{Status: "200"}, HeartBeat: false}
 	mockBroker.On("ProcessGatewayResponse", proto.Clone(synResp1).(*protos.SyncRPCResponse)).Return(nil)
 	mockBroker.On("ProcessGatewayResponse", proto.Clone(synResp2).(*protos.SyncRPCResponse)).Return(nil)
-	testNetworkId, err := magmad.RegisterNetwork(
-		&magmad_protos.MagmadNetworkRecord{Name: "Test Network Name"},
-		"sync_rpc_test_network")
-	assert.NoError(t, err)
+	testNetworkID := "sync_rpc_test_network"
+	configuratorTestUtils.RegisterNetwork(t, testNetworkID, "Test Network Name")
 
-	t.Logf("New Registered Network: %s", testNetworkId)
-	hwId := protos.AccessGatewayID{Id: TestSyncRPCAgHwId}
-	logicalId, err := magmad.RegisterGateway(testNetworkId,
-		&magmad_protos.AccessGatewayRecord{HwId: &hwId, Name: "Test GW Name"})
-	assert.NoError(t, err)
-	assert.NotEqual(t, logicalId, "")
+	t.Logf("New Registered Network: %s", testNetworkID)
+	configuratorTestUtils.RegisterGateway(t, testNetworkID, TestSyncRPCAgHwId, &models.GatewayDevice{HardwareID: TestSyncRPCAgHwId})
 
 	conn, err := registry.GetConnection(dispatcher.ServiceName)
 	assert.NoError(t, err)

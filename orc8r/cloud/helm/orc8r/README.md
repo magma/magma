@@ -56,6 +56,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `controller.nodeSelector` | Define which Nodes the Pods are scheduled on. | `{}` |
 | `controller.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `controller.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
+| `nms.enabled` | If true, deploy the nms sub-chart | `true` |
 | `nms.magmalte.manifests.configmap` | Enable nms magmalte configmap. | `false` |
 | `nms.magmalte.manifests.secrets` | Enable nms magmalte secrets. | `false` |
 | `nms.magmalte.manifests.deployment` | Enable nms magmalte deployment. | `false` |
@@ -66,6 +67,7 @@ The following table list the configurable parameters of the orchestrator chart a
 | `nms.nginx.manifests.deployment` | Enable nms nginx deployment. | `false` |
 | `nms.nginx.manifests.service` | Enable nms nginx service. | `false` |
 | `nms.nginx.manifests.rbac` | Enable nms nginx rbac. | `false` |
+| `logging.enabled` | If true, deploy the logging sub-chart | `true` |
 
 ## Running in Minikube
 

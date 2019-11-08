@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {GatewayV1} from './GatewayUtils';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormControl from '@material-ui/core/FormControl';
@@ -99,12 +99,10 @@ class GatewayMagmadFields extends React.Component<Props, State> {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onClose} color="primary">
+          <Button onClick={this.props.onClose} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </>
     );
