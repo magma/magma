@@ -209,8 +209,7 @@ export default function PrometheusEditor(props: Props) {
 
       <Grid container item>
         <Button
-          variant="contained"
-          color="secondary"
+          variant="outlined"
           onClick={() => onExit()}
           className={classes.button}>
           Close
@@ -272,7 +271,7 @@ function parseTimeString(
   const units = new Set(['h', 'm', 's']);
   let duration = '';
   let unit = '';
-  for (let char of timeStamp) {
+  for (const char of timeStamp) {
     if (units.has(char)) {
       unit = char;
       break;

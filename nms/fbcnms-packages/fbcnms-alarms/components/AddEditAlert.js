@@ -19,7 +19,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUtil} from './ApiUrls';
+import type {ApiUtil} from './AlarmsApi';
 
 type Props = {
   apiUtil: ApiUtil,

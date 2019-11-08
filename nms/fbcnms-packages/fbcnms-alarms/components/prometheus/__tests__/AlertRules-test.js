@@ -16,7 +16,7 @@ import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import type {ApiUtil} from '../../ApiUrls';
+import type {ApiUtil} from '../../AlarmsApi';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');

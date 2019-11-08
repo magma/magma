@@ -14,34 +14,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../../common/useMagmaAPI';
 import {MagmaAPIUrls} from '../../../common/MagmaAPI';
 
-import type {ApiUtil} from '@fbcnms/alarms/components/ApiUrls';
-import type {Match} from 'react-router-dom';
-
-//DEPRECATED
-export const MagmaAlarmAPIUrls = {
-  viewFiringAlerts: (nid: string | Match) =>
-    `${MagmaAPIUrls.network(nid)}/alerts`,
-  alertConfig: (nid: string | Match) =>
-    `${MagmaAPIUrls.network(nid)}/prometheus/alert_config`,
-  updateAlertConfig: (nid: string | Match, alertName: string) =>
-    `${MagmaAlarmAPIUrls.alertConfig(nid)}/${alertName}`,
-  bulkAlertConfig: (nid: string | Match) =>
-    `${MagmaAlarmAPIUrls.alertConfig(nid)}/bulk`,
-  receiverConfig: (nid: string | Match) =>
-    `${MagmaAPIUrls.network(nid)}/prometheus/alert_receiver`,
-  // get count of matching metrics
-  viewMatchingAlerts: (nid: string | Match, alertName: string) =>
-    `${MagmaAPIUrls.network(nid)}/matching_alerts/${alertName}`,
-  receiverUpdate: (nid: string | Match, receiverName: string) =>
-    `${MagmaAlarmAPIUrls.receiverConfig(nid)}/${receiverName}`,
-  routeConfig: (nid: string | Match) =>
-    `${MagmaAlarmAPIUrls.receiverConfig(nid)}/route`,
-  viewSilences: (nid: string | Match) =>
-    `${MagmaAPIUrls.network(nid)}/silences`, //TODO
-  viewRoutes: (nid: string | Match) => `${MagmaAPIUrls.network(nid)}/routes`, //TODO
-  viewReceivers: (nid: string | Match) =>
-    `${MagmaAPIUrls.network(nid)}/receivers`, //TODO
-};
+import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 
 export const MagmaAlarmsApiUtil: ApiUtil = {
   useAlarmsApi: <TParams: {...}, TResponse>(
@@ -96,5 +69,17 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
       networkId: nullthrows(networkId),
       alertName: ruleName,
     });
+  },
+  getSuppressions: () => {
+    console.warn('not implemented');
+    return Promise.resolve([]);
+  },
+  getReceivers: () => {
+    console.warn('not implemented');
+    return Promise.resolve([]);
+  },
+  getRoutes: () => {
+    console.warn('not implemented');
+    return Promise.resolve([]);
   },
 };

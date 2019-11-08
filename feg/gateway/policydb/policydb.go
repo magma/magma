@@ -49,8 +49,8 @@ func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, e
 		BaseNameMap: object_store.NewRedisMap(
 			redisClient,
 			"policydb:base_names",
-			getProtoSerializer(),
-			getBaseNameDeserializer(),
+			GetBaseNameSerializer(),
+			GetBaseNameDeserializer(),
 		),
 		StreamerClient: streamer.NewStreamerClient(reg),
 	}
