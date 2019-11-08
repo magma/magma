@@ -1690,6 +1690,20 @@ int sgw_handle_s5_create_bearer_response(
     "Sending S11 Create Session Response to MME, MME S11 teid = %u\n",
     create_session_response_p->teid);
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+
+  /* Remove the default bearer context entry already created as create session
+   * response failure is received
+   */
+  sgw_cm_remove_eps_bearer_entry(
+    &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
+    sgi_create_endpoint_resp.eps_bearer_id);
+  sgw_cm_remove_bearer_context_information(state, bearer_resp_p->context_teid);
+  OAILOG_INFO(
+    LOG_SPGW_APP,
+    "Deleted default bearer context with SGW C-plane TEID = %u "
+    "as create session response failure is received\n",
+    create_session_response_p->teid);
+
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
