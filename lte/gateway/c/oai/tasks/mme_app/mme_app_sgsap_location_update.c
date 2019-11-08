@@ -343,10 +343,10 @@ static int _is_combined_tau(
   } else if (ue_context->sgs_context->sgs_state == SGS_ASSOCIATED) {
     if (
       (ue_context->emm_context.tau_updt_type ==
-      EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) ||
+       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) ||
       ((ue_context->emm_context.tau_updt_type ==
-      EPS_UPDATE_TYPE_PERIODIC_UPDATING) &&
-      (ue_context->sgs_context->vlr_reliable == false))) {
+        EPS_UPDATE_TYPE_PERIODIC_UPDATING) &&
+       (ue_context->sgs_context->vlr_reliable == false))) {
       OAILOG_INFO(
         LOG_MME_APP,
         "In SGS_ASSOCIATED, tau_updt_type %d\n",
@@ -356,9 +356,9 @@ static int _is_combined_tau(
     }
     if (
       (ue_context->emm_context.tau_updt_type ==
-      EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
+       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
       (ue_context->emm_context.tau_updt_type ==
-      EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
+       EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
       if (ue_context->sgs_context->vlr_reliable == true) {
         OAILOG_INFO(
           LOG_MME_APP, "Did not send Location Update Request to MSC\n");
@@ -379,15 +379,16 @@ static int _is_combined_tau(
             LOG_MME_APP,
             "Sending UE Activity Ind to MSC for UE ID %d\n",
             itti_nas_location_update_req->ue_id);
-           /* neaf flag is true*/
-           /* send the SGSAP Ue activity indication to MSC/VLR */
-           char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-           IMSI64_TO_STRING(ue_context->emm_context._imsi64, imsi_str,
-                ue_context->emm_context._imsi.length);
-           _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str,
-                                                    strlen(imsi_str));
-           mme_ue_context_update_ue_sgs_neaf(
-              itti_nas_location_update_req->ue_id, false);
+          /* neaf flag is true*/
+          /* send the SGSAP Ue activity indication to MSC/VLR */
+          char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+          IMSI64_TO_STRING(
+            ue_context->emm_context._imsi64,
+            imsi_str,
+            ue_context->emm_context._imsi.length);
+          _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+          mme_ue_context_update_ue_sgs_neaf(
+            itti_nas_location_update_req->ue_id, false);
         }
       } else {
         rc = RETURNok;
@@ -548,10 +549,10 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMSI
   IMSI64_TO_STRING(
-    ue_context->emm_context._imsi64, sgsap_location_update_req->imsi,
+    ue_context->emm_context._imsi64,
+    sgsap_location_update_req->imsi,
     ue_context->emm_context._imsi.length);
-  sgsap_location_update_req->imsi_length =
-    ue_context->emm_context._imsi.length;
+  sgsap_location_update_req->imsi_length = ue_context->emm_context._imsi.length;
 
   //EPS Location update type
   //If Combined attach is received, set Location Update type as IMSI_ATTACH
@@ -562,13 +563,13 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
   else if (ue_context->sgs_context->ongoing_procedure == COMBINED_TAU) {
     if (
       (ue_context->emm_context.tau_updt_type ==
-        EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
+       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
       (ue_context->emm_context.tau_updt_type ==
-        EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
+       EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
       sgsap_location_update_req->locationupdatetype = NORMAL_LOCATION_UPDATE;
     } else if (
       ue_context->emm_context.tau_updt_type ==
-        EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
+      EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
       sgsap_location_update_req->locationupdatetype = IMSI_ATTACH;
     }
   }
@@ -585,7 +586,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMEISV
   sgsap_location_update_req->presencemask |= SGSAP_IMEISV;
-  imeisv_t *imeisv = &ue_context->emm_context._imeisv;
+  imeisv_t* imeisv = &ue_context->emm_context._imeisv;
   IMEISV_TO_STRING(imeisv, sgsap_location_update_req->imeisv, MAX_IMEISV_SIZE);
 
   //TAI - TAI List currently not available in MME APP UE Context

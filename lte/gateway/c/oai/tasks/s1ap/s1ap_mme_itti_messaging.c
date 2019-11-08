@@ -44,16 +44,18 @@
 
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_send_sctp_request(
-  STOLEN_REF bstring *payload,
+  STOLEN_REF bstring* payload,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   const mme_ue_s1ap_id_t ue_id)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
       " SCTP_DATA_REQ \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -68,11 +70,11 @@ int s1ap_mme_itti_send_sctp_request(
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_nas_uplink_ind(
   const mme_ue_s1ap_id_t ue_id,
-  STOLEN_REF bstring *payload,
-  const tai_t const *tai,
-  const ecgi_t const *cgi)
+  STOLEN_REF bstring* payload,
+  const tai_t const* tai,
+  const ecgi_t const* cgi)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   OAILOG_INFO(
     LOG_S1AP,
@@ -80,7 +82,9 @@ int s1ap_mme_itti_nas_uplink_ind(
     ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
       " MME_APP_UPLINK_DATA_IND \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -98,7 +102,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
   const mme_ue_s1ap_id_t ue_id,
   const bool is_success)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     if (!is_success) {
@@ -113,7 +117,9 @@ int s1ap_mme_itti_nas_downlink_cnf(
   }
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_CNF \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -136,34 +142,36 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   const sctp_assoc_id_t assoc_id,
   const uint32_t enb_id,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  const uint8_t *const nas_msg,
+  const uint8_t* const nas_msg,
   const size_t nas_msg_length,
-  const tai_t const *tai,
-  const ecgi_t const *ecgi,
+  const tai_t const* tai,
+  const ecgi_t const* ecgi,
   const long rrc_cause,
-  const s_tmsi_t const *opt_s_tmsi,
-  const csg_id_t const *opt_csg_id,
-  const gummei_t const *opt_gummei,
-  const void const *opt_cell_access_mode,          // unused
-  const void const *opt_cell_gw_transport_address, // unused
-  const void const *opt_relay_node_indicator)      // unused
+  const s_tmsi_t const* opt_s_tmsi,
+  const csg_id_t const* opt_csg_id,
+  const gummei_t const* opt_gummei,
+  const void const* opt_cell_access_mode,          // unused
+  const void const* opt_cell_gw_transport_address, // unused
+  const void const* opt_relay_node_indicator)      // unused
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
       " S1AP_INITIAL_UE_MESSAGE \n");
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 
   OAILOG_INFO(
     LOG_S1AP,
-    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id : " ENB_UE_S1AP_ID_FMT
-    "\n",
+    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id "
+    ": " ENB_UE_S1AP_ID_FMT "\n",
     enb_ue_s1ap_id);
 
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = assoc_id;
@@ -205,7 +213,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(
-  const S1ap_Cause_t *const cause)
+  const S1ap_Cause_t* const cause)
 {
   switch (cause->present) {
     case S1ap_Cause_PR_radioNetwork:
@@ -235,16 +243,18 @@ static int s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(
 //------------------------------------------------------------------------------
 void s1ap_mme_itti_nas_non_delivery_ind(
   const mme_ue_s1ap_id_t ue_id,
-  uint8_t *const nas_msg,
+  uint8_t* const nas_msg,
   const size_t nas_msg_length,
-  const S1ap_Cause_t *const cause)
+  const S1ap_Cause_t* const cause)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_REJ \n");
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
@@ -266,16 +276,15 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   const sctp_assoc_id_t assoc_id,
   const uint32_t enb_id,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  const e_rab_to_be_switched_in_downlink_list_t const
-    *e_rab_to_be_switched_dl_list,
+  const e_rab_to_be_switched_in_downlink_list_t const*
+    e_rab_to_be_switched_dl_list,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  const ecgi_t const *ecgi,
-  const tai_t const *tai,
+  const ecgi_t const* ecgi,
+  const tai_t const* tai,
   const uint16_t encryption_algorithm_capabilities,
   const uint16_t integrity_algorithm_capabilities)
 {
-
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
@@ -296,8 +305,8 @@ int s1ap_mme_itti_s1ap_path_switch_request(
 
   OAILOG_DEBUG(
     LOG_S1AP,
-    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
-    , mme_ue_s1ap_id);
+    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n",
+    mme_ue_s1ap_id);
 
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);

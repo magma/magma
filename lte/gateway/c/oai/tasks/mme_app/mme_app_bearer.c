@@ -1895,13 +1895,14 @@ int mme_app_paging_request_helper(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
-  itti_s1ap_paging_request_t *paging_request =
+  itti_s1ap_paging_request_t* paging_request =
     &message_p->ittiMsg.s1ap_paging_request;
   memset(paging_request, 0, sizeof(itti_s1ap_paging_request_t));
 
   // @TODO Check
   IMSI64_TO_STRING(
-    ue_context_p->emm_context._imsi64, (char *) paging_request->imsi,
+    ue_context_p->emm_context._imsi64,
+    (char*) paging_request->imsi,
     ue_context_p->emm_context._imsi.length);
   paging_request->imsi_length = ue_context_p->emm_context._imsi.length;
   paging_request->mme_code = ue_context_p->emm_context._guti.gummei.mme_code;
@@ -2020,15 +2021,15 @@ int mme_app_send_s11_suspend_notification(
   suspend_notification_p = &message_p->ittiMsg.s11_suspend_notification;
   memset(suspend_notification_p, 0, sizeof(itti_s11_suspend_notification_t));
 
-  pdn_context_t *pdn_connection = ue_context_pP->pdn_contexts[pdn_index];
+  pdn_context_t* pdn_connection = ue_context_pP->pdn_contexts[pdn_index];
   suspend_notification_p->teid = pdn_connection->s_gw_teid_s11_s4;
 
   IMSI64_TO_STRING(
     ue_context_pP->emm_context._imsi64,
-    (char *) suspend_notification_p->imsi.digit,
+    (char*) suspend_notification_p->imsi.digit,
     ue_context_pP->emm_context._imsi.length);
   suspend_notification_p->imsi.length =
-    (uint8_t) strlen((const char *) suspend_notification_p->imsi.digit);
+    (uint8_t) strlen((const char*) suspend_notification_p->imsi.digit);
 
   /* lbi: currently one default bearer, fill lbi from UE context
    * TODO for multiple PDN support, get lbi from PDN context

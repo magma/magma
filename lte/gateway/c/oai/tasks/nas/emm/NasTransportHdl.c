@@ -104,9 +104,9 @@
 int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
 {
   int rc = RETURNok;
-  emm_context_t *emm_ctxt_p = NULL;
-  imeisv_t *p_imeisv = NULL;
-  MobileStationClassmark2 *p_mob_st_clsMark2 = NULL;
+  emm_context_t* emm_ctxt_p = NULL;
+  imeisv_t* p_imeisv = NULL;
+  MobileStationClassmark2* p_mob_st_clsMark2 = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
@@ -116,7 +116,7 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
   emm_ctxt_p = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctxt_p != NULL) {
-    ue_mm_context_t *ue_mm_context_p =
+    ue_mm_context_t* ue_mm_context_p =
       PARENT_STRUCT(emm_ctxt_p, struct ue_mm_context_s, emm_context);
     /* check if the non EPS service control is enable and combined attach*/
     if (
@@ -145,15 +145,17 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
           &emm_ctxt_p->originating_tai,
           &ue_mm_context_p->e_utran_cgi);
       } else {
-          if (emm_ctxt_p->is_imsi_only_detach == true) {
-            OAILOG_DEBUG(
+        if (emm_ctxt_p->is_imsi_only_detach == true) {
+          OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "Already triggred Detach Request for the UE (ue_id="
-            MME_UE_S1AP_ID_FMT ") \n", ue_id);
-          } else {
-            // NAS trigger UE to re-attach for non-EPS services.
-            emm_proc_nw_initiated_detach_request(ue_id, NW_DETACH_TYPE_IMSI_DETACH);
-         }
+            "Already triggred Detach Request for the UE "
+            "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
+            ue_id);
+        } else {
+          // NAS trigger UE to re-attach for non-EPS services.
+          emm_proc_nw_initiated_detach_request(
+            ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+        }
       }
     }
     emm_context_unlock(emm_ctxt_p);

@@ -216,8 +216,9 @@ typedef struct pdn_context_s {
    */
   bstring apn_oi_replacement;
 
-  /* PDN GW Address in Use(control plane): The IP address of the PDN GW currently
-   *            used for sending control plane signalling.
+  /* PDN GW Address in Use(control plane): The IP address of the PDN GW
+   *           currently
+   *           used for sending control plane signalling.
    */
   ip_address_t p_gw_address_s5_s8_cp;
 
@@ -251,7 +252,7 @@ typedef struct pdn_context_s {
   /* bearer_contexts[]: contains bearer indexes in
    *           ue_mm_context_t.bearer_contexts[], or -1
    */
-  int bearer_contexts [BEARERS_PER_UE];
+  int bearer_contexts[BEARERS_PER_UE];
 
   /* S-GW teid and IP address for User-Plane
    * set by S11 CREATE_SESSION_RESPONSE
@@ -423,10 +424,10 @@ typedef struct ue_mm_context_s {
   rau_tau_timer_t rau_tau_timer;
 
   int nb_active_pdn_contexts;
-  pdn_context_t *pdn_contexts[MAX_APN_PER_UE];
+  pdn_context_t* pdn_contexts[MAX_APN_PER_UE];
 
   emm_context_t emm_context;
-  bearer_context_t *bearer_contexts[BEARERS_PER_UE];
+  bearer_context_t* bearer_contexts[BEARERS_PER_UE];
 
   /* ue_radio_capability: Store the radio capabilities as received in
    *           S1AP UE capability indication message

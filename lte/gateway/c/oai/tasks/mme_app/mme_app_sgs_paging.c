@@ -596,7 +596,8 @@ int mme_app_send_sgsap_service_request(
     (void *) sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
 
   IMSI64_TO_STRING(
-    ue_context_p->emm_context._imsi64, sgsap_service_req_pP->imsi,
+    ue_context_p->emm_context._imsi64,
+    sgsap_service_req_pP->imsi,
     ue_context_p->emm_context._imsi.length);
   sgsap_service_req_pP->imsi_length = ue_context_p->emm_context._imsi.length;
   sgsap_service_req_pP->service_indicator = service_indicator;
@@ -604,12 +605,13 @@ int mme_app_send_sgsap_service_request(
     sgsap_service_req_pP->presencemask |=
       SERVICE_REQUEST_IMEISV_PARAMETER_PRESENT;
     hexa_to_ascii(
-      (uint8_t *) ue_context_p->emm_context._imeisv.u.value,
+      (uint8_t*) ue_context_p->emm_context._imeisv.u.value,
       sgsap_service_req_pP->opt_imeisv,
       8);
-    sgsap_service_req_pP->opt_imeisv[ue_context_p->emm_context._imeisv.length]
-    = '\0';
-    sgsap_service_req_pP->opt_imeisv_length = ue_context_p->emm_context._imeisv.length;
+    sgsap_service_req_pP->opt_imeisv[ue_context_p->emm_context._imeisv.length] =
+      '\0';
+    sgsap_service_req_pP->opt_imeisv_length =
+      ue_context_p->emm_context._imeisv.length;
   }
   sgsap_service_req_pP->opt_ecgi = ue_context_p->e_utran_cgi;
   sgsap_service_req_pP->presencemask |= SERVICE_REQUEST_ECGI_PARAMETER_PRESENT;
@@ -806,10 +808,11 @@ static int _mme_app_send_sgsap_ue_unreachable(
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgsap_ue_unreachable_pP = &message_p->ittiMsg.sgsap_ue_unreachable;
   memset(
-    (void *) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));
+    (void*) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));
 
   IMSI64_TO_STRING(
-    ue_context_p->emm_context._imsi64, sgsap_ue_unreachable_pP->imsi,
+    ue_context_p->emm_context._imsi64,
+    sgsap_ue_unreachable_pP->imsi,
     ue_context_p->emm_context._imsi.length);
   sgsap_ue_unreachable_pP->imsi_length =
     (uint8_t) strlen(sgsap_ue_unreachable_pP->imsi);

@@ -1421,7 +1421,7 @@ static int _emm_as_send(const emm_as_t *msg)
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.nas_msg,
             as_msg.msg.nas_establish_rsp.err_code);
-            as_msg.msg.nas_establish_rsp.nas_msg = NULL;
+          as_msg.msg.nas_establish_rsp.nas_msg = NULL;
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
           OAILOG_DEBUG(

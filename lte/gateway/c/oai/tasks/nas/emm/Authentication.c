@@ -102,17 +102,18 @@ static int _authentication_check_imsi_5_4_2_5__1(
   struct emm_context_s *emm_context);
 static int _authentication_check_imsi_5_4_2_5__1_fail(
   struct emm_context_s *emm_context);
-static int _authentication_request(struct emm_context_s *emm_ctx,
-  nas_emm_auth_proc_t *auth_proc);
+static int _authentication_request(
+  struct emm_context_s* emm_ctx,
+  nas_emm_auth_proc_t* auth_proc);
 static int _authentication_reject(
   struct emm_context_s *emm_context,
   struct nas_base_proc_s *base_proc);
 
 static void _nas_itti_auth_info_req(
   const mme_ue_s1ap_id_t ue_idP,
-  const imsi_t *const imsiP,
+  const imsi_t* const imsiP,
   const bool is_initial_reqP,
-  plmn_t *const visited_plmnP,
+  plmn_t* const visited_plmnP,
   const uint8_t num_vectorsP,
   const_bstring const auts_pP);
 
@@ -1301,8 +1302,9 @@ static int _authentication_check_imsi_5_4_2_5__1_fail(
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static int _authentication_request(struct emm_context_s *emm_ctx,
-    nas_emm_auth_proc_t *auth_proc)
+static int _authentication_request(
+  struct emm_context_s* emm_ctx,
+  nas_emm_auth_proc_t* auth_proc)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -1557,26 +1559,31 @@ static int _authentication_abort(
  **                                                                        **
  ***************************************************************************/
 static void _nas_itti_auth_info_req(
-    const mme_ue_s1ap_id_t ue_id,
-    const imsi_t *const imsiP,
-    const bool is_initial_reqP,
-    plmn_t *const visited_plmnP,
-    const uint8_t num_vectorsP,
-    const_bstring const auts_pP)
+  const mme_ue_s1ap_id_t ue_id,
+  const imsi_t* const imsiP,
+  const bool is_initial_reqP,
+  plmn_t* const visited_plmnP,
+  const uint8_t num_vectorsP,
+  const_bstring const auts_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p = NULL;
-  s6a_auth_info_req_t *auth_info_req = NULL;
+  MessageDef* message_p = NULL;
+  s6a_auth_info_req_t* auth_info_req = NULL;
 
   OAILOG_INFO(
-    LOG_NAS_EMM, "Sending Authentication Information Request message to S6A"
-   " for ue_id =" MME_UE_S1AP_ID_FMT "\n", ue_id);
+    LOG_NAS_EMM,
+    "Sending Authentication Information Request message to S6A"
+    " for ue_id =" MME_UE_S1AP_ID_FMT "\n",
+    ue_id);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_AUTH_INFO_REQ);
-  if(!message_p) {
+  if (!message_p) {
     OAILOG_CRITICAL(
-      LOG_NAS_EMM, "itti_alloc_new_message failed for Authentication Information"
-      " Request message to S6A for ue-id = "MME_UE_S1AP_ID_FMT "\n", ue_id);
+      LOG_NAS_EMM,
+      "itti_alloc_new_message failed for Authentication"
+      " Information Request message to S6A for"
+      " ue-id = " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
@@ -1586,7 +1593,8 @@ static void _nas_itti_auth_info_req(
   auth_info_req->imsi_length = (uint8_t) strlen(auth_info_req->imsi);
 
   if (!(auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16)) {
-    OAILOG_WARNING(LOG_NAS_EMM, "Bad IMSI length %d", auth_info_req->imsi_length);
+    OAILOG_WARNING(
+      LOG_NAS_EMM, "Bad IMSI length %d", auth_info_req->imsi_length);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   auth_info_req->visited_plmn = *visited_plmnP;

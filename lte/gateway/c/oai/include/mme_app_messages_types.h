@@ -181,9 +181,9 @@ typedef struct itti_mme_app_dl_data_rej_s {
 typedef struct itti_mme_app_ul_data_ind_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier    */
   bstring nas_msg;        /* Uplink NAS message           */
-/* Indicating the Tracking Area from which the UE has sent the NAS message */
-  tai_t  tai;
-/* Indicating the cell from which the UE has sent the NAS message  */
+  /* Indicating the Tracking Area from which the UE has sent the NAS message */
+  tai_t tai;
+  /* Indicating the cell from which the UE has sent the NAS message  */
   ecgi_t cgi;
 } itti_mme_app_ul_data_ind_t;
 
@@ -193,7 +193,6 @@ typedef struct itti_mme_app_delete_dedicated_bearer_req_s {
   ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
   mme_ue_s1ap_id_t ue_id;
 } itti_mme_app_delete_dedicated_bearer_req_t;
-
 
 typedef struct itti_mme_app_delete_dedicated_bearer_rsp_s {
   /* UE identifier */
@@ -212,6 +211,5 @@ typedef struct itti_mme_app_delete_dedicated_bearer_rej_s {
   teid_t s_gw_teid_s11_s4;
   bool delete_default_bearer;
 } itti_mme_app_delete_dedicated_bearer_rej_t;
-
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

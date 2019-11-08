@@ -69,14 +69,14 @@ static void _eps_bearer_deactivate_t3495_handler(void *);
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
 
 static int _eps_bearer_deactivate(
-  emm_context_t *emm_context_p,
+  emm_context_t* emm_context_p,
   ebi_t ebi,
-  STOLEN_REF bstring *msg);
+  STOLEN_REF bstring* msg);
 static int _eps_bearer_release(
-  emm_context_t *emm_context_p,
+  emm_context_t* emm_context_p,
   ebi_t ebi,
-  pdn_cid_t *pid,
-  int *bidx);
+  pdn_cid_t* pid,
+  int* bidx);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -117,16 +117,16 @@ extern int _pdn_connectivity_delete(emm_context_t *emm_context, pdn_cid_t pid);
  **                                                                        **
  ***************************************************************************/
 int esm_proc_eps_bearer_context_deactivate(
-  emm_context_t *const emm_context_p,
+  emm_context_t* const emm_context_p,
   const bool is_local,
   const ebi_t ebi,
-  pdn_cid_t *pid,
-  int *const bidx,
-  esm_cause_t *const esm_cause)
+  pdn_cid_t* pid,
+  int* const bidx,
+  esm_cause_t* const esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
-  ue_mm_context_t *ue_mm_context =
+  ue_mm_context_t* ue_mm_context =
     PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
 
   if (is_local) {
@@ -295,9 +295,9 @@ int esm_proc_eps_bearer_context_deactivate_request(
  **                                                                        **
  ***************************************************************************/
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
-  emm_context_t *emm_context_p,
+  emm_context_t* emm_context_p,
   ebi_t ebi,
-  esm_cause_t *esm_cause)
+  esm_cause_t* esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
@@ -321,7 +321,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   rc = esm_ebr_stop_timer(emm_context_p, ebi);
 
   if (rc != RETURNerror) {
-
     /*
      * Release the EPS bearer context
      */
@@ -338,11 +337,14 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 
   s_gw_teid_s11_s4 =
     PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
-    ->pdn_contexts[pid]->s_gw_teid_s11_s4;
+      ->pdn_contexts[pid]
+      ->s_gw_teid_s11_s4;
 
   //If bearer id == 0, default bearer is deleted
-  if (PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
-    ->pdn_contexts[pid]->default_ebi == ebi) {
+  if (
+    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
+      ->pdn_contexts[pid]
+      ->default_ebi == ebi) {
     delete_default_bearer = true;
     //Release the default bearer
     rc= mme_api_unsubscribe(NULL);
@@ -361,10 +363,10 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       ue_id,
       ebi);
 
-    ue_mm_context_t *ue_mm_context =
+    ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
     //Remove dedicated bearer context
-    free_wrapper ((void**)&ue_mm_context->bearer_contexts[bid]);
+    free_wrapper((void**) &ue_mm_context->bearer_contexts[bid]);
   }
   //Send deactivate_eps_bearer_context to MME APP
   nas_itti_deactivate_eps_bearer_context(
@@ -516,9 +518,9 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
  **                                                                        **
  ***************************************************************************/
 static int _eps_bearer_deactivate(
-  emm_context_t *emm_context_p,
+  emm_context_t* emm_context_p,
   ebi_t ebi,
-  STOLEN_REF bstring *msg)
+  STOLEN_REF bstring* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
@@ -577,10 +579,10 @@ static int _eps_bearer_deactivate(
  **                                                                        **
  ***************************************************************************/
 static int _eps_bearer_release(
-  emm_context_t *emm_context_p,
+  emm_context_t* emm_context_p,
   ebi_t ebi,
-  pdn_cid_t *pid,
-  int *bidx)
+  pdn_cid_t* pid,
+  int* bidx)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;

@@ -689,8 +689,8 @@ void mme_ue_context_update_coll_keys(
       imsi,
       hashtable_rc_code2string(h_rc));
   }
-  _directoryd_report_location(ue_context_p->emm_context._imsi64,
-    ue_context_p->emm_context._imsi.length);
+  _directoryd_report_location(
+    ue_context_p->emm_context._imsi64, ue_context_p->emm_context._imsi.length);
 
   h_rc = hashtable_uint64_ts_remove(
     mme_ue_context_p->tun11_ue_context_htbl,
@@ -886,7 +886,8 @@ int mme_insert_ue_context(
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
 
-      _directoryd_report_location(ue_context_p->emm_context._imsi64,
+      _directoryd_report_location(
+        ue_context_p->emm_context._imsi64,
         ue_context_p->emm_context._imsi.length);
     }
 
@@ -1051,7 +1052,8 @@ void mme_remove_ue_context(
           ue_context_p->mme_ue_s1ap_id);
     }
 
-    _directoryd_remove_location(ue_context_p->emm_context._imsi64,
+    _directoryd_remove_location(
+      ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
     mme_app_ue_context_free_content(ue_context_p);
     unlock_ue_contexts(ue_context_p);
@@ -2410,11 +2412,13 @@ static void _mme_app_handle_s1ap_ue_context_release(
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
         if (ue_mm_context->pdn_contexts[i]) {
-          if((mme_app_send_s11_suspend_notification(ue_mm_context, i))
-             != RETURNok) {
+          if (
+            (mme_app_send_s11_suspend_notification(ue_mm_context, i)) !=
+            RETURNok) {
             OAILOG_ERROR(
               LOG_MME_APP,
-              "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT "\n",
+              "Failed to send S11 Suspend Notification for imsi " IMSI_64_FMT
+              "\n",
               ue_mm_context->emm_context._imsi64);
           }
         }
