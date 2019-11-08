@@ -15,7 +15,6 @@ import (
 	lteProtos "magma/lte/cloud/go/protos"
 	orc8rProtos "magma/orc8r/cloud/go/protos"
 
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -40,7 +39,6 @@ func getRedisStateDeserializer(deserializer object_store.Deserializer) object_st
 		bytes := []byte(serialized)
 		err := proto.Unmarshal(bytes, redisStatePtr)
 		if err != nil {
-			glog.Errorf("err : %v", err)
 			return nil, err
 		}
 		return deserializer(string(redisStatePtr.SerializedMsg))
