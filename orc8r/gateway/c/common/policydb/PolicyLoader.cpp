@@ -14,8 +14,6 @@
 
 namespace magma {
 
-namespace {
-
 bool try_redis_connect(cpp_redis::client& client) {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
@@ -42,7 +40,7 @@ bool do_loop(
     const std::function<void(std::vector<PolicyRule>)>& processor) {
   if (!client.is_connected()) {
     if (!try_redis_connect(client)) {
-      return False;
+      return false;
     }
     MLOG(MINFO) << "Connected to redis server";
   }
@@ -50,11 +48,11 @@ bool do_loop(
   auto result = policy_map.getall(rules);
   if (result != SUCCESS) {
     MLOG(MERROR) << "Failed to get rules from map because map error " << result;
-    return False;
+    return false;
   }
   processor(rules);
   MLOG(MDEBUG) << "Rules synced";
-  return True;
+  return true;
 }
 
 void PolicyLoader::load_config_async(
@@ -90,9 +88,9 @@ bool PolicyLoader::load_config_sync(
       get_proto_serializer(),
       get_proto_deserializer());
   auto retries = NUM_RETRIES;
-  bool success = False;
+  bool success = false;
   while (!success && retries--) {
-    sucess = do_loop(*client, policy_map, processor));
+    success = do_loop(*client, policy_map, processor);
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }
   return success;
