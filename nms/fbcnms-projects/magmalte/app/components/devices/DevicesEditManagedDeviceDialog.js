@@ -95,7 +95,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   );
 
   const [snmpCommunityTextbox, setSnmpCommunityTextbox] = useState('public');
-  const [snmpVersionTextbox, setSnmpVersionTextbox] = useState('public');
+  const [snmpVersionTextbox, setSnmpVersionTextbox] = useState('v1');
 
   const [cambiumTextbox, setCambiumTextbox] = useState(
     JSON.stringify(

@@ -10,9 +10,9 @@
  */
 'use strict';
 
-require('@babel/polyfill');
+require('@fbcnms/babel-register');
 
-const {main} = require('relay-compiler/lib/RelayCompilerMain');
+const {main} = require('relay-compiler/lib/bin/RelayCompilerMain');
 const yargs = require('yargs');
 const glob = require('glob');
 const prependFile = require('prepend-file');

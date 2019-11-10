@@ -14,11 +14,14 @@ import (
 
 	"magma/cwf/gateway/registry"
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/object_store"
+	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/testcore/hss"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos"
 	registryTestUtils "magma/orc8r/cloud/go/test_utils"
 
+	"github.com/go-redis/redis"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -46,6 +49,13 @@ type ocsClient struct {
 type pipelinedClient struct {
 	lteprotos.PipelinedClient
 	cc *grpc.ClientConn
+}
+
+// Wrapper for PolicyDB objects
+type policyDBWrapper struct {
+	redisClient object_store.RedisClient
+	policyMap   object_store.ObjectMap
+	baseNameMap object_store.ObjectMap
 }
 
 /**  ========== HSS Helpers ========== **/
@@ -219,4 +229,40 @@ func deactivateSubscriberFlows(imsi string) error {
 func getPolicyUsage() (*lteprotos.RuleRecordTable, error) {
 	client, _ := getPipelinedClient()
 	return client.GetPolicyUsage(context.Background(), &protos.Void{})
+}
+
+/**  ========== PolicyDB related Helpers ========== **/
+// In the actual CWAG setup, PolicyRules and BaseNames managed by PolicyDB are
+// streamed down from the cloud. Since this integration test setup does not
+// include the cloud, we will get around this by directly modifying the redis
+// DB.
+func initializePolicyDBWrapper() (*policyDBWrapper, error) {
+	address, err := registry.GetServiceAddress(RedisRemote)
+	if err != nil {
+		return nil, err
+	}
+	redisClientImpl := &object_store.RedisClientImpl{
+		RawClient: redis.NewClient(&redis.Options{
+			Addr:     fmt.Sprintf(address),
+			Password: "",
+			DB:       0,
+		}),
+	}
+	policyMap := object_store.NewRedisMap(
+		redisClientImpl,
+		"policydb:rules",
+		policydb.GetPolicySerializer(),
+		policydb.GetPolicyDeserializer(),
+	)
+	baseNameMap := object_store.NewRedisMap(
+		redisClientImpl,
+		"policydb:base_names",
+		policydb.GetBaseNameSerializer(),
+		policydb.GetBaseNameDeserializer(),
+	)
+	return &policyDBWrapper{
+		redisClient: redisClientImpl,
+		policyMap:   policyMap,
+		baseNameMap: baseNameMap,
+	}, nil
 }
