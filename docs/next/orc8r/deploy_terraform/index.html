@@ -111,19 +111,6 @@ cty.<span class="hljs-constructor">ObjectVal(<span class="hljs-params">map</span
 <span class="hljs-string">"role_arn"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>}) does not correlate <span class="hljs-keyword">with</span> any element <span class="hljs-keyword">in</span>
 actual.
 </span></code></pre>
-<p>Once <code>terraform apply -var-file=vars.tfvars</code> finishes, there is some additional
-manual setup to perform before our EKS cluster is ready to deploy onto.</p>
-<p>First find the public IP address of the metrics instance using</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> METRICS_IP=$(aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node --query <span class="hljs-string">'Reservations[*].Instances[0].PublicIpAddress'</span> --output text)
-<span class="hljs-built_in">echo</span> <span class="hljs-variable">$METRICS_IP</span>
-</code></pre>
-<p>The Prometheus config manager application expects some configuration files to
-be seeded in the EBS config volume (don't forget to use the correct private
-key in <code>scp</code> with the <code>-i</code> flag):</p>
-<pre><code class="hljs css language-bash">scp -r config_defaults ec2-user@<span class="hljs-variable">$METRICS_IP</span>:~
-ssh ec2-user@<span class="hljs-variable">$METRICS_IP</span>
-[ec2-user@&lt;metrics-ip&gt; ~]$ sudo cp -r config_defaults/. /configs/prometheus
-</code></pre>
 <p>Now you've got your infra set up, we can move on to configuring the EKS cluster.</p>
 <p>Assuming you don't have an existing Kubeconfig file in <code>~/.kube/config</code>, run
 the following. If you do, you can use the <code>KUBECONFIG</code> environment variable
