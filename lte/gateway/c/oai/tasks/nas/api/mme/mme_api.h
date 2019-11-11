@@ -195,4 +195,40 @@ bool mme_ue_context_get_ue_sgs_neaf(
 void mme_ue_context_update_ue_sgs_neaf(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,
   bool neaf);
+
+/* Compares the given two PLMNs */
+#define IS_PLMN_EQUAL(pLMN1, pLMN2, iSpLMNeQUAL)                               \
+  do {                                                                         \
+    if (                                                                       \
+      (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) &&                                \
+      (pLMN1.mcc_digit1 == pLMN2.mcc_digit1) &&                                \
+      (pLMN1.mnc_digit3 == pLMN2.mnc_digit3) &&                                \
+      (pLMN1.mcc_digit3 == pLMN2.mcc_digit3) &&                                \
+      (pLMN1.mnc_digit2 == pLMN2.mnc_digit2) &&                                \
+      (pLMN1.mnc_digit1 == pLMN2.mnc_digit1)) {                                \
+      iSpLMNeQUAL = true;                                                      \
+    }                                                                          \
+  }while(0)
+
+#define COPY_GUMMEI(gUTI, gUMMEIvAl)                                           \
+  do {                                                                         \
+    gUTI->gummei.mme_gid = gUMMEIvAl.mme_gid;                                  \
+    gUTI->gummei.mme_code = gUMMEIvAl.mme_code;                                \
+    gUTI->gummei.plmn.mcc_digit1 = gUMMEIvAl.plmn.mcc_digit1;                  \
+    gUTI->gummei.plmn.mcc_digit2 = gUMMEIvAl.plmn.mcc_digit2;                  \
+    gUTI->gummei.plmn.mcc_digit3 = gUMMEIvAl.plmn.mcc_digit3;                  \
+    gUTI->gummei.plmn.mnc_digit1 = gUMMEIvAl.plmn.mnc_digit1;                  \
+    gUTI->gummei.plmn.mnc_digit2 = gUMMEIvAl.plmn.mnc_digit2;                  \
+    gUTI->gummei.plmn.mnc_digit3 = gUMMEIvAl.plmn.mnc_digit3;                  \
+  }while(0)
+
+#define COPY_PLMN(pLMN1, pLMN2)                                                \
+  do {                                                                         \
+    pLMN1.mcc_digit1 = pLMN2.mcc_digit1;                                       \
+    pLMN1.mcc_digit2 = pLMN2.mcc_digit2;                                       \
+    pLMN1.mcc_digit3 = pLMN2.mcc_digit3;                                       \
+    pLMN1.mnc_digit1 = pLMN2.mnc_digit1;                                       \
+    pLMN1.mnc_digit2 = pLMN2.mnc_digit2;                                       \
+    pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
+  }while(0)
 #endif /* FILE_MME_API_SEEN*/
