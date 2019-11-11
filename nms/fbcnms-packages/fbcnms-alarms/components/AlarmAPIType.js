@@ -8,11 +8,11 @@
  * @format
  */
 
-export type FiringMagmaAlarm = {
-  annotations: {[string]: string},
+export type FiringAlarm = {
+  annotations: Labels,
   endsAt: string,
   fingerprint: string,
-  labels: {[string]: string},
+  labels: Labels,
   receivers: Array<GettableReceiver>,
   startsAt: string,
   status: FiringAlarmStatus,
@@ -79,12 +79,17 @@ export type SlackConfirmField = {
   dismiss_text: string,
 };
 
+/**
+ * Prometheus alert rule configuration
+ */
 export type AlertConfig = {
   alert: string,
   expr: string,
   annotations?: {[string]: string},
   for?: string,
   labels?: {[string]: string},
+  rawData?: AlertConfig,
+  _isCustomAlertRule?: boolean,
 };
 
 export type AlertRoutingTree = {
@@ -102,4 +107,29 @@ export type AlertRoutingTree = {
 export type BulkAlertUpdateResponse = {
   errors: {[string]: string},
   statuses: {[string]: string},
+};
+
+export type AlertSuppressionMatcher = {
+  name: string,
+  value: string,
+  isRegex: boolean,
+};
+
+export type AlertSuppressionState = {
+  state: string,
+};
+
+export type AlertSuppression = {
+  id: string,
+  startsAt: string,
+  endsAt: string,
+  updatedAt: string,
+  matchers: Array<AlertSuppressionMatcher>,
+  createdBy: string,
+  status: AlertSuppressionState,
+  comment?: string,
+};
+
+export type Labels = {
+  [string]: string,
 };

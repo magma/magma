@@ -28,6 +28,7 @@ log_level: INFO
 # after these static services.
 static_services: [
   'ue_mac',
+  'arpd',
   'access_control',
   'ryu_rest_service',
 #  'packet_tracer',
@@ -76,6 +77,12 @@ dpi:
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: cwag_br0
+
+# For CWF UE does have an eth src so we don't need to fake it
+local_ue_eth_addr: False
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
 
 # Interface to NAT traffic to
 nat_iface: eth2

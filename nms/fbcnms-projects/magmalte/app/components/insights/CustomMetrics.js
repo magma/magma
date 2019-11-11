@@ -98,18 +98,18 @@ export default function() {
   }));
 
   const onAdd = () => {
-    const newMetriscs = [
+    const newMetrics = [
       ...queryMetrics,
       {metric: selectedMetric, deviceID: deviceID, timeRange},
     ];
-    queryParams.set('metrics', JSON.stringify(newMetriscs));
+    queryParams.set('metrics', JSON.stringify(newMetrics));
     history.push({search: queryParams.toString()});
   };
 
   const onRemove = index => {
-    const newMetriscs = [...queryMetrics];
-    newMetriscs.splice(index, 1);
-    queryParams.set('metrics', JSON.stringify(newMetriscs));
+    const newMetrics = [...queryMetrics];
+    newMetrics.splice(index, 1);
+    queryParams.set('metrics', JSON.stringify(newMetrics));
     history.push({search: queryParams.toString()});
   };
 

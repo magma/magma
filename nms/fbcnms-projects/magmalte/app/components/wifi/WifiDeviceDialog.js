@@ -197,16 +197,17 @@ class WifiDeviceDialog extends React.Component<Props, State> {
         );
         break;
       case 3:
-        content = (
-          <GatewayCommandFields
-            // $FlowFixMe: deviceID is nullable. Please fix.
-            gatewayID={deviceID}
-            showRestartCommand={true}
-            showRebootEnodebCommand={false}
-            showPingCommand={true}
-            showGenericCommand={true}
-          />
-        );
+        content =
+          (deviceID && (
+            <GatewayCommandFields
+              gatewayID={deviceID}
+              showRestartCommand={true}
+              showRebootEnodebCommand={false}
+              showPingCommand={true}
+              showGenericCommand={true}
+            />
+          )) ||
+          null;
         break;
     }
 
