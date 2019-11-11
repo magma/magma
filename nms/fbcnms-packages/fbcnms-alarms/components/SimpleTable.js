@@ -17,13 +17,11 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-
 import grey from '@material-ui/core/colors/grey';
 import orange from '@material-ui/core/colors/orange';
 import red from '@material-ui/core/colors/red';
 import yellow from '@material-ui/core/colors/yellow';
-
-import {clone, get} from 'lodash';
+import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -100,80 +98,100 @@ export const SEVERITY = {
   notice: {index: 6, style: 'greySeverityChip'},
 };
 
-const renderCell = (
-  tableRow: Object,
-  tableIdx: number,
-  column: ColumnData,
+type RenderCellProps<TRow> = {
+  row: TRow,
+  rowIdx: number,
+  column: ColumnData<TRow>,
   columnIdx: number,
-  classes: any,
-) => {
-  let cellValue = tableRow;
-  let renderFunc;
-
-  if (column.renderFunc) {
-    cellValue = column.renderFunc(tableRow, classes);
-    renderFunc = renderCellCustomFunc;
-  } else {
-    cellValue = get(tableRow, column.path);
-    if (column.render === 'severity') {
-      renderFunc = renderCellSeverity;
-    } else if (column.render === 'multipleGroups') {
-      renderFunc = renderMultiLabels;
-    } else if (column.render === 'chip') {
-      renderFunc = renderCellChip;
-    } else if (typeof cellValue === 'object') {
-      renderFunc = renderCellObj;
-      if (column.hideFields != undefined && column.hideFields?.length) {
-        cellValue = clone(cellValue);
-        // $FlowFixMe flow thinks hideFields won't be defined
-        column.hideFields.forEach(key => delete cellValue[key]);
-      }
-    } else {
-      renderFunc = renderCellString;
-    }
-  }
-  return renderFunc(cellValue, classes, columnIdx, `${tableIdx}_${columnIdx}`);
+  classes: {[string]: string},
 };
 
-const renderCellCustomFunc = (
-  cellValue: Object,
-  classes,
+function RenderCell<TRow>({
+  row,
+  rowIdx,
+  column,
   columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={cellKey}>
-    <div>{cellValue}</div>
-  </BodyTableCell>
-);
+  classes,
+}: RenderCellProps<TRow>) {
+  const commonProps = {
+    classes: classes,
+    columnIdx: columnIdx,
+    cellKey: `${rowIdx}_${columnIdx}`,
+  };
 
-const renderMultiLabels = (
-  cellValueList: any,
-  classes,
-  columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={`cell_${cellKey}`}>
-    {cellValueList.map(cellValue => (
-      <div
-        key={`cell_div_${cellKey}`}
-        className={columnIdx === 0 ? classes.titleCell : classes.secondaryCell}>
-        {Object.keys(cellValue).map(keyName => (
-          <Chip
-            key={`cell_chip_${cellKey}_${keyName}`}
-            classes={{label: classes.ellipsisChip}}
-            className={classes.labelChip}
-            label={
-              <span>
-                <em>{keyName}</em>={renderLabelValue(cellValue[keyName])}
-              </span>
-            }
-            size="small"
-          />
-        ))}
-      </div>
-    ))}
-  </BodyTableCell>
-);
+  if (typeof column.renderFunc === 'function') {
+    return (
+      <CustomCell {...commonProps} value={column.renderFunc(row, classes)} />
+    );
+  } else {
+    const cellValue =
+      typeof column.getValue === 'function'
+        ? column.getValue(row)
+        : get(row, column.path);
+    if (column.render === 'severity') {
+      return <SeverityCell {...commonProps} value={cellValue} />;
+    } else if (column.render === 'multipleGroups') {
+      return <MultiGroupsCell {...commonProps} value={cellValue} />;
+    } else if (column.render === 'chip') {
+      return <ChipCell {...commonProps} value={cellValue} />;
+    } else if (typeof cellValue === 'object') {
+      return (
+        <LabelsCell
+          {...commonProps}
+          value={cellValue}
+          hideFields={column.hideFields}
+        />
+      );
+    } else {
+      return <TextCell {...commonProps} value={cellValue} />;
+    }
+  }
+}
+
+function CustomCell({value}: CellProps<React.Node>) {
+  return (
+    <BodyTableCell>
+      <div>{value}</div>
+    </BodyTableCell>
+  );
+}
+
+export type CellProps<TValue> = {
+  value: TValue,
+  cellKey: string,
+  columnIdx: number,
+  classes: {[string]: string},
+};
+
+type GroupsList = Array<{[string]: string}>;
+
+function MultiGroupsCell({value, classes, columnIdx}: CellProps<GroupsList>) {
+  return (
+    <BodyTableCell>
+      {value.map((cellValue, idx) => (
+        <div
+          key={idx}
+          className={
+            columnIdx === 0 ? classes.titleCell : classes.secondaryCell
+          }>
+          {Object.keys(cellValue).map(keyName => (
+            <Chip
+              key={keyName}
+              classes={{label: classes.ellipsisChip}}
+              className={classes.labelChip}
+              label={
+                <span>
+                  <em>{keyName}</em>={renderLabelValue(cellValue[keyName])}
+                </span>
+              }
+              size="small"
+            />
+          ))}
+        </div>
+      ))}
+    </BodyTableCell>
+  );
+}
 
 const renderLabelValue = labelValue => {
   if (typeof labelValue === 'boolean') {
@@ -182,109 +200,114 @@ const renderLabelValue = labelValue => {
   return labelValue;
 };
 
-const renderCellObj = (
-  cellValue: Object,
+type Labels = {[string]: string};
+function LabelsCell({
+  value,
   classes,
   columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={cellKey}>
-    <div
-      className={
-        columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
-      }>
-      {Object.keys(cellValue).map(keyName => (
+  hideFields,
+}: CellProps<Labels> & {hideFields?: Array<string>}) {
+  const labels = React.useMemo(() => {
+    if (!hideFields) {
+      return value;
+    }
+    const filtered: Labels = {...value};
+    // filter out all keys which are in the hideFields list
+    hideFields.forEach(key => delete filtered[key]);
+    return filtered;
+  }, [value, hideFields]);
+  return (
+    <BodyTableCell>
+      <div
+        className={
+          columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
+        }>
+        {Object.keys(labels).map(keyName => (
+          <Chip
+            key={keyName}
+            classes={{label: classes.ellipsisChip}}
+            className={classes.labelChip}
+            label={
+              <span>
+                <em>{keyName}</em>={renderLabelValue(labels[keyName])}
+              </span>
+            }
+            size="small"
+          />
+        ))}
+      </div>
+    </BodyTableCell>
+  );
+}
+
+function TextCell({value, classes, columnIdx}: CellProps<string>) {
+  return (
+    <BodyTableCell>
+      <div
+        className={
+          columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
+        }>
+        {value}
+      </div>
+    </BodyTableCell>
+  );
+}
+
+function SeverityCell({value, classes}: CellProps<$Keys<typeof SEVERITY>>) {
+  return (
+    <BodyTableCell>
+      {value && value.toLowerCase() in SEVERITY && (
         <Chip
-          key={`${cellKey}_${keyName}`}
-          classes={{label: classes.ellipsisChip}}
-          className={classes.labelChip}
-          label={
-            <span>
-              <em>{keyName}</em>={renderLabelValue(cellValue[keyName])}
-            </span>
-          }
-          size="small"
+          classes={{
+            outlined: classes[SEVERITY[value.toLowerCase()].style],
+            label: classes.ellipsisChip,
+          }}
+          label={value.toUpperCase()}
+          variant="outlined"
+          data-severity={value} // for testing
         />
-      ))}
-    </div>
-  </BodyTableCell>
-);
+      )}
+    </BodyTableCell>
+  );
+}
 
-const renderCellString = (
-  cellValue: Object,
-  classes,
-  columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={cellKey}>
-    <div
-      className={
-        columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
-      }>
-      {cellValue}
-    </div>
-  </BodyTableCell>
-);
+function ChipCell({value, classes}: CellProps<string>) {
+  return (
+    <BodyTableCell>
+      {value && (
+        <Chip
+          classes={{outlinedPrimary: classes.secondaryChip}}
+          label={value.toUpperCase()}
+          color="primary"
+          variant="outlined"
+          data-chip={value} // for testing
+        />
+      )}
+    </BodyTableCell>
+  );
+}
 
-const renderCellSeverity = (
-  cellValue: Object,
-  classes,
-  columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={cellKey}>
-    {cellValue && cellValue.toLowerCase() in SEVERITY && (
-      <Chip
-        key={`${cellKey}_severity`}
-        classes={{
-          outlined: classes[SEVERITY[cellValue.toLowerCase()].style],
-          label: classes.ellipsisChip,
-        }}
-        label={cellValue.toUpperCase()}
-        variant="outlined"
-      />
-    )}
-  </BodyTableCell>
-);
-
-const renderCellChip = (
-  cellValue: Object,
-  classes,
-  columnIdx,
-  cellKey,
-): React.Element<any> => (
-  <BodyTableCell key={cellKey}>
-    {cellValue && (
-      <Chip
-        key={`${cellKey}_chip`}
-        classes={{outlinedPrimary: classes.secondaryChip}}
-        label={cellValue.toUpperCase()}
-        color="primary"
-        variant="outlined"
-      />
-    )}
-  </BodyTableCell>
-);
-
-export type ColumnData = {
+export type ColumnData<TRow> = {
   title: string,
+  getValue?: <TCellVal>(TRow) => TCellVal,
+  // DEPRECATED - use getValue instead
   path?: Array<string>,
   hideFields?: Array<string>,
   render?: string,
   // valid drop-down options list
   validOptions?: Array<string>,
-  renderFunc?: (tableRow: any, classes: any) => React.Element<any>,
+  renderFunc?: (tableRow: TRow, classes: {[string]: string}) => React.Node,
   tooltip?: React.Node,
 };
 
-type Props = {
-  columnStruct: Array<ColumnData>,
-  tableData: Array<Object>,
-  onActionsClick?: (alert: Object, target: HTMLElement) => void,
-  sortFunc?: (alert: Object, alert2: Object) => number,
+type Props<TRow> = {
+  columnStruct: Array<ColumnData<TRow>>,
+  tableData: Array<TRow>,
+  onActionsClick?: (row: TRow, target: HTMLElement) => void,
+  sortFunc?: (row1: TRow, row2: TRow) => number,
 };
 
-export default function SimpleTable(props: Props) {
+export default function SimpleTable<T>(props: Props<T>) {
   const classes = useStyles();
   const {
     columnStruct,
@@ -296,19 +319,27 @@ export default function SimpleTable(props: Props) {
 
   const data = tableData;
 
-  const rows = data.map((tableRow: Object, tableIdx: number) => {
-    const rowKey = JSON.stringify(tableRow || {});
+  const rows = data.map((row: T, rowIdx: number) => {
+    const rowKey = JSON.stringify(row || {});
     return (
       <TableRow key={rowKey}>
-        {columnStruct.map((column, columnIdx) =>
-          renderCell(tableRow, tableIdx, column, columnIdx, classes),
-        )}
+        {columnStruct.map((column, columnIdx) => (
+          <RenderCell
+            row={row}
+            rowIdx={rowIdx}
+            column={column}
+            columnIdx={columnIdx}
+            classes={classes}
+            key={`${rowIdx}_${columnIdx}`}
+          />
+        ))}
 
         {onActionsClick && (
           <BodyTableCell>
             <Button
               variant="outlined"
-              onClick={event => onActionsClick(tableRow, event.target)}>
+              onClick={event => onActionsClick(row, event.target)}
+              aria-label="Action Menu">
               <MoreHorizIcon color="action" />
             </Button>
           </BodyTableCell>
