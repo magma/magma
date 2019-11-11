@@ -468,12 +468,12 @@ uint32_t pgw_handle_nw_initiated_bearer_actv_req(
     &itti_s5_actv_bearer_req->ul_tft,
     &bearer_req_p->ul_tft,
     sizeof(traffic_flow_template_t));
-   //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
+  //Copy DL TFT. SGW creates a temporary bearer ctx and stores the DL TFT
   memcpy(
     &itti_s5_actv_bearer_req->dl_tft,
     &bearer_req_p->dl_tft,
     sizeof(traffic_flow_template_t));
-  //Assign LBI
+
   hashtblP = spgw_state->sgw_state.s11_bearer_context_information;
   if (!hashtblP) {
     OAILOG_ERROR(LOG_PGW_APP, "There is no UE Context in the SGW context \n");
