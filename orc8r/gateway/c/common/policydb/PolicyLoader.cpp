@@ -14,19 +14,23 @@
 
 namespace magma {
 
-bool try_redis_connect(cpp_redis::client& client) {
+bool try_redis_connect(cpp_redis::client& client)
+{
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
   auto port = config["port"].as<uint32_t>();
   try {
-    client.connect("127.0.0.1", port, [](
+    client.connect(
+      "127.0.0.1",
+      port,
+      [](
         const std::string& host,
         std::size_t port,
         cpp_redis::client::connect_state status) {
-      if (status == cpp_redis::client::connect_state::dropped) {
-        MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
-      }
-    });
+        if (status == cpp_redis::client::connect_state::dropped) {
+          MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
+        }
+      });
     return client.is_connected();
   } catch (const cpp_redis::redis_error& e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();
@@ -35,9 +39,10 @@ bool try_redis_connect(cpp_redis::client& client) {
 }
 
 bool do_loop(
-    cpp_redis::client& client,
-    RedisMap<PolicyRule>& policy_map,
-    const std::function<void(std::vector<PolicyRule>)>& processor) {
+  cpp_redis::client& client,
+  RedisMap<PolicyRule>& policy_map,
+  const std::function<void(std::vector<PolicyRule>)>& processor)
+{
   if (!client.is_connected()) {
     if (!try_redis_connect(client)) {
       return false;
@@ -55,43 +60,23 @@ bool do_loop(
   return true;
 }
 
-void PolicyLoader::load_config_async(
-    const std::function<void(std::vector<PolicyRule>)>& processor,
-    uint32_t loop_interval_seconds) {
+void PolicyLoader::start_loop(
+  std::function<void(std::vector<PolicyRule>)> processor,
+  uint32_t loop_interval_seconds)
+{
   is_running_ = true;
   auto client = std::make_shared<cpp_redis::client>();
   auto policy_map = RedisMap<PolicyRule>(
-      client,
-      "policydb:rules",
-      get_proto_serializer(),
-      get_proto_deserializer());
-  redis_client_thread_ = std::thread ([&]() {
-    while (is_running_) {
-      do_loop(*client, policy_map, processor);
-      std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
-    }
-  });
-}
-
-void PolicyLoader::stop() {
-  is_running_ = false;
-  redis_client_thread_.join();
-}
-
-bool PolicyLoader::load_config_sync(
-    std::function<void(std::vector<PolicyRule>)> processor,
-    uint32_t loop_interval_seconds) {
-  auto client = std::make_shared<cpp_redis::client>();
-  auto policy_map = RedisMap<PolicyRule>(
-      client,
-      "policydb:rules",
-      get_proto_serializer(),
-      get_proto_deserializer());
-  auto retries = NUM_RETRIES;
-  bool success = false;
-  while (!success && retries--) {
-    success = do_loop(*client, policy_map, processor);
+    client, "policydb:rules", get_proto_serializer(), get_proto_deserializer());
+  while (is_running_) {
+    do_loop(*client, policy_map, processor);
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }
-  return success;
+}
+
+void PolicyLoader::stop()
+{
+  is_running_ = false;
+}
+
 }
