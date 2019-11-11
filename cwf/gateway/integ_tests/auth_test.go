@@ -21,7 +21,7 @@ import (
 
 func TestAuthenticate(t *testing.T) {
 	fmt.Printf("Running TestAuthenticate...\n")
-	tr := NewTestRunner()
+	tr, _ := NewTestRunner()
 	ues, err := tr.ConfigUEs(3)
 	assert.NoError(t, err)
 
