@@ -102,14 +102,17 @@ uint32_t get_log_verbosity(const YAML::Node &config) {
 }
 
 void init_rules(const YAML::Node &config,
+                std::vector<std::thread> &threads,
                 std::shared_ptr<magma::StaticRuleStore> &rule_store) {
   magma::PolicyLoader policy_loader{};
-  policy_loader.load_config_async(
-      [&](const std::vector<magma::PolicyRule> &rules) {
-        rule_store->sync_rules(rules);
+  threads.emplace_back([&]() {
+    policy_loader.start_loop(
+        [&](const std::vector<magma::PolicyRule> &rules) {
+          rule_store->sync_rules(rules);
         },
         config["rule_update_inteval_sec"].as<uint32_t>());
-  policy_loader.stop();
+    policy_loader.stop();
+  });
 }
 
 void init_pipelined_client(std::vector<std::thread> &threads,
@@ -234,7 +237,7 @@ int main(int argc, char *argv[]) {
 
   // prep rule manager and rule update loop
   std::shared_ptr<magma::StaticRuleStore> rule_store;
-  init_rules(config, rule_store);
+  init_rules(config, threads, rule_store);
 
   std::shared_ptr<magma::AsyncPipelinedClient> pipelined_client;
   init_pipelined_client(threads, pipelined_client);
