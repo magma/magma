@@ -33,18 +33,6 @@ public:
    * completes.
    */
   void stop();
-
-
-  /**
-   * Sync version of load_config. Attempts retires fixed number of times
-   * based on interval between load attempts.
-   * @returns True if config was loaded correctly, False otherwise
-   */
-  bool load_config_sync(std::function<void(std::vector<PolicyRule>)> processor,
-                        uint32_t loop_interval_seconds);
-
-  // Number of retries for the sync version
-  const int NUM_RETRIES = 3;
 private:
   std::atomic<bool> is_running_;
   std::thread redis_client_thread_;

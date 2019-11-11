@@ -95,5 +95,3 @@ bool PolicyLoader::load_config_sync(
   }
   return success;
 }
-
-}  // namespace magma
