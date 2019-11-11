@@ -74,9 +74,7 @@ export default function Alarms(props: Props) {
     path: `${match.path}/:tabName`,
   });
 
-  const alarmProps = {
-    apiUtil,
-  };
+  const alarmProps = {apiUtil};
   return (
     <>
       <AppBar className={classes.appBar} color="default">
