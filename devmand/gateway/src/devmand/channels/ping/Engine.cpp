@@ -29,32 +29,61 @@ namespace devmand {
 namespace channels {
 namespace ping {
 
+using IPVersion = channels::ping::IPVersion;
+
 Engine::Engine(
     folly::EventBase& _eventBase,
+    channels::ping::IPVersion ipv_,
     const std::chrono::milliseconds& pingTimeout_,
     const std::chrono::milliseconds& timeoutFrequency_)
     : channels::Engine("Ping"),
       folly::EventHandler(&_eventBase),
       eventBase(_eventBase),
+      ipv(ipv_),
       pingTimeout(pingTimeout_),
       timeoutFrequency(timeoutFrequency_) {
-  icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+  switch (ipv) {
+    case IPVersion::v4:
+      icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+      break;
+    case IPVersion::v6:
+      try {
+        icmpSocket = ::socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+      } catch (const std::exception& e) {
+        LOG(ERROR) << "Caught exception while opening ICMP6 socket: "
+                   << e.what();
+      }
+      break;
+  }
   if (icmpSocket < 0) {
-    LOG(ERROR) << "Failed to open dgram socket";
-    throw std::system_error(errno, std::generic_category());
+    auto err = std::system_error(errno, std::generic_category());
+    LOG(ERROR) << "Failed to open dgram socket: " << err.what();
+    if (ipv_ == IPVersion::v6) {
+      LOG(ERROR) << "ICMP over IPv6 will not work.";
+      failedIpv6Socket = true;
+    } else {
+      throw err;
+    }
+  } else {
+    if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
+      throw std::system_error(errno, std::generic_category());
+    }
+    folly::EventHandler::changeHandlerFD(
+        folly::NetworkSocket::fromFd(icmpSocket));
   }
-
-  if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
-    throw std::system_error(errno, std::generic_category());
-  }
-
-  folly::EventHandler::changeHandlerFD(
-      folly::NetworkSocket::fromFd(icmpSocket));
-
   registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
-
   start();
 }
+
+Engine::Engine(
+    folly::EventBase& _eventBase,
+    const std::chrono::milliseconds& pingTimeout_,
+    const std::chrono::milliseconds& timeoutFrequency_)
+    : Engine::Engine(
+          _eventBase,
+          channels::ping::IPVersion::v4,
+          pingTimeout_,
+          timeoutFrequency_) {}
 
 Engine::~Engine() {
   unregisterHandler();
@@ -95,8 +124,11 @@ void Engine::timeout() {
 folly::Future<Rtt> Engine::ping(
     const icmphdr& hdr,
     const folly::IPAddress& destination) {
+  if (failedIpv6Socket) {
+    LOG(ERROR) << "Attempted ping on IPV6 where socket failed to open.";
+    return folly::makeFuture<Rtt>(0);
+  }
   incrementRequests();
-
   return sharedOutstandingRequests.withULockPtr([this, &hdr, &destination](
                                                     auto uOutstandingRequests) {
     auto outstandingRequests = uOutstandingRequests.moveFromUpgradeToWrite();
