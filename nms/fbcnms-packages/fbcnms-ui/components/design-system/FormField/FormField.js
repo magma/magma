@@ -35,17 +35,23 @@ const useStyles = makeStyles(({symphony}) => ({
   },
   bottomText: {
     marginTop: '4px',
+    lineHeight: '16px',
+  },
+  spacer: {
+    marginTop: '4px',
+    height: '16px',
   },
 }));
 
 type Props = {
   className?: string,
-  label: string,
+  label?: string,
   helpText?: string,
   children: React.Node,
   disabled: boolean,
   hasError: boolean,
-  errorText?: string,
+  errorText?: ?string,
+  hasSpacer?: boolean,
 };
 
 const FormField = (props: Props) => {
@@ -57,6 +63,7 @@ const FormField = (props: Props) => {
     className,
     hasError,
     errorText,
+    hasSpacer,
   } = props;
   const classes = useStyles();
   return (
@@ -68,14 +75,19 @@ const FormField = (props: Props) => {
           {[classes.hasError]: hasError},
           className,
         )}>
-        <Text className={classes.labelContainer} variant="body2">
-          {label}
-        </Text>
+        {label && (
+          <Text className={classes.labelContainer} variant="body2">
+            {label}
+          </Text>
+        )}
         {children}
         {(helpText || (hasError && errorText)) && (
           <Text className={classes.bottomText} variant="caption">
             {nullthrows(hasError ? errorText : helpText)}
           </Text>
+        )}
+        {!helpText && !hasError && hasSpacer && (
+          <div className={classes.spacer} />
         )}
       </div>
     </FormFieldContext.Provider>
