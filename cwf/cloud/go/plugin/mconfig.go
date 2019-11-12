@@ -136,8 +136,6 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 	}
 	if len(apps) == 0 {
 		apps = []ltemconfig.PipelineD_NetworkServices{
-			ltemconfig.PipelineD_METERING,
-			ltemconfig.PipelineD_DPI,
 			ltemconfig.PipelineD_ENFORCEMENT,
 		}
 	}
