@@ -21,7 +21,7 @@ import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {DEFAULT_DEVMAND_GATEWAY_CONFIGS} from './DevicesUtils';
+import {DEFAULT_MAGMAD_CONFIGS} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
@@ -68,7 +68,7 @@ export default function DevicesNewAgentDialog(props: Props) {
         key: {key_type: 'ECHO'},
       },
       id: agentId,
-      magmad: DEFAULT_DEVMAND_GATEWAY_CONFIGS,
+      magmad: DEFAULT_MAGMAD_CONFIGS,
       managed_devices: [],
       name: name,
       tier: 'default',

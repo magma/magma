@@ -19,7 +19,7 @@ const MS_IN_MIN = 60 * 1000;
 const MS_IN_HOUR = 60 * MS_IN_MIN;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
 
-export type DevicesGateway = {
+export type DevicesAgent = {
   id: string,
 
   devmand_config: ?{
@@ -37,7 +37,7 @@ export type DevicesGateway = {
   status: ?gateway_status,
 
   // TODO: deprecate this
-  rawGateway: symphony_agent,
+  rawAgent: symphony_agent,
 };
 
 export type DeviceStatus = {
@@ -48,16 +48,16 @@ export type FullDevice = {
   id: string,
   agentIds: string[], // list of agents that manage this device
   config: ?symphony_device_config,
-  // status meta from gateways are unstructured
+  // status meta from agents are unstructured
   // eslint-disable-next-line flowtype/no-weak-types
   status: any,
   statusAgentId: string, // agentId that reported the status
 };
 
-export function buildDevicesGatewayFromPayload(
-  gateway: symphony_agent,
+export function buildDevicesAgentFromPayload(
+  agent: symphony_agent,
   now?: number,
-): DevicesGateway {
+): DevicesAgent {
   const currentTime = now === undefined ? new Date().getTime() : now;
 
   let lastCheckin = 'Not Reported';
@@ -65,7 +65,7 @@ export function buildDevicesGatewayFromPayload(
   let checkinTime = null;
   let up = null;
 
-  const {status} = gateway;
+  const {status} = agent;
 
   if (status) {
     checkinTime = status.checkin_time;
@@ -89,11 +89,11 @@ export function buildDevicesGatewayFromPayload(
   }
 
   return {
-    id: gateway.id,
+    id: agent.id,
 
-    hardware_id: gateway?.device?.hardware_id || 'Error: Missing hardware_id',
+    hardware_id: agent?.device?.hardware_id || 'Error: Missing hardware_id',
 
-    devmand_config: {managed_devices: gateway.managed_devices},
+    devmand_config: {managed_devices: agent.managed_devices},
 
     readTime: currentTime,
     checkinTime,
@@ -104,11 +104,11 @@ export function buildDevicesGatewayFromPayload(
 
     status,
 
-    rawGateway: gateway,
+    rawAgent: agent,
   };
 }
 
-export const DEFAULT_DEVMAND_GATEWAY_CONFIGS: magmad_gateway_configs = {
+export const DEFAULT_MAGMAD_CONFIGS: magmad_gateway_configs = {
   autoupgrade_enabled: false,
   autoupgrade_poll_interval: 300,
   checkin_interval: 15,
@@ -117,14 +117,14 @@ export const DEFAULT_DEVMAND_GATEWAY_CONFIGS: magmad_gateway_configs = {
 
 /* get list of all devices from:
         devices (any and all devices that should exist)
-        gateway status (device is reporting info)
-        gateway devmand config (device should be managed by someone)
+        agent status (device is reporting info)
+        agent devmand config (device should be managed by someone)
 
     In orc8r V1 API, this object would be returned natively in one API call
     and this function would be completely deleted.
   */
-export function mergeGatewaysDevices(
-  gateways: ?Array<DevicesGateway>,
+export function mergeAgentsDevices(
+  agents: ?Array<DevicesAgent>,
   devices: ?Array<string>,
 ): {[key: string]: FullDevice} {
   const devicemap = {};
@@ -141,31 +141,31 @@ export function mergeGatewaysDevices(
     });
   }
 
-  if (gateways) {
+  if (agents) {
     // gather "managed" devices
-    gateways.forEach(gateway => {
-      // map gateway.devmand_config.managed_devices to devicemap[id].agentId
-      (gateway.devmand_config?.managed_devices || []).forEach(id => {
+    agents.forEach(agent => {
+      // map agent.devmand_config.managed_devices to devicemap[id].agentId
+      (agent.devmand_config?.managed_devices || []).forEach(id => {
         if (id in devicemap) {
-          devicemap[id].agentIds.push(gateway.id);
+          devicemap[id].agentIds.push(agent.id);
         } else {
           // If a device does not exist in devicemap,
           //    then we're in an inconsistent state.
           console.error(
-            `Warning gateway ${gateway.id} is configured to manage non-existing device ${id}`,
+            `Warning agent ${agent.id} is configured to manage non-existing device ${id}`,
           );
         }
       });
     });
 
     // gather "managed" devices
-    gateways.forEach(gateway => {
-      // status meta from gateways are unstructured
+    agents.forEach(agent => {
+      // status meta from agents are unstructured
       // eslint-disable-next-line flowtype/no-weak-types
       let devmand: {[key: string]: any} = {};
 
       try {
-        devmand = JSON.parse(gateway.status?.meta?.devmand || '{}');
+        devmand = JSON.parse(agent.status?.meta?.devmand || '{}');
       } catch (err) {
         console.error(err);
         return;
@@ -179,7 +179,7 @@ export function mergeGatewaysDevices(
             // If a device does not exist in devicemap,
             //   then we're in an inconsistent state, but display it anyway
             console.error(
-              `Warning gateway ${gateway.id} is reporting state for non-existing device ${id}`,
+              `Warning agent ${agent.id} is reporting state for non-existing device ${id}`,
             );
             // display it anyway because it's interesting
             devicemap[id] = {
@@ -187,7 +187,7 @@ export function mergeGatewaysDevices(
               agentIds: [],
               config: null,
               status,
-              statusAgentId: gateway.id,
+              statusAgentId: agent.id,
             };
           } else {
             if (devicemap[id].status) {
@@ -196,7 +196,7 @@ export function mergeGatewaysDevices(
               );
             }
             devicemap[id].status = status;
-            devicemap[id].statusAgentId = gateway.id;
+            devicemap[id].statusAgentId = agent.id;
           }
         });
     });
