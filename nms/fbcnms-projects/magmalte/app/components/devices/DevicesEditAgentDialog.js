@@ -9,21 +9,24 @@
  */
 
 import type {DevicesGateway} from './DevicesUtils';
+import type {symphony_agent} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import DevicesGatewayDevmandFields from './DevicesGatewayDevmandFields';
 import Dialog from '@material-ui/core/Dialog';
+import FormLabel from '@material-ui/core/FormLabel';
 import GatewayCommandFields from '@fbcnms/magmalte/app/components/GatewayCommandFields';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import nullthrows from '@fbcnms/util/nullthrows';
 
-import {MagmaAPIUrls, fetchDevice} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
-import {useEffect, useState} from 'react';
+import {useCallback, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles({
   appBar: {
@@ -34,7 +37,7 @@ const useStyles = makeStyles({
 
 type Props = {
   onClose: () => void,
-  onSave: (gateway: {[string]: any}) => void,
+  onSave: symphony_agent => void,
   gateway: DevicesGateway,
 };
 
@@ -47,40 +50,37 @@ export default function DevicesEditAgentDialog(props: Props) {
     [],
   );
 
-  const {isLoading, error, response} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.devicesDevmandConfigs(
-      match,
-      nullthrows(props.gateway).id,
-    ),
-  });
-
-  useEffect(() => {
-    if (response) {
-      let managedDevices = response.data.managed_devices.filter(
-        d => d.length > 0,
-      );
+  const {error, isLoading} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdAgentsByAgentIdManagedDevices,
+    {
+      networkId: nullthrows(match.params.networkId),
+      agentId: props.gateway.id,
+    },
+    useCallback(response => {
+      let managedDevices = [];
+      if (response) {
+        managedDevices = response.filter(d => d.length > 0);
+      }
       if (managedDevices.length == 0) {
         managedDevices = [''];
       }
       setDevmandManagedDevices(managedDevices);
-    }
-  }, [response]);
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+    }, []),
+  );
 
   const onTabChange = (event, tab) => setTab(tab);
-  const onSave = gatewayID => {
-    fetchDevice(match, gatewayID).then(props.onSave);
+  const onSave = agentId => {
+    MagmaV1API.getSymphonyByNetworkIdAgentsByAgentId({
+      networkId: nullthrows(match.params.networkId),
+      agentId,
+    }).then(props.onSave);
   };
 
   let content;
 
   switch (tab) {
     case 0:
-      if (isLoading || devmandManagedDevices.length == 0) {
+      if (isLoading) {
         content = <LoadingFiller />;
       } else {
         content = (
@@ -123,7 +123,10 @@ export default function DevicesEditAgentDialog(props: Props) {
           <Tab label="Commands" />
         </Tabs>
       </AppBar>
-      {content}
+      <>
+        <FormLabel error>{(error && error.toString()) || ''}</FormLabel>
+        {content}
+      </>
     </Dialog>
   );
 }

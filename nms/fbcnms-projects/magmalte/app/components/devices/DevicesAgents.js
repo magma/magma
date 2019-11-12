@@ -22,22 +22,22 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {map} from 'lodash';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {Route} from 'react-router-dom';
 import {buildDevicesGatewayFromPayload} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
-import {useCallback, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -55,22 +55,25 @@ type Props = WithAlert & {};
 function DevicesAgents(props: Props) {
   const {match, history, relativePath, relativeUrl} = useRouter();
   const [gateways, setGateways] = useState<?Array<DevicesGateway>>(null);
+  const [errorMessage, setErrorMessage] = useState<?string>(null);
   const [editingGateway, setEditingGateway] = useState<?DevicesGateway>(null);
   const classes = useStyles();
 
-  const {error} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-    onResponse: useCallback(response => {
-      const gateways = response.data
-        .filter(g => g.record && g.config)
-        .map(g => buildDevicesGatewayFromPayload(g))
-        .sort((a, b) => a.id.localeCompare(b.id));
-      setGateways(gateways);
+  const {error, isLoading} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdAgents,
+    {networkId: nullthrows(match.params.networkId)},
+    useCallback(response => {
+      if (response != null) {
+        setGateways(
+          map(response, (agent, _) =>
+            buildDevicesGatewayFromPayload(agent),
+          ).sort((a, b) => a.id.localeCompare(b.id)),
+        );
+      }
     }, []),
-  });
+  );
 
-  if (error || !gateways) {
+  if (error || isLoading || !gateways) {
     return <LoadingFiller />;
   }
 
@@ -87,17 +90,24 @@ function DevicesAgents(props: Props) {
   };
 
   const deleteGateway = gateway => {
-    props
-      .confirm(`Are you sure you want to delete ${gateway.id}?`)
-      .then(confirmed => {
-        if (!confirmed) {
-          return;
-        }
-        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
-          networkId: nullthrows(match.params.networkId),
-          gatewayId: gateway.id,
-        }).then(() => setGateways(gateways.filter(gw => gw.id != gateway.id)));
-      });
+    if (!gateway.id) {
+      setErrorMessage('Error: cannot delete because id is empty');
+    } else {
+      props
+        .confirm(`Are you sure you want to delete ${gateway.id}?`)
+        .then(confirmed => {
+          if (!confirmed) {
+            return;
+          }
+          MagmaV1API.deleteSymphonyByNetworkIdAgentsByAgentId({
+            networkId: nullthrows(match.params.networkId),
+            agentId: gateway.id,
+          }).then(() =>
+            setGateways(gateways.filter(gw => gw.id != gateway.id)),
+          );
+          setErrorMessage(null);
+        });
+    }
   };
 
   const rows = gateways.map(gateway => (
@@ -108,7 +118,7 @@ function DevicesAgents(props: Props) {
           isGrey={gateway.status == null}
           isActive={!!gateway.up}
         />
-        {gateway.id}
+        {gateway.id || 'Error: Missing ID'}
       </TableCell>
       <TableCell>
         {gateway.hardware_id}
@@ -136,10 +146,11 @@ function DevicesAgents(props: Props) {
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>
+        {errorMessage && <div>{errorMessage.toString()}</div>}
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              <TableCell>ID</TableCell>
               <TableCell>Hardware UUID</TableCell>
               <TableCell />
             </TableRow>

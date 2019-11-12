@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {DevicesManagedDevice} from './DevicesUtils';
+import type {symphony_device_config} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
@@ -20,16 +20,17 @@ import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
+import useMagmaAPI from '../../common/useMagmaAPI';
 
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEffect, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   input: {
@@ -61,7 +62,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   const {deviceID: initialDeviceID} = match.params;
 
-  const [deviceID, setDeviceID] = useState(initialDeviceID);
+  const [deviceID, setDeviceID] = useState(initialDeviceID || '');
   const [error, setError] = useState('');
 
   const standardPlatforms = {
@@ -114,8 +115,8 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   );
   const [configTextbox, setConfigTextbox] = useState('{}'); // device configs
 
-  const genManagedDeviceConfig = (): DevicesManagedDevice => {
-    const config: DevicesManagedDevice = {
+  const genManagedDeviceConfig = (): symphony_device_config => {
+    const config: symphony_device_config = {
       host: hostTextbox,
       platform: platformTextbox,
       device_type: typeTextbox.length > 0 ? [typeTextbox] : [],
@@ -169,8 +170,15 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   const onEdit = async () => {
     try {
-      const newDeviceConfig = genManagedDeviceConfig();
-      await axios.put(MagmaAPIUrls.device(match, deviceID), newDeviceConfig);
+      await MagmaV1API.putSymphonyByNetworkIdDevicesByDeviceId({
+        networkId: nullthrows(match.params.networkId),
+        deviceId: deviceID,
+        symphonyDevice: {
+          id: deviceID,
+          name: deviceID,
+          config: genManagedDeviceConfig(),
+        },
+      });
       props.onSave(deviceID);
     } catch (error) {
       setError(`${error.message} ${error.response?.data?.message || ''}`);
@@ -180,8 +188,14 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
 
   const onCreate = async () => {
     try {
-      const newDeviceConfig = genManagedDeviceConfig();
-      await axios.post(MagmaAPIUrls.devices(match, deviceID), newDeviceConfig);
+      await MagmaV1API.postSymphonyByNetworkIdDevices({
+        networkId: nullthrows(match.params.networkId),
+        symphonyDevice: {
+          id: deviceID,
+          name: deviceID,
+          config: genManagedDeviceConfig(),
+        },
+      });
       setDeviceID(deviceID);
       props.onSave(deviceID);
     } catch (error) {
@@ -190,18 +204,16 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
     }
   };
 
-  const {isLoading, error: responseError, response} = useAxios<
-    null,
-    DevicesManagedDevice,
-  >({
-    method: 'get',
-    url: MagmaAPIUrls.device(match, initialDeviceID),
-  });
+  // TODO: separate out create from edit flow so we don't have extra api call
+  const {isLoading, error: responseError, response} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdDevicesByDeviceId,
+    {networkId: nullthrows(match.params.networkId), deviceId: initialDeviceID},
+  );
 
   useEffect(() => {
-    // TODO: separate out create from edit flow so we don't have garbage axios
+    // TODO: separate out create from edit flow so we don't have extra api call
     if (initialDeviceID) {
-      const initialDeviceConfig = response?.data || {};
+      const initialDeviceConfig = response?.config || {};
 
       setHostTextbox(initialDeviceConfig.host || '');
       setPlatformTextbox(initialDeviceConfig.platform || '');
@@ -244,7 +256,7 @@ export default function DevicesEditManagedDeviceDialog(props: Props) {
   }, [initialDeviceID, response]);
 
   useEffect(() => {
-    // TODO: separate out create from edit flow so we don't have garbage axios
+    // TODO: separate out create from edit flow so we don't have extra api call
     if (initialDeviceID && responseError) {
       if (responseError.response.status === 404) {
         setError(
