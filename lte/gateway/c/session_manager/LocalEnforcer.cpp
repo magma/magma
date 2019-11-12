@@ -660,7 +660,7 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
     RulesToProcess rules_to_deactivate;
     process_rules_to_remove(
       imsi,
-      *(it->second.get()),
+      it->second,
       usage_monitor_resp.rules_to_remove(),
       &rules_to_deactivate);
 
@@ -770,7 +770,7 @@ void LocalEnforcer::init_policy_reauth(
   RulesToProcess rules_to_deactivate;
 
   get_rules_from_policy_reauth_request(
-    request, *(it->second.get()), &rules_to_activate, &rules_to_deactivate);
+    request, it->second, &rules_to_activate, &rules_to_deactivate);
 
   auto ip_addr = it->second->get_subscriber_ip_addr();
   bool deactivate_success = true;
@@ -819,7 +819,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
 
 void LocalEnforcer::process_rules_to_remove(
   const std::string& imsi,
-  SessionState& session,
+  const std::unique_ptr<SessionState>& session,
   const google::protobuf::RepeatedPtrField<std::basic_string<char>>
     rules_to_remove,
   RulesToProcess* rules_to_deactivate)
@@ -827,16 +827,14 @@ void LocalEnforcer::process_rules_to_remove(
   for (const auto &rule_id : rules_to_remove) {
     // Try to remove as dynamic rule first
     PolicyRule dy_rule;
-    bool is_dynamic = session.remove_dynamic_rule(rule_id, &dy_rule);
+    bool is_dynamic = session->remove_dynamic_rule(rule_id, &dy_rule);
 
     if (is_dynamic) {
       rules_to_deactivate->dynamic_rules.push_back(dy_rule);
     } else {
-      if (!session.deactivate_static_rule(rule_id)) {
+      if (!session->deactivate_static_rule(rule_id))
         MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
                        << imsi << " during static rule removal";
-        continue;
-      }
       rules_to_deactivate->static_rules.push_back(rule_id);
     }
   }
@@ -844,7 +842,7 @@ void LocalEnforcer::process_rules_to_remove(
 
 void LocalEnforcer::get_rules_from_policy_reauth_request(
   const PolicyReAuthRequest &request,
-  SessionState &session,
+  const std::unique_ptr<SessionState> &session,
   RulesToProcess *rules_to_activate,
   RulesToProcess *rules_to_deactivate)
 {
@@ -861,14 +859,14 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     session,
     request.rules_to_remove(),
     rules_to_deactivate);
-  auto ip_addr = session.get_subscriber_ip_addr();
+  auto ip_addr = session->get_subscriber_ip_addr();
   for (const auto &static_rule : request.rules_to_install()) {
     auto activation_time =
       TimeUtil::TimestampToSeconds(static_rule.activation_time());
     if (activation_time > current_time) {
       schedule_static_rule_activation(imsi, ip_addr, static_rule);
     } else {
-      session.activate_static_rule(static_rule.rule_id());
+      session->activate_static_rule(static_rule.rule_id());
       rules_to_activate->static_rules.push_back(static_rule.rule_id());
     }
 
@@ -877,7 +875,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (deactivation_time > current_time) {
       schedule_static_rule_deactivation(imsi, static_rule);
     } else if (deactivation_time > 0) {
-      if (!session.deactivate_static_rule(static_rule.rule_id()))
+      if (!session->deactivate_static_rule(static_rule.rule_id()))
         MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
                        << "for IMSI " << imsi << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(static_rule.rule_id());
@@ -890,7 +888,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (activation_time > current_time) {
       schedule_dynamic_rule_activation(imsi, ip_addr, dynamic_rule);
     } else {
-      session.insert_dynamic_rule(dynamic_rule.policy_rule());
+      session->insert_dynamic_rule(dynamic_rule.policy_rule());
       rules_to_activate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
 
@@ -900,7 +898,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
       schedule_dynamic_rule_deactivation(imsi, dynamic_rule);
     } else if (deactivation_time > 0) {
       PolicyRule rule_dont_care;
-      session.remove_dynamic_rule(
+      session->remove_dynamic_rule(
         dynamic_rule.policy_rule().id(), &rule_dont_care);
       rules_to_deactivate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
