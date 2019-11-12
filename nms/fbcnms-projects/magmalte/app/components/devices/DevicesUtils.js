@@ -9,44 +9,22 @@
  */
 
 import type {
-  DevmandConfig,
-  Record,
-} from '@fbcnms/magmalte/app/common/MagmaAPIType';
+  gateway_status,
+  magmad_gateway_configs,
+  symphony_agent,
+  symphony_device_config,
+} from '@fbcnms/magma-api';
 
 const MS_IN_MIN = 60 * 1000;
 const MS_IN_HOUR = 60 * MS_IN_MIN;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
 
-export type DevicesGatewayStatus = {
-  checkin_time?: number,
-  meta?: {
-    [key: string]: string,
-  },
-};
-
-export type DevicesGatewayPayload = {
-  gateway_id: string,
-  config: {
-    devmand_gateway?: ?DevmandConfig,
-    magmad_gateway?: {
-      autoupgrade_enabled: boolean,
-      autoupgrade_poll_interval: number,
-      checkin_interval: number,
-      checkin_timeout: number,
-      tier: string,
-    },
-    [key: string]: string,
-  },
-  record: ?(Record & {
-    [key: string]: mixed,
-  }),
-  status: ?DevicesGatewayStatus,
-};
-
 export type DevicesGateway = {
   id: string,
 
-  devmand_config: ?DevmandConfig,
+  devmand_config: ?{
+    managed_devices: string[],
+  },
 
   hardware_id: string,
 
@@ -56,43 +34,10 @@ export type DevicesGateway = {
 
   up: ?boolean,
 
-  status: ?DevicesGatewayStatus,
+  status: ?gateway_status,
 
   // TODO: deprecate this
-  rawGateway: DevicesGatewayPayload,
-};
-
-export type DevicesManagedDevice = {
-  device_config?: string,
-  device_type?: Array<string>,
-  host?: string,
-  platform?: string,
-  channels?: {
-    snmp_channel?: {
-      community: string,
-      version: string,
-    },
-    frinx_channel?: {
-      authorization: string,
-      device_type: string,
-      device_version: string,
-      frinx_port: string,
-      host: string,
-      password: string,
-      port: number,
-      transport_type: string,
-      username: string,
-    },
-    cambium_channel?: {
-      client_id: string,
-      client_ip: string,
-      client_mac: string,
-      client_secret: string,
-    },
-    other_channel?: {
-      channel_props: {[string]: string},
-    },
-  },
+  rawGateway: symphony_agent,
 };
 
 export type DeviceStatus = {
@@ -102,7 +47,7 @@ export type DeviceStatus = {
 export type FullDevice = {
   id: string,
   agentIds: string[], // list of agents that manage this device
-  config: ?DevicesManagedDevice,
+  config: ?symphony_device_config,
   // status meta from gateways are unstructured
   // eslint-disable-next-line flowtype/no-weak-types
   status: any,
@@ -110,13 +55,9 @@ export type FullDevice = {
 };
 
 export function buildDevicesGatewayFromPayload(
-  gateway: DevicesGatewayPayload,
+  gateway: symphony_agent,
   now?: number,
 ): DevicesGateway {
-  if (!gateway.record || !gateway.config) {
-    throw Error('Cannot read gateway without `record` or `config`');
-  }
-
   const currentTime = now === undefined ? new Date().getTime() : now;
 
   let lastCheckin = 'Not Reported';
@@ -124,7 +65,7 @@ export function buildDevicesGatewayFromPayload(
   let checkinTime = null;
   let up = null;
 
-  const {status, config} = gateway;
+  const {status} = gateway;
 
   if (status) {
     checkinTime = status.checkin_time;
@@ -148,11 +89,11 @@ export function buildDevicesGatewayFromPayload(
   }
 
   return {
-    id: gateway.gateway_id,
+    id: gateway.id,
 
-    hardware_id: gateway.record.hardware_id || 'Error: Missing hardware_id',
+    hardware_id: gateway?.device?.hardware_id || 'Error: Missing hardware_id',
 
-    devmand_config: config.devmand_gateway,
+    devmand_config: {managed_devices: gateway.managed_devices},
 
     readTime: currentTime,
     checkinTime,
@@ -167,12 +108,11 @@ export function buildDevicesGatewayFromPayload(
   };
 }
 
-export const DEFAULT_DEVMAND_GATEWAY_CONFIGS = {
+export const DEFAULT_DEVMAND_GATEWAY_CONFIGS: magmad_gateway_configs = {
   autoupgrade_enabled: false,
   autoupgrade_poll_interval: 300,
   checkin_interval: 15,
   checkin_timeout: 12,
-  tier: 'default',
 };
 
 /* get list of all devices from:
