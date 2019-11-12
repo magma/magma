@@ -13,15 +13,16 @@ import Sequelize from 'sequelize';
 import type {AssociateProp} from './AssociateTypes.flow';
 import type {DataTypes, Model} from 'sequelize';
 
-export type FeatureFlagRawType = {
+export type FeatureFlagRawType = {|
   featureId: string,
   organization: string,
   enabled: boolean,
-};
+|};
 
-type FeatureFlagReadAttributes = FeatureFlagRawType & {
+type FeatureFlagReadAttributes = {|
+  ...FeatureFlagRawType,
   id: number,
-};
+|};
 
 type FeatureFlagModel = Model<FeatureFlagReadAttributes, FeatureFlagRawType>;
 export type StaticFeatureFlagModel = Class<FeatureFlagModel>;
@@ -30,7 +31,7 @@ export type FeatureFlagType = FeatureFlagModel & FeatureFlagRawType;
 export default (
   sequelize: Sequelize,
   types: DataTypes,
-): StaticFeatureFlagModel & AssociateProp => {
+): AssociateProp & StaticFeatureFlagModel => {
   return sequelize.define(
     'FeatureFlag',
     {

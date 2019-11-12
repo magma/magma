@@ -24,12 +24,15 @@ it('ensures no mismatched versions in workspaces', () => {
 
   const allDepsMap = merge(
     {},
-    ...allManifests.map(manifest => ({
-      ...manifest.dependencies,
-      ...manifest.devDependencies,
-      ...manifest.optionalDependencies,
-      ...manifest.peerDependencies,
-    })),
+    ...allManifests.map(manifest =>
+      merge(
+        {},
+        manifest.dependencies,
+        manifest.devDependencies,
+        manifest.optionalDependencies,
+        manifest.peerDependencies,
+      ),
+    ),
   );
 
   const o = packages => omit(packages, PACKAGE_BLACKLIST);

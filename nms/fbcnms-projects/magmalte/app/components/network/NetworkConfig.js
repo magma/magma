@@ -127,8 +127,10 @@ class NetworkConfig extends React.Component<Props, State> {
       }
       const newConfig = {
         ...this.state.config,
+        // $FlowFixMe Set state for each field
         [epcOrRan]: {
           ...this.state.config[epcOrRan],
+          // $FlowFixMe Set state for each field
           [field]: evt.target.value,
         },
       };
@@ -160,6 +162,7 @@ class NetworkConfig extends React.Component<Props, State> {
   ) => {
     return evt =>
       this.setState({
+        // $FlowFixMe Set state for each field
         [tddOrFdd]: {
           ...this.state[tddOrFdd],
           [field]: evt.target.value,
