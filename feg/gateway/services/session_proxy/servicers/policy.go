@@ -209,7 +209,7 @@ loop:
 				metrics.GxResultCodes.WithLabelValues(strconv.FormatUint(uint64(ans.ResultCode), 10)).Inc()
 				metrics.UpdateGxRecentRequestMetrics(nil)
 				key := credit_control.GetRequestKey(credit_control.Gx, ans.SessionID, ans.RequestNumber)
-				newResponse := getSingleUsageMonitorResponseFromCCA(ans, requestMap[key])
+				newResponse := srv.getSingleUsageMonitorResponseFromCCA(ans, requestMap[key])
 				responses = append(responses, newResponse)
 				// satisfied request, remove
 				delete(requestMap, key)
@@ -274,15 +274,13 @@ func addMissingGxResponses(
 }
 
 // getSingleUsageMonitorResponseFromCCA creates a UsageMonitoringUpdateResponse proto from a CCA
-func getSingleUsageMonitorResponseFromCCA(
-	answer *gx.CreditControlAnswer,
-	request *gx.CreditControlRequest,
-) *protos.UsageMonitoringUpdateResponse {
+func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) *protos.UsageMonitoringUpdateResponse {
 	res := &protos.UsageMonitoringUpdateResponse{
-		Success:    answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
-		SessionId:  request.SessionID,
-		Sid:        addSidPrefix(request.IMSI),
-		ResultCode: answer.ResultCode,
+		Success:       answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+		SessionId:     request.SessionID,
+		Sid:           addSidPrefix(request.IMSI),
+		ResultCode:    answer.ResultCode,
+		RulesToRemove: srv.getRulesToRemoveFromAVP(answer.RuleRemoveAVP),
 	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
@@ -300,4 +298,15 @@ func getSingleUsageMonitorResponseFromCCA(
 		answer.RevalidationTime,
 	)
 	return res
+}
+
+func (srv *CentralSessionController) getRulesToRemoveFromAVP(rulesToRemoveAVP []*gx.RuleRemoveAVP) []string {
+	var ruleNames []string
+	for _, rule := range rulesToRemoveAVP {
+		ruleNames = append(ruleNames, rule.RuleNames...)
+		if len(rule.RuleBaseNames) > 0 {
+			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+		}
+	}
+	return ruleNames
 }
