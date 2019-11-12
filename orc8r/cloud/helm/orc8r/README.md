@@ -19,6 +19,8 @@ The following table list the configurable parameters of the orchestrator chart a
 | `proxy.podDisruptionBudget.enabled` | Enables creation of a PodDisruptionBudget for proxy. | `false` |
 | `proxy.podDisruptionBudget.minAvailable` | Minimum number / percentage of pods that should remain scheduled. | `1` |
 | `proxy.podDisruptionBudget.maxUnavailable` | Maximum number / percentage of pods that may be made unavailable. | `""` |
+| `proxy.service.enabled` | Enables proxy service. | `true` |
+| `proxy.service.lagacyEnabled` | Enables proxy legacy service. | `true` |
 | `proxy.service.annotations` | Annotations to be added to the proxy service. | `{}` |
 | `proxy.service.labels` | Proxy service labels. | `{}` |
 | `proxy.service.type` | Proxy service type. | `ClusterIP` |
