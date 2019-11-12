@@ -366,6 +366,7 @@ message UsageMonitoringUpdateResponse {
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
   uint32 result_code = 7;
+  repeated string rules_to_remove = 8;
 }
 
 
