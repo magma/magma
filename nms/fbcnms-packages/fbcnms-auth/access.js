@@ -14,6 +14,7 @@ import type {AccessRoleLevel} from './roles';
 const path = require('path');
 
 const {AccessRoles} = require('./roles');
+const {ErrorCodes} = require('./errorCodes');
 const addQueryParamsToUrl = require('./util').addQueryParamsToUrl;
 const logger = require('@fbcnms/logging').getLogger(module);
 const openRoutes = require('./openRoutes').default;
@@ -78,15 +79,26 @@ export const access = (level: AccessRoleLevel) => {
       'Client has no permission to view route: [%s], redirecting to /',
       req.originalUrl,
     );
-    res.redirect(
-      // if there is a logged in user, we shouldn't redirect to login page
-      // because it would create an infinite loop since the login page redirects
-      // back if ther user is logged in
-      req.user
-        ? '/'
-        : addQueryParamsToUrl(req.access.loginUrl, {
-            to: req.originalUrl,
-          }),
-    );
+
+    // if there is a logged in user, we shouldn't redirect to login page
+    // because it would create an infinite loop since the login page redirects
+    // back if ther user is logged in
+    const redirectURL = req.user
+      ? '/'
+      : addQueryParamsToUrl(req.access.loginUrl, {
+          to: req.originalUrl,
+        });
+
+    res.format({
+      // for axios requests, redirect does not work, so we return 403 error.
+      json: () =>
+        res.status(403).json({
+          errorCode: ErrorCodes.USER_NOT_LOGGED_IN,
+          description: 'You must login to see this',
+        }),
+      // for browser requests, simply redirect
+      html: () => res.redirect(redirectURL),
+      default: () => res.redirect(redirectURL),
+    });
   };
 };
