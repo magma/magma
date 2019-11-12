@@ -643,17 +643,41 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
         it->second->get_charging_pool().receive_credit(credit_update_resp);
     }
   }
+
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     if (revalidation_required(usage_monitor_resp.event_triggers())) {
       schedule_revalidation(usage_monitor_resp.revalidation_time());
     }
-    auto it = session_map_.find(usage_monitor_resp.sid());
+    const std::string imsi = usage_monitor_resp.sid();
+    auto it = session_map_.find(imsi);
     if (it == session_map_.end()) {
       MLOG(MERROR) << "Could not find session for IMSI "
-                   << usage_monitor_resp.sid() << " during update";
+                   << imsi << " during update";
       return;
     }
     it->second->get_monitor_pool().receive_credit(usage_monitor_resp);
+
+    RulesToProcess rules_to_deactivate;
+    process_rules_to_remove(
+      imsi,
+      *(it->second.get()),
+      usage_monitor_resp.rules_to_remove(),
+      &rules_to_deactivate);
+
+    bool deactivate_success;
+    if (rules_to_deactivate.static_rules.size() > 0 ||
+        rules_to_deactivate.dynamic_rules.size() > 0) {
+      deactivate_success = pipelined_client_->deactivate_flows_for_rules(
+        imsi,
+        rules_to_deactivate.static_rules,
+        rules_to_deactivate.dynamic_rules);
+    }
+    if (!deactivate_success) {
+      // TODO Look into handling this error better
+      MLOG(MERROR) << "Could not deactivate flows for IMSI "
+                   << imsi << "during update";
+      continue;
+    }
   }
 }
 
@@ -746,7 +770,7 @@ void LocalEnforcer::init_policy_reauth(
   RulesToProcess rules_to_deactivate;
 
   get_rules_from_policy_reauth_request(
-    request, it->second, &rules_to_activate, &rules_to_deactivate);
+    request, *(it->second.get()), &rules_to_activate, &rules_to_deactivate);
 
   auto ip_addr = it->second->get_subscriber_ip_addr();
   bool deactivate_success = true;
@@ -793,9 +817,34 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   }
 }
 
+void LocalEnforcer::process_rules_to_remove(
+  const std::string& imsi,
+  SessionState& session,
+  const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+    rules_to_remove,
+  RulesToProcess* rules_to_deactivate)
+{
+  for (const auto &rule_id : rules_to_remove) {
+    // Try to remove as dynamic rule first
+    PolicyRule dy_rule;
+    bool is_dynamic = session.remove_dynamic_rule(rule_id, &dy_rule);
+
+    if (is_dynamic) {
+      rules_to_deactivate->dynamic_rules.push_back(dy_rule);
+    } else {
+      if (!session.deactivate_static_rule(rule_id)) {
+        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
+                       << imsi << " during static rule removal";
+        continue;
+      }
+      rules_to_deactivate->static_rules.push_back(rule_id);
+    }
+  }
+}
+
 void LocalEnforcer::get_rules_from_policy_reauth_request(
   const PolicyReAuthRequest &request,
-  const std::unique_ptr<SessionState> &session,
+  SessionState &session,
   RulesToProcess *rules_to_activate,
   RulesToProcess *rules_to_deactivate)
 {
@@ -804,31 +853,22 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     schedule_revalidation(request.revalidation_time());
   }
 
-  for (const auto &rule_id : request.rules_to_remove()) {
-    // Try to remove as dynamic rule first
-    PolicyRule dy_rule;
-    bool is_dynamic = session->remove_dynamic_rule(rule_id, &dy_rule);
-
-    if (is_dynamic) {
-      rules_to_deactivate->dynamic_rules.push_back(dy_rule);
-    } else {
-      if (!session->deactivate_static_rule(rule_id))
-        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
-                       << request.imsi() << " during static rule removal";
-      rules_to_deactivate->static_rules.push_back(rule_id);
-    }
-  }
-
   std::time_t current_time = time(NULL);
   std::string imsi = request.imsi();
-  auto ip_addr = session->get_subscriber_ip_addr();
+
+  process_rules_to_remove(
+    request.imsi(),
+    session,
+    request.rules_to_remove(),
+    rules_to_deactivate);
+  auto ip_addr = session.get_subscriber_ip_addr();
   for (const auto &static_rule : request.rules_to_install()) {
     auto activation_time =
       TimeUtil::TimestampToSeconds(static_rule.activation_time());
     if (activation_time > current_time) {
       schedule_static_rule_activation(imsi, ip_addr, static_rule);
     } else {
-      session->activate_static_rule(static_rule.rule_id());
+      session.activate_static_rule(static_rule.rule_id());
       rules_to_activate->static_rules.push_back(static_rule.rule_id());
     }
 
@@ -837,7 +877,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (deactivation_time > current_time) {
       schedule_static_rule_deactivation(imsi, static_rule);
     } else if (deactivation_time > 0) {
-      if (!session->deactivate_static_rule(static_rule.rule_id()))
+      if (!session.deactivate_static_rule(static_rule.rule_id()))
         MLOG(MWARNING) << "Could not find rule " << static_rule.rule_id()
                        << "for IMSI " << imsi << " during static rule removal";
       rules_to_deactivate->static_rules.push_back(static_rule.rule_id());
@@ -850,7 +890,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     if (activation_time > current_time) {
       schedule_dynamic_rule_activation(imsi, ip_addr, dynamic_rule);
     } else {
-      session->insert_dynamic_rule(dynamic_rule.policy_rule());
+      session.insert_dynamic_rule(dynamic_rule.policy_rule());
       rules_to_activate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
 
@@ -860,7 +900,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
       schedule_dynamic_rule_deactivation(imsi, dynamic_rule);
     } else if (deactivation_time > 0) {
       PolicyRule rule_dont_care;
-      session->remove_dynamic_rule(
+      session.remove_dynamic_rule(
         dynamic_rule.policy_rule().id(), &rule_dont_care);
       rules_to_deactivate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
