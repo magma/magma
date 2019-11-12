@@ -50,12 +50,21 @@ export default function DevicesNewAgentDialog(props: Props) {
   const [error, setError] = useState('');
 
   function onSave() {
+    const sanitizedHardwareId = hardwareId.toLowerCase();
     const agentId = name.replace(/[^a-zA-z0-9]/g, '_').toLowerCase();
+
+    if (
+      sanitizedHardwareId.match(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      ) == null
+    ) {
+      throw 'Invalid UUID, should be in format of "01234567-0123-0123-0123-0123456789ab"';
+    }
 
     const symphonyAgent: symphony_agent = {
       description: agentId,
       device: {
-        hardware_id: hardwareId,
+        hardware_id: sanitizedHardwareId,
         key: {key_type: 'ECHO'},
       },
       id: agentId,
