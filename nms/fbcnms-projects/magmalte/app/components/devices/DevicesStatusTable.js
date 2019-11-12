@@ -28,10 +28,7 @@ import {Route} from 'react-router-dom';
 import {map} from 'lodash';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {
-  buildDevicesGatewayFromPayload,
-  mergeGatewaysDevices,
-} from './DevicesUtils';
+import {buildDevicesAgentFromPayload, mergeAgentsDevices} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -69,13 +66,13 @@ const REFRESH_INTERVAL = 10000;
 export default function DevicesStatusTable() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, history} = useRouter();
-  const [rawGateways, setRawGateways] = useState<?(symphony_agent[])>(null);
+  const [rawAgents, setRawAgents] = useState<?(symphony_agent[])>(null);
   const [devices, setDevices] = useState<?(string[])>(null);
 
-  const {isLoading: gatewaysIsLoading, error} = useMagmaAPI(
+  const {isLoading: agentsIsLoading, error} = useMagmaAPI(
     MagmaV1API.getSymphonyByNetworkIdAgents,
     {networkId: nullthrows(match.params.networkId)},
-    useCallback(response => setRawGateways(map(response, agent => agent)), []),
+    useCallback(response => setRawAgents(map(response, agent => agent)), []),
   );
 
   const {isLoading: devicesIsLoading, error: devicesError} = useMagmaAPI(
@@ -89,7 +86,7 @@ export default function DevicesStatusTable() {
   );
 
   useEffect(() => {
-    if (!rawGateways) {
+    if (!rawAgents) {
       return;
     }
     const interval = setInterval(async () => {
@@ -97,13 +94,13 @@ export default function DevicesStatusTable() {
         const response = await MagmaV1API.getSymphonyByNetworkIdAgents({
           networkId: nullthrows(match.params.networkId),
         });
-        setRawGateways(map(response, agent => agent));
+        setRawAgents(map(response, agent => agent));
       } catch (err) {
         console.error(`Warning: cannot refresh'. ${err}`);
       }
     }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
-  }, [match, rawGateways]);
+  }, [match, rawAgents]);
 
   let errorMessage = null;
   let fullDevices = {};
@@ -112,12 +109,12 @@ export default function DevicesStatusTable() {
     errorMessage = error.message;
   } else if (devicesError) {
     errorMessage = devicesError.message;
-  } else if (rawGateways != null && devices) {
-    const gateways = rawGateways.map(buildDevicesGatewayFromPayload);
-    fullDevices = mergeGatewaysDevices(gateways, devices);
+  } else if (rawAgents != null && devices) {
+    const agents = rawAgents.map(buildDevicesAgentFromPayload);
+    fullDevices = mergeAgentsDevices(agents, devices);
   }
 
-  if (error || devicesError || gatewaysIsLoading || devicesIsLoading) {
+  if (error || devicesError || agentsIsLoading || devicesIsLoading) {
     return <LoadingFiller />;
   }
 

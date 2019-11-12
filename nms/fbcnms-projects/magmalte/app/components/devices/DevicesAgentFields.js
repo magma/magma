@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {DevicesGateway} from './DevicesUtils';
+import type {DevicesAgent} from './DevicesUtils';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -32,12 +32,12 @@ const useStyles = makeStyles({
 
 type Props = {
   onClose: () => void,
-  onSave: (gatewayID: string) => void,
-  gateway: DevicesGateway,
+  onSave: (agentID: string) => void,
+  agent: DevicesAgent,
   devmandManagedDevices: Array<string>,
 };
 
-export default function DevicesGatewayDevmandFields(props: Props) {
+export default function DevicesAgentFields(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
 
@@ -52,19 +52,19 @@ export default function DevicesGatewayDevmandFields(props: Props) {
     if (devmandManagedDevices != null) {
       MagmaV1API.putSymphonyByNetworkIdAgentsByAgentIdManagedDevices({
         networkId: match.params.networkId,
-        agentId: props.gateway.id,
+        agentId: props.agent.id,
         managedDevices: devmandManagedDevices.filter(
           device => device.length > 0,
         ),
       })
-        .then(() => props.onSave(props.gateway.id))
+        .then(() => props.onSave(props.agent.id))
         .catch(err => {
           setErrorMessage(
             err.toString() + ' ' + err.response?.data?.message || '',
           );
         });
     } else {
-      () => props.onSave(props.gateway.id);
+      () => props.onSave(props.agent.id);
     }
   };
 

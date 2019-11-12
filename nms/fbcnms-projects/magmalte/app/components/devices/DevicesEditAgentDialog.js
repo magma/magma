@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {DevicesGateway} from './DevicesUtils';
+import type {DevicesAgent} from './DevicesUtils';
 import type {symphony_agent} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
-import DevicesGatewayDevmandFields from './DevicesGatewayDevmandFields';
+import DevicesAgentFields from './DevicesAgentFields';
 import Dialog from '@material-ui/core/Dialog';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayCommandFields from '@fbcnms/magmalte/app/components/GatewayCommandFields';
@@ -38,7 +38,7 @@ const useStyles = makeStyles({
 type Props = {
   onClose: () => void,
   onSave: symphony_agent => void,
-  gateway: DevicesGateway,
+  agent: DevicesAgent,
 };
 
 export default function DevicesEditAgentDialog(props: Props) {
@@ -54,7 +54,7 @@ export default function DevicesEditAgentDialog(props: Props) {
     MagmaV1API.getSymphonyByNetworkIdAgentsByAgentIdManagedDevices,
     {
       networkId: nullthrows(match.params.networkId),
-      agentId: props.gateway.id,
+      agentId: props.agent.id,
     },
     useCallback(response => {
       let managedDevices = [];
@@ -84,9 +84,9 @@ export default function DevicesEditAgentDialog(props: Props) {
         content = <LoadingFiller />;
       } else {
         content = (
-          <DevicesGatewayDevmandFields
+          <DevicesAgentFields
             onClose={props.onClose}
-            gateway={props.gateway}
+            agent={props.agent}
             onSave={onSave}
             devmandManagedDevices={devmandManagedDevices}
             showRestartCommand={true}
@@ -101,7 +101,7 @@ export default function DevicesEditAgentDialog(props: Props) {
       content = (
         <GatewayCommandFields
           onClose={props.onClose}
-          gatewayID={props.gateway.id}
+          gatewayID={props.agent.id}
           showRestartCommand={true}
           showRebootEnodebCommand={true}
           showPingCommand={true}
