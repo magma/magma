@@ -72,6 +72,8 @@ typedef struct itti_s5_nw_init_actv_bearer_request_s {
 
 typedef struct itti_s5_nw_init_actv_bearer_rsp_s {
   gtpv2c_cause_value_t cause;
+  Imsi_t imsi;
+  ebi_t lbi;
   ebi_t ebi; ///<EPS Bearer ID
   teid_t S1_U_sgw_teid; ///< S1U sge TEID
   teid_t S1_U_enb_teid; ///< S1U enb TEID
