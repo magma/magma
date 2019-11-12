@@ -443,7 +443,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 	)
 	ctx := context.Background()
 
-	// Return success for Gx termination
+	// Return success for Gx Update
 	mocks.gy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -511,6 +511,49 @@ func TestGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, protos.UsageMonitoringCredit_DISABLE, update.Credit.Action)
 	assert.Nil(t, update.Credit.GrantedUnits)
 	assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
+
+	// Test that rule remove avp in CCA-Update by rule names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(returnRuleDisableByRuleNameGxUpdateResponse).Times(1)
+
+	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleDisableUpdateResponse.UsageMonitorResponses))
+	update = ruleDisableUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, []string{"rule1", "rule2"}, update.RulesToRemove)
+
+	// Test that rule remove avp in CCA-Update by base names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(returnRuleDisableByBaseNameGxUpdateResponse).Times(1)
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+
+	ruleDisableUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleDisableUpdateResponse.UsageMonitorResponses))
+	update = ruleDisableUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, []string{"base_rule_1", "base_rule_2"}, update.RulesToRemove)
 }
 
 func TestGetHealthStatus(t *testing.T) {
@@ -530,7 +573,7 @@ func TestGetHealthStatus(t *testing.T) {
 	)
 	ctx := context.Background()
 
-	// Return success for Gx termination
+	// Return success for Gx/Gy CCR-Update
 	mocks.gy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -561,7 +604,7 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fegprotos.HealthStatus_HEALTHY, status.Health)
 
-	// Return success for Gx termination
+	// Return error for Gx/Gy CCR-Updatee
 	mocks.gy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -755,6 +798,54 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 		SessionID:     request.SessionID,
 		RequestNumber: request.RequestNumber,
 		UsageMonitors: monitors,
+	}
+}
+
+func returnRuleDisableByRuleNameGxUpdateResponse(args mock.Arguments) {
+	done := args.Get(1).(chan interface{})
+	request := args.Get(2).(*gx.CreditControlRequest)
+	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+	for _, report := range request.UsageReports {
+		monitors = append(monitors, &gx.UsageMonitoringInfo{
+			MonitoringKey:      report.MonitoringKey,
+			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+			Level:              report.Level,
+		})
+	}
+	done <- &gx.CreditControlAnswer{
+		ResultCode:    uint32(diameter.SuccessCode),
+		SessionID:     request.SessionID,
+		RequestNumber: request.RequestNumber,
+		UsageMonitors: monitors,
+		RuleRemoveAVP: []*gx.RuleRemoveAVP{
+			{
+				RuleNames: []string{"rule1", "rule2"},
+			},
+		},
+	}
+}
+
+func returnRuleDisableByBaseNameGxUpdateResponse(args mock.Arguments) {
+	done := args.Get(1).(chan interface{})
+	request := args.Get(2).(*gx.CreditControlRequest)
+	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+	for _, report := range request.UsageReports {
+		monitors = append(monitors, &gx.UsageMonitoringInfo{
+			MonitoringKey:      report.MonitoringKey,
+			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+			Level:              report.Level,
+		})
+	}
+	done <- &gx.CreditControlAnswer{
+		ResultCode:    uint32(diameter.SuccessCode),
+		SessionID:     request.SessionID,
+		RequestNumber: request.RequestNumber,
+		UsageMonitors: monitors,
+		RuleRemoveAVP: []*gx.RuleRemoveAVP{
+			{
+				RuleBaseNames: []string{"base_10"},
+			},
+		},
 	}
 }
 

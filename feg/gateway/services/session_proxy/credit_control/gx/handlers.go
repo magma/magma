@@ -41,6 +41,7 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 			SessionID:              sid,
 			RequestNumber:          cca.RequestNumber,
 			RuleInstallAVP:         cca.RuleInstalls,
+			RuleRemoveAVP:          cca.RuleRemovals,
 			UsageMonitors:          cca.UsageMonitors[:],
 			EventTriggers:          cca.EventTriggers,
 			RevalidationTime:       cca.RevalidationTime,
