@@ -860,7 +860,6 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
-  std::vector<std::string> expected_static_rules = {"pcrf_only"};
   std::vector<PolicyRule> expected_dynamic_rules;
   EXPECT_CALL(
     *pipelined_client,
