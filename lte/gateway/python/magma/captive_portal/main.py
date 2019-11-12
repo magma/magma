@@ -16,7 +16,7 @@ def main():
     service = MagmaService('captive_portal', None)
 
     # Add all servicers to the server
-    session_servicer = SessionRpcServicer(service)
+    session_servicer = SessionRpcServicer(service.config)
     session_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop
