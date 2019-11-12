@@ -238,6 +238,7 @@ function DiameterFields(props: {
   const classes = useStyles();
   const {values} = props;
   const onChange = field => event =>
+    // $FlowFixMe Set state for each field
     props.onChange({...values, [field]: event.target.value});
 
   return (

@@ -239,7 +239,8 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     this.setState({
       wifiConfigsChanged: true,
       wifiConfigs: {
-        ...this.state.wifiConfigs,
+        ...nullthrows(this.state.wifiConfigs),
+        // $FlowFixMe Set state for each field
         [fieldName]: value,
       },
     });
@@ -249,7 +250,8 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     this.setState({
       magmaConfigsChanged: true,
       magmaConfigs: {
-        ...this.state.magmaConfigs,
+        ...nullthrows(this.state.magmaConfigs),
+        // $FlowFixMe Set state for each field
         [fieldName]: value,
       },
     });
