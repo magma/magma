@@ -188,11 +188,11 @@ class LocalEnforcer {
    * determining whether each one is dynamic or static.
    */
   void process_rules_to_remove(
-  const std::string &imsi,
-  SessionState &session,
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
   const google::protobuf::RepeatedPtrField<std::basic_string<char>>
     rules_to_remove,
-  RulesToProcess *rules_to_deactivate);
+  RulesToProcess* rules_to_deactivate);
 
   /**
    * Process the policy reauth request to get rules to activate/deactivate
@@ -204,7 +204,7 @@ class LocalEnforcer {
    */
   void get_rules_from_policy_reauth_request(
     const PolicyReAuthRequest &request,
-    SessionState &session,
+    const std::unique_ptr<SessionState> &session,
     RulesToProcess *rules_to_activate,
     RulesToProcess *rules_to_deactivate);
 
