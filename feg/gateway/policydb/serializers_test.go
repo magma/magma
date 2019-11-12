@@ -108,7 +108,7 @@ func clearOutMetaFieldsFromPolicy(policy *lteProtos.PolicyRule) {
 	policy.XXX_sizecache = 0
 }
 
-func getDefaultNameSet() *lteProtos.ChargingRuleNameSet{
+func getDefaultNameSet() *lteProtos.ChargingRuleNameSet {
 	return &lteProtos.ChargingRuleNameSet{
 		RuleNames: []string{"static1"},
 	}
