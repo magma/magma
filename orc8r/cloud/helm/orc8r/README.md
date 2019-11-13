@@ -16,6 +16,9 @@ The following table list the configurable parameters of the orchestrator chart a
 | `secret.certs` | Secret name containing orchestrator certs. | `orc8r-secrets-certs` |
 | `secret.configs` | Secret name containing orchestrator configs. | `orc8r-secrets-configs` |
 | `secret.envdir` | Secret name containing orchestrator envdir. | `orc8r-secrets-envdir` |
+| `proxy.podDisruptionBudget.enabled` | Enables creation of a PodDisruptionBudget for proxy. | `false` |
+| `proxy.podDisruptionBudget.minAvailable` | Minimum number / percentage of pods that should remain scheduled. | `1` |
+| `proxy.podDisruptionBudget.maxUnavailable` | Maximum number / percentage of pods that may be made unavailable. | `""` |
 | `proxy.service.annotations` | Annotations to be added to the proxy service. | `{}` |
 | `proxy.service.labels` | Proxy service labels. | `{}` |
 | `proxy.service.type` | Proxy service type. | `ClusterIP` |
@@ -34,6 +37,9 @@ The following table list the configurable parameters of the orchestrator chart a
 | `proxy.nodeSelector` | Define which Nodes the Pods are scheduled on. | `{}` |
 | `proxy.tolerations` | If specified, the pod's tolerations. | `[]` |
 | `proxy.affinity` | Assign the orchestrator proxy to run on specific nodes. | `{}` |
+| `controller.podDisruptionBudget.enabled` | Enables creation of a PodDisruptionBudget for proxy. | `false` |
+| `controller.podDisruptionBudget.minAvailable` | Minimum number / percentage of pods that should remain scheduled. | `1` |
+| `controller.podDisruptionBudget.maxUnavailable` | Maximum number / percentage of pods that may be made unavailable. | `""` |
 | `controller.service.annotations` | Annotations to be added to the controller service. | `{}` |
 | `controller.service.labels` | Controller service labels. | `{}` |
 | `controller.service.type` | Controller service type. | `ClusterIP` |
