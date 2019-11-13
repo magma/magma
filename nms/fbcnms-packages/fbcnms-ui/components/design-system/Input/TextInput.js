@@ -69,8 +69,8 @@ const styles = ({symphony}) => ({
 
 type Props = {
   /** Input type. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types */
-  type: string,
-  value: string | number,
+  type?: string,
+  value?: string | number,
   className?: string,
   placeholder?: string,
   autoFocus?: boolean,
@@ -147,7 +147,7 @@ class TextInput extends React.Component<Props, State> {
         )}>
         {prefix && (
           <div className={classes.prefix}>
-            <InputContext.Provider value={{disabled, value}}>
+            <InputContext.Provider value={{disabled, value: value ?? ''}}>
               {prefix}
             </InputContext.Provider>
           </div>
@@ -165,5 +165,9 @@ class TextInput extends React.Component<Props, State> {
     );
   }
 }
+
+TextInput.defaultProps = {
+  type: 'string',
+};
 
 export default withStyles(styles)(TextInput);

@@ -50,6 +50,7 @@ type Props = {
   children: React.Node,
   disabled: boolean,
   hasError: boolean,
+  required: boolean,
   errorText?: ?string,
   hasSpacer?: boolean,
 };
@@ -64,6 +65,7 @@ const FormField = (props: Props) => {
     hasError,
     errorText,
     hasSpacer,
+    required,
   } = props;
   const classes = useStyles();
   return (
@@ -78,6 +80,7 @@ const FormField = (props: Props) => {
         {label && (
           <Text className={classes.labelContainer} variant="body2">
             {label}
+            {required && ' *'}
           </Text>
         )}
         {children}
@@ -97,6 +100,7 @@ const FormField = (props: Props) => {
 FormField.defaultProps = {
   disabled: false,
   hasError: false,
+  required: false,
 };
 
 export default FormField;
