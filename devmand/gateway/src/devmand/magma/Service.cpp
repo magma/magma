@@ -7,8 +7,12 @@
 
 #include <MetricsSingleton.h>
 
+#include <folly/json.h>
+
 #include <devmand/Application.h>
 #include <devmand/magma/Service.h>
+#include <orc8r/protos/service303.grpc.pb.h>
+#include <orc8r/protos/service303.pb.h>
 
 namespace devmand {
 namespace magma {
@@ -16,8 +20,42 @@ namespace magma {
 Service::Service(Application& application)
     : ::devmand::Service(application),
       magmaService(app.getName(), app.getVersion()) {
-  magmaService.SetServiceInfoCallback(
-      [this]() { return app.getUnifiedView(); });
+
+  magmaService.SetServiceInfoCallback([this]() {
+    auto uv = app.getUnifiedView();
+
+    LOG(DEBUG) << "publishing :=\n";
+    for (auto& kv : uv) {
+      LOG(DEBUG) << "\t\"" << kv.first << "\" : \"" << kv.second << "\"\n";
+    }
+    return uv;
+  });
+
+  magmaService.SetOperationalStatesCallback([this]() {
+    auto uv = app.getUnifiedView();
+    std::list<std::map<std::string, std::string>> states;
+
+    folly::dynamic devices =
+        uv.find("devmand") != uv.end()
+        ? folly::parseJson(uv["devmand"])
+        : folly::dynamic::object;
+
+    LOG(DEBUG) << "Publishing op-state :=\n";
+    for (auto& device : devices.items()) {
+      std::string device_id = device.first.asString();
+      folly::dynamic device_state = folly::dynamic::object;
+      device_state["raw_state"] = folly::toJson(device.second);
+
+      std::map<std::string, std::string> state = {
+        {"type", orc8rDeviceType},
+        {"device_id", device.first.asString()},
+        {"value", folly::toJson(device_state)}
+      };
+      LOG(DEBUG) << device_id << " : " << folly::toJson(device_state) << "\n";
+      states.push_back(state);
+    }
+    return states;
+  });
 }
 
 void Service::setGauge(const std::string& key, double value) {

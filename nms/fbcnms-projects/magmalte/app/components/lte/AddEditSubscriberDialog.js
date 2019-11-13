@@ -212,6 +212,7 @@ class AddEditSubscriberDialog extends React.Component<Props, State> {
     this.setState({
       editingSubscriber: {
         ...this.state.editingSubscriber,
+        // $FlowFixMe Set state for each field
         [field]: event.target.value,
       },
     });

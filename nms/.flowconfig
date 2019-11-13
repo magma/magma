@@ -53,6 +53,7 @@
 esproposal.optional_chaining=enable
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 suppress_comment= \\(.\\|\n\\)*\\$FlowIgnore
+suppress_comment= \\(.\\|\n\\)*\\$FlowIssue
 
 [libs]
 node_modules/mapbox-gl/flow-typed
@@ -84,4 +85,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.110.0
+^0.111.0

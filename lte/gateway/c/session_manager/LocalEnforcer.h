@@ -184,6 +184,17 @@ class LocalEnforcer {
     RulesToProcess *rules_to_deactivate);
 
   /**
+   * Process the list of rule names given and fill in rules_to_deactivate by
+   * determining whether each one is dynamic or static.
+   */
+  void process_rules_to_remove(
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
+  const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+    rules_to_remove,
+  RulesToProcess* rules_to_deactivate);
+
+  /**
    * Process the policy reauth request to get rules to activate/deactivate
    * instantly and schedule rules with activation/deactivation time info
    * to activate/deactivate later.

@@ -265,6 +265,7 @@ export default function AlertRules(props: Props) {
           setCurrentAlert(null);
           setIsAddEditAlert(true);
         }}
+        aria-label="Add Alert"
         data-testid="add-edit-alert-button">
         <AddIcon />
       </Fab>

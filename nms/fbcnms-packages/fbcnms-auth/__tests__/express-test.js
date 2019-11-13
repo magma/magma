@@ -16,6 +16,7 @@ import fbcPassport from '../passport';
 import passport from 'passport';
 import request from 'supertest';
 import userMiddleware from '../express';
+import {ErrorCodes} from '../errorCodes';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
 import {User, sequelize} from '@fbcnms/sequelize-models';
 
@@ -307,19 +308,27 @@ describe('user tests', () => {
 
   describe('endpoints as normal user', () => {
     const app = getApp('validorg', 'valid@123.com');
-    it('redirects restricted urls to login', async () => {
+    const expectedErrorResponse = {
+      errorCode: ErrorCodes.USER_NOT_LOGGED_IN,
+      description: 'You must login to see this',
+    };
+    it('403 error for restricted urls, axios handles redirect', async () => {
       await request(app)
         .get('/user/async/')
-        .expect(302);
+        .expect(403)
+        .expect(expectedErrorResponse);
       await request(app)
         .post('/user/async/')
-        .expect(302);
+        .expect(403)
+        .expect(expectedErrorResponse);
       await request(app)
         .put('/user/async/1')
-        .expect(302);
+        .expect(403)
+        .expect(expectedErrorResponse);
       await request(app)
         .delete('/user/async/1/')
-        .expect(302);
+        .expect(403)
+        .expect(expectedErrorResponse);
     });
   });
 });

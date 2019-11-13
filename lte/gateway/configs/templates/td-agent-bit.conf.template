@@ -66,5 +66,14 @@
 [OUTPUT]
     Name          forward
     Match         *
-    Host          10.0.2.2
-    Port          24224
+    Host          {{ host }}
+    Port          {{ port }}
+
+    tls on
+    tls.verify off
+    tls.debug 3
+    tls.ca_file {{ cacert }}
+    tls.crt_file {{ certfile }}
+    tls.key_file {{ keyfile }}
+
+
