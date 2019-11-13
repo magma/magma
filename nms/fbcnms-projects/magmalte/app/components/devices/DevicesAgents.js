@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {DevicesGateway} from './DevicesUtils';
+import type {DevicesAgent} from './DevicesUtils';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -22,22 +22,22 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
-import React from 'react';
+import React, {useCallback, useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {map} from 'lodash';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {Route} from 'react-router-dom';
-import {buildDevicesGatewayFromPayload} from './DevicesUtils';
+import {buildDevicesAgentFromPayload} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
-import {useCallback, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -54,73 +54,81 @@ type Props = WithAlert & {};
 
 function DevicesAgents(props: Props) {
   const {match, history, relativePath, relativeUrl} = useRouter();
-  const [gateways, setGateways] = useState<?Array<DevicesGateway>>(null);
-  const [editingGateway, setEditingGateway] = useState<?DevicesGateway>(null);
+  const [agents, setAgents] = useState<?Array<DevicesAgent>>(null);
+  const [errorMessage, setErrorMessage] = useState<?string>(null);
+  const [editingAgent, setEditingAgent] = useState<?DevicesAgent>(null);
   const classes = useStyles();
 
-  const {error} = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-    onResponse: useCallback(response => {
-      const gateways = response.data
-        .filter(g => g.record && g.config)
-        .map(g => buildDevicesGatewayFromPayload(g))
-        .sort((a, b) => a.id.localeCompare(b.id));
-      setGateways(gateways);
+  const {error, isLoading} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdAgents,
+    {networkId: nullthrows(match.params.networkId)},
+    useCallback(response => {
+      if (response != null) {
+        setAgents(
+          map(response, (agent, _) => buildDevicesAgentFromPayload(agent)).sort(
+            (a, b) => a.id.localeCompare(b.id),
+          ),
+        );
+      }
     }, []),
-  });
+  );
 
-  if (error || !gateways) {
+  if (error || isLoading || !agents) {
     return <LoadingFiller />;
   }
 
-  const onSave = gatewayPayload => {
-    const gateway = buildDevicesGatewayFromPayload(gatewayPayload);
-    const newGateways = gateways.slice(0);
-    if (editingGateway) {
-      newGateways[newGateways.indexOf(editingGateway)] = gateway;
+  const onSave = agentPayload => {
+    const agent = buildDevicesAgentFromPayload(agentPayload);
+    const newAgents = agents.slice(0);
+    if (editingAgent) {
+      newAgents[newAgents.indexOf(editingAgent)] = agent;
     } else {
-      newGateways.push(gateway);
+      newAgents.push(agent);
     }
-    setGateways(newGateways);
-    setEditingGateway(null);
+    setAgents(newAgents);
+    setEditingAgent(null);
   };
 
-  const deleteGateway = gateway => {
-    props
-      .confirm(`Are you sure you want to delete ${gateway.id}?`)
-      .then(confirmed => {
-        if (!confirmed) {
-          return;
-        }
-        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
-          networkId: nullthrows(match.params.networkId),
-          gatewayId: gateway.id,
-        }).then(() => setGateways(gateways.filter(gw => gw.id != gateway.id)));
-      });
+  const deleteAgent = agent => {
+    if (!agent.id) {
+      setErrorMessage('Error: cannot delete because id is empty');
+    } else {
+      props
+        .confirm(`Are you sure you want to delete ${agent.id}?`)
+        .then(confirmed => {
+          if (!confirmed) {
+            return;
+          }
+          MagmaV1API.deleteSymphonyByNetworkIdAgentsByAgentId({
+            networkId: nullthrows(match.params.networkId),
+            agentId: agent.id,
+          }).then(() => setAgents(agents.filter(a => a.id != agent.id)));
+          setErrorMessage(null);
+        });
+    }
   };
 
-  const rows = gateways.map(gateway => (
-    <TableRow key={gateway.id}>
+  const rows = agents.map(agent => (
+    <TableRow key={agent.id}>
       <TableCell>
         {status}
         <DeviceStatusCircle
-          isGrey={gateway.status == null}
-          isActive={!!gateway.up}
+          isGrey={agent.status == null}
+          isActive={!!agent.up}
         />
-        {gateway.id}
+        {agent.id || 'Error: Missing ID'}
       </TableCell>
       <TableCell>
-        {gateway.hardware_id}
-        {gateway.devmand_config === undefined && (
+        {agent.hardware_id}
+        {agent.devmand_config === undefined && (
           <Text color="error">missing devmand config</Text>
         )}
       </TableCell>
       <TableCell>
-        <IconButton color="primary" onClick={() => setEditingGateway(gateway)}>
+        <IconButton color="primary" onClick={() => setEditingAgent(agent)}>
           <EditIcon />
         </IconButton>
-        <IconButton color="primary" onClick={() => deleteGateway(gateway)}>
+        <IconButton color="primary" onClick={() => deleteAgent(agent)}>
           <DeleteIcon />
         </IconButton>
       </TableCell>
@@ -136,10 +144,11 @@ function DevicesAgents(props: Props) {
         </NestedRouteLink>
       </div>
       <Paper elevation={2}>
+        {errorMessage && <div>{errorMessage.toString()}</div>}
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
+              <TableCell>ID</TableCell>
               <TableCell>Hardware UUID</TableCell>
               <TableCell />
             </TableRow>
@@ -147,11 +156,11 @@ function DevicesAgents(props: Props) {
           <TableBody>{rows}</TableBody>
         </Table>
       </Paper>
-      {editingGateway && (
+      {editingAgent && (
         <DevicesEditAgentDialog
-          key={editingGateway.id}
-          gateway={editingGateway}
-          onClose={() => setEditingGateway(null)}
+          key={editingAgent.id}
+          agent={editingAgent}
+          onClose={() => setEditingAgent(null)}
           onSave={onSave}
         />
       )}
@@ -160,11 +169,8 @@ function DevicesAgents(props: Props) {
         render={() => (
           <DevicesNewAgentDialog
             onClose={() => history.push(relativeUrl(''))}
-            onSave={rawGateway => {
-              setGateways([
-                ...gateways,
-                buildDevicesGatewayFromPayload(rawGateway),
-              ]);
+            onSave={rawAgent => {
+              setAgents([...agents, buildDevicesAgentFromPayload(rawAgent)]);
               history.push(relativeUrl(''));
             }}
           />

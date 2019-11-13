@@ -258,7 +258,7 @@ function mockApiUrls() {
   };
 }
 
-function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
+function mockApiUtil(): ApiUtil {
   return {
     useAlarmsApi: useMagmaAPIMock,
     viewFiringAlerts: apiMock,
@@ -267,6 +267,8 @@ function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
     editAlertRule: apiMock,
     getAlertRules: apiMock,
     deleteAlertRule: apiMock,
-    ...(merge || {}),
+    getSuppressions: apiMock,
+    getReceivers: apiMock,
+    getRoutes: apiMock,
   };
 }

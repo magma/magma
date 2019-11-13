@@ -125,44 +125,51 @@ export const AddGatewayFields = (props: {
 }) => {
   const classes = useStyles();
 
-  const onChange = field => event =>
-    props.onChange({...props.values, [field]: event.target.value});
-
   return (
     <>
       <TextField
         label="Gateway Name"
         className={classes.input}
         value={props.values.name}
-        onChange={onChange('name')}
+        onChange={({target}) =>
+          props.onChange({...props.values, name: target.value})
+        }
         placeholder="Gateway 1"
       />
       <TextField
         label="Gateway Description"
         className={classes.input}
         value={props.values.description}
-        onChange={onChange('description')}
+        onChange={({target}) =>
+          props.onChange({...props.values, description: target.value})
+        }
         placeholder="Sample Gateway description"
       />
       <TextField
         label="Hardware UUID"
         className={classes.input}
         value={props.values.hardwareID}
-        onChange={onChange('hardwareID')}
+        onChange={({target}) =>
+          props.onChange({...props.values, hardwareID: target.value})
+        }
         placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
       />
       <TextField
         label="Gateway ID"
         className={classes.input}
         value={props.values.gatewayID}
-        onChange={onChange('gatewayID')}
+        onChange={({target}) =>
+          props.onChange({...props.values, gatewayID: target.value})
+        }
         placeholder="<country>_<org>_<location>_<sitenumber>"
       />
       <TextField
         label="Challenge Key"
         className={classes.input}
         value={props.values.challengeKey}
-        onChange={onChange('challengeKey')}
+        onChange={({target}) =>
+          props.onChange({...props.values, challengeKey: target.value})
+        }
         placeholder="A base64 bytestring of the key in DER format"
       />
       <FormControl className={classes.input}>
@@ -170,7 +177,9 @@ export const AddGatewayFields = (props: {
         <Select
           className={classes.input}
           value={props.values.tier}
-          onChange={onChange('tier')}>
+          onChange={({target}) =>
+            props.onChange({...props.values, tier: target.value})
+          }>
           {props.tiers.map(tier => (
             <MenuItem key={tier} value={tier}>
               {tier}

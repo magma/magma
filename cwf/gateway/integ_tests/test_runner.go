@@ -33,22 +33,25 @@ const (
 	MockPCRFRemote  = "PCRF_REMOTE"
 	MockOCSRemote   = "OCS_REMOTE"
 	PipelinedRemote = "pipelined.local"
+	RedisRemote     = "REDIS"
 	CwagIP          = "192.168.70.101"
-	HSSPort         = 9204
 	OCSPort         = 9201
 	PCRFPort        = 9202
+	HSSPort         = 9204
 	PipelinedPort   = 8443
+	RedisPort       = 6380
 
 	defaultMSISDN = "5100001234"
 )
 
 type TestRunner struct {
-	imsis map[string]bool
+	imsis           map[string]bool
+	policyDBWrapper *policyDBWrapper
 }
 
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
-func NewTestRunner() *TestRunner {
+func NewTestRunner() (*TestRunner, error) {
 	fmt.Println("************************* TestRunner setup")
 	testRunner := &TestRunner{}
 
@@ -61,8 +64,15 @@ func NewTestRunner() *TestRunner {
 	registry.AddService(MockOCSRemote, CwagIP, OCSPort)
 	fmt.Printf("Adding Pipelined service at %s:%d\n", CwagIP, PipelinedPort)
 	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
+	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
+	registry.AddService(RedisRemote, CwagIP, RedisPort)
 
-	return testRunner
+	policyDBWrapper, err := initializePolicyDBWrapper()
+	if err != nil {
+		return nil, err
+	}
+	testRunner.policyDBWrapper = policyDBWrapper
+	return testRunner, nil
 }
 
 // ConfigUEs creates and adds the specified number of UEs and Subscribers

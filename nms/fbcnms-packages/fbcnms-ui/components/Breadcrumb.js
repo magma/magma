@@ -77,7 +77,6 @@ const Breadcrumb = (props: Props) => {
   const {data, isLastBreadcrumb, size} = props;
   const {id, name, subtext, onClick} = data;
   const classes = useStyles();
-  const textClass = size === 'small' ? classes.smallText : classes.largeText;
   return (
     <div key={id} className={classes.root}>
       <div className={classes.upperSection}>
@@ -97,7 +96,8 @@ const Breadcrumb = (props: Props) => {
               [classes.breadcrumbName]: true,
               [classes.parentBreadcrumb]: !isLastBreadcrumb,
               [classes.hover]: !!onClick,
-              [textClass]: true,
+              [classes.smallText]: size === 'small',
+              [classes.largeText]: size !== 'small',
             })}
             onClick={() => onClick && onClick(id)}>
             {name}
@@ -105,7 +105,14 @@ const Breadcrumb = (props: Props) => {
         </Tooltip>
       </div>
       {!isLastBreadcrumb && (
-        <Text className={classNames([classes.slash, textClass])}>{'/'}</Text>
+        <Text
+          className={classNames({
+            [classes.slash]: true,
+            [classes.smallText]: size === 'small',
+            [classes.largeText]: size !== 'small',
+          })}>
+          {'/'}
+        </Text>
       )}
     </div>
   );

@@ -1,5 +1,8 @@
 imagePullSecrets: []
 
+secret:
+  certs: orc8r-secrets-certs
+
 fluentd_daemon:
   create: false
 
@@ -20,3 +23,28 @@ fluentd_daemon:
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+fluentd_forward:
+  create: false
+
+  replicas: 1
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  env:
+    elastic_host: "elasticsearch-logging"
+    elastic_port: "9200"
+    elastic_scheme: "http"
+
+  resources: {}
+
+  service:
+    targetPort: 24224
+    type: ClusterIP

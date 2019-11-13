@@ -50,20 +50,35 @@ class MmeNasStateManager {
   int initialize_state(const mme_config_t* mme_config_p);
 
   /**
-   * Write MME NAS state to redis. This function locks the in-memory state
-   * structure to maintain thread-safety between MME and NAS task
+   * Write MME NAS state to redis. This function releases the lock on MME NAS
+   * state, which was acquired by get_locked_mme_nas_state.
    */
-  void write_state_to_db();
+  void write_state_to_db(mme_app_desc_t** task_state_ptr);
 
-  // Retrieve the state pointer from state manager
+  /**
+    * This is a thread-safe call to lock the state and retrieve the pointer to
+    * MME Nas state from state manager. The read_from_db flag is a debug flag;
+    * if set to true, the state is loaded from the data store on every get.
+    */
+  mme_app_desc_t* get_locked_mme_nas_state(bool read_from_db);
+
+  /**
+    * Retrieve the state pointer from state manager. The read_from_db flag is a
+    * debug flag; if set to true, the state is loaded from the data store on
+    * every get.
+    */
   mme_app_desc_t* get_mme_nas_state(bool read_from_db);
 
-  // Release the memory for MME NAS state, when task terminates
+  /**
+    * Release the memory for MME NAS state and destroy the read-write lock. This
+    * is only called when task terminates
+    */
+
   void free_in_memory_mme_nas_state();
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
-   * Making them public for better debugging logging.
+   * Making them public for better debugging/logging.
    */
   MmeNasStateManager(MmeNasStateManager const&) = delete;
   MmeNasStateManager& operator=(MmeNasStateManager const&) = delete;
@@ -85,10 +100,22 @@ class MmeNasStateManager {
   bool mme_nas_state_dirty_; // TODO: convert this to version numbers
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
-  void mme_nas_state_init_local_state(mme_app_desc_t* state_p);
+  void mme_nas_state_init_local_state();
+
+  // Create in-memory hashtables for MME NAS state
+  void create_hashtables();
+
+  // Write an empty value to data store, if needed for debugging
+  void clear_db_state();
 
   // Establish connection with the data store
   int initialize_db_connection();
+
+  // Acquire lock on the complete MME NAS state
+  void lock_mme_nas_state();
+
+  // Release lock on the complete MME NAS state
+  void unlock_mme_nas_state();
 
   /**
    * Read MME NAS state from redis. This function locks the in-memory state
@@ -101,7 +128,11 @@ class MmeNasStateManager {
    * manager owns the memory allocated for MME state and frees it when the
    * task terminates
    */
-  mme_app_desc_t* create_mme_nas_state();
+  void create_mme_nas_state();
+
+  // Clean-up the in-memory hashtables
+  void clear_mme_nas_hashtables();
+
 };
 } // namespace lte
 } // namespace magma

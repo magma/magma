@@ -116,7 +116,7 @@ message UeContext {
   uint32 nb_active_pdn_contexts = 40;
   repeated PdnContext pdn_contexts = 41; //pdn_context_t
   repeated BearerContext bearer_contexts = 42; // bearer_context_t
-  string ue_radio_capability = 43;
+  bytes ue_radio_capability = 43;
 
   // flags
   bool send_ue_purge_request = 60;
