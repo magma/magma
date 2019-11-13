@@ -53,6 +53,8 @@ magma-gen-meta:
       filename: flow_qos_swaggergen.go
     - go-struct-name: PolicyRule
       filename: policy_rule_swaggergen.go
+    - go-struct-name: PolicyRuleConfig
+      filename: policy_rule_config_swaggergen.go
     - go-struct-name: RedirectInformation
       filename: redirect_information_swaggergen.go
     - go-struct-name: BaseNameRecord
@@ -1311,15 +1313,15 @@ paths:
     post:
       summary: Create Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - in: body
-        name: Charging Rule Base Name
-        description: Charging Rule Base Name to add
-        required: true
-        schema:
-          $ref: '#/definitions/base_name_record'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: base_name_record
+          description: Charging Rule Base Name to add
+          required: true
+          schema:
+            $ref: '#/definitions/base_name_record'
       responses:
         '201':
           description: Charging Rule Base Name
@@ -1332,30 +1334,30 @@ paths:
     get:
       summary: Get Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
       responses:
         '200':
           description: Charging Rule Base Name on success
           schema:
-            $ref: '#/definitions/rule_names'
+            $ref: '#/definitions/base_name_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Modify a Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
-      - in: body
-        name: Charging Rule Base Name
-        description: Charging Rule Base Name
-        required: true
-        schema:
-          $ref: '#/definitions/rule_names'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
+        - in: body
+          name: base_name_record
+          description: Charging Rule Base Name
+          required: true
+          schema:
+            $ref: '#/definitions/base_name_record'
       responses:
         '204':
           description: Success
@@ -1364,10 +1366,10 @@ paths:
     delete:
       summary: Delete a Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -1919,6 +1921,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/base_name'
+        x-omitempty: true
         description: 'Base names which are active for this subscriber'
         example:
           - 'base_name_1'
@@ -1927,6 +1930,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/policy_id'
+        x-omitempty: true
         description: 'Policies which are active for this subscriber'
         example:
           - 'rule1'
@@ -2082,11 +2086,28 @@ definitions:
     type: object
     required:
       - id
-      - flow_list
-      - priority
+      - rule
     properties:
       id:
         $ref: '#/definitions/policy_id'
+      rule:
+        $ref: '#/definitions/policy_rule_config'
+      assigned_subscribers:
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_id'
+        x-omitempty: true
+        description: Subscribers which have been assigned this policy not as part of a base name
+        example:
+          - IMSI1234567890
+          - IMSI0987654321
+
+  policy_rule_config:
+    type: object
+    required:
+      - flow_list
+      - priority
+    properties:
       flow_list:
         type: array
         items:
@@ -2103,22 +2124,14 @@ definitions:
       tracking_type:
         type: string
         enum:
-        - ONLY_OCS
-        - ONLY_PCRF
-        - OCS_AND_PCRF
-        - NO_TRACKING
+          - ONLY_OCS
+          - ONLY_PCRF
+          - OCS_AND_PCRF
+          - NO_TRACKING
       qos:
         $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
-      assigned_subscribers:
-        type: array
-        items:
-          $ref: '#/definitions/subscriber_id'
-        description: Subscribers which have been assigned this policy not as part of a base name
-        example:
-          - IMSI1234567890
-          - IMSI0987654321
 
   base_name:
     type: string
@@ -2145,6 +2158,7 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/subscriber_id'
+        x-omitempty: true
         description: Subscribers which have been assigned this policy base name
         example:
           - IMSI1234567890

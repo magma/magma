@@ -20,10 +20,10 @@ import (
 type Subscriber struct {
 
 	// Base names which are active for this subscriber
-	ActiveBaseNames []BaseName `json:"active_base_names"`
+	ActiveBaseNames []BaseName `json:"active_base_names,omitempty"`
 
 	// Policies which are active for this subscriber
-	ActivePolicies []PolicyID `json:"active_policies"`
+	ActivePolicies []PolicyID `json:"active_policies,omitempty"`
 
 	// id
 	// Required: true

@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 )
@@ -45,15 +46,75 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 
 	ruleProtos := make([]*lteProtos.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
-		ruleConfig := rule.Config.(*lteModels.PolicyRule)
-		ruleProto := &lteProtos.PolicyRule{}
-		err = ruleConfig.ToProto(ruleProto)
-		if err != nil {
-			return nil, err
-		}
-		ruleProtos = append(ruleProtos, ruleProto)
+		ruleProtos = append(ruleProtos, createRuleProtoFromEnt(rule))
 	}
 	return rulesToUpdates(ruleProtos)
+}
+
+func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lteProtos.PolicyRule {
+	if ruleEnt.Config == nil {
+		return &lteProtos.PolicyRule{Id: ruleEnt.Key}
+	}
+
+	cfg := ruleEnt.Config.(*lteModels.PolicyRuleConfig)
+	return &lteProtos.PolicyRule{
+		Id:            ruleEnt.Key,
+		Priority:      swag.Uint32Value(cfg.Priority),
+		RatingGroup:   cfg.RatingGroup,
+		MonitoringKey: cfg.MonitoringKey,
+		Redirect:      redirectInfoToProto(cfg.Redirect),
+		FlowList:      flowListToProto(cfg.FlowList),
+		Qos:           qosModelToProto(cfg.Qos),
+		TrackingType:  lteProtos.PolicyRule_TrackingType(lteProtos.PolicyRule_TrackingType_value[cfg.TrackingType]),
+		HardTimeout:   0,
+	}
+}
+
+func flowListToProto(flowList []*lteModels.FlowDescription) []*lteProtos.FlowDescription {
+	ret := make([]*lteProtos.FlowDescription, 0, len(flowList))
+	for _, srcFlow := range flowList {
+		protoFlow := &lteProtos.FlowDescription{
+			Action: lteProtos.FlowDescription_Action(lteProtos.FlowDescription_Action_value[swag.StringValue(srcFlow.Action)]),
+		}
+		protos.FillIn(srcFlow, protoFlow)
+
+		protoFlow.Match = &lteProtos.FlowMatch{
+			Direction: lteProtos.FlowMatch_Direction(lteProtos.FlowMatch_Direction_value[swag.StringValue(srcFlow.Match.Direction)]),
+			IpProto:   lteProtos.FlowMatch_IPProto(lteProtos.FlowMatch_IPProto_value[*srcFlow.Match.IPProto]),
+		}
+		protos.FillIn(srcFlow.Match, protoFlow.Match)
+
+		ret = append(ret, protoFlow)
+	}
+	return ret
+}
+
+func redirectInfoToProto(redirectModel *lteModels.RedirectInformation) *lteProtos.RedirectInformation {
+	if redirectModel == nil {
+		return nil
+	}
+
+	return &lteProtos.RedirectInformation{
+		Support:       lteProtos.RedirectInformation_Support(lteProtos.RedirectInformation_Support_value[swag.StringValue(redirectModel.Support)]),
+		AddressType:   lteProtos.RedirectInformation_AddressType(lteProtos.RedirectInformation_AddressType_value[swag.StringValue(redirectModel.AddressType)]),
+		ServerAddress: swag.StringValue(redirectModel.ServerAddress),
+	}
+}
+
+func qosModelToProto(qosModel *lteModels.FlowQos) *lteProtos.FlowQos {
+	if qosModel == nil {
+		return nil
+	}
+
+	return &lteProtos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(qosModel.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(qosModel.MaxReqBwDl),
+		// The following values haven't been exposed via the API yet
+		GbrUl: 0,
+		GbrDl: 0,
+		Qci:   0,
+		Arp:   nil,
+	}
 }
 
 func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error) {
