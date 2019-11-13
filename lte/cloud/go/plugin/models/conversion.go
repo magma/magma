@@ -418,7 +418,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 }
 
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
-	m.ID = ent.Key
+	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {
@@ -461,7 +461,7 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
-		Key:    *m.ID,
+		Key:    string(m.ID),
 		Config: m,
 	}
 }
@@ -490,7 +490,7 @@ func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
 		if policyRule.Priority != nil {
 			flowRuleProto.Priority = *policyRule.Priority
 		}
-		flowRuleProto.Id = *policyRule.ID
+		flowRuleProto.Id = string(policyRule.ID)
 		flowRuleProto.MonitoringKey = policyRule.MonitoringKey
 		flowRuleProto.RatingGroup = policyRule.RatingGroup
 	}
