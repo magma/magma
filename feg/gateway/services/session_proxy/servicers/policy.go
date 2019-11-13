@@ -51,25 +51,51 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		HardwareAddr:  pReq.HardwareAddr,
+		RATType:       getRATType(pReq.RatType),
+		IPCANType:     getIPCANType(pReq.RatType),
 	}
+
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
 
-func (srv *CentralSessionController) sendTerminationGxRequest(imsi, sessionID, ueIpv4 string,
-	requestNumber uint32,
-	monitorUpdates []*protos.UsageMonitorUpdate,
-) (*gx.CreditControlAnswer, error) {
-	reports := make([]*gx.UsageReport, 0, len(monitorUpdates))
-	for _, update := range monitorUpdates {
+func getRATType(pRATType protos.RATType) credit_control.RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.RAT_WLAN
+	default:
+		return credit_control.RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func getIPCANType(pRATType protos.RATType) credit_control.IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.IPCAN_Non3GPP
+	default:
+		return credit_control.IPCAN_Non3GPP
+	}
+}
+
+func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.SessionTerminateRequest) (*gx.CreditControlAnswer, error) {
+	reports := make([]*gx.UsageReport, 0, len(pRequest.MonitorUsages))
+	for _, update := range pRequest.MonitorUsages {
 		reports = append(reports, getGxUsageReportFromUsageUpdate(update))
 	}
 	request := &gx.CreditControlRequest{
-		SessionID:     sessionID,
+		SessionID:     pRequest.SessionId,
 		Type:          credit_control.CRTTerminate,
-		IMSI:          imsi,
-		RequestNumber: requestNumber,
-		IPAddr:        ueIpv4,
+		IMSI:          removeSidPrefix(pRequest.Sid),
+		RequestNumber: pRequest.RequestNumber,
+		IPAddr:        pRequest.UeIpv4,
 		UsageReports:  reports,
+		RATType:       getRATType(pRequest.RatType),
+		IPCANType:     getIPCANType(pRequest.RatType),
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -135,6 +161,8 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 			IPAddr:        update.UeIpv4,
 			HardwareAddr:  update.HardwareAddr,
 			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
+			RATType:       getRATType(update.RatType),
+			IPCANType:     getIPCANType(update.RatType),
 		})
 	}
 	return requests

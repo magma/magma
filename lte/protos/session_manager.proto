@@ -355,6 +355,7 @@ message UsageMonitoringUpdateRequest {
   string sid = 4;
   string ue_ipv4 = 5;
   bytes hardware_addr = 6; // MAC Address for WLAN
+  RATType rat_type = 7;
 }
 
 // Response to a usage monitor update with the credit received and session info
