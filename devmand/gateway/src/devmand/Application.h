@@ -33,6 +33,7 @@ namespace devmand {
 using Services = std::list<std::unique_ptr<Service>>;
 using ChannelEngines = std::set<std::unique_ptr<channels::Engine>>;
 using Devices = std::map<devices::Id, std::unique_ptr<devices::Device>>;
+using IPVersion = channels::ping::IPVersion;
 
 class Application final : public MetricSink {
  public:
@@ -90,7 +91,8 @@ class Application final : public MetricSink {
   DhcpdConfig& getDhcpdConfig();
 
   channels::snmp::Engine& getSnmpEngine();
-  channels::ping::Engine& getPingEngine();
+  channels::ping::Engine& getPingEngine(IPVersion ipv = IPVersion::v4);
+  channels::ping::Engine& getPingEngine(folly::IPAddress ip);
 
  private:
   void pollDevices();
@@ -137,6 +139,7 @@ class Application final : public MetricSink {
   ChannelEngines channelEngines;
   channels::snmp::Engine* snmpEngine;
   channels::ping::Engine* pingEngine;
+  channels::ping::Engine* pingEngineIpv6;
 
   /*
    * A config writer for dhcpd.
