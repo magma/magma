@@ -20,11 +20,14 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
+import InputLabel from '@material-ui/core/InputLabel';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
+import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
 
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -81,6 +84,36 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
             value={rule.priority}
             onChange={this.handlePriorityChange}
           />
+          <TextField
+            required
+            className={this.props.classes.input}
+            label="Monitoring Key"
+            margin="normal"
+            value={rule.monitoring_key}
+            onChange={({target}) =>
+              this.setState({
+                rule: {...this.state.rule, monitoring_key: target.value},
+              })
+            }
+          />
+          <FormControl className={this.props.classes.input}>
+            <InputLabel htmlFor="trackingType">Tracking Type</InputLabel>
+            <TypedSelect
+              items={{
+                ONLY_OCS: 'Only OCS',
+                ONLY_PCRF: 'Only PCRF',
+                OCS_AND_PCRF: 'OCS and PCRF',
+                NO_TRACKING: 'No Tracking',
+              }}
+              inputProps={{id: 'trackingType'}}
+              value={rule.tracking_type || 'NO_TRACKING'}
+              onChange={trackingType =>
+                this.setState({
+                  rule: {...this.state.rule, tracking_type: trackingType},
+                })
+              }
+            />
+          </FormControl>
           <Typography variant="h6">
             Flows
             <IconButton onClick={this.handleAddFlow}>
