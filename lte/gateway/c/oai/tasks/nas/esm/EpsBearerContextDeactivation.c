@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+
 #include "bstrlib.h"
 #include "log.h"
 #include "dynamic_memory_check.h"
@@ -460,7 +461,8 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           }
         }
       }
-      if (bid > BEARERS_PER_UE) {
+
+      if (bid >= BEARERS_PER_UE) {
         OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-PROC  - Did not find bearer context for (ue_id="

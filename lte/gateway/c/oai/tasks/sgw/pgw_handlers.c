@@ -628,7 +628,14 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
     i++;
   }
 
-  if ((!is_ebi_found) || (!is_lbi_found) || (!is_imsi_found)) {
+  /* Send reject to NW if we did not find ebi/lbi/imsi.
+   * Also in case of multiple bearers, if some EBIs are valid and some are not,
+   * send reject to those for which we did not find EBI.
+   * Proceed with deactivation by sending s5_nw_init_deactv_bearer_request to
+   * SGW for valid EBIs
+   */
+  if ((!is_ebi_found) || (!is_lbi_found) || (!is_imsi_found) ||
+    (no_of_bearers_rej > 0)) {
     OAILOG_INFO(
       LOG_PGW_APP,
       "is_imsi_found (%d), is_lbi_found (%d), is_ebi_found (%d) \n",
@@ -638,7 +645,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
       "Sending dedicated bearer deactivation reject to NW\n");
     print_bearer_ids_helper(invalid_bearer_id, no_of_bearers_rej);
     // TODO-Uncomment once implemented at PCRF
-    /* rc = send_dedicated_bearer_deactv_rsp(invalid_ebi,
+    /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,
          REQUEST_REJECTED);*/
   }
 

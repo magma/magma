@@ -450,6 +450,10 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
        * The maximum number of activate dedicated EPS bearer context request
        * message retransmission has exceed
        */
+
+      /* Store ebi and ue_id as esm_ebr_timer_data gets freed in
+       * esm_proc_eps_bearer_context_deactivate().
+       */
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bid = BEARERS_PER_UE;
       ebi_t ebi = esm_ebr_timer_data->ebi;
