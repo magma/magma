@@ -64,6 +64,8 @@ proxy:
 
   # Service configuration.
   service:
+    enabled: true
+    legacyEnabled: true
     name: bootstrapper-orc8r-proxy
     annotations: {}
     labels: {}
