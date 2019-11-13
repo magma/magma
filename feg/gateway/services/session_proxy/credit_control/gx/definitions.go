@@ -46,6 +46,8 @@ type CreditControlRequest struct {
 	Qos           *QosRequestInfo
 	UsageReports  []*UsageReport
 	HardwareAddr  []byte
+	IPCANType     credit_control.IPCANType
+	RATType       credit_control.RATType
 }
 
 type QosRequestInfo struct {

@@ -215,8 +215,9 @@ func (gxClient *GxClient) createCreditControlMessage(
 			},
 		})
 	}
-	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(5))
-	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(1004))
+
+	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.IPCANType))
+	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.RATType))
 
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
 		if iplen := len(ip); iplen == net.IPv4len {

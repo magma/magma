@@ -278,7 +278,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates()
   UpdateSessionRequest request;
   std::vector<std::unique_ptr<ServiceAction>> actions;
   for (auto &session_pair : session_map_) {
-    session_pair.second->get_updates(&request, &actions);
+    session_pair.second->get_updates(request, &actions);
   }
   execute_actions(actions);
   return request;
