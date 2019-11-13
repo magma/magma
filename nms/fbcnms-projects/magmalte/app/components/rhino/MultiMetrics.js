@@ -108,7 +108,11 @@ function MultiMetrics(props: {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(config, selectedGatewayOrDefault)}
+                    queries={resolveQuery(
+                      config,
+                      'gatewayID',
+                      selectedGatewayOrDefault,
+                    )}
                     timeRange={timeRange}
                   />
                 </div>

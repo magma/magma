@@ -85,8 +85,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
       <WifiMeshRow
         enableDeviceEditing={true}
         key={meshID}
-        // $FlowFixMe: get can return null
-        gateways={this.state.meshes.get(meshID)}
+        gateways={this.state.meshes.get(meshID) || []}
         meshID={meshID}
         onDeleteMesh={this.onDeleteMesh}
         onDeleteDevice={this.onDeleteDevice}

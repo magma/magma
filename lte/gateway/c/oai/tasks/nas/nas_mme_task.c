@@ -31,6 +31,7 @@
 #include "nas_timer.h"
 #include "intertask_interface_types.h"
 #include "mme_app_messages_types.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "s6a_messages_types.h"
@@ -43,11 +44,13 @@ static void nas_exit(void);
 static void *nas_intertask_interface(void *args_p)
 {
   itti_mark_task_ready(TASK_NAS_MME);
+  mme_app_desc_t *mme_app_desc_p;
 
   while (1) {
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_NAS_MME, &received_message_p);
+    mme_app_desc_p = get_locked_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -173,6 +176,7 @@ static void *nas_intertask_interface(void *args_p)
         break;
 
       case TERMINATE_MESSAGE: {
+        put_mme_nas_state(&mme_app_desc_p);
         nas_exit();
         OAI_FPRINTF_INFO("TASK_NAS_MME terminated\n");
         itti_free_msg_content(received_message_p);
@@ -199,6 +203,7 @@ static void *nas_intertask_interface(void *args_p)
       } break;
     }
 
+    put_mme_nas_state(&mme_app_desc_p);
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;

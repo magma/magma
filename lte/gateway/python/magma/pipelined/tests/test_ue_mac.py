@@ -63,9 +63,13 @@ class UEMacAddressTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.Arp:
+                    Future(),
             },
             config={
+                'setup_type': 'CWF',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,

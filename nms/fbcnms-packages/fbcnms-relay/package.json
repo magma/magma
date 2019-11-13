@@ -8,7 +8,8 @@
     "devDependencies": {
         "@fbcnms/babel-register": "^0.1.0",
         "core-js": "^2.6.9",
-        "relay-compiler": "^5.0.0",
+        "graphql": "^14.5.8",
+        "relay-compiler": "^7.0.0",
         "yargs": "^13.3.0"
     }
 }

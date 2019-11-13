@@ -79,25 +79,6 @@ cty.ObjectVal(map[string]cty.Value{"default_result":cty.UnknownVal(cty.String),
 actual.
 ```
 
-Once `terraform apply -var-file=vars.tfvars` finishes, there is some additional
-manual setup to perform before our EKS cluster is ready to deploy onto.
-
-First find the public IP address of the metrics instance using
-```bash
-export METRICS_IP=$(aws ec2 describe-instances --filters Name=tag:orc8r-node-type,Values=orc8r-prometheus-node --query 'Reservations[*].Instances[0].PublicIpAddress' --output text)
-echo $METRICS_IP
-```
-
-The Prometheus config manager application expects some configuration files to
-be seeded in the EBS config volume (don't forget to use the correct private
-key in `scp` with the `-i` flag):
-
-```bash
-scp -r config_defaults ec2-user@$METRICS_IP:~
-ssh ec2-user@$METRICS_IP
-[ec2-user@<metrics-ip> ~]$ sudo cp -r config_defaults/. /configs/prometheus
-```
-
 Now you've got your infra set up, we can move on to configuring the EKS cluster.
 
 Assuming you don't have an existing Kubeconfig file in `~/.kube/config`, run

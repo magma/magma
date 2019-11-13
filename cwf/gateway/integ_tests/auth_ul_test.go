@@ -21,7 +21,7 @@ import (
 
 func TestAuthenticateUplinkTraffic(t *testing.T) {
 	fmt.Printf("Running TestAuthenticateUplinkTraffic...\n")
-	tr := NewTestRunner()
+	tr, _ := NewTestRunner()
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 

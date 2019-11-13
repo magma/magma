@@ -1,0 +1,28 @@
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+
+{{- if .Values.fluentd_forward.create }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-fluentd-forward
+  labels:
+    app.kubernetes.io/component: fluentd-forward
+
+spec:
+  selector:
+    app.kubernetes.io/component: fluentd-forward
+
+  type: {{ .Values.fluentd_forward.service.type }}
+
+  ports:
+    - name: fluentd-forward
+      port: 24224
+      targetPort: {{ .Values.fluentd_forward.service.targetPort }}
+{{- end }}

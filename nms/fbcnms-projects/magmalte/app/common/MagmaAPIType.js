@@ -21,7 +21,3 @@ export type WifiConfig = {
 export type Record = {
   hardware_id: string,
 };
-
-export type DevmandConfig = {
-  managed_devices: string[],
-};

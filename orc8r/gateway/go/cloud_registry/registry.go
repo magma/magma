@@ -17,7 +17,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
- 	platform_registry "magma/orc8r/cloud/go/registry"
+	platform_registry "magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/service/config"
 )
 

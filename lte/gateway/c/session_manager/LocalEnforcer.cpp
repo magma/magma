@@ -278,7 +278,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates()
   UpdateSessionRequest request;
   std::vector<std::unique_ptr<ServiceAction>> actions;
   for (auto &session_pair : session_map_) {
-    session_pair.second->get_updates(&request, &actions);
+    session_pair.second->get_updates(request, &actions);
   }
   execute_actions(actions);
   return request;
@@ -643,17 +643,41 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
         it->second->get_charging_pool().receive_credit(credit_update_resp);
     }
   }
+
   for (const auto &usage_monitor_resp : response.usage_monitor_responses()) {
     if (revalidation_required(usage_monitor_resp.event_triggers())) {
       schedule_revalidation(usage_monitor_resp.revalidation_time());
     }
-    auto it = session_map_.find(usage_monitor_resp.sid());
+    const std::string imsi = usage_monitor_resp.sid();
+    auto it = session_map_.find(imsi);
     if (it == session_map_.end()) {
       MLOG(MERROR) << "Could not find session for IMSI "
-                   << usage_monitor_resp.sid() << " during update";
+                   << imsi << " during update";
       return;
     }
     it->second->get_monitor_pool().receive_credit(usage_monitor_resp);
+
+    RulesToProcess rules_to_deactivate;
+    process_rules_to_remove(
+      imsi,
+      it->second,
+      usage_monitor_resp.rules_to_remove(),
+      &rules_to_deactivate);
+
+    bool deactivate_success;
+    if (rules_to_deactivate.static_rules.size() > 0 ||
+        rules_to_deactivate.dynamic_rules.size() > 0) {
+      deactivate_success = pipelined_client_->deactivate_flows_for_rules(
+        imsi,
+        rules_to_deactivate.static_rules,
+        rules_to_deactivate.dynamic_rules);
+    }
+    if (!deactivate_success) {
+      // TODO Look into handling this error better
+      MLOG(MERROR) << "Could not deactivate flows for IMSI "
+                   << imsi << "during update";
+      continue;
+    }
   }
 }
 
@@ -793,6 +817,29 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   }
 }
 
+void LocalEnforcer::process_rules_to_remove(
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
+  const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+    rules_to_remove,
+  RulesToProcess* rules_to_deactivate)
+{
+  for (const auto &rule_id : rules_to_remove) {
+    // Try to remove as dynamic rule first
+    PolicyRule dy_rule;
+    bool is_dynamic = session->remove_dynamic_rule(rule_id, &dy_rule);
+
+    if (is_dynamic) {
+      rules_to_deactivate->dynamic_rules.push_back(dy_rule);
+    } else {
+      if (!session->deactivate_static_rule(rule_id))
+        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
+                       << imsi << " during static rule removal";
+      rules_to_deactivate->static_rules.push_back(rule_id);
+    }
+  }
+}
+
 void LocalEnforcer::get_rules_from_policy_reauth_request(
   const PolicyReAuthRequest &request,
   const std::unique_ptr<SessionState> &session,
@@ -804,23 +851,14 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     schedule_revalidation(request.revalidation_time());
   }
 
-  for (const auto &rule_id : request.rules_to_remove()) {
-    // Try to remove as dynamic rule first
-    PolicyRule dy_rule;
-    bool is_dynamic = session->remove_dynamic_rule(rule_id, &dy_rule);
-
-    if (is_dynamic) {
-      rules_to_deactivate->dynamic_rules.push_back(dy_rule);
-    } else {
-      if (!session->deactivate_static_rule(rule_id))
-        MLOG(MWARNING) << "Could not find rule " << rule_id << "for IMSI "
-                       << request.imsi() << " during static rule removal";
-      rules_to_deactivate->static_rules.push_back(rule_id);
-    }
-  }
-
   std::time_t current_time = time(NULL);
   std::string imsi = request.imsi();
+
+  process_rules_to_remove(
+    request.imsi(),
+    session,
+    request.rules_to_remove(),
+    rules_to_deactivate);
   auto ip_addr = session->get_subscriber_ip_addr();
   for (const auto &static_rule : request.rules_to_install()) {
     auto activation_time =
