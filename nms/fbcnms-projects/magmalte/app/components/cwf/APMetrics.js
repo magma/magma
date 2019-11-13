@@ -71,15 +71,6 @@ const APN_CONFIGS: Array<MetricGraphConfig> = [
     ],
   },
   {
-    label: 'Session Create Latency',
-    basicQueryConfigs: [],
-    customQueryConfigs: [
-      {
-        resolveQuery: apn => `avg(create_session_lat{apn="${apn}"})`,
-      },
-    ],
-  },
-  {
     label: 'Accounting Stops',
     basicQueryConfigs: [],
     customQueryConfigs: [
