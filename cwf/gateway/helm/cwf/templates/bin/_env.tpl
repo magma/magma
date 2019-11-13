@@ -14,6 +14,8 @@
 
 COMPOSE_PROJECT_NAME=cwf
 DOCKER_REGISTRY={{ .Values.cwf.image.docker_registry }}
+DOCKER_USERNAME={{ .Values.cwf.image.username }}
+DOCKER_PASSWORD={{ .Values.cwf.image.password }}
 IMAGE_VERSION={{ .Values.cwf.image.tag }}
 BUILD_CONTEXT={{ .Values.cwf.repo.url }}#{{ .Values.cwf.repo.branch }}
 

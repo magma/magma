@@ -69,6 +69,7 @@ class AccessControlTest(unittest.TestCase):
             },
             config={
                 'setup_type': 'LTE',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'nat_iface': 'eth2',

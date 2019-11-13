@@ -92,3 +92,10 @@ message MetricsD {
 message State {
     orc8r.LogLevel log_level = 1;
 }
+
+//------------------------------------------------------------------------------
+// Fluent Bit configs
+//------------------------------------------------------------------------------
+message FluentBit {
+    map<string, string> extra_tags = 1;
+}

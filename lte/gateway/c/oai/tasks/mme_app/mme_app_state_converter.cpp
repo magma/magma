@@ -386,9 +386,11 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
     if (
       ue_context_proto.bearer_contexts(i).validity() == BearerContext::VALID) {
       OAILOG_INFO(LOG_MME_APP, "reading bearer context at index %d", i);
+      auto* eps_bearer_ctxt =
+        (bearer_context_t*) calloc(1, sizeof(bearer_context_t));
       proto_to_bearer_context(
-        ue_context_proto.bearer_contexts(i),
-        state_ue_context->bearer_contexts[i]);
+        ue_context_proto.bearer_contexts(i), eps_bearer_ctxt);
+      state_ue_context->bearer_contexts[i] = eps_bearer_ctxt;
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }
@@ -462,8 +464,10 @@ void MmeNasStateConverter::pdn_context_to_proto(
   esm_pdn_to_proto(
     state_pdn_context.esm_data, pdn_context_proto->mutable_esm_data());
   pdn_context_proto->set_is_active(state_pdn_context.is_active);
-  NasStateConverter::protocol_configuration_options_to_proto(
-    *state_pdn_context.pco, pdn_context_proto->mutable_pco());
+  if (state_pdn_context.pco != nullptr) {
+    NasStateConverter::protocol_configuration_options_to_proto(
+      *state_pdn_context.pco, pdn_context_proto->mutable_pco());
+  }
 }
 
 void MmeNasStateConverter::proto_to_pdn_context(
@@ -507,8 +511,10 @@ void MmeNasStateConverter::proto_to_pdn_context(
   state_pdn_context->s_gw_teid_s11_s4 = pdn_context_proto.s_gw_teid_s11_s4();
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
-  NasStateConverter::proto_to_protocol_configuration_options(
-    pdn_context_proto.pco(), state_pdn_context->pco);
+  if (pdn_context_proto.has_pco()) {
+    NasStateConverter::proto_to_protocol_configuration_options(
+      pdn_context_proto.pco(), state_pdn_context->pco);
+  }
 }
 
 void MmeNasStateConverter::pdn_context_list_to_proto(
@@ -516,12 +522,12 @@ void MmeNasStateConverter::pdn_context_list_to_proto(
   UeContext* ue_context_proto,
   int num_active_contexts)
 {
-  // TODO: fix num_active_contexts counter in MME, for now just store the first
-  // Pdn context
-  for (int i = 0; i < 1; i++) {
-    OAILOG_INFO(LOG_MME_APP, "Writing PDN context at index %d", i);
-    PdnContext* pdn_ctxt_proto = ue_context_proto->add_pdn_contexts();
-    pdn_context_to_proto(*state_ue_context.pdn_contexts[i], pdn_ctxt_proto);
+  for (int i = 0; i < num_active_contexts; i++) {
+    if (state_ue_context.pdn_contexts[i] != nullptr) {
+      OAILOG_INFO(LOG_MME_APP, "Writing PDN context at index %d", i);
+      PdnContext* pdn_ctxt_proto = ue_context_proto->add_pdn_contexts();
+      pdn_context_to_proto(*state_ue_context.pdn_contexts[i], pdn_ctxt_proto);
+    }
   }
 }
 
@@ -531,8 +537,9 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
 {
   for (int i = 0; i < ue_context_proto.pdn_contexts_size(); i++) {
     OAILOG_INFO(LOG_MME_APP, "Reading PDN context at index %d", i);
-    proto_to_pdn_context(
-      ue_context_proto.pdn_contexts(i), state_ue_context->pdn_contexts[i]);
+    auto* pdn_context_p = (pdn_context_t*) calloc(1, sizeof(pdn_context_t));
+    proto_to_pdn_context(ue_context_proto.pdn_contexts(i), pdn_context_p);
+    state_ue_context->pdn_contexts[i] = pdn_context_p;
   }
 }
 
@@ -854,7 +861,7 @@ void MmeNasStateConverter::mme_nas_proto_to_state(
   OAILOG_INFO(LOG_MME_APP, "Hashtable 2");
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.tun11_ue_id_htbl(),
-    mme_ue_ctxt_state->imsi_ue_context_htbl,
+    mme_ue_ctxt_state->tun11_ue_context_htbl,
     "tun11_ue_context_htbl");
   OAILOG_INFO(LOG_MME_APP, "Hashtable 3");
   proto_to_hashtable_uint64_ts(

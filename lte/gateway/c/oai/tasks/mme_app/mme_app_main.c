@@ -45,7 +45,6 @@
 #include "mme_app_defs.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
-#include "s6a_message_utils.h"
 #include "service303.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
@@ -89,7 +88,7 @@ void *mme_app_thread(void *args)
     itti_receive_msg(TASK_MME_APP, &received_message_p);
     DevAssert(received_message_p);
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
-    mme_app_desc_p = get_mme_nas_state(true);
+    mme_app_desc_p = get_locked_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -551,7 +550,7 @@ void *mme_app_thread(void *args)
         /*
        * Termination message received TODO -> release any data allocated
        */
-        put_mme_nas_state();
+        put_mme_nas_state(&mme_app_desc_p);
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -573,7 +572,7 @@ void *mme_app_thread(void *args)
       } break;
     }
 
-    put_mme_nas_state();
+    put_mme_nas_state(&mme_app_desc_p);
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -608,7 +607,6 @@ static void _check_mme_healthy_and_notify_service(void)
 {
   if (_is_mme_app_healthy()) {
     send_app_health_to_service303(TASK_MME_APP, true);
-    send_start_s6a_server(TASK_MME_APP);
   }
 }
 

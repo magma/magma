@@ -10,7 +10,8 @@
 
 const Networks = {
   wifi: 'wifi',
-  third_party: 'third_party',
+  third_party: 'third_party', // TODO: deprecate third_party in lieu of symphony
+  symphony: 'symphony',
   wac: 'wac',
   rhino: 'rhino',
   lte: 'lte',
@@ -25,8 +26,10 @@ export const RHINO = Networks.rhino;
 export const LTE = Networks.lte;
 export const CWF = Networks.carrier_wifi_network;
 export const FEG = Networks.feg;
+export const SYMPHONY = Networks.symphony;
 
-export const AllNetworkTypes: NetworkType[] = Object.keys(Networks);
+export const AllNetworkTypes: NetworkType[] = Object.keys(Networks).sort();
+export const V1NetworkTypes: NetworkType[] = [CWF, FEG, LTE, SYMPHONY];
 
 export type NetworkType = $Keys<typeof Networks>;
 

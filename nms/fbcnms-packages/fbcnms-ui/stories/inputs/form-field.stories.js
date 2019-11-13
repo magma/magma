@@ -41,6 +41,13 @@ const FormFieldsRoot = () => {
         />
       </FormField>
       <FormField
+        label="Required"
+        helpText="Help Text"
+        className={classes.field}
+        required>
+        <TextInput type="string" placeholder="Placeholder" value={value} />
+      </FormField>
+      <FormField
         label="Label"
         helpText="Help Text"
         className={classes.field}

@@ -24,6 +24,7 @@ setup(
         'magma.common.health',
         'magma.common.redis',
         'magma.configuration',
+        'magma.directoryd',
         'magma.magmad',
         'magma.magmad.generic_command',
         'magma.magmad.check',
@@ -67,7 +68,7 @@ setup(
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'snowflake>=0.0.3',
-        'psutil>=5.2.2',
+        'psutil==5.6.3',
         'cryptography>=1.9',
         'systemd-python>=234',
         'itsdangerous>=0.24',
@@ -76,5 +77,6 @@ setup(
         'python-dateutil>=1.4',
         # force same requests version as lte/gateway/python/setup.py
         'requests==2.22.0',
+        'jsonpickle',
     ]
 )

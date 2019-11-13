@@ -326,7 +326,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
      * provided by HSS or if we fail to select the APN provided
      * by HSS,send Attach Reject to UE
      */
-     _handle_apn_mismatch(ue_mm_context);
+    _handle_apn_mismatch(ue_mm_context);
+    unlock_ue_contexts(ue_mm_context);
     return RETURNerror;
   }
 

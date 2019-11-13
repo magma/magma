@@ -33,6 +33,8 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using magma::orc8r::Service303;
 using magma::orc8r::ServiceInfo;
+using magma::orc8r::State;
+using magma::orc8r::GetOperationalStatesResponse;
 using magma::orc8r::ReloadConfigResponse;
 using magma::orc8r::Void;
 using magma::service303::MetricsSingleton;
@@ -43,7 +45,8 @@ using namespace std::chrono;
 MagmaService::MagmaService(const std::string& name, const std::string& version)
     : name_(name), version_(version), health_(ServiceInfo::APP_UNKNOWN),
       start_time_(steady_clock::now()), wall_start_time_(system_clock::now()),
-      service_info_callback_(nullptr), config_reload_callback_(nullptr)
+      service_info_callback_(nullptr), config_reload_callback_(nullptr),
+      operational_states_callback_(nullptr)
       {}
 
 void MagmaService::AddServiceToServer(grpc::Service *service) {
@@ -87,6 +90,16 @@ void MagmaService::SetConfigReloadCallback(ConfigReloadCallback callback) {
 
 void MagmaService::ClearConfigReloadCallback() {
   config_reload_callback_ = nullptr;
+}
+
+void MagmaService::SetOperationalStatesCallback(
+  OperationalStatesCallback callback
+) {
+  operational_states_callback_ = callback;
+}
+
+void MagmaService::ClearOperationalStatesCallback() {
+  operational_states_callback_ = nullptr;
 }
 
 Status MagmaService::GetServiceInfo(
@@ -159,7 +172,18 @@ Status MagmaService::GetOperationalStates(
     ServerContext *context,
     const Void *request,
     GetOperationalStatesResponse *response) {
-    // not yet implemented
+    auto op_states = (operational_states_callback_ != nullptr) ?
+      operational_states_callback_() :
+      std::list<std::map<std::string, std::string>>();
+
+      for (auto op_state : op_states) {
+        State* state = response->add_states();
+        state->set_type(op_state["type"]);
+        state->set_deviceid(op_state["device_id"]);
+        state->set_value(op_state["value"]);
+        state->set_version(stoi(version_));
+      }
+
     return Status::OK;
 }
 

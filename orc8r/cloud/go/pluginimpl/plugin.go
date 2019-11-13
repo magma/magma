@@ -24,6 +24,7 @@ import (
 	checkinh "magma/orc8r/cloud/go/services/checkind/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/directoryd"
 	dnsdh "magma/orc8r/cloud/go/services/dnsd/obsidian/handlers"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -62,6 +63,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
 		// For checkin_cli.py to test cloud < - > gateway connection
 		state.NewStateSerde(state.StringMapSerdeType, &state.StringToStringMap{}),
+		// For DirectoryD records
+		state.NewStateSerde(orc8r.DirectoryRecordType, &directoryd.DirectoryRecord{}),
 
 		// Device service serdes
 		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),

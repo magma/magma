@@ -54,11 +54,11 @@ class SessionState {
 
  public:
   SessionState(
-    const std::string &imsi,
-    const std::string &session_id,
-    const std::string &core_session_id,
-    const SessionState::Config &cfg,
-    StaticRuleStore &rule_store);
+    const std::string& imsi,
+    const std::string& session_id,
+    const std::string& core_session_id,
+    const SessionState::Config& cfg,
+    StaticRuleStore& rule_store);
 
   /**
    * new_report sets the state of terminating session to aggregating, to tell if
@@ -78,7 +78,7 @@ class SessionState {
    * add_used_credit adds used TX/RX bytes to a particular charging key
    */
   void add_used_credit(
-    const std::string &rule_id,
+    const std::string& rule_id,
     uint64_t used_tx,
     uint64_t used_rx);
 
@@ -89,8 +89,8 @@ class SessionState {
    * @param actions (out) - actions to take on services
    */
   void get_updates(
-    UpdateSessionRequest *update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
 
   /**
    * start_termination starts the termination process for the session.
@@ -122,17 +122,17 @@ class SessionState {
    */
   void complete_termination();
 
-  void insert_dynamic_rule(const PolicyRule &dynamic_rule);
+  void insert_dynamic_rule(const PolicyRule& dynamic_rule);
 
-  void activate_static_rule(const std::string &rule_id);
+  void activate_static_rule(const std::string& rule_id);
 
-  bool remove_dynamic_rule(const std::string &rule_id, PolicyRule *rule_out);
+  bool remove_dynamic_rule(const std::string& rule_id, PolicyRule* rule_out);
 
-  bool deactivate_static_rule(const std::string &rule_id);
+  bool deactivate_static_rule(const std::string& rule_id);
 
-  ChargingCreditPool &get_charging_pool();
+  ChargingCreditPool& get_charging_pool();
 
-  UsageMonitoringCreditPool &get_monitor_pool();
+  UsageMonitoringCreditPool& get_monitor_pool();
 
   std::string get_session_id();
 
@@ -154,9 +154,9 @@ class SessionState {
 
   bool is_radius_cwf_session();
 
-  bool is_same_config(const Config &new_config);
+  bool is_same_config(const Config& new_config);
 
-  void get_session_info(SessionState::SessionInfo &info);
+  void get_session_info(SessionState::SessionInfo& info);
 
   bool qos_enabled();
 
@@ -202,12 +202,12 @@ class SessionState {
 
  private:
   void get_updates_from_charging_pool(
-    UpdateSessionRequest *update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
 
   void get_updates_from_monitor_pool(
-    UpdateSessionRequest *update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>> *actions_out);
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out);
 };
 
 } // namespace magma

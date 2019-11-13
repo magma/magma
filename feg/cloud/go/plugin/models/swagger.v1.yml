@@ -89,7 +89,7 @@ paths:
     get:
       summary: Describe a federation network
       tags:
-      - Federated Networks
+      - Federation Networks
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:

@@ -5,8 +5,10 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-## Global values for NMS chart
+## Global values for NMS sub-chart
 nms:
+  enabled: true
+
   magmalte:
     manifests:
       secrets: false
@@ -29,10 +31,9 @@ nms:
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
-## metrics subchart configuration.
+## metrics sub-chart configuration.
 metrics:
-  metrics:
-    create: false
+  enabled: true
   prometheus:
     create: false
   prometheusCache:
@@ -42,7 +43,7 @@ metrics:
   configmanager:
     create: false
 
-# secrets subchart configuration.
+# secrets sub-chart configuration.
 secrets:
   create: false
 
@@ -54,10 +55,22 @@ secret:
   envdir: orc8r-secrets-envdir
 
 proxy:
+  # Configure pod disruption budgets for proxy
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
+    enabled: true
+    legacyEnabled: true
     name: bootstrapper-orc8r-proxy
     annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
     labels: {}
     type: ClusterIP
     port:
@@ -112,6 +125,13 @@ proxy:
   affinity: {}
 
 controller:
+  # Configure pod disruption budgets for controller
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
     annotations: {}
@@ -170,6 +190,10 @@ controller:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
-# Set True to create a CloudWatch agent to monitor metrics 
+# Set True to create a CloudWatch agent to monitor metrics
 cloudwatch:
   create: false
+
+# logging sub-chart configuration.
+logging:
+  enabled: true

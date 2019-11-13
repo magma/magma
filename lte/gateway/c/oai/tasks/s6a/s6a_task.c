@@ -54,7 +54,6 @@
 #include "s6a_messages.h"
 #include "mme_config.h"
 #include "timer.h"
-#include "s6a_service.h"
 #include "s6a_client_api.h"
 
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
@@ -251,8 +250,7 @@ int s6a_init(const mme_config_t *mme_config_p)
     OAILOG_ERROR(LOG_S6A, "s6a create task\n");
     return RETURNerror;
   }
-  // start s6a_service grpc
-  s6a_service_init();
+
 #if S6A_OVER_GRPC
   send_activate_messages();
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over gRPC: DONE\n");
