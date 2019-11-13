@@ -128,12 +128,6 @@ func (*Builder) Build(networkID string, gatewayID string, graph configurator.Ent
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
-		"td-agent-bit": &mconfig.FluentBit{
-			ExtraTags: map[string]string{
-				"network_id": networkID,
-				"gateway_id": gatewayID,
-			},
-		},
 	}
 	for k, v := range vals {
 		mconfigOut[k] = v

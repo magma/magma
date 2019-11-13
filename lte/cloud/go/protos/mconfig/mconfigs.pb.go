@@ -1118,47 +1118,6 @@ func (m *LighttpD) GetEnableCaching() bool {
 	return false
 }
 
-// ------------------------------------------------------------------------------
-// Fluent Bit configs
-// ------------------------------------------------------------------------------
-type FluentBit struct {
-	ExtraTags            map[string]string `protobuf:"bytes,1,rep,name=extra_tags,json=extraTags,proto3" json:"extra_tags,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
-}
-
-func (m *FluentBit) Reset()         { *m = FluentBit{} }
-func (m *FluentBit) String() string { return proto.CompactTextString(m) }
-func (*FluentBit) ProtoMessage()    {}
-func (*FluentBit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_mconfigs_239fa0949d0bd913, []int{9}
-}
-func (m *FluentBit) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_FluentBit.Unmarshal(m, b)
-}
-func (m *FluentBit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_FluentBit.Marshal(b, m, deterministic)
-}
-func (dst *FluentBit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FluentBit.Merge(dst, src)
-}
-func (m *FluentBit) XXX_Size() int {
-	return xxx_messageInfo_FluentBit.Size(m)
-}
-func (m *FluentBit) XXX_DiscardUnknown() {
-	xxx_messageInfo_FluentBit.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_FluentBit proto.InternalMessageInfo
-
-func (m *FluentBit) GetExtraTags() map[string]string {
-	if m != nil {
-		return m.ExtraTags
-	}
-	return nil
-}
-
 func init() {
 	proto.RegisterType((*EnodebD)(nil), "magma.mconfig.EnodebD")
 	proto.RegisterMapType((map[string]*EnodebD_EnodebConfig)(nil), "magma.mconfig.EnodebD.EnbConfigsBySerialEntry")
@@ -1176,8 +1135,6 @@ func init() {
 	proto.RegisterMapType((map[string]*SubscriberDB_SubscriptionProfile)(nil), "magma.mconfig.SubscriberDB.SubProfilesEntry")
 	proto.RegisterType((*SubscriberDB_SubscriptionProfile)(nil), "magma.mconfig.SubscriberDB.SubscriptionProfile")
 	proto.RegisterType((*LighttpD)(nil), "magma.mconfig.LighttpD")
-	proto.RegisterType((*FluentBit)(nil), "magma.mconfig.FluentBit")
-	proto.RegisterMapType((map[string]string)(nil), "magma.mconfig.FluentBit.ExtraTagsEntry")
 	proto.RegisterEnum("magma.mconfig.EnodebD_CSFBRat", EnodebD_CSFBRat_name, EnodebD_CSFBRat_value)
 	proto.RegisterEnum("magma.mconfig.PipelineD_NetworkServices", PipelineD_NetworkServices_name, PipelineD_NetworkServices_value)
 	proto.RegisterEnum("magma.mconfig.MME_NonEPSServiceControl", MME_NonEPSServiceControl_name, MME_NonEPSServiceControl_value)
