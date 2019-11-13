@@ -66,8 +66,8 @@ grpc::Status CSFBGatewayServiceImpl::AlertReq(
 {
   itti_sgsap_alert_request_t itti_msg;
   convert_proto_msg_to_itti_sgsap_alert_request(request, &itti_msg);
-  std::cout << "[DEBUG] Received SGSAP_ALERT_REQUEST message from FeG with IMSI: "
-               << itti_msg.imsi << std::endl;
+  std::cout << "[DEBUG] Received SGSAP_ALERT_REQUEST message from"
+                "FeG with IMSI: " << itti_msg.imsi << std::endl;
   handle_sgsap_alert_request(&itti_msg);
   return grpc::Status::OK;
 }
@@ -93,8 +93,8 @@ grpc::Status CSFBGatewayServiceImpl::EPSDetachAc(
 {
   itti_sgsap_eps_detach_ack_t itti_msg;
   convert_proto_msg_to_itti_sgsap_eps_detach_ack(request, &itti_msg);
-  std::cout << "[DEBUG] Received SGSAP_EPS_DETACH_ACK message from FeG with IMSI: "
-               << itti_msg.imsi << std::endl;
+  std::cout << "[DEBUG] Received SGSAP_EPS_DETACH_ACK message"
+               "from FeG with IMSI: " << itti_msg.imsi << std::endl;
   handle_sgs_eps_detach_ack(&itti_msg);
   return grpc::Status::OK;
 }
@@ -106,8 +106,8 @@ grpc::Status CSFBGatewayServiceImpl::IMSIDetachAc(
 {
   itti_sgsap_imsi_detach_ack_t itti_msg;
   convert_proto_msg_to_itti_sgsap_imsi_detach_ack(request, &itti_msg);
-  std::cout << "[DEBUG] Received SGSAP_IMSI_DETACH_ACK message from FeG with IMSI: "
-               << itti_msg.imsi << std::endl;
+  std::cout << "[DEBUG] Received SGSAP_IMSI_DETACH_ACK message"
+               "from FeG with IMSI: " << itti_msg.imsi << std::endl;
   handle_sgs_imsi_detach_ack(&itti_msg);
   return grpc::Status::OK;
 }
@@ -169,8 +169,8 @@ grpc::Status CSFBGatewayServiceImpl::PagingReq(
 {
   itti_sgsap_paging_request_t itti_msg;
   convert_proto_msg_to_itti_sgsap_paging_request(request, &itti_msg);
-  std::cout << "[DEBUG] Received SGSAP_PAGING_REQUEST message from FeG with IMSI: "
-               << itti_msg.imsi << std::endl;
+  std::cout << "[DEBUG] Received SGSAP_PAGING_REQUEST message"
+               "from FeG with IMSI: " << itti_msg.imsi << std::endl;
   handle_sgs_paging_request(&itti_msg);
   return grpc::Status::OK;
 }
@@ -219,7 +219,8 @@ grpc::Status CSFBGatewayServiceImpl::VLRResetIndication(
   itti_sgsap_vlr_reset_indication_t itti_msg;
   convert_proto_msg_to_itti_sgsap_vlr_reset_indication(request, &itti_msg);
   handle_sgs_vlr_reset_indication(&itti_msg);
-  std::cout << "[DEBUG] Received SGSAP_VLR_RESET_INDICATION message from FeG" << std::endl;
+  std::cout << "[DEBUG] Received SGSAP_VLR_RESET_INDICATION message from FeG"
+            << std::endl;
   return grpc::Status::OK;
 }
 

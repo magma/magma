@@ -50,7 +50,7 @@ Status SpgwServiceImpl::CreateBearer(
   const CreateBearerRequest *request,
   CreateBearerResult *response)
 {
-  OAILOG_INFO(LOG_SPGW_APP,"Received CreateBearer GRPC request\n");
+  OAILOG_INFO(LOG_UTIL,"Received CreateBearer GRPC request\n");
   itti_pgw_nw_init_actv_bearer_request_t itti_msg;
   itti_msg.imsi_length = request->sid().id().size();
   strcpy(itti_msg.imsi, request->sid().id().c_str());
@@ -81,7 +81,7 @@ Status SpgwServiceImpl::DeleteBearer(
   const DeleteBearerRequest *request,
   DeleteBearerResult *response)
 {
-  OAILOG_INFO(LOG_SPGW_APP,"Received DeleteBearer GRPC request\n");
+  OAILOG_INFO(LOG_UTIL,"Received DeleteBearer GRPC request\n");
   itti_pgw_nw_init_deactv_bearer_request_t itti_msg;
   itti_msg.imsi_length = request->sid().id().size();
   strcpy(itti_msg.imsi, request->sid().id().c_str());

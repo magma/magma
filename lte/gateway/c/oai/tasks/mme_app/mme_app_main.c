@@ -45,7 +45,6 @@
 #include "mme_app_defs.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
-#include "s6a_message_utils.h"
 #include "service303.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
@@ -608,7 +607,6 @@ static void _check_mme_healthy_and_notify_service(void)
 {
   if (_is_mme_app_healthy()) {
     send_app_health_to_service303(TASK_MME_APP, true);
-    send_start_s6a_server(TASK_MME_APP);
   }
 }
 
