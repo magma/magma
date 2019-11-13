@@ -19,7 +19,7 @@ import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
   expansionPanel: {
-    padding: '24px',
+    padding: '24px 0px',
     borderRadius: '4px',
     '&:before': {
       content: 'none',
@@ -30,7 +30,7 @@ const useStyles = makeStyles(theme => ({
     '&&': {
       display: 'flex',
       flexDirection: 'row',
-      padding: '0px',
+      padding: '0px 24px',
       minHeight: 'auto',
     },
   },
@@ -53,7 +53,7 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   panelDetails: {
-    padding: 0,
+    padding: '0px 24px',
     display: 'flex',
     flexDirection: 'column',
     marginTop: '16px',
@@ -64,10 +64,17 @@ type Props = {
   title: string,
   children: React.Node,
   className?: string,
+  detailsPaneClass?: string,
   rightContent?: React.Node,
 };
 
-const ExpandingPanel = ({className, children, title, rightContent}: Props) => {
+const ExpandingPanel = ({
+  className,
+  detailsPaneClass,
+  children,
+  title,
+  rightContent,
+}: Props) => {
   const classes = useStyles();
   const [isExpanded, setIsExpanded] = React.useState(true);
   return (
@@ -86,7 +93,8 @@ const ExpandingPanel = ({className, children, title, rightContent}: Props) => {
         <Text className={classes.panelTitle}>{title}</Text>
         {rightContent}
       </ExpansionPanelSummary>
-      <ExpansionPanelDetails className={classes.panelDetails}>
+      <ExpansionPanelDetails
+        className={classNames(detailsPaneClass, classes.panelDetails)}>
         {children}
       </ExpansionPanelDetails>
     </ExpansionPanel>
