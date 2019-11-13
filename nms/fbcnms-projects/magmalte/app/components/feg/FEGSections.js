@@ -10,8 +10,10 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import FEGConfigure from './FEGConfigure';
 import FEGGateways from './FEGGateways';
 import React from 'react';
+import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 
 export function getFEGSections(): SectionsConfigs {
   const sections = [
@@ -20,6 +22,12 @@ export function getFEGSections(): SectionsConfigs {
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: FEGGateways,
+    },
+    {
+      path: 'configure',
+      label: 'Configure',
+      icon: <SettingsCellIcon />,
+      component: FEGConfigure,
     },
   ];
 
