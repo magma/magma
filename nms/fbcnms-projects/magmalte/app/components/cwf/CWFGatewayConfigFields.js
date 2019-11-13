@@ -11,6 +11,7 @@
 import type {allowed_gre_peers} from '@fbcnms/magma-api';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
+import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
@@ -53,6 +54,8 @@ export default function(props: Props) {
     newValue[index] = {...allowedGREPeers[index]};
     if (field === 'key') {
       newValue[index].key = parseInt(value.replace(/[^0-9]*/g, '') || 0);
+    } else {
+      newValue[index][field] = value;
     }
     props.onChange(newValue);
   };
@@ -68,6 +71,14 @@ export default function(props: Props) {
     newValue.push({ip: '', key: 0});
     props.onChange(newValue);
   };
+
+  if (allowedGREPeers.length === 0) {
+    return (
+      <Button color="primary" variant="contained" onClick={addPeer}>
+        Add GRE Peer
+      </Button>
+    );
+  }
 
   return (
     <div>
