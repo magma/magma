@@ -8,6 +8,7 @@
  * @format
  */
 
+import Button from '../../components/design-system/Button';
 import Card from '../../components/design-system/Card/Card';
 import CardHeader from '../../components/design-system/Card/CardHeader';
 import React from 'react';
@@ -35,6 +36,10 @@ const CardsRoot = () => {
       </Card>
       <Card className={classes.card}>
         <CardHeader>Title</CardHeader>
+        <Text>Content</Text>
+      </Card>
+      <Card className={classes.card}>
+        <CardHeader rightContent={<Button>Action</Button>}>Title</CardHeader>
         <Text>Content</Text>
       </Card>
     </div>

@@ -8,28 +8,37 @@
  * @format
  */
 
-import React from 'react';
+import * as React from 'react';
 import Text from '../Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
   root: {
+    display: 'flex',
+    alignItems: 'center',
     marginBottom: '24px',
+  },
+  titleText: {
+    flexGrow: 1,
   },
 }));
 
 type Props = {
   className?: string,
   children: string,
+  rightContent?: React.Node,
 };
 
 const CardHeader = (props: Props) => {
-  const {children, className} = props;
+  const {children, className, rightContent} = props;
   const classes = useStyles();
   return (
     <div className={classNames(classes.root, className)}>
-      <Text variant="h6">{children}</Text>
+      <Text variant="h6" className={classes.titleText}>
+        {children}
+      </Text>
+      {rightContent}
     </div>
   );
 };
