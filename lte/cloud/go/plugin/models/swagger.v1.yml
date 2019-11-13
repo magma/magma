@@ -33,6 +33,10 @@ magma-gen-meta:
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: SubscriberID
+      filename: subscriber_id_swaggergen.go
+    - go-struct-name: PolicyID
+      filename: policy_id_swaggergen.go
     - go-struct-name: Subscriber
       filename: subscriber_swaggergen.go
     - go-struct-name: LteSubscription
@@ -1895,6 +1899,12 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
 
+  subscriber_id:
+    type: string
+    pattern: '^(IMSI\d{10,15})$'
+    example: IMSI208950000000010
+    x-nullable: false
+
   subscriber:
     type: object
     required:
@@ -1902,12 +1912,25 @@ definitions:
       - lte
     properties:
       id:
-        type: string
-        pattern: '^(IMSI\d{10,15})$'
-        example: IMSI208950000000010
-        x-nullable: false
+        $ref: '#/definitions/subscriber_id'
       lte:
         $ref: '#/definitions/lte_subscription'
+      active_base_names:
+        type: array
+        items:
+          $ref: '#/definitions/base_name'
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
+      active_policies:
+        type: array
+        items:
+          $ref: '#/definitions/policy_id'
+        description: 'Policies which are active for this subscriber'
+        example:
+          - 'rule1'
+          - 'rule2'
 
   lte_subscription:
     type: object
@@ -2048,6 +2071,11 @@ definitions:
       server_address:
         type: string
 
+  policy_id:
+    type: string
+    minLength: 1
+    example: 'All ICMP'
+
   policy_rule:
     # A traffic match template and a identifier that is
     # used to labelling usage records
@@ -2058,9 +2086,7 @@ definitions:
       - priority
     properties:
       id:
-        type: string
-        example: 'All ICMP'
-        x-go-custom-tag: 'magma_alt_name:"Id"'
+        $ref: '#/definitions/policy_id'
       flow_list:
         type: array
         items:
@@ -2085,6 +2111,14 @@ definitions:
         $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
+      assigned_subscribers:
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_id'
+        description: Subscribers which have been assigned this policy not as part of a base name
+        example:
+          - IMSI1234567890
+          - IMSI0987654321
 
   base_name:
     type: string
@@ -2107,6 +2141,14 @@ definitions:
         $ref: '#/definitions/base_name'
       rule_names:
         $ref: '#/definitions/rule_names'
+      assigned_subscribers:
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_id'
+        description: Subscribers which have been assigned this policy base name
+        example:
+          - IMSI1234567890
+          - IMSI0987654321
 
   flow_match:
     # A template for matching traffic to meter
