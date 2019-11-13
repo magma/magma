@@ -8,8 +8,9 @@
  * @format
  */
 
+import type {policy_rule} from '@fbcnms/magma-api';
+
 import type {ContextRouter} from 'react-router-dom';
-import type {PolicyRule} from './PolicyTypes';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -20,16 +21,15 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import IconButton from '@material-ui/core/IconButton';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PolicyFlowFields from './PolicyFlowFields';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -41,12 +41,12 @@ type Props = ContextRouter &
   WithStyles<typeof styles> &
   WithAlert & {
     onCancel: () => void,
-    onSave: PolicyRule => void,
-    rule?: PolicyRule,
+    onSave: string => void,
+    rule?: policy_rule,
   };
 
 type State = {
-  rule: PolicyRule,
+  rule: policy_rule,
 };
 
 class PolicyRuleEditDialog extends React.Component<Props, State> {
@@ -110,18 +110,19 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
 
   onSave = async () => {
     if (this.props.rule) {
-      await axios.put(
-        MagmaAPIUrls.networkPolicyRule(this.props.match, this.state.rule.id),
-        this.state.rule,
-      );
+      await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+        networkId: nullthrows(this.props.match.params.networkId),
+        ruleId: this.state.rule.id,
+        policyRule: this.state.rule,
+      });
     } else {
-      await axios.post(
-        MagmaAPIUrls.networkPolicyRules(this.props.match),
-        this.state.rule,
-      );
+      await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
+        networkId: nullthrows(this.props.match.params.networkId),
+        policyRule: this.state.rule,
+      });
     }
 
-    this.props.onSave(this.state.rule);
+    this.props.onSave(this.state.rule.id);
   };
 
   handleIDChange = ({target}) =>
@@ -150,7 +151,7 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
     });
   };
 
-  handleActionChange = (index: number, action: string) => {
+  handleActionChange = (index, action) => {
     const flowList = [...nullthrows(this.state.rule.flow_list)];
     flowList[index] = {...flowList[index], action};
 

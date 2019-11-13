@@ -9,7 +9,6 @@
  */
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {policy_rule} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
@@ -82,8 +81,8 @@ function PoliciesConfig() {
         component={() => (
           <PolicyRuleEditDialog
             onCancel={() => history.push(relativeUrl(''))}
-            onSave={rule => {
-              setRuleIDs([...nullthrows(ruleIDs), rule.id]);
+            onSave={ruleID => {
+              setRuleIDs([...nullthrows(ruleIDs), ruleID]);
               history.push(relativeUrl(''));
             }}
           />
@@ -96,14 +95,15 @@ function PoliciesConfig() {
 type Props = WithAlert & {ruleID: string, onDelete: () => void};
 
 const RuleRow = withAlert((props: Props) => {
-  const [rule, setRule] = useState<?policy_rule>();
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const {match, relativePath, relativeUrl, history} = useRouter();
   const networkID = nullthrows(match.params.networkId);
 
-  useMagmaAPI(
+  const {response: rule} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId,
     {networkId: networkID, ruleId: props.ruleID},
-    setRule,
+    undefined,
+    lastRefreshTime,
   );
 
   const onDeleteRule = async () => {
@@ -144,12 +144,10 @@ const RuleRow = withAlert((props: Props) => {
           component={() =>
             rule ? (
               <PolicyRuleEditDialog
-                // $FlowFixMe will be fixed in follow up diff
                 rule={rule}
                 onCancel={() => history.push(relativeUrl(''))}
-                onSave={rule => {
-                  // $FlowFixMe will be fixed in follow up diff
-                  setRule(rule);
+                onSave={() => {
+                  setLastRefreshTime(new Date().getTime());
                   history.push(relativeUrl(''));
                 }}
               />
