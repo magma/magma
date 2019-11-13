@@ -13,12 +13,13 @@ import FeatureFlagModel from './models/featureflag';
 import OrganizationModel from './models/organization';
 import Sequelize from 'sequelize';
 import UserModel from './models/user';
+import sequelizeConfig from './sequelizeConfig';
 
 const env = process.env.NODE_ENV || 'development';
-const config = require('./sequelizeConfig.js')[env];
+const config = sequelizeConfig[env];
 
 export const sequelize = new Sequelize(
-  config.database,
+  config.database || '',
   config.username,
   config.password,
   config,

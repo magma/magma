@@ -9,6 +9,7 @@
  */
 
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FeatureID} from '@fbcnms/types/features';
 
 import MagmaV1API from '../magma';
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -48,7 +49,8 @@ const configFromFeatureFlag = flag => ({
 router.get(
   '/feature/async',
   asyncHandler(async (req: FBCNMSRequest, res) => {
-    const results = {...featureConfigs};
+    // $FlowFixMe: results needs to be typed correctly
+    const results: {[string]: any} = {...featureConfigs};
     Object.keys(results).forEach(id => (results[id].config = {}));
     const featureFlags = await FeatureFlag.findAll();
     featureFlags.forEach(flag => {
@@ -69,8 +71,10 @@ router.get(
 router.post(
   '/feature/async/:featureId',
   asyncHandler(async (req: FBCNMSRequest, res) => {
-    const {featureId} = req.params;
-    const results = featureConfigs[featureId];
+    // $FlowFixMe: Ensure it's a FeatureID
+    const featureId: FeatureID = req.params.featureId;
+    // $FlowFixMe: results needs to be typed correctly
+    const results: {[string]: any} = {...featureConfigs};
     results.config = {};
     const {toUpdate, toDelete, toCreate} = req.body;
     const featureFlags = await FeatureFlag.findAll({where: {featureId}});

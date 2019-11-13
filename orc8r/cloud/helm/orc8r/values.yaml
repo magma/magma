@@ -55,10 +55,22 @@ secret:
   envdir: orc8r-secrets-envdir
 
 proxy:
+  # Configure pod disruption budgets for proxy
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
+    enabled: true
+    legacyEnabled: true
     name: bootstrapper-orc8r-proxy
     annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
     labels: {}
     type: ClusterIP
     port:
@@ -113,6 +125,13 @@ proxy:
   affinity: {}
 
 controller:
+  # Configure pod disruption budgets for controller
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
     annotations: {}
@@ -171,7 +190,7 @@ controller:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
-# Set True to create a CloudWatch agent to monitor metrics 
+# Set True to create a CloudWatch agent to monitor metrics
 cloudwatch:
   create: false
 

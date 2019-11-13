@@ -25,6 +25,10 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 )
 
+const (
+	defaultFramedIpv4Addr = "10.10.10.10"
+)
+
 // PolicyClient is an interface to define something that sends requests over Gx.
 // This can be used to stub out requests
 type PolicyClient interface {
@@ -43,9 +47,10 @@ type PolicyClient interface {
 // Although Gy and Gx both send Credit Control Requests, their Application IDs,
 // allowed AVPs, and purposes are different
 type GxClient struct {
-	diamClient          *diameter.Client
-	pcrf91Compliant     bool // to support PCRF which is 29.212 release 9.1 compliant
-	dontUseEUIIpIfEmpty bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
+	diamClient             *diameter.Client
+	pcrf91Compliant        bool // to support PCRF which is 29.212 release 9.1 compliant
+	dontUseEUIIpIfEmpty    bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
+	framedIpv4AddrRequired bool // PCRF requires FramedIpv4Addr to be included
 }
 
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
@@ -64,9 +69,10 @@ func NewConnectedGxClient(
 			credit_control.NewASRHandler(diamClient, cloudRegistry))
 	}
 	return &GxClient{
-		diamClient:          diamClient,
-		pcrf91Compliant:     *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
-		dontUseEUIIpIfEmpty: *disableEUIIpIfEmpty || isThruthy(os.Getenv(DisableEUIIPv6IfNoIPEnv)),
+		diamClient:             diamClient,
+		pcrf91Compliant:        *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
+		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || isThruthy(os.Getenv(DisableEUIIPv6IfNoIPEnv)),
+		framedIpv4AddrRequired: isThruthy(os.Getenv(FramedIPv4AddrRequiredEnv)),
 	}
 
 }
@@ -215,18 +221,25 @@ func (gxClient *GxClient) createCreditControlMessage(
 			},
 		})
 	}
-	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(5))
-	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(1004))
+
+	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.IPCANType))
+	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.RATType))
 
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
 		if iplen := len(ip); iplen == net.IPv4len {
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ip))
+		} else if gxClient.framedIpv4AddrRequired {
+			defaultIp := getDefaultFramedIpv4Addr()
+			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
 		} else if iplen > net.IPv4len && iplen <= net.IPv6len {
 			m.NewAVP(
 				avp.FramedIPv6Prefix, avp.Mbit,
 				0,
 				datatype.OctetString(append([]byte{0, byte(iplen) * 8}, []byte(ip)...)))
 		}
+	} else if gxClient.framedIpv4AddrRequired {
+		defaultIp := getDefaultFramedIpv4Addr()
+		m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
 	} else if (!gxClient.dontUseEUIIpIfEmpty) && len(request.HardwareAddr) >= 6 {
 		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
 	}
@@ -424,4 +437,12 @@ func Ipv6PrefixFromMAC(mac net.HardwareAddr) []byte {
 		ip[10] ^= 0x02
 	}
 	return ip
+}
+
+func getDefaultFramedIpv4Addr() net.IP {
+	ip := os.Getenv(DefaultFramedIPv4AddrEnv)
+	if len(ip) == 0 {
+		ip = defaultFramedIpv4Addr
+	}
+	return net.ParseIP(ip)
 }

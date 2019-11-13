@@ -60,7 +60,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			DynamicServices:         []string{},
 			FeatureFlags:            map[string]bool{},
 		},
-		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"metricsd":     &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{ExtraTags: map[string]string{"network_id": "n1", "gateway_id": "gw1"}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -102,7 +103,8 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			DynamicServices: []string{},
 			FeatureFlags:    map[string]bool{},
 		},
-		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"metricsd":     &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{ExtraTags: map[string]string{"network_id": "n1", "gateway_id": "gw1"}},
 	}
 	assert.Equal(t, expected, actual)
 }

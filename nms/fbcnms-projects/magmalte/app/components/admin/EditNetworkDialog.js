@@ -70,6 +70,7 @@ export default function NetworkDialog(props: Props) {
   ) =>
     setNetworkConfig({
       ...networkConfig,
+      // $FlowFixMe Set state for each field
       [field]: value,
     });
 

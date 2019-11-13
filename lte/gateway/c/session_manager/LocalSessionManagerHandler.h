@@ -41,8 +41,8 @@ class LocalSessionManagerHandler {
    * from the cloud
    */
   virtual void CreateSession(
-    ServerContext *context,
-    const LocalCreateSessionRequest *request,
+    ServerContext* context,
+    const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)>
       response_callback) = 0;
 
@@ -50,8 +50,8 @@ class LocalSessionManagerHandler {
    * Terminate a session, untracking credit and terminating in the cloud
    */
   virtual void EndSession(
-    ServerContext *context,
-    const SubscriberID *request,
+    ServerContext* context,
+    const SubscriberID* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) = 0;
 };
 
@@ -63,16 +63,16 @@ class LocalSessionManagerHandler {
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
-    LocalEnforcer *monitor,
-    SessionCloudReporter *reporter);
+    LocalEnforcer* monitor,
+    SessionCloudReporter* reporter);
 
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
    */
   void ReportRuleStats(
-    ServerContext *context,
-    const RuleRecordTable *request,
+    ServerContext* context,
+    const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback);
 
   /**
@@ -80,21 +80,21 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * from the cloud
    */
   void CreateSession(
-    ServerContext *context,
-    const LocalCreateSessionRequest *request,
+    ServerContext* context,
+    const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback);
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
    */
   void EndSession(
-    ServerContext *context,
-    const SubscriberID *request,
+    ServerContext* context,
+    const SubscriberID* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
-  LocalEnforcer *enforcer_;
-  SessionCloudReporter *reporter_;
+  LocalEnforcer* enforcer_;
+  SessionCloudReporter* reporter_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
@@ -104,19 +104,19 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  private:
   void check_usage_for_reporting();
   bool is_pipelined_restarted();
-  bool restart_pipelined(const std::uint64_t &epoch);
+  bool restart_pipelined(const std::uint64_t& epoch);
 
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void send_create_session(
-    const CreateSessionRequest &request,
-    const std::string &imsi,
-    const std::string &sid,
-    const SessionState::Config &cfg,
+    const CreateSessionRequest& request,
+    const std::string& imsi,
+    const std::string& sid,
+    const SessionState::Config& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback);
 
   void handle_setup_callback(
-    const std::uint64_t &epoch,
+    const std::uint64_t& epoch,
     Status status,
     SetupFlowsResult resp);
 };

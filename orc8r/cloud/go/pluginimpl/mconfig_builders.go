@@ -59,6 +59,13 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 	mconfigOut["control_proxy"] = &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	mconfigOut["metricsd"] = &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO}
 
+	mconfigOut["td-agent-bit"] = &mconfig.FluentBit{
+		ExtraTags: map[string]string{
+			"network_id": networkID,
+			"gateway_id": gatewayID,
+		},
+	}
+
 	return nil
 }
 

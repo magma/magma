@@ -65,7 +65,11 @@ class Alert extends React.Component<Props> {
         </DialogContent>
         {hasActions && (
           <DialogActions>
-            {cancelLabel && <Button onClick={onCancel}>{cancelLabel}</Button>}
+            {cancelLabel && (
+              <Button skin="regular" onClick={onCancel}>
+                {cancelLabel}
+              </Button>
+            )}
             {confirmLabel && (
               <Button onClick={onConfirm} autoFocus>
                 {confirmLabel}

@@ -156,7 +156,9 @@ void NasStateConverter::pco_protocol_or_container_id_to_proto(
   protocol_configuration_options_t& state_protocol_configuration_options,
   ProtocolConfigurationOptions* protocol_configuration_options_proto)
 {
-  for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
+  for (int i = 0;
+       i < state_protocol_configuration_options.num_protocol_or_container_id;
+       i++) {
     pco_protocol_or_container_id_t state_pco_protocol_or_container_id =
       state_protocol_configuration_options.protocol_or_container_ids[i];
     auto pco_protocol_or_container_id_proto =
@@ -166,9 +168,9 @@ void NasStateConverter::pco_protocol_or_container_id_to_proto(
     pco_protocol_or_container_id_proto->set_length(
       state_pco_protocol_or_container_id.length);
     if (state_pco_protocol_or_container_id.contents) {
-      pco_protocol_or_container_id_proto->set_contents(
-        (char*) state_pco_protocol_or_container_id.contents->data,
-        state_pco_protocol_or_container_id.contents->slen);
+      BSTRING_TO_STRING(
+        state_pco_protocol_or_container_id.contents,
+        pco_protocol_or_container_id_proto->mutable_contents());
     }
   }
 }
@@ -314,8 +316,10 @@ void NasStateConverter::esm_ebr_context_to_proto(
   /*TODO
    * SpgwStateConverter::traffic_flow_template_to_proto(state_esm_ebr_context.tft,
    * esm_ebr_context_proto->mutable_tft());*/
-  protocol_configuration_options_to_proto(
-    *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
+  if (state_esm_ebr_context.pco != nullptr) {
+    protocol_configuration_options_to_proto(
+      *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
+  }
   nas_timer_to_proto(
     state_esm_ebr_context.timer, esm_ebr_context_proto->mutable_timer());
 }
@@ -332,8 +336,10 @@ void NasStateConverter::proto_to_esm_ebr_context(
   state_esm_ebr_context->mbr_ul = esm_ebr_context_proto.mbr_ul();
   /* SpgwStateConverter::proto_to_traffic_flow_template(esm_ebr_context_proto.tft(),
    * &state_esm_ebr_context->tft);*/
-  proto_to_protocol_configuration_options(
-    esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
+  if (esm_ebr_context_proto.has_pco()) {
+    proto_to_protocol_configuration_options(
+      esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
+  }
   proto_to_nas_timer(
     esm_ebr_context_proto.timer(), &state_esm_ebr_context->timer);
 }
