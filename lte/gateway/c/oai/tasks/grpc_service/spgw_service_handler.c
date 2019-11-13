@@ -18,40 +18,32 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#define spgw_service
-#define spgw_service_TASK_C
+#include <string.h>
+#include <sys/types.h>
 
-#include <stddef.h>
-
-#include "assertions.h"
-#include "bstrlib.h"
-#include "common_defs.h"
+#include "common_types.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
+#include "itti_types.h"
 #include "log.h"
-#include "mme_default_values.h"
-#include "spgw_service.h"
+#include "sgw_messages_types.h"
 
-static void *spgw_service_task(void *args)
+int send_activate_bearer_request_itti(
+  itti_pgw_nw_init_actv_bearer_request_t *itti_msg)
 {
-  itti_mark_task_ready(TASK_SPGW_SERVICE);
-  spgw_service_data_t *spgw_service_data = (spgw_service_data_t *) args;
-  start_spgw_service(spgw_service_data->server_address);
-  itti_exit_task();
-  return NULL;
+  OAILOG_DEBUG(LOG_SPGW_APP, "Sending pgw_nw_init_actv_bearer_request\n");
+  MessageDef *message_p = itti_alloc_new_message(
+    TASK_GRPC_SERVICE, PGW_NW_INITIATED_ACTIVATE_BEARER_REQ);
+  message_p->ittiMsg.pgw_nw_init_actv_bearer_request = *itti_msg;
+  return itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
 }
 
-int spgw_service_init(void)
+int send_deactivate_bearer_request_itti(
+  itti_pgw_nw_init_deactv_bearer_request_t *itti_msg)
 {
-  OAILOG_DEBUG(LOG_SPGW_APP, "Initializing spgw_service task interface\n");
-  spgw_service_data_t spgw_service_config;
-  spgw_service_config.server_address = bfromcstr(SPGWSERVICE_SERVER_ADDRESS);
-
-  if (
-    itti_create_task(
-      TASK_SPGW_SERVICE, &spgw_service_task, &spgw_service_config) < 0) {
-    OAILOG_ALERT(LOG_SPGW_APP, "Initializing spgw_service: ERROR\n");
-    return RETURNerror;
-  }
-  return RETURNok;
+  OAILOG_DEBUG(LOG_SPGW_APP, "Sending pgw_nw_init_deactv_bearer_request\n");
+  MessageDef *message_p = itti_alloc_new_message(
+    TASK_GRPC_SERVICE, PGW_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+  message_p->ittiMsg.pgw_nw_init_deactv_bearer_request = *itti_msg;
+  return itti_send_msg_to_task(TASK_PGW_APP, INSTANCE_DEFAULT, message_p);
 }

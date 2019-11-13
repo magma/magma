@@ -28,7 +28,7 @@ extern "C" {
 #include "s6a_service_handler.h"
 #include "log.h"
 }
-#include "S6aProxyImpl.h"
+#include "S6aGatewayImpl.h"
 
 namespace grpc {
 class Channel;
@@ -43,9 +43,9 @@ using grpc::StatusCode;
 namespace magma {
 using namespace feg;
 
-S6aProxyImpl::S6aProxyImpl() {}
+S6aGatewayImpl::S6aGatewayImpl() {}
 
-Status S6aProxyImpl::CancelLocation(
+Status S6aGatewayImpl::CancelLocation(
   ServerContext *context,
   const CancelLocationRequest *request,
   CancelLocationAnswer *answer)
@@ -68,7 +68,7 @@ Status S6aProxyImpl::CancelLocation(
   return Status::OK;
 }
 
-Status S6aProxyImpl::Reset(
+Status S6aGatewayImpl::Reset(
   ServerContext *context,
   const ResetRequest *request,
   ResetAnswer *response)
