@@ -25,9 +25,10 @@ metadata:
     {{- with .Values.proxy.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-  {{- with .Values.proxy.service.annotations }}
+  {{- if or .Values.proxy.service.annotations .Values.proxy.service.extraAnnotations.clientcertLegacy }}
   annotations:
-{{ toYaml . | indent 4 }}
+{{ with .Values.proxy.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
+{{ with .Values.proxy.service.extraAnnotations.clientcertLegacy }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
 spec:
   selector:
