@@ -20,7 +20,7 @@ import (
 type BaseNameRecord struct {
 
 	// Subscribers which have been assigned this policy base name
-	AssignedSubscribers []SubscriberID `json:"assigned_subscribers"`
+	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
 
 	// name
 	// Required: true

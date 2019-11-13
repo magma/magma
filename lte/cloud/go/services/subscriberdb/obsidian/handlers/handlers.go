@@ -59,9 +59,9 @@ func createSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 {
-		sub.ID = subscriberID
+		sub.ID = models2.SubscriberID(subscriberID)
 	} else {
-		subscriberID = sub.ID
+		subscriberID = string(models2.SubscriberID(sub.ID))
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
@@ -93,7 +93,7 @@ func listSubscribers(c echo.Context) error {
 		sids = append(sids, ent.Key)
 		if ent.Config != nil {
 			entConfs[ent.Key] = &models2.Subscriber{
-				ID:  ent.Key,
+				ID:  models2.SubscriberID(ent.Key),
 				Lte: ent.Config.(*models2.LteSubscription),
 			}
 		}
@@ -120,7 +120,7 @@ func getSubscriber(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	ret := &models2.Subscriber{ID: ent.Key, Lte: ent.Config.(*models2.LteSubscription)}
+	ret := &models2.Subscriber{ID: models2.SubscriberID(ent.Key), Lte: ent.Config.(*models2.LteSubscription)}
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -139,9 +139,9 @@ func updateSubscriber(c echo.Context) error {
 	}
 	subscriberID := getSubscriberId(c)
 	if len(subscriberID) != 0 { // SID is in URL
-		sub.ID = subscriberID
+		sub.ID = models2.SubscriberID(subscriberID)
 	} else {
-		subscriberID = sub.ID
+		subscriberID = string(sub.ID)
 	}
 
 	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, sub.Lte)
