@@ -32,6 +32,7 @@ require (
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
+	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
@@ -39,6 +40,7 @@ require (
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20191025090151-53bf42e6b339 // indirect
+	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb // indirect
 	google.golang.org/grpc v1.21.1
