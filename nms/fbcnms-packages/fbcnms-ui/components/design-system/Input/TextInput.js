@@ -17,8 +17,21 @@ import InputContext from './InputContext';
 import classNames from 'classnames';
 import {withStyles} from '@material-ui/core/styles';
 
+export const KEYBOARD_KEYS = {
+  CODES: {
+    ENTER: 13,
+  },
+  MODIFIERS: {
+    SHIFT: 'shift',
+  },
+};
+
 const styles = ({symphony}) => ({
   root: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  inputContainer: {
     padding: '0px 8px',
     border: `1px solid ${symphony.palette.D100}`,
     borderRadius: '4px',
@@ -65,6 +78,10 @@ const styles = ({symphony}) => ({
     marginRight: '7px',
     marginLeft: '4px',
   },
+  hint: {
+    color: symphony.palette.D200,
+    paddingTop: '4px',
+  },
 });
 
 type Props = {
@@ -77,9 +94,11 @@ type Props = {
   disabled?: boolean,
   hasError?: boolean,
   prefix?: React.Node,
+  hint?: string,
   onChange?: (e: SyntheticInputEvent<HTMLInputElement>) => void,
   onFocus?: () => void,
   onBlur?: () => void,
+  onEnterPressed?: (e: KeyboardEvent) => void,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -121,6 +140,15 @@ class TextInput extends React.Component<Props, State> {
     onChange && onChange(e);
   };
 
+  _onKeyDown = (e: KeyboardEvent) => {
+    if (e.keyCode !== KEYBOARD_KEYS.CODES.ENTER) {
+      return;
+    }
+
+    const {onEnterPressed} = this.props;
+    onEnterPressed && onEnterPressed(e);
+  };
+
   render() {
     const {
       classes,
@@ -129,38 +157,39 @@ class TextInput extends React.Component<Props, State> {
       disabled: disabledProp,
       prefix,
       value,
+      hint,
       ...rest
     } = this.props;
     const {hasFocus} = this.state;
     const disabled = disabledProp ? disabledProp : this.context.disabled;
     const hasError = hasErrorProp ? hasErrorProp : this.context.hasError;
     return (
-      <div
-        className={classNames(
-          classes.root,
-          {
+      <div className={classNames(classes.root, className)}>
+        <div
+          className={classNames(classes.inputContainer, {
             [classes.hasFocus]: hasFocus,
             [classes.disabled]: disabled,
             [classes.hasError]: hasError,
-          },
-          className,
-        )}>
-        {prefix && (
-          <div className={classes.prefix}>
-            <InputContext.Provider value={{disabled, value: value ?? ''}}>
-              {prefix}
-            </InputContext.Provider>
-          </div>
-        )}
-        <input
-          className={classes.input}
-          disabled={disabled}
-          onFocus={this._onInputFocused}
-          onBlur={this._onInputBlurred}
-          onChange={this._onChange}
-          value={value}
-          {...rest}
-        />
+          })}>
+          {prefix && (
+            <div className={classes.prefix}>
+              <InputContext.Provider value={{disabled, value: value ?? ''}}>
+                {prefix}
+              </InputContext.Provider>
+            </div>
+          )}
+          <input
+            className={classes.input}
+            disabled={disabled}
+            onFocus={this._onInputFocused}
+            onBlur={this._onInputBlurred}
+            onChange={this._onChange}
+            onKeyDown={this._onKeyDown}
+            value={value}
+            {...rest}
+          />
+        </div>
+        {hint && <div className={classes.hint}>{hint}</div>}
       </div>
     );
   }
