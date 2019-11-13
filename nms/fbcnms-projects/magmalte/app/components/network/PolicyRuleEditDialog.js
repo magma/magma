@@ -42,7 +42,7 @@ type Props = ContextRouter &
   WithAlert & {
     onCancel: () => void,
     onSave: PolicyRule => void,
-    rule: PolicyRule,
+    rule?: PolicyRule,
   };
 
 type State = {
