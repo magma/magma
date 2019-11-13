@@ -194,13 +194,7 @@ func (srv *CentralSessionController) TerminateSession(
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := srv.sendTerminationGxRequest(
-			removeSidPrefix(request.Sid),
-			request.SessionId,
-			request.UeIpv4,
-			request.RequestNumber,
-			request.MonitorUsages,
-		)
+		_, err := srv.sendTerminationGxRequest(request)
 		metrics.UpdateGxRecentRequestMetrics(err)
 		if err != nil {
 			metrics.PcrfCcrTerminateSendFailures.Inc()

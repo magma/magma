@@ -16,11 +16,11 @@
 namespace magma {
 
 SessionState::SessionState(
-  const std::string &imsi,
-  const std::string &session_id,
-  const std::string &core_session_id,
-  const SessionState::Config &cfg,
-  StaticRuleStore &rule_store):
+  const std::string& imsi,
+  const std::string& session_id,
+  const std::string& core_session_id,
+  const SessionState::Config& cfg,
+  StaticRuleStore& rule_store):
   imsi_(imsi),
   session_id_(session_id),
   core_session_id_(core_session_id),
@@ -49,7 +49,7 @@ void SessionState::finish_report()
 }
 
 void SessionState::add_used_credit(
-  const std::string &rule_id,
+  const std::string& rule_id,
   uint64_t used_tx,
   uint64_t used_rx)
 {
@@ -74,8 +74,8 @@ void SessionState::add_used_credit(
 }
 
 void SessionState::get_updates_from_charging_pool(
-  UpdateSessionRequest *update_request_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  UpdateSessionRequest& update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>>* actions_out)
 {
   // charging updates
   std::vector<CreditUsage> charging_updates;
@@ -86,7 +86,7 @@ void SessionState::get_updates_from_charging_pool(
     &charging_updates,
     actions_out);
   for (const auto &update : charging_updates) {
-    auto new_req = update_request_out->mutable_updates()->Add();
+    auto new_req = update_request_out.mutable_updates()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
     new_req->set_sid(imsi_);
@@ -99,14 +99,15 @@ void SessionState::get_updates_from_charging_pool(
     new_req->set_imsi_plmn_id(config_.imsi_plmn_id);
     new_req->set_user_location(config_.user_location);
     new_req->set_hardware_addr(config_.hardware_addr);
+    new_req->set_rat_type(config_.rat_type);
     new_req->mutable_usage()->CopyFrom(update);
     request_number_++;
   }
 }
 
 void SessionState::get_updates_from_monitor_pool(
-  UpdateSessionRequest *update_request_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  UpdateSessionRequest& update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>>* actions_out)
 {
   // monitor updates
   std::vector<UsageMonitorUpdate> monitor_updates;
@@ -117,20 +118,21 @@ void SessionState::get_updates_from_monitor_pool(
     &monitor_updates,
     actions_out);
   for (const auto &update : monitor_updates) {
-    auto new_req = update_request_out->mutable_usage_monitors()->Add();
+    auto new_req = update_request_out.mutable_usage_monitors()->Add();
     new_req->set_session_id(session_id_);
     new_req->set_request_number(request_number_);
     new_req->set_sid(imsi_);
     new_req->set_ue_ipv4(config_.ue_ipv4);
     new_req->set_hardware_addr(config_.hardware_addr);
+    new_req->set_rat_type(config_.rat_type);
     new_req->mutable_update()->CopyFrom(update);
     request_number_++;
   }
 }
 
 void SessionState::get_updates(
-  UpdateSessionRequest *update_request_out,
-  std::vector<std::unique_ptr<ServiceAction>> *actions_out)
+  UpdateSessionRequest& update_request_out,
+  std::vector<std::unique_ptr<ServiceAction>>* actions_out)
 {
   if (curr_state_ != SESSION_ACTIVE) return;
 
@@ -188,24 +190,24 @@ void SessionState::complete_termination()
   }
 }
 
-void SessionState::insert_dynamic_rule(const PolicyRule &dynamic_rule)
+void SessionState::insert_dynamic_rule(const PolicyRule& dynamic_rule)
 {
   session_rules_.insert_dynamic_rule(dynamic_rule);
 }
 
-void SessionState::activate_static_rule(const std::string &rule_id)
+void SessionState::activate_static_rule(const std::string& rule_id)
 {
   session_rules_.activate_static_rule(rule_id);
 }
 
 bool SessionState::remove_dynamic_rule(
-  const std::string &rule_id,
-  PolicyRule *rule_out)
+  const std::string& rule_id,
+  PolicyRule* rule_out)
 {
   return session_rules_.remove_dynamic_rule(rule_id, rule_out);
 }
 
-bool SessionState::deactivate_static_rule(const std::string &rule_id)
+bool SessionState::deactivate_static_rule(const std::string& rule_id)
 {
   return session_rules_.deactivate_static_rule(rule_id);
 }
@@ -220,7 +222,7 @@ UsageMonitoringCreditPool &SessionState::get_monitor_pool()
   return monitor_pool_;
 }
 
-bool SessionState::is_same_config(const Config &new_config)
+bool SessionState::is_same_config(const Config& new_config)
 {
   return config_.ue_ipv4.compare(new_config.ue_ipv4) == 0 &&
     config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
@@ -266,7 +268,7 @@ std::string SessionState::get_radius_session_id()
   return config_.radius_session_id;
 }
 
-void SessionState::get_session_info(SessionState::SessionInfo &info)
+void SessionState::get_session_info(SessionState::SessionInfo& info)
 {
   info.imsi = imsi_;
   info.ip_addr = config_.ue_ipv4;
