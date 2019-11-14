@@ -2283,7 +2283,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   } else {
     OAILOG_INFO(
       LOG_SPGW_APP,
-      "Did not create new EPS bearer entry as"
+      "Did not create new EPS bearer entry as "
       "UE rejected the request for EBI %d\n",
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .eps_bearer_id);
