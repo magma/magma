@@ -34,6 +34,13 @@ IDList_TYPE = 'id_list'
 LOG_TYPE = 'log_verbosity'
 FOO_TYPE = 'foo'
 
+# Allow access to protected variables for unit testing
+# pylint: disable=protected-access
+CS = "magma.state.state_replicator._collect_states_to_replicate"
+RS = "magma.state.state_replicator._resync"
+SS = "magma.state.state_replicator._send_to_state_service"
+SV = "magma.state.state_replicator._state_versions"
+
 def get_mock_snowflake():
     return "aaa-bbb"
 

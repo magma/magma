@@ -246,13 +246,13 @@ class StateReplicator(SDWatchdogTask):
         return device_id + ":" + state_type
 
     @staticmethod
-    def make_scoped_device_id(id, scope):
+    def make_scoped_device_id(idval, scope):
         """
         Create a deviceID of the format <id> for scope 'network'
         Otherwise create a key of the format <hwid>:<id> for 'gateway' or
         unrecognized scope.
         """
         if scope == "network":
-            return id
+            return idval
         else:
-            return snowflake.snowflake() + ":" + id
+            return snowflake.snowflake() + ":" + idval
