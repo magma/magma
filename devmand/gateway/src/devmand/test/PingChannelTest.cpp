@@ -24,6 +24,7 @@ class PingChannelTest : public EventBaseTest {
  protected:
   folly::IPAddress local{"127.0.0.1"};
   folly::IPAddress local2{"127.0.0.2"};
+  folly::IPAddressV6 local3{"::1"};
   folly::IPAddress dne{"203.0.113.0"};
 };
 
@@ -57,13 +58,23 @@ TEST_F(PingChannelTest, checkPingTimeout) {
 
 TEST_F(PingChannelTest, checkMultiPing) {
   channels::ping::Engine engine(eventBase);
+  channels::ping::Engine engineV6(eventBase, channels::ping::IPVersion::v6);
   auto channel = std::make_shared<channels::ping::Channel>(engine, local);
   auto channel2 = std::make_shared<channels::ping::Channel>(engine, local2);
+  auto channel3 = std::make_shared<channels::ping::Channel>(engineV6, local3);
   EXPECT_NE(0, channel->ping().get());
   EXPECT_NE(0, channel2->ping().get());
+  EXPECT_NE(0, channel3->ping().get());
+  EXPECT_NE(0, channel3->ping().get());
   EXPECT_NE(0, channel2->ping().get());
   EXPECT_NE(0, channel->ping().get());
   stop();
+}
+
+TEST_F(PingChannelTest, checkPingIpv6) {
+  channels::ping::Engine engineV6(eventBase, channels::ping::IPVersion::v6);
+  auto channel = std::make_shared<channels::ping::Channel>(engineV6, local3);
+  EXPECT_NE(0, channel->ping().get());
 }
 
 } // namespace test
