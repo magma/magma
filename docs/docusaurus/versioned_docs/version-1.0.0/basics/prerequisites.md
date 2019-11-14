@@ -18,16 +18,18 @@ Install the following tools:
 3. [VirtualBox](https://www.virtualbox.org/)
 3. [Vagrant](https://vagrantup.com)
 
-If you are on MacOS, you should start Docker for Mac and increase the memory
-allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
-
-![Increasing docker engine resources](assets/docker-config.png)
+Replace `brew` with your OS-appropriate package manager as necessary:
 
 ```bash
 brew install python3
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 ```
+
+If you are on MacOS, you should start Docker for Mac and increase the memory
+allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
+
+![Increasing docker engine resources](assets/docker-config.png)
 
 ## Build/Deploy Tooling
 
