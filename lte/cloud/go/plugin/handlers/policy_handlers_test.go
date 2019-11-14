@@ -60,7 +60,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{}),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -109,7 +109,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{"PolicyRule1"}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{
+			"PolicyRule1": testRule,
+		}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -176,7 +178,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -325,7 +327,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -401,7 +403,12 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{"Test"}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{
+			"Test": {
+				Name:      "Test",
+				RuleNames: []string{"Test_qos"},
+			},
+		}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -426,7 +433,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }

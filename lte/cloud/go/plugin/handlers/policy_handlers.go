@@ -34,11 +34,16 @@ func ListBaseNames(c echo.Context) error {
 		return nerr
 	}
 
-	baseNames, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
+	baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, baseNames)
+
+	ret := map[string]*models.BaseNameRecord{}
+	for _, bnEnt := range baseNames {
+		ret[bnEnt.Key] = (&models.BaseNameRecord{}).FromEntity(bnEnt)
+	}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func CreateBaseName(c echo.Context) error {
@@ -130,11 +135,20 @@ func ListRules(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
+
+	rules, err := configurator.LoadAllEntitiesInNetwork(
+		networkID, lte.PolicyRuleEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, rules)
+
+	ret := map[string]*models.PolicyRule{}
+	for _, ruleEnt := range rules {
+		ret[ruleEnt.Key] = (&models.PolicyRule{}).FromEntity(ruleEnt)
+	}
+	return c.JSON(http.StatusOK, ret)
 }
 
 func CreateRule(c echo.Context) error {

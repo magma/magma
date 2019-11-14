@@ -1223,11 +1223,11 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of policy rules
+          description: Map of all policy rules for the network by rule ID
           schema:
-            type: array
-            items:
-              $ref: '#/definitions/rule_id'
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/policy_rule'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -1305,9 +1305,11 @@ paths:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of Charging Rule Base Names
+          description: Map of all base names in the network by name
           schema:
-            $ref: '#/definitions/rule_names'
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/base_name_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
