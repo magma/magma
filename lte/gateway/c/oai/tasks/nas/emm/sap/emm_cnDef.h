@@ -65,6 +65,16 @@ typedef enum emmcn_primitive_s {
   _EMMCN_END
 } emm_cn_primitive_t;
 
+typedef enum pdn_conn_rsp_cause_e {
+  CAUSE_OK = 16,
+  CAUSE_CONTEXT_NOT_FOUND = 64,
+  CAUSE_INVALID_MESSAGE_FORMAT = 65,
+  CAUSE_SERVICE_NOT_SUPPORTED = 68,
+  CAUSE_SYSTEM_FAILURE = 72,
+  CAUSE_NO_RESOURCES_AVAILABLE = 73,
+  CAUSE_ALL_DYNAMIC_ADDRESSES_OCCUPIED = 84
+} pdn_conn_rsp_cause_t;
+
 typedef struct emm_cn_auth_res_s {
   /* UE identifier */
   mme_ue_s1ap_id_t ue_id;
@@ -84,13 +94,45 @@ typedef struct emm_cn_auth_fail_s {
   nas_cause_t cause;
 } emm_cn_auth_fail_t;
 
-struct itti_nas_pdn_config_rsp_s;
-struct itti_nas_pdn_connectivity_rsp_s;
-struct itti_nas_pdn_connectivity_fail_s;
+typedef struct emm_cn_pdn_config_res_s {
+  mme_ue_s1ap_id_t ue_id; // nas ref
+} emm_cn_pdn_config_res_t;
+
+typedef struct emm_cn_pdn_fail_s {
+  mme_ue_s1ap_id_t ue_id;
+  int pti;
+  pdn_conn_rsp_cause_t cause;
+} emm_cn_pdn_fail_t;
+
+typedef struct emm_cn_pdn_res_s {
+  pdn_cid_t pdn_cid;
+  /* Identity of the procedure transaction executed to
+   * activate the PDN connection enty
+   */
+  proc_tid_t pti;
+  network_qos_t qos;
+  protocol_configuration_options_t pco;
+  bstring pdn_addr;
+  int pdn_type;
+  int request_type;
+  mme_ue_s1ap_id_t ue_id;
+  ambr_t ambr;
+  ambr_t apn_ambr;
+
+  /* EPS bearer ID */
+  unsigned ebi : 4;
+
+  /* QoS */
+  qci_t qci;
+  priority_level_t prio_level;
+  pre_emption_vulnerability_t pre_emp_vulnerability;
+  pre_emption_capability_t pre_emp_capability;
+
+  /* S-GW TEID and IP address for user-plane */
+  fteid_t sgw_s1u_fteid;
+} emm_cn_pdn_res_t;
+
 struct itti_mme_app_create_dedicated_bearer_req_s;
-typedef struct itti_nas_pdn_config_rsp_s emm_cn_pdn_config_res_t;
-typedef struct itti_nas_pdn_connectivity_rsp_s emm_cn_pdn_res_t;
-typedef struct itti_nas_pdn_connectivity_fail_s emm_cn_pdn_fail_t;
 typedef struct itti_mme_app_create_dedicated_bearer_req_s
   emm_cn_activate_dedicated_bearer_req_t;
 

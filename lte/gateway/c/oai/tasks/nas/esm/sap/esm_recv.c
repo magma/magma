@@ -156,7 +156,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-SAP   - Received PDN Connectivity Request message "
-    "(ue_id=%u, pti=%d, ebi=%d)\n",
+    "(ue_id= " MME_UE_S1AP_ID_FMT ", pti=%u, ebi=%u)\n",
     ue_id,
     pti,
     ebi);
@@ -366,8 +366,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     }
   }
 #else
-  nas_itti_pdn_config_req(
-    pti, ue_id, &emm_context->_imsi, esm_data, esm_data->request_type);
+  mme_app_send_s6a_update_location_req(
+    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
   esm_cause = ESM_CAUSE_SUCCESS;
 #endif
   /*
@@ -535,13 +535,8 @@ esm_cause_t esm_recv_information_response(
 
   if (pid != RETURNerror) {
     // Continue with pdn connectivity request
-    nas_itti_pdn_config_req(
-      pti,
-      ue_id,
-      &emm_context->_imsi,
-      emm_context->esm_ctx.esm_proc_data,
-      emm_context->esm_ctx.esm_proc_data->request_type);
-
+    mme_app_send_s6a_update_location_req(
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
     esm_cause = ESM_CAUSE_SUCCESS;
   }
 

@@ -501,18 +501,19 @@ int nas_proc_deregister_ue(mme_ue_s1ap_id_t ue_id)
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res)
+int nas_proc_pdn_config_res(mme_ue_s1ap_id_t ue_id)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
-
+  emm_cn_pdn_config_res_t  emm_cn_pdn_config_res = {0};
+  emm_cn_pdn_config_res.ue_id = ue_id;
   emm_sap.primitive = EMMCN_PDN_CONFIG_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = emm_cn_pdn_config_res;
+  emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = &emm_cn_pdn_config_res;
   OAILOG_INFO(
     LOG_NAS,
     "Received PDN CONFIG RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_config_res->ue_id);
+    emm_cn_pdn_config_res.ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

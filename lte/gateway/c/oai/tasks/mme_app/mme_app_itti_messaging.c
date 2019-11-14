@@ -118,8 +118,9 @@ int mme_app_send_s11_release_access_bearers_req(
 }
 
 //------------------------------------------------------------------------------
-int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
-  struct ue_mm_context_s *const ue_mm_context,
+int mme_app_send_s11_create_session_req(
+  mme_app_desc_t* mme_app_desc_p,
+  struct ue_mm_context_s* const ue_mm_context,
   const pdn_cid_t pdn_cid)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -127,8 +128,8 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
   /*
    * Keep the identifier to the default APN
    */
-  MessageDef *message_p = NULL;
-  itti_s11_create_session_request_t *session_request_p = NULL;
+  MessageDef* message_p = NULL;
+  itti_s11_create_session_request_t* session_request_p = NULL;
   int rc = RETURNok;
 
   DevAssert(ue_mm_context);
@@ -170,7 +171,7 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
   session_request_p->teid = 0;
   IMSI64_TO_STRING(
     ue_mm_context->emm_context._imsi64,
-    (char *) (&session_request_p->imsi.digit),
+    (char*) (&session_request_p->imsi.digit),
     ue_mm_context->emm_context._imsi.length);
   session_request_p->imsi.length = ue_mm_context->emm_context._imsi.length;
 
@@ -196,7 +197,7 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
     sizeof(ambr_t));
 
   // default bearer already created by NAS
-  bearer_context_t *bc = mme_app_get_bearer_context(
+  bearer_context_t* bc = mme_app_get_bearer_context(
     ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
 
   bc->bearer_state |= BEARER_STATE_MME_CREATED;
@@ -246,10 +247,9 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
     ue_mm_context->enb_s1ap_id_key,
     ue_mm_context->mme_ue_s1ap_id,
     ue_mm_context->emm_context._imsi64,
-    ue_mm_context->emm_context._imsi.length,
     session_request_p->sender_fteid_for_cp.teid, // mme_teid_s11 is new
     &ue_mm_context->emm_context._guti);
-  struct apn_configuration_s *selected_apn_config_p = mme_app_get_apn_config(
+  struct apn_configuration_s* selected_apn_config_p = mme_app_get_apn_config(
     ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->context_identifier);
 
   memcpy(
@@ -277,7 +277,7 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
     uint8_t j;
 
     for (j = 0; j < selected_apn_config_p->nb_ip_address; j++) {
-      ip_address_t *ip_address = &selected_apn_config_p->ip_address[j];
+      ip_address_t* ip_address = &selected_apn_config_p->ip_address[j];
 
       if (ip_address->pdn_type == IPv4) {
         session_request_p->paa.ipv4_address.s_addr =
@@ -318,7 +318,8 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
     ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   OAILOG_INFO(
-    TASK_MME_APP, "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
+    TASK_MME_APP,
+    "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
     ue_mm_context->mme_ue_s1ap_id);
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

@@ -152,33 +152,6 @@ void *mme_app_thread(void *args)
             &NAS_ERAB_REL_CMD(received_message_p));
       } break;
 
-
-      case NAS_PDN_CONFIG_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP,
-          "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
-          received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        struct ue_mm_context_s *ue_context_p = NULL;
-        ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-            &mme_app_desc_p->mme_ue_contexts,
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        if (ue_context_p) {
-          mme_app_send_s6a_update_location_req(ue_context_p);
-          unlock_ue_contexts(ue_context_p);
-        } else {
-          OAILOG_ERROR(
-            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        }
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP, "Received PDN CONNECTIVITY REQ from NAS_MME\n");
-        mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_pdn_connectivity_req);
-      } break;
-
       case S11_CREATE_BEARER_REQUEST: {
         mme_app_handle_s11_create_bearer_req(mme_app_desc_p,
           &received_message_p->ittiMsg.s11_create_bearer_request);

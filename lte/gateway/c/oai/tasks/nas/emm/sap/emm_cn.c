@@ -76,6 +76,7 @@
 #include "esm_data.h"
 #include "esm_msg.h"
 #include "esm_sapDef.h"
+#include "mme_app_defs.h"
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
@@ -427,17 +428,11 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_connectivity) {
-      nas_itti_pdn_connectivity_req(
-        emm_ctx->esm_ctx.esm_proc_data->pti,
-        msg_pP->ue_id,
-        pdn_cid,
-        &emm_ctx->_imsi,
-        emm_ctx->_imeisv,
-        emm_ctx->esm_ctx.esm_proc_data,
-        emm_ctx->esm_ctx.esm_proc_data->request_type);
+      mme_app_handle_nas_pdn_connectivity_req(
+        mme_app_desc_p, emm_ctx->_imsi64, msg_pP->ue_id, pdn_cid);
     } else {
+      OAILOG_ERROR(LOG_NAS_ESM, "Received Invalid PDN type \n");
     }
-
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }

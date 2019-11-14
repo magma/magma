@@ -126,7 +126,7 @@ int nas_proc_auth_param_res(
   eutran_vector_t *vectors);
 int nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id, nas_cause_t cause);
 int nas_proc_deregister_ue(uint32_t ue_id);
-int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res);
+int nas_proc_pdn_config_res(mme_ue_s1ap_id_t ue_id);
 int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *nas_pdn_connectivity_rsp);
 int nas_proc_pdn_connectivity_fail(
   emm_cn_pdn_fail_t *nas_pdn_connectivity_fail);

@@ -57,8 +57,11 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_cancel_location_req_t *const clr_pP);
 
-int mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_pdn_connectivity_req_t *const nas_pdn_connectivity_req_p);
+int mme_app_handle_nas_pdn_connectivity_req(
+  mme_app_desc_t* mme_app_desc_p,
+  imsi64_t imsi64,
+  mme_ue_s1ap_id_t ue_id,
+  pdn_cid_t pdn_cid);
 
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
