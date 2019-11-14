@@ -1,0 +1,6 @@
+dependencies:
+- name: elasticsearch-curator
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 2.1.0
+digest: sha256:9d8b88e4e7d766d91f437cd79fa0d77120423e2836e994cf0fd9e4cd279294d9
+generated: 2019-11-13T15:40:18.719118-08:00
