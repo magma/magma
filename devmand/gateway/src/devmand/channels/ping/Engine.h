@@ -30,6 +30,8 @@ struct Request {
   folly::Promise<Rtt> promise;
 };
 
+enum IPVersion { v4, v6 };
+
 using RequestId = uint16_t;
 
 using OutstandingRequests =
@@ -44,6 +46,13 @@ struct IcmpPacket {
 
 class Engine : public channels::Engine, public folly::EventHandler {
  public:
+  Engine(
+      folly::EventBase& _eventBase,
+      IPVersion ipv_,
+      const std::chrono::milliseconds& pingTimeout_ =
+          std::chrono::milliseconds(5000),
+      const std::chrono::milliseconds& timeoutFrequency_ =
+          std::chrono::milliseconds(10000));
   Engine(
       folly::EventBase& _eventBase,
       const std::chrono::milliseconds& pingTimeout_ =
@@ -75,6 +84,8 @@ class Engine : public channels::Engine, public folly::EventHandler {
   folly::EventBase& eventBase;
   folly::Synchronized<OutstandingRequests> sharedOutstandingRequests;
   int icmpSocket{-1};
+  IPVersion ipv;
+  bool failedIpv6Socket{false};
   std::chrono::milliseconds pingTimeout;
   std::chrono::milliseconds timeoutFrequency;
 };
