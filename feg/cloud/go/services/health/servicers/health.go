@@ -184,7 +184,8 @@ func (srv *HealthServer) analyzeDualFegState(
 
 	// Sanity check to ensure that the active gateway is registered in magmad
 	if !isActiveGatewayRegistered(activeID, clusterGateways) {
-		return srv.failover(networkID, gatewayID, activeID, gatewayID)
+		reason := "active is not registered"
+		return srv.failover(networkID, gatewayID, activeID, gatewayID, reason)
 	}
 
 	// We need to get the GatewayID and health for the other FeG in the cluster
@@ -195,17 +196,18 @@ func (srv *HealthServer) analyzeDualFegState(
 
 		// If we can't get the health data for the active, failover to standby
 		if otherGatewayID == activeID {
-			return srv.failover(networkID, gatewayID, activeID, gatewayID)
+			reason := "unable to get health of active"
+			return srv.failover(networkID, gatewayID, activeID, gatewayID, reason)
 		}
 		// If we can't get the health data for the standby, leave the active as is
 		return fegprotos.HealthResponse_SYSTEM_UP, nil
 	}
 
-	currentHealth, _, err := AnalyzeHealthStats(gatewayHealth, networkID)
+	currentHealth, currentHealthDescription, err := AnalyzeHealthStats(gatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
-	otherHealth, _, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
+	otherHealth, otherHealthDescription, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
@@ -214,9 +216,9 @@ func (srv *HealthServer) analyzeDualFegState(
 
 	// Determine what to send back based off of health of active and standby, as well as where the request is from
 	if gatewayID == activeID {
-		return srv.determineAction(networkID, gatewayID, gatewayID, currentHealth, otherGatewayID, otherHealth)
+		return srv.determineAction(networkID, gatewayID, gatewayID, currentHealth, otherGatewayID, otherHealth, currentHealthDescription)
 	}
-	return srv.determineAction(networkID, gatewayID, otherGatewayID, otherHealth, gatewayID, currentHealth)
+	return srv.determineAction(networkID, gatewayID, otherGatewayID, otherHealth, gatewayID, currentHealth, otherHealthDescription)
 }
 
 // determineAction compares the health status of the two FeGs and determines
@@ -229,10 +231,11 @@ func (srv *HealthServer) determineAction(
 	activeHealth fegprotos.HealthStatus_HealthState,
 	standbyID string,
 	standbyHealth fegprotos.HealthStatus_HealthState,
+	activeHealthDesc string,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
 	// Only failover if active is unhealthy and standby is healthy
 	if activeHealth == fegprotos.HealthStatus_UNHEALTHY && standbyHealth == fegprotos.HealthStatus_HEALTHY {
-		return srv.failover(networkID, standbyID, activeID, currentID)
+		return srv.failover(networkID, standbyID, activeID, currentID, activeHealthDesc)
 	}
 
 	// Otherwise, active stays UP and standby stays DOWN
@@ -249,9 +252,9 @@ func (srv *HealthServer) failover(
 	newActive string,
 	oldActive string,
 	currentID string,
+	reason string,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
-	glog.V(2).Infof("Updating active for networkID: %s from: %s to: %s", networkID, oldActive, newActive)
-
+	glog.Infof("Failing over for network: %s from: %s to: %s; Reason: %s", networkID, oldActive, newActive, reason)
 	metrics.ActiveGatewayChanged.WithLabelValues(networkID).Inc()
 	err := srv.clusterStore.UpdateClusterState(networkID, networkID, newActive)
 	if err != nil {
