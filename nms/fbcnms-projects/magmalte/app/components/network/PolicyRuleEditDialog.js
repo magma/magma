@@ -46,6 +46,7 @@ type Props = ContextRouter &
     onCancel: () => void,
     onSave: string => void,
     rule?: policy_rule,
+    mirrorNetwork?: string,
   };
 
 type State = {
@@ -142,17 +143,32 @@ class PolicyRuleEditDialog extends React.Component<Props, State> {
   }
 
   onSave = async () => {
-    if (this.props.rule) {
-      await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+    const data = [
+      {
         networkId: nullthrows(this.props.match.params.networkId),
         ruleId: this.state.rule.id,
         policyRule: this.state.rule,
-      });
-    } else {
-      await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
-        networkId: nullthrows(this.props.match.params.networkId),
+      },
+    ];
+
+    if (this.props.mirrorNetwork) {
+      data.push({
+        networkId: this.props.mirrorNetwork,
+        ruleId: this.state.rule.id,
         policyRule: this.state.rule,
       });
+    }
+
+    if (this.props.rule) {
+      await Promise.all(
+        data.map(d =>
+          MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId(d),
+        ),
+      );
+    } else {
+      await Promise.all(
+        data.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesRules(d)),
+      );
     }
 
     this.props.onSave(this.state.rule.id);
