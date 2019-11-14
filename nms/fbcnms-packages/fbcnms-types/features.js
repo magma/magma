@@ -33,5 +33,4 @@ export type FeatureID =
   | 'services'
   | 'planned_equipment'
   | 'multi_subject_reports'
-  | 'equipment_live_status'
-  | 'upload_location_properties_on_equipment';
+  | 'equipment_live_status';
