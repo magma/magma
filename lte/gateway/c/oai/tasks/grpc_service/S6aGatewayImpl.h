@@ -38,13 +38,12 @@ class ResetRequest;
 }  // namespace magma
 
 using grpc::ServerContext;
-using grpc::Status;
 
 namespace magma {
 using namespace feg;
-class S6aProxyImpl final : public S6aGatewayService::Service {
+class S6aGatewayImpl final : public S6aGatewayService::Service {
  public:
-  S6aProxyImpl();
+  S6aGatewayImpl();
 
   /*
        * Cancel Location Request
@@ -55,7 +54,7 @@ class S6aProxyImpl final : public S6aGatewayService::Service {
        * @param response (out): CancelLocationAnswer
        * @return grpc Status instance
        */
-  Status CancelLocation(
+  grpc::Status CancelLocation(
     ServerContext *context,
     const CancelLocationRequest *request,
     CancelLocationAnswer *response) override;
@@ -68,7 +67,7 @@ class S6aProxyImpl final : public S6aGatewayService::Service {
        * @param response (out): ResetAnswer
        * @return grpc Status instance
        */
-  Status Reset(
+  grpc::Status Reset(
     ServerContext *context,
     const ResetRequest *request,
     ResetAnswer *response) override;

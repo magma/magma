@@ -190,16 +190,40 @@ export default function FEGGatewayDialog(props: Props) {
       );
       break;
     case 'gx':
-      content = <DiameterFields onChange={setGx} values={gx} />;
+      content = (
+        <DiameterFields
+          onChange={setGx}
+          values={gx}
+          supportedProtocols={['tcp']}
+        />
+      );
       break;
     case 'gy':
-      content = <DiameterFields onChange={setGy} values={gy} />;
+      content = (
+        <DiameterFields
+          onChange={setGy}
+          values={gy}
+          supportedProtocols={['tcp']}
+        />
+      );
       break;
     case 'swx':
-      content = <DiameterFields onChange={setSWx} values={swx} />;
+      content = (
+        <DiameterFields
+          onChange={setSWx}
+          values={swx}
+          supportedProtocols={['tcp', 'sctp']}
+        />
+      );
       break;
     case 's6a':
-      content = <DiameterFields onChange={setS6A} values={s6a} />;
+      content = (
+        <DiameterFields
+          onChange={setS6A}
+          values={s6a}
+          supportedProtocols={['tcp', 'sctp']}
+        />
+      );
       break;
   }
 
@@ -234,9 +258,12 @@ export default function FEGGatewayDialog(props: Props) {
 function DiameterFields(props: {
   values: DiameterValues,
   onChange: DiameterValues => void,
+  supportedProtocols: Array<
+    $NonMaybeType<$PropertyType<diameter_client_configs, 'protocol'>>,
+  >,
 }) {
   const classes = useStyles();
-  const {values} = props;
+  const {values, supportedProtocols} = props;
   const onChange = field => event =>
     // $FlowFixMe Set state for each field
     props.onChange({...values, [field]: event.target.value});
@@ -308,12 +335,11 @@ function DiameterFields(props: {
                 props.onChange({...values, protocol: target.value});
             }
           }}>
-          <MenuItem value="tcp">TCP</MenuItem>
-          <MenuItem value="tcp4">TCP4</MenuItem>
-          <MenuItem value="tcp6">TCP6</MenuItem>
-          <MenuItem value="sctp">SCTP</MenuItem>
-          <MenuItem value="sctp4">SCTP4</MenuItem>
-          <MenuItem value="sctp6">SCTP6</MenuItem>
+          {supportedProtocols.map(item => (
+            <MenuItem value={item} key={item}>
+              {item.toUpperCase()}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
       <FormControlLabel

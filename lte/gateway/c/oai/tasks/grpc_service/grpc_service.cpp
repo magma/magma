@@ -18,12 +18,15 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include "spgw_service.h"
+#include "grpc_service.h"
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
 #include <memory>
 
+#include "CSFBGatewayServiceImpl.h"
+#include "S6aGatewayImpl.h"
+#include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
 
 extern "C" {
@@ -34,25 +37,38 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
 using magma::SpgwServiceImpl;
+using magma::S6aGatewayImpl;
+using magma::S6aServiceImpl;
+using magma::CSFBGatewayServiceImpl;
 
 static SpgwServiceImpl spgw_service;
+static S6aServiceImpl s6a_service;
+static S6aGatewayImpl s6a_proxy;
+static CSFBGatewayServiceImpl sgs_service;
 static std::unique_ptr<Server> server;
 
-void start_spgw_service(bstring server_address)
+// TODO Candidate: GRPC service may be evolved into a
+// MagmaService, which implements Service303::Service as the
+// base service and can add other services on top.
+void start_grpc_service(bstring server_address)
 {
   OAILOG_INFO(
     LOG_SPGW_APP,
-    "Starting spgw grpc service at : %s\n ",
+    "Starting service at : %s\n ",
     bdata(server_address));
   ServerBuilder builder;
   builder.AddListeningPort(
     bdata(server_address), grpc::InsecureServerCredentials());
   builder.RegisterService(&spgw_service);
+  builder.RegisterService(&s6a_proxy);
+  builder.RegisterService(&s6a_service);
+  builder.RegisterService(&sgs_service);
   server = builder.BuildAndStart();
   server->Wait(); // Blocking call
 }
 
-void stop_spgw_service(void)
+void stop_grpc_service(void)
 {
   server->Shutdown();
+  server->Wait(); // Blocks until server finishes shutting down
 }

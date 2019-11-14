@@ -22,6 +22,8 @@ The following table list the configurable parameters of the orchestrator chart a
 | `proxy.service.enabled` | Enables proxy service. | `true` |
 | `proxy.service.lagacyEnabled` | Enables proxy legacy service. | `true` |
 | `proxy.service.annotations` | Annotations to be added to the proxy service. | `{}` |
+| `proxy.service.extraAnnotations.bootstrapLagacy` | Extra annotations to be added to the bootstrap-legacy proxy service. | `{}` |
+| `proxy.service.extraAnnotations.clientcertLegacy` | Extra annotations to be added to the clientcert-legacy proxy service. | `{}` |
 | `proxy.service.labels` | Proxy service labels. | `{}` |
 | `proxy.service.type` | Proxy service type. | `ClusterIP` |
 | `proxy.service.port.clientcert.port` | Proxy client certificate service external port. | `9443` |

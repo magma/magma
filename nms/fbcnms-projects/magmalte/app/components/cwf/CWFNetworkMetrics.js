@@ -78,6 +78,15 @@ const chartConfigs: MetricGraphConfig[] = [
     ],
   },
   {
+    label: 'Session Create Latency',
+    basicQueryConfigs: [],
+    customQueryConfigs: [
+      {
+        resolveQuery: _ => `avg(create_session_lat)`,
+      },
+    ],
+  },
+  {
     label: 'Session Terminate',
     basicQueryConfigs: [],
     customQueryConfigs: [

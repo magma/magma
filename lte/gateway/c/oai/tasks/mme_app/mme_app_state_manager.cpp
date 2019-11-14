@@ -98,7 +98,7 @@ void MmeNasStateManager::lock_mme_nas_state()
 {
   AssertFatal(
     is_initialized_, "Trying to lock state without initializing state manager");
-  OAILOG_INFO(LOG_MME_APP, "Acquiring lock");
+  OAILOG_DEBUG(LOG_MME_APP, "Acquiring lock");
   pthread_rwlock_wrlock(&mme_nas_state_p_->rw_lock);
 }
 
@@ -107,9 +107,9 @@ void MmeNasStateManager::unlock_mme_nas_state()
   AssertFatal(
     is_initialized_,
     "Trying to unlock state without initializing state manager");
-  OAILOG_INFO(LOG_MME_APP, "Releasing lock");
+  OAILOG_DEBUG(LOG_MME_APP, "Releasing lock");
   pthread_rwlock_unlock(&mme_nas_state_p_->rw_lock);
-  OAILOG_INFO(LOG_MME_APP, "Lock released");
+  OAILOG_DEBUG(LOG_MME_APP, "Lock released");
 }
 
 void MmeNasStateManager::write_state_to_db(mme_app_desc_t** task_state_ptr)
@@ -143,7 +143,7 @@ void MmeNasStateManager::write_state_to_db(mme_app_desc_t** task_state_ptr)
       return;
     }
 
-    OAILOG_INFO(LOG_MME_APP, "Writing serialized MME state to redis");
+    OAILOG_DEBUG(LOG_MME_APP, "Writing serialized MME state to redis");
     // write the proto to redis store
     auto db_write =
       mme_nas_db_client_->set(MME_NAS_STATE_KEY, serialized_state);
@@ -156,7 +156,7 @@ void MmeNasStateManager::write_state_to_db(mme_app_desc_t** task_state_ptr)
       return;
     }
 
-    OAILOG_INFO(LOG_MME_APP, "MME NAS state written to redis");
+    OAILOG_DEBUG(LOG_MME_APP, "MME NAS state written to redis");
   }
   mme_nas_state_dirty_ = false;
 error:
@@ -173,7 +173,7 @@ mme_app_desc_t* MmeNasStateManager::get_locked_mme_nas_state(bool read_from_db)
   AssertFatal(
     is_initialized_,
     "Calling get_locked_mme_nas_state without initializing state manager");
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_MME_APP,
     "Inside get_locked_mme_nas_state with read_from_db %d",
     read_from_db);
@@ -194,7 +194,7 @@ mme_app_desc_t* MmeNasStateManager::get_mme_nas_state(bool read_from_db)
     is_initialized_,
     "Calling get_mme_nas_state without initializing state manager");
   AssertFatal(mme_nas_state_p_, "mme_nas_state is NULL");
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_MME_APP, "Inside get_mme_nas_state with read_from_db %d", read_from_db);
 
   // check if the calling thread owns the lock on state
@@ -205,10 +205,10 @@ mme_app_desc_t* MmeNasStateManager::get_mme_nas_state(bool read_from_db)
   mme_nas_state_dirty_ = true;
   if (persist_state_ && read_from_db) {
     // free up the memory allocated to hashtables
-    OAILOG_INFO(LOG_MME_APP, "Freeing up in-memory hashtables");
+    OAILOG_DEBUG(LOG_MME_APP, "Freeing up in-memory hashtables");
     clear_mme_nas_hashtables();
     // allocate memory for hashtables
-    OAILOG_INFO(LOG_MME_APP, "Allocating memory for new hashtables");
+    OAILOG_DEBUG(LOG_MME_APP, "Allocating memory for new hashtables");
     create_hashtables();
     // read the state from data store
     int rc = read_state_from_db();
@@ -232,7 +232,7 @@ int MmeNasStateManager::initialize_db_connection()
     return RETURNerror;
   }
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
     LOG_MME_APP, "Connected to redis datastore on %s:%u\n", LOCALHOST, port);
 
   return RETURNok;
@@ -242,7 +242,7 @@ int MmeNasStateManager::initialize_db_connection()
 // the state in the data store, it can call this function to delete the key.
 void MmeNasStateManager::clear_db_state()
 {
-  OAILOG_INFO(LOG_MME_APP, "Clearing state in data store");
+  OAILOG_DEBUG(LOG_MME_APP, "Clearing state in data store");
   std::vector<std::string> keys_to_del;
   keys_to_del.push_back(MME_NAS_STATE_KEY);
   auto db_write = mme_nas_db_client_->del(keys_to_del);
@@ -289,14 +289,14 @@ int MmeNasStateManager::read_state_from_db()
   OAILOG_FUNC_IN(LOG_MME_APP);
   // convert the datastore proto message to in-memory state
 
-  OAILOG_INFO(LOG_MME_APP, "Reading MME NAS state from redis");
+  OAILOG_DEBUG(LOG_MME_APP, "Reading MME NAS state from redis");
   // read the proto from redis store
   auto db_read = mme_nas_db_client_->get(MME_NAS_STATE_KEY);
   mme_nas_db_client_->sync_commit();
   auto reply = db_read.get();
 
   if (reply.is_null()) {
-    OAILOG_INFO(LOG_MME_APP, "Reading MME NAS state from DB returned NULL");
+    OAILOG_DEBUG(LOG_MME_APP, "Reading MME NAS state from DB returned NULL");
     return RETURNok;
   }
 
@@ -305,7 +305,7 @@ int MmeNasStateManager::read_state_from_db()
     return RETURNerror;
   }
 
-  OAILOG_INFO(LOG_MME_APP, "Parsing MME NAS state from protobuf");
+  OAILOG_DEBUG(LOG_MME_APP, "Parsing MME NAS state from protobuf");
   MmeNasState state_proto;
   if (!state_proto.ParseFromString(reply.as_string())) {
     return RETURNerror;
@@ -313,7 +313,7 @@ int MmeNasStateManager::read_state_from_db()
 
   MmeNasStateConverter::mme_nas_proto_to_state(&state_proto, mme_nas_state_p_);
 
-  OAILOG_INFO(LOG_MME_APP, "Done reading MME NAS state from redis");
+  OAILOG_DEBUG(LOG_MME_APP, "Done reading MME NAS state from redis");
   return RETURNok;
 }
 

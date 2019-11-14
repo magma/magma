@@ -19,18 +19,36 @@
  *      contact@openairinterface.org
  */
 
-#include "s6a_message_utils.h"
+#pragma once
 
-#include <stddef.h>
+#include "bstrlib.h"
+#include "mme_default_values.h"
 
-#include "assertions.h"
-#include "intertask_interface.h"
-#include "itti_types.h"
+typedef struct grpc_service_data_s {
+  bstring server_address;
+} grpc_service_data_t;
 
-int send_start_s6a_server(task_id_t origin_id)
-{
-  MessageDef *message_p;
-  message_p = itti_alloc_new_message(origin_id, APPLICATION_HEALTHY_MSG);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  return itti_send_msg_to_task(TASK_S6A_SERVICE, INSTANCE_DEFAULT, message_p);
+/*
+  Init GRPC Service for MME
+*/
+int grpc_service_init(void);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+/**
+ * Start the GRPC Server and blocks
+ *
+ * @param server_address: the address and port to bind to ex "0.0.0.0:50051"
+ */
+void start_grpc_service(bstring server_address);
+
+/**
+ * Stop the GRPC server and clean up
+ *
+ */
+void stop_grpc_service(void);
+
+#ifdef __cplusplus
 }
+#endif

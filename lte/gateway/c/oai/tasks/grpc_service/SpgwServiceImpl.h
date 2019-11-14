@@ -23,45 +23,61 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 
-#include "lte/protos/s6a_service.grpc.pb.h"
+#include "lte/protos/spgw_service.grpc.pb.h"
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
-class DeleteSubscriberRequest;
-class DeleteSubscriberResponse;
-}  // namespace lte
-}  // namespace magma
+class CreateBearerRequest;
+class CreateBearerResult;
+class DeleteBearerRequest;
+class DeleteBearerResult;
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
-using grpc::Status;
-using magma::lte::DeleteSubscriberRequest;
-using magma::lte::DeleteSubscriberResponse;
-using magma::lte::S6aService;
+using magma::lte::CreateBearerRequest;
+using magma::lte::CreateBearerResult;
+using magma::lte::DeleteBearerRequest;
+using magma::lte::DeleteBearerResult;
+using magma::lte::SpgwService;
 
 namespace magma {
 using namespace lte;
 
-class S6aServiceImpl final : public S6aService::Service {
+class SpgwServiceImpl final : public SpgwService::Service {
  public:
-  S6aServiceImpl();
+  SpgwServiceImpl();
 
   /*
-       * Deletes the subscribers in the DeleteSubscriberRequest.
+       * CreateBearerRequest.
        *
        * @param context: the grpc Server context
-       * @param request: deleteSubscriberRequest, contains a list of IMSI of
-                        subscriber to delete.
-       * @param response (out): the DeleteSubscriberResponse that contains
+       * @param request: createBearerRequest
+       * @param response (out): the CreateBearerResult that contains
                                 err message.
        * @return grpc Status instance
        */
-  Status DeleteSubscriber(
+  grpc::Status CreateBearer(
     ServerContext *context,
-    const DeleteSubscriberRequest *request,
-    DeleteSubscriberResponse *response) override;
+    const CreateBearerRequest *request,
+    CreateBearerResult *response) override;
+
+  /*
+       * DeleteBearerRequest.
+       *
+       * @param context: the grpc Server context
+       * @param request: DeleteBearerRequest
+       * @param response (out): the DeleteBearerResult that contains
+                                err message.
+       * @return grpc Status instance
+       */
+  grpc::Status DeleteBearer(
+    ServerContext *context,
+    const DeleteBearerRequest *request,
+    DeleteBearerResult *response) override;
 };
 
 } // namespace magma

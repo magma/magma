@@ -220,7 +220,7 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
 
   /*
    * Sent from the VLR to the MME to indicate that a failure in the VLR has
-       occurred and all the SGs associations to the VLR are be marked as invalid.
+   * occurred and all the SGs associations to the VLR are be marked as invalid.
    *
    * @param context: the grpc Server context
    * @param request: ResetIndication, contains VLR name

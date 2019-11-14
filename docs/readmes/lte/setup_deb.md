@@ -61,8 +61,6 @@ wget https://raw.githubusercontent.com/facebookincubator/magma/v1.0.0/lte/gatewa
 sh agw_prepare.sh
 ```
 
-A prompt will pop up to as you if you want to stop removing linux-image-4.9.0-11-amd64 please hit: No
-
 ### 3. Prepare AGW_DEPLOY
 - [AGW_DEPLOY] Build and run AGW_DEPLOY container
 
