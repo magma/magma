@@ -86,8 +86,10 @@ class RedisDictTests(TestCase):
         self._flat_dict["key1"] = expected2
         version2 = self._flat_dict.get_version("key1")
         actual2 = self._flat_dict["key1"]
+        actual3 = self._flat_dict.get("key1")
         self.assertEqual(2, version2)
         self.assertEqual(expected2, actual2)
+        self.assertEqual(expected2, actual3)
 
     @mock.patch("redis.Redis", MockRedis)
     def test_flat_missing_version(self):
@@ -115,6 +117,7 @@ class RedisDictTests(TestCase):
         del self._flat_dict['key3']
         self.assertRaises(KeyError, self._flat_dict.__getitem__,
                           'key3')
+        self.assertEqual(None, self._flat_dict.get('key3'))
 
     @mock.patch("redis.Redis", MockRedis)
     def test_flat_clear(self):

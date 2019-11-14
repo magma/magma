@@ -18,6 +18,7 @@ import (
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
+	orc8rmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/go-openapi/swag"
@@ -111,6 +112,9 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		RelayEnabled: true,
 	}
 	ret["redirectd"] = &ltemconfig.RedirectD{
+		LogLevel: protos.LogLevel_INFO,
+	}
+	ret["directoryd"] = &orc8rmconfig.DirectoryD{
 		LogLevel: protos.LogLevel_INFO,
 	}
 	return ret, err
