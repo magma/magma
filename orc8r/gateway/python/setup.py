@@ -24,6 +24,7 @@ setup(
         'magma.common.health',
         'magma.common.redis',
         'magma.configuration',
+        'magma.directoryd',
         'magma.magmad',
         'magma.magmad.generic_command',
         'magma.magmad.check',
