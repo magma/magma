@@ -13,6 +13,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/analytics"
+	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/service/config"
@@ -28,8 +29,8 @@ import (
 const (
 	ServiceName = "ANALYTICS"
 
-	activeUsersMetricName = "active_users_over_time"
-	analysisSchedule      = "0 */12 * * *" // Every 12 hours
+	activeUsersMetricName   = "active_users_over_time"
+	defaultAnalysisSchedule = "0 */12 * * *" // Every 12 hours
 )
 
 func main() {
@@ -39,9 +40,32 @@ func main() {
 		glog.Fatalf("Error creating CWF Analytics service: %s", err)
 	}
 
+	analysisSchedule, err := srv.Config.GetStringParam("analysisSchedule")
+	if err != nil {
+		analysisSchedule = defaultAnalysisSchedule
+	}
+
 	calculations := getAnalyticsCalculations()
 	promAPIClient := getPrometheusClient()
-	runAnalyses(promAPIClient, calculations, analysisSchedule)
+	shouldExportData, _ := srv.Config.GetBoolParam("exportMetrics")
+	var exporter analytics.Exporter
+	if shouldExportData {
+		glog.Errorf("Creating CWF Analytics Exporter")
+		exporter = analytics.NewWWWExporter(
+			srv.Config.GetRequiredStringParam("metricsPrefix"),
+			srv.Config.GetRequiredStringParam("appSecret"),
+			srv.Config.GetRequiredStringParam("appID"),
+			srv.Config.GetRequiredStringParam("metricExportURL"),
+			srv.Config.GetRequiredStringParam("categoryName"),
+		)
+	}
+	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calculations, exporter)
+	err = analyzer.Schedule(analysisSchedule)
+	if err != nil {
+		glog.Fatalf("Error scheduling analyzer: %s", err)
+	}
+
+	go analyzer.Run()
 
 	// Run the service
 	err = srv.Run()
@@ -51,7 +75,7 @@ func main() {
 }
 
 func getAnalyticsCalculations() []analytics.Calculation {
-	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{"days"})
+	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{"days", metrics.NetworkLabelName})
 	prometheus.MustRegister(xapGauge)
 
 	return []analytics.Calculation{
@@ -62,6 +86,7 @@ func getAnalyticsCalculations() []analytics.Calculation {
 			QueryStepSize:   5 * time.Minute,
 			Labels:          prometheus.Labels{"days": "30"},
 			RegisteredGauge: xapGauge,
+			Name:            activeUsersMetricName,
 		},
 		// WAP
 		&analytics.XAPCalculation{
@@ -70,6 +95,7 @@ func getAnalyticsCalculations() []analytics.Calculation {
 			QueryStepSize:   time.Minute,
 			Labels:          prometheus.Labels{"days": "7"},
 			RegisteredGauge: xapGauge,
+			Name:            activeUsersMetricName,
 		},
 		// DAP
 		&analytics.XAPCalculation{
@@ -78,6 +104,7 @@ func getAnalyticsCalculations() []analytics.Calculation {
 			QueryStepSize:   15 * time.Second,
 			Labels:          prometheus.Labels{"days": "1"},
 			RegisteredGauge: xapGauge,
+			Name:            activeUsersMetricName,
 		},
 	}
 }
@@ -92,20 +119,4 @@ func getPrometheusClient() v1.API {
 		glog.Fatalf("Error creating prometheus client: %s", promClient)
 	}
 	return v1.NewAPI(promClient)
-}
-
-func runAnalyses(promAPIClient v1.API, calculations []analytics.Calculation, schedule string) {
-	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calculations)
-	err := analyzer.Schedule(schedule)
-	if err != nil {
-		glog.Fatalf("Error scheduling analyzer: %s", err)
-	}
-
-	for _, c := range calculations {
-		err = c.Calculate(promAPIClient)
-		if err != nil {
-			glog.Error(err)
-		}
-	}
-	go analyzer.Run()
 }
