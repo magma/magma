@@ -25,6 +25,7 @@
 #include <devmand/channels/packet/Engine.h>
 #include <devmand/channels/ping/Engine.h>
 #include <devmand/channels/snmp/Engine.h>
+#include <devmand/channels/cli/engine/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
 
@@ -35,7 +36,7 @@ using ChannelEngines = std::set<std::unique_ptr<channels::Engine>>;
 using Devices = std::map<devices::Id, std::unique_ptr<devices::Device>>;
 using IPVersion = channels::ping::IPVersion;
 
-class Application final : public MetricSink {
+class Application : public MetricSink {
  public:
   Application();
   virtual ~Application() = default;
@@ -45,6 +46,7 @@ class Application final : public MetricSink {
   Application& operator=(Application&&) = delete;
 
  public:
+  void init();
   void run();
   int status() const;
 
@@ -140,6 +142,7 @@ class Application final : public MetricSink {
   channels::snmp::Engine* snmpEngine;
   channels::ping::Engine* pingEngine;
   channels::ping::Engine* pingEngineIpv6;
+  channels::cli::Engine* cliEngine;
 
   /*
    * A config writer for dhcpd.
