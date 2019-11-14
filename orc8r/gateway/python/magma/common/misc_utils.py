@@ -11,6 +11,7 @@ import asyncio
 from enum import Enum
 import ipaddress
 import os
+import snowflake
 
 import netifaces
 
@@ -208,6 +209,14 @@ def get_if_mac_address(interface):
         return addr[netifaces.AF_LINK][0]['addr']
     except KeyError:
         raise ValueError('Error getting MAC address for %s' % interface)
+
+
+def get_gateway_hwid() -> str:
+    """
+    Returns the HWID of the gateway
+    Note: Currently this uses the snowflake at /etc/snowflake
+    """
+    return snowflake.snowflake()
 
 
 def is_interface_up(interface):
