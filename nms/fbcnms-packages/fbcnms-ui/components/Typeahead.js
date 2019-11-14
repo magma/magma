@@ -9,12 +9,12 @@
  */
 
 import Autosuggest from 'react-autosuggest';
-import ClearIcon from '@material-ui/icons/Clear';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
+import CancelIcon from '@material-ui/icons/Cancel';
+import InputAffix from './design-system/Input/InputAffix';
 import React, {useState} from 'react';
-import TextField from '@material-ui/core/TextField';
+import TextInput from './design-system/Input/TextInput';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import symphony from '../theme/symphony';
 import {blue05} from '../theme/colors';
 import {makeStyles, useTheme} from '@material-ui/styles';
 
@@ -80,25 +80,15 @@ const useStyles = makeStyles(theme => ({
       color: theme.palette.text.primary,
     },
   },
-  clearIcon: {
-    padding: 0,
-    color: theme.palette.grey[300],
-    '&:hover': {
-      color: theme.palette.grey[600],
-      background: 'none',
-    },
-  },
-  shrinkedInputLabel: {
-    '&&': {
-      color: theme.palette.grey[600],
-    },
-  },
   smallSuggest: {
     paddingTop: '9px',
     paddingBottom: '9px',
     paddingLeft: '14px',
     paddingRight: '14px',
     height: '14px',
+  },
+  cancelIcon: {
+    color: symphony.palette.D300,
   },
 }));
 
@@ -109,10 +99,8 @@ type Props = {
   onEntitySelected: Suggestion => void,
   onSuggestionsFetchRequested: (searchTerm: string) => void,
   onSuggestionsClearRequested?: () => void,
-  headline?: ?string,
+  placeholder?: ?string,
   value?: ?Suggestion,
-  variant?: 'default' | 'small',
-  displayText?: string,
 };
 
 export type Suggestion = {
@@ -128,11 +116,9 @@ const Typeahead = (props: Props) => {
     onSuggestionsClearRequested,
     onEntitySelected,
     suggestions,
-    headline,
+    placeholder,
     required,
     value,
-    variant,
-    displayText,
     margin,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
@@ -143,40 +129,28 @@ const Typeahead = (props: Props) => {
     <div className={classes.container}>
       {selectedSuggestion && onSuggestionsClearRequested ? (
         <div>
-          <TextField
+          <TextInput
+            type="string"
             required={!!required}
             variant="outlined"
-            label={headline ?? ''}
+            placeholder={placeholder ?? ''}
             fullWidth={true}
             disabled={selectedSuggestion != null}
             value={selectedSuggestion ? selectedSuggestion.name : ''}
             onChange={emptyFunction}
-            InputLabelProps={{
-              classes: {
-                shrink: classes.shrinkedInputLabel,
-              },
-            }}
-            InputProps={{
-              margin,
-              classes: {
-                root: classes.outlinedInput,
-                input: variant === 'small' ? classes.smallSuggest : '',
-              },
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    className={classes.clearIcon}
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedSuggestion(null);
-                      onSuggestionsClearRequested &&
-                        onSuggestionsClearRequested();
-                    }}>
-                    <ClearIcon />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+            suffix={
+              searchTerm === '' ? (
+                <InputAffix
+                  onClick={() => {
+                    setSearchTerm('');
+                    setSelectedSuggestion(null);
+                    onSuggestionsClearRequested &&
+                      onSuggestionsClearRequested();
+                  }}>
+                  <CancelIcon className={classes.cancelIcon} />
+                </InputAffix>
+              ) : null
+            }
           />
         </div>
       ) : (
@@ -201,19 +175,16 @@ const Typeahead = (props: Props) => {
           }}
           theme={autoSuggestStyles(theme)}
           renderInputComponent={inputProps => (
-            <TextField
-              variant="outlined"
-              label={headline ?? ''}
+            <TextInput
+              type="string"
+              placeholder={placeholder ?? ''}
               {...inputProps}
-              InputProps={{
-                classes:
-                  variant === 'small' ? {input: classes.smallSuggest} : {},
-              }}
             />
           )}
           inputProps={{
+            style: {},
             required: !!required,
-            placeholder: displayText ?? 'Search...',
+            placeholder: placeholder ?? 'Search...',
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
@@ -223,10 +194,6 @@ const Typeahead = (props: Props) => {
       )}
     </div>
   );
-};
-
-Typeahead.defaultProps = {
-  variant: 'default',
 };
 
 export default Typeahead;
