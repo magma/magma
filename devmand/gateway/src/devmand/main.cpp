@@ -21,6 +21,8 @@
 #include <devmand/devices/FrinxDevice.h>
 #include <devmand/devices/PingDevice.h>
 #include <devmand/devices/Snmpv2Device.h>
+#include <devmand/devices/cli/PlaintextCliDevice.h>
+#include <devmand/devices/cli/StructuredUbntDevice.h>
 #include <devmand/devices/mikrotik/Device.h>
 #include <devmand/magma/DevConf.h>
 #include <devmand/magma/Service.h>
@@ -33,9 +35,11 @@ int main(int argc, char* argv[]) {
   folly::init(&argc, &argv);
 
   devmand::Application app;
+  app.init();
 
   // Add services which export the shared view
-  app.add(std::make_unique<devmand::magma::Service>(app));
+  // FIXME uncomment and find out how to prevent this from blocking !!!
+//  app.add(std::make_unique<devmand::magma::Service>(app));
 
   // Add Demo Platforms
   {
@@ -55,6 +59,11 @@ int main(int argc, char* argv[]) {
         "MikroTik", devmand::devices::mikrotik::Device::createDevice);
     app.addPlatform("Ping", devmand::devices::PingDevice::createDevice);
     app.addPlatform("Snmp", devmand::devices::Snmpv2Device::createDevice);
+  }
+  // CLI
+  {
+    app.addPlatform("PlaintextCli", devmand::devices::cli::PlaintextCliDevice::createDevice);
+    app.addPlatform("StructuredUbntCli", devmand::devices::cli::StructuredUbntDevice::createDevice);
   }
 
   app.setDefaultPlatform(devmand::devices::Snmpv2Device::createDevice);
