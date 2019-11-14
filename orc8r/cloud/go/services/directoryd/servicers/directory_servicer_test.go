@@ -14,6 +14,7 @@ import (
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
+	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func createTestDirectorydServicer(t *testing.T) *servicers.DirectoryServicer {
 
 func TestDirectorydGetUnknownLocation(t *testing.T) {
 	srv := createTestDirectorydServicer(t)
-
+	stateTestInit.StartTestService(t)
 	// Create an identity and context for sending requests as gateway
 	id := protos.Identity{}
 	idgw := protos.Identity_Gateway{HardwareId: testGwHwId1, NetworkId: testNetworkId, LogicalId: testGwLogicalId1}
@@ -57,7 +58,7 @@ func TestDirectorydGetUnknownLocation(t *testing.T) {
 
 func TestDirectorydUpdateLocation(t *testing.T) {
 	srv := createTestDirectorydServicer(t)
-
+	stateTestInit.StartTestService(t)
 	// Create an identity and context for sending requests as gateway
 	id := protos.Identity{}
 	idgw := protos.Identity_Gateway{HardwareId: testGwHwId1, NetworkId: testNetworkId, LogicalId: testGwLogicalId1}
@@ -126,7 +127,7 @@ func TestDirectorydUpdateLocation(t *testing.T) {
 
 func TestDirectorydDeleteUnknownLocation(t *testing.T) {
 	srv := createTestDirectorydServicer(t)
-
+	stateTestInit.StartTestService(t)
 	// Create an identity and context for sending requests as gateway
 	id := protos.Identity{}
 	idgw := protos.Identity_Gateway{HardwareId: testGwHwId1, NetworkId: testNetworkId, LogicalId: testGwLogicalId1}
@@ -143,7 +144,7 @@ func TestDirectorydDeleteUnknownLocation(t *testing.T) {
 
 func TestDirectorydDeleteLocation(t *testing.T) {
 	srv := createTestDirectorydServicer(t)
-
+	stateTestInit.StartTestService(t)
 	// Create an identity and context for sending requests as gateway
 	id := protos.Identity{}
 	idgw := protos.Identity_Gateway{HardwareId: testGwHwId1, NetworkId: testNetworkId, LogicalId: testGwLogicalId1}
