@@ -8,8 +8,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 from copy import deepcopy
 import redis
+from redis.lock import Lock
 import redis_collections
-from typing import Iterator, MutableMapping, TypeVar
+from typing import Iterator, MutableMapping, Optional, TypeVar
 
 from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
@@ -260,6 +261,18 @@ class RedisFlatDict(MutableMapping[str, T]):
             raise KeyError(composite_key)
         return deleted_count
 
+    def get(self, key: str) -> Optional[T]:
+        """Get ``d[key:type]`` from dictionary.
+        Returns None if *key:type* is not in the map"""
+        if ':' in key:
+            raise ValueError("Key %s cannot contain ':' char" % key)
+        composite_key = self._make_composite_key(key)
+        serialized_value = self.redis.get(composite_key)
+        if serialized_value is None:
+            return None
+
+        return self.serde.deserialize(serialized_value)
+
     def clear(self) -> None:
         """
         Clear all keys in the dictionary
@@ -286,6 +299,11 @@ class RedisFlatDict(MutableMapping[str, T]):
         Note: for redis *key:type* key is returned
         """
         return list(self.__iter__())
+
+    def lock(self, key: str) -> Lock:
+        """Lock the dictionary for key *key*"""
+        lock_key = self._make_composite_key(key) + ":lock"
+        return self.redis.lock(lock_key)
 
     def _make_composite_key(self, key):
         return key + ":" + self.redis_type
