@@ -25,6 +25,7 @@ function run_test_container {
     -v "$(realpath ../):/cache/devmand/repo:ro" \
     -v "$CACHE_DIR:/cache/devmand/build:rw" \
     --sysctl net.ipv4.ping_group_range="0 0" \
+    --network host \
     devmand-built $@
   EXIT_CODE=$?
 }
