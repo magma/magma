@@ -382,10 +382,9 @@ message EmmContext {
   uint64 saved_imsi64 = 3;
   IdentityTuple imei = 4; //imei_t
   IdentityTuple imeisv = 5; // imeisv_t
-  Ecgi ecgi = 6;
-  uint32 emm_cause = 7;
-  uint32 emm_fsm_state = 8; // emm_fsm_state_t
-  uint32 attach_type = 9;
+  uint32 emm_cause = 6;
+  uint32 emm_fsm_state = 7; // emm_fsm_state_t
+  uint32 attach_type = 8;
 
   EmmProcedures emm_procedures = 11;
   uint32 common_proc_mask = 12;

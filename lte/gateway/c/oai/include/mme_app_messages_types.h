@@ -52,6 +52,9 @@
   (mSGpTR)->ittiMsg.mme_app_initial_context_setup_failure
 #define MME_APP_S1AP_MME_UE_ID_NOTIFICATION(mSGpTR)                            \
   (mSGpTR)->ittiMsg.mme_app_s1ap_mme_ue_id_notification
+#define MME_APP_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.mme_app_ul_data_ind
+#define MME_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_cnf
+#define MME_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_rej
 #define MME_APP_CREATE_DEDICATED_BEARER_REQ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.mme_app_create_dedicated_bearer_req
 #define MME_APP_CREATE_DEDICATED_BEARER_RSP(mSGpTR)                            \
@@ -164,13 +167,32 @@ typedef struct itti_mme_app_s1ap_mme_ue_id_notification_s {
   sctp_assoc_id_t sctp_assoc_id;
 } itti_mme_app_s1ap_mme_ue_id_notification_t;
 
+typedef struct itti_mme_app_dl_data_cnf_s {
+  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier        */
+  nas_error_code_t err_code; /* Transaction status               */
+} itti_mme_app_dl_data_cnf_t;
+
+typedef struct itti_mme_app_dl_data_rej_s {
+  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
+  bstring nas_msg;        /* Uplink NAS message           */
+  int err_code;
+} itti_mme_app_dl_data_rej_t;
+
+typedef struct itti_mme_app_ul_data_ind_s {
+  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier    */
+  bstring nas_msg;        /* Uplink NAS message           */
+  /* Indicating the Tracking Area from which the UE has sent the NAS message */
+  tai_t tai;
+  /* Indicating the cell from which the UE has sent the NAS message  */
+  ecgi_t cgi;
+} itti_mme_app_ul_data_ind_t;
+
 typedef struct itti_mme_app_delete_dedicated_bearer_req_s {
   /* UE identifier */
   uint32_t no_of_bearers;
   ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
   mme_ue_s1ap_id_t ue_id;
 } itti_mme_app_delete_dedicated_bearer_req_t;
-
 
 typedef struct itti_mme_app_delete_dedicated_bearer_rsp_s {
   /* UE identifier */
@@ -189,6 +211,5 @@ typedef struct itti_mme_app_delete_dedicated_bearer_rej_s {
   teid_t s_gw_teid_s11_s4;
   bool delete_default_bearer;
 } itti_mme_app_delete_dedicated_bearer_rej_t;
-
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

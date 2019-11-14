@@ -102,7 +102,7 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
  **                                                                        **
  ** Description:                                                           **
  **                                                                        **
- ** Inputs:  ue_ctx:  UE context                                           **
+ ** Inputs:  emm_context_p:  Pointer to EMM context                        **
  **          emm_tau_request_ies_t: TAU Request received from UE           **
  **                                                                        **
  ** Outputs: Return:    RETURNok, RETURNerror                              **
@@ -110,13 +110,13 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
  ***************************************************************************/
 
 int _csfb_handle_tracking_area_req(
-  emm_context_t *ue_ctx,
-  emm_tau_request_ies_t *ies)
+  emm_context_t* emm_context_p,
+  emm_tau_request_ies_t* ies)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  _csfb_handle_tracking_area_req \n");
-  ue_mm_context_t * ue_mm_context = NULL;
+  ue_mm_context_t* ue_mm_context = NULL;
   /*In case we receive periodic TAU, send Location Update to MME only if SGS Association is established*/
   if (
     (EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING ==
@@ -125,21 +125,24 @@ int _csfb_handle_tracking_area_req(
      ies->eps_update_type.eps_update_type_value) ||
     ((EPS_UPDATE_TYPE_PERIODIC_UPDATING ==
       ies->eps_update_type.eps_update_type_value) &&
-     ue_ctx->csfbparams.sgs_loc_updt_status == SUCCESS)) {
+     emm_context_p->csfbparams.sgs_loc_updt_status == SUCCESS)) {
     //Store TAU update type in emm context
-    ue_ctx->tau_updt_type = ies->eps_update_type.eps_update_type_value;
+    emm_context_p->tau_updt_type = ies->eps_update_type.eps_update_type_value;
     //Store active flag
-    ue_ctx->csfbparams.tau_active_flag = ies->eps_update_type.active_flag;
+    emm_context_p->csfbparams.tau_active_flag =
+      ies->eps_update_type.active_flag;
     //Store Additional Update
-    if ((ies->additional_updatetype != NULL) &&
-        (SMS_ONLY == *(ies->additional_updatetype))) {
-      ue_ctx->additional_update_type = SMS_ONLY;
+    if (
+      (ies->additional_updatetype != NULL) &&
+      (SMS_ONLY == *(ies->additional_updatetype))) {
+      emm_context_p->additional_update_type = SMS_ONLY;
     }
     //Send Location Update Req to MME
-    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(ue_ctx);
+    nas_emm_tau_proc_t* tau_proc =
+      get_nas_specific_procedure_tau(emm_context_p);
     if (!tau_proc) {
-      ue_mm_context = PARENT_STRUCT(ue_ctx,
-                                    struct ue_mm_context_s, emm_context);
+      ue_mm_context =
+        PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
       tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
       nas_itti_cs_domain_location_update_req(
         tau_proc->ue_id, TRACKING_AREA_UPDATE_REQUEST);
