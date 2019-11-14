@@ -23,21 +23,19 @@ class ServiceStateWrapper:
     REDIS_VALUE_TYPE = "systemd_status"
 
     def __init__(self):
-        serdes = {self.REDIS_VALUE_TYPE: RedisSerde(self.REDIS_VALUE_TYPE,
-                                                    get_proto_serializer(),
-                                                    get_proto_deserializer(
-                                                        ServiceExitStatus))}
-        self._flat_dict = RedisFlatDict(get_default_client(), serdes)
+        serde = RedisSerde(self.REDIS_VALUE_TYPE,
+                           get_proto_serializer(),
+                           get_proto_deserializer(ServiceExitStatus))
+        self._flat_dict = RedisFlatDict(get_default_client(), serde)
 
     def update_service_status(self, service_name: str,
                               service_status: ServiceExitStatus) -> None:
         """
         Update the service exit status for a given service
         """
-        key = service_name + ":" + self.REDIS_VALUE_TYPE
 
-        if key in self._flat_dict:
-            current_service_status = self._flat_dict[key]
+        if service_name in self._flat_dict:
+            current_service_status = self._flat_dict[service_name]
         else:
             current_service_status = ServiceExitStatus()
 
@@ -52,15 +50,14 @@ class ServiceStateWrapper:
                 current_service_status.num_fail_exits + 1
             service_status.num_clean_exits = \
                 current_service_status.num_clean_exits
-        self._flat_dict[key] = service_status
+        self._flat_dict[service_name] = service_status
 
     def get_service_status(self, service_name: str) -> ServiceExitStatus:
         """
-        Get the service status protobuf for a given servicea
+        Get the service status protobuf for a given service
         @returns ServiceStatus protobuf object
         """
-        key = service_name + ":" + self.REDIS_VALUE_TYPE
-        return self._flat_dict[key]
+        return self._flat_dict[service_name]
 
     def get_all_services_status(self) -> [str, ServiceExitStatus]:
         """
@@ -69,7 +66,7 @@ class ServiceStateWrapper:
         """
         service_status = {}
         for k, v in self._flat_dict.items():
-            service_status[k.split(":", 1)[0]] = v
+            service_status[k] = v
         return service_status
 
     def cleanup_service_status(self) -> None:
