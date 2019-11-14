@@ -80,7 +80,7 @@ jobs:
   southpoll_test:
     machine:
       image: circleci/classic:latest
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -94,12 +94,13 @@ jobs:
             sudo apt-get install -y realpath
             docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
             cd ./devmand/gateway/docker
+            ./scripts/build_cached_firstparty
             ./scripts/build
             ./scripts/test
 
   southpoll_publish_dev:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -113,12 +114,13 @@ jobs:
             sudo apt-get install -y realpath
             docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
             cd ./devmand/gateway/docker
+            ./scripts/build_cached_firstparty
             ./scripts/build
             ./scripts/push
 
   southpoll_publish_prod:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -133,6 +135,7 @@ jobs:
             export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
             docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
             cd ./devmand/gateway/docker
+            ./scripts/build_cached_firstparty
             ./scripts/build
             ./scripts/push_prod
 

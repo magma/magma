@@ -7,6 +7,7 @@
 
 #include <MetricsSingleton.h>
 
+#include <folly/GLog.h>
 #include <folly/json.h>
 
 #include <devmand/Application.h>
@@ -24,9 +25,9 @@ Service::Service(Application& application)
   magmaService.SetServiceInfoCallback([this]() {
     auto uv = app.getUnifiedView();
 
-    LOG(DEBUG) << "publishing :=\n";
+    LOG(INFO) << "publishing :=\n";
     for (auto& kv : uv) {
-      LOG(DEBUG) << "\t\"" << kv.first << "\" : \"" << kv.second << "\"\n";
+      LOG(INFO) << "\t\"" << kv.first << "\" : \"" << kv.second << "\"\n";
     }
     return uv;
   });
@@ -40,7 +41,7 @@ Service::Service(Application& application)
         ? folly::parseJson(uv["devmand"])
         : folly::dynamic::object;
 
-    LOG(DEBUG) << "Publishing op-state :=\n";
+    LOG(INFO) << "Publishing op-state :=\n";
     for (auto& device : devices.items()) {
       std::string device_id = device.first.asString();
       folly::dynamic device_state = folly::dynamic::object;
@@ -51,7 +52,7 @@ Service::Service(Application& application)
         {"device_id", device.first.asString()},
         {"value", folly::toJson(device_state)}
       };
-      LOG(DEBUG) << device_id << " : " << folly::toJson(device_state) << "\n";
+      LOG(INFO) << device_id << " : " << folly::toJson(device_state) << "\n";
       states.push_back(state);
     }
     return states;
