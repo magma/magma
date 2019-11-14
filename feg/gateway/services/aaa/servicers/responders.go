@@ -21,6 +21,7 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lteprotos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/cloud/go/protos"
 )
 
 const (
@@ -63,7 +64,11 @@ func (srv *accountingService) AbortSession(
 		// ? can potentially end a new, valid session
 		session_manager.EndSession(makeSID(imsi))
 	} else {
-		directoryd.RemoveIMSI(imsi)
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: imsi,
+		}
+		directoryd.DeleteRecord(deleteRequest)
+
 	}
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
@@ -110,8 +115,10 @@ func (srv *accountingService) TerminateRegistration(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: auth: %s | acct: %s",
 			sid, imsi, req.GetSessionId(), authSid, acctSid)
 	}
-
-	directoryd.RemoveIMSI(imsi) // remove it from directoryd even if session manager will try to remove it again
+	deleteRequest := &orcprotos.DeleteRecordRequest{
+		Id: imsi,
+	}
+	directoryd.DeleteRecord(deleteRequest) // remove it from directoryd even if session manager will try to remove it again
 
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
