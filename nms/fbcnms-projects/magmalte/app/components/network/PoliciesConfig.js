@@ -35,7 +35,7 @@ import {findIndex} from 'lodash';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-function PoliciesConfig() {
+function PoliciesConfig(props: {mirrorNetwork?: string}) {
   const {match, relativePath, relativeUrl, history} = useRouter();
   const [ruleIDs, setRuleIDs] = useState();
 
@@ -72,7 +72,12 @@ function PoliciesConfig() {
         </TableHead>
         <TableBody>
           {ruleIDs.map(id => (
-            <RuleRow key={id} ruleID={id} onDelete={onDelete} />
+            <RuleRow
+              mirrorNetwork={props.mirrorNetwork}
+              key={id}
+              ruleID={id}
+              onDelete={onDelete}
+            />
           ))}
         </TableBody>
       </Table>
@@ -80,6 +85,7 @@ function PoliciesConfig() {
         path={relativePath('/add')}
         component={() => (
           <PolicyRuleEditDialog
+            mirrorNetwork={props.mirrorNetwork}
             onCancel={() => history.push(relativeUrl(''))}
             onSave={ruleID => {
               setRuleIDs([...nullthrows(ruleIDs), ruleID]);
@@ -92,7 +98,11 @@ function PoliciesConfig() {
   );
 }
 
-type Props = WithAlert & {ruleID: string, onDelete: () => void};
+type Props = WithAlert & {
+  ruleID: string,
+  onDelete: () => void,
+  mirrorNetwork?: string,
+};
 
 const RuleRow = withAlert((props: Props) => {
   const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
@@ -115,10 +125,23 @@ const RuleRow = withAlert((props: Props) => {
       return;
     }
 
-    await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId({
-      networkId: networkID,
-      ruleId: props.ruleID,
-    });
+    const data = [
+      {
+        networkId: networkID,
+        ruleId: props.ruleID,
+      },
+    ];
+    if (props.mirrorNetwork) {
+      data.push({
+        networkId: props.mirrorNetwork,
+        ruleId: props.ruleID,
+      });
+    }
+    await Promise.all(
+      data.map(d =>
+        MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(d),
+      ),
+    );
 
     props.onDelete();
   };
@@ -144,6 +167,7 @@ const RuleRow = withAlert((props: Props) => {
           component={() =>
             rule ? (
               <PolicyRuleEditDialog
+                mirrorNetwork={props.mirrorNetwork}
                 rule={rule}
                 onCancel={() => history.push(relativeUrl(''))}
                 onSave={() => {
