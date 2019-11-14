@@ -76,5 +76,6 @@ setup(
         'python-dateutil>=1.4',
         # force same requests version as lte/gateway/python/setup.py
         'requests==2.22.0',
+        'jsonpickle',
     ]
 )

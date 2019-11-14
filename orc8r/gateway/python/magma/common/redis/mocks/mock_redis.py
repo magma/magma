@@ -6,13 +6,12 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import re
 
 class MockRedis(object):
     """
     MockRedis implements a mock Redis Server using an in-memory dictionary
     """
-
     redis = {}
 
     def __init__(self, host, port):
@@ -49,9 +48,26 @@ class MockRedis(object):
         skey = self.serialize_key(key)
         self.redis[skey] = value
 
-    def keys(self):
-        """ Mock keys."""
-        return list(self.redis.keys())
+    def keys(self, pattern=".*"):
+        """ Mock keys with regex pattern matching."""
+        formatted_pattern = ""
+        for index in range(0, len(pattern)):
+            if index == 0 and pattern[index] == "*":
+                formatted_pattern += ".*"
+            elif pattern[index] == "*" and pattern[index - 1] != ".":
+                formatted_pattern += ".*"
+            else:
+                formatted_pattern += pattern[index]
+
+        ret = []
+        for key in self.redis.keys():
+            try:
+                dkey = self.deserialize_key(key)
+            except AttributeError:
+                dkey = key
+            if re.match(formatted_pattern, dkey):
+                ret.append(key)
+        return ret
 
     def hget(self, hashkey, key):
         """Mock hget."""
