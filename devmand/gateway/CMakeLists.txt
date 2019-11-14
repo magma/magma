@@ -5,6 +5,9 @@ project (devmand CXX)
 cmake_minimum_required(VERSION 3.7.2)
 
 set(MGM_COM_DIR /usr/lib/)
+# Pass libyang plugins dir
+add_definitions(-DLIBYANG_PLUGINS_DIR="/usr/lib/libyang/")
+
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
 include_directories("/usr/include/prometheus")
@@ -76,6 +79,8 @@ target_link_libraries(devman
   ssh_threads
   pcre
   ydk
+  ydk_openconfig
+  ydk_ietf
   curl
   xslt
   xml2
@@ -104,6 +109,28 @@ target_link_libraries(devman_channel_snmp
   ${NETSNMPAGENT}
   ${NETSNMPMIBS}
   ${NETSNMP})
+
+add_library(devman_channel_cli
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Command.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/engine/Engine.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSession.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Channel.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/PromptAwareCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/QueuedCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSessionAsync.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliFlavour.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSessionAsync.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/PlaintextCliDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ParsingUtils.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/StructuredUbntDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ModelRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/IoConfigurationBuilder.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReadCachingCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSocketReader.cpp
+        )
+target_link_libraries(devman_channel_cli
+  devman)
 
 add_library(devman_service_magma
   ${PROJECT_SOURCE_DIR}/src/devmand/magma/DevConf.cpp
@@ -145,9 +172,21 @@ add_executable(devmand
 target_link_libraries(devmand
   devman
   devman_channel_snmp
+  devman_channel_cli
   devman_service_magma)
 
 add_executable(devmantest
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/RealCliDeviceTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CliScaleTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SshSessionTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/QueuedCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Json.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Ssh.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Log.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CommandTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ModelRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PlaintextCliDeviceTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/StructuredUbntDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp
@@ -161,6 +200,7 @@ add_executable(devmantest
 target_link_libraries(devmantest
   devman
   devman_channel_snmp
+  devman_channel_cli
   gtest
   gtest_main
   devman_service_magma)
