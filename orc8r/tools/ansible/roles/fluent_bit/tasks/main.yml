@@ -34,7 +34,7 @@
 
 - name: Copy fluent bit config script
   copy:
-    src: '{{ magma_root }}/lte/gateway/python/scripts/generate_fluent_bit_config.py'
+    src: '{{ magma_root }}/orc8r/gateway/python/scripts/generate_fluent_bit_config.py'
     dest: /usr/local/bin/generate_fluent_bit_config.py
     force: yes
     remote_src: yes
