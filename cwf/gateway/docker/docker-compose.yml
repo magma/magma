@@ -56,9 +56,9 @@ services:
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
   directoryd:
-    <<: *ltepyservice
+    <<: *pyservice
     container_name: directoryd
-    command: python3 -m magma.directoryd.main
+    command: python3.5 -m magma.directoryd.main
 
   eap_aka:
     <<: *feggoservice

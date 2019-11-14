@@ -40,7 +40,9 @@ class MagmaPyLintTest(unittest.TestCase):
         directories = [
             'common',
             'configuration',
+            'directoryd',
             'magmad',
+            'state',
         ]
         parent_path = os.path.dirname(os.path.dirname(__file__))
         for directory in directories:
