@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -123,4 +124,18 @@ func FormatPkixSubject(s *pkix.Name) string {
 		s.CommonName,
 	})
 	return string(res)
+}
+
+// IsTruthyEnv returns true for any value not "false", "0", "no..."
+func IsTruthyEnv(envName string) bool {
+	value := os.Getenv(envName)
+	value = strings.TrimSpace(value)
+	if len(value) == 0 {
+		return false
+	}
+	value = strings.ToLower(value)
+	if value == "0" || strings.HasPrefix(value, "false") || strings.HasPrefix(value, "no") {
+		return false
+	}
+	return true
 }
