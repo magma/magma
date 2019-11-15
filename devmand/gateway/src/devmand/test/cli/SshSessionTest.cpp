@@ -132,6 +132,10 @@ TEST_F(SshSessionTest, sessionStop) {
   session->setEvent(sessionEvent);
 }
 
+TEST_F(SshSessionTest, empty) {
+  // This tests the SSH server, to make sure it can cleanly start and close
+}
+
 } // namespace cli
 } // namespace test
 } // namespace devmand

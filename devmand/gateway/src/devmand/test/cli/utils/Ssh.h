@@ -39,19 +39,17 @@ struct server {
 
   void close() {
     MLOG(MDEBUG) << "Closing server: " << id;
+    shutdown(ssh_bind_get_fd(sshbind), SHUT_RDWR);
+
+    // Make sure the server thread finished before calling free
+    move(serverFuture).wait();
+
     if (session != nullptr) {
-      if (ssh_is_connected(session) == 1) {
-        ssh_disconnect(session);
-      }
       ssh_free(session);
       session = nullptr;
     }
+
     if (sshbind != nullptr) {
-      shutdown(ssh_bind_get_fd(sshbind), SHUT_RDWR);
-
-      // Make sure the server thread finished before calling free
-      move(serverFuture).get();
-
       ssh_bind_free(sshbind);
       sshbind = nullptr;
     }
