@@ -12,7 +12,6 @@ import (
 	"math/rand"
 	"net"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -23,6 +22,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/orc8r/cloud/go/util"
 )
 
 const (
@@ -70,24 +70,11 @@ func NewConnectedGxClient(
 	}
 	return &GxClient{
 		diamClient:             diamClient,
-		pcrf91Compliant:        *pcrf91Compliant || isThruthy(os.Getenv(PCRF91CompliantEnv)),
-		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || isThruthy(os.Getenv(DisableEUIIPv6IfNoIPEnv)),
-		framedIpv4AddrRequired: isThruthy(os.Getenv(FramedIPv4AddrRequiredEnv)),
+		pcrf91Compliant:        *pcrf91Compliant || util.IsTruthyEnv(PCRF91CompliantEnv),
+		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || util.IsTruthyEnv(DisableEUIIPv6IfNoIPEnv),
+		framedIpv4AddrRequired: util.IsTruthyEnv(FramedIPv4AddrRequiredEnv),
 	}
 
-}
-
-// isThruthy returns true for any value not "false", "0", "no..."
-func isThruthy(value string) bool {
-	value = strings.TrimSpace(value)
-	if len(value) == 0 {
-		return false
-	}
-	value = strings.ToLower(value)
-	if value == "0" || strings.HasPrefix(value, "false") || strings.HasPrefix(value, "no") {
-		return false
-	}
-	return true
 }
 
 // NewGxClient contructs a new GxClient with the magma diameter settings
