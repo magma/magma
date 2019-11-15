@@ -1224,9 +1224,10 @@ paths:
       responses:
         '200':
           description: List all policy rule IDs
-          type: array
-          items:
-            $ref: '#/definitions/rule_id'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/rule_id'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
