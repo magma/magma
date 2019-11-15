@@ -177,7 +177,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi)
+	metrics.SessionTerminate.WithLabelValues(apn, imsi).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
