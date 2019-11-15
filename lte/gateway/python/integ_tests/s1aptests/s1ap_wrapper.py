@@ -339,3 +339,20 @@ class TestWrapper(object):
         assert (
             self._s1_util.issue_cmd(
                  s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req) == 0)
+
+    def sendActDedicatedBearerAccept(self, ue_id, bearerId):
+        act_ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
+        act_ded_bearer_acc.ue_Id = ue_id
+        act_ded_bearer_acc.bearerId = bearerId
+        self._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, act_ded_bearer_acc)
+        print("************** Sending activate dedicated EPS bearer "
+              "context accept\n")
+
+    def sendDeactDedicatedBearerAccept(self, ue_id, bearerId):
+        deact_ded_bearer_acc = s1ap_types.UeDeActvBearCtxtAcc_t()
+        deact_ded_bearer_acc.ue_Id = ue_id
+        deact_ded_bearer_acc.bearerId = bearerId
+        self._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deact_ded_bearer_acc)
+        print("************* Sending deactivate EPS bearer context accept\n")

@@ -56,11 +56,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
-            ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
-            ded_bearer_acc.ue_Id = 1
-            ded_bearer_acc.bearerId = act_ded_ber_ctxt_req.bearerId
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, ded_bearer_acc)
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                    req.ue_id, act_ded_ber_ctxt_req.bearerId)
 
             time.sleep(5)
             print("********************** Deleting dedicated bearer for IMSI",
@@ -76,13 +73,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
 
             deactv_bearer_req = response.cast(
                 s1ap_types.UeDeActvBearCtxtReq_t)
-            print("********************** Sending Deactivate EPS bearer"
-                  " context accept")
-            deactv_bearer_acc = s1ap_types.UeDeActvBearCtxtAcc_t()
-            deactv_bearer_acc.ue_Id = req.ue_id
-            deactv_bearer_acc.bearerId = deactv_bearer_req.bearerId
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deactv_bearer_acc)
+            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
+                    req.ue_id, deactv_bearer_req.bearerId)
 
             time.sleep(5)
             print("********************** Running UE detach for UE id ",

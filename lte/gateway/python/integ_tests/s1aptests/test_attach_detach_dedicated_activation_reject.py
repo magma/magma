@@ -58,7 +58,7 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
             ded_bearer_rej = s1ap_types.UeActDedBearCtxtRej_t()
-            ded_bearer_rej.ue_Id = 1
+            ded_bearer_rej.ue_Id = req.ue_id
             ded_bearer_rej.bearerId = act_ded_ber_ctxt_req.bearerId
             # Send Bearer Activation Reject
             self._s1ap_wrapper._s1_util.issue_cmd(

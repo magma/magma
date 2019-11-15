@@ -54,11 +54,8 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
                 response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
-            ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
-            ded_bearer_acc.ue_Id = 1
-            ded_bearer_acc.bearerId = act_ded_ber_ctxt_req.bearerId
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, ded_bearer_acc)
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                    req.ue_id, act_ded_ber_ctxt_req.bearerId)
 
             time.sleep(5)
             print("********************** Deleting dedicated bearer for IMSI",

@@ -60,14 +60,9 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
                   " bearer context request")
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
-            ded_bearer_acc = s1ap_types.UeActDedBearCtxtAcc_t()
-            ded_bearer_acc.ue_Id = req.ue_id
-            ded_bearer_acc.bearerId = act_ded_ber_ctxt_req.bearerId
-            print("********************** Sending activate dedicated"
-                  " EPS bearer context accept")
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_ACC, ded_bearer_acc)
-            bearer_ids.append(ded_bearer_acc.bearerId)
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                    req.ue_id, act_ded_ber_ctxt_req.bearerId)
+            bearer_ids.append(act_ded_ber_ctxt_req.bearerId)
 
         time.sleep(1)
         self._s1ap_wrapper._ue_idx = 0
@@ -85,13 +80,8 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             print("********************** Received deactivate EPS bearer"
                   " context request")
 
-            print("********************** Sending Deactivate EPS bearer"
-                  " context accept")
-            deactv_bearer_acc = s1ap_types.UeDeActvBearCtxtAcc_t()
-            deactv_bearer_acc.ue_Id = req.ue_id
-            deactv_bearer_acc.bearerId = bearer_ids[i]
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_ACC, deactv_bearer_acc)
+            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
+                    req.ue_id, bearer_ids[i])
 
         time.sleep(2)
         for ue in ue_ids:
