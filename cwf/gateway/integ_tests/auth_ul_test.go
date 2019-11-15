@@ -21,12 +21,15 @@ import (
 
 func TestAuthenticateUplinkTraffic(t *testing.T) {
 	fmt.Printf("Running TestAuthenticateUplinkTraffic...\n")
-	tr, _ := NewTestRunner()
+	tr := NewTestRunner()
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
 	ue := ues[0]
-	err = tr.AddPassThroughPCRFRules(ue.GetImsi())
+	err = ruleManager.AddDynamicPassAll(ue.GetImsi(), "dynamic-pass-all", "mkey1")
 	assert.NoError(t, err)
 	radiusP, err := tr.Authenticate(ue.GetImsi())
 	assert.NoError(t, err)
@@ -39,5 +42,6 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Clear hss, ocs, and pcrf
+	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
 }
