@@ -132,7 +132,6 @@ func (srv *CentralSessionController) CreateSession(
 			// diameter code to succeed as well.
 			for _, credit := range credits {
 				if credit.ResultCode != diameter.SuccessCode {
-					metrics.OcsCcrInitSendFailures.Inc()
 					err = fmt.Errorf("Received unsuccessful result code from OCS in the MSCC: %v "+
 						"for session: %s, IMSI: %s", credit.ResultCode, request.SessionId, imsi)
 					glog.Errorf("Failed to send second single credit request: %s", err)
