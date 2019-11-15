@@ -28,6 +28,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/util"
 
 	"github.com/golang/glog"
 )
@@ -61,7 +62,7 @@ func main() {
 		PCRFConfig:       gx.GetPCRFConfiguration(),
 		RequestTimeout:   3 * time.Second,
 		InitMethod:       initMethod,
-		UseGyForAuthOnly: os.Getenv(gy.UseGyForAuthOnlyEnv) == "1",
+		UseGyForAuthOnly: util.IsTruthyEnv(gy.UseGyForAuthOnlyEnv),
 	}
 	cloudReg := registry.NewCloudRegistry()
 	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)
