@@ -23,7 +23,6 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"golang.org/x/net/context"
 )
 
@@ -44,11 +43,6 @@ type SessionControllerConfig struct {
 	PCRFConfig     *diameter.DiameterServerConfig
 	RequestTimeout time.Duration
 	InitMethod     gy.InitMethod
-}
-
-type ruleTiming struct {
-	activationTime   *timestamp.Timestamp
-	deactivationTime *timestamp.Timestamp
 }
 
 // NewCentralSessionController constructs a CentralSessionController
@@ -86,18 +80,18 @@ func (srv *CentralSessionController) CreateSession(
 	}
 	metrics.PcrfCcrInitRequests.Inc()
 
-	var ruleNames []string
-	var ruleDefs []*gx.RuleDefinition
+	var staticRuleNames []string
+	var dynamicRuleDefs []*gx.RuleDefinition
 	for _, rule := range gxCCAInit.RuleInstallAVP {
-		ruleNames = append(ruleNames, rule.RuleNames...)
+		staticRuleNames = append(staticRuleNames, rule.RuleNames...)
 		if len(rule.RuleBaseNames) > 0 {
-			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+			staticRuleNames = append(staticRuleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
 		}
-		ruleDefs = append(ruleDefs, rule.RuleDefinitions...)
+		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
 	}
 
-	policyRules := getPolicyRulesFromDefinitions(ruleDefs)
-	keys, err := srv.dbClient.GetChargingKeysForRules(ruleNames, policyRules)
+	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
+	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
 	if err != nil {
 		glog.Errorf("Failed to get charging keys for rules: %s", err)
 		return nil, err
@@ -117,8 +111,8 @@ func (srv *CentralSessionController) CreateSession(
 			metrics.OcsCcrInitRequests.Inc()
 		}
 
-		updateRequest := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
-		ans, err := srv.sendSingleCreditRequest(updateRequest)
+		gyCCRInit := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
+		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
 			metrics.OcsCcrInitSendFailures.Inc()
@@ -126,7 +120,7 @@ func (srv *CentralSessionController) CreateSession(
 			return nil, err
 		}
 		metrics.OcsCcrInitRequests.Inc()
-		credits = getInitialCreditResponsesFromCCA(ans, updateRequest)
+		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
 	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(

@@ -75,11 +75,11 @@ func (client *RedisPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyR
 // GetChargingKeysForRules retrieves the charging keys associated with the given
 // rule names from redis.
 func (client *RedisPolicyDBClient) GetChargingKeysForRules(
-	ruleIDs []string,
-	ruleDefs []*protos.PolicyRule,
+	staticRuleIDs []string,
+	dynamicRuleDefs []*protos.PolicyRule,
 ) ([]uint32, error) {
 	keys := []uint32{}
-	for _, id := range ruleIDs {
+	for _, id := range staticRuleIDs {
 		policy, err := client.GetPolicyRuleByID(id)
 		if err != nil {
 			glog.Errorf("Unable to get rating group for policy %s: %s", id, err)
@@ -89,7 +89,7 @@ func (client *RedisPolicyDBClient) GetChargingKeysForRules(
 			keys = append(keys, policy.RatingGroup)
 		}
 	}
-	for _, policy := range ruleDefs {
+	for _, policy := range dynamicRuleDefs {
 		if needsCharging(policy) {
 			keys = append(keys, policy.RatingGroup)
 		}
