@@ -77,8 +77,11 @@ spec:
             - name: config-volume
               mountPath: /fluentd/etc
             - name: certs
-              mountPath: /var/opt/magma/certs
-              readOnly: true
+              mountPath: /var/opt/magma/certs/controller.crt
+              subPath: controller.crt
+            - name: certs
+              mountPath: /var/opt/magma/certs/controller.key
+              subPath: controller.key
 
           resources:
 {{ toYaml .Values.fluentd_forward.resources | indent 12 }}
