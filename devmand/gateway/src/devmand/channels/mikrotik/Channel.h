@@ -97,6 +97,8 @@ class Channel : public channels::Channel,
 
   void debugPrintHex(const std::string& prefix, const std::string& buf);
 
+  void enableSyslog();
+
  private:
   folly::EventBase& eventBase;
   folly::SocketAddress address;
