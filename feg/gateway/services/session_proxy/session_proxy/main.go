@@ -57,10 +57,11 @@ func main() {
 	initMethod := gy.GetInitMethod()
 
 	controllerCfg := &servicers.SessionControllerConfig{
-		OCSConfig:      gy.GetOCSConfiguration(),
-		PCRFConfig:     gx.GetPCRFConfiguration(),
-		RequestTimeout: 3 * time.Second,
-		InitMethod:     initMethod,
+		OCSConfig:        gy.GetOCSConfiguration(),
+		PCRFConfig:       gx.GetPCRFConfiguration(),
+		RequestTimeout:   3 * time.Second,
+		InitMethod:       initMethod,
+		UseGyForAuthOnly: os.Getenv(gy.UseGyForAuthOnlyEnv) == "1",
 	}
 	cloudReg := registry.NewCloudRegistry()
 	policyDBClient, err := policydb.NewRedisPolicyDBClient(cloudReg)

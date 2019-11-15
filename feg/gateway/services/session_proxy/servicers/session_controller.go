@@ -39,10 +39,11 @@ type CentralSessionController struct {
 // SessionControllerConfig stores all the needed configuration for running
 // gx and gy clients
 type SessionControllerConfig struct {
-	OCSConfig      *diameter.DiameterServerConfig
-	PCRFConfig     *diameter.DiameterServerConfig
-	RequestTimeout time.Duration
-	InitMethod     gy.InitMethod
+	OCSConfig        *diameter.DiameterServerConfig
+	PCRFConfig       *diameter.DiameterServerConfig
+	RequestTimeout   time.Duration
+	InitMethod       gy.InitMethod
+	UseGyForAuthOnly bool
 }
 
 // NewCentralSessionController constructs a CentralSessionController
