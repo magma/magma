@@ -650,7 +650,6 @@ definitions:
           - SESSION_PROXY
           - SWX_PROXY
         example:
-        - S6A_PROXY
         - SESSION_PROXY
         - SWX_PROXY
         x-go-custom-tag: 'magma_alt_name:"RequiredServices"'
@@ -688,7 +687,7 @@ definitions:
       memory_available_threshold:
         type: number
         format: float
-        example: 0.90
+        example: 0.75
     x-go-custom-tag: 'magma_alt_name:"HEALTH"'
 
 
