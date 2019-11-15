@@ -64,7 +64,6 @@ void start_grpc_service(bstring server_address)
   builder.RegisterService(&s6a_service);
   builder.RegisterService(&sgs_service);
   server = builder.BuildAndStart();
-  server->Wait(); // Blocking call
 }
 
 void stop_grpc_service(void)
