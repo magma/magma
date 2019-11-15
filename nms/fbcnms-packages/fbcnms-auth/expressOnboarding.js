@@ -57,7 +57,7 @@ export default function() {
         const userProps = await getPropsToUpdate(
           allowedProps,
           req.body,
-          props => ({
+          async props => ({
             ...props,
             organization: req.body.organization,
           }),
@@ -69,6 +69,7 @@ export default function() {
           name: req.body.organization,
           tabs: req.body.tabs,
           networkIDs: [],
+          csvCharset: '',
           customDomains: [],
           ssoCert: '',
           ssoEntrypoint: '',

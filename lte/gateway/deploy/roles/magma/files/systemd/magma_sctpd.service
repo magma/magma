@@ -13,6 +13,7 @@ Before=magma@mme.service
 Type=simple
 EnvironmentFile=/etc/environment
 ExecStart=/usr/local/bin/sctpd
+ExecStopPost=/home/vagrant/magma/orc8r/gateway/python/scripts/service_util.py sctpd
 MemoryAccounting=yes
 MemoryLimit=512M
 StandardOutput=syslog

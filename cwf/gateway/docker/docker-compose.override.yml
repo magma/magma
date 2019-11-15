@@ -7,6 +7,8 @@ services:
       dockerfile: feg/gateway/docker/go/Dockerfile
 
   control_proxy:
+    environment:
+      DOCKER_NETWORK_MODE: 1
     extra_hosts:
       - controller.magma.test:10.0.2.2
       - bootstrapper-controller.magma.test:10.0.2.2

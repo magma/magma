@@ -244,9 +244,16 @@ TEST_F(SessiondTest, end_to_end_success)
         testing::SetArgPointee<2>(create_response),
         testing::Return(grpc::Status::OK)));
 
+    // Temporary fix for pipelined client in sessiond introduces separate calls
+    // for static and dynamic rules. So here is the call for static rules.
     EXPECT_CALL(
       *pipelined_mock,
       ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 3), testing::_))
+      .Times(1);
+    // Here is the call for dynamic rules, which in this case should be empty.
+    EXPECT_CALL(
+      *pipelined_mock,
+      ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 0), testing::_))
       .Times(1);
 
     CreditUsageUpdate expected_update;

@@ -15,8 +15,10 @@ magma_services:
   - dnsd
   - policydb
   - sctpd
+  - state
+  - captive_portal
   # Uncomment td-agent-bit to enable fluent-bit and log fowarding
-  # - td-agent-bit
+#  - td-agent-bit
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -25,12 +27,11 @@ non_service303_services:
   - redis
   - sctpd
   # Uncomment td-agent-bit to enable fluent-bit and log fowarding
-  # - td-agent-bit
+#  - td-agent-bit
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
   - redirectd
-  - captive_portal
 
 # A list of group of services which are linked together in systemd
 linked_services:
@@ -108,6 +109,7 @@ metricsd:
     - magmad
     - enodebd
     - pipelined
+    - state
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

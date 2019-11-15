@@ -4,6 +4,10 @@
       "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
       "logLevel": "INFO"
     },
+    "directoryd": {
+      "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
+      "logLevel": "INFO"
+    },
     "magmad": {
       "@type": "type.googleapis.com/magma.mconfig.MagmaD",
       "logLevel": "INFO",
@@ -24,8 +28,11 @@
       "services": [
       ],
       "allowedGrePeers": [
-       {"ip": "1.1.1.1", "key":123}
       ]
+    },
+    "policydb": {
+      "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
+      "logLevel": "INFO"
     },
     "sessiond": {
       "@type": "type.googleapis.com/magma.mconfig.SessionD",

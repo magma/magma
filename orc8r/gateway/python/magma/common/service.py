@@ -40,6 +40,14 @@ from .metrics_export import get_metrics
 from .service_registry import ServiceRegistry
 
 
+async def loop_exit():
+    """
+    Stop the loop in an async context
+    """
+    loop = asyncio.get_event_loop()
+    loop.stop()
+
+
 class MagmaService(Service303Servicer):
     """
     MagmaService provides the framework for all Magma services.
@@ -237,10 +245,10 @@ class MagmaService(Service303Servicer):
 
         for pending_task in asyncio.Task.all_tasks(self._loop):
             pending_task.cancel()
-        self._loop.stop()
 
         self._state = ServiceInfo.STOPPED
         self._health = ServiceInfo.APP_UNHEALTHY
+        asyncio.ensure_future(loop_exit())
 
     def _set_grpc_poll_strategy(self):
         """

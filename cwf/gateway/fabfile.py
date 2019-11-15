@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import sys
 from distutils.util import strtobool
 
-from fabric.api import cd, env, execute, lcd, local, run, settings, sudo
+from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
 
 sys.path.append('../../orc8r')
 from tools.fab.hosts import ansible_setup, vagrant_setup
@@ -23,7 +23,6 @@ TRF_SERVER_IP = "192.168.129.42"
 TRF_SERVER_SUBNET = "192.168.129.0"
 CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
-
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                destroy_vm="False"):
@@ -59,7 +58,13 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     cwag_host_to_mac = execute(_get_cwag_br_mac)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]
-    execute(_start_gateway)
+
+    # Transfer built images from local machine to CWAG host
+    if gateway_host:
+        execute(_transfer_docker_images)
+    else:
+        execute(_build_gateway)
+    execute(_run_gateway)
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
@@ -84,6 +89,21 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_run_integ_tests)
 
 
+def _transfer_docker_images():
+    output = local("docker images cwf_*", capture=True)
+    for line in output.splitlines():
+        if not line.startswith('cwf'):
+            continue
+        line = line.rstrip("\n")
+        image = line.split(" ")[0]
+
+        local("docker save -o /tmp/%s.tar %s" % (image, image))
+        put("/tmp/%s.tar" % image, "%s.tar" % image)
+        local("rm -f /tmp/%s.tar" % image)
+
+        run('docker load -i %s.tar' % image)
+
+
 def _set_cwag_configs():
     """ Set the necessary config overrides """
 
@@ -92,6 +112,7 @@ def _set_cwag_configs():
         sudo('mkdir -p /var/opt/magma/configs')
         sudo('cp gateway.mconfig /var/opt/magma/configs')
         sudo('cp sessiond.yml /var/opt/magma/configs')
+        sudo('cp redis.conf /var/opt/magma')
 
 
 def _get_cwag_br_mac():
@@ -115,14 +136,18 @@ def _set_cwag_test_networking(mac):
     sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
 
 
-def _start_gateway():
-    """ Starts the gateway """
+def _build_gateway():
+    """ Builds the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(' docker-compose'
-            ' -f docker-compose.yml'
-            ' -f docker-compose.override.yml'
-            ' -f docker-compose.integ-test.yml'
-            ' build --parallel')
+             ' -f docker-compose.yml'
+             ' -f docker-compose.override.yml'
+             ' -f docker-compose.integ-test.yml'
+             ' build --parallel')
+
+def _run_gateway():
+    """ Runs the gateway's docker images """
+    with cd(CWAG_ROOT + '/docker'):
         sudo(' docker-compose'
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
@@ -150,6 +175,5 @@ def _run_unit_tests():
 
 def _run_integ_tests():
     """ Run the integration tests """
-
     with cd(CWAG_INTEG_ROOT):
         run('make integ_test')

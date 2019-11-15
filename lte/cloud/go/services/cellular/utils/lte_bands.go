@@ -37,6 +37,7 @@ var bands = [...]LTEBand{
 	{ID: 4, Mode: FDDMode, StartEarfcnDl: 1950, StartEarfcnUl: 19950, CountEarfcn: 450},
 	{ID: 28, Mode: FDDMode, StartEarfcnDl: 9210, StartEarfcnUl: 27210, CountEarfcn: 450},
 	// TDDMode
+	{ID: 38, Mode: TDDMode, StartEarfcnDl: 37750, CountEarfcn: 500},
 	{ID: 39, Mode: TDDMode, StartEarfcnDl: 38250, CountEarfcn: 400},
 	{ID: 40, Mode: TDDMode, StartEarfcnDl: 38650, CountEarfcn: 1000},
 	{ID: 41, Mode: TDDMode, StartEarfcnDl: 39650, CountEarfcn: 1940},

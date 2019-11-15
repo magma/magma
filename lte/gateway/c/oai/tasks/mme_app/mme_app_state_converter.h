@@ -72,6 +72,7 @@ class MmeNasStateConverter : StateConverter {
   static void hashtable_ts_to_proto(
     hash_table_ts_t* state_htbl,
     google::protobuf::Map<unsigned long, UeContext>* proto_map);
+
   static void proto_to_hashtable_ts(
     const google::protobuf::Map<unsigned long, UeContext>& proto_map,
     hash_table_ts_t* state_htbl);
@@ -80,6 +81,7 @@ class MmeNasStateConverter : StateConverter {
     hash_table_uint64_ts_t* htbl,
     google::protobuf::Map<unsigned long, unsigned long>* proto_map,
     const std::string& table_name);
+
   static void proto_to_hashtable_uint64_ts(
     const google::protobuf::Map<unsigned long, unsigned long>& proto_map,
     hash_table_uint64_ts_t* state_htbl,
@@ -88,6 +90,7 @@ class MmeNasStateConverter : StateConverter {
   static void guti_table_to_proto(
     const obj_hash_table_uint64_t* guti_htbl,
     google::protobuf::Map<std::string, unsigned long>* proto_map);
+
   static void proto_to_guti_table(
     const google::protobuf::Map<std::string, unsigned long>& proto_map,
     obj_hash_table_uint64_t* guti_htbl);
@@ -99,7 +102,7 @@ class MmeNasStateConverter : StateConverter {
     **********************************************************/
 
   static void mme_app_timer_to_proto(
-    mme_app_timer_t* state_mme_timer,
+    const mme_app_timer_t& state_mme_timer,
     Timer* timer_proto);
 
   static void proto_to_mme_app_timer(
@@ -114,12 +117,57 @@ class MmeNasStateConverter : StateConverter {
     const SgsContext& sgs_context_proto,
     sgs_context_t* state_sgs_context);
 
+  static void fteid_to_proto(const fteid_t& state_fteid, Fteid* fteid_proto);
+
+  static void proto_to_fteid(const Fteid& fteid_proto, fteid_t* state_fteid);
+
+  static void bearer_context_to_proto(
+    const bearer_context_t& state_bearer_context,
+    BearerContext* bearer_context_proto);
+
+  static void proto_to_bearer_context(
+    const BearerContext& bearer_context_proto,
+    bearer_context_t* state_bearer_context);
+
+  static void bearer_context_list_to_proto(
+    const ue_mm_context_t& state_ue_context,
+    UeContext* ue_context_proto);
+
+  static void proto_to_bearer_context_list(
+    const UeContext& ue_context_proto,
+    ue_mm_context_t* state_ue_context);
+
+  static void esm_pdn_to_proto(
+    const esm_pdn_t& state_esm_pdn,
+    EsmPdn* esm_pdn_proto);
+
+  static void proto_to_esm_pdn(
+    const EsmPdn& esm_pdn_proto,
+    esm_pdn_t* state_esm_pdn);
+
+  static void pdn_context_to_proto(
+    const pdn_context_t& state_pdn_context,
+    PdnContext* pdn_context_proto);
+
+  static void proto_to_pdn_context(
+    const PdnContext& pdn_context_proto,
+    pdn_context_t* state_pdn_context);
+
+  static void pdn_context_list_to_proto(
+    const ue_mm_context_t& state_ue_context,
+    UeContext* ue_context_proto,
+    int num_active_contexts);
+
+  static void proto_to_pdn_context_list(
+    const UeContext& ue_context_proto,
+    ue_mm_context_t* state_ue_context);
+
   static void ue_context_to_proto(
     ue_mm_context_t* ue_ctxt,
     UeContext* ue_ctxt_proto);
 
   static void proto_to_ue_mm_context(
-    const UeContext* ue_context_proto,
+    const UeContext& ue_context_proto,
     ue_mm_context_t* state_ue_mm_context);
 };
 } // namespace lte

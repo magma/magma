@@ -11,7 +11,7 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -148,12 +148,10 @@ class WifiMeshDialog extends React.Component<Props, State> {
           </FormGroup>
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onCancel} color="primary">
+          <Button onClick={this.props.onCancel} skin="regular">
             Cancel
           </Button>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </DialogActions>
       </Dialog>
     );
@@ -161,22 +159,33 @@ class WifiMeshDialog extends React.Component<Props, State> {
 
   handlemeshIDChange = event => this.setState({meshID: event.target.value});
   handleSSIDChange = ({target}) =>
-    this.configChangeHandler('ssid', target.value);
-  handlePasswordChange = ({target}) =>
-    this.configChangeHandler('password', target.value);
-  handledEnableXWFChange = ({target}) =>
-    this.configChangeHandler('xwf_enabled', target.checked);
-  handleAdditionalPropsChange = value =>
-    this.configChangeHandler('additional_props', value);
-
-  configChangeHandler = (fieldName, value) => {
     this.setState({
       configs: {
         ...this.state.configs,
-        [fieldName]: value,
+        ssid: target.value,
       },
     });
-  };
+  handlePasswordChange = ({target}) =>
+    this.setState({
+      configs: {
+        ...this.state.configs,
+        password: target.value,
+      },
+    });
+  handledEnableXWFChange = ({target}) =>
+    this.setState({
+      configs: {
+        ...this.state.configs,
+        xwf_enabled: target.checked,
+      },
+    });
+  handleAdditionalPropsChange = value =>
+    this.setState({
+      configs: {
+        ...this.state.configs,
+        additional_props: value,
+      },
+    });
 
   onSave = async () => {
     try {

@@ -11,7 +11,7 @@
 import type {Node} from 'react';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '../design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -24,9 +24,9 @@ type Props = WithStyles<typeof styles> & {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,
-  onCancel?: (element: HTMLElement) => void,
-  onClose?: (element: HTMLElement) => void,
-  onConfirm?: (element: HTMLElement) => void,
+  onCancel?: () => void,
+  onClose?: () => void,
+  onConfirm?: () => void,
   title?: ?Node,
   open?: boolean,
 |};
@@ -66,16 +66,12 @@ class Alert extends React.Component<Props> {
         {hasActions && (
           <DialogActions>
             {cancelLabel && (
-              <Button onClick={onCancel} color="primary">
+              <Button skin="regular" onClick={onCancel}>
                 {cancelLabel}
               </Button>
             )}
             {confirmLabel && (
-              <Button
-                onClick={onConfirm}
-                color="primary"
-                variant="contained"
-                autoFocus>
+              <Button onClick={onConfirm} autoFocus>
                 {confirmLabel}
               </Button>
             )}

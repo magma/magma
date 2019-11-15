@@ -24,8 +24,8 @@ void EchoDevice::setConfig(const folly::dynamic& config) {
 }
 
 std::shared_ptr<State> EchoDevice::getState() {
-  auto stateCopy = State::make(app, *this);
-  stateCopy->update() = state;
+  auto stateCopy = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
+  stateCopy->update([this](auto& lockedState) { lockedState = state; });
   return stateCopy;
 }
 

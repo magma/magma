@@ -18,6 +18,7 @@ import (
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	orcmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -98,6 +99,9 @@ func TestBuilder_Build(t *testing.T) {
 		"redirectd": &ltemconfig.RedirectD{
 			LogLevel: protos.LogLevel_INFO,
 		},
+		"directoryd": &orcmconfig.DirectoryD{
+			LogLevel: protos.LogLevel_INFO,
+		},
 	}
 	err = builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
@@ -124,5 +128,7 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 }
 
 var defaultgwConfig = &models.GatewayCwfConfigs{
-	AllowedGrePeers: models.AllowedGrePeers{{IP: "1.1.1.1", Key: 111}},
+	AllowedGrePeers: models.AllowedGrePeers{
+		{IP: "1.1.1.1", Key: swag.Uint32(111)},
+	},
 }

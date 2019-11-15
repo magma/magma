@@ -11,7 +11,7 @@
 import * as React from 'react';
 import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar.react';
+import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {getProjectLinks} from '../../common/projects';
@@ -31,7 +31,7 @@ type Props = {
 
 export default function AdminMain(props: Props) {
   const classes = useStyles();
-  const {tabs, user} = useContext(AppContext);
+  const {tabs, user, ssoEnabled} = useContext(AppContext);
 
   return (
     <div className={classes.root}>
@@ -39,6 +39,7 @@ export default function AdminMain(props: Props) {
         mainItems={props.navItems()}
         projects={getProjectLinks(tabs, user)}
         user={nullthrows(user)}
+        showSettings={!ssoEnabled}
       />
       <AppContent>{props.navRoutes()}</AppContent>
     </div>

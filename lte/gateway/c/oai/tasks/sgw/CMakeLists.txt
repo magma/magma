@@ -4,7 +4,7 @@ set(asn1c_call "${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1")
 set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
 
 # compile required protos
-set(SPGW_LTE_CPP_PROTOS spgw_state common_types)
+set(SPGW_LTE_CPP_PROTOS spgw_state common_types 3gpp_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
@@ -32,7 +32,6 @@ add_library(TASK_SGW
     pgw_procedures.c
     spgw_state.cpp
     spgw_state_manager.cpp
-    spgw_service_handler.c
     spgw_state_converter.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}

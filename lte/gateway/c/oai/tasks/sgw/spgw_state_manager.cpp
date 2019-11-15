@@ -150,16 +150,16 @@ int SpgwStateManager::read_state_from_db() {
     if (db_read_reply.is_null() || db_read_reply.is_error() ||
         !db_read_reply.is_string()) {
       OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from db");
-      return RETURNerror;
+      return RETURNok;
     } else {
       gateway::spgw::SpgwState state_proto = gateway::spgw::SpgwState();
       if (!state_proto.ParseFromString(db_read_reply.as_string())) {
         OAILOG_ERROR(LOG_SPGW_APP, "Failed to parse state");
-        return RETURNerror;
+        return RETURNok;
       }
 
       SpgwStateConverter::spgw_proto_to_state(state_proto, spgw_state_cache_p_);
-      OAILOG_DEBUG(LOG_SPGW_APP, "Finished reading state");
+      OAILOG_INFO(LOG_SPGW_APP, "Finished reading state");
     }
   }
   return RETURNok;
@@ -196,7 +196,7 @@ void SpgwStateManager::write_state_to_db() {
       return;
     }
 
-    OAILOG_DEBUG(LOG_SPGW_APP, "Finished writing state");
+    OAILOG_INFO(LOG_SPGW_APP, "Finished writing state");
   }
 
   this->state_dirty_ = false;

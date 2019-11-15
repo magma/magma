@@ -14,7 +14,7 @@ import type {WithStyles} from '@material-ui/core';
 import type {enodeb} from '@fbcnms/magma-api';
 
 import AddEditEnodebDialog from './AddEditEnodebDialog';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -26,7 +26,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '@fbcnms/ui/components/design-system/Text';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -106,13 +106,8 @@ class Enodebs extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Configure eNodeB Devices</Typography>
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={this.showDialog}>
-              Add eNodeB
-            </Button>
+            <Text variant="h5">Configure eNodeB Devices</Text>
+            <Button onClick={this.showDialog}>Add eNodeB</Button>
           </div>
           <Paper elevation={2}>
             {enodebs ? (

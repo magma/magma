@@ -18,6 +18,7 @@ import (
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/protos"
+	orc8rmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	"github.com/go-openapi/swag"
@@ -113,13 +114,16 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	ret["redirectd"] = &ltemconfig.RedirectD{
 		LogLevel: protos.LogLevel_INFO,
 	}
+	ret["directoryd"] = &orc8rmconfig.DirectoryD{
+		LogLevel: protos.LogLevel_INFO,
+	}
 	return ret, err
 }
 
 func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*ltemconfig.PipelineD_AllowedGrePeer, error) {
 	ues := make([]*ltemconfig.PipelineD_AllowedGrePeer, 0, len(allowedGrePeers))
 	for _, entry := range allowedGrePeers {
-		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP.String(), Key: int32(entry.Key)})
+		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP.String(), Key: swag.Uint32Value(entry.Key)})
 	}
 	return ues, nil
 }
@@ -136,8 +140,6 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 	}
 	if len(apps) == 0 {
 		apps = []ltemconfig.PipelineD_NetworkServices{
-			ltemconfig.PipelineD_METERING,
-			ltemconfig.PipelineD_DPI,
 			ltemconfig.PipelineD_ENFORCEMENT,
 		}
 	}

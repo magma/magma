@@ -352,38 +352,41 @@ int nas_proc_ul_transfer_ind(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
-int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *aia)
+//-----------------------------------------------------------------------------
+int nas_proc_authentication_info_answer(
+  mme_app_desc_t* mme_app_desc_p,
+  s6a_auth_info_ans_t* aia)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
   int rc = RETURNerror;
-  emm_context_t *ctxt = NULL;
-  ue_mm_context_t *ue_mm_context = NULL;
+  emm_context_t* emm_ctxt_p = NULL;
+  ue_mm_context_t* ue_mm_context_p = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   DevAssert(aia);
-  IMSI_STRING_TO_IMSI64((char *) aia->imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
 
   OAILOG_DEBUG(LOG_NAS_EMM, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_imsi(
+  ue_mm_context_p = mme_ue_context_exists_imsi(
     &mme_app_desc_p->mme_ue_contexts, (const hash_key_t) imsi64);
-  if (ue_mm_context) {
-    ctxt = &ue_mm_context->emm_context;
+  if (ue_mm_context_p) {
+    emm_ctxt_p = &ue_mm_context_p->emm_context;
   }
 
-  if (!(ctxt)) {
+  if (!(emm_ctxt_p)) {
     OAILOG_ERROR(
       LOG_NAS_EMM, "That's embarrassing as we don't know this IMSI\n");
-    unlock_ue_contexts(ue_mm_context);
+    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context->mme_ue_s1ap_id;
-  unlock_ue_contexts(ue_mm_context);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context_p->mme_ue_s1ap_id;
+  unlock_ue_contexts(ue_mm_context_p);
   OAILOG_INFO(
-    LOG_NAS_EMM, "Received Authentication Information Answer from S6A for ue_id = (%u)\n",
+    LOG_NAS_EMM,
+    "Received Authentication Information Answer from S6A for"
+    " ue_id =" MME_UE_S1AP_ID_FMT "\n",
     mme_ue_s1ap_id);
   if (
     (aia->result.present == S6A_RESULT_BASE) &&

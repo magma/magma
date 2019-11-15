@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin/handlers"
@@ -46,6 +47,8 @@ func (*DevmandOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 // GetSerdes gets the devmand serializers and deserializers
 func (*DevmandOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
+		state.NewStateSerde(devmand.SymphonyDeviceStateType, &models2.SymphonyDeviceState{}),
+
 		configurator.NewNetworkEntityConfigSerde(devmand.DevmandGatewayType, &models.GatewayDevmandConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(devmand.DeviceType, &models.ManagedDevice{}),
 		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models2.SymphonyDeviceConfig{}),

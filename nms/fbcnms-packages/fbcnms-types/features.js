@@ -15,13 +15,13 @@ export type FeatureID =
   | 'audit_log_view'
   | 'third_party_devices'
   | 'network_topology'
-  | 'magma_network_management'
   | 'upload_rural'
   | 'upload_xwf'
   | 'upload_ftth'
   | 'python_api'
   | 'site_survey'
   | 'alerts'
+  | 'alerts_experimental'
   | 'equipment_export'
   | 'import_exported_equipemnt'
   | 'file_categories'
@@ -32,4 +32,5 @@ export type FeatureID =
   | 'logs'
   | 'services'
   | 'planned_equipment'
-  | 'multi_subject_reports';
+  | 'multi_subject_reports'
+  | 'equipment_live_status';

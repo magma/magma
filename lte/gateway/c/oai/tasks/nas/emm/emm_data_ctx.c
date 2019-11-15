@@ -643,6 +643,23 @@ inline void emm_ctx_set_mobile_station_clsMark2(
 }
 
 //------------------------------------------------------------------------------
+/* Free dynamically allocated memory */
+void free_emm_ctx_memory(emm_context_t* const ctxt,
+  const mme_ue_s1ap_id_t ue_id)
+{
+  OAILOG_DEBUG(LOG_NAS_EMM, "Freeing up emm_context for ue_id="
+      MME_UE_S1AP_ID_FMT, ue_id);
+  if (!ctxt) {
+    return;
+  }
+  nas_delete_all_emm_procedures(ctxt);
+  free(ctxt->esm_ctx.esm_proc_data);
+  if (ctxt->esm_msg) {
+    bdestroy(ctxt->esm_msg);
+  }
+}
+
+//------------------------------------------------------------------------------
 struct emm_context_s *emm_context_get(
   emm_data_t *emm_data, // TODO REMOVE
   const mme_ue_s1ap_id_t ue_id)

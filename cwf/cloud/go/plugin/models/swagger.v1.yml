@@ -26,6 +26,8 @@ magma-gen-meta:
       filename: allowed_gre_peer_swaggergen.go
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
+    - go-struct-name: CwfSubscriberDirectoryRecord
+      filename: cwf_subscriber_directory_record_swaggergen.go
 
 
 info:
@@ -223,6 +225,22 @@ paths:
       responses:
         '204':
           description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscribers/{subscriber_id}/directory_record:
+    get:
+      summary: Get the directory record of a subscriber
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: The directory record of a subscriber
+          schema:
+            $ref: '#/definitions/cwf_subscriber_directory_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -523,6 +541,14 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+parameters:
+  subscriber_id:
+    description: Subscriber ID
+    in: path
+    name: subscriber_id
+    required: true
+    type: string
+
 definitions:
   cwf_network:
     type: object
@@ -649,8 +675,8 @@ definitions:
       key:
         type: integer
         format: uint32
-        x-nullable: false
-        example: 123
+        x-nullable: true
+        example: 1
   allowed_gre_peers:
     type: array
     items:
@@ -663,3 +689,23 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
+
+  cwf_subscriber_directory_record:
+    type: object
+    description: CWF subscriber directory record
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
+      ipv4_addr:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: "192.168.127.1"
+      mac_addr:
+        type: string
+        x-nullable: false
+        example: "aa:bb:cc:dd:ee:ff"

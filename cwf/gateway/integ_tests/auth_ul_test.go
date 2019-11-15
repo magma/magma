@@ -9,6 +9,7 @@
 package integ_tests
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -19,11 +20,17 @@ import (
 )
 
 func TestAuthenticateUplinkTraffic(t *testing.T) {
+	fmt.Printf("Running TestAuthenticateUplinkTraffic...\n")
 	tr := NewTestRunner()
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
 
 	ue := ues[0]
+	err = ruleManager.AddDynamicPassAll(ue.GetImsi(), "dynamic-pass-all", "mkey1")
+	assert.NoError(t, err)
 	radiusP, err := tr.Authenticate(ue.GetImsi())
 	assert.NoError(t, err)
 
@@ -31,6 +38,10 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	assert.NotNil(t, eapMessage)
 	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 
-	err = tr.GenULTraffic(ue.GetImsi())
+	err = tr.GenULTraffic(ue.GetImsi(), nil)
 	assert.NoError(t, err)
+
+	// Clear hss, ocs, and pcrf
+	assert.NoError(t, ruleManager.RemoveInstalledRules())
+	assert.NoError(t, tr.CleanUp())
 }

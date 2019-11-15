@@ -26,6 +26,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.EditUserDialog`, module)
       onEditUser={action('edit user')}
       onCreateUser={action('create user')}
       allNetworkIDs={['network1', 'network2']}
+      ssoEnabled={false}
     />
   ))
   .add('no networks', () => (
@@ -35,6 +36,17 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/auth.EditUserDialog`, module)
       onClose={action('close')}
       onEditUser={action('edit user')}
       onCreateUser={action('create user')}
+      ssoEnabled={false}
+    />
+  ))
+  .add('SSO user (i.e. no password)', () => (
+    <EditUserDialog
+      editingUser={null}
+      open={true}
+      onClose={action('close')}
+      onEditUser={action('edit user')}
+      onCreateUser={action('create user')}
+      ssoEnabled={true}
     />
   ));
 

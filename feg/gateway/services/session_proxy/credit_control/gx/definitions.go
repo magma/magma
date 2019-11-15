@@ -46,6 +46,8 @@ type CreditControlRequest struct {
 	Qos           *QosRequestInfo
 	UsageReports  []*UsageReport
 	HardwareAddr  []byte
+	IPCANType     credit_control.IPCANType
+	RATType       credit_control.RATType
 }
 
 type QosRequestInfo struct {
@@ -64,6 +66,7 @@ type CreditControlAnswer struct {
 	SessionID              string
 	RequestNumber          uint32
 	RuleInstallAVP         []*RuleInstallAVP
+	RuleRemoveAVP          []*RuleRemoveAVP
 	UsageMonitors          []*UsageMonitoringInfo
 	EventTriggers          []EventTrigger
 	RevalidationTime       *time.Time
@@ -150,6 +153,7 @@ type CCADiameterMessage struct {
 	} `avp:"Experimental-Result"`
 	RequestType      uint32                 `avp:"CC-Request-Type"`
 	RuleInstalls     []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
+	RuleRemovals     []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
 	UsageMonitors    []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
 	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
 	RevalidationTime *time.Time             `avp:"Revalidation-Time"`

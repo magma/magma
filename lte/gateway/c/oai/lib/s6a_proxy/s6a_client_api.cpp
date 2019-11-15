@@ -104,7 +104,7 @@ static void _s6a_handle_authentication_info_ans(
     itti_msg->result.present = S6A_RESULT_BASE;
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
   }
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   return;
 }
 

@@ -69,7 +69,6 @@ void Engine::sync() {
     }
   }
 
-  // TODO this is ugly we have to iterate up to max.
   for (int fd = 0; fd < maxfd; ++fd) {
     if (FD_ISSET(fd, &fdset)) {
       handlers.emplace_back(std::make_unique<EventHandler>(*this, fd));

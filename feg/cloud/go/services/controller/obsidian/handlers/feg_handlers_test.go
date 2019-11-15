@@ -10,18 +10,15 @@ package handlers_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	fegplugin "magma/feg/cloud/go/plugin"
 	"magma/feg/cloud/go/services/controller/test_utils"
 	"magma/orc8r/cloud/go/obsidian"
 	obsidian_test "magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	config_test_init "magma/orc8r/cloud/go/services/config/test_init"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
@@ -30,10 +27,8 @@ import (
 )
 
 func TestGetNetworkConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 	networkID := "feg_obsidian_test_network"
@@ -67,10 +62,8 @@ func TestGetNetworkConfigs(t *testing.T) {
 }
 
 func TestSetNetworkConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 
@@ -131,11 +124,9 @@ func TestSetNetworkConfigs(t *testing.T) {
 }
 
 func TestGetGatewayConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
@@ -173,12 +164,10 @@ func TestGetGatewayConfigs(t *testing.T) {
 }
 
 func TestSetGatewayConfigs(t *testing.T) {
-	os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	plugin.RegisterPluginForTests(t, &fegplugin.FegOrchestratorPlugin{})
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	config_test_init.StartTestService(t)
 	restPort := obsidian_test.StartObsidian(t)
 	testUrlRoot := fmt.Sprintf("http://localhost:%d%s/networks", restPort, obsidian.RestRoot)
 

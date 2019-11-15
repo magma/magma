@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package streamer_test
 
 import (
-	"os"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -22,6 +21,7 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	cfg_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -29,7 +29,6 @@ import (
 )
 
 func TestSubscriberdbStreamer(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	cfg_test_init.StartTestService(t)
 	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
 
@@ -81,6 +80,37 @@ func TestSubscriberdbStreamer(t *testing.T) {
 		},
 	)
 	actual, err := pro.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// Create policies and base name associated to sub
+	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		{
+			Type: lte.BaseNameEntityType, Key: "bn1",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+		},
+		{
+			Type: lte.PolicyRuleEntityType, Key: "r1",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+		},
+		{
+			Type: lte.PolicyRuleEntityType, Key: "r2",
+			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+		},
+	})
+	assert.NoError(t, err)
+
+	expectedProtos[0].Lte.AssignedPolicies = []string{"r1", "r2"}
+	expectedProtos[0].Lte.AssignedBaseNames = []string{"bn1"}
+	expected = funk.Map(
+		expectedProtos,
+		func(sub *protos.SubscriberData) *orcprotos.DataUpdate {
+			data, err := proto.Marshal(sub)
+			assert.NoError(t, err)
+			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
+		},
+	)
+	actual, err = pro.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

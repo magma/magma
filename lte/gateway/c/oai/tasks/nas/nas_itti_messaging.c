@@ -66,22 +66,6 @@
 #define TASK_ORIGIN TASK_NAS_MME
 
 //------------------------------------------------------------------------------
-int nas_itti_dl_data_req(
-  const mme_ue_s1ap_id_t ue_id,
-  bstring nas_msg,
-  nas_error_code_t transaction_status)
-{
-  MessageDef *message_p =
-    itti_alloc_new_message(TASK_NAS_MME, NAS_DOWNLINK_DATA_REQ);
-  NAS_DL_DATA_REQ(message_p).ue_id = ue_id;
-  NAS_DL_DATA_REQ(message_p).nas_msg = nas_msg;
-  nas_msg = NULL;
-  NAS_DL_DATA_REQ(message_p).transaction_status = transaction_status;
-  // make a long way by MME_APP instead of S1AP to retrieve the sctp_association_id key.
-  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-}
-
-//------------------------------------------------------------------------------
 int nas_itti_erab_setup_req(
   const mme_ue_s1ap_id_t ue_id,
   const ebi_t ebi,
@@ -273,55 +257,6 @@ void nas_itti_pdn_connectivity_req(
     "Sending PDN CONNECTIVITY REQ to MME_APP for ue id " MME_UE_S1AP_ID_FMT " \n",
     ue_idP);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
-//------------------------------------------------------------------------------
-void nas_itti_auth_info_req(
-  const mme_ue_s1ap_id_t ue_idP,
-  const imsi_t *const imsiP,
-  const bool is_initial_reqP,
-  plmn_t *const visited_plmnP,
-  const uint8_t num_vectorsP,
-  const_bstring const auts_pP)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p = NULL;
-  s6a_auth_info_req_t *auth_info_req = NULL;
-
-  OAILOG_INFO(
-    LOG_NAS_EMM, " Sending Authentication Information Request message to S6A for ue_id = (%u) \n",
-    ue_idP);
-
-  message_p = itti_alloc_new_message(TASK_NAS_MME, S6A_AUTH_INFO_REQ);
-  auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
-  memset(auth_info_req, 0, sizeof(s6a_auth_info_req_t));
-
-  IMSI_TO_STRING(imsiP, auth_info_req->imsi, IMSI_BCD_DIGITS_MAX + 1);
-  auth_info_req->imsi_length = (uint8_t) strlen(auth_info_req->imsi);
-
-  AssertFatal(
-    (auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16),
-    "Bad IMSI length %d",
-    auth_info_req->imsi_length);
-
-  auth_info_req->visited_plmn = *visited_plmnP;
-  auth_info_req->nb_of_vectors = num_vectorsP;
-
-  if (is_initial_reqP) {
-    auth_info_req->re_synchronization = 0;
-    memset(auth_info_req->resync_param, 0, sizeof auth_info_req->resync_param);
-  } else {
-    AssertFatal(auts_pP != NULL, "Autn Null during resynchronization");
-    auth_info_req->re_synchronization = 1;
-    memcpy(
-      auth_info_req->resync_param,
-      auts_pP->data,
-      sizeof auth_info_req->resync_param);
-  }
-
-  itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }

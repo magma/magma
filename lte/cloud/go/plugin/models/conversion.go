@@ -10,24 +10,20 @@ package models
 
 import (
 	"fmt"
-	"reflect"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/protos"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
 	"github.com/thoas/go-funk"
 )
 
@@ -397,7 +393,9 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
 	m.Serial = ent.Key
-	m.Config = ent.Config.(*EnodebConfiguration)
+	if ent.Config != nil {
+		m.Config = ent.Config.(*EnodebConfiguration)
+	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayType {
 			m.AttachedGatewayID = tk.Key
@@ -416,7 +414,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 }
 
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
-	m.ID = ent.Key
+	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {
@@ -429,13 +427,11 @@ func (m *SubProfile) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-var formatsRegistry = strfmt.NewFormats()
-
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
 		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
-		Associations: m.RuleNames.ToAssocs(),
+		Associations: m.getAssociations(),
 	}
 }
 
@@ -444,9 +440,28 @@ func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRec
 	for _, tk := range ent.Associations {
 		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
+		} else if tk.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
 		}
 	}
 	return m
+}
+
+func (m *BaseNameRecord) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:              lte.BaseNameEntityType,
+		Key:               string(m.Name),
+		AssociationsToSet: m.getAssociations(),
+	}
+}
+
+func (m *BaseNameRecord) getAssociations() []storage.TypeAndKey {
+	allAssocs := make([]storage.TypeAndKey, 0, len(m.RuleNames)+len(m.AssignedSubscribers))
+	allAssocs = append(allAssocs, m.RuleNames.ToAssocs()...)
+	for _, sid := range m.AssignedSubscribers {
+		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return allAssocs
 }
 
 func (m RuleNames) ToAssocs() []storage.TypeAndKey {
@@ -459,82 +474,64 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
-	return configurator.NetworkEntity{
+	ret := configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
-		Key:    *m.ID,
-		Config: m,
+		Key:    string(m.ID),
+		Config: m.getConfig(),
+	}
+	for _, sid := range m.AssignedSubscribers {
+		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return ret
+}
+
+func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
+	m.ID = PolicyID(ent.Key)
+	m.fillFromConfig(ent.Config)
+	for _, assoc := range ent.Associations {
+		if assoc.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
+		}
+	}
+	return m
+}
+
+func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      lte.PolicyRuleEntityType,
+		Key:       string(m.ID),
+		NewConfig: m.getConfig(),
+	}
+	for _, sid := range m.AssignedSubscribers {
+		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return ret
+}
+
+func (m *PolicyRule) getConfig() *PolicyRuleConfig {
+	return &PolicyRuleConfig{
+		FlowList:      m.FlowList,
+		MonitoringKey: m.MonitoringKey,
+		Priority:      m.Priority,
+		Qos:           m.Qos,
+		RatingGroup:   m.RatingGroup,
+		Redirect:      m.Redirect,
+		TrackingType:  m.TrackingType,
 	}
 }
 
-// PolicyRule's ToProto fills in passed protos.PolicyRule struct from
-// receiver's protos.PolicyRule
-func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
-	flowRuleProto, ok := pfrm.(*protos.PolicyRule)
-	if !ok {
-		return fmt.Errorf(
-			"Invalid Destination Type %s, *protos.PolicyRule expected",
-			reflect.TypeOf(pfrm))
+func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
+	if entConfig == nil {
+		return m
 	}
-	if policyRule != nil || flowRuleProto != nil {
-		orcprotos.FillIn(policyRule, flowRuleProto)
-		trackingVal, ok := protos.PolicyRule_TrackingType_value[policyRule.TrackingType]
-		if ok {
-			flowRuleProto.TrackingType = protos.PolicyRule_TrackingType(trackingVal)
-		}
-		if flowRuleProto.FlowList == nil {
-			flowRuleProto.FlowList = flowListToProto(policyRule.FlowList)
-		}
-		if policyRule.Redirect != nil {
-			flowRuleProto.Redirect = redirectInfoToProto(policyRule.Redirect)
-		}
-		if policyRule.Priority != nil {
-			flowRuleProto.Priority = *policyRule.Priority
-		}
-		flowRuleProto.Id = *policyRule.ID
-		flowRuleProto.MonitoringKey = policyRule.MonitoringKey
-		flowRuleProto.RatingGroup = policyRule.RatingGroup
-	}
-	return nil
-}
 
-func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
-	redirectProto := &protos.RedirectInformation{}
-	orcprotos.FillIn(redirectModel, redirectProto)
-	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
-	if ok {
-		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
-	}
-	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
-	if ok {
-		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
-	}
-	return redirectProto
-}
-
-// Fill protos.PolicyRule.FlowList From passed protos.PolicyRule.FlowList
-func flowListToProto(flowList []*FlowDescription) []*protos.FlowDescription {
-	var s []*protos.FlowDescription
-	for i, flow := range flowList {
-		s = append(s, new(protos.FlowDescription))
-		orcprotos.FillIn(flow, s[i])
-		match := flow.Match
-		orcprotos.FillIn(match, s[i].Match)
-		if match.IPProto != nil {
-			protoVal, ok := protos.FlowMatch_IPProto_value[*match.IPProto]
-			if ok {
-				s[i].Match.IpProto = protos.FlowMatch_IPProto(protoVal)
-			}
-		}
-		directionVal, ok := protos.FlowMatch_Direction_value[*match.Direction]
-		if ok {
-			s[i].Match.Direction = protos.FlowMatch_Direction(directionVal)
-		}
-		if flow.Action != nil {
-			actionVal, ok := protos.FlowDescription_Action_value[*flow.Action]
-			if ok {
-				s[i].Action = protos.FlowDescription_Action(actionVal)
-			}
-		}
-	}
-	return s
+	cfg := entConfig.(*PolicyRuleConfig)
+	m.FlowList = cfg.FlowList
+	m.MonitoringKey = cfg.MonitoringKey
+	m.Priority = cfg.Priority
+	m.Qos = cfg.Qos
+	m.RatingGroup = cfg.RatingGroup
+	m.Redirect = cfg.Redirect
+	m.TrackingType = cfg.TrackingType
+	return m
 }

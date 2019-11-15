@@ -5,7 +5,7 @@ import (
 	"fbc/cwf/radius/monitoring/census"
 	"fbc/cwf/radius/monitoring/ods"
 	"fbc/cwf/radius/monitoring/scuba"
-	
+
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )

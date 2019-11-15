@@ -19,7 +19,7 @@ import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -197,16 +197,17 @@ class WifiDeviceDialog extends React.Component<Props, State> {
         );
         break;
       case 3:
-        content = (
-          <GatewayCommandFields
-            // $FlowFixMe: deviceID is nullable. Please fix.
-            gatewayID={deviceID}
-            showRestartCommand={true}
-            showRebootEnodebCommand={false}
-            showPingCommand={true}
-            showGenericCommand={true}
-          />
-        );
+        content =
+          (deviceID && (
+            <GatewayCommandFields
+              gatewayID={deviceID}
+              showRestartCommand={true}
+              showRebootEnodebCommand={false}
+              showPingCommand={true}
+              showGenericCommand={true}
+            />
+          )) ||
+          null;
         break;
     }
 
@@ -224,15 +225,10 @@ class WifiDeviceDialog extends React.Component<Props, State> {
           {content}
         </DialogContent>
         <DialogActions>
-          <Button onClick={this.props.onCancel} color="primary">
+          <Button onClick={this.props.onCancel} skin="regular">
             Cancel
           </Button>
-          <Button
-            onClick={deviceID ? this.onEdit : this.onCreate}
-            color="primary"
-            variant="contained">
-            Save
-          </Button>
+          <Button onClick={deviceID ? this.onEdit : this.onCreate}>Save</Button>
         </DialogActions>
       </Dialog>
     );
@@ -243,7 +239,8 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     this.setState({
       wifiConfigsChanged: true,
       wifiConfigs: {
-        ...this.state.wifiConfigs,
+        ...nullthrows(this.state.wifiConfigs),
+        // $FlowFixMe Set state for each field
         [fieldName]: value,
       },
     });
@@ -253,7 +250,8 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     this.setState({
       magmaConfigsChanged: true,
       magmaConfigs: {
-        ...this.state.magmaConfigs,
+        ...nullthrows(this.state.magmaConfigs),
+        // $FlowFixMe Set state for each field
         [fieldName]: value,
       },
     });

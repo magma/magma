@@ -109,16 +109,18 @@ func (st *memSessionTable) AddSession(
 	st.rwl.Lock()
 	if oldSession, ok := st.sm[sid]; ok {
 		if len(overwrite) > 0 && overwrite[0] {
-			oldSession.StopTimeout()
 			if oldSession != nil {
 				oldImsi := oldSession.imsi
+				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
+					sid, oldImsi, imsi)
+
+				oldSession.StopTimeout()
+
 				if oldImsi != imsi {
 					if oldSid, ok := st.sids[oldImsi]; ok && oldSid == sid {
 						delete(st.sids, oldImsi)
 					}
 				}
-				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
-					sid, oldImsi, imsi)
 			}
 		} else {
 			st.rwl.Unlock() // return old session is "best effort", done outside of the table lock
@@ -133,7 +135,7 @@ func (st *memSessionTable) AddSession(
 
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
 
-	metrics.Sessions.WithLabelValues(apn).Inc()
+	metrics.Sessions.WithLabelValues(apn, imsi, sid).Inc()
 	metrics.SessionStart.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
 
 	return s, nil
@@ -167,19 +169,20 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 			found bool
 			s     *memSession
 		)
+		var apn, imsi string
 		st.rwl.Lock()
 		if s, found = st.sm[sid]; found {
+			apn, imsi = s.GetApn(), s.GetImsi()
 			delete(st.sm, sid)
 			if oldSid, ok := st.sids[s.imsi]; ok && oldSid == sid {
 				delete(st.sids, s.imsi)
 			}
 		}
 		st.rwl.Unlock()
-		if found && s != nil {
+		if found {
 			s.StopTimeout()
-			apn := s.GetApn()
-			metrics.Sessions.WithLabelValues(apn).Dec()
-			metrics.SessionStop.WithLabelValues(apn, s.GetImsi(), sid).SetToCurrentTime()
+			metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
+			metrics.SessionStop.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
 			return s
 		}
 	}

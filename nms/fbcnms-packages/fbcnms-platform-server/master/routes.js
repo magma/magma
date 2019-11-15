@@ -9,6 +9,7 @@
  */
 
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
+import type {FeatureID} from '@fbcnms/types/features';
 
 import MagmaV1API from '../magma';
 import asyncHandler from '@fbcnms/util/asyncHandler';
@@ -48,7 +49,8 @@ const configFromFeatureFlag = flag => ({
 router.get(
   '/feature/async',
   asyncHandler(async (req: FBCNMSRequest, res) => {
-    const results = {...featureConfigs};
+    // $FlowFixMe: results needs to be typed correctly
+    const results: {[string]: any} = {...featureConfigs};
     Object.keys(results).forEach(id => (results[id].config = {}));
     const featureFlags = await FeatureFlag.findAll();
     featureFlags.forEach(flag => {
@@ -69,8 +71,10 @@ router.get(
 router.post(
   '/feature/async/:featureId',
   asyncHandler(async (req: FBCNMSRequest, res) => {
-    const {featureId} = req.params;
-    const results = featureConfigs[featureId];
+    // $FlowFixMe: Ensure it's a FeatureID
+    const featureId: FeatureID = req.params.featureId;
+    // $FlowFixMe: results needs to be typed correctly
+    const results: {[string]: any} = {...featureConfigs};
     results.config = {};
     const {toUpdate, toDelete, toCreate} = req.body;
     const featureFlags = await FeatureFlag.findAll({where: {featureId}});
@@ -111,6 +115,7 @@ router.post(
       networkIDs: req.body.networkIDs,
       customDomains: req.body.customDomains,
       tabs: req.body.tabs,
+      csvCharset: '',
       ssoCert: '',
       ssoEntrypoint: '',
       ssoIssuer: '',
@@ -157,6 +162,18 @@ router.post(
         ...params,
         organization: req.params.name,
       }));
+
+      // this happens when the user is being added to an organization that
+      // uses SSO for login, give it a random password
+      if (props.password === undefined) {
+        const organization = await Organization.findOne({
+          where: {name: req.params.name},
+        });
+        if (organization && organization.ssoEntrypoint) {
+          props.password = Math.random().toString(36);
+        }
+      }
+
       const user = await User.create(props);
       res.status(200).send({user});
     } catch (error) {

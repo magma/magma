@@ -274,10 +274,6 @@ func getInitialCreditResponsesFromCCA(
 	answer *gy.CreditControlAnswer,
 	request *gy.CreditControlRequest,
 ) []*protos.CreditUpdateResponse {
-	if answer.ResultCode != diameter.SuccessCode {
-		glog.Errorf("unsuccessful result code %d for init request for %s", answer.ResultCode, request.IMSI)
-		return []*protos.CreditUpdateResponse{}
-	}
 	responses := make([]*protos.CreditUpdateResponse, 0, len(answer.Credits))
 	for _, credit := range answer.Credits {
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0

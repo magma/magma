@@ -21,7 +21,6 @@ setup(
     version=VERSION,
     packages=[
         'magma.captive_portal',
-        'magma.directoryd',
         'magma.enodebd',
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
@@ -95,6 +94,7 @@ setup(
         'certifi==2019.6.16',
         'idna==2.8',
         'python-dateutil==2.8',
+        'six>=1.12.0',
     ],
     extras_require={
         'dev': [

@@ -60,7 +60,7 @@ type Service struct {
 	// Type identifies the service
 	Type string
 
-	// GrpcServer runs on the port specified in the Registry.
+	// GrpcServer runs on the port specified in the registry.
 	// Services can attach different servicers to the GrpcServer.
 	GrpcServer *grpc.Server
 

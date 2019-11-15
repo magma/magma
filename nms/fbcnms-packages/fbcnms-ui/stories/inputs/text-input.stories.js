@@ -8,9 +8,10 @@
  * @format
  */
 
-import InputAffix from '../../components/design-system/Input/InputAffix.react';
+import CancelIcon from '@material-ui/icons/Cancel';
+import InputAffix from '../../components/design-system/Input/InputAffix';
 import React, {useState} from 'react';
-import TextInput from '../../components/design-system/Input/TextInput.react';
+import TextInput from '../../components/design-system/Input/TextInput';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -25,12 +26,16 @@ const useStyles = makeStyles(_theme => ({
   input: {
     marginBottom: '20px',
   },
+  suffix: {
+    cursor: 'pointer',
+  },
 }));
 
 const InputsRoot = () => {
   const classes = useStyles();
   const [value, setValue] = useState('');
   const [numberValue, setNumberValue] = useState(123.4);
+  const [affixValue, setAffixValue] = useState('Default');
   return (
     <div className={classes.root}>
       <TextInput
@@ -73,6 +78,23 @@ const InputsRoot = () => {
         onChange={({target}) => setNumberValue(target.value)}
         prefix={<InputAffix>$</InputAffix>}
       />
+      <TextInput
+        className={classes.input}
+        type="string"
+        placeholder="Search..."
+        value={affixValue}
+        onChange={({target}) => setAffixValue(target.value)}
+        suffix={
+          affixValue ? (
+            <InputAffix
+              className={classes.suffix}
+              onClick={() => setAffixValue('')}>
+              <CancelIcon />
+            </InputAffix>
+          ) : null
+        }
+      />
+      <TextInput className={classes.input} type="string" hint="Hinting" />
     </div>
   );
 };

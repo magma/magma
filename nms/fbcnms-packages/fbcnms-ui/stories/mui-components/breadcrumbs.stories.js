@@ -8,10 +8,12 @@
  * @format
  */
 
-import Breadcrumbs from '../../components/Breadcrumbs.react';
+import Breadcrumbs from '../../components/Breadcrumbs';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
+
+const onBreadcrumbClicked = b => window.alert(`Clicked ${b.name}`);
 
 storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Breadcrumbs`, module)
   .add('collapsed', () => (
@@ -41,8 +43,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Breadcrumbs`, module)
           id: '6',
           name: 'Folder #6',
         },
-      ]}
-      onBreadcrumbClicked={() => {}}
+      ].map(b => ({...b, onClick: () => onBreadcrumbClicked(b)}))}
     />
   ))
   .add('expanded', () => (
@@ -60,8 +61,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Breadcrumbs`, module)
           id: '3',
           name: 'Folder #3',
         },
-      ]}
-      onBreadcrumbClicked={() => {}}
+      ].map(b => ({...b, onClick: () => onBreadcrumbClicked(b)}))}
     />
   ))
   .add('subtext', () => (
@@ -82,8 +82,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Breadcrumbs`, module)
           name: 'Folder #3',
           subtext: 'Beach',
         },
-      ]}
-      onBreadcrumbClicked={() => {}}
+      ].map(b => ({...b, onClick: () => onBreadcrumbClicked(b)}))}
     />
   ))
   .add('small', () => (
@@ -109,8 +108,7 @@ storiesOf(`${STORY_CATEGORIES.MUI_COMPONENTS}/Breadcrumbs`, module)
           id: '5',
           name: 'Folder #5',
         },
-      ]}
-      onBreadcrumbClicked={() => {}}
+      ].map(b => ({...b, onClick: () => onBreadcrumbClicked(b)}))}
       size="small"
     />
   ));

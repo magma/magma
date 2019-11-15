@@ -9,9 +9,13 @@
 interface={{ enodeb_interface }}
 dhcp-range={{ dhcp_range.lower }},{{ dhcp_range.upper }},12h
 local-ttl={{ localTTL }}
+{% if addresses is defined and addresses is iterable %}
 {% for address in addresses -%}
+{% if address.domain is defined and address.ip is defined %}
 host-record={{ address.domain }},{{ address.ip }}
+{% endif %}
 {% endfor -%}
-interface={{ dns_iface_name}}
+{% endif %}
+interface={{ dns_iface_name }}
 no-dhcp-interface={{ dns_iface_name }}
 bind-dynamic

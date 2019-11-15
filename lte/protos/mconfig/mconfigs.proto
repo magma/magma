@@ -94,7 +94,7 @@ message PipelineD {
     repeated NetworkServices services = 8;
     message AllowedGrePeer {
       string ip = 1;
-      int32 key = 2;
+      uint32 key = 2;
     }
     repeated AllowedGrePeer allowed_gre_peers = 9;
     // DEPRECATED
@@ -214,11 +214,4 @@ message SubscriberDB {
 message LighttpD {
     orc8r.LogLevel log_level = 1;
     bool enable_caching = 2;
-}
-
-//------------------------------------------------------------------------------
-// Fluent Bit configs
-//------------------------------------------------------------------------------
-message FluentBit {
-    map<string, string> extra_tags = 1;
 }

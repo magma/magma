@@ -29,6 +29,7 @@
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "common_types.h"
+#include "conversions.h"
 #include "3gpp_requirements_24.301.h"
 #include "3gpp_24.008.h"
 #include "mme_app_ue_context.h"
@@ -56,6 +57,8 @@
 #include "s6a_messages_types.h"
 #include "nas/securityDef.h"
 #include "security_types.h"
+#include "intertask_interface.h"
+#include "nas_proc.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -99,10 +102,20 @@ static int _authentication_check_imsi_5_4_2_5__1(
   struct emm_context_s *emm_context);
 static int _authentication_check_imsi_5_4_2_5__1_fail(
   struct emm_context_s *emm_context);
-static int _authentication_request(nas_emm_auth_proc_t *auth_proc);
+static int _authentication_request(
+  struct emm_context_s* emm_ctx,
+  nas_emm_auth_proc_t* auth_proc);
 static int _authentication_reject(
   struct emm_context_s *emm_context,
   struct nas_base_proc_s *base_proc);
+
+static void _nas_itti_auth_info_req(
+  const mme_ue_s1ap_id_t ue_idP,
+  const imsi_t* const imsiP,
+  const bool is_initial_reqP,
+  plmn_t* const visited_plmnP,
+  const uint8_t num_vectorsP,
+  const_bstring const auts_pP);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -229,7 +242,7 @@ int emm_proc_authentication_ksi(
     /*
      * Send authentication request message to the UE
      */
-    rc = _authentication_request(auth_proc);
+    rc = _authentication_request(emm_context, auth_proc);
 
     if (rc != RETURNerror) {
       /*
@@ -385,7 +398,7 @@ static int _start_authentication_information_procedure(
     auth_info_proc->cn_proc.base_proc.time_out,
     emm_context);
 
-  nas_itti_auth_info_req(
+  _nas_itti_auth_info_req(
     ue_id,
     &emm_context->_imsi,
     is_initial_req,
@@ -1037,9 +1050,42 @@ int emm_proc_authentication_complete(
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
+  } else {
+    OAILOG_ERROR(LOG_NAS_EMM, "Auth proc is null");
   }
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+/**
+ * When the NAS authentication procedures are restored from data store, the
+ * references to callback functions need to be re-populated with the local
+ * function pointers. The functions below populate these callbacks from
+ * authentication information procedure and authentication procedure.
+ * The memory for each procedure is allocated by the caller
+ */
+
+void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t *auth_info_proc)
+{
+  auth_info_proc->success_notif = _auth_info_proc_success_cb;
+  auth_info_proc->failure_notif = _auth_info_proc_failure_cb;
+  auth_info_proc->cn_proc.base_proc.time_out =
+    s6a_auth_info_rsp_timer_expiry_handler;
+}
+
+void set_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc)
+{
+  auth_proc->emm_com_proc.emm_proc.not_delivered =
+    _authentication_ll_failure;
+  auth_proc->emm_com_proc.emm_proc.not_delivered_ho =
+    _authentication_non_delivered_ho;
+  auth_proc->emm_com_proc.emm_proc.base_proc.abort = _authentication_abort;
+  auth_proc->emm_com_proc.emm_proc.base_proc.fail_in =
+    NULL;
+  auth_proc->emm_com_proc.emm_proc.base_proc.fail_out =
+    _authentication_reject;
+  auth_proc->emm_com_proc.emm_proc.base_proc.time_out =
+    _authentication_t3460_handler;
 }
 
 /****************************************************************************/
@@ -1106,7 +1152,7 @@ static void _authentication_t3460_handler(void *args)
       /*
        * Send authentication request message to the UE
        */
-      _authentication_request(auth_proc);
+      _authentication_request(emm_ctx, auth_proc);
     } else {
       emm_context_t *emm_ctx = emm_context_get(&_emm_data, auth_proc->ue_id);
       /*
@@ -1245,24 +1291,23 @@ static int _authentication_check_imsi_5_4_2_5__1_fail(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _authentication_request()                                 **
+ ** Name:    _authentication_request()                                     **
  **                                                                        **
  ** Description: Sends AUTHENTICATION REQUEST message and start timer T3460**
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args: pointer to emm context                                  **
+ **                handler parameters                                      **
  **                                                                        **
  ** Outputs:     None                                                      **
  **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3460                                      **
  **                                                                        **
  ***************************************************************************/
-static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
+static int _authentication_request(
+  struct emm_context_s* emm_ctx,
+  nas_emm_auth_proc_t* auth_proc)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
-  ue_mm_context_t *ue_mm_context = NULL;
-  struct emm_context_s *emm_ctx = NULL;
 
   if (auth_proc) {
     /*
@@ -1279,21 +1324,7 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
     emm_sap.u.emm_as.u.security.ksi = auth_proc->ksi;
     memcpy(emm_sap.u.emm_as.u.security.rand, auth_proc->rand, AUTH_RAND_SIZE);
     memcpy(emm_sap.u.emm_as.u.security.autn, auth_proc->autn, AUTH_AUTN_SIZE);
-    /*
-     * TODO: check for pointer validity
-     */
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, auth_proc->ue_id);
-    if (ue_mm_context) {
-      emm_ctx = &ue_mm_context->emm_context;
-    } else {
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "UE MM context NULL for ue_id = (%u)!\n",
-        auth_proc->ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-    }
+
     /*
      * Setup EPS NAS security data
      */
@@ -1319,7 +1350,6 @@ static int _authentication_request(nas_emm_auth_proc_t *auth_proc)
           (void *) emm_ctx);
       }
     }
-    unlock_ue_contexts(ue_mm_context);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1507,4 +1537,83 @@ static int _authentication_abort(
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    _nas_itti_auth_info_req()                                     **
+ **                                                                        **
+ ** Description: Sends Authenticatio Req to HSS via S6a Task               **
+ **                                                                        **
+ ** Inputs: ue_idP: UE context Identifier                                  **
+ **      imsiP: IMSI of UE                                                 **
+ **      is_initial_reqP: Flag to indicate, whether Auth Req is sent       **
+ **                      for first time or initited as part of             **
+ **                      re-synchronisation                                **
+ **      visited_plmnP : Visited PLMN                                      **
+ **      num_vectorsP : Number of Auth vectors in case of                  **
+ **                    re-synchronisation                                  **
+ **      auts_pP : sent in case of re-synchronisation                      **
+ ** Outputs:                                                               **
+ **     Return: None                                                       **
+ **                                                                        **
+ ***************************************************************************/
+static void _nas_itti_auth_info_req(
+  const mme_ue_s1ap_id_t ue_id,
+  const imsi_t* const imsiP,
+  const bool is_initial_reqP,
+  plmn_t* const visited_plmnP,
+  const uint8_t num_vectorsP,
+  const_bstring const auts_pP)
+{
+  OAILOG_FUNC_IN(LOG_NAS);
+  MessageDef* message_p = NULL;
+  s6a_auth_info_req_t* auth_info_req = NULL;
+
+  OAILOG_INFO(
+    LOG_NAS_EMM,
+    "Sending Authentication Information Request message to S6A"
+    " for ue_id =" MME_UE_S1AP_ID_FMT "\n",
+    ue_id);
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, S6A_AUTH_INFO_REQ);
+  if (!message_p) {
+    OAILOG_CRITICAL(
+      LOG_NAS_EMM,
+      "itti_alloc_new_message failed for Authentication"
+      " Information Request message to S6A for"
+      " ue-id = " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
+  auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
+  memset(auth_info_req, 0, sizeof(s6a_auth_info_req_t));
+
+  IMSI_TO_STRING(imsiP, auth_info_req->imsi, IMSI_BCD_DIGITS_MAX + 1);
+  auth_info_req->imsi_length = (uint8_t) strlen(auth_info_req->imsi);
+
+  if (!(auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16)) {
+    OAILOG_WARNING(
+      LOG_NAS_EMM, "Bad IMSI length %d", auth_info_req->imsi_length);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
+  auth_info_req->visited_plmn = *visited_plmnP;
+  auth_info_req->nb_of_vectors = num_vectorsP;
+
+  if (is_initial_reqP) {
+    auth_info_req->re_synchronization = 0;
+    memset(auth_info_req->resync_param, 0, sizeof auth_info_req->resync_param);
+  } else {
+    if (!auts_pP) {
+      OAILOG_WARNING(LOG_NAS_EMM, "Auts Null during resynchronization \n");
+      OAILOG_FUNC_OUT(LOG_NAS);
+    }
+    auth_info_req->re_synchronization = 1;
+    memcpy(
+      auth_info_req->resync_param,
+      auts_pP->data,
+      sizeof auth_info_req->resync_param);
+  }
+  itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  OAILOG_FUNC_OUT(LOG_NAS);
 }

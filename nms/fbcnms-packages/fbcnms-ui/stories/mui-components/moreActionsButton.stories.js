@@ -8,7 +8,7 @@
  * @format
  */
 
-import MoreActionsButton from '../../components/MoreActionsButton.react';
+import MoreActionsButton from '../../components/MoreActionsButton';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

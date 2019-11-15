@@ -227,7 +227,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
-				diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(0)),
+				diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(credit_control.EndUserE164)),
 				diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(request.Msisdn)),
 			},
 		})
@@ -335,7 +335,8 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(credits.RatingGroup)),
 	}
 	if serviceIdentifier >= 0 {
-		avpGroup = append(avpGroup, diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(0)))
+		avpGroup = append(
+			avpGroup, diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
 	}
 
 	/*** Altamira OCS needs empty RSU ***/

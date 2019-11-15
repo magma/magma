@@ -9,6 +9,7 @@
 package integ_tests
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -19,6 +20,7 @@ import (
 )
 
 func TestAuthenticate(t *testing.T) {
+	fmt.Printf("Running TestAuthenticate...\n")
 	tr := NewTestRunner()
 	ues, err := tr.ConfigUEs(3)
 	assert.NoError(t, err)
@@ -31,4 +33,7 @@ func TestAuthenticate(t *testing.T) {
 		assert.NotNil(t, eapMessage)
 		assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
 	}
+
+	// Clear hss, ocs, and pcrf
+	assert.NoError(t, tr.CleanUp())
 }

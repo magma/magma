@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rmodels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 	symphonymodels "orc8r/devmand/cloud/go/plugin/models"
@@ -38,6 +39,7 @@ const (
 	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
 	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
 
+	AgentID                       = "agent_id"
 	BaseAgentsPath                = ManageNetworkPath + obsidian.UrlSep + "agents"
 	ManageAgentPath               = BaseAgentsPath + obsidian.UrlSep + ":agent_id"
 	ManageAgentNamePath           = ManageAgentPath + obsidian.UrlSep + "name"
@@ -48,10 +50,12 @@ const (
 	ManageAgentTierPath           = ManageAgentPath + obsidian.UrlSep + "tier"
 	ManageAgentManagedDevicesPath = ManageAgentPath + obsidian.UrlSep + "managed_devices"
 
+	DeviceID               = "device_id"
 	BaseDevicesPath        = ManageNetworkPath + obsidian.UrlSep + "devices"
 	ManageDevicePath       = BaseDevicesPath + obsidian.UrlSep + ":device_id"
 	ManageDeviceNamePath   = ManageDevicePath + obsidian.UrlSep + "name"
 	ManageDeviceConfigPath = ManageDevicePath + obsidian.UrlSep + "config"
+	GetDeviceStatePath     = ManageDevicePath + obsidian.UrlSep + "state"
 )
 
 // GetHandlers returns all obsidian handlers for Symphony
@@ -68,23 +72,22 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageDevicePath, Methods: obsidian.GET, HandlerFunc: getDevice},
 		{Path: ManageDevicePath, Methods: obsidian.PUT, HandlerFunc: updateDevice},
 		{Path: ManageDevicePath, Methods: obsidian.DELETE, HandlerFunc: deleteDevice},
+		{Path: GetDeviceStatePath, Methods: obsidian.GET, HandlerFunc: GetDeviceState},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(BaseNetworksPath, ManageNetworkPath, devmand.SymphonyNetworkType, &symphonymodels.SymphonyNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 
-	aParam := "agent_id"
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentNamePath, aParam, new(models.GatewayName))...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentDescriptionPath, aParam, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentConfigPath, aParam, &orc8rmodels.MagmadGatewayConfigs{})...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentTierPath, aParam, new(orc8rmodels.TierID))...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentManagedDevicesPath, aParam, &symphonymodels.ManagedDevices{})...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentNamePath, AgentID, new(models.GatewayName))...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentDescriptionPath, AgentID, new(models.GatewayDescription))...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentConfigPath, AgentID, &orc8rmodels.MagmadGatewayConfigs{})...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentTierPath, AgentID, new(orc8rmodels.TierID))...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageAgentManagedDevicesPath, AgentID, &symphonymodels.ManagedDevices{})...)
 	ret = append(ret, GetAgentDeviceHandlers(ManageAgentDevicePath)...)
 
-	dParam := "device_id"
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceNamePath, dParam, new(symphonymodels.SymphonyDeviceName))...)
-	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceConfigPath, dParam, &symphonymodels.SymphonyDeviceConfig{})...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceNamePath, DeviceID, new(symphonymodels.SymphonyDeviceName))...)
+	ret = append(ret, handlers.GetPartialEntityHandlers(ManageDeviceConfigPath, DeviceID, &symphonymodels.SymphonyDeviceConfig{})...)
 
 	return ret
 }
@@ -433,6 +436,21 @@ func deleteDevice(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func GetDeviceState(c echo.Context) error {
+	nid, did, nerr := GetNetworkAndDeviceIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	state, err := state.GetState(nid, devmand.SymphonyDeviceStateType, did)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	deviceState := state.ReportedState.(*symphonymodels.SymphonyDeviceState)
+	return c.JSON(http.StatusOK, deviceState)
 }
 
 func GetNetworkAndAgentIDs(c echo.Context) (string, string, *echo.HTTPError) {

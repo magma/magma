@@ -15,9 +15,20 @@ provider "aws" {
   region  = var.region
 }
 
+provider "random" {
+  version = "~> 2.1"
+}
+
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+}
+
 module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
-  name   = var.vpc_name
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "2.17.0"
+
+  name = var.vpc_name
 
   cidr = "10.10.0.0/16"
 
@@ -60,13 +71,18 @@ data "aws_iam_policy_document" "worker_node_policy_doc" {
   }
 }
 
+# Since IAM policies aren't scoped to regions, append a random suffix to
+# support provisioning multiple orc8r clusters in different regions on a single
+# account
 resource "aws_iam_policy" "worker_node_policy" {
-  name   = "magma_eks_worker_node_policy"
+  name   = "magma_eks_worker_node_policy-${random_string.suffix.result}"
   policy = data.aws_iam_policy_document.worker_node_policy_doc.json
 }
 
 module "eks" {
-  source       = "terraform-aws-modules/eks/aws"
+  source  = "terraform-aws-modules/eks/aws"
+  version = "6.0.2"
+
   cluster_name = var.cluster_name
   vpc_id       = module.vpc.vpc_id
   subnets      = module.vpc.public_subnets
@@ -75,7 +91,9 @@ module "eks" {
   workers_additional_policies          = [aws_iam_policy.worker_node_policy.arn]
 
   # asg max capacity is 3
-  # 1 worker group for orc8r (3 boxes total)
+  # 1 worker group for orc8r (2 boxes total).
+  # Most small deployments will only need 1 t3.small, but this means that
+  # there will be downtime if a worker node goes down, so default to 2.
   # 1 worker group for metrics (1 box)
   worker_groups = [
     {

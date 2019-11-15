@@ -99,8 +99,8 @@ function withAlert<Props: WithAlert, TComponent: ComponentType<Props>>(
 
     confirm = (messageOrProps: DialogProps | Node): Promise<boolean> => {
       let dialogProps: DialogProps;
-      const confirmLabel = <>Confirm</>;
-      const cancelLabel = <>Cancel</>;
+      const confirmLabel = 'Confirm';
+      const cancelLabel = 'Cancel';
 
       if (
         typeof messageOrProps === 'string' ||

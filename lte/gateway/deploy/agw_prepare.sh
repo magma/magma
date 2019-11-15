@@ -38,6 +38,6 @@ fi
 mkdir -p /home/magma/.ssh
 chown magma:magma /home/magma/.ssh
 # Removing incompatible Kernel version
-apt remove -y linux-image-4.9.0-11-amd64
+DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
 
 reboot

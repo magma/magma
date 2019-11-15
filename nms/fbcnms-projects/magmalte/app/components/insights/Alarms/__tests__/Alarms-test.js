@@ -19,20 +19,11 @@ import {Route} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {cleanup, render} from '@testing-library/react';
 
-jest.mock('../../../../common/useMagmaAPI');
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
-const useMagmaAPI = require('../../../../common/useMagmaAPI');
 const useSnackbar = require('@fbcnms/ui/hooks/useSnackbar');
 const useMagmaAPIMock = jest
-  .spyOn(useMagmaAPI, 'default')
+  .spyOn(require('../../../../common/useMagmaAPI'), 'default')
   .mockReturnValue({response: []});
-jest.mock('@fbcnms/ui/hooks/useRouter');
-const useRouter = require('@fbcnms/ui/hooks/useRouter');
-
-jest.spyOn(useRouter, 'default').mockReturnValue({
-  match: {params: {networkId: ''}, path: '/', url: '/'},
-  relativePath: p => p,
-});
 
 const Wrapper = (props: {route: string, children: React.Node}) => (
   <MemoryRouter initialEntries={[props.route || '/alarms']} initialIndex={0}>
@@ -59,29 +50,11 @@ describe('react router tests', () => {
     // assert that the top level firing alerts header is visible
     expect(getByTestId('firing-alerts')).toBeInTheDocument();
   });
-
-  test('/alerts/new_alert renders AddEditAlert', () => {
-    const {getByText} = render(
-      <Wrapper route={'/alarms/new_alert'}>
-        <Route path="/alarms" component={Alarms} />,
-      </Wrapper>,
-    );
-    expect(getByText('New Alert')).toBeInTheDocument();
-  });
-
-  test('/alerts/edit_alerts renders EditAllAlerts', () => {
-    const {getByText} = render(
-      <Wrapper route={'/alarms/edit_alerts'}>
-        <Route path="/alarms" component={Alarms} />,
-      </Wrapper>,
-    );
-    expect(getByText('Edit Alerts')).toBeInTheDocument();
-  });
 });
 
 describe('Firing Alerts', () => {
   test('renders currently firing alerts if api returns alerts', () => {
-    useMagmaAPIMock.mockReturnValue({
+    useMagmaAPIMock.mockReturnValueOnce({
       response: [
         {
           labels: {alertname: '<<TEST ALERT>>', team: '<<TEST TEAM>>'},
@@ -91,27 +64,27 @@ describe('Firing Alerts', () => {
     });
 
     const {getByText} = render(
-      <Wrapper route={'/alarms'}>
+      <Wrapper route={'/alerts'}>
         <Alarms />
       </Wrapper>,
     );
 
     expect(getByText('<<TEST ALERT>>')).toBeInTheDocument();
     expect(getByText('<<TEST DESCRIPTION>>')).toBeInTheDocument();
-    expect(getByText('<<TEST TEAM>>')).toBeInTheDocument();
   });
 
   test('if an error occurs while loading alerts, enqueues an error snackbar', () => {
-    useMagmaAPIMock.mockReturnValue({
+    useMagmaAPIMock.mockReturnValueOnce({
       error: {message: 'an error occurred'},
     });
+
     const enqueueSnackbarMock = jest.fn();
     jest
       .spyOn(useSnackbar, 'useEnqueueSnackbar')
       .mockReturnValueOnce(enqueueSnackbarMock);
 
     render(
-      <Wrapper route={'/alarms'}>
+      <Wrapper route={'/alerts'}>
         <Alarms />
       </Wrapper>,
     );

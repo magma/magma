@@ -55,6 +55,11 @@ services:
       sh -c "/usr/local/bin/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    command: python3.5 -m magma.directoryd.main
+
   eap_aka:
     <<: *feggoservice
     container_name: eap_aka
@@ -98,6 +103,11 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  policydb:
+    <<: *ltepyservice
+    container_name: policydb
+    command: python3 -m magma.policydb.main
+
   redirectd:
     <<: *ltepyservice
     container_name: redirectd
@@ -137,3 +147,8 @@ services:
     <<: *ltecservice
     container_name: sessiond
     command: /usr/local/bin/sessiond
+
+  state:
+    <<: *pyservice
+    container_name: state
+    command: python3.5 -m magma.state.main

@@ -8,66 +8,19 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // PromqlMetric promql metric
 // swagger:model promql_metric
 type PromqlMetric struct {
 
-	// name
-	// Required: true
-	Name *string `json:"__name__"`
-
-	// gateway
-	Gateway string `json:"gateway,omitempty"`
-
-	// host
-	Host string `json:"host,omitempty"`
-
-	// instance
-	// Required: true
-	Instance *string `json:"instance"`
-
-	// job
-	Job string `json:"job,omitempty"`
+	// additional properties
+	AdditionalProperties string `json:"additionalProperties,omitempty"`
 }
 
 // Validate validates this promql metric
 func (m *PromqlMetric) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateInstance(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *PromqlMetric) validateName(formats strfmt.Registry) error {
-
-	if err := validate.Required("__name__", "body", m.Name); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *PromqlMetric) validateInstance(formats strfmt.Registry) error {
-
-	if err := validate.Required("instance", "body", m.Instance); err != nil {
-		return err
-	}
-
 	return nil
 }
 

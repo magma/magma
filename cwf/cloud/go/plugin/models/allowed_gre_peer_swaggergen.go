@@ -24,7 +24,7 @@ type AllowedGrePeer struct {
 
 	// key
 	// Required: true
-	Key uint32 `json:"key"`
+	Key *uint32 `json:"key"`
 }
 
 // Validate validates this allowed gre peer
@@ -60,7 +60,7 @@ func (m *AllowedGrePeer) validateIP(formats strfmt.Registry) error {
 
 func (m *AllowedGrePeer) validateKey(formats strfmt.Registry) error {
 
-	if err := validate.Required("key", "body", uint32(m.Key)); err != nil {
+	if err := validate.Required("key", "body", m.Key); err != nil {
 		return err
 	}
 

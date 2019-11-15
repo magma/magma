@@ -130,20 +130,6 @@ message FlowQos {
   QosArp arp = 6;
 }
 
-message PolicyRuleData {
-  magma.orc8r.NetworkID network_id = 1;
-  PolicyRule rule = 2;
-}
-
-message PolicyRuleLookup {
-  magma.orc8r.NetworkID network_id = 1;
-  string rule_id = 2;
-}
-
-message PolicyRuleSet {
-  repeated PolicyRule rules = 1;
-}
-
 message RedirectInformation {
   enum Support {
     DISABLED = 0;
@@ -160,66 +146,11 @@ message RedirectInformation {
   string server_address = 3;
 }
 
-message ChargingRuleBaseNameLookup {
-  magma.orc8r.NetworkID NetworkID = 1;
-  string Name = 2;
-}
-
 message ChargingRuleNameSet {
   repeated string RuleNames = 2;
-}
-
-message ChargingRuleBaseNameRequest {
-  ChargingRuleBaseNameLookup Lookup = 1;
-  ChargingRuleNameSet Record = 2;
 }
 
 message ChargingRuleBaseNameRecord {
   string Name = 1;
   ChargingRuleNameSet RuleNamesSet = 2;
-}
-
-service PolicyDBController {
-
-  // Adds a new policy rule to the store.
-  // Throws ALREADY_EXISTS if the rule already exists.
-  //
-  rpc AddRule (PolicyRuleData) returns (magma.orc8r.Void) {}
-
-  // Deletes an existing rule.
-  // If the rule is not already present, this request is ignored.
-  //
-  rpc DeleteRule (PolicyRuleLookup) returns (magma.orc8r.Void) {}
-
-  // Updates an existing rule.
-  // Throws NOT_FOUND if the rule is missing.
-  //
-  rpc UpdateRule (PolicyRuleData) returns (magma.orc8r.Void) {}
-
-  // Returns the PolicyRule given the id and network.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc GetRule (PolicyRuleLookup) returns (PolicyRule) {}
-
-  // List the rules in the store.
-  //
-  rpc ListRules (magma.orc8r.NetworkID) returns (PolicyRuleSet) {}
-
-  // AddBaseName adds new Charging Rule Base Name Record (list of corresponding rule names)
-  // or Updates an existing Record corresponding to the given network & base name
-  // Returns the the existing base name if present
-  //
-  rpc AddBaseName(ChargingRuleBaseNameRequest) returns (ChargingRuleNameSet) {}
-
-  // Deletes an existing Charging Rule Base Name Record
-  //
-  rpc DeleteBaseName(ChargingRuleBaseNameLookup) returns (magma.orc8r.Void) {}
-
-  // Returns the ChargingRuleBaseNameRecord given the name and network.
-  //
-  rpc GetBaseName (ChargingRuleBaseNameLookup) returns (ChargingRuleNameSet) {}
-
-  // List all Base Name Records in the store for a given network.
-  //
-  rpc ListBaseNames (magma.orc8r.NetworkID) returns (ChargingRuleNameSet) {}
 }

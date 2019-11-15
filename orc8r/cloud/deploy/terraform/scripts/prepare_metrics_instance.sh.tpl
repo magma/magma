@@ -32,6 +32,7 @@ attach_ebs() {
     EBS_NAME=$1
     MOUNT_DIR=$2
     DEVICE=$3
+    MOUNT_DEVICE=$4
 
     INSTANCE_ID=$(curl -s http://$AWS_METADATA_IP/latest/meta-data/instance-id)
     echo INSTANCE_ID: "$INSTANCE_ID"
@@ -98,24 +99,24 @@ attach_ebs() {
     done
 
     # Make the device a filesystem device if it isn't already
-    DEVICE_TYPE=$(sudo file -s $DEVICE | awk '{print $2}')
+    DEVICE_TYPE=$(sudo file -s $MOUNT_DEVICE | awk '{print $2}')
     if [[ "$DEVICE_TYPE" == "data" ]]; then
-        sudo mkfs -t ext4 $DEVICE
+        sudo mkfs -t ext4 $MOUNT_DEVICE
     fi
 
     # mount ebs to specified directory
     sudo mkdir -p $MOUNT_DIR
-    sudo mount $DEVICE $MOUNT_DIR
-    exit_on_error "Error mounting $DEVICE to $MOUNT_DIR"
+    sudo mount $MOUNT_DEVICE $MOUNT_DIR
+    exit_on_error "Error mounting $DEVICE ($MOUNT_DEVICE) to $MOUNT_DIR"
 }
 
 PROMETHEUS_DATA_DIR="/prometheusData"
 PROMETHEUS_CONFIG_DIR="/configs/prometheus"
 
 # Attach prometheus config volume
-attach_ebs "orc8r-prometheus-configs" $PROMETHEUS_CONFIG_DIR "/dev/xvdg"
+attach_ebs "orc8r-prometheus-configs" $PROMETHEUS_CONFIG_DIR "/dev/xvdg" "/dev/nvme1n1"
 sudo chmod -R 777 $PROMETHEUS_CONFIG_DIR
 
 # Attach prometheus data volume
-attach_ebs "orc8r-prometheus-data" $PROMETHEUS_DATA_DIR "/dev/xvdh"
+attach_ebs "orc8r-prometheus-data" $PROMETHEUS_DATA_DIR "/dev/xvdh" "/dev/nvme2n1"
 sudo chmod -R 777 $PROMETHEUS_DATA_DIR

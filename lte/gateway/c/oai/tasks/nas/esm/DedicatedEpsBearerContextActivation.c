@@ -450,11 +450,19 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
        * The maximum number of activate dedicated EPS bearer context request
        * message retransmission has exceed
        */
+
+      /* Store ebi and ue_id as esm_ebr_timer_data gets freed in
+       * esm_proc_eps_bearer_context_deactivate().
+       */
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bid = BEARERS_PER_UE;
+      ebi_t ebi = esm_ebr_timer_data->ebi;
+      mme_ue_s1ap_id_t ue_id = esm_ebr_timer_data->ue_id;
 
       /*
-       * Release the dedicated EPS bearer context and enter state INACTIVE
+       * Release the dedicated EPS bearer context, enter state INACTIVE and
+       * stop T3485 timer. Timer is stopped inside
+       * esm_proc_eps_bearer_context_deactivate()
        */
       rc = esm_proc_eps_bearer_context_deactivate(
         esm_ebr_timer_data->ctx,
@@ -464,23 +472,12 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
         &bid,
         NULL);
 
+      // Send dedicated_eps_bearer_reject to MME APP
       if (rc != RETURNerror) {
-        /*
-         * Stop timer T3485
-         */
-        rc =
-          esm_ebr_stop_timer(esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
+        nas_itti_dedicated_eps_bearer_reject(ue_id, ebi);
       }
-      //Send dedicated_eps_bearer_reject to MME
-      nas_itti_dedicated_eps_bearer_reject(esm_ebr_timer_data->ue_id,esm_ebr_timer_data->ebi);
-
-      if (esm_ebr_timer_data->msg) {
-        bdestroy_wrapper(&esm_ebr_timer_data->msg);
-      }
-    free_wrapper((void **) &esm_ebr_timer_data);
-  }
-
     }
+  }
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }

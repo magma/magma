@@ -56,7 +56,7 @@ magma-gen-meta:
 info:
   title:
   description: Orchestrator REST APIs
-  version: 1.0.0
+  version: 1.0.1
 
 tags:
   - name: Metrics
@@ -471,34 +471,17 @@ definitions:
         $ref: '#/definitions/metric_datapoints'
   promql_metric:
     type: object
-    required:
-    - __name__
-    - instance
     properties:
-      __name__:
-        type: string
-      gateway:
-        type: string
-      instance:
-        type: string
-      job:
-        type: string
-      host:
+      additionalProperties:
         type: string
     example:
-      __name__: gateway_up_time
-      gateway: "NFHDZAQU8Pyw2N91nbNdGjk5e.22ffea10-7fc4-4427-975a-b9e4ce8f6f4d"
-      instance: "NFHDZAQU8Pyw2N91nbNdGjk5e"
-      job: "sample_service"
-      host: "magma_controller_a"
+      __name__: "response_status"
+      gatewayID: "gateway01"
+      networkID: "network01"
+      code: "200"
 
   prometheus_labelset:
     type: object
-    required:
-    - __name__
-    properties:
-      __name__:
-        type: string
     additionalProperties:
       type: string
 
@@ -571,6 +554,44 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/webhook_receiver'
+      email_configs:
+        type: array
+        items:
+          $ref: '#/definitions/email_receiver'
+
+  email_receiver:
+    type: object
+    required:
+      - to
+      - from
+      - smarthost
+    properties:
+      send_resolved:
+        type: boolean
+      to:
+        type: string
+      from:
+        type: string
+      smarthost:
+        type: string
+      hello:
+        type: string
+      auth_username:
+        type: string
+      auth_password:
+        type: string
+      auth_secret:
+        type: string
+      auth_identity:
+        type: string
+      html:
+        type: string
+      text:
+        type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
 
   slack_receiver:
     type: object

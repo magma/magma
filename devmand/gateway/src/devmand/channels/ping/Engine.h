@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 
+#include <netinet/icmp6.h>
 #include <netinet/ip_icmp.h>
 
 #include <folly/futures/Future.h>
@@ -23,6 +24,8 @@ namespace devmand {
 namespace channels {
 namespace ping {
 
+extern std::out_of_range DefaultSwitchError;
+
 using Rtt = uint64_t;
 
 struct Request {
@@ -30,20 +33,61 @@ struct Request {
   folly::Promise<Rtt> promise;
 };
 
+enum IPVersion { v4, v6 };
+enum PacketType { send, read };
+
 using RequestId = uint16_t;
 
 using OutstandingRequests =
     std::map<std::pair<folly::IPAddress, RequestId>, Request>;
 
-struct IcmpPacket {
-  bool success;
-  icmphdr hdr{};
+// The data structure for icmp headers.
+// Generalized for v4 or v6.
+class IcmpPacket final {
+ public:
+  IcmpPacket(IPVersion ipv); // read ping
+  IcmpPacket(const folly::IPAddress& addr, RequestId sequence); // send ping
+  IcmpPacket() = delete;
+  ~IcmpPacket() = default;
+  IcmpPacket(const IcmpPacket&) = delete;
+  IcmpPacket& operator=(const IcmpPacket&) = delete;
+  IcmpPacket(IcmpPacket&&) = default;
+  IcmpPacket& operator=(IcmpPacket&&) = default;
+
+ public:
+  // getters for private members
+  RequestId getSequence() const;
+  const folly::IPAddress& getAddr() const;
+  bool wasSuccess();
+  bool isEchoReply();
+  auto getType();
+  auto getCode();
+  const sockaddr_storage& getSrc();
+
+ public:
+  auto send(int socket) const;
+  void read(int socket);
+
+ private:
+  PacketType packetType;
+  IPVersion ipv;
+  bool success{false};
+  folly::IPAddress addr;
+  icmphdr hdrV4{};
+  icmp6_hdr hdrV6{};
   sockaddr_storage src{};
   socklen_t srcLen{sizeof(sockaddr_storage)};
 };
 
 class Engine : public channels::Engine, public folly::EventHandler {
  public:
+  Engine(
+      folly::EventBase& _eventBase,
+      IPVersion ipv_,
+      const std::chrono::milliseconds& pingTimeout_ =
+          std::chrono::milliseconds(5000),
+      const std::chrono::milliseconds& timeoutFrequency_ =
+          std::chrono::milliseconds(10000));
   Engine(
       folly::EventBase& _eventBase,
       const std::chrono::milliseconds& pingTimeout_ =
@@ -58,16 +102,13 @@ class Engine : public channels::Engine, public folly::EventHandler {
   Engine& operator=(Engine&&) = delete;
 
  public:
-  folly::Future<Rtt> ping(
-      const icmphdr& hdr,
-      const folly::IPAddress& destination);
+  folly::Future<Rtt> ping(const IcmpPacket& pkt);
 
   // NOTE this must be called after the event base is running.
   void start();
 
  private:
   virtual void handlerReady(uint16_t events) noexcept override;
-
   void timeout();
   IcmpPacket read();
 
@@ -75,6 +116,8 @@ class Engine : public channels::Engine, public folly::EventHandler {
   folly::EventBase& eventBase;
   folly::Synchronized<OutstandingRequests> sharedOutstandingRequests;
   int icmpSocket{-1};
+  IPVersion ipv;
+  bool failedIpv6Socket{false};
   std::chrono::milliseconds pingTimeout;
   std::chrono::milliseconds timeoutFrequency;
 };

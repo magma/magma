@@ -64,3 +64,9 @@ func NewDefaultSymphonyDeviceConfig() *SymphonyDeviceConfig {
 		Platform:     "device_platform",
 	}
 }
+
+func NewDefaultSymphonyDeviceState() *SymphonyDeviceState {
+	return &SymphonyDeviceState{
+		RawState: "{ SAMPLE_DEVICE: STATE }",
+	}
+}

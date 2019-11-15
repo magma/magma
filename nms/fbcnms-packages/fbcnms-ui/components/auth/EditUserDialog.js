@@ -48,6 +48,7 @@ type Props = {
   editingUser: ?EditUser,
   open: boolean,
   onClose: () => void,
+  ssoEnabled: boolean,
   allNetworkIDs?: Array<string>,
   onEditUser: (userId: string, payload: SaveUserData) => void,
   onCreateUser: (payload: SaveUserData) => void,
@@ -85,8 +86,13 @@ export default function EditUserDialog(props: Props) {
       return;
     }
 
-    if ((!props.editingUser && !password) || !email) {
-      setError('Email or password cannot be empty');
+    if (!props.ssoEnabled && !props.editingUser && !password) {
+      setError('Password cannot be empty');
+      return;
+    }
+
+    if (!email) {
+      setError('Email cannot be empty');
       return;
     }
 
@@ -99,7 +105,7 @@ export default function EditUserDialog(props: Props) {
 
     // remove the password field if we are editing a user and the password isn't
     // being updated
-    if (props.editingUser && !password) {
+    if ((props.editingUser || props.ssoEnabled) && !password) {
       delete payload.password;
     }
 
@@ -123,22 +129,26 @@ export default function EditUserDialog(props: Props) {
           value={email}
           onChange={({target}) => setEmail(target.value)}
         />
-        <TextField
-          name="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={({target}) => setPassword(target.value)}
-          className={classes.input}
-        />
-        <TextField
-          name="confirm_password"
-          label="Confirm Password"
-          type="password"
-          value={confirmPassword}
-          onChange={({target}) => setConfirmPassword(target.value)}
-          className={classes.input}
-        />
+        {!props.ssoEnabled && (
+          <>
+            <TextField
+              name="password"
+              label="Password"
+              type="password"
+              value={password}
+              onChange={({target}) => setPassword(target.value)}
+              className={classes.input}
+            />
+            <TextField
+              name="confirm_password"
+              label="Confirm Password"
+              type="password"
+              value={confirmPassword}
+              onChange={({target}) => setConfirmPassword(target.value)}
+              className={classes.input}
+            />
+          </>
+        )}
         <FormControlLabel
           control={
             <Checkbox

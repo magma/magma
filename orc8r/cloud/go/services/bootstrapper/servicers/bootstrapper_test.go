@@ -15,7 +15,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"os"
 	"testing"
 	"time"
 
@@ -282,7 +281,6 @@ func testNegative(
 }
 
 func TestBootstrapperServer(t *testing.T) {
-	_ = os.Setenv(orc8r.UseConfiguratorEnv, "1")
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))

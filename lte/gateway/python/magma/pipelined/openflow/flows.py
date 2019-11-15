@@ -15,6 +15,7 @@ from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
+UE_FLOW_PRIORITY = 12
 PASSTHROUGH_PRIORITY = 15
 MINIMUM_PRIORITY = 0
 MAXIMUM_PRIORITY = 65535
@@ -59,7 +60,7 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
                     priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
                     idle_timeout=0, hard_timeout=0, output_port=None,
-                    max_len=None):
+                    copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -80,6 +81,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
+        copy_table (int): optional table to copy the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -90,7 +92,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        output_port=output_port, max_len=max_len)
+        copy_table=copy_table, output_port=output_port, max_len=max_len)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -226,7 +228,7 @@ def get_add_drop_flow_msg(datapath, table, match, actions=None,
 def get_add_output_flow_msg(datapath, table, match, actions=None,
                             instructions=None, priority=MINIMUM_PRIORITY,
                             cookie=0x0, idle_timeout=0, hard_timeout=0,
-                            output_port=None, max_len=None):
+                            output_port=None, copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -246,6 +248,7 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
+        copy_table (int): optional table to copy the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -265,7 +268,8 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
     actions = actions + [
         output_action,
     ]
-
+    if copy_table:
+        actions.append(parser.NXActionResubmitTable(table_id=copy_table))
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
     ryu_match = parser.OFPMatch(**match.ryu_match)
