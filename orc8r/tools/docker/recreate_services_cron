@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-# Cronjob to run the last steps of a Magma upgrade (checking every 15 minutes)
+# Cronjob to run the last steps of a Magma upgrade (checking every 5 minutes)
 
 # m h  dom mon dow   command
-*/15 * * * * root /var/opt/magma/docker/recreate_services.sh
+*/5 * * * * root /var/opt/magma/docker/recreate_services.sh

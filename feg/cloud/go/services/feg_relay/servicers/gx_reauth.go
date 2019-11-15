@@ -24,7 +24,7 @@ func (srv *FegToGwRelayServer) PolicyReAuth(
 	if err := validateFegContext(ctx); err != nil {
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE}, err
 	}
-	hwID, err := getHwIDFromIMSI(req.Imsi)
+	hwID, err := getHwIDFromIMSI(ctx, req.Imsi)
 	if err != nil {
 		return &protos.PolicyReAuthAnswer{Result: protos.ReAuthResult_SESSION_NOT_FOUND},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.Imsi, err)

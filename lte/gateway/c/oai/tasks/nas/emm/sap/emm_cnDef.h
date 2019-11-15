@@ -118,10 +118,7 @@ typedef struct emm_cn_pdn_res_s {
   mme_ue_s1ap_id_t ue_id;
   ambr_t ambr;
   ambr_t apn_ambr;
-
-  /* EPS bearer ID */
   unsigned ebi : 4;
-
   /* QoS */
   qci_t qci;
   priority_level_t prio_level;

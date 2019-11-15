@@ -175,107 +175,6 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
   struct ue_mm_context_s *ue_context_p);
 
 //-----------------------------------------------------------------------------
-int mme_app_handle_nas_pdn_connectivity_req(
-  mme_app_desc_t* mme_app_desc_p,
-  imsi64_t imsi64,
-  mme_ue_s1ap_id_t ue_id,
-  pdn_cid_t pdn_cid)
-{
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  struct ue_mm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-
-  OAILOG_DEBUG(
-    LOG_MME_APP,
-    "Handle NAS_PDN_CONNECTIVITY_REQ for imsi " IMSI_64_FMT " \n",
-    imsi64);
-
-  if (
-    (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
-    OAILOG_WARNING(
-      LOG_MME_APP,
-      "UE id is not present for this IMSI" IMSI_64_FMT
-      "Seems to be duplicate attach Request scenario\n",
-      imsi64);
-    mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
-    /*
-     * This is Duplicate Attach case.
-     * Since IMSI has been removed from the mme_ue_context hashtable,
-     * we need to insert it again in the mme_ue_context.
-     * Get the UE id from the message. And insert the IMSI again in the
-     * hashtable
-     */
-    if (ue_id == INVALID_MME_UE_S1AP_ID) {
-      OAILOG_ERROR(
-        LOG_MME_APP,
-        "ERROR***** Invalid UE Id received from NAS in PDN Connectivity "
-        "Request, (ue_id %u)\n",
-        ue_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-    }
-    ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
-    if (ue_context_p) {
-      if (ue_id != ue_context_p->mme_ue_s1ap_id) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "ERROR***** Abnormal case: ue_id does not match with ue_id in "
-          "ue_context %d, %d\n",
-          ue_id,
-          ue_context_p->mme_ue_s1ap_id);
-        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-      }
-      mme_ue_context_update_coll_keys(
-        &mme_app_desc_p->mme_ue_contexts,
-        ue_context_p,
-        ue_context_p->enb_s1ap_id_key,
-        ue_id,
-        imsi64,
-        ue_context_p->mme_teid_s11,
-        &ue_context_p->emm_context._guti);
-      /*
-       * In some cases if ue context already has valid value , hashtables
-       * are not updated by mme_ue_context_update_coll_keys
-       * function. Inserting mme_ue_s1ap_id in imsi hashtable explicitly
-       */
-      h_rc = hashtable_uint64_ts_insert(
-        mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
-        (const hash_key_t) imsi64,
-        ue_context_p->mme_ue_s1ap_id);
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Error could not update this ue context %p "
-          "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
-          ue_context_p,
-          ue_context_p->enb_ue_s1ap_id,
-          ue_context_p->mme_ue_s1ap_id,
-          imsi64,
-          hashtable_rc_code2string(h_rc));
-      }
-      mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
-    } else {
-      OAILOG_ERROR(
-        LOG_MME_APP,
-        "ERROR***** Invalid UE Id received from NAS in PDN Connectivity "
-        "Request %d\n",
-        ue_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-    }
-  }
-  rc =
-    mme_app_send_s11_create_session_req(mme_app_desc_p, ue_context_p, pdn_cid);
-  if (rc == RETURNok) {
-    increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
-  }
-
-  unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-}
-
 // sent by NAS
 //------------------------------------------------------------------------------
 void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
@@ -2433,7 +2332,7 @@ void mme_app_handle_create_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
 #if EMBEDDED_SGW
     OAILOG_INFO(
       LOG_MME_APP,
-      "Sending Activate Dedicated bearer Response to SPGW: " MME_UE_S1AP_ID_FMT
+      "Sending Activate Dedicated bearer Reject to SPGW: " MME_UE_S1AP_ID_FMT
       "\n",
       create_dedicated_bearer_rej->ue_id);
     _send_pcrf_bearer_actv_rsp(

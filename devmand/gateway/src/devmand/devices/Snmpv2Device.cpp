@@ -238,11 +238,6 @@ std::shared_ptr<State> Snmpv2Device::getState() {
                             }
                           });
                         }));
-  state->addRequest(
-      snmpChannel.walk(channels::snmp::Oid(".1")).thenValue([](auto walk) {
-        LOG(INFO) << "Completed an SNMP walk with " << walk.size()
-                  << " entries";
-      }));
 
   auto addRequest = [&state, this](
                         const std::string& oid, const std::string& path) {

@@ -9,6 +9,13 @@
  */
 
 export default function renderList(list: Array<string>): string {
+  if (!Array.isArray(list)) {
+    console.error(
+      `renderList(): expected array, received ${list} (${typeof list})`,
+    );
+    return '';
+  }
+
   if (list.length < 4) {
     return list.join(', ');
   }

@@ -130,7 +130,7 @@ router.post(
               health: {},
               hss: {},
               s6a: {},
-              served_network_ids: [],
+              served_network_ids: data.servedNetworkIDs.split(','),
               swx: {},
             },
           },

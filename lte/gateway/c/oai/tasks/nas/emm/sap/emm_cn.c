@@ -62,6 +62,7 @@
 #include "esm_sap.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"
 #include "mme_config.h"
 #include "3gpp_23.003.h"
@@ -428,8 +429,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_connectivity) {
-      mme_app_handle_nas_pdn_connectivity_req(
-        mme_app_desc_p, emm_ctx->_imsi64, msg_pP->ue_id, pdn_cid);
+      mme_app_send_s11_create_session_req(
+        mme_app_desc_p, ue_mm_context, pdn_cid);
     } else {
       OAILOG_ERROR(LOG_NAS_ESM, "Received Invalid PDN type \n");
     }

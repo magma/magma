@@ -118,6 +118,7 @@ typedef struct itti_nas_info_transfer_s {
   bstring nas_msg; /* Uplink NAS message           */
 } itti_nas_info_transfer_t;
 
+
 typedef struct itti_erab_setup_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
   ebi_t ebi;              /* EPS bearer id        */

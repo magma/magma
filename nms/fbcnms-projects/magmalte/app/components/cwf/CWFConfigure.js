@@ -9,9 +9,14 @@
  */
 
 import Configure from '../network/Configure';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PoliciesConfig from '../network/PoliciesConfig';
 import React from 'react';
 import UpgradeConfig from '../network/UpgradeConfig';
+
+import useMagmaAPI from '../../common/useMagmaAPI';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function CWFConfigure() {
   const tabs = [
@@ -21,10 +26,26 @@ export default function CWFConfigure() {
       path: 'upgrades',
     },
     {
-      component: PoliciesConfig,
+      component: CWFPolicies,
       label: 'Policies',
       path: 'policies',
     },
   ];
   return <Configure tabRoutes={tabs} />;
+}
+
+function CWFPolicies() {
+  const {match} = useRouter();
+
+  const {response, isLoading} = useMagmaAPI(MagmaV1API.getCwfByNetworkId, {
+    networkId: match.params.networkId,
+  });
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <PoliciesConfig mirrorNetwork={response?.federation?.feg_network_id} />
+  );
 }

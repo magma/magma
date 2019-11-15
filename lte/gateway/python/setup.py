@@ -21,7 +21,6 @@ setup(
     version=VERSION,
     packages=[
         'magma.captive_portal',
-        'magma.directoryd',
         'magma.enodebd',
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',

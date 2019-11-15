@@ -440,7 +440,7 @@ int mme_app_handle_s6a_cancel_location_req(
 
     OAILOG_INFO(
       LOG_MME_APP,
-      "Sending Detach to NAS for (ue_id = %u)\n",
+      "Sending Detach to NAS for (ue_id = " MME_UE_S1AP_ID_FMT " \n",
       ue_context_p->mme_ue_s1ap_id);
     rc = mme_app_send_nas_detach_request(
       ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH);

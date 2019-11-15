@@ -9,30 +9,31 @@ of patent rights can be found in the PATENTS file in the same directory.
 import importlib
 import logging
 import typing
-import snowflake
 
+import snowflake
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
-from orc8r.protos.state_pb2_grpc import StateServiceStub
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
-from magma.magmad.logging.systemd_tailer import start_systemd_tailer
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
+from magma.magmad.logging.systemd_tailer import start_systemd_tailer
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
 from orc8r.protos.mconfig import mconfigs_pb2
+from orc8r.protos.state_pb2_grpc import StateServiceStub
+
 from .bootstrap_manager import BootstrapManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
+from .gateway_status import GatewayStatusFactory, KernelVersionsPoller
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
+from .metrics_collector import MetricsCollector
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
-from .state_reporter import StateReporter
-from .gateway_status import KernelVersionsPoller, GatewayStatusFactory
 from .service_poller import ServicePoller
+from .state_reporter import StateReporter
 from .sync_rpc_client import SyncRPCClient
-from .metrics_collector import MetricsCollector
 
 
 def main():
@@ -111,8 +112,15 @@ def main():
             if sync_rpc_client:
                 sync_rpc_client.start()
             first_time_bootstrap = False
-        if certs_generated and 'control_proxy' in services:
-            await service_manager.restart_services(services=['control_proxy'])
+        if certs_generated:
+            svcs_to_restart = []
+            if 'control_proxy' in services:
+                svcs_to_restart.append('control_proxy')
+            # fluent-bit caches TLS client certs in memory, so we need to
+            # restart it whenever the certs change
+            if 'td-agent-bit' in services:
+                svcs_to_restart.append('td-agent-bit')
+            await service_manager.restart_services(services=svcs_to_restart)
 
     # Create bootstrap manager
     bootstrap_manager = BootstrapManager(service, bootstrap_success_cb)

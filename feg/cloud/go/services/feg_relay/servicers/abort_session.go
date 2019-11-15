@@ -33,7 +33,7 @@ func (srv *FegToGwRelayServer) AbortSession(
 func (srv *FegToGwRelayServer) AbortSessionUnverified(
 	ctx context.Context, req *protos.AbortSessionRequest) (*protos.AbortSessionResult, error) {
 
-	hwId, err := getHwIDFromIMSI(req.UserName)
+	hwId, err := getHwIDFromIMSI(ctx, req.UserName)
 	if err != nil {
 		msg := fmt.Sprintf("unable to get HwID from IMSI %v. err: %v", req.GetUserName(), err)
 		log.Print(msg)
