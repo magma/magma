@@ -22,6 +22,8 @@ export type alert_bulk_upload_response = {
     },
 };
 export type alert_receiver_config = {
+    email_configs ? : Array < email_receiver >
+        ,
     name: string,
     slack_configs ? : Array < slack_receiver >
         ,
@@ -151,6 +153,22 @@ export type elastic_hit = {
         [string]: string,
     },
     _type: string,
+};
+export type email_receiver = {
+    auth_identity ? : string,
+    auth_password ? : string,
+    auth_secret ? : string,
+    auth_username ? : string,
+    from: string,
+    headers ? : {
+        [string]: string,
+    },
+    hello ? : string,
+    html ? : string,
+    send_resolved ? : boolean,
+    smarthost: string,
+    text ? : string,
+    to: string,
 };
 export type enodeb = {
     attached_gateway_id ? : string,
@@ -468,6 +486,7 @@ export type magmad_gateway_configs = {
 export type managed_devices = Array < string >
 ;
 export type mesh_id = string;
+export type mesh_name = string;
 export type mesh_wifi_configs = {
     additional_props ? : {
         [string]: string,
@@ -881,6 +900,9 @@ export type symphony_device_config = {
 };
 export type symphony_device_id = string;
 export type symphony_device_name = string;
+export type symphony_device_state = {
+    raw_state ? : string,
+};
 export type symphony_network = {
     description: network_description,
     features ? : network_features,
@@ -944,7 +966,7 @@ export type wifi_mesh = {
     gateway_ids: Array < gateway_id >
         ,
     id: mesh_id,
-    name: string,
+    name: mesh_name,
 };
 export type wifi_network = {
     description: network_description,
@@ -6996,6 +7018,30 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getSymphonyByNetworkIdDevicesByDeviceIdState(
+            parameters: {
+                'networkId': string,
+                'deviceId': string,
+            }
+        ): Promise < symphony_device_state >
+        {
+            let path = '/symphony/{network_id}/devices/{device_id}/state';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['deviceId'] === undefined) {
+                throw new Error('Missing required  parameter: deviceId');
+            }
+
+            path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getSymphonyByNetworkIdFeatures(
             parameters: {
                 'networkId': string,
@@ -7776,6 +7822,198 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'POST', query, body);
         }
+    static async deleteWifiByNetworkIdMeshesByMeshId(
+        parameters: {
+            'networkId': string,
+            'meshId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/wifi/{network_id}/meshes/{mesh_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['meshId'] === undefined) {
+            throw new Error('Missing required  parameter: meshId');
+        }
+
+        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getWifiByNetworkIdMeshesByMeshId(
+            parameters: {
+                'networkId': string,
+                'meshId': string,
+            }
+        ): Promise < wifi_mesh >
+        {
+            let path = '/wifi/{network_id}/meshes/{mesh_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['meshId'] === undefined) {
+                throw new Error('Missing required  parameter: meshId');
+            }
+
+            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putWifiByNetworkIdMeshesByMeshId(
+            parameters: {
+                'networkId': string,
+                'meshId': string,
+                'wifiMesh': wifi_mesh,
+            }
+        ): Promise < mesh_id >
+        {
+            let path = '/wifi/{network_id}/meshes/{mesh_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['meshId'] === undefined) {
+                throw new Error('Missing required  parameter: meshId');
+            }
+
+            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+            if (parameters['wifiMesh'] === undefined) {
+                throw new Error('Missing required  parameter: wifiMesh');
+            }
+
+            if (parameters['wifiMesh'] !== undefined) {
+                body = parameters['wifiMesh'];
+            }
+
+            return await this.request(path, 'PUT', query, body);
+        }
+    static async getWifiByNetworkIdMeshesByMeshIdConfig(
+            parameters: {
+                'networkId': string,
+                'meshId': string,
+            }
+        ): Promise < mesh_wifi_configs >
+        {
+            let path = '/wifi/{network_id}/meshes/{mesh_id}/config';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['meshId'] === undefined) {
+                throw new Error('Missing required  parameter: meshId');
+            }
+
+            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putWifiByNetworkIdMeshesByMeshIdConfig(
+        parameters: {
+            'networkId': string,
+            'meshId': string,
+            'meshWifiConfigs': mesh_wifi_configs,
+        }
+    ): Promise < "Success" > {
+        let path = '/wifi/{network_id}/meshes/{mesh_id}/config';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['meshId'] === undefined) {
+            throw new Error('Missing required  parameter: meshId');
+        }
+
+        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+        if (parameters['meshWifiConfigs'] === undefined) {
+            throw new Error('Missing required  parameter: meshWifiConfigs');
+        }
+
+        if (parameters['meshWifiConfigs'] !== undefined) {
+            body = parameters['meshWifiConfigs'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getWifiByNetworkIdMeshesByMeshIdName(
+            parameters: {
+                'networkId': string,
+                'meshId': string,
+            }
+        ): Promise < mesh_name >
+        {
+            let path = '/wifi/{network_id}/meshes/{mesh_id}/name';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['meshId'] === undefined) {
+                throw new Error('Missing required  parameter: meshId');
+            }
+
+            path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putWifiByNetworkIdMeshesByMeshIdName(
+        parameters: {
+            'networkId': string,
+            'meshId': string,
+            'meshName': mesh_name,
+        }
+    ): Promise < "Success" > {
+        let path = '/wifi/{network_id}/meshes/{mesh_id}/name';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['meshId'] === undefined) {
+            throw new Error('Missing required  parameter: meshId');
+        }
+
+        path = path.replace('{mesh_id}', `${parameters['meshId']}`);
+
+        if (parameters['meshName'] === undefined) {
+            throw new Error('Missing required  parameter: meshName');
+        }
+
+        if (parameters['meshName'] !== undefined) {
+            body = parameters['meshName'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getWifiByNetworkIdName(
             parameters: {
                 'networkId': string,
