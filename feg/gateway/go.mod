@@ -19,6 +19,7 @@ replace (
 
 require (
 	github.com/fiorix/go-diameter v3.0.3-0.20180924121357-70410bd9fce3+incompatible
+	github.com/go-openapi/swag v0.18.0
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.2.0
