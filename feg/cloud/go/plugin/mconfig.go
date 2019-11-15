@@ -9,6 +9,8 @@
 package plugin
 
 import (
+	"fmt"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -36,6 +38,12 @@ func (*Builder) Build(
 	if err != nil {
 		return errors.WithStack(err)
 	}
+	// Network health config takes priority. Only use gw health config
+	// if network health config is nil
+	healthConfig, err := getHealthConfig(network)
+	if err != nil {
+		healthConfig = gwConfig.Health
+	}
 
 	s6ac := gwConfig.S6a
 	gxc := gwConfig.Gx
@@ -44,7 +52,7 @@ func (*Builder) Build(
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
 	aaa := gwConfig.AaaServer
-	healthc := protos.SafeInit(gwConfig.Health).(*models.Health)
+	healthc := protos.SafeInit(healthConfig).(*models.Health)
 
 	if s6ac != nil {
 		mconfigOut["s6a_proxy"] = &mconfig.S6AConfig{
@@ -73,7 +81,7 @@ func (*Builder) Build(
 		mconfigOut["session_proxy"] = mc
 	}
 
-	if gwConfig.Health != nil {
+	if healthConfig != nil {
 		mc := &mconfig.GatewayHealthConfig{}
 		protos.FillIn(healthc, mc)
 		mconfigOut["health"] = mc
@@ -126,6 +134,19 @@ func getFegConfig(
 	}
 	nwConfig := inwConfig.(*models.NetworkFederationConfigs)
 	return (*models.GatewayFederationConfigs)(nwConfig), nil
+}
+
+func getHealthConfig(network configurator.Network) (*models.Health, error) {
+	inwConfig, found := network.Configs[feg.FegNetworkType]
+	if !found || inwConfig == nil {
+		return nil, merrors.ErrNotFound
+	}
+	nwConfig := inwConfig.(*models.NetworkFederationConfigs)
+	config := (*models.GatewayFederationConfigs)(nwConfig)
+	if config != nil && config.Health != nil {
+		return config.Health, nil
+	}
+	return nil, fmt.Errorf("network health config is nil")
 }
 
 func getGyInitMethod(initMethod *uint32) mconfig.GyInitMethod {
