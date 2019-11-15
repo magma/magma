@@ -54,7 +54,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Test empty response
 	tc := tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -64,30 +64,31 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/rules"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{})
+	tests.RunUnitTest(t, e, tc)
 
 	// Test add policy rule
 	testRule := &models.PolicyRule{
 		ID: "PolicyRule1",
-		Rule: &models.PolicyRuleConfig{
-			FlowList: []*models.FlowDescription{
-				{
-					Action: swag.String("PERMIT"),
-					Match: &models.FlowMatch{
-						Direction: swag.String("UPLINK"),
-						IPProto:   swag.String("IPPROTO_ICMP"),
-						IPV4Dst:   "42.42.42.42",
-						IPV4Src:   "192.168.0.1/24",
-						TCPDst:    2,
-						TCPSrc:    1,
-						UDPDst:    4,
-						UDPSrc:    3,
-					},
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPV4Dst:   "42.42.42.42",
+					IPV4Src:   "192.168.0.1/24",
+					TCPDst:    2,
+					TCPSrc:    1,
+					UDPDst:    4,
+					UDPSrc:    3,
 				},
 			},
-			Priority:     swag.Uint32(5),
-			RatingGroup:  *swag.Uint32(2),
-			TrackingType: "ONLY_OCS",
 		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -103,7 +104,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Check that policy rule was added
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -113,6 +114,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 			"PolicyRule1": testRule,
 		}),
 	}
+	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/rules"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{"PolicyRule1"})
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Read Rule Using URL based ID
@@ -129,10 +133,10 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Update Rule Using URL based ID
-	testRule.Rule.FlowList = []*models.FlowDescription{
+	testRule.FlowList = []*models.FlowDescription{
 		{Action: swag.String("PERMIT"), Match: &models.FlowMatch{IPProto: swag.String("IPPROTO_ICMP"), Direction: swag.String("DOWNLINK")}},
 	}
-	testRule.Rule.Priority, testRule.Rule.RatingGroup, testRule.Rule.TrackingType = swag.Uint32(10), *swag.Uint32(3), "ONLY_OCS"
+	testRule.Priority, testRule.RatingGroup, testRule.TrackingType = swag.Uint32(10), *swag.Uint32(3), "ONLY_OCS"
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
@@ -172,48 +176,49 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Confirm delete
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/rules",
+		URL:            "/magma/v1/networks/n1/policies/rules?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{}),
 	}
+	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/rules"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{})
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Multi Match Add Rule
 	testRule = &models.PolicyRule{
 		ID: "Test_mult",
-		Rule: &models.PolicyRuleConfig{
-			FlowList: []*models.FlowDescription{
-				{
-					Action: swag.String("DENY"),
-					Match: &models.FlowMatch{
-						Direction: swag.String("UPLINK"),
-						IPProto:   swag.String("IPPROTO_TCP"),
-						TCPDst:    2,
-						TCPSrc:    1,
-					},
-				},
-				{
-					Action: swag.String("PERMIT"),
-					Match: &models.FlowMatch{
-						Direction: swag.String("UPLINK"),
-						IPProto:   swag.String("IPPROTO_ICMP"),
-						IPV4Dst:   "42.42.42.42",
-						IPV4Src:   "192.168.0.1/24",
-						TCPDst:    2,
-						TCPSrc:    1,
-						UDPDst:    4,
-						UDPSrc:    3,
-					},
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("DENY"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_TCP"),
+					TCPDst:    2,
+					TCPSrc:    1,
 				},
 			},
-			Priority:     swag.Uint32(5),
-			RatingGroup:  *swag.Uint32(2),
-			TrackingType: "ONLY_OCS",
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPV4Dst:   "42.42.42.42",
+					IPV4Src:   "192.168.0.1/24",
+					TCPDst:    2,
+					TCPSrc:    1,
+					UDPDst:    4,
+					UDPSrc:    3,
+				},
+			},
 		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -241,16 +246,14 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 
 	// Test adding a rule with QoS
 	testRule = &models.PolicyRule{
-		ID: "Test_qos",
-		Rule: &models.PolicyRuleConfig{
-			FlowList:     []*models.FlowDescription{},
-			Priority:     swag.Uint32(5),
-			RatingGroup:  *swag.Uint32(2),
-			TrackingType: "ONLY_OCS",
-			Qos: &models.FlowQos{
-				MaxReqBwUl: swag.Uint32(2000),
-				MaxReqBwDl: swag.Uint32(1000),
-			},
+		ID:           "Test_qos",
+		FlowList:     []*models.FlowDescription{},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+		Qos: &models.FlowQos{
+			MaxReqBwUl: swag.Uint32(2000),
+			MaxReqBwDl: swag.Uint32(1000),
 		},
 	}
 	tc = tests.Test{
@@ -279,17 +282,15 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 
 	// Test adding rule with redirect information
 	testRule = &models.PolicyRule{
-		ID: "Test_redirect",
-		Rule: &models.PolicyRuleConfig{
-			FlowList:     []*models.FlowDescription{},
-			Priority:     swag.Uint32(5),
-			RatingGroup:  *swag.Uint32(2),
-			TrackingType: "ONLY_OCS",
-			Redirect: &models.RedirectInformation{
-				Support:       swag.String("ENABLED"),
-				AddressType:   swag.String("URL"),
-				ServerAddress: swag.String("127.0.0.1"),
-			},
+		ID:           "Test_redirect",
+		FlowList:     []*models.FlowDescription{},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+		Redirect: &models.RedirectInformation{
+			Support:       swag.String("ENABLED"),
+			AddressType:   swag.String("URL"),
+			ServerAddress: swag.String("127.0.0.1"),
 		},
 	}
 	tc = tests.Test{
@@ -321,7 +322,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Test Listing All Base Names
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -329,6 +330,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
 	}
+	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/base_names"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{})
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Add BaseName
@@ -397,7 +401,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Get all BaseNames
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -410,6 +414,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 			},
 		}),
 	}
+	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/base_names"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{"Test"})
 	tests.RunUnitTest(t, e, tc)
 
 	// Delete a BaseName
@@ -427,7 +434,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	// Confirm delete
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/networks/n1/policies/base_names",
+		URL:            "/magma/v1/networks/n1/policies/base_names?view=full",
 		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -435,6 +442,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
 	}
+	tests.RunUnitTest(t, e, tc)
+	tc.URL = "/magma/v1/networks/n1/policies/base_names"
+	tc.ExpectedResult = tests.JSONMarshaler([]string{})
 	tests.RunUnitTest(t, e, tc)
 }
 
@@ -473,18 +483,16 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	expectedP1 := &models.PolicyRule{
 		AssignedSubscribers: []models.SubscriberID{models.SubscriberID(imsi2), models.SubscriberID(imsi1)},
 		ID:                  "p1",
-		Rule: &models.PolicyRuleConfig{
-			FlowList: []*models.FlowDescription{
-				{
-					Action: swag.String("PERMIT"),
-					Match: &models.FlowMatch{
-						Direction: swag.String("UPLINK"),
-						IPProto:   swag.String("IPPROTO_IP"),
-					},
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
 				},
 			},
-			Priority: swag.Uint32(1),
 		},
+		Priority: swag.Uint32(1),
 	}
 	tc := tests.Test{
 		Method:         "POST",
@@ -503,7 +511,6 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			NetworkID:    "n1",
 			Type:         lte.PolicyRuleEntityType,
 			Key:          "p1",
-			Config:       expectedP1.Rule,
 			GraphID:      "2",
 			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: imsi2}, {Type: lte.SubscriberEntityType, Key: imsi1}},
 		},
@@ -528,7 +535,6 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			NetworkID:    "n1",
 			Type:         lte.PolicyRuleEntityType,
 			Key:          "p1",
-			Config:       expectedP1.Rule,
 			GraphID:      "2",
 			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: imsi3}},
 			Version:      1,
@@ -538,18 +544,16 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	// Create another policy p2 unbound to subs
 	expectedP2 := &models.PolicyRule{
 		ID: "p2",
-		Rule: &models.PolicyRuleConfig{
-			FlowList: []*models.FlowDescription{
-				{
-					Action: swag.String("PERMIT"),
-					Match: &models.FlowMatch{
-						Direction: swag.String("UPLINK"),
-						IPProto:   swag.String("IPPROTO_IP"),
-					},
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
 				},
 			},
-			Priority: swag.Uint32(1),
 		},
+		Priority: swag.Uint32(1),
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -662,7 +666,10 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 }
 
+// config will be filled from the expected model
 func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *models.PolicyRule, expectedEnt configurator.NetworkEntity) {
+	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
+
 	actual, err := configurator.LoadEntity("n1", lte.PolicyRuleEntityType, string(expectedModel.ID), configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
@@ -676,6 +683,18 @@ func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expect
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func getExpectedRuleConfig(m *models.PolicyRule) *models.PolicyRuleConfig {
+	return &models.PolicyRuleConfig{
+		FlowList:      m.FlowList,
+		MonitoringKey: m.MonitoringKey,
+		Priority:      m.Priority,
+		Qos:           m.Qos,
+		RatingGroup:   m.RatingGroup,
+		Redirect:      m.Redirect,
+		TrackingType:  m.TrackingType,
+	}
 }
 
 func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *models.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
