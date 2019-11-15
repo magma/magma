@@ -39,10 +39,15 @@ type CentralSessionController struct {
 // SessionControllerConfig stores all the needed configuration for running
 // gx and gy clients
 type SessionControllerConfig struct {
-	OCSConfig        *diameter.DiameterServerConfig
-	PCRFConfig       *diameter.DiameterServerConfig
-	RequestTimeout   time.Duration
-	InitMethod       gy.InitMethod
+	OCSConfig      *diameter.DiameterServerConfig
+	PCRFConfig     *diameter.DiameterServerConfig
+	RequestTimeout time.Duration
+	InitMethod     gy.InitMethod
+	// This flag enables a specific type of behavior.
+	// 1. Ensures a Gy CCR-I is called in CreateSession when Gx CCR-I succeeds,
+	// even if there is no rating group returned by Gx CCR-A.
+	// 2. Ensures all Multi Service Credit Control entities have 2001 result
+	// code for CreateSession to succeed.
 	UseGyForAuthOnly bool
 }
 
@@ -100,7 +105,7 @@ func (srv *CentralSessionController) CreateSession(
 	keys = removeDuplicateChargingKeys(keys)
 	credits := []*protos.CreditUpdateResponse{}
 
-	if len(keys) > 0 {
+	if len(keys) > 0 || srv.cfg.UseGyForAuthOnly {
 		if srv.cfg.InitMethod == gy.PerSessionInit {
 			_, err = srv.sendSingleCreditRequest(getCCRInitRequest(imsi, request))
 			metrics.UpdateGyRecentRequestMetrics(err)
@@ -120,15 +125,28 @@ func (srv *CentralSessionController) CreateSession(
 			glog.Errorf("Failed to send second single credit request: %s", err)
 			return nil, err
 		}
-		metrics.OcsCcrInitRequests.Inc()
 		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
+
+		if srv.cfg.UseGyForAuthOnly {
+			// For this case we want all Multiple-Services-Credit-Control
+			// diameter code to succeed as well.
+			for _, credit := range credits {
+				if credit.ResultCode != diameter.SuccessCode {
+					metrics.OcsCcrInitSendFailures.Inc()
+					err = fmt.Errorf("Received unsuccessful result code from OCS in the MSCC: %v "+
+						"for session: %s, IMSI: %s", credit.ResultCode, request.SessionId, imsi)
+					glog.Errorf("Failed to send second single credit request: %s", err)
+					return nil, err
+				}
+			}
+		}
+		metrics.OcsCcrInitRequests.Inc()
 	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
-
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
