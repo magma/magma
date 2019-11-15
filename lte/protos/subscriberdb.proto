@@ -71,6 +71,9 @@ message LTESubscription {
 
   // Operator configuration field (Op) signed with authentication key (k)
   bytes auth_opc = 4;
+
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
 }
 
 message SubscriberState {
