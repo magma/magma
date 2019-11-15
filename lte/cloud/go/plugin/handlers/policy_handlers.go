@@ -10,6 +10,8 @@ package handlers
 
 import (
 	"net/http"
+	"sort"
+	"strings"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/models"
@@ -34,16 +36,26 @@ func ListBaseNames(c echo.Context) error {
 		return nerr
 	}
 
-	baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
+	view := c.QueryParam("view")
+	if strings.ToLower(view) == "full" {
+		baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
 
-	ret := map[string]*models.BaseNameRecord{}
-	for _, bnEnt := range baseNames {
-		ret[bnEnt.Key] = (&models.BaseNameRecord{}).FromEntity(bnEnt)
+		ret := map[string]*models.BaseNameRecord{}
+		for _, bnEnt := range baseNames {
+			ret[bnEnt.Key] = (&models.BaseNameRecord{}).FromEntity(bnEnt)
+		}
+		return c.JSON(http.StatusOK, ret)
+	} else {
+		names, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		sort.Strings(names)
+		return c.JSON(http.StatusOK, names)
 	}
-	return c.JSON(http.StatusOK, ret)
 }
 
 func CreateBaseName(c echo.Context) error {
@@ -136,19 +148,29 @@ func ListRules(c echo.Context) error {
 		return nerr
 	}
 
-	rules, err := configurator.LoadAllEntitiesInNetwork(
-		networkID, lte.PolicyRuleEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
+	view := c.QueryParam("view")
+	if strings.ToLower(view) == "full" {
+		rules, err := configurator.LoadAllEntitiesInNetwork(
+			networkID, lte.PolicyRuleEntityType,
+			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
 
-	ret := map[string]*models.PolicyRule{}
-	for _, ruleEnt := range rules {
-		ret[ruleEnt.Key] = (&models.PolicyRule{}).FromEntity(ruleEnt)
+		ret := map[string]*models.PolicyRule{}
+		for _, ruleEnt := range rules {
+			ret[ruleEnt.Key] = (&models.PolicyRule{}).FromEntity(ruleEnt)
+		}
+		return c.JSON(http.StatusOK, ret)
+	} else {
+		ruleIDs, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		sort.Strings(ruleIDs)
+		return c.JSON(http.StatusOK, ruleIDs)
 	}
-	return c.JSON(http.StatusOK, ret)
 }
 
 func CreateRule(c echo.Context) error {

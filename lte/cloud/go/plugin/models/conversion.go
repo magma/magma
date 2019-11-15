@@ -477,7 +477,7 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	ret := configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
 		Key:    string(m.ID),
-		Config: m.Rule,
+		Config: m.getConfig(),
 	}
 	for _, sid := range m.AssignedSubscribers {
 		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
@@ -487,9 +487,7 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	m.ID = PolicyID(ent.Key)
-	if ent.Config != nil {
-		m.Rule = ent.Config.(*PolicyRuleConfig)
-	}
+	m.fillFromConfig(ent.Config)
 	for _, assoc := range ent.Associations {
 		if assoc.Type == lte.SubscriberEntityType {
 			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
@@ -502,10 +500,38 @@ func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria 
 	ret := configurator.EntityUpdateCriteria{
 		Type:      lte.PolicyRuleEntityType,
 		Key:       string(m.ID),
-		NewConfig: m.Rule,
+		NewConfig: m.getConfig(),
 	}
 	for _, sid := range m.AssignedSubscribers {
 		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
 	return ret
+}
+
+func (m *PolicyRule) getConfig() *PolicyRuleConfig {
+	return &PolicyRuleConfig{
+		FlowList:      m.FlowList,
+		MonitoringKey: m.MonitoringKey,
+		Priority:      m.Priority,
+		Qos:           m.Qos,
+		RatingGroup:   m.RatingGroup,
+		Redirect:      m.Redirect,
+		TrackingType:  m.TrackingType,
+	}
+}
+
+func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
+	if entConfig == nil {
+		return m
+	}
+
+	cfg := entConfig.(*PolicyRuleConfig)
+	m.FlowList = cfg.FlowList
+	m.MonitoringKey = cfg.MonitoringKey
+	m.Priority = cfg.Priority
+	m.Qos = cfg.Qos
+	m.RatingGroup = cfg.RatingGroup
+	m.Redirect = cfg.Redirect
+	m.TrackingType = cfg.TrackingType
+	return m
 }
