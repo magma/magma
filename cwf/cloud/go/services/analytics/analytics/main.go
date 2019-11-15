@@ -29,8 +29,20 @@ import (
 const (
 	ServiceName = "ANALYTICS"
 
-	activeUsersMetricName   = "active_users_over_time"
+	activeUsersMetricName     = "active_users_over_time"
+	userThroughputMetricName  = "user_throughput"
+	userConsumptionMetricName = "user_consumption"
+	apThroughputMetricName    = "throughput_per_ap"
+
 	defaultAnalysisSchedule = "0 */12 * * *" // Every 12 hours
+)
+
+var (
+	// Map from number of days to query to size the step should be to get best granularity
+	// without causes prometheus to reject the query for having too many datapoints
+	daysToQueryStepSize = map[int]time.Duration{1: 15 * time.Second, 7: time.Minute, 30: 5 * time.Minute}
+
+	daysToCalculate = []int{1, 7, 30}
 )
 
 func main() {
@@ -40,9 +52,10 @@ func main() {
 		glog.Fatalf("Error creating CWF Analytics service: %s", err)
 	}
 
-	analysisSchedule, err := srv.Config.GetStringParam("analysisSchedule")
-	if err != nil {
-		analysisSchedule = defaultAnalysisSchedule
+	analysisSchedule := defaultAnalysisSchedule
+	providedSchedule, _ := srv.Config.GetStringParam("analysisSchedule")
+	if providedSchedule != "" {
+		analysisSchedule = providedSchedule
 	}
 
 	calculations := getAnalyticsCalculations()
@@ -75,38 +88,98 @@ func main() {
 }
 
 func getAnalyticsCalculations() []analytics.Calculation {
-	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{"days", metrics.NetworkLabelName})
-	prometheus.MustRegister(xapGauge)
+	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName})
+	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel})
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel})
+	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel, analytics.APNLabel})
+	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge, apThroughputGauge)
 
-	return []analytics.Calculation{
-		// MAP
-		&analytics.XAPCalculation{
-			Days:            30,
-			ThresholdBytes:  300000, //300kb
-			QueryStepSize:   5 * time.Minute,
-			Labels:          prometheus.Labels{"days": "30"},
-			RegisteredGauge: xapGauge,
-			Name:            activeUsersMetricName,
-		},
-		// WAP
-		&analytics.XAPCalculation{
-			Days:            7,
-			ThresholdBytes:  70000, //70kb
-			QueryStepSize:   time.Minute,
-			Labels:          prometheus.Labels{"days": "7"},
-			RegisteredGauge: xapGauge,
-			Name:            activeUsersMetricName,
-		},
-		// DAP
-		&analytics.XAPCalculation{
-			Days:            1,
-			ThresholdBytes:  10000, // 10kb
-			QueryStepSize:   15 * time.Second,
-			Labels:          prometheus.Labels{"days": "1"},
-			RegisteredGauge: xapGauge,
-			Name:            activeUsersMetricName,
-		},
+	allCalculations := make([]analytics.Calculation, 0)
+
+	// MAP, WAP, DAP Calculations
+	allCalculations = append(allCalculations, getXAPCalculations(daysToCalculate, xapGauge, activeUsersMetricName)...)
+
+	// User Throughput Calculations
+	allCalculations = append(allCalculations, getUserThroughputCalculations(daysToCalculate, userThroughputGauge, userThroughputMetricName)...)
+
+	// AP Throughput Calculations
+	allCalculations = append(allCalculations, getAPThroughputCalculations(daysToCalculate, apThroughputGauge, apThroughputMetricName)...)
+
+	// User Consumption Calculations
+	allCalculations = append(allCalculations, getUserConsumptionCalculations(daysToCalculate, userConsumptionGauge, userConsumptionMetricName)...)
+
+	return allCalculations
+}
+
+func getXAPCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []analytics.Calculation {
+	calcs := make([]analytics.Calculation, 0)
+	for _, dayParam := range daysList {
+		calcs = append(calcs, &analytics.XAPCalculation{
+			CalculationParams: analytics.CalculationParams{
+				Days:            dayParam,
+				RegisteredGauge: gauge,
+				Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+				Name:            metricName,
+			},
+		})
 	}
+	return calcs
+}
+
+func getUserThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []analytics.Calculation {
+	calcs := make([]analytics.Calculation, 0)
+	for _, dayParam := range daysList {
+		for _, dir := range []analytics.ConsumptionDirection{analytics.ConsumptionIn, analytics.ConsumptionOut} {
+			calcs = append(calcs, &analytics.UserThroughputCalculation{
+				CalculationParams: analytics.CalculationParams{
+					Days:            dayParam,
+					RegisteredGauge: gauge,
+					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Name:            metricName,
+				},
+				Direction:     dir,
+				QueryStepSize: daysToQueryStepSize[dayParam],
+			})
+		}
+	}
+	return calcs
+}
+
+func getAPThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []analytics.Calculation {
+	calcs := make([]analytics.Calculation, 0)
+	for _, dayParam := range daysList {
+		for _, dir := range []analytics.ConsumptionDirection{analytics.ConsumptionIn, analytics.ConsumptionOut} {
+			calcs = append(calcs, &analytics.APThroughputCalculation{
+				CalculationParams: analytics.CalculationParams{
+					Days:            dayParam,
+					RegisteredGauge: gauge,
+					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Name:            metricName,
+				},
+				Direction:     dir,
+				QueryStepSize: daysToQueryStepSize[dayParam],
+			})
+		}
+	}
+	return calcs
+}
+
+func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []analytics.Calculation {
+	calcs := make([]analytics.Calculation, 0)
+	for _, dayParam := range daysList {
+		for _, dir := range []analytics.ConsumptionDirection{analytics.ConsumptionIn, analytics.ConsumptionOut} {
+			calcs = append(calcs, &analytics.UserConsumptionCalculation{
+				CalculationParams: analytics.CalculationParams{
+					Days:            dayParam,
+					RegisteredGauge: gauge,
+					Labels:          prometheus.Labels{analytics.DaysLabel: string(dayParam)},
+					Name:            metricName,
+				},
+				Direction: dir,
+			})
+		}
+	}
+	return calcs
 }
 
 func getPrometheusClient() v1.API {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -12,14 +13,18 @@ import (
 	"magma/orc8r/cloud/go/metrics"
 )
 
+const (
+	APNLabel       = "apn"
+	DaysLabel      = "days"
+	DirectionLabel = "direction"
+)
+
 type Calculation interface {
 	Calculate(PrometheusAPI) ([]Result, error)
 }
 
-type calculationParams struct {
+type CalculationParams struct {
 	Days            int
-	ThresholdBytes  int
-	QueryStepSize   time.Duration
 	RegisteredGauge *prometheus.GaugeVec
 	Labels          prometheus.Labels
 	Name            string
@@ -34,7 +39,8 @@ type Result struct {
 // XAPCalculation holds the parameters needed to run a XAP query and the registered
 // prometheus gauge that the resulting value should be stored in
 type XAPCalculation struct {
-	calculationParams
+	CalculationParams
+	ThresholdBytes int
 }
 
 // Calculate returns the number of unique users who have had a session in the
@@ -60,70 +66,100 @@ func (x *XAPCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, er
 }
 
 type APThroughputCalculation struct {
-	calculationParams
-	direction consumptionDirection
+	CalculationParams
+	QueryStepSize time.Duration
+	Direction     ConsumptionDirection
 }
 
 func (x *APThroughputCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, error) {
 	// Get datapoints for throughput when the value is not 0 segmented by apn
-	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (apn, networkID)`, x.direction)
+	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s, %s)`, x.Direction, APNLabel, metrics.NetworkLabelName)
 
-	timeRange := v1.Range{End: time.Now(), Start: time.Now().Add(-time.Duration(x.Days * int(time.Hour) * 24))}
+	timeRange := v1.Range{End: time.Now(), Start: time.Now().Add(-time.Duration(x.Days * int(time.Hour) * 24)), Step: x.QueryStepSize}
 	avgRateMatrix, err := queryPrometheusMatrix(prometheusClient, avgRateQuery, timeRange)
 	if err != nil {
 		return nil, fmt.Errorf("AP Throughput query error: %s", err)
 	}
 
 	results := make([]Result, 0)
-	apnToThroughput := map[string]float64{}
 	for _, apnAverages := range avgRateMatrix {
-		apn := string(apnAverages.Metric["apn"])
-		nID := string(apnAverages.Metric["networkID"])
+		apn := string(apnAverages.Metric[APNLabel])
+		nID := string(apnAverages.Metric[metrics.NetworkLabelName])
 		avgThroughputOverTime := averageDatapoints(apnAverages.Values)
-		apnToThroughput[apn] = avgThroughputOverTime
-	}
-
-	for apn, throughput := range apnToThroughput {
-		if apn == "" {
+		if apn == "" || nID == "" {
+			glog.Errorf("Missing tags from AP Throughput Calculation: APN: %s, NetworkID: %s", apn, nID)
 			continue
 		}
 		results = append(results, Result{
-			value:      throughput,
+			value:      avgThroughputOverTime,
 			metricName: x.Name,
-			labels:     combineLabels(x.Labels, map[string]string{"apn": apn, "direction": string(x.direction)}),
+			labels:     combineLabels(x.Labels, map[string]string{APNLabel: apn, metrics.NetworkLabelName: nID, DirectionLabel: string(x.Direction)}),
 		})
+	}
+	for _, res := range results {
+		x.RegisteredGauge.With(res.labels).Set(res.value)
 	}
 	return results, nil
 }
 
-type consumptionDirection string
+type ConsumptionDirection string
 
 const (
-	consumptionIn  consumptionDirection = "in"
-	consumptionOut consumptionDirection = "out"
+	ConsumptionIn  ConsumptionDirection = "in"
+	ConsumptionOut ConsumptionDirection = "out"
 )
 
 type UserThroughputCalculation struct {
-	calculationParams
+	CalculationParams
+	QueryStepSize time.Duration
+	Direction     ConsumptionDirection
 }
 
 func (x *UserThroughputCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, error) {
+	// Get datapoints for throughput when the value is not 0 segmented
+	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s)`, x.Direction, metrics.NetworkLabelName)
 
+	timeRange := v1.Range{End: time.Now(), Start: time.Now().Add(-time.Duration(x.Days * int(time.Hour) * 24)), Step: x.QueryStepSize}
+	avgRateMatrix, err := queryPrometheusMatrix(prometheusClient, avgRateQuery, timeRange)
+	if err != nil {
+		return nil, fmt.Errorf("User Throughput query error: %s", err)
+	}
+
+	results := make([]Result, 0)
+	for _, apnAverages := range avgRateMatrix {
+		nID := string(apnAverages.Metric[metrics.NetworkLabelName])
+		avgThroughputOverTime := averageDatapoints(apnAverages.Values)
+		if nID == "" {
+			glog.Error("Missing NetworkID from Throughput Calculation")
+			continue
+		}
+		results = append(results, Result{
+			value:      avgThroughputOverTime,
+			metricName: x.Name,
+			labels:     combineLabels(x.Labels, map[string]string{metrics.NetworkLabelName: nID, DirectionLabel: string(x.Direction)}),
+		})
+	}
+	for _, res := range results {
+		x.RegisteredGauge.With(res.labels).Set(res.value)
+	}
+	return results, nil
 }
 
 type UserConsumptionCalculation struct {
-	calculationParams
+	CalculationParams
+	Direction ConsumptionDirection
 }
 
 func (x *UserConsumptionCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, error) {
-	consumptionQuery := fmt.Sprintf(`sum(increase(octets_in[%dd]) by (%s)`, x.Days, metrics.NetworkLabelName)
+	consumptionQuery := fmt.Sprintf(`sum(increase(octets_%s[%dd]) by (%s)`, x.Direction, x.Days, metrics.NetworkLabelName)
 
 	vec, err := queryPrometheusVector(prometheusClient, consumptionQuery)
 	if err != nil {
 		return nil, fmt.Errorf("User Consumption query error: %s", err)
 	}
 
-	results := makeVectorResults(vec, x.Labels, x.Name)
+	baseLabels := combineLabels(x.Labels, map[string]string{DirectionLabel: string(x.Direction)})
+	results := makeVectorResults(vec, baseLabels, x.Name)
 	for _, res := range results {
 		x.RegisteredGauge.With(res.labels).Set(res.value)
 	}
