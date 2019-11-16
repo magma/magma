@@ -29,6 +29,7 @@ std::unique_ptr<devices::Device> Device::createDevice(
   return std::make_unique<Device>(
       app,
       deviceConfig.id,
+      deviceConfig.readonly,
       folly::IPAddress(deviceConfig.ip),
       otherKv.at("username"),
       otherKv.at("password"),
@@ -40,6 +41,7 @@ std::unique_ptr<devices::Device> Device::createDevice(
 Device::Device(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const folly::IPAddress& _ip,
     const std::string& _username,
     const std::string& _password,
@@ -53,6 +55,7 @@ Device::Device(
     : Snmpv2Device(
           application,
           id_,
+          readonly_,
           peer,
           community,
           version,

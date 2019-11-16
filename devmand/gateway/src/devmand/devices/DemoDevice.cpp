@@ -14,11 +14,12 @@ namespace devices {
 std::unique_ptr<devices::Device> DemoDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
-  return std::make_unique<devices::DemoDevice>(app, deviceConfig.id);
+  return std::make_unique<devices::DemoDevice>(
+      app, deviceConfig.id, deviceConfig.readonly);
 }
 
-DemoDevice::DemoDevice(Application& application, const Id& id_)
-    : Device(application, id_) {}
+DemoDevice::DemoDevice(Application& application, const Id& id_, bool readonly_)
+    : Device(application, id_, readonly_) {}
 
 std::shared_ptr<State> DemoDevice::getState() {
   auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
