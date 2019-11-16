@@ -622,13 +622,13 @@ definitions:
       accounting_enabled:
         type: boolean
         x-nullable: false
-        example: false
-        default: false
+        example: true
+        default: true
       create_session_on_auth:
         type: boolean
         x-nullable: false
-        example: false
-        default: false
+        example: true
+        default: true
 
   served_network_ids:
     type: array
