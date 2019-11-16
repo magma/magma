@@ -165,6 +165,7 @@ const Button = (props: Props) => {
         {[classes.disabled]: disabled},
         className,
       )}
+      type="button"
       disabled={disabled}
       onClick={onClick}>
       {textifiedChildren}
