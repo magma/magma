@@ -13,26 +13,51 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// mocked prometheus clients that are used for multiple calculation types
 var (
-	testGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "test",
-	}, []string{"networkID", "label1"})
+	errClient          = &mocks.PrometheusAPI{}
+	matrixReturnClient = &mocks.PrometheusAPI{}
+	vectorReturnClient = &mocks.PrometheusAPI{}
+)
 
-	testMetricLabels = prometheus.Labels{"label1": "value1"}
+// Initalize mocked Prometheus clients
+func init() {
+	// Query returns error
+	errClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("query error"))
+	errClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("query error"))
+
+	// Query returns matrix datatype
+	matrixReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil)
+	matrixReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil)
+
+	// Query returns vector datatype
+	vectorReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil)
+	vectorReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil)
+}
+
+var (
+	basicLabels = prometheus.Labels{"days": "7"}
+
+	testXAPGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "test",
+	}, []string{"networkID", "days"})
+
+	testAPThroughputGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "test",
+	}, []string{"networkID", "direction", "apn", "days"})
+
+	testUserThroughputGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "test",
+	}, []string{"networkID", "direction", "days"})
+
+	testUserConsumptionGauge = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "test",
+	}, []string{"networkID", "direction", "days"})
 )
 
 const (
 	testMetricName = "testMetric"
 )
-
-var testXAPCalculation = XAPCalculation{
-	Days:            7,
-	ThresholdBytes:  100,
-	QueryStepSize:   time.Second * 100,
-	RegisteredGauge: testGauge,
-	Labels:          testMetricLabels,
-	Name:            testMetricName,
-}
 
 type calculationTestCase struct {
 	client          PrometheusAPI
@@ -52,33 +77,18 @@ func (tc calculationTestCase) RunTest(t *testing.T) {
 	assert.Equal(t, results, tc.expectedResults)
 }
 
+var exampleXAPCalculation = XAPCalculation{
+	CalculationParams: CalculationParams{
+		Days:            7,
+		RegisteredGauge: testXAPGauge,
+		Labels:          basicLabels,
+		Name:            testMetricName,
+	},
+	ThresholdBytes: 100,
+}
+
 func TestXAPCalculation(t *testing.T) {
-	// Query returns error
-	errClient := &mocks.PrometheusAPI{}
-	errClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("query error"))
-
-	results, err := testXAPCalculation.Calculate(errClient)
-	assert.Error(t, err)
-	assert.Len(t, results, 0)
-
-	// Query returns unexpected datatype
-	nonVecClient := &mocks.PrometheusAPI{}
-	nonVecClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil)
-
-	results, err = testXAPCalculation.Calculate(nonVecClient)
-	assert.Error(t, err)
-	assert.Len(t, results, 0)
-
-	// Query returns no data
-	noDataClient := &mocks.PrometheusAPI{}
-	noDataClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil)
-
-	results, err = testXAPCalculation.Calculate(noDataClient)
-	assert.EqualError(t, err, "no data returned from query")
-	assert.Len(t, results, 0)
-
-	// Query returns expected data
-	successClient := &mocks.PrometheusAPI{}
+	// setup successful expected result
 	metric1 := model.Metric{}
 	metric1["networkID"] = "testNetwork"
 	sample1 := model.Sample{
@@ -88,16 +98,249 @@ func TestXAPCalculation(t *testing.T) {
 	}
 	var vec model.Vector
 	vec = []*model.Sample{&sample1}
+
+	successClient := &mocks.PrometheusAPI{}
 	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil)
 
-	expectedResult := Result{
+	expectedSuccessResult := Result{
 		value:      1,
-		metricName: testXAPCalculation.Name,
-		labels:     map[string]string{"label1": "value1", "networkID": "testNetwork"},
+		metricName: exampleXAPCalculation.Name,
+		labels:     map[string]string{"days": "7", "networkID": "testNetwork"},
 	}
 
-	results, err = testXAPCalculation.Calculate(successClient)
-	assert.NoError(t, err)
-	assert.Len(t, results, 1)
-	assert.Equal(t, expectedResult, results[0])
+	testCases := []calculationTestCase{
+		{
+			name:          "Client Error",
+			client:        errClient,
+			calculation:   &exampleXAPCalculation,
+			expectedError: "User Consumption query error: query error",
+		},
+		{
+			name:          "Unexpected query data",
+			client:        matrixReturnClient,
+			calculation:   &exampleXAPCalculation,
+			expectedError: "User Consumption query error: unexpected ValueType: matrix",
+		},
+		{
+			name:          "No query data",
+			client:        vectorReturnClient,
+			calculation:   &exampleXAPCalculation,
+			expectedError: "User Consumption query error: no data returned from query",
+		},
+		{
+			name:            "Successful query",
+			client:          successClient,
+			calculation:     &exampleXAPCalculation,
+			expectedResults: []Result{expectedSuccessResult},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, test.RunTest)
+	}
+}
+
+var exampleAPThroughputCalculation = APThroughputCalculation{
+	CalculationParams: CalculationParams{
+		Days:            7,
+		RegisteredGauge: testAPThroughputGauge,
+		Labels:          basicLabels,
+		Name:            testMetricName,
+	},
+	QueryStepSize: time.Second,
+	Direction:     ConsumptionIn,
+}
+
+func TestAPThroughputCalculation(t *testing.T) {
+	metric1 := model.Metric{}
+	metric1["apn"] = "apn1"
+	metric1["networkID"] = "network1"
+
+	// Values: 1, 2, 3. average is (1+2+3)/3 = 2
+	values := []model.SamplePair{
+		{
+			Value: 1,
+		}, {
+			Value: 2,
+		}, {
+			Value: 3,
+		},
+	}
+
+	matrix := model.Matrix{{
+		Metric: metric1,
+		Values: values,
+	}}
+
+	expectedSuccessResult := Result{
+		value:      2,
+		metricName: exampleAPThroughputCalculation.Name,
+		labels:     map[string]string{"apn": "apn1", "networkID": "network1", "days": "7", "direction": string(ConsumptionIn)},
+	}
+
+	successClient := &mocks.PrometheusAPI{}
+	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil)
+
+	testCases := []calculationTestCase{
+		{
+			name:          "Client Error",
+			client:        errClient,
+			calculation:   &exampleAPThroughputCalculation,
+			expectedError: "AP Throughput query error: query error",
+		},
+		{
+			name:          "Unexpected query data",
+			client:        vectorReturnClient,
+			calculation:   &exampleAPThroughputCalculation,
+			expectedError: "AP Throughput query error: unexpected ValueType: vector",
+		},
+		{
+			name:          "No query data",
+			client:        matrixReturnClient,
+			calculation:   &exampleAPThroughputCalculation,
+			expectedError: "AP Throughput query error: no data returned from query",
+		},
+		{
+			name:            "Successful query",
+			client:          successClient,
+			calculation:     &exampleAPThroughputCalculation,
+			expectedResults: []Result{expectedSuccessResult},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, test.RunTest)
+	}
+}
+
+var exampleUserThroughputCalculation = UserThroughputCalculation{
+	CalculationParams: CalculationParams{
+		Days:            7,
+		RegisteredGauge: testUserThroughputGauge,
+		Labels:          basicLabels,
+		Name:            testMetricName,
+	},
+	QueryStepSize: time.Second,
+	Direction:     ConsumptionIn,
+}
+
+func TestUserThroughputCalculation(t *testing.T) {
+	metric1 := model.Metric{}
+	metric1["networkID"] = "network1"
+
+	// Values: 1, 2, 3. average is (1+2+3)/3 = 2
+	values := []model.SamplePair{
+		{
+			Value: 1,
+		}, {
+			Value: 2,
+		}, {
+			Value: 3,
+		},
+	}
+
+	matrix := model.Matrix{{
+		Metric: metric1,
+		Values: values,
+	}}
+
+	expectedSuccessResult := Result{
+		value:      2,
+		metricName: exampleAPThroughputCalculation.Name,
+		labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserThroughputCalculation.Direction)},
+	}
+
+	successClient := &mocks.PrometheusAPI{}
+	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil)
+
+	testCases := []calculationTestCase{
+		{
+			name:          "Client Error",
+			client:        errClient,
+			calculation:   &exampleUserThroughputCalculation,
+			expectedError: "User Throughput query error: query error",
+		},
+		{
+			name:          "Unexpected query data",
+			client:        vectorReturnClient,
+			calculation:   &exampleUserThroughputCalculation,
+			expectedError: "User Throughput query error: unexpected ValueType: vector",
+		},
+		{
+			name:          "No query data",
+			client:        matrixReturnClient,
+			calculation:   &exampleUserThroughputCalculation,
+			expectedError: "User Throughput query error: no data returned from query",
+		},
+		{
+			name:            "Successful query",
+			client:          successClient,
+			calculation:     &exampleUserThroughputCalculation,
+			expectedResults: []Result{expectedSuccessResult},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, test.RunTest)
+	}
+}
+
+var exampleUserConsumptionCalculation = UserConsumptionCalculation{
+	CalculationParams: CalculationParams{
+		Days:            7,
+		RegisteredGauge: testUserConsumptionGauge,
+		Labels:          basicLabels,
+		Name:            testMetricName,
+	},
+	Direction: ConsumptionIn,
+}
+
+func TestUserConsumptionCalculation(t *testing.T) {
+	metric1 := model.Metric{}
+	metric1["networkID"] = "network1"
+
+	vec := model.Vector{{
+		Metric: metric1,
+		Value:  2,
+	}}
+
+	expectedSuccessResult := Result{
+		value:      2,
+		metricName: exampleUserConsumptionCalculation.Name,
+		labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserConsumptionCalculation.Direction)},
+	}
+
+	successClient := &mocks.PrometheusAPI{}
+	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil)
+
+	testCases := []calculationTestCase{
+		{
+			name:          "Client Error",
+			client:        errClient,
+			calculation:   &exampleUserConsumptionCalculation,
+			expectedError: "User Consumption query error: query error",
+		},
+		{
+			name:          "Unexpected query data",
+			client:        matrixReturnClient,
+			calculation:   &exampleUserConsumptionCalculation,
+			expectedError: "User Consumption query error: unexpected ValueType: matrix",
+		},
+		{
+			name:          "No query data",
+			client:        vectorReturnClient,
+			calculation:   &exampleUserConsumptionCalculation,
+			expectedError: "User Consumption query error: no data returned from query",
+		},
+		{
+			name:            "Successful query",
+			client:          successClient,
+			calculation:     &exampleUserConsumptionCalculation,
+			expectedResults: []Result{expectedSuccessResult},
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, test.RunTest)
+	}
 }
