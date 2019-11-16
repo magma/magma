@@ -52,6 +52,7 @@ secret:
   certs: orc8r-secrets-certs
   configs:
     orc8r: orc8r-secrets-configs-orc8r
+    cwf: orc8r-secrets-configs-cwf
   envdir: orc8r-secrets-envdir
 
 proxy:
