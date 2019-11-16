@@ -569,7 +569,7 @@ definitions:
         - 1
         # 2 - Gx Init Method PER_KEY
         - 2
-        default: 1
+        default: 2
   swx:
     type: object
     description: swx configuration
