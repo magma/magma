@@ -20,12 +20,14 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
+import StarIcon from '@material-ui/icons/Star';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -68,6 +70,11 @@ const useStyles = makeStyles(theme => ({
   gatewayName: {
     paddingRight: '10px',
   },
+  star: {
+    color: '#ffd700',
+    width: '18px',
+    verticalAlign: 'bottom',
+  },
 }));
 
 const FIVE_MINS = 5 * 60 * 1000;
@@ -91,8 +98,12 @@ function CWFGateways(props: WithAlert & {}) {
       [],
     ),
   );
+  const {
+    response: clusterStatus,
+    isLoading: clusterStatusLoading,
+  } = useMagmaAPI(MagmaV1API.getFegByNetworkIdClusterStatus, {networkId});
 
-  if (!gateways || isLoading) {
+  if (!gateways || isLoading || clusterStatusLoading) {
     return <LoadingFiller />;
   }
 
@@ -122,6 +133,11 @@ function CWFGateways(props: WithAlert & {}) {
             FIVE_MINS
           }
         />
+        {clusterStatus?.active_gateway === gateway.id && (
+          <Tooltip title="Primary FEG" placement="right">
+            <StarIcon className={classes.star} />
+          </Tooltip>
+        )}
       </TableCell>
       <TableCell>{gateway.device.hardware_id}</TableCell>
       <TableCell>

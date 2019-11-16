@@ -69,6 +69,8 @@ services:
 
   session_proxy:
     <<: *goservice
+    environment:
+      USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
     container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 

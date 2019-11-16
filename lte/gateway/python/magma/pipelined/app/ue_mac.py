@@ -5,8 +5,8 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
-
 from collections import namedtuple
+import threading
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -15,7 +15,8 @@ from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
 from .base import MagmaController
-from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.directoryd_client import update_record
+from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -97,6 +98,10 @@ class UEMacAddressController(MagmaController):
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
             self.logger.debug("Learned arp for imsi %s, ip %s", imsi, yiaddr)
+
+            # Associate IMSI to IPv4 addr in directory service
+            threading.Thread(target=update_record, args=(str(imsi),
+                                                         yiaddr)).start()
         else:
             self.logger.error("ARPD controller not ready, ARP learn FAILED")
 
@@ -274,9 +279,9 @@ class UEMacAddressController(MagmaController):
             return
 
         try:
-            # no need to decode the IMSI. The OFPMatch will
-            # give the already-encoded IMSI value, and we can match on that
-            imsi = _get_encoded_imsi_from_packetin(msg)
+            encoded_imsi = _get_encoded_imsi_from_packetin(msg)
+            # Decode the imsi to properly save in directoryd
+            imsi = decode_imsi(encoded_imsi)
         except MagmaOFError as e:
             # No packet direction, but intended for this table
             self.logger.error("Error obtaining IMSI from pkt-in: %s", e)

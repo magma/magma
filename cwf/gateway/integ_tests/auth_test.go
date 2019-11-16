@@ -21,15 +21,12 @@ import (
 
 func TestAuthenticate(t *testing.T) {
 	fmt.Printf("Running TestAuthenticate...\n")
-	tr, _ := NewTestRunner()
+	tr := NewTestRunner()
 	ues, err := tr.ConfigUEs(3)
 	assert.NoError(t, err)
 
 	for _, ue := range ues {
 		radiusP, err := tr.Authenticate(ue.GetImsi())
-		assert.NoError(t, err)
-
-		err = tr.AddPassThroughPCRFRules(ue.GetImsi())
 		assert.NoError(t, err)
 
 		eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)

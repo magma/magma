@@ -23,7 +23,6 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"golang.org/x/net/context"
 )
 
@@ -44,11 +43,12 @@ type SessionControllerConfig struct {
 	PCRFConfig     *diameter.DiameterServerConfig
 	RequestTimeout time.Duration
 	InitMethod     gy.InitMethod
-}
-
-type ruleTiming struct {
-	activationTime   *timestamp.Timestamp
-	deactivationTime *timestamp.Timestamp
+	// This flag enables a specific type of behavior.
+	// 1. Ensures a Gy CCR-I is called in CreateSession when Gx CCR-I succeeds,
+	// even if there is no rating group returned by Gx CCR-A.
+	// 2. Ensures all Multi Service Credit Control entities have 2001 result
+	// code for CreateSession to succeed.
+	UseGyForAuthOnly bool
 }
 
 // NewCentralSessionController constructs a CentralSessionController
@@ -86,18 +86,18 @@ func (srv *CentralSessionController) CreateSession(
 	}
 	metrics.PcrfCcrInitRequests.Inc()
 
-	var ruleNames []string
-	var ruleDefs []*gx.RuleDefinition
+	var staticRuleNames []string
+	var dynamicRuleDefs []*gx.RuleDefinition
 	for _, rule := range gxCCAInit.RuleInstallAVP {
-		ruleNames = append(ruleNames, rule.RuleNames...)
+		staticRuleNames = append(staticRuleNames, rule.RuleNames...)
 		if len(rule.RuleBaseNames) > 0 {
-			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+			staticRuleNames = append(staticRuleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
 		}
-		ruleDefs = append(ruleDefs, rule.RuleDefinitions...)
+		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
 	}
 
-	policyRules := getPolicyRulesFromDefinitions(ruleDefs)
-	keys, err := srv.dbClient.GetChargingKeysForRules(ruleNames, policyRules)
+	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
+	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
 	if err != nil {
 		glog.Errorf("Failed to get charging keys for rules: %s", err)
 		return nil, err
@@ -105,7 +105,7 @@ func (srv *CentralSessionController) CreateSession(
 	keys = removeDuplicateChargingKeys(keys)
 	credits := []*protos.CreditUpdateResponse{}
 
-	if len(keys) > 0 {
+	if len(keys) > 0 || srv.cfg.UseGyForAuthOnly {
 		if srv.cfg.InitMethod == gy.PerSessionInit {
 			_, err = srv.sendSingleCreditRequest(getCCRInitRequest(imsi, request))
 			metrics.UpdateGyRecentRequestMetrics(err)
@@ -117,23 +117,35 @@ func (srv *CentralSessionController) CreateSession(
 			metrics.OcsCcrInitRequests.Inc()
 		}
 
-		updateRequest := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
-		ans, err := srv.sendSingleCreditRequest(updateRequest)
+		gyCCRInit := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
+		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
 			metrics.OcsCcrInitSendFailures.Inc()
 			glog.Errorf("Failed to send second single credit request: %s", err)
 			return nil, err
 		}
+		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
+
+		if srv.cfg.UseGyForAuthOnly {
+			// For this case we want all Multiple-Services-Credit-Control
+			// diameter code to succeed as well.
+			for _, credit := range credits {
+				if credit.ResultCode != diameter.SuccessCode {
+					err = fmt.Errorf("Received unsuccessful result code from OCS in the MSCC: %v "+
+						"for session: %s, IMSI: %s", credit.ResultCode, request.SessionId, imsi)
+					glog.Errorf("Failed to send second single credit request: %s", err)
+					return nil, err
+				}
+			}
+		}
 		metrics.OcsCcrInitRequests.Inc()
-		credits = getInitialCreditResponsesFromCCA(ans, updateRequest)
 	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
-
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,

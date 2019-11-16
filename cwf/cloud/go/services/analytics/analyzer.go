@@ -10,14 +10,13 @@ package analytics
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 type Analyzer interface {
@@ -34,23 +33,30 @@ type Analyzer interface {
 // queries/aggregations to calculate various metrics
 type PrometheusAnalyzer struct {
 	Cron             *cron.Cron
-	PrometheusClient v1.API
+	PrometheusClient PrometheusAPI
 	Calculations     []Calculation
+	Exporter         Exporter
 }
 
-func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []Calculation) Analyzer {
+type PrometheusAPI interface {
+	Query(ctx context.Context, query string, ts time.Time) (model.Value, error)
+	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, error)
+}
+
+func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []Calculation, exporter Exporter) Analyzer {
 	cronJob := cron.New()
 	return &PrometheusAnalyzer{
 		Cron:             cronJob,
 		PrometheusClient: prometheusClient,
 		Calculations:     calculations,
+		Exporter:         exporter,
 	}
 }
 
 func (a *PrometheusAnalyzer) Schedule(schedule string) error {
 	a.Cron = cron.New()
 
-	err := a.Cron.AddFunc(schedule, a.Analyze)
+	_, err := a.Cron.AddFunc(schedule, a.Analyze)
 	if err != nil {
 		return err
 	}
@@ -58,61 +64,24 @@ func (a *PrometheusAnalyzer) Schedule(schedule string) error {
 }
 
 func (a *PrometheusAnalyzer) Analyze() {
-	for _, xap := range a.Calculations {
-		err := xap.Calculate(a.PrometheusClient)
+	for _, calc := range a.Calculations {
+		results, err := calc.Calculate(a.PrometheusClient)
 		if err != nil {
 			glog.Errorf("Error calculating XAP metric: %s", err)
+			continue
+		}
+		if a.Exporter == nil {
+			continue
+		}
+		for _, res := range results {
+			err = a.Exporter.Export(res, http.DefaultClient)
+			if err != nil {
+				glog.Errorf("Error exporting result: %v", err)
+			}
 		}
 	}
 }
 
 func (a *PrometheusAnalyzer) Run() {
 	a.Cron.Run()
-}
-
-type Calculation interface {
-	Calculate(prometheusClient v1.API) error
-}
-
-// XAPCalculation holds the parameters needed to run a XAP query and the registered
-// prometheus gauge that the resulting value should be stored in
-type XAPCalculation struct {
-	Days            int
-	ThresholdBytes  int
-	QueryStepSize   time.Duration
-	RegisteredGauge *prometheus.GaugeVec
-	Labels          prometheus.Labels
-}
-
-// Calculate returns the number of unique users who have had a session in the
-// past X days and have used over `thresholdBytes` data in that time
-func (x *XAPCalculation) Calculate(prometheusClient v1.API) error {
-	// List the users who have had an active session over the last X days
-	uniqueUsersQuery := fmt.Sprintf(`count(max_over_time(active_sessions[%dd]) >= 1) by (imsi)`, x.Days)
-	// List the users who have used at least x.ThresholdBytes of data in the last X days
-	usersOverThresholdQuery := fmt.Sprintf(`count(sum(increase(octets_in[%dd])) by (imsi) > %d)`, x.Days, x.ThresholdBytes)
-	// Count the users who match both conditions
-	intersectionQuery := fmt.Sprintf(`count(%s and %s)`, uniqueUsersQuery, usersOverThresholdQuery)
-
-	val, err := prometheusClient.Query(context.Background(), intersectionQuery, time.Now())
-	if err != nil {
-		return err
-	}
-	vec, ok := val.(model.Vector)
-	if !ok {
-		x.RegisteredGauge.With(x.Labels).Set(float64(-1))
-		return fmt.Errorf("XAP query returned unexpected ValueType: %v", val.Type())
-	}
-	if len(vec) > 1 {
-		x.RegisteredGauge.With(x.Labels).Set(float64(-1))
-		return fmt.Errorf("XAP query returned more than 1 sample: %v", vec)
-	}
-
-	// If prometheus returns "no data", the value is actually 0
-	if len(vec) == 0 {
-		x.RegisteredGauge.With(x.Labels).Set(float64(0))
-		return nil
-	}
-	x.RegisteredGauge.With(x.Labels).Set(float64(vec[0].Value))
-	return nil
 }
