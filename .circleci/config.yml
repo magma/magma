@@ -80,7 +80,7 @@ jobs:
   southpoll_test:
     machine:
       image: circleci/classic:latest
-      docker_layer_caching: false
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
@@ -100,7 +100,7 @@ jobs:
 
   southpoll_publish_dev:
     machine:
-      docker_layer_caching: false
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
@@ -120,7 +120,7 @@ jobs:
 
   southpoll_publish_prod:
     machine:
-      docker_layer_caching: false
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
@@ -139,6 +139,45 @@ jobs:
             ./scripts/build
             ./scripts/push_prod
 
+  southpoll_firstparty:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "orc8r/gateway/c/common"
+      - run:
+          name: Building southpoll firstparty image
+          command: |
+            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
+            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
+            cd ./devmand/gateway/docker
+            ./scripts/build_cached_firstparty
+            ./scripts/build
+
+  southpoll_thirdparty:
+    machine:
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "devmand/gateway/docker/thirdparty"
+      - run:
+          name: Building southpoll thirdparty image
+          command: |
+            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
+            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
+            cd ./devmand/gateway/docker
+            ./scripts/build_cached
+            ./scripts/build
 
 workflows:
   version: 2.1
@@ -150,6 +189,8 @@ workflows:
 
   southpoll_test_and_publish:
     jobs:
+      - southpoll_thirdparty
+      - southpoll_firstparty
       - southpoll_lint
       - southpoll_test
       - southpoll_publish_dev:
