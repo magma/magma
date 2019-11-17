@@ -255,8 +255,6 @@ bool Channel::handle(const Sentence& sentence) {
       if (sentence.front() == "!done") {
         if (sentence.size() == 1) {
           state = State::FullyConnected;
-          // TODO make this conditional on readonly flag
-          // enableSyslog();
           return true;
         } else if (sentence.size() == 2 and sentence[1].size() > 5) {
           std::string code = sentence[1];
