@@ -12,7 +12,6 @@ const Networks = {
   wifi: 'wifi',
   third_party: 'third_party', // TODO: deprecate third_party in lieu of symphony
   symphony: 'symphony',
-  wac: 'wac',
   rhino: 'rhino',
   lte: 'lte',
   carrier_wifi_network: 'carrier_wifi_network',
@@ -21,7 +20,6 @@ const Networks = {
 
 export const WIFI = Networks.wifi;
 export const THIRD_PARTY = Networks.third_party;
-export const WAC = Networks.wac;
 export const RHINO = Networks.rhino;
 export const LTE = Networks.lte;
 export const CWF = Networks.carrier_wifi_network;
