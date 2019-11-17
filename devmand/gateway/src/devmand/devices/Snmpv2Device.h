@@ -36,6 +36,7 @@ class Snmpv2Device : public PingDevice {
   Snmpv2Device(
       Application& application,
       const Id& id,
+      bool readonly_,
       const channels::snmp::Peer& peer,
       const channels::snmp::Community& community,
       const channels::snmp::Version& version,

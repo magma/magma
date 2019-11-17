@@ -31,7 +31,7 @@ enum class DeviceConfigType { YangJson, NativeConfigJson };
 
 class Device {
  public:
-  Device(Application& application, const Id& id_);
+  Device(Application& application, const Id& id_, bool readonly_);
   Device() = delete;
   virtual ~Device() = default;
   Device(const Device&) = delete;
@@ -80,9 +80,13 @@ class Device {
 
   folly::dynamic lookup(const YangPath& path) const;
 
+ private:
+  bool isReadonly() const;
+
  protected:
   Application& app;
   Id id;
+  const bool readonly;
   folly::dynamic lastConfig;
 };
 
