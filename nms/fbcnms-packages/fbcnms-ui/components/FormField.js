@@ -10,7 +10,7 @@
 
 import type {WithStyles} from '@material-ui/core';
 
-import React from 'react';
+import * as React from 'react';
 import Text from './design-system/Text';
 import Typography from '@material-ui/core/Typography';
 
@@ -36,7 +36,7 @@ const styles = theme => ({
 
 type Props = WithStyles<typeof styles> & {
   label: string,
-  value?: ?string | ?number,
+  value?: ?React.Node,
 };
 
 class FormField extends React.Component<Props> {
@@ -47,13 +47,17 @@ class FormField extends React.Component<Props> {
         <Text className={classes.labelName} variant="body2">
           {label}:
         </Text>
-        <Typography
-          className={classes.value}
-          variant="body2"
-          color="secondary"
-          title={value}>
-          {value}
-        </Typography>
+        {typeof value === 'string' || typeof value === 'number' ? (
+          <Typography
+            className={classes.value}
+            variant="body2"
+            color="secondary"
+            title={value}>
+            {value}
+          </Typography>
+        ) : (
+          value
+        )}
       </div>
     );
   }

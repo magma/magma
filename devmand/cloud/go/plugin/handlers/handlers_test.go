@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 package handlers_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -19,11 +20,15 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
+	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 	plugin2 "orc8r/devmand/cloud/go/plugin"
@@ -1812,6 +1817,53 @@ func TestPartialUpdateAndGetDevice(t *testing.T) {
 	assert.Equal(t, expectedEnts, actualEnts)
 }
 
+func TestGetDeviceState(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	deviceStateURL := "/magma/v1/symphony/:network_id/devices/:device_id/state"
+	handlers := handlers.GetHandlers()
+	getDeviceState := tests.GetHandlerByPathAndMethod(t, handlers, deviceStateURL, obsidian.GET).HandlerFunc
+	networkId := "n1"
+	deviceId := "d1"
+
+	seedNetworks(t)
+	seedAgents(t)
+
+	// Test missing state
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            deviceStateURL,
+		Handler:        getDeviceState,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// manually report the state and then read it back
+	// first encode the appropriate certificate into context
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportDeviceState(t, ctx, deviceId, models2.NewDefaultSymphonyDeviceState())
+	expected := models2.NewDefaultSymphonyDeviceState()
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            deviceStateURL,
+		Handler:        getDeviceState,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		ExpectedStatus: 200,
+		ExpectedResult: expected,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 // n1 is a symphony network, n2 is not
 func seedNetworks(t *testing.T) {
 
@@ -1892,6 +1944,26 @@ func seedAgents(t *testing.T) {
 				Type: orc8r.UpgradeTierEntityType, Key: "t2",
 			},
 		},
+	)
+	assert.NoError(t, err)
+}
+
+func reportDeviceState(t *testing.T, ctx context.Context, deviceId string, deviceState *models2.SymphonyDeviceState) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedDeviceState, err := serde.Serialize(state.SerdeDomain, devmand.SymphonyDeviceStateType, deviceState)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     devmand.SymphonyDeviceStateType,
+			DeviceID: deviceId,
+			Value:    serializedDeviceState,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
 	)
 	assert.NoError(t, err)
 }

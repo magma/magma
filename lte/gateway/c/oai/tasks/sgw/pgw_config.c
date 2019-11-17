@@ -397,6 +397,7 @@ int pgw_config_parse_file(pgw_config_t *config_pP)
           setting_pgw,
           PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
           (const char **) &default_dns_sec)) {
+        bdestroy_wrapper(&config_pP->ipv4.if_name_S5_S8);
         config_pP->ipv4.if_name_S5_S8 = bfromcstr(if_S5_S8);
         IPV4_STR_ADDR_TO_INADDR(
           default_dns,
@@ -693,4 +694,11 @@ void pgw_config_display(pgw_config_t *config_p)
     LOG_SPGW_APP,
     "    Push PCO (DNS+MTU) ........: %s\n",
     config_p->force_push_pco == 0 ? "false" : "true");
+}
+
+void free_pgw_config(pgw_config_t* pgw_config_p)
+{
+  bdestroy_wrapper(&pgw_config_p->ipv4.if_name_S5_S8);
+  bdestroy_wrapper(&pgw_config_p->ipv4.if_name_SGI);
+  return;
 }

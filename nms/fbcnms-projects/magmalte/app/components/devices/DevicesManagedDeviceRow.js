@@ -15,13 +15,13 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import DevicesState from './DevicesState';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
-import axios from 'axios';
 
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
@@ -72,9 +72,13 @@ export default function DevicesManagedDeviceRow(props: Props) {
   const [confirmDialog, setConfirmDialog] = useState(false);
 
   const deleteDevice = () => {
-    axios.delete(MagmaAPIUrls.device(match, props.deviceID));
-    setConfirmDialog(false);
-    props.onDeleteDevice(props.deviceID);
+    MagmaV1API.deleteSymphonyByNetworkIdDevicesByDeviceId({
+      networkId: nullthrows(match.params.networkId),
+      deviceId: props.deviceID,
+    }).then(() => {
+      setConfirmDialog(false);
+      props.onDeleteDevice(props.deviceID);
+    });
   };
 
   const statusAgentId = device.statusAgentId;

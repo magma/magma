@@ -51,26 +51,6 @@ MESSAGE_DEF(
   itti_nas_conn_rel_ind_t,
   nas_conn_rel_ind)
 MESSAGE_DEF(
-  NAS_UPLINK_DATA_IND,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_ul_data_ind_t,
-  nas_ul_data_ind)
-MESSAGE_DEF(
-  NAS_DOWNLINK_DATA_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_dl_data_req_t,
-  nas_dl_data_req)
-MESSAGE_DEF(
-  NAS_DOWNLINK_DATA_CNF,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_dl_data_cnf_t,
-  nas_dl_data_cnf)
-MESSAGE_DEF(
-  NAS_DOWNLINK_DATA_REJ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_dl_data_rej_t,
-  nas_dl_data_rej)
-MESSAGE_DEF(
   NAS_ERAB_SETUP_REQ,
   MESSAGE_PRIORITY_MED,
   itti_erab_setup_req_t,

@@ -56,6 +56,9 @@ class PipelinedController(Enum):
     InOut = Controller(
         'magma.pipelined.app.inout', 'inout'
     )
+    Arp = Controller(
+        'magma.pipelined.app.arp', 'arpd'
+    )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
     )
@@ -113,20 +116,6 @@ def assert_pipelined_not_running():
         )
 
 
-def assert_valid_test_setup_config(test_setup):
-    """
-    Verify the TestSetup config. If TestSetup is Invalid throw an exception.
-
-    Checks that references are also present in apps
-    Checks that apps and references don't have duplicates
-    """
-    for ref in test_setup.references:
-        if ref not in test_setup.apps:
-            raise BadConfigError("TestSetup reference %s not in apps" % ref)
-    if (len(test_setup.apps) != len(set(test_setup.apps))):
-        raise BadConfigError("TestSetup apps can't contain duplicates")
-
-
 class StartThread(object):
     """
     Starts ryu applications
@@ -142,7 +131,6 @@ class StartThread(object):
         if test_setup.integ_test is False:
             hub.patch(thread=True)
             assert_pipelined_not_running()
-        assert_valid_test_setup_config(test_setup)
 
         self._test_setup = test_setup
         self.keep_running = True

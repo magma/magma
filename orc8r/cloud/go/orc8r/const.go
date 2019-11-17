@@ -15,6 +15,7 @@ const (
 	MagmadGatewayType       = "magmad_gateway"
 	AccessGatewayRecordType = "access_gateway_record"
 	GatewayStateType        = "gw_state"
+	DirectoryRecordType     = "directory_record"
 
 	UpgradeTierEntityType           = "upgrade_tier"
 	UpgradeReleaseChannelEntityType = "upgrade_release_channel"

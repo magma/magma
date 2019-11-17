@@ -17,7 +17,6 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim"
-	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 
@@ -33,11 +32,13 @@ const (
 	MockPCRFRemote  = "PCRF_REMOTE"
 	MockOCSRemote   = "OCS_REMOTE"
 	PipelinedRemote = "pipelined.local"
+	RedisRemote     = "REDIS"
 	CwagIP          = "192.168.70.101"
-	HSSPort         = 9204
 	OCSPort         = 9201
 	PCRFPort        = 9202
+	HSSPort         = 9204
 	PipelinedPort   = 8443
+	RedisPort       = 6380
 
 	defaultMSISDN = "5100001234"
 )
@@ -61,6 +62,8 @@ func NewTestRunner() *TestRunner {
 	registry.AddService(MockOCSRemote, CwagIP, OCSPort)
 	fmt.Printf("Adding Pipelined service at %s:%d\n", CwagIP, PipelinedPort)
 	registry.AddService(PipelinedRemote, CwagIP, PipelinedPort)
+	fmt.Printf("Adding Redis service at %s:%d\n", CwagIP, RedisPort)
+	registry.AddService(RedisRemote, CwagIP, RedisPort)
 
 	return testRunner
 }
@@ -157,10 +160,6 @@ func (testRunner *TestRunner) CleanUp() error {
 		if err != nil {
 			return err
 		}
-		err = deactivateSubscriberFlows(imsi)
-		if err != nil {
-			return err
-		}
 	}
 	err := clearSubscribersFromPCRF()
 	if err != nil {
@@ -174,34 +173,8 @@ func (testRunner *TestRunner) CleanUp() error {
 	return nil
 }
 
-// Add an enforcement rule that passes the subscriber from any ip to any ip.
-func (tr *TestRunner) AddPassThroughPCRFRules(imsi string) error {
-	fmt.Printf("************************* Adding Pass-through PCRF Rule for UE with IMSI: %s\n", imsi)
-	rules := &fegprotos.AccountRules{
-		Imsi:          imsi,
-		RuleNames:     []string{},
-		RuleBaseNames: []string{},
-		RuleDefinitions: []*fegprotos.RuleDefinition{
-			{
-				ChargineRuleName: makeRuleIDFromIMSI(imsi),
-				Precedence:       100,
-				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-			},
-		},
-	}
-	return addPCRFRules(rules)
-}
-
-func (tr *TestRunner) AddPCRFRules(rules *fegprotos.AccountRules) error {
-	fmt.Printf("************************* Adding PCRF Rule for UE with IMSI: %s\n", rules.Imsi)
-	return addPCRFRules(rules)
-}
-
-func (tr *TestRunner) AddPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorInfo) error {
-	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", monitorInfo.Imsi)
-	return addPCRFUsageMonitors(monitorInfo)
-}
-
+// GetPolicyUsage is a wrapper around pipelined's GetPolicyUsage and returns
+// the policy usage keyed by subscriber ID
 func (tr *TestRunner) GetPolicyUsage() (map[string]*lteprotos.RuleRecord, error) {
 	recordsBySubID := map[string]*lteprotos.RuleRecord{}
 	table, err := getPolicyUsage()
@@ -212,10 +185,6 @@ func (tr *TestRunner) GetPolicyUsage() (map[string]*lteprotos.RuleRecord, error)
 		recordsBySubID[record.Sid] = record
 	}
 	return recordsBySubID, nil
-}
-
-func makeRuleIDFromIMSI(imsi string) string {
-	return "dynrule1-" + imsi
 }
 
 // getRandomIMSI makes a random 15-digit IMSI that is not added to the UESim or HSS.
@@ -278,4 +247,8 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			ApnConfig:           &lteprotos.APNConfiguration{},
 		},
 	}
+}
+
+func makeDynamicRuleIDFromIMSI(imsi string) string {
+	return "dynrule1-" + imsi
 }

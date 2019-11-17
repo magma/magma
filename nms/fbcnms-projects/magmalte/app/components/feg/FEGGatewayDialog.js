@@ -9,6 +9,7 @@
  */
 
 import type {
+  diameter_client_configs,
   federation_gateway,
   gateway_federation_configs,
   gx,
@@ -16,12 +17,18 @@ import type {
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import FormControl from '@material-ui/core/FormControl';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MenuItem from '@material-ui/core/MenuItem';
 import React, {useState} from 'react';
+import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
@@ -63,6 +70,8 @@ type DiameterValues = {
   realm: string,
   local_address: string,
   product_name: string,
+  protocol: $PropertyType<diameter_client_configs, 'protocol'>,
+  disable_dest_host: boolean,
 };
 
 function getDiameterConfigs(cfg: DiameterValues): gx {
@@ -80,6 +89,8 @@ function getInitialDiameterConfigs(cfg: ?gx): DiameterValues {
     realm: cfg?.server?.realm || '',
     local_address: cfg?.server?.local_address || '',
     product_name: cfg?.server?.product_name || '',
+    protocol: cfg?.server?.protocol || 'tcp',
+    disable_dest_host: cfg?.server?.disable_dest_host || false,
   };
 }
 
@@ -96,6 +107,9 @@ export default function FEGGatewayDialog(props: Props) {
   );
   const [gy, setGy] = useState<DiameterValues>(
     getInitialDiameterConfigs(editingGateway?.federation?.gy),
+  );
+  const [swx, setSWx] = useState<DiameterValues>(
+    getInitialDiameterConfigs(editingGateway?.federation?.swx),
   );
   const [s6a, setS6A] = useState<DiameterValues>(
     getInitialDiameterConfigs(editingGateway?.federation?.s6a),
@@ -120,7 +134,7 @@ export default function FEGGatewayDialog(props: Props) {
     hss: {},
     s6a: getDiameterConfigs(s6a),
     served_network_ids: [],
-    swx: {},
+    swx: {...getDiameterConfigs(swx)},
   });
 
   const onSave = async () => {
@@ -176,13 +190,40 @@ export default function FEGGatewayDialog(props: Props) {
       );
       break;
     case 'gx':
-      content = <DiameterFields onChange={setGx} values={gx} />;
+      content = (
+        <DiameterFields
+          onChange={setGx}
+          values={gx}
+          supportedProtocols={['tcp']}
+        />
+      );
       break;
     case 'gy':
-      content = <DiameterFields onChange={setGy} values={gy} />;
+      content = (
+        <DiameterFields
+          onChange={setGy}
+          values={gy}
+          supportedProtocols={['tcp']}
+        />
+      );
+      break;
+    case 'swx':
+      content = (
+        <DiameterFields
+          onChange={setSWx}
+          values={swx}
+          supportedProtocols={['tcp', 'sctp']}
+        />
+      );
       break;
     case 's6a':
-      content = <DiameterFields onChange={setS6A} values={s6a} />;
+      content = (
+        <DiameterFields
+          onChange={setS6A}
+          values={s6a}
+          supportedProtocols={['tcp', 'sctp']}
+        />
+      );
       break;
   }
 
@@ -194,9 +235,10 @@ export default function FEGGatewayDialog(props: Props) {
           textColor="primary"
           value={tab}
           onChange={(event, tab) => setTab(tab)}>
-          {!editingGateway && <Tab label="General" values="general" />}
+          {!editingGateway && <Tab label="General" value="general" />}
           <Tab label="Gx" value="gx" />
           <Tab label="Gy" value="gy" />
+          <Tab label="SWx" value="swx" />
           <Tab label="S6A" value="s6a" />
         </Tabs>
       </AppBar>
@@ -216,10 +258,14 @@ export default function FEGGatewayDialog(props: Props) {
 function DiameterFields(props: {
   values: DiameterValues,
   onChange: DiameterValues => void,
+  supportedProtocols: Array<
+    $NonMaybeType<$PropertyType<diameter_client_configs, 'protocol'>>,
+  >,
 }) {
   const classes = useStyles();
-  const {values} = props;
+  const {values, supportedProtocols} = props;
   const onChange = field => event =>
+    // $FlowFixMe Set state for each field
     props.onChange({...values, [field]: event.target.value});
 
   return (
@@ -272,6 +318,41 @@ function DiameterFields(props: {
         value={values.product_name}
         onChange={onChange('product_name')}
         placeholder="Magma"
+      />
+      <FormControl className={classes.input}>
+        <InputLabel htmlFor="protocol">Protocol</InputLabel>
+        <Select
+          inputProps={{id: 'protocol'}}
+          value={values.protocol}
+          onChange={({target}) => {
+            switch (target.value) {
+              case 'tcp':
+              case 'tcp4':
+              case 'tcp6':
+              case 'sctp':
+              case 'sctp4':
+              case 'sctp6':
+                props.onChange({...values, protocol: target.value});
+            }
+          }}>
+          {supportedProtocols.map(item => (
+            <MenuItem value={item} key={item}>
+              {item.toUpperCase()}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={values.disable_dest_host}
+            onChange={({target}) =>
+              props.onChange({...values, disable_dest_host: target.checked})
+            }
+            color="primary"
+          />
+        }
+        label="Disable Destination Host"
       />
     </>
   );

@@ -9,17 +9,22 @@
 package handlers
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"magma/cwf/cloud/go/cwf"
 	cwfmodels "magma/cwf/cloud/go/plugin/models"
 	fegmodels "magma/feg/cloud/go/plugin/models"
+	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rmodels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/labstack/echo"
@@ -47,6 +52,10 @@ const (
 	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
 	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
 	ManageGatewayCarrierWifiPath = ManageGatewayPath + obsidian.UrlSep + "carrier_wifi"
+
+	Subscribers                   = "subscribers"
+	BaseSubscriberPath            = ManageNetworkPath + obsidian.UrlSep + Subscribers + obsidian.UrlSep + ":subscriber_id"
+	SubscriberDirectoryRecordPath = BaseSubscriberPath + obsidian.UrlSep + "directory_record"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -58,6 +67,7 @@ func GetHandlers() []obsidian.Handler {
 		handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType),
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
+		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, cwf.CwfNetworkType, &cwfmodels.CwfNetwork{})...)
@@ -167,4 +177,51 @@ func makeCwfGateways(
 		ret[key] = (&cwfmodels.CwfGateway{}).FromBackendModels(ents.magmadGateway, ents.cwfGateway, devCasted, statusesByID[hwID])
 	}
 	return ret
+}
+
+func getSubscriberDirectoryHandler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	configuratorNetwork, err := configurator.LoadNetwork(networkID, false, false)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	if configuratorNetwork.Type != cwf.CwfNetworkType {
+		return obsidian.HttpError(fmt.Errorf("NetworkID %s is not a CWF network", networkID), http.StatusBadRequest)
+	}
+	subscriberID := c.Param("subscriber_id")
+	if subscriberID == "" {
+		return obsidian.HttpError(fmt.Errorf("SubscriberID cannot be empty"), http.StatusBadRequest)
+	}
+	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	cwfRecord, err := convertDirectoryRecordToSubscriberRecord(directoryState.ReportedState)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, cwfRecord)
+}
+
+func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfmodels.CwfSubscriberDirectoryRecord, error) {
+	record, ok := iRecord.(*directoryd.DirectoryRecord)
+	if !ok {
+		return nil, fmt.Errorf("Could not convert retrieved state to DirectoryRecord")
+	}
+	b, err := json.Marshal(record.Identifiers)
+	if err != nil {
+		return nil, err
+	}
+	c := &cwfmodels.CwfSubscriberDirectoryRecord{}
+	err = json.Unmarshal(b, c)
+	if err != nil {
+		return nil, fmt.Errorf("Error converting DirectoryRecord to CWF Record: %s, %v", err, *record)
+	}
+	c.LocationHistory = record.LocationHistory
+	return c, nil
 }

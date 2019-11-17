@@ -12,13 +12,14 @@
 #include <folly/json.h>
 
 #include <devmand/Application.h>
+#include <devmand/Config.h>
 #include <devmand/ErrorHandler.h>
 
 namespace devmand {
 namespace devices {
 
-Device::Device(Application& application, const Id& id_)
-    : app(application), id(id_) {}
+Device::Device(Application& application, const Id& id_, bool readonly_)
+    : app(application), id(id_), readonly(readonly_) {}
 
 Id Device::getId() const {
   return id;
@@ -51,12 +52,17 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
               : folly::dynamic::object;
           dyn[idL] = data;
           (*unifiedView)["devmand"] = folly::toJson(dyn);
-          LOG(INFO) << "state for " << idL << " is " << folly::toJson(dyn);
         });
       }));
 }
 
 void Device::applyConfig(const std::string& config) {
+  if (isReadonly()) {
+    LOG(INFO) << "Not applying configuration on device " << id
+              << " as the device is read only.";
+    return;
+  }
+
   LOG(INFO) << "Applying config '" << config;
   if (not config.empty()) {
     switch (getDeviceConfigType()) {
@@ -76,6 +82,10 @@ void Device::applyConfig(const std::string& config) {
         break;
     }
   }
+}
+
+bool Device::isReadonly() const {
+  return readonly or FLAGS_devices_readonly;
 }
 
 } // namespace devices

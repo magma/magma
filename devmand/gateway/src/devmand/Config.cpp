@@ -19,5 +19,9 @@ DEFINE_uint64(
     debug_print_interval,
     0,
     "The debug print interval in seconds. A value of 0 disables the printing.");
+DEFINE_bool(
+    devices_readonly,
+    false,
+    "whether or not devices can be configured");
 
 } // namespace devmand

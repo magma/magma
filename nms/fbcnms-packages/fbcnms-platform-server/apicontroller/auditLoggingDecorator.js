@@ -78,11 +78,39 @@ const PATHS: Array<{
   },
   {
     path: '/magma/networks/:networkId/configs/cellular',
-    resolver: (_, params) => [params[1], 'network cellular configs'],
+    resolver: (_, params) => [params[2], 'network cellular configs'],
   },
   {
     path: '/magma/networks/:networkId/configs/wifi',
-    resolver: (_, params) => [params[1], 'network wifi configs'],
+    resolver: (_, params) => [params[2], 'network wifi configs'],
+  },
+  {
+    path: '/magma/v1/cwf/:networkId/gateways',
+    resolver: req => [req.body.id, 'carrier wifi gateway'],
+  },
+  {
+    path: '/magma/v1/cwf/:networkId/gateways/:objectId',
+    resolver: (_, params) => [params[2], 'carrier wifi gateway'],
+  },
+  {
+    path: '/magma/v1/feg/:networkId/gateways',
+    resolver: req => [req.body.id, 'federation gateway'],
+  },
+  {
+    path: '/magma/v1/feg/:networkId/gateways/:objectId',
+    resolver: (_, params) => [params[2], 'federation gateway'],
+  },
+  {
+    path: '/magma/v1/feg/:networkId/gateways/:objectId/federation',
+    resolver: (_, params) => [params[2], 'federation gateway config'],
+  },
+  {
+    path: '/magma/v1/networks/:networkId/rules/policies',
+    resolver: req => [req.body.id, 'policy'],
+  },
+  {
+    path: '/magma/v1/networks/:networkId/policies/rules/:objectId',
+    resolver: (_, params) => [params[2], 'policy'],
   },
 ];
 

@@ -22,8 +22,8 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer *enforcer,
-  SessionCloudReporter *reporter):
+  LocalEnforcer* enforcer,
+  SessionCloudReporter* reporter):
   enforcer_(enforcer),
   reporter_(reporter),
   current_epoch_(0),
@@ -33,8 +33,8 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
 }
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
-  ServerContext *context,
-  const RuleRecordTable *request,
+  ServerContext* context,
+  const RuleRecordTable* request,
   std::function<void(Status, Void)> response_callback)
 {
   auto &request_cpy = *request;
@@ -89,7 +89,7 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted()
 }
 
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
-  const std::uint64_t &epoch,
+  const std::uint64_t& epoch,
   Status status,
   SetupFlowsResult resp)
 {
@@ -129,7 +129,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
 }
 
 bool LocalSessionManagerHandlerImpl::restart_pipelined(
-  const std::uint64_t &epoch)
+  const std::uint64_t& epoch)
 {
   using namespace std::placeholders;
   enforcer_->get_event_base().runInEventBaseThread([this, epoch]() {
@@ -140,50 +140,34 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
   return true;
 }
 
-static CreateSessionRequest copy_wifi_session_info2create_req(
-  const LocalCreateSessionRequest *request,
-  const std::string &sid)
-{
-  CreateSessionRequest create_request;
-
-  create_request.mutable_subscriber()->CopyFrom(request->sid());
-  create_request.set_session_id(sid);
-  create_request.set_ue_ipv4(request->ue_ipv4());
-  create_request.set_apn(request->apn());
-  create_request.set_imei(request->imei());
-  create_request.set_msisdn(request->msisdn());
-  create_request.set_hardware_addr(request->hardware_addr());
-
-  return create_request;
-}
-
 static CreateSessionRequest copy_session_info2create_req(
-  const LocalCreateSessionRequest *request,
-  const std::string &sid)
+  const LocalCreateSessionRequest& request,
+  const std::string& sid)
 {
   CreateSessionRequest create_request;
 
-  create_request.mutable_subscriber()->CopyFrom(request->sid());
+  create_request.mutable_subscriber()->CopyFrom(request.sid());
   create_request.set_session_id(sid);
-  create_request.set_ue_ipv4(request->ue_ipv4());
-  create_request.set_spgw_ipv4(request->spgw_ipv4());
-  create_request.set_apn(request->apn());
-  create_request.set_msisdn(request->msisdn());
-  create_request.set_imei(request->imei());
-  create_request.set_plmn_id(request->plmn_id());
-  create_request.set_imsi_plmn_id(request->imsi_plmn_id());
-  create_request.set_user_location(request->user_location());
-  create_request.set_hardware_addr(request->hardware_addr());
-  if (request->has_qos_info()) {
-    create_request.mutable_qos_info()->CopyFrom(request->qos_info());
+  create_request.set_ue_ipv4(request.ue_ipv4());
+  create_request.set_spgw_ipv4(request.spgw_ipv4());
+  create_request.set_apn(request.apn());
+  create_request.set_msisdn(request.msisdn());
+  create_request.set_imei(request.imei());
+  create_request.set_plmn_id(request.plmn_id());
+  create_request.set_imsi_plmn_id(request.imsi_plmn_id());
+  create_request.set_user_location(request.user_location());
+  create_request.set_hardware_addr(request.hardware_addr());
+  create_request.set_rat_type(request.rat_type());
+  if (request.has_qos_info()) {
+    create_request.mutable_qos_info()->CopyFrom(request.qos_info());
   }
 
   return create_request;
 }
 
 void LocalSessionManagerHandlerImpl::CreateSession(
-  ServerContext *context,
-  const LocalCreateSessionRequest *request,
+  ServerContext* context,
+  const LocalCreateSessionRequest* request,
   std::function<void(Status, LocalCreateSessionResponse)> response_callback)
 {
   auto imsi = request->sid().id();
@@ -242,15 +226,15 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       });
   }
   send_create_session(
-    copy_session_info2create_req(request, sid),
+    copy_session_info2create_req(*request, sid),
     imsi, sid, cfg, response_callback);
 }
 
 void LocalSessionManagerHandlerImpl::send_create_session(
-  const CreateSessionRequest &request,
-  const std::string &imsi,
-  const std::string &sid,
-  const SessionState::Config &cfg,
+  const CreateSessionRequest& request,
+  const std::string& imsi,
+  const std::string& sid,
+  const SessionState::Config& cfg,
   std::function<void(grpc::Status, LocalCreateSessionResponse)> response_callback)
 {
   reporter_->report_create_session(
@@ -300,8 +284,8 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
 }
 
 static void report_termination(
-  SessionCloudReporter &reporter,
-  const SessionTerminateRequest &term_req)
+  SessionCloudReporter& reporter,
+  const SessionTerminateRequest& term_req)
 {
   reporter.report_terminate_session(
     term_req,
@@ -330,8 +314,8 @@ static void report_termination(
  *    termination succeeds or not
  */
 void LocalSessionManagerHandlerImpl::EndSession(
-  ServerContext *context,
-  const SubscriberID *request,
+  ServerContext* context,
+  const SubscriberID* request,
   std::function<void(Status, LocalEndSessionResponse)> response_callback)
 {
   auto &request_cpy = *request;

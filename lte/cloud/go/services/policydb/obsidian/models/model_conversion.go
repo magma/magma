@@ -13,6 +13,7 @@ import (
 	"reflect"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -20,6 +21,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -52,12 +54,48 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 	).([]storage.TypeAndKey)
 }
 
-func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
+func (m *PolicyRule) ToEntity() (configurator.NetworkEntity, error) {
+	cfg, err := m.ToPolicyRuleConfig()
+	if err != nil {
+		return configurator.NetworkEntity{}, err
+	}
+
 	return configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
 		Key:    m.ID,
-		Config: m,
+		Config: cfg,
+	}, nil
+}
+
+func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) (*PolicyRule, error) {
+	if ent.Config != nil {
+		cfg := ent.Config.(*models.PolicyRuleConfig)
+		marshaled, err := cfg.MarshalBinary()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal policy rule config for conversion")
+		}
+
+		err = m.UnmarshalBinary(marshaled)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal policy rule config into rule")
+		}
 	}
+	m.ID = ent.Key
+	return m, nil
+}
+
+func (m *PolicyRule) ToPolicyRuleConfig() (*models.PolicyRuleConfig, error) {
+	marshaled, err := m.MarshalBinary()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to marshal policy rule for conversion")
+	}
+
+	cfg := &models.PolicyRuleConfig{}
+	err = cfg.UnmarshalBinary(marshaled)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal policy rule into config")
+	}
+	return cfg, nil
 }
 
 // PolicyRules's FromProto fills in models.PolicyRules struct from

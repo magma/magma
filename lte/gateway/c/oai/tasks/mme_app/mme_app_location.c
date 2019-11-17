@@ -286,7 +286,8 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
   }
 
   ue_mm_context->subscription_known = SUBSCRIPTION_KNOWN;
-  ue_mm_context->sub_status = ula_pP->subscription_data.subscriber_status;
+  ue_mm_context->subscriber_status =
+    ula_pP->subscription_data.subscriber_status;
   ue_mm_context->access_restriction_data =
     ula_pP->subscription_data.access_restriction;
   /*

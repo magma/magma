@@ -33,7 +33,7 @@ func (provider *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any
 		return nil, err
 	}
 
-	subEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	subEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true})
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,11 @@ func subscriberToMconfig(ent configurator.NetworkEntity) (*protos2.SubscriberDat
 	if err != nil {
 		return nil, err
 	}
+
 	sub.Sid = t
+	if ent.Config == nil {
+		return sub, nil
+	}
 
 	cfg := ent.Config.(*models2.LteSubscription)
 	sub.Lte = &protos2.LTESubscription{
@@ -80,10 +84,20 @@ func subscriberToMconfig(ent configurator.NetworkEntity) (*protos2.SubscriberDat
 		AuthKey:  cfg.AuthKey,
 		AuthOpc:  cfg.AuthOpc,
 	}
+
 	if cfg.SubProfile != "" {
 		sub.SubProfile = string(cfg.SubProfile)
 	} else {
 		sub.SubProfile = "default"
 	}
+
+	for _, assoc := range ent.ParentAssociations {
+		if assoc.Type == lte.BaseNameEntityType {
+			sub.Lte.AssignedBaseNames = append(sub.Lte.AssignedBaseNames, assoc.Key)
+		} else if assoc.Type == lte.PolicyRuleEntityType {
+			sub.Lte.AssignedPolicies = append(sub.Lte.AssignedPolicies, assoc.Key)
+		}
+	}
+
 	return sub, nil
 }

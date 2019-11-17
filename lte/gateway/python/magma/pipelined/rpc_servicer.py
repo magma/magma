@@ -164,6 +164,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
                                        ) -> ActivateFlowsResult:
+        # TODO: this will crash pipelined if called with both static rules
+        # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, ip_addr, static_rule_ids, dynamic_rules)
         _report_enforcement_failures(enforcement_res, imsi)

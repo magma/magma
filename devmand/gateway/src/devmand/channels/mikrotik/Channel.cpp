@@ -295,6 +295,15 @@ State Channel::getState() const {
   return state;
 }
 
+void Channel::enableSyslog() {
+  // TODO don't just assume success
+  writeWordAndLength("/system/logging/action/add");
+  writeWordAndLength("=name=syslog");
+  writeWordAndLength("=target=remote");
+  writeWordAndLength(folly::sformat("=remote={}", "192.168.90.100"));
+  terminateSentence();
+}
+
 } // namespace mikrotik
 } // namespace channels
 } // namespace devmand

@@ -156,6 +156,7 @@ export async function parseFileAndSave(
 
 function getSubscriberFromRow(row: Array<string>): ?subscriber {
   const data = CSV_TEMPLATE_DATA[0].reduce((accumulator, colName, idx) => {
+    // $FlowFixMe Set state for each field
     return {...accumulator, [colName]: row[idx]};
   }, {});
   if (!data[IMSI] || !data[LTE_AUTH_KEY]) {

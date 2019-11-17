@@ -46,7 +46,7 @@ const AddLocation = () => {
         onEntriesRequested={() => {}}
         searchEntries={entries}
         onSuggestionsClearRequested={() => setSelectLocationName('')}
-        headline="Location"
+        placeholder="Location"
       />
     </>
   );

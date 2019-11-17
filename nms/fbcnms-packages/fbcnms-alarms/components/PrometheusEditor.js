@@ -34,7 +34,9 @@ type Props = {
 
 type MenuItemProps = {key: string, value: string, children: string};
 
-const timeUnits = [
+type TimeUnit = {value: string, label: string};
+
+const timeUnits: Array<TimeUnit> = [
   {
     value: '',
     label: '',
@@ -78,6 +80,150 @@ type FormState = {
   timeUnit: string,
 };
 
+type inputChangeFunc = (
+  formUpdate: (val: string) => $Shape<FormState>,
+) => (event: SyntheticInputEvent<HTMLElement>) => void;
+
+function RuleNameEditor(props: {onChange: inputChangeFunc, ruleName: string}) {
+  return (
+    <TextField
+      required
+      label="Rule Name"
+      placeholder="Ex: Service Down"
+      value={props.ruleName}
+      onChange={props.onChange(value => ({ruleName: value}))}
+      fullWidth
+    />
+  );
+}
+
+function AdvancedExpressionEditor(props: {
+  onChange: inputChangeFunc,
+  expression: string,
+}) {
+  const classes = useStyles();
+  return (
+    <TextField
+      required
+      label="Expression"
+      placeholder="Ex: up == 0"
+      value={props.expression}
+      onChange={props.onChange(value => ({expression: value}))}
+      fullWidth
+      InputProps={{
+        endAdornment: (
+          <InputAdornment position="end">
+            <Tooltip
+              title={
+                'To learn more about how to write alert expressions, click ' +
+                'on the help icon to open the prometheus querying basics guide.'
+              }
+              placement="right">
+              <IconButton
+                className={classes.helpButton}
+                href="https://prometheus.io/docs/prometheus/latest/querying/basics/"
+                target="_blank"
+                size="small">
+                <HelpIcon />
+              </IconButton>
+            </Tooltip>
+          </InputAdornment>
+        ),
+      }}
+    />
+  );
+}
+
+function SeverityEditor(props: {
+  onChange: inputChangeFunc,
+  severity: string,
+  options: Array<MenuItemProps>,
+}) {
+  return (
+    <TextField
+      required
+      label="Severity"
+      select
+      fullWidth
+      value={props.severity}
+      onChange={props.onChange(value => ({severity: value}))}>
+      {props.options.map(opt => (
+        <MenuItem {...opt} />
+      ))}
+    </TextField>
+  );
+}
+
+function TimeEditor(props: {
+  onChange: inputChangeFunc,
+  timeNumber: string,
+  timeUnit: string,
+}) {
+  return (
+    <>
+      <Grid item xs={6}>
+        <TimeNumberEditor
+          onChange={props.onChange}
+          timeNumber={props.timeNumber}
+        />
+      </Grid>
+      <Grid item xs={5}>
+        <TimeUnitEditor
+          onChange={props.onChange}
+          timeUnit={props.timeUnit}
+          timeUnits={timeUnits}
+        />
+      </Grid>
+      <Grid item xs={1}>
+        <Tooltip
+          title={
+            'Enter the amount of time the alert expression needs to be ' +
+            'true for before the alert fires.'
+          }
+          placement="right">
+          <HelpIcon />
+        </Tooltip>
+      </Grid>
+    </>
+  );
+}
+
+function TimeNumberEditor(props: {
+  onChange: inputChangeFunc,
+  timeNumber: string,
+}) {
+  return (
+    <TextField
+      type="number"
+      value={props.timeNumber}
+      onChange={props.onChange(val => ({timeNumber: val}))}
+      label="Duration"
+      fullWidth
+    />
+  );
+}
+
+function TimeUnitEditor(props: {
+  onChange: inputChangeFunc,
+  timeUnit: string,
+  timeUnits: Array<TimeUnit>,
+}) {
+  return (
+    <TextField
+      select
+      value={props.timeUnit}
+      onChange={props.onChange(val => ({timeUnit: val}))}
+      label="Unit"
+      fullWidth>
+      {props.timeUnits.map(option => (
+        <MenuItem key={option.value} value={option.value}>
+          {option.label}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
 export default function PrometheusEditor(props: Props) {
   const {updateAlertConfig, onExit, saveAlertRule, isNew, rule} = props;
 
@@ -118,99 +264,36 @@ export default function PrometheusEditor(props: Props) {
     <Grid container spacing={3}>
       <Grid container item direction="column" spacing={2} wrap="nowrap">
         <Grid item xs={12} sm={3}>
-          <TextField
-            required
-            label="Rule Name"
-            placeholder="Ex: Service Down"
-            value={form.ruleName}
-            onChange={handleInputChange(value => ({ruleName: value}))}
-            fullWidth
+          <RuleNameEditor
+            onChange={handleInputChange}
+            ruleName={form.ruleName}
           />
         </Grid>
         <Grid item xs={12} sm={3}>
-          <TextField
-            required
-            label="Expression"
-            placeholder="Ex: up == 0"
-            value={form.expression}
-            onChange={handleInputChange(value => ({expression: value}))}
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title={
-                      'To learn more about how to write alert expressions, click ' +
-                      'on the help icon to open the prometheus querying basics guide.'
-                    }
-                    placement="right">
-                    <IconButton
-                      className={classes.helpButton}
-                      href="https://prometheus.io/docs/prometheus/latest/querying/basics/"
-                      target="_blank"
-                      size="small">
-                      <HelpIcon />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
-            }}
+          <AdvancedExpressionEditor
+            onChange={handleInputChange}
+            expression={form.expression}
           />
         </Grid>
         <Grid item xs={12} sm={3}>
-          <TextField
-            required
-            label="Severity"
-            select
-            fullWidth
-            value={form.severity}
-            onChange={handleInputChange(value => ({severity: value}))}>
-            {severityOptions.map(opt => (
-              <MenuItem {...opt} />
-            ))}
-          </TextField>
+          <SeverityEditor
+            onChange={handleInputChange}
+            options={severityOptions}
+            severity={form.severity}
+          />
         </Grid>
         <Grid container item xs={12} sm={3} spacing={1} alignItems="flex-end">
-          <Grid item xs={6}>
-            <TextField
-              type="number"
-              value={form.timeNumber}
-              onChange={handleInputChange(val => ({timeNumber: val}))}
-              label="Duration"
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={5}>
-            <TextField
-              select
-              value={form.timeUnit}
-              onChange={handleInputChange(val => ({timeUnit: val}))}
-              label="Unit"
-              fullWidth>
-              {timeUnits.map(option => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={1}>
-            <Tooltip
-              title={
-                'Enter the amount of time the alert expression needs to be ' +
-                'true for before the alert fires.'
-              }
-              placement="right">
-              <HelpIcon />
-            </Tooltip>
-          </Grid>
+          <TimeEditor
+            onChange={handleInputChange}
+            timeNumber={form.timeNumber}
+            timeUnit={form.timeUnit}
+          />
         </Grid>
       </Grid>
 
       <Grid container item>
         <Button
-          variant="contained"
-          color="secondary"
+          variant="outlined"
           onClick={() => onExit()}
           className={classes.button}>
           Close
@@ -272,7 +355,7 @@ function parseTimeString(
   const units = new Set(['h', 'm', 's']);
   let duration = '';
   let unit = '';
-  for (let char of timeStamp) {
+  for (const char of timeStamp) {
     if (units.has(char)) {
       unit = char;
       break;

@@ -35,7 +35,6 @@
 #include "intertask_interface.h"
 #include "pgw_defs.h"
 #include "pgw_handlers.h"
-#include "spgw_service.h"
 #include "sgw.h"
 #include "common_defs.h"
 #include "bstrlib.h"
@@ -94,6 +93,7 @@ static void *pgw_intertask_interface(void *args_p)
 
       case TERMINATE_MESSAGE: {
         pgw_exit();
+        OAI_FPRINTF_INFO("TASK_PGW terminated\n");
         itti_exit_task();
       } break;
 
@@ -121,9 +121,6 @@ int pgw_init(spgw_config_t *spgw_config_pP)
     return RETURNerror;
   }
 
-  // start spgw_service which hosts GRPC server
-  spgw_service_init();
-
   FILE *fp = NULL;
   bstring filename = bformat("/tmp/pgw_%d.status", g_pid);
   fp = fopen(bdata(filename), "w+");
@@ -138,6 +135,5 @@ int pgw_init(spgw_config_t *spgw_config_pP)
 
 static void pgw_exit(void)
 {
-  stop_spgw_service();
   return;
 }

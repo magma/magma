@@ -11,7 +11,7 @@
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import FBCAlarms from '@fbcnms/alarms/components/Alarms';
-import {MagmaAlarmAPIUrls, MagmaAlarmsApiUtil} from './AlarmApi';
+import {MagmaAlarmsApiUtil} from './AlarmApi';
 import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 
 export default function Alarms() {
@@ -19,7 +19,6 @@ export default function Alarms() {
   const experimentalAlertsEnabled = isFeatureEnabled('alerts_experimental');
   return (
     <FBCAlarms
-      apiUrls={MagmaAlarmAPIUrls}
       apiUtil={MagmaAlarmsApiUtil}
       makeTabLink={({match, keyName}) =>
         `/nms/${match.params.networkId || ''}/alerts/${keyName}`

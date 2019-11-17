@@ -10,6 +10,7 @@
 
 import type {TimeRange} from './AsyncMetric';
 
+import * as React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
@@ -18,19 +19,13 @@ import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from './TimeRangeSelector';
-import {Route} from 'react-router-dom';
 
-import useMagmaAPI from '../../common/useMagmaAPI';
-import {find, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -70,79 +65,79 @@ export type MetricLabel = {
 
 export function resolveQuery(
   config: MetricGraphConfig,
-  gatewayId: string,
+  filterName: string,
+  filterValue: string,
 ): string[] {
   if (config.customQueryConfigs) {
-    return resolveCustomQuery(config.customQueryConfigs, gatewayId);
+    return resolveCustomQuery(config.customQueryConfigs, filterValue);
   }
-  return resolveBasicQuery(config.basicQueryConfigs, gatewayId);
+  return resolveBasicQuery(config.basicQueryConfigs, filterName, filterValue);
 }
 
 function resolveBasicQuery(
   configs: BasicQueryConfig[],
-  gatewayId: string,
+  filterName: string,
+  filterValue: string,
 ): string[] {
   return configs.map(config => {
-    const filterString = resolveFilters(config.filters, gatewayId);
+    const filterString = resolveFilters(
+      config.filters,
+      filterName,
+      filterValue,
+    );
     return `${config.metric}{${filterString}}`;
   });
 }
 
-function resolveFilters(filters: MetricLabel[], gatewayId: string): string {
+function resolveFilters(
+  filters: MetricLabel[],
+  filterName: string,
+  filterValue: string,
+): string {
   const dbFilters: string[] = filters.map(
     filter => filter.name + '="' + filter.value + '"',
   );
-  dbFilters.push(`gatewayID="${gatewayId}"`);
+  dbFilters.push(`${filterName}="${filterValue}"`);
   return dbFilters.join(',');
 }
 
 function resolveCustomQuery(
   configs: CustomQuery[],
-  gatewayId: string,
+  filterValue: string,
 ): string[] {
-  return configs.map(config => config.resolveQuery(gatewayId));
+  return configs.map(config => config.resolveQuery(filterValue));
 }
 
-function Metrics(props: {
-  onGatewaySelectorChange: (SyntheticInputEvent<EventTarget>) => void,
+export default function(props: {
+  menuItemOverrides?: React.Node,
+  selectors: Array<string>,
+  defaultSelector: string,
+  onSelectorChange: (SyntheticInputEvent<EventTarget>) => void,
   configs: MetricGraphConfig[],
+  selectorName: string,
 }) {
   const {match} = useRouter();
   const classes = useStyles();
-  const selectedGateway = match.params.selectedGatewayId;
   const [timeRange, setTimeRange] = useState<TimeRange>('24_hours');
 
-  const {error, isLoading, response: gateways} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdGateways,
-    {networkId: match.params.networkId},
-  );
-
-  useSnackbar('Error fetching devices', {variant: 'error'}, error);
-
-  if (error || isLoading || !gateways) {
-    return <LoadingFiller />;
-  }
-
-  const defaultGateway = find(
-    gateways,
-    gateway => gateway.status?.hardware_id !== null,
-  );
-  const selectedGatewayOrDefault = selectedGateway || defaultGateway?.id;
+  const selectedID = match.params.selectedID;
+  const selectedOrDefault = selectedID || props.defaultSelector;
 
   return (
     <>
       <AppBar className={classes.appBar} position="static" color="default">
         <FormControl variant="filled" className={classes.formControl}>
-          <InputLabel htmlFor="devices">Device</InputLabel>
+          <InputLabel htmlFor="devices">{props.selectorName}</InputLabel>
           <Select
             inputProps={{id: 'devices'}}
-            value={selectedGatewayOrDefault}
-            onChange={props.onGatewaySelectorChange}>
-            {map(gateways, device => (
-              <MenuItem value={device.id} key={device.id}>
-                {device.name}
-              </MenuItem>
-            ))}
+            value={selectedOrDefault}
+            onChange={props.onSelectorChange}>
+            {props.menuItemOverrides ||
+              props.selectors.map(device => (
+                <MenuItem value={device} key={device}>
+                  {device}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
         <TimeRangeSelector
@@ -161,7 +156,11 @@ function Metrics(props: {
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(config, selectedGatewayOrDefault)}
+                    queries={resolveQuery(
+                      config,
+                      props.selectorName,
+                      selectedOrDefault,
+                    )}
                     timeRange={timeRange}
                   />
                 </div>
@@ -171,22 +170,5 @@ function Metrics(props: {
         ))}
       </GridList>
     </>
-  );
-}
-
-export default function(props: {configs: MetricGraphConfig[]}) {
-  const {history, relativePath, relativeUrl} = useRouter();
-  return (
-    <Route
-      path={relativePath('/:selectedGatewayId?')}
-      render={() => (
-        <Metrics
-          configs={props.configs}
-          onGatewaySelectorChange={({target}) =>
-            history.push(relativeUrl(`/${target.value}`))
-          }
-        />
-      )}
-    />
   );
 }

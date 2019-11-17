@@ -34,6 +34,7 @@ const (
 	OCSApnOverwriteEnv      = "OCS_APN_OVERWRITE"
 	OCSServiceIdentifierEnv = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
 	DisableDestHostEnv      = "DISABLE_DEST_HOST"
+	UseGyForAuthOnlyEnv     = "USE_GY_FOR_AUTH_ONLY"
 
 	GyInitMethodFlag         = "gy_init_method"
 	OCSApnOverwriteFlag      = "ocs_apn_overwrite"

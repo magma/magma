@@ -55,6 +55,7 @@ std::unique_ptr<devices::Device> FrinxDevice::createDevice(
   return std::make_unique<devices::FrinxDevice>(
       app,
       deviceConfig.id,
+      deviceConfig.readonly,
       frinxKv.at("host"),
       folly::to<int>(frinxKv.at("frinxPort")),
       folly::IPAddress(deviceConfig.ip),
@@ -72,6 +73,7 @@ std::unique_ptr<devices::Device> FrinxDevice::createDevice(
 FrinxDevice::FrinxDevice(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const std::string& controllerHost,
     const int controllerPort,
     const folly::IPAddress& deviceIp_,
@@ -83,7 +85,7 @@ FrinxDevice::FrinxDevice(
     const std::string& deviceVersion_,
     const std::string& deviceUsername_,
     const std::string& devicePassword_)
-    : Device(application, id_),
+    : Device(application, id_, readonly_),
       channel(controllerHost, controllerPort),
       headers({{"Authorization", authorization_},
                {"Accept", contentTypeJson},

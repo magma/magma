@@ -4,12 +4,12 @@ dependencies:
   version: 0.1.3
 - name: metrics
   repository: ""
-  version: 0.1.1
+  version: 1.2.1
 - name: nms
   repository: ""
   version: 0.1.0
 - name: logging
   repository: ""
-  version: 0.1.5
-digest: sha256:cedff42b68c8313013e69d2e1df2273b9929e78a1e699d78d7fa1afa3b154545
-generated: "2019-11-05T12:05:24.037374-08:00"
+  version: 0.1.7
+digest: sha256:1b14988f6f6cccef69bb08555e191ab9d26861db64dc9acf973f926fdc10e3ef
+generated: "2019-11-13T15:43:00.829266-08:00"
