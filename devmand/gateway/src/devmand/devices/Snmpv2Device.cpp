@@ -67,6 +67,7 @@ std::unique_ptr<devices::Device> Snmpv2Device::createDevice(
   return std::make_unique<devices::Snmpv2Device>(
       app,
       deviceConfig.id,
+      deviceConfig.readonly,
       deviceConfig.ip,
       snmpKv.at("community"),
       snmpKv.at("version"));
@@ -75,6 +76,7 @@ std::unique_ptr<devices::Device> Snmpv2Device::createDevice(
 Snmpv2Device::Snmpv2Device(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const channels::snmp::Peer& peer,
     const channels::snmp::Community& community,
     const channels::snmp::Version& version,
@@ -82,7 +84,7 @@ Snmpv2Device::Snmpv2Device(
     const std::string& securityName,
     const channels::snmp::SecurityLevel& securityLevel,
     oid proto[])
-    : PingDevice(application, id_, folly::IPAddress(peer)),
+    : PingDevice(application, id_, readonly_, folly::IPAddress(peer)),
       snmpChannel(
           application.getSnmpEngine(),
           peer,

@@ -14,7 +14,7 @@ namespace devices {
 
 class DemoDevice : public Device {
  public:
-  DemoDevice(Application& application, const Id& id);
+  DemoDevice(Application& application, const Id& id, bool readonly_);
 
   DemoDevice() = delete;
   virtual ~DemoDevice() = default;

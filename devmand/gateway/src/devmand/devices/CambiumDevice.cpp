@@ -26,6 +26,7 @@ std::unique_ptr<devices::Device> CambiumDevice::createDevice(
   return std::make_unique<devices::CambiumDevice>(
       app,
       deviceConfig.id,
+      deviceConfig.readonly,
       folly::IPAddress(deviceConfig.ip),
       cambiumKv.at("client-mac"),
       cambiumKv.at("client-id"),
@@ -35,11 +36,12 @@ std::unique_ptr<devices::Device> CambiumDevice::createDevice(
 CambiumDevice::CambiumDevice(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const folly::IPAddress& deviceIp_,
     const std::string& clientMac_,
     const std::string& clientId_,
     const std::string& clientSecret_)
-    : Device(application, id_),
+    : Device(application, id_, readonly_),
       channel(deviceIp_.str(), clientId_, clientSecret_),
       deviceIp(deviceIp_),
       clientMac(clientMac_) {

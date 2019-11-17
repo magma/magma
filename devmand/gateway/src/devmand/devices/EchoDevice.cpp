@@ -13,11 +13,12 @@ namespace devices {
 std::unique_ptr<devices::Device> EchoDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
-  return std::make_unique<devices::EchoDevice>(app, deviceConfig.id);
+  return std::make_unique<devices::EchoDevice>(
+      app, deviceConfig.id, deviceConfig.readonly);
 }
 
-EchoDevice::EchoDevice(Application& application, const Id& id_)
-    : Device(application, id_) {}
+EchoDevice::EchoDevice(Application& application, const Id& id_, bool readonly_)
+    : Device(application, id_, readonly_) {}
 
 void EchoDevice::setConfig(const folly::dynamic& config) {
   state = config;

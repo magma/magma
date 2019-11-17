@@ -38,6 +38,7 @@ struct DeviceConfig {
   std::string platform;
   std::string ip;
   std::string yangConfig;
+  bool readonly;
 
   std::map<std::string, ChannelConfig> channelConfigs;
 
@@ -45,7 +46,8 @@ struct DeviceConfig {
     out << "id=" << c.id << ", "
         << "platform=" << c.platform << ", "
         << "ip=" << c.ip << ", "
-        << "yangConfig=" << c.yangConfig << ", channels {";
+        << "yangConfig=" << c.yangConfig << ", "
+        << "readonly=" << c.readonly << ", channels {";
     for (auto& channel : c.channelConfigs) {
       out << channel.first << ", ";
     }
@@ -59,12 +61,14 @@ struct DeviceConfig {
                lhs.platform,
                lhs.ip,
                lhs.yangConfig,
+               lhs.readonly,
                lhs.channelConfigs) <
         std::tie(
                rhs.id,
                rhs.platform,
                rhs.ip,
                rhs.yangConfig,
+               rhs.readonly,
                rhs.channelConfigs);
   }
 
@@ -74,12 +78,14 @@ struct DeviceConfig {
                lhs.platform,
                lhs.ip,
                lhs.yangConfig,
+               lhs.readonly,
                lhs.channelConfigs) ==
         std::tie(
                rhs.id,
                rhs.platform,
                rhs.ip,
                rhs.yangConfig,
+               rhs.readonly,
                rhs.channelConfigs);
   }
 
@@ -89,12 +95,14 @@ struct DeviceConfig {
                lhs.platform,
                lhs.ip,
                lhs.yangConfig,
+               lhs.readonly,
                lhs.channelConfigs) !=
         std::tie(
                rhs.id,
                rhs.platform,
                rhs.ip,
                rhs.yangConfig,
+               rhs.readonly,
                rhs.channelConfigs);
   }
 };
