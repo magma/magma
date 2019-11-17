@@ -255,6 +255,8 @@ bool Channel::handle(const Sentence& sentence) {
       if (sentence.front() == "!done") {
         if (sentence.size() == 1) {
           state = State::FullyConnected;
+          // TODO make this conditional on readonly flag
+          // enableSyslog();
           return true;
         } else if (sentence.size() == 2 and sentence[1].size() > 5) {
           std::string code = sentence[1];
@@ -293,6 +295,15 @@ void Channel::readErr(const folly::AsyncSocketException& ex) noexcept {
 
 State Channel::getState() const {
   return state;
+}
+
+void Channel::enableSyslog() {
+  // TODO don't just assume success
+  writeWordAndLength("/system/logging/action/add");
+  writeWordAndLength("=name=syslog");
+  writeWordAndLength("=target=remote");
+  writeWordAndLength(folly::sformat("=remote={}", "192.168.90.100"));
+  terminateSentence();
 }
 
 } // namespace mikrotik
