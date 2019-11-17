@@ -15,7 +15,11 @@ namespace devices {
 
 class DcsgDevice : public Device {
  public:
-  DcsgDevice(Application& application, const Id& id_, Host& host_);
+  DcsgDevice(
+      Application& application,
+      const Id& id_,
+      bool readonly_,
+      Host& host_);
 
   DcsgDevice() = delete;
   virtual ~DcsgDevice();
