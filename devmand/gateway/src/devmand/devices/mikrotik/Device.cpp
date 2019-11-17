@@ -259,7 +259,8 @@ std::shared_ptr<State> Device::getState() {
   state->addFinally([state]() {
     state->update([](auto& lockedState) {
       auto* field = lockedState.get_ptr("ietf-system:system");
-      if (field != nullptr and ((field = field->get_ptr("name")) != nullptr)) {
+      if (field != nullptr and
+          ((field = field->get_ptr("hostname")) != nullptr)) {
         auto hostname = field->asString();
         PAPC(lockedState)["hostname"] = hostname;
         PAPT(lockedState)["hostname"] = hostname;
