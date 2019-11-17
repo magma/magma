@@ -165,19 +165,22 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t *ta_list)
   return TA_LIST_RET_OK;
 }
 
-/* @brief compare a PLMNs
+/* @brief compare PLMNs
 */
 static int s1ap_paging_compare_plmns(
  plmn_t *enb_bplmns,
  uint8_t enb_plmn_count,
  const paging_tai_list_t  *p_tai_list)
 {
-  int plmn_found = 0;
   int plmn_idx, p_plmn_idx;
 
   for (plmn_idx = 0; plmn_idx < enb_plmn_count; plmn_idx++) {
-    plmn_t *enb_plmn;
+    plmn_t *enb_plmn = NULL;
     enb_plmn  = &enb_bplmns[plmn_idx];
+    if (enb_plmn == NULL) {
+      OAILOG_ERROR(LOG_S1AP, "NULL pointer!\n");
+      return false;
+    }
 
     for (p_plmn_idx = 0; p_plmn_idx < (p_tai_list->numoftac + 1);
       p_plmn_idx++) {
@@ -191,11 +194,11 @@ static int s1ap_paging_compare_plmns(
         (enb_plmn->mnc_digit1 == p_plmn.mnc_digit1) &&
         (enb_plmn->mnc_digit2 == p_plmn.mnc_digit2) &&
         (enb_plmn->mnc_digit3 == p_plmn.mnc_digit3)) {
-        return (plmn_found = 1);
+        return true;
       }
     }
   }
-  return (plmn_found);
+  return false;
 }
 
 /* @brief compare a TAC
@@ -204,19 +207,16 @@ static int s1ap_paging_compare_tac(
   uint8_t enb_tac,
   const paging_tai_list_t  *p_tai_list)
 {
-  int tac_found = 0;
-  int p_tac_count;
-
-  for (p_tac_count = 0;
+  for (int p_tac_count = 0;
     p_tac_count < (p_tai_list->numoftac + 1); p_tac_count++) {
     if (enb_tac == p_tai_list->tai_list[p_tac_count].tac) {
-      return(tac_found = 1);
+      return true;
     }
   }
-  return(tac_found);
+  return false;
 }
 
-/* @brief compare a given tai list against the one stored eNB structure.
+/* @brief compare given tai list against the one stored in eNB structure.
    @param ta_list, paging_request, p_tai_list_count
    @return - tai_matching=0 if both TAC and PLMN does not match with list of ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
@@ -226,26 +226,38 @@ int s1ap_paging_compare_ta_lists(
   const paging_tai_list_t *p_tai_list,
   uint8_t p_tai_list_count)
 {
-  int tac_ret = 0, bplmn_ret = 0, is_tai_matching = 0;
+  bool tac_ret = false, bplmn_ret = false;
   int enb_tai_count, p_list_count;
 
   for (enb_tai_count = 0; enb_tai_count < enb_ta_list->list_count;
     enb_tai_count++) {
-    supported_tai_items_t *enb_tai_item;
+    supported_tai_items_t *enb_tai_item = NULL;
     enb_tai_item = &enb_ta_list->supported_tai_items[enb_tai_count];
-
+    if (enb_tai_item == NULL) {
+      OAILOG_ERROR(LOG_S1AP, "NULL pointer!\n");
+      return false;
+    }
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
-      const paging_tai_list_t *tai;
+      const paging_tai_list_t *tai = NULL;
       tai = &p_tai_list[p_list_count];
+      if (tai == NULL) {
+        OAILOG_ERROR(LOG_S1AP, "NULL pointer!\n");
+        return false;
+      }
 
       tac_ret   = s1ap_paging_compare_tac(enb_tai_item->tac, tai);
-      bplmn_ret = s1ap_paging_compare_plmns(enb_tai_item->bplmns,
-         enb_tai_item->bplmnlist_count,
-         tai);
-      if ((tac_ret != 0) && (bplmn_ret != 0)) {
-        return(is_tai_matching = 1);
+      if (tac_ret != true) {
+        return false;
+      } else {
+        bplmn_ret = s1ap_paging_compare_plmns(enb_tai_item->bplmns,
+          enb_tai_item->bplmnlist_count,
+          tai);
+      }
+      // Returns TRUE only if both TAC and PLMN matches
+      if (tac_ret && bplmn_ret) {
+        return true;
       }
     }
   }
-  return(is_tai_matching);
+  return false;
 }

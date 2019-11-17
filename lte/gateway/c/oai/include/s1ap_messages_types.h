@@ -236,7 +236,7 @@ typedef struct itti_s1ap_paging_request_s {
 #define S1AP_PAGING_ID_STMSI 0X1
   uint8_t paging_id;
   s1ap_cn_domain_t domain_indicator;
-  uint16_t tai_list_count;
+  uint8_t tai_list_count;
   paging_tai_list_t paging_tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
 } itti_s1ap_paging_request_t;
 

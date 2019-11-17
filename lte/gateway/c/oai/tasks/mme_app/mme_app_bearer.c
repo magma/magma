@@ -1895,8 +1895,6 @@ int mme_app_paging_request_helper(
 {
   MessageDef *message_p = NULL;
   int rc = RETURNok;
-  uint8_t num_of_tai_lists = ue_context_p->emm_context._tai_list.numberoflists;
-  uint8_t num_of_tac = 0;
   OAILOG_FUNC_IN(LOG_MME_APP);
   // First, check if the UE is already connected. If so, stop
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
@@ -1908,6 +1906,13 @@ int mme_app_paging_request_helper(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate the memory for paging request message\n");
+    unlock_ue_contexts(ue_context_p);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   itti_s1ap_paging_request_t *paging_request =
     &message_p->ittiMsg.s1ap_paging_request;
   memset(paging_request, 0, sizeof(itti_s1ap_paging_request_t));
@@ -1928,108 +1933,21 @@ int mme_app_paging_request_helper(
   paging_request->domain_indicator = domain_indicator;
 
   // Send TAI List
-  paging_request->tai_list_count = num_of_tai_lists ;
+  paging_request->tai_list_count = ue_context_p->emm_context.
+    _tai_list.numberoflists ;
   tai_list_t *tai_list = &ue_context_p->emm_context._tai_list;
   paging_tai_list_t *p_tai_list = NULL;
-  for (int tai_list_idx = 0; tai_list_idx < num_of_tai_lists; tai_list_idx++) {
+  for (int tai_list_idx = 0;
+    tai_list_idx < paging_request->tai_list_count; tai_list_idx++) {
     p_tai_list = &paging_request->paging_tai_list[tai_list_idx];
-    num_of_tac = tai_list->partial_tai_list[tai_list_idx].numberofelements;
-    switch (tai_list->partial_tai_list[tai_list_idx].typeoflist) {
-      case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
-        p_tai_list->numoftac = num_of_tac;
-        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-          p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
-          p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
-          p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
-          p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
-          p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
-          p_tai_list->tai_list[idx].mnc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
-
-          p_tai_list->tai_list[idx].tac =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_non_consecutive_tacs.tac[idx];
-        }
-        break;
-
-      case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
-        p_tai_list->numoftac = num_of_tac;
-        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-          p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit1;
-          p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit2;
-          p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit3;
-          p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit1;
-          p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit2;
-          p_tai_list->tai_list[idx].mnc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit3;
-
-          p_tai_list->tai_list[idx].tac =
-              tai_list->partial_tai_list[tai_list_idx]
-              .u.tai_one_plmn_consecutive_tacs.tac + idx;
-        }
-        break;
-
-      case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-        p_tai_list->numoftac = num_of_tac;
-        for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-          p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mcc_digit1;
-          p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mcc_digit2;
-          p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mcc_digit3;
-          p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mnc_digit1;
-          p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mnc_digit2;
-          p_tai_list->tai_list[tai_list_idx].mnc_digit3 =
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].mnc_digit3;
-
-          p_tai_list->tai_list[idx].tac=
-            tai_list->partial_tai_list[tai_list_idx]
-            .u.tai_many_plmn[idx].tac;
-        }
-        break;
-
-      default:
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "BAD TAI list configuration, unknown TAI list type %u",
-          tai_list->partial_tai_list[tai_list_idx].typeoflist);
-      break;
-    }
+    mme_app_update_paging_tai_list(p_tai_list,
+      &tai_list->partial_tai_list[tai_list_idx],
+      tai_list->partial_tai_list[tai_list_idx].numberofelements);
   }
   rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   if (!set_timer) {
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   int timer_rc = timer_setup(
@@ -3366,5 +3284,84 @@ void mme_app_handle_path_switch_req_failure(
     ue_context_p->mme_ue_s1ap_id);
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_update_paging_tai_list(
+  paging_tai_list_t *p_tai_list,
+  partial_tai_list_t *tai_list,
+  uint8_t num_of_tac)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_DEBUG(LOG_MME_APP, "Updating TAI list\n");
+
+  p_tai_list->numoftac = num_of_tac;
+  switch (tai_list->typeoflist) {
+    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
+      for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+        p_tai_list->tai_list[idx].mcc_digit1 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
+        p_tai_list->tai_list[idx].mcc_digit2 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
+        p_tai_list->tai_list[idx].mcc_digit3 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
+        p_tai_list->tai_list[idx].mnc_digit1 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
+        p_tai_list->tai_list[idx].mnc_digit2 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
+        p_tai_list->tai_list[idx].mnc_digit3 =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+        p_tai_list->tai_list[idx].tac =
+          tai_list->u.tai_one_plmn_non_consecutive_tacs.tac[idx];
+      }
+      break;
+
+    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
+      for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+        p_tai_list->tai_list[idx].mcc_digit1 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit1;
+        p_tai_list->tai_list[idx].mcc_digit2 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit2;
+        p_tai_list->tai_list[idx].mcc_digit3 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit3;
+        p_tai_list->tai_list[idx].mnc_digit1 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit1;
+        p_tai_list->tai_list[idx].mnc_digit2 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit2;
+        p_tai_list->tai_list[idx].mnc_digit3 =
+          tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit3;
+
+        p_tai_list->tai_list[idx].tac =
+            tai_list->u.tai_one_plmn_consecutive_tacs.tac + idx;
+      }
+      break;
+
+    case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
+      for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+        p_tai_list->tai_list[idx].mcc_digit1 =
+          tai_list->u.tai_many_plmn[idx].mcc_digit1;
+        p_tai_list->tai_list[idx].mcc_digit2 =
+          tai_list->u.tai_many_plmn[idx].mcc_digit2;
+        p_tai_list->tai_list[idx].mcc_digit3 =
+          tai_list->u.tai_many_plmn[idx].mcc_digit3;
+        p_tai_list->tai_list[idx].mnc_digit1 =
+          tai_list->u.tai_many_plmn[idx].mnc_digit1;
+        p_tai_list->tai_list[idx].mnc_digit2 =
+          tai_list->u.tai_many_plmn[idx].mnc_digit2;
+        p_tai_list->tai_list[idx].mnc_digit3 =
+          tai_list->u.tai_many_plmn[idx].mnc_digit3;
+
+        p_tai_list->tai_list[idx].tac=
+          tai_list->u.tai_many_plmn[idx].tac;
+      }
+      break;
+
+    default:
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "BAD TAI list configuration, unknown TAI list type %u",
+        tai_list->typeoflist);
+    break;
+    }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
