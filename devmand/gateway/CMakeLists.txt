@@ -39,6 +39,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/DeviceIdentifiers.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/DhcpdConfig.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorQueue.cpp
@@ -153,6 +154,7 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ConfigGeneratorTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/DeviceIdentifiersTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp
