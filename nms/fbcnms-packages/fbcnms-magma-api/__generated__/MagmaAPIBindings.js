@@ -93,6 +93,12 @@ export type cwf_network = {
     id: network_id,
     name: network_name,
 };
+export type cwf_subscriber_directory_record = {
+    ipv4_addr ? : string,
+    location_history: Array < string >
+        ,
+    mac_addr ? : string,
+};
 export type diameter_client_configs = {
     address ? : string,
     dest_host ? : string,
@@ -759,11 +765,7 @@ export type promql_data = {
     resultType: string,
 };
 export type promql_metric = {
-    __name__: string,
-    gateway ? : string,
-    host ? : string,
-    instance: string,
-    job ? : string,
+    additionalProperties ? : string,
 };
 export type promql_metric_value = {
     metric: promql_metric,
@@ -1784,6 +1786,30 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord(
+            parameters: {
+                'networkId': string,
+                'subscriberId': string,
+            }
+        ): Promise < cwf_subscriber_directory_record >
+        {
+            let path = '/cwf/{network_id}/subscribers/{subscriber_id}/directory_record';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['subscriberId'] === undefined) {
+                throw new Error('Missing required  parameter: subscriberId');
+            }
+
+            path = path.replace('{subscriber_id}', `${parameters['subscriberId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getFeg(): Promise < Array < string >
         >
         {
