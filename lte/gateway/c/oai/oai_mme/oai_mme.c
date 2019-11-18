@@ -135,6 +135,9 @@ int main(int argc, char *argv[])
    * Handle signals here
    */
   itti_wait_tasks_end();
+#if EMBEDDED_SGW
+  free_spgw_config(&spgw_config);
+#endif
   pid_file_unlock();
 
   return 0;
