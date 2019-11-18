@@ -193,17 +193,17 @@ int _handle_ula_failure(struct ue_mm_context_s* ue_context_p)
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
-  emm_cn_pdn_fail_t nas_pdn_connectivity_fail = {0};
+  emm_cn_ula_or_csrsp_fail_t cn_ula_fail = {0};
   if (ue_context_p->emm_context.esm_ctx.esm_proc_data) {
-    nas_pdn_connectivity_fail.pti =
+    cn_ula_fail.pti =
       ue_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   } else {
     OAILOG_ERROR(
       LOG_MME_APP, " esm_proc_data is NULL, so failed to fetch pti \n");
   }
-  nas_pdn_connectivity_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
-  nas_pdn_connectivity_fail.cause = CAUSE_SYSTEM_FAILURE;
-  rc = nas_proc_pdn_connectivity_fail(&nas_pdn_connectivity_fail);
+  cn_ula_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+  cn_ula_fail.cause = CAUSE_SYSTEM_FAILURE;
+  rc = nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -232,24 +232,17 @@ int mme_app_handle_s6a_update_location_ans(
   if (ula_pP->result.present == S6A_RESULT_BASE) {
     if (ula_pP->result.choice.base != DIAMETER_SUCCESS) {
       /*
-       * The update location procedure has failed. Notify the NAS layer
+       * The update location procedure has failed. Notify the NAS module
        * and don't initiate the bearer creation on S-GW side.
        */
       OAILOG_ERROR(
         LOG_MME_APP,
         "ULR/ULA procedure returned non success (ULA.result.choice.base=%d)\n",
         ula_pP->result.choice.base);
-      if (_handle_ula_failure(ue_mm_context) == RETURNok) {
-        OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
-          ue_mm_context->mme_ue_s1ap_id);
-        unlock_ue_contexts(ue_mm_context);
-        OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-      } else {
+      if (_handle_ula_failure(ue_mm_context) != RETURNok) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+          "Failed to handle Un-successful ULA message for ue_id (%u)\n",
           ue_mm_context->mme_ue_s1ap_id);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -359,7 +352,7 @@ int mme_app_handle_s6a_update_location_ans(
   if (ue_mm_context->location_info_confirmed_in_hss == true) {
     ue_mm_context->location_info_confirmed_in_hss = false;
   }
-  rc = nas_proc_pdn_config_res(ue_mm_context->mme_ue_s1ap_id);
+  rc = nas_proc_ula_success(ue_mm_context->mme_ue_s1ap_id);
 
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

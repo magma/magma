@@ -69,6 +69,7 @@ const styles = ({symphony}) => ({
     outline: 0,
     background: 'transparent',
     flexGrow: 1,
+    width: '100%',
     ...symphony.typography.body2,
     '&::placeholder': {
       color: symphony.palette.D400,

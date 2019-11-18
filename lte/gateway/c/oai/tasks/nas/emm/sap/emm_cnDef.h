@@ -51,10 +51,10 @@ typedef enum emmcn_primitive_s {
   _EMMCN_AUTHENTICATION_PARAM_RES,
   _EMMCN_AUTHENTICATION_PARAM_FAIL,
   _EMMCN_DEREGISTER_UE,
-  _EMMCN_PDN_CONFIG_RES,                // LG
-  _EMMCN_PDN_CONNECTIVITY_RES,          // LG
-  _EMMCN_PDN_CONNECTIVITY_FAIL,         // LG
-  _EMMCN_ACTIVATE_DEDICATED_BEARER_REQ, // LG
+  _EMMCN_ULA_SUCCESS,
+  _EMMCN_CS_RESPONSE_SUCCESS,
+  _EMMCN_ULA_OR_CSRSP_FAIL,
+  _EMMCN_ACTIVATE_DEDICATED_BEARER_REQ,
   _EMMCN_IMPLICIT_DETACH_UE,
   _EMMCN_SMC_PROC_FAIL,
   _EMMCN_NW_INITIATED_DETACH_UE,
@@ -83,7 +83,7 @@ typedef struct emm_cn_auth_res_s {
   uint8_t nb_vectors;
 
   /* Consider only one E-UTRAN vector for the moment... */
-  eutran_vector_t *vector[MAX_EPS_AUTH_VECTORS];
+  eutran_vector_t* vector[MAX_EPS_AUTH_VECTORS];
 } emm_cn_auth_res_t;
 
 typedef struct emm_cn_auth_fail_s {
@@ -94,17 +94,20 @@ typedef struct emm_cn_auth_fail_s {
   nas_cause_t cause;
 } emm_cn_auth_fail_t;
 
-typedef struct emm_cn_pdn_config_res_s {
+typedef struct emm_cn_ula_success_s {
   mme_ue_s1ap_id_t ue_id; // nas ref
-} emm_cn_pdn_config_res_t;
+} emm_cn_ula_success_t;
 
-typedef struct emm_cn_pdn_fail_s {
+/* emm_cn_ula_or_csrsp_fail_s is used for handling failed
+ * Locatio update procedure and Create session procedure
+ */
+typedef struct emm_cn_ula_or_csrsp_fail_s {
   mme_ue_s1ap_id_t ue_id;
   int pti;
   pdn_conn_rsp_cause_t cause;
-} emm_cn_pdn_fail_t;
+} emm_cn_ula_or_csrsp_fail_t;
 
-typedef struct emm_cn_pdn_res_s {
+typedef struct emm_cn_cs_response_success_s {
   pdn_cid_t pdn_cid;
   /* Identity of the procedure transaction executed to
    * activate the PDN connection enty
@@ -127,7 +130,7 @@ typedef struct emm_cn_pdn_res_s {
 
   /* S-GW TEID and IP address for user-plane */
   fteid_t sgw_s1u_fteid;
-} emm_cn_pdn_res_t;
+} emm_cn_cs_response_success_t;
 
 struct itti_mme_app_create_dedicated_bearer_req_s;
 typedef struct itti_mme_app_create_dedicated_bearer_req_s
@@ -163,16 +166,16 @@ typedef itti_sgsap_mm_information_req_t emm_cn_cs_domain_mm_information_req_t;
 typedef struct emm_mme_ul_s {
   emm_cn_primitive_t primitive;
   union {
-    emm_cn_auth_res_t *auth_res;
-    emm_cn_auth_fail_t *auth_fail;
+    emm_cn_auth_res_t* auth_res;
+    emm_cn_auth_fail_t* auth_fail;
     emm_cn_deregister_ue_t deregister;
-    emm_cn_pdn_config_res_t *emm_cn_pdn_config_res;
-    emm_cn_pdn_res_t *emm_cn_pdn_res;
-    emm_cn_pdn_fail_t *emm_cn_pdn_fail;
+    emm_cn_ula_success_t* emm_cn_ula_success;
+    emm_cn_cs_response_success_t* emm_cn_cs_response_success;
+    emm_cn_ula_or_csrsp_fail_t* emm_cn_ula_or_csrsp_fail;
     emm_cn_activate_dedicated_bearer_req_t *activate_dedicated_bearer_req;
     emm_cn_deactivate_dedicated_bearer_req_t *deactivate_dedicated_bearer_req;
     emm_cn_implicit_detach_ue_t emm_cn_implicit_detach;
-    emm_cn_smc_fail_t *smc_fail;
+    emm_cn_smc_fail_t* smc_fail;
     emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach;
     emm_cn_cs_domain_location_updt_acc_t emm_cn_cs_domain_location_updt_acc;
     emm_cn_cs_domain_location_updt_fail_t emm_cn_cs_domain_location_updt_fail;

@@ -501,49 +501,50 @@ int nas_proc_deregister_ue(mme_ue_s1ap_id_t ue_id)
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_config_res(mme_ue_s1ap_id_t ue_id)
+int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
-  emm_cn_pdn_config_res_t  emm_cn_pdn_config_res = {0};
-  emm_cn_pdn_config_res.ue_id = ue_id;
-  emm_sap.primitive = EMMCN_PDN_CONFIG_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = &emm_cn_pdn_config_res;
+  emm_cn_ula_success_t emm_cn_ula_success = {0};
+  emm_cn_ula_success.ue_id = ue_id;
+  emm_sap.primitive = EMMCN_ULA_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_ula_success = &emm_cn_ula_success;
   OAILOG_INFO(
     LOG_NAS,
     "Received PDN CONFIG RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_config_res.ue_id);
+    emm_cn_ula_success.ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *emm_cn_pdn_res)
+int nas_proc_cs_respose_success(
+  emm_cn_cs_response_success_t* cs_response_success)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_res = emm_cn_pdn_res;
+  emm_sap.primitive = EMMCN_CS_RESPONSE_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
   OAILOG_INFO(
     LOG_NAS,
     "Received PDN CONNECTIVITY RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_res->ue_id);
+    cs_response_success->ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_fail(emm_cn_pdn_fail_t *emm_cn_pdn_fail)
+int nas_proc_ula_or_csrsp_fail(emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_FAIL;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_fail = emm_cn_pdn_fail;
+  emm_sap.primitive = EMMCN_ULA_OR_CSRSP_FAIL;
+  emm_sap.u.emm_cn.u.emm_cn_ula_or_csrsp_fail = ula_or_csrsp_fail;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

@@ -534,7 +534,7 @@ esm_cause_t esm_recv_information_response(
     &esm_cause);
 
   if (pid != RETURNerror) {
-    // Continue with pdn connectivity request
+    // Continue with S6a Update Location Request
     mme_app_send_s6a_update_location_req(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
     esm_cause = ESM_CAUSE_SUCCESS;

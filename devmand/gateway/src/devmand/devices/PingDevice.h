@@ -18,6 +18,7 @@ class PingDevice : public Device {
   PingDevice(
       Application& application,
       const Id& id,
+      bool readonly_,
       const folly::IPAddress& ip_);
   PingDevice() = delete;
   virtual ~PingDevice() = default;

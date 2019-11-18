@@ -51,6 +51,7 @@
 #include "3gpp_29.274.h"
 #include "3gpp_24.301.h"
 #include "mme_app_ue_context.h"
+#include "dynamic_memory_check.h"
 #include "emm_cn.h"
 #include "emm_sap.h"
 #include "emm_proc.h"
@@ -104,8 +105,8 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
 static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP);
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP);
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -276,7 +277,7 @@ void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -429,8 +430,10 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_connectivity) {
-      mme_app_send_s11_create_session_req(
-        mme_app_desc_p, ue_mm_context, pdn_cid);
+      if ((mme_app_send_s11_create_session_req(
+        mme_app_desc_p, ue_mm_context, pdn_cid)) == RETURNok) {
+        increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
+      }
     } else {
       OAILOG_ERROR(LOG_NAS_ESM, "Received Invalid PDN type \n");
     }
@@ -528,7 +531,7 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -633,6 +636,9 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
+    if (msg_pP->pdn_addr) {
+      bdestroy_wrapper(&msg_pP->pdn_addr);
+    }
     if (size > 0) {
       rsp = blk2bstr(emm_cn_sap_buffer, size);
     }
@@ -711,11 +717,11 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
+static int _emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
-  struct emm_context_s *emm_ctx_p = NULL;
+  struct emm_context_s* emm_ctx_p = NULL;
   ESM_msg esm_msg = {.header = {0}};
   int esm_cause;
   emm_ctx_p = emm_context_get(&_emm_data, msg->ue_id);
@@ -1312,16 +1318,16 @@ int emm_cn_send(const emm_cn_t *msg)
       rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
-    case EMMCN_PDN_CONFIG_RES:
-      rc = _emm_cn_pdn_config_res(msg->u.emm_cn_pdn_config_res);
+    case EMMCN_ULA_SUCCESS:
+      rc = _emm_cn_ula_success(msg->u.emm_cn_ula_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_RES:
-      rc = _emm_cn_pdn_connectivity_res(msg->u.emm_cn_pdn_res);
+    case EMMCN_CS_RESPONSE_SUCCESS:
+      rc = _emm_cn_cs_response_success(msg->u.emm_cn_cs_response_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_FAIL:
-      rc = _emm_cn_pdn_connectivity_fail(msg->u.emm_cn_pdn_fail);
+    case EMMCN_ULA_OR_CSRSP_FAIL:
+      rc = _emm_cn_ula_or_csrsp_fail(msg->u.emm_cn_ula_or_csrsp_fail);
       break;
 
     case EMMCN_ACTIVATE_DEDICATED_BEARER_REQ:

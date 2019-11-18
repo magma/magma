@@ -214,9 +214,10 @@ static void _esm_information_t3489_handler(void *args)
       /*
        * The maximum number of deactivate EPS bearer context request
        * message retransmission has exceed
-       */
-      // TODO call something like _emm_cn_pdn_connectivity_fail (emm_cn_pdn_fail) #ESM information not received
-      /*
+       *
+       * TODO call something like esm_send_pdn_connectivity_reject
+       * #ESM information not received
+       *
        * Stop timer T3489
        */
       esm_ebr_timer_data->ctx->esm_ctx.T3489.id = NAS_TIMER_INACTIVE_ID;
@@ -224,7 +225,7 @@ static void _esm_information_t3489_handler(void *args)
        * Re-start T3489 timer
        */
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
-      free_wrapper((void **) esm_ebr_timer_data);
+      free_wrapper((void**) esm_ebr_timer_data);
     }
   }
 
