@@ -428,7 +428,7 @@ declare module "@material-ui/core/Dialog/Dialog" {
     TransitionCallback,
     TransitionDuration
   } from "@material-ui/core/internal/transition";
-  declare type MaxWidth = "xs" | "sm" | "md" | false;
+  declare type MaxWidth = "xs" | "sm" | "md" | "lg" | "xl" | false;
 
   declare module.exports: ComponentType<{
     children?: Node,

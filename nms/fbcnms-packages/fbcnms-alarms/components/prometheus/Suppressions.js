@@ -14,13 +14,11 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import SimpleTable from '../SimpleTable';
-import type {AlertSuppression} from '../AlarmAPIType';
-
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUrls} from '../ApiUrls';
+import type {ApiUtil} from '../AlarmsApi';
 
 const useStyles = makeStyles(theme => ({
   addButton: {
@@ -38,10 +36,11 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  apiUrls: ApiUrls,
+  apiUtil: ApiUtil,
 };
 
 export default function Suppressions(props: Props) {
+  const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
   const [currentAlert, setCurrentAlert] = useState<Object>({});
   const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
@@ -60,11 +59,11 @@ export default function Suppressions(props: Props) {
     setMenuAnchorEl(null);
   };
 
-  const {isLoading, error, response} = useAxios<null, Array<AlertSuppression>>({
-    method: 'get',
-    url: props.apiUrls.viewSilences(match),
-    cacheCounter: lastRefreshTime,
-  });
+  const {isLoading, error, response} = apiUtil.useAlarmsApi(
+    apiUtil.getSuppressions,
+    {networkId: match.params.networkId},
+    lastRefreshTime,
+  );
 
   if (error) {
     enqueueSnackbar(
@@ -75,7 +74,7 @@ export default function Suppressions(props: Props) {
     );
   }
 
-  const silencesList = response?.data || [];
+  const silencesList = response || [];
 
   const columnStruct = [
     {title: 'name', path: ['comment']},

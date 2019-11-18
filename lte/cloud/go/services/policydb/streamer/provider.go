@@ -12,11 +12,12 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	lte_models "magma/lte/cloud/go/plugin/models"
-	protos2 "magma/lte/cloud/go/protos"
+	lteModels "magma/lte/cloud/go/plugin/models"
+	lteProtos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
 )
@@ -43,20 +44,80 @@ func (provider *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.An
 		return nil, err
 	}
 
-	ruleProtos := make([]*protos2.PolicyRule, 0, len(ruleEnts))
+	ruleProtos := make([]*lteProtos.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
-		ruleConfig := rule.Config.(*lte_models.PolicyRule)
-		ruleProto := &protos2.PolicyRule{}
-		err = ruleConfig.ToProto(ruleProto)
-		if err != nil {
-			return nil, err
-		}
-		ruleProtos = append(ruleProtos, ruleProto)
+		ruleProtos = append(ruleProtos, createRuleProtoFromEnt(rule))
 	}
 	return rulesToUpdates(ruleProtos)
 }
 
-func rulesToUpdates(rules []*protos2.PolicyRule) ([]*protos.DataUpdate, error) {
+func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lteProtos.PolicyRule {
+	if ruleEnt.Config == nil {
+		return &lteProtos.PolicyRule{Id: ruleEnt.Key}
+	}
+
+	cfg := ruleEnt.Config.(*lteModels.PolicyRuleConfig)
+	return &lteProtos.PolicyRule{
+		Id:            ruleEnt.Key,
+		Priority:      swag.Uint32Value(cfg.Priority),
+		RatingGroup:   cfg.RatingGroup,
+		MonitoringKey: cfg.MonitoringKey,
+		Redirect:      redirectInfoToProto(cfg.Redirect),
+		FlowList:      flowListToProto(cfg.FlowList),
+		Qos:           qosModelToProto(cfg.Qos),
+		TrackingType:  lteProtos.PolicyRule_TrackingType(lteProtos.PolicyRule_TrackingType_value[cfg.TrackingType]),
+		HardTimeout:   0,
+	}
+}
+
+func flowListToProto(flowList []*lteModels.FlowDescription) []*lteProtos.FlowDescription {
+	ret := make([]*lteProtos.FlowDescription, 0, len(flowList))
+	for _, srcFlow := range flowList {
+		protoFlow := &lteProtos.FlowDescription{
+			Action: lteProtos.FlowDescription_Action(lteProtos.FlowDescription_Action_value[swag.StringValue(srcFlow.Action)]),
+		}
+		protos.FillIn(srcFlow, protoFlow)
+
+		protoFlow.Match = &lteProtos.FlowMatch{
+			Direction: lteProtos.FlowMatch_Direction(lteProtos.FlowMatch_Direction_value[swag.StringValue(srcFlow.Match.Direction)]),
+			IpProto:   lteProtos.FlowMatch_IPProto(lteProtos.FlowMatch_IPProto_value[*srcFlow.Match.IPProto]),
+		}
+		protos.FillIn(srcFlow.Match, protoFlow.Match)
+
+		ret = append(ret, protoFlow)
+	}
+	return ret
+}
+
+func redirectInfoToProto(redirectModel *lteModels.RedirectInformation) *lteProtos.RedirectInformation {
+	if redirectModel == nil {
+		return nil
+	}
+
+	return &lteProtos.RedirectInformation{
+		Support:       lteProtos.RedirectInformation_Support(lteProtos.RedirectInformation_Support_value[swag.StringValue(redirectModel.Support)]),
+		AddressType:   lteProtos.RedirectInformation_AddressType(lteProtos.RedirectInformation_AddressType_value[swag.StringValue(redirectModel.AddressType)]),
+		ServerAddress: swag.StringValue(redirectModel.ServerAddress),
+	}
+}
+
+func qosModelToProto(qosModel *lteModels.FlowQos) *lteProtos.FlowQos {
+	if qosModel == nil {
+		return nil
+	}
+
+	return &lteProtos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(qosModel.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(qosModel.MaxReqBwDl),
+		// The following values haven't been exposed via the API yet
+		GbrUl: 0,
+		GbrDl: 0,
+		Qci:   0,
+		Arp:   nil,
+	}
+}
+
+func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(rules))
 	for _, policy := range rules {
 		marshaledPolicy, err := proto.Marshal(policy)
@@ -90,23 +151,23 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 		return nil, err
 	}
 
-	bnProtos := make([]*protos2.ChargingRuleBaseNameRecord, 0, len(bnEnts))
+	bnProtos := make([]*lteProtos.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		bnConfig := bn.Config.(*lte_models.BaseNameRecord)
+		bnConfig := bn.Config.(*lteModels.BaseNameRecord)
 		ruleNames := make([]string, 0, len(bn.Associations))
 		for _, assoc := range bn.Associations {
 			ruleNames = append(ruleNames, assoc.Key)
 		}
-		bnProto := &protos2.ChargingRuleBaseNameRecord{
+		bnProto := &lteProtos.ChargingRuleBaseNameRecord{
 			Name:         string(bnConfig.Name),
-			RuleNamesSet: &protos2.ChargingRuleNameSet{RuleNames: ruleNames},
+			RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: ruleNames},
 		}
 		bnProtos = append(bnProtos, bnProto)
 	}
 	return bnsToUpdates(bnProtos)
 }
 
-func bnsToUpdates(bns []*protos2.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
+func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(bns))
 	for _, bn := range bns {
 		marshaledBN, err := proto.Marshal(bn)

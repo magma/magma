@@ -25,6 +25,9 @@ subscriber_profile_substr_match: ''
 # Interface for finding the local ip (ie 192.168.128.1)
 bridge_interface: gtp_br0
 
+# Static rule name for captive_portal redirect
+redirect_rule_name: redirect
+
 # Specifies an {ip -> [ports]} map to allow traffic
 # NOTE: Right not we only support TCP traffic for the ports
 whitelisted_ips:

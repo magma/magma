@@ -126,9 +126,13 @@ func (srv *BootstrapperServer) RequestSign(
 			codes.Aborted, "Failed to verify response: %s", err))
 	}
 
-	// Ignore requested cert duration & overwrite it with our own
+	// Ignore requested cert duration & overwrite it with our own if it's
+	// longer than our default duration (allow shorter-lived certs)
 	if resp.Csr != nil {
-		resp.Csr.ValidTime = ptypes.DurationProto(GatewayCertificateDuration)
+		reqValidDuration, err := ptypes.Duration(resp.Csr.ValidTime)
+		if err != nil || reqValidDuration.Nanoseconds() > GatewayCertificateDuration.Nanoseconds() {
+			resp.Csr.ValidTime = ptypes.DurationProto(GatewayCertificateDuration)
+		}
 	}
 	cert, err := certifier.SignCSR(resp.Csr)
 	if err != nil {

@@ -6,15 +6,15 @@ metrics:
   # alertmanager, and configmanager pods
   volumes:
     prometheusData:
-      volumeSpec:
-        hostPath:
-          path: /prometheusData
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /prometheusData
+        #   type: DirectoryOrCreate
     prometheusConfig:
-      volumeSpec:
-        hostPath:
-          path: /configs/prometheus
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /configs/prometheus
+        #   type: DirectoryOrCreate
 
 prometheus:
   # Enable/Disable chart
@@ -233,3 +233,11 @@ grafana:
   # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+configFiles:
+  useDefaults:
+    alertmanagerConf: true
+    internalAlertsConf: true
+
+# can be used to add new config or overwrite the default config files completely after the configFiles default has been disabled
+extraConfigFiles:

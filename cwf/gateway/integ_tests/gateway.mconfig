@@ -64,6 +64,10 @@
    "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
    "logLevel": "INFO"
   },
+  "directoryd": {
+   "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
+   "logLevel": "INFO"
+  },
   "eap_aka": {
    "@type": "type.googleapis.com/magma.mconfig.EapAkaConfig",
    "logLevel": "INFO",
@@ -109,6 +113,10 @@
    "allowedGrePeers": [
     {"ip": "192.168.70.102", "key":5001}
    ]
+  },
+  "state": {
+   "@type": "type.googleapis.com/magma.mconfig.State",
+   "logLevel": "INFO"
   },
   "session_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",

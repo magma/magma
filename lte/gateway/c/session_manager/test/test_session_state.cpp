@@ -159,7 +159,7 @@ TEST_F(SessionStateTest, test_add_used_credit)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&update, &actions);
+  session_state->get_updates(update, &actions);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 2);
   EXPECT_EQ(update.usage_monitors_size(), 2);
@@ -192,7 +192,7 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&update, &actions);
+  session_state->get_updates(update, &actions);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 2);
   EXPECT_EQ(update.usage_monitors_size(), 2);
@@ -213,7 +213,7 @@ TEST_F(SessionStateTest, test_session_level_key)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&update, &actions);
+  session_state->get_updates(update, &actions);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
   auto &single_update = update.usage_monitors(0).update();
@@ -232,7 +232,7 @@ TEST_F(SessionStateTest, test_reauth_key)
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&update, &actions);
+  session_state->get_updates(update, &actions);
   EXPECT_EQ(update.updates_size(), 1);
   EXPECT_EQ(
     session_state->get_charging_pool().get_credit(1, REPORTING_TX), 1000);
@@ -249,7 +249,7 @@ TEST_F(SessionStateTest, test_reauth_key)
 
   session_state->add_used_credit("rule1", 2, 1);
   UpdateSessionRequest reauth_update;
-  session_state->get_updates(&reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions);
   EXPECT_EQ(reauth_update.updates_size(), 1);
   auto &usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.bytes_tx(), 2);
@@ -264,7 +264,7 @@ TEST_F(SessionStateTest, test_reauth_new_key)
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions);
   EXPECT_EQ(reauth_update.updates_size(), 1);
   auto &usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.charging_key(), 1);
@@ -292,7 +292,7 @@ TEST_F(SessionStateTest, test_reauth_all)
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(&reauth_update, &actions);
+  session_state->get_updates(reauth_update, &actions);
   EXPECT_EQ(reauth_update.updates_size(), 2);
 
   // All charging keys are reporting, no update needed

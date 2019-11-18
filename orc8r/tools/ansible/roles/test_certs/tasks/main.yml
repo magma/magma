@@ -38,4 +38,5 @@
   with_items:
     - controller.magma.test
     - bootstrapper-controller.magma.test
+    - fluentd.magma.test
   when: full_provision

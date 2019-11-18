@@ -279,7 +279,9 @@ class WifiNetworkConfig extends React.Component<Props, State> {
   handleConfigChange = (field, value) => {
     this.setState({
       config: {
+        // $FlowFixMe Set state for each field
         ...this.state.config,
+        // $FlowFixMe Set state for each field
         [field]: value,
       },
     });

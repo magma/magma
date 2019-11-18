@@ -8,26 +8,6 @@
  * @format
  */
 
-export type PolicyFlow = {
-  action: string,
-  match: {
-    direction: string,
-    ip_proto: string,
-    ipv4_src?: string,
-    ipv4_dst?: string,
-    udp_src?: string,
-    udp_dst?: string,
-    tcp_src?: string,
-    tcp_dst?: string,
-  },
-};
-
-export type PolicyRule = {
-  id: string,
-  priority: number,
-  flow_list: ?Array<PolicyFlow>,
-};
-
 export const ACTION = {
   PERMIT: 'PERMIT',
   DENY: 'DENY',

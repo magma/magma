@@ -32,7 +32,6 @@ add_library(TASK_SGW
     pgw_procedures.c
     spgw_state.cpp
     spgw_state_manager.cpp
-    spgw_service_handler.c
     spgw_state_converter.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}

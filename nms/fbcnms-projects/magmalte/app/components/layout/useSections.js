@@ -23,8 +23,8 @@ import {
   FEG,
   LTE,
   RHINO,
+  SYMPHONY,
   THIRD_PARTY,
-  WAC,
   WIFI,
 } from '@fbcnms/types/network';
 import {getCWFSections} from '../cwf/CWFSections';
@@ -33,7 +33,6 @@ import {getFEGSections} from '../feg/FEGSections';
 import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
-import {getWACSections} from '@fbcnms/magmalte/app/components/wac/WACSections';
 
 export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
@@ -57,10 +56,9 @@ export default function useSections(): SectionsConfigs {
   switch (networkType) {
     case WIFI:
       return getMeshSections(alertsEnabled);
+    case SYMPHONY:
     case THIRD_PARTY:
       return getDevicesSections(alertsEnabled);
-    case WAC:
-      return getWACSections();
     case RHINO:
       return getRhinoSections();
     case CWF:

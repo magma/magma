@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 )
 
@@ -43,6 +44,7 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &cwfmodels.NetworkCarrierWifiConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &cwfmodels.GatewayCwfConfigs{}),
+		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &cwfmodels.CwfSubscriberDirectoryRecord{}),
 	}
 }
 

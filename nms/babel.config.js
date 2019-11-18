@@ -43,6 +43,8 @@ module.exports = {
     '@babel/plugin-proposal-nullish-coalescing-operator',
     '@babel/plugin-proposal-optional-chaining',
     '@babel/plugin-transform-react-jsx',
+    'babel-plugin-fbt',
+    'babel-plugin-fbt-runtime',
   ],
   env: {
     test: {

@@ -112,6 +112,7 @@ def _set_cwag_configs():
         sudo('mkdir -p /var/opt/magma/configs')
         sudo('cp gateway.mconfig /var/opt/magma/configs')
         sudo('cp sessiond.yml /var/opt/magma/configs')
+        sudo('cp redis.conf /var/opt/magma')
 
 
 def _get_cwag_br_mac():
@@ -174,6 +175,5 @@ def _run_unit_tests():
 
 def _run_integ_tests():
     """ Run the integration tests """
-
     with cd(CWAG_INTEG_ROOT):
         run('make integ_test')

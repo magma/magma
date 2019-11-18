@@ -23,14 +23,18 @@ std::unique_ptr<devices::Device> PingDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   return std::make_unique<devices::PingDevice>(
-      app, deviceConfig.id, folly::IPAddress(deviceConfig.ip));
+      app,
+      deviceConfig.id,
+      deviceConfig.readonly,
+      folly::IPAddress(deviceConfig.ip));
 }
 
 PingDevice::PingDevice(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const folly::IPAddress& ip_)
-    : Device(application, id_), channel(application.getPingEngine(), ip_) {}
+    : Device(application, id_, readonly_), channel(application.getPingEngine(ip_), ip_) {}
 
 std::shared_ptr<State> PingDevice::getState() {
   auto state = State::make(app, getId());

@@ -32,3 +32,10 @@ func (m *GatewayCwfConfigs) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *CwfSubscriberDirectoryRecord) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

@@ -20,6 +20,7 @@ class Device : public Snmpv2Device {
   Device(
       Application& application,
       const Id& id,
+      bool readonly,
       const folly::IPAddress& _ip,
       const std::string& _username,
       const std::string& _password,

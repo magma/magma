@@ -26,10 +26,6 @@ export const MagmaAPIUrls = {
     `/nms/apicontroller/magma/networks/${dedupeNetworkId(networkIdOrMatch)}`,
   networkConfigsForType: (networkIdOrMatch: string | Match, type: 'wifi') =>
     `${MagmaAPIUrls.network(networkIdOrMatch)}/configs/${type}`,
-  networkPolicyRules: (networkIdOrMatch: string | Match) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules`,
-  networkPolicyRule: (networkIdOrMatch: string | Match, ruleId: string) =>
-    `${MagmaAPIUrls.network(networkIdOrMatch)}/policies/rules/${ruleId}`,
   gateways: (networkIdOrMatch: string | Match, viewFull: boolean = false) => {
     const params = viewFull ? '?view=full' : '';
     return `${MagmaAPIUrls.network(networkIdOrMatch)}/gateways${params}`;

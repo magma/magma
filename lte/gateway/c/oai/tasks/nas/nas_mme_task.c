@@ -31,6 +31,7 @@
 #include "nas_timer.h"
 #include "intertask_interface_types.h"
 #include "mme_app_messages_types.h"
+#include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "s6a_messages_types.h"
@@ -43,11 +44,13 @@ static void nas_exit(void);
 static void *nas_intertask_interface(void *args_p)
 {
   itti_mark_task_ready(TASK_NAS_MME);
+  mme_app_desc_t *mme_app_desc_p;
 
   while (1) {
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_NAS_MME, &received_message_p);
+    mme_app_desc_p = get_locked_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -58,20 +61,6 @@ static void *nas_intertask_interface(void *args_p)
         nas_proc_create_dedicated_bearer(
           &MME_APP_CREATE_DEDICATED_BEARER_REQ(received_message_p));
         break;
-
-      case NAS_DOWNLINK_DATA_CNF: {
-        nas_proc_dl_transfer_cnf(
-          NAS_DL_DATA_CNF(received_message_p).ue_id,
-          NAS_DL_DATA_CNF(received_message_p).err_code,
-          &NAS_DL_DATA_REJ(received_message_p).nas_msg);
-      } break;
-
-      case NAS_DOWNLINK_DATA_REJ: {
-        nas_proc_dl_transfer_rej(
-          NAS_DL_DATA_REJ(received_message_p).ue_id,
-          NAS_DL_DATA_REJ(received_message_p).err_code,
-          &NAS_DL_DATA_REJ(received_message_p).nas_msg);
-      } break;
 
       case NAS_PDN_CONFIG_RSP: {
         nas_proc_pdn_config_res(&NAS_PDN_CONFIG_RSP(received_message_p));
@@ -92,14 +81,6 @@ static void *nas_intertask_interface(void *args_p)
           NAS_IMPLICIT_DETACH_UE_IND(received_message_p).ue_id);
       } break;
 
-      case NAS_UPLINK_DATA_IND: {
-        nas_proc_ul_transfer_ind(
-          NAS_UL_DATA_IND(received_message_p).ue_id,
-          NAS_UL_DATA_IND(received_message_p).tai,
-          NAS_UL_DATA_IND(received_message_p).cgi,
-          &NAS_UL_DATA_IND(received_message_p).nas_msg);
-      } break;
-
       case S1AP_DEREGISTER_UE_REQ: {
         nas_proc_deregister_ue(
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
@@ -108,15 +89,6 @@ static void *nas_intertask_interface(void *args_p)
       case NAS_NW_INITIATED_DETACH_UE_REQ: {
         nas_proc_nw_initiated_detach_ue_request(
           &NAS_NW_INITIATED_DETACH_UE_REQ(received_message_p));
-      } break;
-
-      case S6A_AUTH_INFO_ANS: {
-        /*
-         * We received the authentication vectors from HSS, trigger a ULR
-         * for now. Normaly should trigger an authentication procedure with UE.
-         */
-        nas_proc_authentication_info_answer(
-          &S6A_AUTH_INFO_ANS(received_message_p));
       } break;
 
       case NAS_CS_DOMAIN_LOCATION_UPDATE_ACC: {
@@ -173,6 +145,7 @@ static void *nas_intertask_interface(void *args_p)
         break;
 
       case TERMINATE_MESSAGE: {
+        put_mme_nas_state(&mme_app_desc_p);
         nas_exit();
         OAI_FPRINTF_INFO("TASK_NAS_MME terminated\n");
         itti_free_msg_content(received_message_p);
@@ -199,6 +172,7 @@ static void *nas_intertask_interface(void *args_p)
       } break;
     }
 
+    put_mme_nas_state(&mme_app_desc_p);
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;

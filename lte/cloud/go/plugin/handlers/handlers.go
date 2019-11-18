@@ -455,7 +455,7 @@ func createSubscriber(c echo.Context) error {
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:   lte.SubscriberEntityType,
-		Key:    payload.ID,
+		Key:    string(payload.ID),
 		Config: payload.Lte,
 	})
 	if err != nil {
