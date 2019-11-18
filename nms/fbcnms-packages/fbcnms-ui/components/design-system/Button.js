@@ -29,6 +29,7 @@ const useStyles = makeStyles(_theme => ({
   primarySkin: {},
   redSkin: {},
   regularSkin: {},
+  graySkin: {},
   disabled: {},
   containedVariant: {
     height: '32px',
@@ -61,6 +62,18 @@ const useStyles = makeStyles(_theme => ({
     },
     '&$regularSkin': {
       backgroundColor: symphony.palette.white,
+      '&:not($disabled) $buttonText': {
+        color: symphony.palette.secondary,
+      },
+      '&:hover:not($disabled) $buttonText': {
+        color: symphony.palette.primary,
+      },
+      '&:active:not($disabled) $buttonText': {
+        color: symphony.palette.B700,
+      },
+    },
+    '&$graySkin': {
+      backgroundColor: symphony.palette.background,
       '&:not($disabled) $buttonText': {
         color: symphony.palette.secondary,
       },
@@ -117,6 +130,17 @@ const useStyles = makeStyles(_theme => ({
         opacity: 0.75,
       },
     },
+    '&$graySkin': {
+      '&:not($disabled) $buttonText': {
+        color: symphony.palette.secondary,
+      },
+      '&:hover:not($disabled) $buttonText': {
+        opacity: 0.75,
+      },
+      '&:active:not($disabled) $buttonText': {
+        opacity: 0.75,
+      },
+    },
     '&$disabled': {
       cursor: 'default',
       '& $buttonText': {
@@ -130,7 +154,7 @@ type Props = {
   className?: string,
   children: React.Node,
   onClick?: void | (() => void | Promise<void>),
-  skin: 'primary' | 'regular' | 'red',
+  skin: 'primary' | 'regular' | 'red' | 'gray',
   variant: 'contained' | 'text',
   disabled: boolean,
 };
