@@ -21,6 +21,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	KiloBytes = 1024
+	Buffer    = 50 * KiloBytes
+)
+
 func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	tr := NewTestRunner()
 	ruleManager, err := NewRuleManager()
@@ -34,7 +39,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// 1. Install a usage monitor
 	// 2. Install a static rule that passes all traffic tied to the usage monitor above
 	// 3. Install a dynamic rule that points to the static rule above
-	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 4096, 1024)
+	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 1000*KiloBytes, 250*KiloBytes)
 	assert.NoError(t, err)
 	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1")
 	assert.NoError(t, err)
@@ -48,11 +53,11 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
+	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
 
 	// TODO assert CCR-I
-	err = tr.GenULTraffic(imsi, swag.String("2048K"))
+	err = tr.GenULTraffic(imsi, swag.String("500K"))
 	assert.NoError(t, err)
 
 	// Wait for the traffic to go through
@@ -63,11 +68,11 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 	record := recordsBySubID["IMSI"+imsi]
-	assert.NotNil(t, record)
+	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 	assert.Equal(t, "static-pass-all", record.RuleId)
 	// We should not be seeing > 1024k data here
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	assert.True(t, record.BytesTx <= uint64(2048000), fmt.Sprintf("policy usage: %v", record))
+	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	// TODO Talk to PCRF and verify appropriate CCRs propagate up
 
 	// Clear hss, ocs, and pcrf
