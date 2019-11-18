@@ -10,6 +10,7 @@
 
 import type {TimeRange} from './AsyncMetric';
 
+import * as React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from './AsyncMetric';
 import Card from '@material-ui/core/Card';
@@ -19,7 +20,6 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from './TimeRangeSelector';
@@ -109,6 +109,7 @@ function resolveCustomQuery(
 }
 
 export default function(props: {
+  menuItemOverrides?: React.Node,
   selectors: Array<string>,
   defaultSelector: string,
   onSelectorChange: (SyntheticInputEvent<EventTarget>) => void,
@@ -126,16 +127,17 @@ export default function(props: {
     <>
       <AppBar className={classes.appBar} position="static" color="default">
         <FormControl variant="filled" className={classes.formControl}>
-          <InputLabel htmlFor="devices">Device</InputLabel>
+          <InputLabel htmlFor="devices">{props.selectorName}</InputLabel>
           <Select
             inputProps={{id: 'devices'}}
             value={selectedOrDefault}
             onChange={props.onSelectorChange}>
-            {props.selectors.map(device => (
-              <MenuItem value={device} key={device}>
-                {device}
-              </MenuItem>
-            ))}
+            {props.menuItemOverrides ||
+              props.selectors.map(device => (
+                <MenuItem value={device} key={device}>
+                  {device}
+                </MenuItem>
+              ))}
           </Select>
         </FormControl>
         <TimeRangeSelector
