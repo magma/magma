@@ -235,7 +235,7 @@ export default function FEGGatewayDialog(props: Props) {
           textColor="primary"
           value={tab}
           onChange={(event, tab) => setTab(tab)}>
-          {!editingGateway && <Tab label="General" values="general" />}
+          {!editingGateway && <Tab label="General" value="general" />}
           <Tab label="Gx" value="gx" />
           <Tab label="Gy" value="gy" />
           <Tab label="SWx" value="swx" />

@@ -27,16 +27,17 @@
 #include "assertions.h"
 #include "bstrlib.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "log.h"
 #include "mme_default_values.h"
 #include "grpc_service.h"
 
-static void *grpc_service_task(void *args)
+static void* grpc_service_task(void* args)
 {
-  MessageDef *received_message_p = NULL;
-  grpc_service_data_t *grpc_service_data = (grpc_service_data_t *) args;
+  MessageDef* received_message_p = NULL;
+  grpc_service_data_t* grpc_service_data = (grpc_service_data_t*) args;
 
   itti_mark_task_ready(TASK_GRPC_SERVICE);
   start_grpc_service(grpc_service_data->server_address);
@@ -52,6 +53,9 @@ static void *grpc_service_task(void *args)
     switch (ITTI_MSG_ID(received_message_p)) {
       case TERMINATE_MESSAGE:
         stop_grpc_service();
+        bdestroy_wrapper(&grpc_service_data->server_address);
+        free_wrapper((void**) &grpc_service_data);
+        OAI_FPRINTF_INFO("TASK_GRPC_SERVICE terminated\n");
         itti_exit_task();
         break;
       default:
@@ -73,12 +77,13 @@ static void *grpc_service_task(void *args)
 int grpc_service_init(void)
 {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
-  grpc_service_data_t grpc_service_config;
-  grpc_service_config.server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
+  grpc_service_data_t* grpc_service_config =
+    calloc(1, sizeof(grpc_service_config));
+  grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
 
   if (
     itti_create_task(
-      TASK_GRPC_SERVICE, &grpc_service_task, &grpc_service_config) < 0) {
+      TASK_GRPC_SERVICE, &grpc_service_task, grpc_service_config) < 0) {
     OAILOG_ALERT(LOG_UTIL, "Initializing grpc_service: ERROR\n");
     return RETURNerror;
   }

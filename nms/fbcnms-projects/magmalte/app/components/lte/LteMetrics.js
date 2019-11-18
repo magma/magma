@@ -207,7 +207,7 @@ const INTERNAL_CONFIGS: Array<MetricGraphConfig> = [
         filters: [{name: 'service', value: 'magmad'}],
       },
     ],
-    unit: 's',
+    unit: 'restarts',
   },
 ];
 

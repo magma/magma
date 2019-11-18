@@ -1223,11 +1223,11 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: Map of all policy rules for the network by rule ID
+          description: List all policy rule IDs
           schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/policy_rule'
+            type: array
+            items:
+              $ref: '#/definitions/rule_id'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -1247,6 +1247,23 @@ paths:
           description: Rule id
           schema:
             $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/policies/rules?view=full:
+    get:
+      summary: Get all policy rules
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all policy rules for the network by rule ID
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/policy_rule'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -1305,11 +1322,11 @@ paths:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: Map of all base names in the network by name
+          description: List of all base names
           schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/base_name_record'
+            type: array
+            items:
+              $ref: '#/definitions/base_name'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
@@ -1329,6 +1346,23 @@ paths:
           description: Charging Rule Base Name
           schema:
             $ref: '#/definitions/base_name'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/policies/base_names?view=full:
+    get:
+      summary: Get all base names
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all base names in the network by name
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/base_name_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -2088,12 +2122,35 @@ definitions:
     type: object
     required:
       - id
-      - rule
+      - flow_list
+      - priority
     properties:
       id:
         $ref: '#/definitions/policy_id'
-      rule:
-        $ref: '#/definitions/policy_rule_config'
+      flow_list:
+        type: array
+        items:
+          $ref: '#/definitions/flow_description'
+      priority:
+        type: integer
+        format: uint32
+        default: 10
+      rating_group:
+        type: integer
+        format: uint32
+      monitoring_key:
+        type: string
+      tracking_type:
+        type: string
+        enum:
+          - ONLY_OCS
+          - ONLY_PCRF
+          - OCS_AND_PCRF
+          - NO_TRACKING
+      qos:
+        $ref: '#/definitions/flow_qos'
+      redirect:
+        $ref: '#/definitions/redirect_information'
       assigned_subscribers:
         type: array
         items:
@@ -2104,6 +2161,10 @@ definitions:
           - IMSI1234567890
           - IMSI0987654321
 
+  # This should be kept in sync with the policy rule above, we use this as the
+  # config type which is stored on the backend for policy rules.
+  # But for API backwards-compatibility, we can't nest this struct in the
+  # top-level policy rule
   policy_rule_config:
     type: object
     required:

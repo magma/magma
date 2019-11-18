@@ -10,8 +10,16 @@
 
 import type {MetricGraphConfig} from '../insights/Metrics';
 
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MenuItem from '@material-ui/core/MenuItem';
+import Metrics from '../insights/Metrics';
 import React from 'react';
-import SelectorMetrics from '../insights/SelectorMetrics';
+import {Route} from 'react-router-dom';
+
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   {
@@ -65,5 +73,56 @@ const IMSI_CONFIGS: Array<MetricGraphConfig> = [
 ];
 
 export default function() {
-  return <SelectorMetrics configs={IMSI_CONFIGS} selectorKey="imsi" />;
+  const {history, relativePath, relativeUrl, match} = useRouter();
+
+  const {response, error, isLoading} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPrometheusSeries,
+    {networkId: nullthrows(match.params.networkId)},
+  );
+  if (!response || error || isLoading) {
+    return <LoadingFiller />;
+  }
+
+  const imsiSet = new Set();
+  response.forEach(item => {
+    if (item.imsi) {
+      imsiSet.add(item.imsi);
+    }
+  });
+  const allIMSIs = [...imsiSet];
+
+  const imsiMenuItems = allIMSIs.map(imsi => (
+    <MenuItem value={imsi} key={imsi}>
+      <ImsiAndIPMenuItem imsi={imsi} />
+    </MenuItem>
+  ));
+
+  return (
+    <Route
+      path={relativePath('/:selectedID?')}
+      render={() => (
+        <Metrics
+          configs={IMSI_CONFIGS}
+          onSelectorChange={({target}) => {
+            history.push(relativeUrl(`/${target.value}`));
+          }}
+          menuItemOverrides={imsiMenuItems}
+          selectors={allIMSIs}
+          defaultSelector={allIMSIs[0]}
+          selectorName={'imsi'}
+        />
+      )}
+    />
+  );
+}
+
+function ImsiAndIPMenuItem(props: {imsi: string}) {
+  const {match} = useRouter();
+  const {response} = useMagmaAPI(
+    MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
+    {networkId: match.params.networkId, subscriberId: props.imsi},
+  );
+
+  const ipv4 = response?.ipv4_addr;
+  return ipv4 ? `${props.imsi} : ${ipv4}` : props.imsi;
 }

@@ -84,7 +84,7 @@ func initTestServices(t *testing.T, mockServiceHealth *MockServiceHealthServicer
 		"configsByKey": {
 			"health": {
    				"@type": "type.googleapis.com/magma.mconfig.GatewayHealthConfig",
-   				"requiredServices": ["S6A_PROXY", "SESSION_PROXY"],
+   				"requiredServices": ["SWX_PROXY", "SESSION_PROXY"],
    				"updateIntervalSecs": 10,
    				"consecutiveFailureThreshold": 3,
    				"cloudDisconnectPeriodSecs": 10,
@@ -97,7 +97,7 @@ func initTestServices(t *testing.T, mockServiceHealth *MockServiceHealthServicer
 		t.Log(err)
 	}
 
-	srv1, lis1 := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
+	srv1, lis1 := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	srv2, lis2 := test_utils.NewTestService(t, registry.ModuleName, registry.SESSION_PROXY)
 	srv3, lis3 := test_utils.NewTestService(t, registry.ModuleName, registry.HEALTH)
 

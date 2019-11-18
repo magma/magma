@@ -29,6 +29,7 @@ std::unique_ptr<devices::Device> Device::createDevice(
   return std::make_unique<Device>(
       app,
       deviceConfig.id,
+      deviceConfig.readonly,
       folly::IPAddress(deviceConfig.ip),
       otherKv.at("username"),
       otherKv.at("password"),
@@ -40,6 +41,7 @@ std::unique_ptr<devices::Device> Device::createDevice(
 Device::Device(
     Application& application,
     const Id& id_,
+    bool readonly_,
     const folly::IPAddress& _ip,
     const std::string& _username,
     const std::string& _password,
@@ -53,6 +55,7 @@ Device::Device(
     : Snmpv2Device(
           application,
           id_,
+          readonly_,
           peer,
           community,
           version,
@@ -259,7 +262,8 @@ std::shared_ptr<State> Device::getState() {
   state->addFinally([state]() {
     state->update([](auto& lockedState) {
       auto* field = lockedState.get_ptr("ietf-system:system");
-      if (field != nullptr and ((field = field->get_ptr("name")) != nullptr)) {
+      if (field != nullptr and
+          ((field = field->get_ptr("hostname")) != nullptr)) {
         auto hostname = field->asString();
         PAPC(lockedState)["hostname"] = hostname;
         PAPT(lockedState)["hostname"] = hostname;

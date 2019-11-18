@@ -549,16 +549,6 @@ void MmeNasStateConverter::ue_context_to_proto(
 {
   ue_context_proto->Clear();
 
-  ue_context_proto->set_imsi(state_ue_context->imsi);
-  ue_context_proto->set_imsi_len(state_ue_context->imsi_len);
-  ue_context_proto->set_member_present_mask(
-    state_ue_context->member_present_mask);
-
-  NasStateConverter::identity_tuple_to_proto<imeisv_t>(
-    &state_ue_context->imeisv,
-    ue_context_proto->mutable_imeisv(),
-    IMEISV_BCD8_SIZE);
-
   char* msisdn_buffer = bstr2cstr(state_ue_context->msisdn, (char) '?');
   if (msisdn_buffer) {
     ue_context_proto->set_msisdn(msisdn_buffer);
@@ -567,7 +557,6 @@ void MmeNasStateConverter::ue_context_to_proto(
     ue_context_proto->set_msisdn("");
   }
 
-  ue_context_proto->set_imsi_auth(state_ue_context->imsi_auth);
   ue_context_proto->set_rel_cause(state_ue_context->ue_context_rel_cause);
   ue_context_proto->set_mm_state(state_ue_context->mm_state);
   ue_context_proto->set_ecm_state(state_ue_context->ecm_state);
@@ -580,18 +569,9 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_context_proto->set_mme_ue_s1ap_id(state_ue_context->mme_ue_s1ap_id);
 
   ue_context_proto->set_attach_type(state_ue_context->attach_type);
-  ue_context_proto->set_detach_type(state_ue_context->detach_type);
-  NasStateConverter::tai_to_proto(
-    &state_ue_context->serving_cell_tai,
-    ue_context_proto->mutable_serving_cell_tai());
-  NasStateConverter::tai_list_to_proto(
-    &state_ue_context->tail_list, ue_context_proto->mutable_tai_list());
-  NasStateConverter::tai_to_proto(
-    &state_ue_context->tai_last_tau, ue_context_proto->mutable_tai_last_tau());
+  ue_context_proto->set_sgs_detach_type(state_ue_context->sgs_detach_type);
   StateConverter::ecgi_to_proto(
     state_ue_context->e_utran_cgi, ue_context_proto->mutable_e_utran_cgi());
-  ue_context_proto->set_cell_age(state_ue_context->cell_age);
-  ue_context_proto->set_tau_updt_type(state_ue_context->tau_updt_type);
 
   ue_context_proto->set_cell_age((long int) state_ue_context->cell_age);
 
@@ -601,7 +581,6 @@ void MmeNasStateConverter::ue_context_to_proto(
   StateConverter::apn_config_profile_to_proto(
     state_ue_context->apn_config_profile,
     ue_context_proto->mutable_apn_config());
-  ue_context_proto->set_sub_status(state_ue_context->sub_status);
   ue_context_proto->set_subscriber_status(state_ue_context->subscriber_status);
   ue_context_proto->set_network_access_mode(
     state_ue_context->network_access_mode);
@@ -670,14 +649,7 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   const UeContext& ue_context_proto,
   ue_mm_context_t* state_ue_mm_context)
 {
-  state_ue_mm_context->imsi = ue_context_proto.imsi();
-  state_ue_mm_context->imsi_len = ue_context_proto.imsi_len();
-  state_ue_mm_context->member_present_mask =
-    ue_context_proto.member_present_mask();
-  NasStateConverter::proto_to_identity_tuple<imeisv_t>(
-    ue_context_proto.imeisv(), &state_ue_mm_context->imeisv, IMEISV_BCD8_SIZE);
   state_ue_mm_context->msisdn = bfromcstr(ue_context_proto.msisdn().c_str());
-  state_ue_mm_context->imsi_auth = ue_context_proto.imsi_auth();
   state_ue_mm_context->ue_context_rel_cause =
     static_cast<enum s1cause>(ue_context_proto.rel_cause());
   state_ue_mm_context->mm_state =
@@ -692,24 +664,14 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->enb_s1ap_id_key = ue_context_proto.enb_s1ap_id_key();
   state_ue_mm_context->mme_ue_s1ap_id = ue_context_proto.mme_ue_s1ap_id();
 
-  NasStateConverter::proto_to_tai(
-    ue_context_proto.serving_cell_tai(),
-    &state_ue_mm_context->serving_cell_tai);
-  NasStateConverter::proto_to_tai_list(
-    ue_context_proto.tai_list(), &state_ue_mm_context->tail_list);
-  NasStateConverter::proto_to_tai(
-    ue_context_proto.tai_last_tau(), &state_ue_mm_context->tai_last_tau);
   StateConverter::proto_to_ecgi(
     ue_context_proto.e_utran_cgi(), &state_ue_mm_context->e_utran_cgi);
   state_ue_mm_context->cell_age = ue_context_proto.cell_age();
-  state_ue_mm_context->tau_updt_type = ue_context_proto.tau_updt_type();
   bytes_to_lai(ue_context_proto.lai().c_str(), &state_ue_mm_context->lai);
 
   StateConverter::proto_to_apn_config_profile(
     ue_context_proto.apn_config(), &state_ue_mm_context->apn_config_profile);
 
-  state_ue_mm_context->sub_status =
-    (subscriber_status_t) ue_context_proto.sub_status();
   state_ue_mm_context->subscriber_status =
     (subscriber_status_t) ue_context_proto.subscriber_status();
   state_ue_mm_context->network_access_mode =

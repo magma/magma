@@ -32,23 +32,23 @@ func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
 	return protos.NewDirectoryServiceClient(conn), err
 }
 
-func GetHardwareIdByIMSI(imsi string) (string, error) {
-	return getLocation(protos.TableID_IMSI_TO_HWID, imsi)
+func GetHardwareIdByIMSI(imsi string, networkId string) (string, error) {
+	return getLocation(protos.TableID_IMSI_TO_HWID, imsi, networkId)
 }
 
 func GetHostNameByIMSI(hwId string) (string, error) {
-	return getLocation(protos.TableID_HWID_TO_HOSTNAME, hwId)
+	return getLocation(protos.TableID_HWID_TO_HOSTNAME, hwId, "")
 }
 
-func getLocation(tableId protos.TableID, recordId string) (string, error) {
+func getLocation(tableId protos.TableID, recordId string, networkId string) (string, error) {
 	client, err := GetDirectorydClient()
 	if err != nil {
 		return "", err
 	}
-
 	req := &protos.GetLocationRequest{
-		Table: tableId,
-		Id:    recordId,
+		Table:     tableId,
+		Id:        recordId,
+		NetworkID: networkId,
 	}
 	ctx := context.Background()
 	record, err := client.GetLocation(ctx, req)
@@ -56,10 +56,6 @@ func getLocation(tableId protos.TableID, recordId string) (string, error) {
 		return "", err
 	}
 	return record.Location, nil
-}
-
-func UpdateHardwareIdByIMSI(imsi string, hwId string) error {
-	return updateLocation(protos.TableID_IMSI_TO_HWID, imsi, hwId)
 }
 
 func UpdateHostNameByHwId(hwId string, hostName string) error {
@@ -71,7 +67,6 @@ func updateLocation(tableId protos.TableID, recordId string, location string) er
 	if err != nil {
 		return err
 	}
-
 	req := &protos.UpdateDirectoryLocationRequest{
 		Table:  tableId,
 		Id:     recordId,
@@ -82,23 +77,23 @@ func updateLocation(tableId protos.TableID, recordId string, location string) er
 	return err
 }
 
-func DeleteHardwareIdByIMSI(imsi string) error {
-	return deleteLocation(protos.TableID_IMSI_TO_HWID, imsi)
+func DeleteHardwareIdByIMSI(imsi string, networkID string) error {
+	return deleteLocation(protos.TableID_IMSI_TO_HWID, imsi, networkID)
 }
 
 func DeleteHostNameByIMSI(hwId string) error {
-	return deleteLocation(protos.TableID_HWID_TO_HOSTNAME, hwId)
+	return deleteLocation(protos.TableID_HWID_TO_HOSTNAME, hwId, "")
 }
 
-func deleteLocation(tableId protos.TableID, recordId string) error {
+func deleteLocation(tableId protos.TableID, recordId string, networkId string) error {
 	client, err := GetDirectorydClient()
 	if err != nil {
 		return err
 	}
-
 	req := &protos.DeleteLocationRequest{
-		Table: tableId,
-		Id:    recordId,
+		Table:     tableId,
+		Id:        recordId,
+		NetworkID: networkId,
 	}
 	ctx := context.Background()
 	_, err = client.DeleteLocation(ctx, req)

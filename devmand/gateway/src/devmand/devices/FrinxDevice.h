@@ -25,6 +25,7 @@ class FrinxDevice : public Device {
   FrinxDevice(
       Application& application,
       const Id& id_,
+      bool readonly_,
       const std::string& controllerHost,
       const int controllerPort,
       const folly::IPAddress& deviceIp_,

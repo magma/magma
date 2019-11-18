@@ -27,11 +27,16 @@ std::unique_ptr<devices::Device> DcsgDevice::createDevice(
   Host host{deviceConfig.id,
             folly::MacAddress(otherKv.at("mac")),
             folly::IPAddress(deviceConfig.ip)};
-  return std::make_unique<devices::DcsgDevice>(app, deviceConfig.id, host);
+  return std::make_unique<devices::DcsgDevice>(
+      app, deviceConfig.id, deviceConfig.readonly, host);
 }
 
-DcsgDevice::DcsgDevice(Application& application, const Id& id_, Host& host_)
-    : Device(application, id_), host(host_) {
+DcsgDevice::DcsgDevice(
+    Application& application,
+    const Id& id_,
+    bool readonly_,
+    Host& host_)
+    : Device(application, id_, readonly_), host(host_) {
   app.getDhcpdConfig().add(host);
   FileUtils::mkdir(
       std::experimental::filesystem::path(deviceConfigFilePathTemplate)

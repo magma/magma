@@ -1534,7 +1534,6 @@ void NasStateConverter::emm_context_to_proto(
     &state_emm_context->_imeisv,
     emm_context_proto->mutable_imeisv(),
     IMEISV_BCD8_SIZE);
-  ecgi_to_proto(state_emm_context->ecgi, emm_context_proto->mutable_ecgi());
   emm_context_proto->set_emm_cause(state_emm_context->emm_cause);
   emm_context_proto->set_emm_fsm_state(state_emm_context->_emm_fsm_state);
   emm_context_proto->set_attach_type(state_emm_context->attach_type);
@@ -1604,7 +1603,6 @@ void NasStateConverter::proto_to_emm_context(
   proto_to_identity_tuple<imeisv_t>(
     emm_context_proto.imeisv(), &state_emm_context->_imeisv, IMEISV_BCD8_SIZE);
 
-  proto_to_ecgi(emm_context_proto.ecgi(), &state_emm_context->ecgi);
   state_emm_context->emm_cause = emm_context_proto.emm_cause();
   state_emm_context->_emm_fsm_state =
     (emm_fsm_state_t) emm_context_proto.emm_fsm_state();

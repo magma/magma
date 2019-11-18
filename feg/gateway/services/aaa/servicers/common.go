@@ -12,7 +12,6 @@ package servicers
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"magma/feg/cloud/go/protos/mconfig"
@@ -30,18 +29,6 @@ func GetIdleSessionTimeout(cfg *mconfig.AAAConfig) time.Duration {
 		}
 	}
 	return aaa.DefaultSessionTimeout
-}
-
-func isThruthy(value string) bool {
-	value = strings.TrimSpace(value)
-	if len(value) == 0 {
-		return false
-	}
-	value = strings.ToLower(value)
-	if value == "0" || strings.HasPrefix(value, "false") || strings.HasPrefix(value, "n") {
-		return false
-	}
-	return true
 }
 
 func Errorf(code codes.Code, format string, a ...interface{}) error {

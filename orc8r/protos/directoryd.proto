@@ -27,11 +27,13 @@ enum TableID {
 message GetLocationRequest {
   string id = 1;
   TableID table = 2;
+  string networkID = 3;
 }
 
 message DeleteLocationRequest {
   string id = 1;
   TableID table = 2;
+  string networkID = 3;
 }
 
 message LocationRecord {

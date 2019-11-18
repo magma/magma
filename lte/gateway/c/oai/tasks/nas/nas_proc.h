@@ -52,6 +52,7 @@ Description NAS procedure call manager
 #include "nas/as_message.h"
 #include "bstrlib.h"
 #include "nas_messages_types.h"
+#include "mme_app_defs.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgs_messages_types.h"
@@ -116,7 +117,9 @@ int nas_proc_ul_transfer_ind(
  *      NAS procedures triggered by the mme applicative layer
  * --------------------------------------------------------------------------
  */
-int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *ans);
+int nas_proc_authentication_info_answer(
+  mme_app_desc_t* mme_app_desc_p,
+  s6a_auth_info_ans_t* ans);
 int nas_proc_auth_param_res(
   mme_ue_s1ap_id_t ue_id,
   uint8_t nb_vectors,
