@@ -21,6 +21,12 @@ QueuedCli::QueuedCli(
       serialExecutorKeepAlive(SerialExecutor::create(
           Executor::getKeepAliveToken(_parentExecutor.get()))) {}
 
+QueuedCli::~QueuedCli() {
+  // Execute a dummy task to make sure all running tasks have finished and that
+  // we can safely close this instance
+  via(serialExecutorKeepAlive, [](){}).get();
+}
+
 Future<string> QueuedCli::executeAndRead(const Command& cmd) {
   return executeSomething(
       cmd, "QCli.executeAndRead", [=]() { return cli->executeAndRead(cmd); });

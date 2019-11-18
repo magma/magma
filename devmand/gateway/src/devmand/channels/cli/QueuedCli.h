@@ -45,6 +45,7 @@ class QueuedCli : public Cli {
       shared_ptr<Cli> _cli,
       const shared_ptr<Executor>& _parentExecutor);
   QueuedCli() = delete;
+  ~QueuedCli() override;
   QueuedCli(const QueuedCli&) = delete;
 
   Future<string> executeAndRead(const Command& cmd) override;
