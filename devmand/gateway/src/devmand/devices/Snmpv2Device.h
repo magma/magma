@@ -9,6 +9,7 @@
 
 #include <devmand/channels/snmp/Channel.h>
 #include <devmand/devices/PingDevice.h>
+#include <devmand/devices/Snmpv2Config.h>
 
 /* TODO use this
 #include <ydk/netconf_provider.hpp>
@@ -65,6 +66,7 @@ class Snmpv2Device : public PingDevice {
   }
 
  protected:
+  Snmpv2Config snmpConfig;
   channels::snmp::Channel snmpChannel;
 };
 

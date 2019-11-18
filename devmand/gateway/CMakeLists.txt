@@ -93,6 +93,7 @@ add_library(devman_channel_snmp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Pdu.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Request.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Response.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/Snmpv2Config.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/Snmpv2Device.cpp)
 
 target_link_libraries(devman_channel_snmp
