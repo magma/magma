@@ -93,6 +93,7 @@ static void *pgw_intertask_interface(void *args_p)
 
       case TERMINATE_MESSAGE: {
         pgw_exit();
+        OAI_FPRINTF_INFO("TASK_PGW terminated\n");
         itti_exit_task();
       } break;
 
