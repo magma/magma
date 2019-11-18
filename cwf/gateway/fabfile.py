@@ -152,7 +152,8 @@ def _run_gateway():
             ' -f docker-compose.yml'
             ' -f docker-compose.override.yml'
             ' -f docker-compose.integ-test.yml'
-            ' up -d')
+            ' up -d '
+            ' --force-recreate')
 
 
 def _start_ue_simulator():
@@ -176,4 +177,21 @@ def _run_unit_tests():
 def _run_integ_tests():
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
-        run('make integ_test')
+        result = run('make integ_test', warn_only=True)
+    _clean_up()
+    if result.return_code == 0:
+        print("Integration Test Passed!")
+    else:
+        print("Integration Test returned ", result.return_code)
+        raise Exception()
+
+
+def _clean_up():
+    # already in cwag test vm at this point
+    with cd(CWAG_ROOT):
+        # Kill uesim service
+        run('pkill go')
+
+    with lcd(LTE_AGW_ROOT):
+        vagrant_setup("magma_trfserver", False)
+        run('pkill iperf3 > /dev/null &', pty=False)
