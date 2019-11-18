@@ -13,6 +13,7 @@ namespace devmand {
 namespace channels {
 namespace cli {
 
+using namespace std;
 using devmand::channels::cli::CliFlavour;
 using devmand::channels::cli::CliInitializer;
 using devmand::channels::cli::DefaultPromptResolver;
@@ -44,10 +45,10 @@ string DefaultPromptResolver::resolvePrompt(
     session->write(newline + newline).get();
     string output = session->read(millis).get();
 
-    std::regex regxp("\\" + newline);
-    std::vector<string> split(
-        std::sregex_token_iterator(output.begin(), output.end(), regxp, -1),
-        std::sregex_token_iterator());
+    regex regxp("\\" + newline);
+    vector<string> split(
+        sregex_token_iterator(output.begin(), output.end(), regxp, -1),
+        sregex_token_iterator());
 
     removeEmptyStrings(split);
 
@@ -61,8 +62,7 @@ string DefaultPromptResolver::resolvePrompt(
   }
 }
 
-void DefaultPromptResolver::removeEmptyStrings(
-    std::vector<string>& split) const {
+void DefaultPromptResolver::removeEmptyStrings(vector<string>& split) const {
   split.erase(
       remove_if(
           split.begin(),
@@ -75,24 +75,22 @@ void DefaultPromptResolver::removeEmptyStrings(
 }
 
 CliFlavour::CliFlavour(
-    PromptResolver* _resolver,
-    CliInitializer* _initializer,
+    unique_ptr<PromptResolver>&& _resolver,
+    unique_ptr<CliInitializer>&& _initializer,
     string _newline)
-    : resolver(_resolver), initializer(_initializer), newline(_newline) {}
-
-CliFlavour::~CliFlavour() {
-  delete resolver;
-  delete initializer;
-}
+    : resolver(forward<unique_ptr<PromptResolver>>(_resolver)),
+      initializer(forward<unique_ptr<CliInitializer>>(_initializer)),
+      newline(_newline) {}
 
 shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
   if (flavour == UBIQUITI) {
-    return std::make_shared<CliFlavour>(
-        new DefaultPromptResolver(), new UbiquitiInitializer());
+    return make_shared<CliFlavour>(
+        make_unique<DefaultPromptResolver>(),
+        make_unique<UbiquitiInitializer>());
   }
 
-  return std::make_shared<CliFlavour>(
-      new DefaultPromptResolver(), new EmptyInitializer());
+  return make_shared<CliFlavour>(
+      make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
 }
 
 } // namespace cli

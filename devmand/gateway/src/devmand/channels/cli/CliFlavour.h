@@ -60,16 +60,14 @@ class UbiquitiInitializer : public CliInitializer {
 class CliFlavour {
  public:
   static shared_ptr<CliFlavour> create(string flavour);
-  PromptResolver* resolver;
-  CliInitializer* initializer;
+  std::unique_ptr<PromptResolver> resolver;
+  std::unique_ptr<CliInitializer> initializer;
   string newline;
 
   CliFlavour(
-      PromptResolver* _resolver,
-      CliInitializer* _initializer,
+      std::unique_ptr<PromptResolver>&& _resolver,
+      std::unique_ptr<CliInitializer>&& _initializer,
       string _newline = "\n");
-
-  virtual ~CliFlavour();
 };
 
 } // namespace cli
