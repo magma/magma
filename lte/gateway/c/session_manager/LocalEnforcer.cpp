@@ -246,7 +246,7 @@ static PolicyRule create_redirect_rule(
   PolicyRule redirect_rule;
   redirect_rule.set_id("redirect");
   redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
-  redirect_rule.set_rating_group(action->get_rating_group());
+  action->get_credit_key().set_rule(&redirect_rule);
 
   RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
   redirect_info->set_support(RedirectInformation_Support_ENABLED);
@@ -294,7 +294,7 @@ void LocalEnforcer::reset_updates(const UpdateSessionRequest &failed_request)
       return;
     }
     it->second->get_charging_pool().reset_reporting_credit(
-      update.usage().charging_key());
+      CreditKey(update.usage()));
   }
   for (const auto &update : failed_request.usage_monitors()) {
     auto it = session_map_.find(update.sid());
@@ -711,7 +711,7 @@ void LocalEnforcer::terminate_subscriber(
 
 uint64_t LocalEnforcer::get_charging_credit(
   const std::string &imsi,
-  uint32_t charging_key,
+  const CreditKey &charging_key,
   Bucket bucket) const
 {
   auto it = session_map_.find(imsi);
@@ -745,7 +745,7 @@ ChargingReAuthAnswer::Result LocalEnforcer::init_charging_reauth(
   if (request.type() == ChargingReAuthRequest::SINGLE_SERVICE) {
     MLOG(MDEBUG) << "Initiating reauth of key " << request.charging_key()
                  << " for subscriber " << request.sid();
-    return it->second->get_charging_pool().reauth_key(request.charging_key());
+    return it->second->get_charging_pool().reauth_key(CreditKey(request));
   }
   MLOG(MDEBUG) << "Initiating reauth of all keys for subscriber "
                << request.sid();
