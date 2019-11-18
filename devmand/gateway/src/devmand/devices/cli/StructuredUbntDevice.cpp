@@ -294,7 +294,7 @@ StructuredUbntDevice::StructuredUbntDevice(
     const Id id_,
     const shared_ptr<Channel> _channel,
     const shared_ptr<CliCache> _cmdCache)
-    : Device(application, id_), channel(_channel), cmdCache(_cmdCache) {}
+    : Device(application, id_, true), channel(_channel), cmdCache(_cmdCache) {}
 
 shared_ptr<State> StructuredUbntDevice::getState() {
   MLOG(MINFO) << "[" << id << "] "

@@ -46,7 +46,7 @@ PlaintextCliDevice::PlaintextCliDevice(
     const std::string _stateCommand,
     const std::shared_ptr<Channel> _channel,
     const std::shared_ptr<CliCache> _cmdCache)
-    : Device(application, id_),
+    : Device(application, id_, true),
       channel(_channel),
       stateCommand(Command::makeReadCommand(_stateCommand)),
       cmdCache(_cmdCache) {}
