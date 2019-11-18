@@ -9,8 +9,8 @@
 
 #define LOG_WITH_GLOG
 
-#include <magma_logging.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <magma_logging.h>
 
 using devmand::channels::cli::sshsession::SshSessionAsync;
 
@@ -34,4 +34,4 @@ class SshSocketReader {
 
 } // namespace cli
 } // namespace channels
-}
+} // namespace devmand

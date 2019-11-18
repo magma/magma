@@ -10,8 +10,8 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
-#include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/Channel.h>
+#include <devmand/channels/cli/Cli.h>
 
 namespace devmand {
 namespace channels {
@@ -28,8 +28,7 @@ class Channel : public channels::Channel, public devmand::channels::cli::Cli {
   Channel& operator=(Channel&&) = delete;
 
   folly::Future<std::string> executeAndRead(const Command& cmd) override;
-  folly::Future<std::string> execute(
-      const Command& cmd) override;
+  folly::Future<std::string> execute(const Command& cmd) override;
 
  private:
   string id;

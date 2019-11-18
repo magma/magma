@@ -5,8 +5,8 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/channels/cli/engine/Engine.h>
 #include "devmand/test/cli/utils/Log.h"
+#include <devmand/channels/cli/engine/Engine.h>
 
 namespace devmand {
 namespace test {

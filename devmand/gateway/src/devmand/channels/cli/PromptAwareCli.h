@@ -28,7 +28,9 @@ class PromptAwareCli : public Cli {
   shared_ptr<CliFlavour> cliFlavour;
 
  public:
-  PromptAwareCli(shared_ptr<SshSessionAsync> session, shared_ptr<CliFlavour> cliFlavour);
+  PromptAwareCli(
+      shared_ptr<SshSessionAsync> session,
+      shared_ptr<CliFlavour> cliFlavour);
 
   string prompt;
 

@@ -6,8 +6,8 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #define LOG_WITH_GLOG
-#include <magma_logging.h>
 #include <devmand/channels/cli/Spd2Glog.h>
+#include <magma_logging.h>
 #include <spdlog/details/log_msg.h>
 
 void devmand::channels::cli::Spd2Glog::_sink_it(

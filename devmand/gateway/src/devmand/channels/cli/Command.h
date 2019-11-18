@@ -10,9 +10,8 @@
 #include <folly/futures/Future.h>
 #include <iostream>
 
-
-using std::vector;
 using std::string;
+using std::vector;
 
 namespace devmand {
 namespace channels {
@@ -41,9 +40,9 @@ struct Command {
     return _stream;
   }
 
- Command operator=(Command other) {
-     return Command(other.toString());
- }
+  Command operator=(Command other) {
+    return Command(other.toString());
+  }
 
  private:
   const string command;

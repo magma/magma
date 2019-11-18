@@ -27,7 +27,8 @@ class StructuredUbntDevice : public Device {
       Application& application,
       const Id _id,
       const std::shared_ptr<Channel> _channel,
-      const std::shared_ptr<CliCache> _cmdCache = ReadCachingCli::createCache());
+      const std::shared_ptr<CliCache> _cmdCache =
+          ReadCachingCli::createCache());
   StructuredUbntDevice() = delete;
   virtual ~StructuredUbntDevice() = default;
   StructuredUbntDevice(const StructuredUbntDevice&) = delete;

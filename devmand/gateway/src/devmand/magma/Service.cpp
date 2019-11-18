@@ -21,7 +21,6 @@ namespace magma {
 Service::Service(Application& application)
     : ::devmand::Service(application),
       magmaService(app.getName(), app.getVersion()) {
-
   magmaService.SetServiceInfoCallback([this]() {
     auto uv = app.getUnifiedView();
 
@@ -36,8 +35,7 @@ Service::Service(Application& application)
     auto uv = app.getUnifiedView();
     std::list<std::map<std::string, std::string>> states;
 
-    folly::dynamic devices =
-        uv.find("devmand") != uv.end()
+    folly::dynamic devices = uv.find("devmand") != uv.end()
         ? folly::parseJson(uv["devmand"])
         : folly::dynamic::object;
 
@@ -48,10 +46,9 @@ Service::Service(Application& application)
       device_state["raw_state"] = folly::toJson(device.second);
 
       std::map<std::string, std::string> state = {
-        {"type", orc8rDeviceType},
-        {"device_id", device.first.asString()},
-        {"value", folly::toJson(device_state)}
-      };
+          {"type", orc8rDeviceType},
+          {"device_id", device.first.asString()},
+          {"value", folly::toJson(device_state)}};
       LOG(INFO) << device_id << " : " << folly::toJson(device_state) << "\n";
       states.push_back(state);
     }

@@ -49,4 +49,4 @@ void parseValue(
 
 } // namespace cli
 } // namespace devices
-}
+} // namespace devmand

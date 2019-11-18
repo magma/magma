@@ -22,10 +22,10 @@
 #include <devmand/UnifiedView.h>
 #include <devmand/cartography/Cartographer.h>
 #include <devmand/channels/Engine.h>
+#include <devmand/channels/cli/engine/Engine.h>
 #include <devmand/channels/packet/Engine.h>
 #include <devmand/channels/ping/Engine.h>
 #include <devmand/channels/snmp/Engine.h>
-#include <devmand/channels/cli/engine/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
 

@@ -62,8 +62,12 @@ int main(int argc, char* argv[]) {
   }
   // CLI
   {
-    app.addPlatform("PlaintextCli", devmand::devices::cli::PlaintextCliDevice::createDevice);
-    app.addPlatform("StructuredUbntCli", devmand::devices::cli::StructuredUbntDevice::createDevice);
+    app.addPlatform(
+        "PlaintextCli",
+        devmand::devices::cli::PlaintextCliDevice::createDevice);
+    app.addPlatform(
+        "StructuredUbntCli",
+        devmand::devices::cli::StructuredUbntDevice::createDevice);
   }
 
   app.setDefaultPlatform(devmand::devices::Snmpv2Device::createDevice);

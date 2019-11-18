@@ -15,16 +15,16 @@ namespace cli {
 
 using devmand::channels::cli::CliFlavour;
 using devmand::channels::cli::CliInitializer;
-using devmand::channels::cli::PromptResolver;
-using devmand::channels::cli::sshsession::SshSessionAsync;
-using devmand::channels::cli::EmptyInitializer;
-using devmand::channels::cli::UbiquitiInitializer;
 using devmand::channels::cli::DefaultPromptResolver;
+using devmand::channels::cli::EmptyInitializer;
+using devmand::channels::cli::PromptResolver;
+using devmand::channels::cli::UbiquitiInitializer;
+using devmand::channels::cli::sshsession::SshSessionAsync;
 
 static const int DEFAULT_MILLIS = 1000;
 
 void EmptyInitializer::initialize(shared_ptr<SshSessionAsync> session) {
-    (void) session;
+  (void)session;
 }
 
 void UbiquitiInitializer::initialize(shared_ptr<SshSessionAsync> session) {
@@ -61,7 +61,8 @@ string DefaultPromptResolver::resolvePrompt(
   }
 }
 
-void DefaultPromptResolver::removeEmptyStrings(std::vector<string>& split) const {
+void DefaultPromptResolver::removeEmptyStrings(
+    std::vector<string>& split) const {
   split.erase(
       remove_if(
           split.begin(),
@@ -74,22 +75,24 @@ void DefaultPromptResolver::removeEmptyStrings(std::vector<string>& split) const
 }
 
 CliFlavour::CliFlavour(
-    PromptResolver * _resolver,
-    CliInitializer * _initializer,
+    PromptResolver* _resolver,
+    CliInitializer* _initializer,
     string _newline)
     : resolver(_resolver), initializer(_initializer), newline(_newline) {}
 
 CliFlavour::~CliFlavour() {
-    delete resolver;
-    delete initializer;
+  delete resolver;
+  delete initializer;
 }
 
-    shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
-    if (flavour == UBIQUITI) {
-        return std::make_shared<CliFlavour>(new DefaultPromptResolver(), new UbiquitiInitializer());
-    }
+shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
+  if (flavour == UBIQUITI) {
+    return std::make_shared<CliFlavour>(
+        new DefaultPromptResolver(), new UbiquitiInitializer());
+  }
 
-    return std::make_shared<CliFlavour>(new DefaultPromptResolver(), new EmptyInitializer());
+  return std::make_shared<CliFlavour>(
+      new DefaultPromptResolver(), new EmptyInitializer());
 }
 
 } // namespace cli

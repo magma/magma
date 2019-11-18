@@ -28,4 +28,4 @@ class IoConfigurationBuilder {
   shared_ptr<Cli> getIo(
       shared_ptr<CliCache> commandCache = ReadCachingCli::createCache());
 };
-}
+} // namespace devmand::channels::cli

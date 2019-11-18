@@ -79,7 +79,8 @@ shared_ptr<server> startSshServer(
   retVal->sshbind = sshbind;
   retVal->session = session;
 
-  // This flag makes this function return only after ssh server started listening
+  // This flag makes this function return only after ssh server started
+  // listening
   atomic_bool started;
   started.store(false);
 
@@ -89,159 +90,164 @@ shared_ptr<server> startSshServer(
     throw runtime_error("Cannot open server");
   }
 
-  Future<Unit> future = folly::via(executor.get(), [retVal, prompt, &started]() -> void {
-    MLOG(MDEBUG) << "Waiting for session on: " << retVal->id;
-    started.store(true);
+  Future<Unit> future =
+      folly::via(executor.get(), [retVal, prompt, &started]() -> void {
+        MLOG(MDEBUG) << "Waiting for session on: " << retVal->id;
+        started.store(true);
 
-    int r = ssh_bind_accept(retVal->sshbind, retVal->session);
-    if (r == SSH_ERROR) {
-      MLOG(MERROR) << "Cannot accept connection on server: " << retVal->id;
-      return;
-    }
-
-    if (ssh_handle_key_exchange(retVal->session)) {
-      MLOG(MERROR) << "Cannot kex on server: " << retVal->id << " due to "
-                   << ssh_get_error(retVal->session);
-      throw runtime_error("Cannot key exchange");
-    }
-
-    int auth = 0;
-    ssh_message message;
-
-    do {
-      message = ssh_message_get(retVal->session);
-      if (!message)
-        break;
-      switch (ssh_message_type(message)) {
-        case SSH_REQUEST_AUTH:
-          switch (ssh_message_subtype(message)) {
-            case SSH_AUTH_METHOD_PASSWORD:
-              MLOG(MDEBUG) << "User auth success: "
-                           << ssh_message_auth_user(message) << ":"
-                           << ssh_message_auth_password(message);
-              auth = 1;
-              ssh_message_auth_reply_success(message, 0);
-              break;
-              // not authenticated, send default message
-            case SSH_AUTH_METHOD_NONE:
-            default:
-              ssh_message_auth_set_methods(message, SSH_AUTH_METHOD_PASSWORD);
-              ssh_message_reply_default(message);
-              break;
-          }
-          break;
-        default:
-          ssh_message_reply_default(message);
-      }
-      ssh_message_free(message);
-    } while (!auth);
-    if (!auth) {
-      MLOG(MERROR) << "User auth failed: " << ssh_message_auth_user(message)
-                   << ":" << ssh_message_auth_password(message);
-      throw runtime_error("Cannot authenticate");
-    }
-
-    ssh_channel chan = 0;
-    do {
-      message = ssh_message_get(retVal->session);
-      if (message) {
-        switch (ssh_message_type(message)) {
-          case SSH_REQUEST_CHANNEL_OPEN:
-            if (ssh_message_subtype(message) == SSH_CHANNEL_SESSION) {
-              chan = ssh_message_channel_request_open_reply_accept(message);
-              MLOG(MDEBUG) << "Channel opened";
-              break;
-            }
-          default:
-            ssh_message_reply_default(message);
-        }
-        ssh_message_free(message);
-      }
-    } while (message && !chan);
-    if (!chan) {
-      MLOG(MERROR) << "Channel open failed: " << ssh_get_error(retVal->session);
-      throw runtime_error("Cannot open channel");
-    }
-
-    int pty = 0;
-
-    do {
-      message = ssh_message_get(retVal->session);
-      if (message && ssh_message_type(message) == SSH_REQUEST_CHANNEL &&
-          ssh_message_subtype(message) == SSH_CHANNEL_REQUEST_PTY) {
-        MLOG(MDEBUG) << "PTY requested";
-        pty = 1;
-        ssh_message_channel_request_reply_success(message);
-        break;
-      }
-      if (!pty) {
-        ssh_message_reply_default(message);
-      }
-      ssh_message_free(message);
-    } while (message && !pty);
-    if (!pty) {
-      MLOG(MERROR) << "PTY open failed: " << ssh_get_error(retVal->session);
-      throw runtime_error("Cannot open pty");
-    }
-
-    int shell = 0;
-
-    do {
-      message = ssh_message_get(retVal->session);
-      if (message && ssh_message_type(message) == SSH_REQUEST_CHANNEL &&
-          ssh_message_subtype(message) == SSH_CHANNEL_REQUEST_SHELL) {
-        MLOG(MDEBUG) << "Shell requested";
-        shell = 1;
-        ssh_message_channel_request_reply_success(message);
-        break;
-      }
-      if (!shell) {
-        ssh_message_reply_default(message);
-      }
-      ssh_message_free(message);
-    } while (message && !shell);
-    if (!shell) {
-      MLOG(MERROR) << "Shell open failed: " << ssh_get_error(retVal->session);
-      throw runtime_error("Cannot open shell");
-    }
-
-    char buf[1];
-    int i = 0;
-
-    ssh_channel_write(chan, prompt.c_str(), uint32_t(prompt.length()));
-    stringstream allInput;
-    do {
-      bool wasEnter = false;
-      i = ssh_channel_read(chan, buf, 1, 0);
-      if (i > 0) {
-        string received = string(buf, uint(i));
-        allInput << received;
-
-        if (buf[0] == '\r' || buf[0] == '\n') {
-          if (wasEnter && buf[0] == '\n') {
-            // Handle \r\n as enter, throw away the \n
-            wasEnter = false;
-            continue;
-          }
-
-          wasEnter = true;
-          MLOG(MDEBUG) << "Received: " << allInput.str();
-          MLOG(MDEBUG) << "Received: newline";
-          ssh_channel_write(chan, newline.c_str(), uint32_t(2));
-          handleCommand(chan, allInput);
-          ssh_channel_write(chan, prompt.c_str(), uint32_t(prompt.length()));
-        } else if (((int)buf[0]) == 3) {
-          // CTRL C
-          MLOG(MDEBUG) << "Quitting on ^C";
-          ssh_disconnect(retVal->session);
+        int r = ssh_bind_accept(retVal->sshbind, retVal->session);
+        if (r == SSH_ERROR) {
+          MLOG(MERROR) << "Cannot accept connection on server: " << retVal->id;
           return;
-        } else {
-          wasEnter = false;
-          ssh_channel_write(chan, buf, uint32_t(i));
         }
-      }
-    } while (i > 0);
-  });
+
+        if (ssh_handle_key_exchange(retVal->session)) {
+          MLOG(MERROR) << "Cannot kex on server: " << retVal->id << " due to "
+                       << ssh_get_error(retVal->session);
+          throw runtime_error("Cannot key exchange");
+        }
+
+        int auth = 0;
+        ssh_message message;
+
+        do {
+          message = ssh_message_get(retVal->session);
+          if (!message)
+            break;
+          switch (ssh_message_type(message)) {
+            case SSH_REQUEST_AUTH:
+              switch (ssh_message_subtype(message)) {
+                case SSH_AUTH_METHOD_PASSWORD:
+                  MLOG(MDEBUG)
+                      << "User auth success: " << ssh_message_auth_user(message)
+                      << ":" << ssh_message_auth_password(message);
+                  auth = 1;
+                  ssh_message_auth_reply_success(message, 0);
+                  break;
+                  // not authenticated, send default message
+                case SSH_AUTH_METHOD_NONE:
+                default:
+                  ssh_message_auth_set_methods(
+                      message, SSH_AUTH_METHOD_PASSWORD);
+                  ssh_message_reply_default(message);
+                  break;
+              }
+              break;
+            default:
+              ssh_message_reply_default(message);
+          }
+          ssh_message_free(message);
+        } while (!auth);
+        if (!auth) {
+          MLOG(MERROR) << "User auth failed: " << ssh_message_auth_user(message)
+                       << ":" << ssh_message_auth_password(message);
+          throw runtime_error("Cannot authenticate");
+        }
+
+        ssh_channel chan = 0;
+        do {
+          message = ssh_message_get(retVal->session);
+          if (message) {
+            switch (ssh_message_type(message)) {
+              case SSH_REQUEST_CHANNEL_OPEN:
+                if (ssh_message_subtype(message) == SSH_CHANNEL_SESSION) {
+                  chan = ssh_message_channel_request_open_reply_accept(message);
+                  MLOG(MDEBUG) << "Channel opened";
+                  break;
+                }
+              default:
+                ssh_message_reply_default(message);
+            }
+            ssh_message_free(message);
+          }
+        } while (message && !chan);
+        if (!chan) {
+          MLOG(MERROR) << "Channel open failed: "
+                       << ssh_get_error(retVal->session);
+          throw runtime_error("Cannot open channel");
+        }
+
+        int pty = 0;
+
+        do {
+          message = ssh_message_get(retVal->session);
+          if (message && ssh_message_type(message) == SSH_REQUEST_CHANNEL &&
+              ssh_message_subtype(message) == SSH_CHANNEL_REQUEST_PTY) {
+            MLOG(MDEBUG) << "PTY requested";
+            pty = 1;
+            ssh_message_channel_request_reply_success(message);
+            break;
+          }
+          if (!pty) {
+            ssh_message_reply_default(message);
+          }
+          ssh_message_free(message);
+        } while (message && !pty);
+        if (!pty) {
+          MLOG(MERROR) << "PTY open failed: " << ssh_get_error(retVal->session);
+          throw runtime_error("Cannot open pty");
+        }
+
+        int shell = 0;
+
+        do {
+          message = ssh_message_get(retVal->session);
+          if (message && ssh_message_type(message) == SSH_REQUEST_CHANNEL &&
+              ssh_message_subtype(message) == SSH_CHANNEL_REQUEST_SHELL) {
+            MLOG(MDEBUG) << "Shell requested";
+            shell = 1;
+            ssh_message_channel_request_reply_success(message);
+            break;
+          }
+          if (!shell) {
+            ssh_message_reply_default(message);
+          }
+          ssh_message_free(message);
+        } while (message && !shell);
+        if (!shell) {
+          MLOG(MERROR) << "Shell open failed: "
+                       << ssh_get_error(retVal->session);
+          throw runtime_error("Cannot open shell");
+        }
+
+        char buf[1];
+        int i = 0;
+
+        ssh_channel_write(chan, prompt.c_str(), uint32_t(prompt.length()));
+        stringstream allInput;
+        do {
+          bool wasEnter = false;
+          i = ssh_channel_read(chan, buf, 1, 0);
+          if (i > 0) {
+            string received = string(buf, uint(i));
+            allInput << received;
+
+            if (buf[0] == '\r' || buf[0] == '\n') {
+              if (wasEnter && buf[0] == '\n') {
+                // Handle \r\n as enter, throw away the \n
+                wasEnter = false;
+                continue;
+              }
+
+              wasEnter = true;
+              MLOG(MDEBUG) << "Received: " << allInput.str();
+              MLOG(MDEBUG) << "Received: newline";
+              ssh_channel_write(chan, newline.c_str(), uint32_t(2));
+              handleCommand(chan, allInput);
+              ssh_channel_write(
+                  chan, prompt.c_str(), uint32_t(prompt.length()));
+            } else if (((int)buf[0]) == 3) {
+              // CTRL C
+              MLOG(MDEBUG) << "Quitting on ^C";
+              ssh_disconnect(retVal->session);
+              return;
+            } else {
+              wasEnter = false;
+              ssh_channel_write(chan, buf, uint32_t(i));
+            }
+          }
+        } while (i > 0);
+      });
 
   retVal->serverFuture = move(future);
 

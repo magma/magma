@@ -54,12 +54,11 @@ class AsyncCli : public Cli {
       : cli(_cli), executor(_executor), durations(_durations), index(0) {}
 
   folly::Future<string> executeAndRead(const Command& cmd) override {
-    folly::Future<string> f =
-        via(executor.get()).thenValue([=](...) {
-          unsigned int tis = durations[(index++) % durations.size()];
-          this_thread::sleep_for(chrono::seconds(tis));
-          return cli->executeAndRead(cmd);
-        });
+    folly::Future<string> f = via(executor.get()).thenValue([=](...) {
+      unsigned int tis = durations[(index++) % durations.size()];
+      this_thread::sleep_for(chrono::seconds(tis));
+      return cli->executeAndRead(cmd);
+    });
     return f;
   }
 

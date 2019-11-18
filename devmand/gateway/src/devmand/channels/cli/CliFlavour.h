@@ -18,17 +18,17 @@ namespace devmand {
 namespace channels {
 namespace cli {
 
-static const char *const UBIQUITI = "ubiquiti";
+static const char* const UBIQUITI = "ubiquiti";
 
 using std::shared_ptr;
 using std::string;
 
 class PromptResolver {
-public:
-    virtual string resolvePrompt(
-            shared_ptr<SshSessionAsync> session,
-            const string& newline) = 0;
-    virtual ~PromptResolver() = default;
+ public:
+  virtual string resolvePrompt(
+      shared_ptr<SshSessionAsync> session,
+      const string& newline) = 0;
+  virtual ~PromptResolver() = default;
 };
 
 class DefaultPromptResolver : public PromptResolver {
@@ -41,8 +41,8 @@ class DefaultPromptResolver : public PromptResolver {
 
 class CliInitializer {
  public:
- virtual ~CliInitializer() = default;
- virtual void initialize(shared_ptr<SshSessionAsync> session) = 0;
+  virtual ~CliInitializer() = default;
+  virtual void initialize(shared_ptr<SshSessionAsync> session) = 0;
 };
 
 class EmptyInitializer : public CliInitializer {
@@ -60,16 +60,16 @@ class UbiquitiInitializer : public CliInitializer {
 class CliFlavour {
  public:
   static shared_ptr<CliFlavour> create(string flavour);
-  PromptResolver * resolver;
-  CliInitializer * initializer;
+  PromptResolver* resolver;
+  CliInitializer* initializer;
   string newline;
 
   CliFlavour(
-      PromptResolver * _resolver,
-      CliInitializer * _initializer,
+      PromptResolver* _resolver,
+      CliInitializer* _initializer,
       string _newline = "\n");
 
-    virtual ~CliFlavour();
+  virtual ~CliFlavour();
 };
 
 } // namespace cli

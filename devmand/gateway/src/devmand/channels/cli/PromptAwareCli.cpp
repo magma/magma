@@ -21,7 +21,8 @@ namespace channels {
 namespace cli {
 
 void PromptAwareCli::resolvePrompt() {
-  this->prompt = cliFlavour->resolver->resolvePrompt(session, cliFlavour->newline);
+  this->prompt =
+      cliFlavour->resolver->resolvePrompt(session, cliFlavour->newline);
 }
 
 void PromptAwareCli::initializeCli() {
@@ -33,15 +34,17 @@ folly::Future<string> PromptAwareCli::executeAndRead(const Command& cmd) {
 
   return session->write(command)
       .thenValue([=](...) { return session->readUntilOutput(command); })
-      .thenValue([=](const string & output) {
-          auto returnOutputParameter = [output] (...) { return output; };
-          return session->write(cliFlavour->newline).thenValue(returnOutputParameter);
+      .thenValue([=](const string& output) {
+        auto returnOutputParameter = [output](...) { return output; };
+        return session->write(cliFlavour->newline)
+            .thenValue(returnOutputParameter);
       })
-      .thenValue([=](const string & output) {
-          auto concatOutputParameter =  [output] (const string & readUntilOutput) {
-              return output + readUntilOutput;
-          };
-          return session->readUntilOutput(prompt).thenValue(concatOutputParameter);
+      .thenValue([=](const string& output) {
+        auto concatOutputParameter = [output](const string& readUntilOutput) {
+          return output + readUntilOutput;
+        };
+        return session->readUntilOutput(prompt).thenValue(
+            concatOutputParameter);
       });
 }
 
@@ -50,7 +53,7 @@ PromptAwareCli::PromptAwareCli(
     shared_ptr<CliFlavour> _cliFlavour)
     : session(_session), cliFlavour(_cliFlavour) {}
 
-void PromptAwareCli::init( //TODO remove
+void PromptAwareCli::init( // TODO remove
     const string hostname,
     const int port,
     const string username,
@@ -58,15 +61,15 @@ void PromptAwareCli::init( //TODO remove
   session->openShell(hostname, port, username, password).get();
 }
 
-folly::Future<std::string> PromptAwareCli::execute(const Command &cmd) {
+folly::Future<std::string> PromptAwareCli::execute(const Command& cmd) {
   const string& command = cmd.toString();
   return session->write(command)
-       .thenValue([=](...) { return session->readUntilOutput(command); })
-       .thenValue([=](const string & output) {
-           return session->write(cliFlavour->newline)
-                   .thenValue([output, command] (...) { return output + command; });
-       });
+      .thenValue([=](...) { return session->readUntilOutput(command); })
+      .thenValue([=](const string& output) {
+        return session->write(cliFlavour->newline)
+            .thenValue([output, command](...) { return output + command; });
+      });
 }
 } // namespace cli
 } // namespace channels
-}
+} // namespace devmand

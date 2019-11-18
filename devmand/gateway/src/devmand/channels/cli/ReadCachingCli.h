@@ -36,4 +36,4 @@ class ReadCachingCli : public Cli {
   Future<string> executeAndRead(const Command& cmd) override;
   Future<string> execute(const Command& cmd) override;
 };
-}
+} // namespace devmand::channels::cli

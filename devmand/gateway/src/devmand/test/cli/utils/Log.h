@@ -23,7 +23,7 @@ extern atomic_bool loggingInitialized;
 
 extern void initLog();
 
-} // namespace ssh
+} // namespace log
 } // namespace utils
 } // namespace test
 } // namespace devmand

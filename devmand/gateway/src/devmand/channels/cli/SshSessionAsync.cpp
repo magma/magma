@@ -26,7 +26,9 @@ using devmand::channels::cli::sshsession::SshSessionAsync;
 using std::lock_guard;
 using std::unique_lock;
 
-SshSessionAsync::SshSessionAsync(string _id, shared_ptr<IOThreadPoolExecutor> _executor)
+SshSessionAsync::SshSessionAsync(
+    string _id,
+    shared_ptr<IOThreadPoolExecutor> _executor)
     : executor(_executor), session(_id), reading(false) {}
 
 SshSessionAsync::~SshSessionAsync() {
@@ -130,4 +132,4 @@ string SshSessionAsync::readUntilOutputBlocking(string lastOutput) {
 } // namespace sshsession
 } // namespace cli
 } // namespace channels
-}
+} // namespace devmand
