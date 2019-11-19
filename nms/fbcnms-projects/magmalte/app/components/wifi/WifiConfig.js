@@ -17,7 +17,7 @@ export default function WifiConfig() {
     {
       component: WifiNetworkConfig,
       label: 'Network Configuration',
-      path: 'network',
+      path: '',
     },
   ];
   return <Configure tabRoutes={tabs} />;
