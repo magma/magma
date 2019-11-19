@@ -21,18 +21,13 @@ from orc8r.protos.mconfig.mconfigs_pb2 import FluentBit
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/tmp'
 
 
-def _get_extra_tags():
-    """
-    Get the extra_tags specified in the FluentBit mconfig.
-    """
-    return load_service_mconfig('td-agent-bit', FluentBit()).extra_tags
-
-
 def main():
     logging.basicConfig(
         level=logging.INFO,
         format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
     )
+
+    mc = load_service_mconfig('td-agent-bit', FluentBit())
 
     control_proxy_config = load_service_config('control_proxy')
     host = control_proxy_config['fluentd_address']
@@ -42,12 +37,16 @@ def main():
     keyfile = control_proxy_config['gateway_key']
 
     context = {
-        'extra_tags': _get_extra_tags().items(),
         'host': host,
         'port': port,
         'cacert': cacert,
         'certfile': certfile,
         'keyfile': keyfile,
+
+        'extra_tags': mc.extra_tags.items(),
+        'throttle_rate': mc.throttle_rate or 1000,
+        'throttle_window': mc.throttle_window or 5,
+        'throttle_interval': mc.throttle_interval or '1m',
     }
     generate_template_config(
         'td-agent-bit', 'td-agent-bit', CONFIG_OVERRIDE_DIR, context.copy()
