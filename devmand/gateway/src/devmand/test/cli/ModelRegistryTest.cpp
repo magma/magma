@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 #include <ydk_ietf/iana_if_type.hpp>
 #include <ydk_openconfig/openconfig_interfaces.hpp>
+#include <ydk_openconfig/openconfig_vlan_types.hpp>
 
 namespace devmand {
 namespace test {
@@ -26,6 +27,7 @@ using namespace devmand::test::utils::json;
 
 using OpenconfigInterfaces = openconfig::openconfig_interfaces::Interfaces;
 using OpenconfigInterface = OpenconfigInterfaces::Interface;
+using VlanType = openconfig::openconfig_vlan_types::VlanModeType;
 
 class ModelRegistryTest : public ::testing::Test {
  protected:
@@ -51,6 +53,10 @@ static shared_ptr<OpenconfigInterface> interfaceCpp() {
   interface->config->type = ietf::iana_if_type::SoftwareLoopback();
   interface->config->mtu = 1500;
   interface->state->ifindex = 1;
+  interface->ethernet->switched_vlan->config->access_vlan = 77;
+  interface->ethernet->switched_vlan->config->interface_mode = VlanType::TRUNK;
+  interface->ethernet->switched_vlan->config->trunk_vlans.append(1);
+  interface->ethernet->switched_vlan->config->trunk_vlans.append(100);
   return interface;
 }
 
@@ -71,6 +77,18 @@ static const string interfaceJson =
     "          \"type\": \"iana-if-type:softwareLoopback\"\n"
     "        },\n"
     "        \"name\": \"loopback1\",\n"
+    "        \"openconfig-if-ethernet:ethernet\": {\n"
+    "          \"openconfig-vlan:switched-vlan\": {\n"
+    "            \"config\": {\n"
+    "              \"access-vlan\": 77,\n"
+    "              \"interface-mode\": \"TRUNK\",\n"
+    "              \"trunk-vlans\": [\n"
+    "                1,\n"
+    "                100\n"
+    "              ]\n"
+    "            }\n"
+    "          }\n"
+    "        },\n"
     "        \"state\": {\n"
     "          \"ifindex\": 1\n"
     "        }\n"
@@ -88,6 +106,18 @@ static const string singleInterfaceJson =
     "      \"type\": \"iana-if-type:softwareLoopback\"\n"
     "    },\n"
     "    \"name\": \"loopback1\",\n"
+    "    \"openconfig-if-ethernet:ethernet\": {\n"
+    "      \"openconfig-vlan:switched-vlan\": {\n"
+    "        \"config\": {\n"
+    "          \"access-vlan\": 77,\n"
+    "          \"interface-mode\": \"TRUNK\",\n"
+    "          \"trunk-vlans\": [\n"
+    "            1,\n"
+    "            100\n"
+    "          ]\n"
+    "        }\n"
+    "      }\n"
+    "    },\n"
     "    \"state\": {\n"
     "      \"ifindex\": 1\n"
     "    }\n"
