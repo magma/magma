@@ -24,6 +24,7 @@ TRF_SERVER_SUBNET = "192.168.129.0"
 CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
 
+
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                destroy_vm="False"):
     """
@@ -145,15 +146,16 @@ def _build_gateway():
              ' -f docker-compose.integ-test.yml'
              ' build --parallel')
 
+
 def _run_gateway():
     """ Runs the gateway's docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(' docker-compose'
-            ' -f docker-compose.yml'
-            ' -f docker-compose.override.yml'
-            ' -f docker-compose.integ-test.yml'
-            ' up -d '
-            ' --force-recreate')
+             ' -f docker-compose.yml'
+             ' -f docker-compose.override.yml'
+             ' -f docker-compose.integ-test.yml'
+             ' up -d '
+             ' --force-recreate')
 
 
 def _start_ue_simulator():
@@ -181,9 +183,10 @@ def _run_integ_tests():
     _clean_up()
     if result.return_code == 0:
         print("Integration Test Passed!")
+        sys.exit(0)
     else:
         print("Integration Test returned ", result.return_code)
-        raise Exception()
+        sys.exit(result.return_code)
 
 
 def _clean_up():
