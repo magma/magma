@@ -13,13 +13,12 @@ from unittest import mock
 from google.protobuf import any_pb2
 from google.protobuf.json_format import MessageToJson
 from magma.configuration import mconfig_managers
-from orc8r.protos import mconfig_pb2
-from orc8r.protos.mconfig import mconfigs_pb2
 from magma.configuration.exceptions import LoadConfigError
+from orc8r.protos.mconfig import mconfigs_pb2
 
 
 class MconfigManagerImplTest(unittest.TestCase):
-    @mock.patch('magma.configuration.service_configs.get_service_config_value')
+    @mock.patch('magma.configuration.service_configs.load_service_config')
     def test_load_mconfig(self, get_service_config_value_mock):
         # Fixture mconfig has 1 unrecognized service, 1 unregistered type
         magmad_fixture = mconfigs_pb2.MagmaD(
@@ -50,7 +49,9 @@ class MconfigManagerImplTest(unittest.TestCase):
             }
         }
         ''' % magmad_fixture_serialized
-        get_service_config_value_mock.return_value = ['foo']
+        get_service_config_value_mock.return_value = {
+            'magma_services': ['foo'],
+        }
 
         with mock.patch('builtins.open', mock.mock_open(read_data=fixture)):
             manager = mconfig_managers.MconfigManagerImpl()
