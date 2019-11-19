@@ -8,7 +8,7 @@
  * @format
  */
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -52,24 +52,25 @@ export const MAGMAD_DEFAULT_CONFIGS = {
   checkin_timeout: 10,
 };
 
+export const EMPTY_GATEWAY_FIELDS = {
+  gatewayID: '',
+  name: '',
+  description: '',
+  hardwareID: '',
+  challengeKey: '',
+  tier: '',
+};
+
 type Props = {|
   onClose: () => void,
   onSave: GatewayData => Promise<void>,
 |};
 
 export default function AddGatewayDialog(props: Props) {
-  const classes = useStyles();
-
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [hardwareID, setHardwareID] = useState('');
-  const [gatewayID, setGatewayID] = useState('');
-  const [challengeKey, setChallengeKey] = useState('');
-  const [tier, setTier] = useState('');
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [values, setValues] = useState(EMPTY_GATEWAY_FIELDS);
 
   const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
-
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
@@ -81,20 +82,19 @@ export default function AddGatewayDialog(props: Props) {
   }
 
   const onSave = async () => {
-    if (!name || !description || !hardwareID || !gatewayID || !challengeKey) {
+    if (
+      !values.name ||
+      !values.description ||
+      !values.hardwareID ||
+      !values.gatewayID ||
+      !values.challengeKey
+    ) {
       enqueueSnackbar('Please complete all fields', {variant: 'error'});
       return;
     }
 
     try {
-      await props.onSave({
-        gatewayID,
-        name,
-        description,
-        hardwareID,
-        challengeKey,
-        tier,
-      });
+      await props.onSave(values);
     } catch (e) {
       enqueueSnackbar(e?.response?.data?.message || e?.message || e, {
         variant: 'error',
@@ -106,63 +106,87 @@ export default function AddGatewayDialog(props: Props) {
     <Dialog open={true} onClose={props.onClose}>
       <DialogTitle>Add Gateway</DialogTitle>
       <DialogContent>
-        <TextField
-          label="Gateway Name"
-          className={classes.input}
-          value={name}
-          onChange={({target}) => setName(target.value)}
-          placeholder="Gateway 1"
-        />
-        <TextField
-          label="Gateway Description"
-          className={classes.input}
-          value={description}
-          onChange={({target}) => setDescription(target.value)}
-          placeholder="Sample Gateway description"
-        />
-        <TextField
-          label="Hardware UUID"
-          className={classes.input}
-          value={hardwareID}
-          onChange={({target}) => setHardwareID(target.value)}
-          placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
-        />
-        <TextField
-          label="Gateway ID"
-          className={classes.input}
-          value={gatewayID}
-          onChange={({target}) => setGatewayID(target.value)}
-          placeholder="<country>_<org>_<location>_<sitenumber>"
-        />
-        <TextField
-          label="Challenge Key"
-          className={classes.input}
-          value={challengeKey}
-          onChange={({target}) => setChallengeKey(target.value)}
-          placeholder="A base64 bytestring of the key in DER format"
-        />
-        <FormControl className={classes.input}>
-          <InputLabel htmlFor="types">Upgrade Tier</InputLabel>
-          <Select
-            className={classes.input}
-            value={tier}
-            onChange={({target}) => setTier(target.value)}>
-            {tiers.map(tier => (
-              <MenuItem key={tier} value={tier}>
-                {tier}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <AddGatewayFields onChange={setValues} values={values} tiers={tiers} />
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );
 }
+
+export const AddGatewayFields = (props: {
+  values: GatewayData,
+  onChange: GatewayData => void,
+  tiers: string[],
+}) => {
+  const classes = useStyles();
+
+  return (
+    <>
+      <TextField
+        label="Gateway Name"
+        className={classes.input}
+        value={props.values.name}
+        onChange={({target}) =>
+          props.onChange({...props.values, name: target.value})
+        }
+        placeholder="Gateway 1"
+      />
+      <TextField
+        label="Gateway Description"
+        className={classes.input}
+        value={props.values.description}
+        onChange={({target}) =>
+          props.onChange({...props.values, description: target.value})
+        }
+        placeholder="Sample Gateway description"
+      />
+      <TextField
+        label="Hardware UUID"
+        className={classes.input}
+        value={props.values.hardwareID}
+        onChange={({target}) =>
+          props.onChange({...props.values, hardwareID: target.value})
+        }
+        placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
+      />
+      <TextField
+        label="Gateway ID"
+        className={classes.input}
+        value={props.values.gatewayID}
+        onChange={({target}) =>
+          props.onChange({...props.values, gatewayID: target.value})
+        }
+        placeholder="<country>_<org>_<location>_<sitenumber>"
+      />
+      <TextField
+        label="Challenge Key"
+        className={classes.input}
+        value={props.values.challengeKey}
+        onChange={({target}) =>
+          props.onChange({...props.values, challengeKey: target.value})
+        }
+        placeholder="A base64 bytestring of the key in DER format"
+      />
+      <FormControl className={classes.input}>
+        <InputLabel htmlFor="types">Upgrade Tier</InputLabel>
+        <Select
+          className={classes.input}
+          value={props.values.tier}
+          onChange={({target}) =>
+            props.onChange({...props.values, tier: target.value})
+          }>
+          {props.tiers.map(tier => (
+            <MenuItem key={tier} value={tier}>
+              {tier}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+    </>
+  );
+};

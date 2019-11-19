@@ -18,6 +18,7 @@
 - import_role: name=pkgrepo
 - import_role: name=gateway_services
 - import_role: name=python_dev
+- import_role: name=test_certs
 
 #################################
 # Dev env setup
@@ -69,41 +70,7 @@
     - cp -r protoc3/include/google /usr/include/
     - chmod -R a+Xr /usr/include/google
     - rm -rf protoc3.zip protoc3
-  when: preburn and ((pbversion is failed) or not (pbversion.stdout|match("^libprotoc 3.")))
-
-########################################
-# Set up test certs
-########################################
-
-- name: Create the .cache/test_certs directory if doesn't exist
-  file: path='{{ magma_root }}/.cache/test_certs' state=directory
-  when: full_provision
-
-- name: Generate the cloud VM's certs if they are not already generated
-  command: '{{ magma_root }}/orc8r/tools/ansible/roles/gateway_dev/files/create_rootca {{ magma_root }}/.cache/test_certs'
-  args:
-    creates: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
-  when: full_provision
-
-- name: Create the /var/opt/magma/certs directory
-  file: path=/var/opt/magma/certs state=directory
-  when: full_provision
-
-- name: Copy the cloud VM's rootCA if needed
-  copy:
-    src: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
-    dest: /var/opt/magma/certs/rootCA.pem
-    force: no
-    remote_src: yes
-  when: full_provision
-
-- name: Add the test controller DNS entries
-  # Use 10.0.2.2 as the host IP address in vagrant
-  lineinfile: dest=/etc/hosts regexp='.*{{ item }}$' line='10.0.2.2 {{ item }}' state=present
-  with_items:
-    - controller.magma.test
-    - bootstrapper-controller.magma.test
-  when: full_provision
+  when: preburn and ((pbversion is failed) or not (pbversion.stdout|regex_search("^libprotoc 3.")))
 
 #################################
 # Copy scripts

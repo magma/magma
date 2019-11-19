@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"log"
 	"net"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/cloud/go/protos"
 )
 
 type accountingService struct {
@@ -103,7 +105,9 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	sid := req.GetCtx().GetSessionId()
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
-		return &protos.AcctResp{}, Errorf(codes.FailedPrecondition, "Accounting Stop: Session %s is not found", sid)
+		// Log error and return OK, no need to stop accounting for already removed session
+		log.Printf("Accounting Stop: Session %s is not found", sid)
+		return &protos.AcctResp{}, nil
 	}
 
 	s.Lock()
@@ -118,7 +122,10 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 			err = Error(codes.Unavailable, err)
 		}
 	} else {
-		directoryd.RemoveIMSI(sessionImsi)
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: sessionImsi,
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
 
@@ -170,7 +177,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi)
+	metrics.SessionTerminate.WithLabelValues(apn, imsi).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -203,7 +210,10 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
 	} else {
-		directoryd.RemoveIMSI(aaaCtx.GetImsi())
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: aaaCtx.GetImsi(),
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)

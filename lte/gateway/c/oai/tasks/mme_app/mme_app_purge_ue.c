@@ -54,7 +54,7 @@ int mme_app_send_s6a_purge_ue_req(mme_app_desc_t *mme_app_desc_p,
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  imsi = ue_context_pP->imsi;
+  imsi = ue_context_pP->emm_context._imsi64;
   OAILOG_DEBUG(LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi);
 
   if (
@@ -73,8 +73,9 @@ int mme_app_send_s6a_purge_ue_req(mme_app_desc_t *mme_app_desc_p,
   }
 
   s6a_pur_p = &message_p->ittiMsg.s6a_purge_ue_req;
-  memset((void *) s6a_pur_p, 0, sizeof(s6a_purge_ue_req_t));
-  IMSI64_TO_STRING(imsi, s6a_pur_p->imsi, ue_context_p->imsi_len);
+  memset((void*) s6a_pur_p, 0, sizeof(s6a_purge_ue_req_t));
+  IMSI64_TO_STRING(
+    imsi, s6a_pur_p->imsi, ue_context_p->emm_context._imsi.length);
   s6a_pur_p->imsi_length = strlen(s6a_pur_p->imsi);
   OAILOG_INFO(
     LOG_MME_APP, "Sent PUR to S6a TASK for IMSI " IMSI_64_FMT "\n", imsi);

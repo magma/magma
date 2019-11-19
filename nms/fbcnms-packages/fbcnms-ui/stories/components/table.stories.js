@@ -9,7 +9,7 @@
  */
 
 import React, {useMemo, useState} from 'react';
-import Table from '../../components/design-system/Table/Table.react';
+import Table from '../../components/design-system/Table/Table';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';

@@ -8,7 +8,7 @@
  * @format
  */
 
-import ConfigureTitle from '../../components/ConfigureTitle.react';
+import ConfigureTitle from '../../components/ConfigureTitle';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';

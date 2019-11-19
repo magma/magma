@@ -29,9 +29,6 @@ func TestAuthenticate(t *testing.T) {
 		radiusP, err := tr.Authenticate(ue.GetImsi())
 		assert.NoError(t, err)
 
-		err = tr.AddPassThroughPCRFRules(ue.GetImsi())
-		assert.NoError(t, err)
-
 		eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
 		assert.NotNil(t, eapMessage)
 		assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))

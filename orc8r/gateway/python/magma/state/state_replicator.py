@@ -11,6 +11,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 import importlib
 import json
+import jsonpickle
 import snowflake
 import grpc
 
@@ -32,15 +33,17 @@ from google.protobuf.json_format import MessageToDict
 DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 MINIMUM_SYNC_INTERVAL = 30
-REDIS_KEY_DELIMITER = ':'
 PROTO_FORMAT = 0
 JSON_FORMAT = 1
 
 
-class StateSerde(RedisSerde):
-
-    def __init__(self, redis_key, serializer, deserializer, state_scope, state_format):
-        super().__init__(redis_key, serializer, deserializer)
+class StateDict(RedisFlatDict):
+    """
+    StateDict is a RedisFlatDict that holds state metadata and reads/writes
+    state to Redis.
+    """
+    def __init__(self, serde: RedisSerde, state_scope: str, state_format: int):
+        super().__init__(get_default_client(), serde)
         # Scope determines the deviceID to report the state with
         self.state_scope = state_scope
         self.state_format = state_format
@@ -58,13 +61,10 @@ class StateReplicator(SDWatchdogTask):
         self._service = service
         # In memory mapping of states to version
         self._state_versions = {}
-        # Serdes for each type of state to replicate
-        self._serdes = {}
-        self._get_proto_redis_serdes()
-        self._get_json_redis_serdes()
-        self._redis_client = RedisFlatDict(get_default_client(),
-                                           self._serdes)
-
+        # Redis clients for each type of state to replicate
+        self._redis_clients = []
+        self._redis_clients.extend(self._get_proto_redis_clients())
+        self._redis_clients.extend(self._get_json_redis_clients())
         # _grpc_client_manager to manage grpc client recyclings
         self._grpc_client_manager = grpc_client_manager
 
@@ -72,7 +72,8 @@ class StateReplicator(SDWatchdogTask):
         # Replication cannot proceed until this flag is True
         self._has_resync_completed = False
 
-    def _get_proto_redis_serdes(self):
+    def _get_proto_redis_clients(self):
+        clients = []
         state_protos = self._service.config.get('state_protos', []) or []
         for proto_cfg in state_protos:
             is_invalid_cfg = 'proto_msg' not in proto_cfg or \
@@ -89,17 +90,21 @@ class StateReplicator(SDWatchdogTask):
                 redis_key = proto_cfg['redis_key']
                 logging.info('Initializing RedisSerde for proto state %s',
                              proto_cfg['redis_key'])
-                serde = StateSerde(redis_key,
+                serde = RedisSerde(redis_key,
                                    get_proto_serializer(),
-                                   get_proto_deserializer(msg),
+                                   get_proto_deserializer(msg))
+                client = StateDict(serde,
                                    proto_cfg['state_scope'],
                                    PROTO_FORMAT)
-                self._serdes[redis_key] = serde
+                clients.append(client)
 
             except (ImportError, AttributeError) as err:
                 logging.error(err)
 
-    def _get_json_redis_serdes(self):
+        return clients
+
+    def _get_json_redis_clients(self):
+        clients = []
         json_state = self._service.config.get('json_state', []) or []
         for json_cfg in json_state:
             is_invalid_cfg = 'redis_key' not in json_cfg or \
@@ -108,15 +113,19 @@ class StateReplicator(SDWatchdogTask):
                 logging.warning("Invalid json state config found in json_state"
                                 "configuration: %s", json_cfg)
                 continue
+
             logging.info('Initializing RedisSerde for json state %s',
                          json_cfg['redis_key'])
             redis_key = json_cfg['redis_key']
-            serde = StateSerde(redis_key,
+            serde = RedisSerde(redis_key,
                                get_json_serializer(),
-                               get_json_deserializer(),
-                               json_cfg['state_scope'],
-                               JSON_FORMAT)
-            self._serdes[redis_key] = serde
+                               get_json_deserializer())
+            client = StateDict(serde,
+                           json_cfg['state_scope'],
+                           JSON_FORMAT)
+            clients.append(client)
+
+        return clients
 
     async def _run(self):
         if not self._has_resync_completed:
@@ -132,19 +141,13 @@ class StateReplicator(SDWatchdogTask):
 
     async def _resync(self):
         states_to_sync = []
-        for key in self._redis_client:
-            try:
-                idval, state_type = self._parse_key(key)
-            except ValueError as err:
-                logging.debug(err)
-                continue
-
-            state_scope = self._serdes[state_type].state_scope
-            version = self._redis_client.get_version(idval, state_type)
-            device_id = self.make_scoped_device_id(idval, state_scope)
-            state_id = StateID(type=state_type, deviceID=device_id)
-            id_and_version = IDAndVersion(id=state_id, version=version)
-            states_to_sync.append(id_and_version)
+        for client in self._redis_clients:
+            for key in client:
+                version = client.get_version(key)
+                device_id = self.make_scoped_device_id(key, client.state_scope)
+                state_id = StateID(type=client.redis_type, deviceID=device_id)
+                id_and_version = IDAndVersion(id=state_id, version=version)
+                states_to_sync.append(id_and_version)
 
         if len(states_to_sync) == 0:
             logging.debug("Not re-syncing state. No local state found.")
@@ -172,35 +175,28 @@ class StateReplicator(SDWatchdogTask):
 
     async def _collect_states_to_replicate(self):
         states_to_report = []
-        for key in self._redis_client:
-            try:
-                idval, state_type = self._parse_key(key)
-            except ValueError as err:
-                logging.debug(err)
-                continue
+        for client in self._redis_clients:
+            for key in client:
+                device_id = self.make_scoped_device_id(key, client.state_scope)
+                in_mem_key = self.make_mem_key(device_id, client.redis_type)
+                redis_version = client.get_version(key)
 
-            state_scope = self._serdes[state_type].state_scope
-            device_id = self.make_scoped_device_id(idval, state_scope)
-            in_mem_key = self.make_mem_key(device_id, state_type)
-            redis_version = self._redis_client.get_version(idval,
-                                                           state_type)
+                if in_mem_key in self._state_versions and \
+                        self._state_versions[in_mem_key] == redis_version:
+                    continue
 
-            if in_mem_key in self._state_versions and \
-                    self._state_versions[in_mem_key] == redis_version:
-                continue
+                redis_state = client.get(key)
+                if client.state_format == PROTO_FORMAT:
+                    state_to_serialize = MessageToDict(redis_state)
+                    serialized_json_state = json.dumps(state_to_serialize)
+                else:
+                    serialized_json_state = jsonpickle.encode(redis_state)
+                state_proto = State(type=client.redis_type,
+                      deviceID=device_id,
+                      value=serialized_json_state.encode("utf-8"),
+                      version=redis_version)
 
-            redis_state = self._redis_client.get(key)
-            if self._serdes[state_type].state_format == PROTO_FORMAT:
-                state_to_serialize = MessageToDict(redis_state)
-            else:
-                state_to_serialize = redis_state
-            serialized_json_state = json.dumps(state_to_serialize)
-            state_proto = State(type=state_type,
-                  deviceID=device_id,
-                  value=serialized_json_state.encode("utf-8"),
-                  version=redis_version)
-
-            states_to_report.append(state_proto)
+                states_to_report.append(state_proto)
 
         if len(states_to_report) == 0:
             logging.debug("Not replicating state. No state has changed!")
@@ -242,19 +238,6 @@ class StateReplicator(SDWatchdogTask):
             # reset timeout to config-specified + some buffer
             self.set_timeout(self._interval * 2)
 
-    def _parse_key(self, key):
-        split_key = key.split(REDIS_KEY_DELIMITER, 1)
-        if len(split_key) != 2:
-            raise ValueError("Redis key: %s is not of format <id>:<<type>. "
-                          "Not replicating." % key)
-        idval = split_key[0]
-        state_type = split_key[1]
-        if state_type not in self._serdes:
-            raise ValueError("No serde found for state type: %s. "
-                             "Not replicating key: %s" % (state_type, idval))
-
-        return idval, state_type
-
     @staticmethod
     def make_mem_key(device_id, state_type):
         """
@@ -263,13 +246,13 @@ class StateReplicator(SDWatchdogTask):
         return device_id + ":" + state_type
 
     @staticmethod
-    def make_scoped_device_id(id, scope):
+    def make_scoped_device_id(idval, scope):
         """
         Create a deviceID of the format <id> for scope 'network'
         Otherwise create a key of the format <hwid>:<id> for 'gateway' or
         unrecognized scope.
         """
         if scope == "network":
-            return id
+            return idval
         else:
-            return snowflake.snowflake() + ":" + id
+            return snowflake.snowflake() + ":" + idval

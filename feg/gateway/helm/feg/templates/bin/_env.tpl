@@ -7,6 +7,8 @@
 
 COMPOSE_PROJECT_NAME=feg
 DOCKER_REGISTRY={{ .Values.feg.image.docker_registry }}
+DOCKER_USERNAME={{ .Values.feg.image.username }}
+DOCKER_PASSWORD={{ .Values.feg.image.password }}
 IMAGE_VERSION={{ .Values.feg.image.tag }}
 BUILD_CONTEXT={{ .Values.feg.repo.url }}#{{ .Values.feg.repo.branch }}
 

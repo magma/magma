@@ -35,7 +35,7 @@ const (
 	defaultConsecutiveFailuresThreshold = 3
 )
 
-var defaultServices = []string{registry.S6A_PROXY, registry.SESSION_PROXY}
+var defaultServices = []string{registry.SWX_PROXY, registry.SESSION_PROXY}
 
 type HealthManager struct {
 	cloudReg                  registry.CloudRegistry

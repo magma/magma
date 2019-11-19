@@ -13,6 +13,7 @@ import {
   additionalPropsToArray,
   additionalPropsToObject,
   buildWifiGatewayFromPayload,
+  calculateLinkLocalMac,
   getAdditionalProp,
   isMeshNetwork,
   setAdditionalProp,
@@ -135,4 +136,13 @@ it('additionalPropsToArray test', () => {
 it('mesh network validation', () => {
   expect(isMeshNetwork('mesh_test')).toEqual(true);
   expect(isMeshNetwork('not_mesh')).toEqual(false);
+});
+
+it('calculateLinkLocalMac test', () => {
+  expect(calculateLinkLocalMac('fe80::5683:3aff:feb0:2762')).toEqual(
+    '54833ab02762',
+  );
+  expect(calculateLinkLocalMac('fe80::5683:3aff:feb0:286a')).toEqual(
+    '54833ab0286a',
+  );
 });

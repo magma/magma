@@ -12,12 +12,12 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import React from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import axios from 'axios';
 
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -60,7 +60,7 @@ class SecuritySettings extends React.Component<Props, State> {
 
     return (
       <div className={classes.formContainer}>
-        <Typography variant="h5">Change Password</Typography>
+        <Text variant="h5">Change Password</Text>
         {this.state.error ? (
           <FormLabel error>{this.state.error}</FormLabel>
         ) : null}
@@ -95,9 +95,7 @@ class SecuritySettings extends React.Component<Props, State> {
           />
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
-          <Button onClick={this.onSave} color="primary" variant="contained">
-            Save
-          </Button>
+          <Button onClick={this.onSave}>Save</Button>
         </FormGroup>
       </div>
     );

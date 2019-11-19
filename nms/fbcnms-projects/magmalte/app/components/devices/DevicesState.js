@@ -95,10 +95,10 @@ function GenLatencies(
     info.push(
       ...(state.latency || []).map((latency, i) => {
         const key = `latencies_${i}`;
+        const rtt = latency.rtt > 0 ? `${latency.rtt / 1000} ms` : 'timeout';
         return (
           <div key={key}>
-            {latency.src} -> {latency.dst} ({latency.type}):{' '}
-            {latency.rtt / 1000} ms
+            {latency.src} -> {latency.dst} ({latency.type}): {rtt}
           </div>
         );
       }),

@@ -39,36 +39,42 @@ func TestPolicyStreamers(t *testing.T) {
 	assert.NoError(t, err)
 
 	// create the rules first otherwise base names can't associate to them
-	id1 := "r1"
-	monitoringKey1 := swag.String("foo")
-	id2 := "r2"
-	priority2 := swag.Uint32(42)
-	id3 := "r3"
-	monitoringKey3 := swag.String("bar")
-
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
-			Config: &models.PolicyRule{
-				ID:            &id1,
-				MonitoringKey: *monitoringKey1,
+			Config: &models.PolicyRuleConfig{
+				FlowList: []*models.FlowDescription{
+					{
+						Action: swag.String("PERMIT"),
+						Match: &models.FlowMatch{
+							Direction: swag.String("UPLINK"),
+							IPProto:   swag.String("IPPROTO_IP "),
+							IPV4Dst:   "192.168.160.0/24",
+							IPV4Src:   "192.168.128.0/24",
+						},
+					},
+				},
+				MonitoringKey: "foo",
 			},
 		},
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r2",
-			Config: &models.PolicyRule{
-				ID:       &id2,
-				Priority: priority2,
+			Config: &models.PolicyRuleConfig{
+				Priority: swag.Uint32(42),
+				Redirect: &models.RedirectInformation{
+					AddressType:   swag.String("IPv4"),
+					ServerAddress: swag.String("https://www.google.com"),
+					Support:       swag.String("ENABLED"),
+				},
 			},
 		},
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r3",
-			Config: &models.PolicyRule{
-				ID:            &id3,
-				MonitoringKey: *monitoringKey3,
+			Config: &models.PolicyRuleConfig{
+				MonitoringKey: "bar",
 			},
 		},
 	})
@@ -77,7 +83,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
-			Config: &models.BaseNameRecord{Name: models.BaseName("b1")},
+			Config: &models.BaseNameRecord{Name: "b1"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
@@ -86,7 +92,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
-			Config: &models.BaseNameRecord{Name: models.BaseName("b2")},
+			Config: &models.BaseNameRecord{Name: "b2"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
@@ -96,8 +102,30 @@ func TestPolicyStreamers(t *testing.T) {
 
 	policyPro := &pdbstreamer.PoliciesProvider{}
 	expectedProtos := []*protos.PolicyRule{
-		{Id: "r1", MonitoringKey: "foo"},
-		{Id: "r2", Priority: 42},
+		{
+			Id:            "r1",
+			MonitoringKey: "foo",
+			FlowList: []*protos.FlowDescription{
+				{
+					Match: &protos.FlowMatch{
+						Direction: protos.FlowMatch_UPLINK,
+						IpProto:   protos.FlowMatch_IPPROTO_IP,
+						Ipv4Dst:   "192.168.160.0/24",
+						Ipv4Src:   "192.168.128.0/24",
+					},
+					Action: protos.FlowDescription_PERMIT,
+				},
+			},
+		},
+		{
+			Id:       "r2",
+			Priority: 42,
+			Redirect: &protos.RedirectInformation{
+				Support:       protos.RedirectInformation_ENABLED,
+				AddressType:   protos.RedirectInformation_IPv4,
+				ServerAddress: "https://www.google.com",
+			},
+		},
 		{Id: "r3", MonitoringKey: "bar"},
 	}
 	expected := funk.Map(

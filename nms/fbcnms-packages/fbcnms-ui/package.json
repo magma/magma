@@ -5,7 +5,7 @@
   "dependencies": {
     "@material-ui/core": "^4.0.0",
     "@material-ui/icons": "^4.0.0",
-    "@material-ui/lab": "^3.0.0-alpha.30",
+    "@material-ui/lab": "^4.0.0-alpha.30",
     "@material-ui/styles": "^4.0.0",
     "beaver-logger": "^4.0.12",
     "notistack": "^0.8.5",
@@ -14,7 +14,7 @@
     "react-dom": "^16.8.1",
     "react-perfect-scrollbar": "^1.4.4",
     "react-router-dom": "^4.4.0-beta.6",
-    "relay-runtime": "^5.0.0"
+    "relay-runtime": "^7.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.4.5",

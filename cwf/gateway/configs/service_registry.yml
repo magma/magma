@@ -25,9 +25,18 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  directoryd:
+    ip_address: 127.0.0.1
+    port: 50067
+  policydb:
+    ip_address: 127.0.0.1
+    port: 50068
   redirectd:
     ip_address: 127.0.0.1
     port: 50071
+  state:
+    ip_address: 127.0.0.1
+    port: 50074
   aaa_server:
     ip_address: 127.0.0.1
     port: 9109

@@ -8,9 +8,9 @@
  * @format
  */
 
-import FormField from '../../components/design-system/FormField/FormField.react';
+import FormField from '../../components/design-system/FormField/FormField';
 import React, {useState} from 'react';
-import TextInput from '../../components/design-system/Input/TextInput.react';
+import TextInput from '../../components/design-system/Input/TextInput';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
 
@@ -39,6 +39,13 @@ const FormFieldsRoot = () => {
           onChange={({target}) => setValue(target.value)}
           value={value}
         />
+      </FormField>
+      <FormField
+        label="Required"
+        helpText="Help Text"
+        className={classes.field}
+        required>
+        <TextInput type="string" placeholder="Placeholder" value={value} />
       </FormField>
       <FormField
         label="Label"

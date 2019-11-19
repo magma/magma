@@ -55,6 +55,7 @@
 #include "sgw_defs.h"
 #include "shared_ts_log.h"
 #include "spgw_config.h"
+#include "grpc_service.h"
 
 int main(int argc, char *argv[])
 {
@@ -119,6 +120,7 @@ int main(int argc, char *argv[])
     CHECK_INIT_RETURN(sgs_init(&mme_config));
     OAILOG_DEBUG(LOG_MME_APP, "SGS Task initialized\n");
   }
+  CHECK_INIT_RETURN(grpc_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW
@@ -133,6 +135,9 @@ int main(int argc, char *argv[])
    * Handle signals here
    */
   itti_wait_tasks_end();
+#if EMBEDDED_SGW
+  free_spgw_config(&spgw_config);
+#endif
   pid_file_unlock();
 
   return 0;

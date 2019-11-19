@@ -6,13 +6,12 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import re
 
 class MockRedis(object):
     """
     MockRedis implements a mock Redis Server using an in-memory dictionary
     """
-
     redis = {}
 
     def __init__(self, host, port):
@@ -27,6 +26,9 @@ class MockRedis(object):
         """ Deserialize key from plaintext encoded as UTF-8 bytes. """
         return serialized.decode('utf-8')  # Redis returns keys as bytes
 
+    def lock(self, key):
+        return MockRedisLock(key)
+
     def delete(self, key):
         """Mock delete."""
         skey = self.serialize_key(key)
@@ -37,7 +39,8 @@ class MockRedis(object):
 
     def exists(self, key):
         """Mock exists."""
-        return key in self.redis
+        skey = self.serialize_key(key)
+        return skey in self.redis
 
     def get(self, key):
         """Mock get."""
@@ -49,9 +52,26 @@ class MockRedis(object):
         skey = self.serialize_key(key)
         self.redis[skey] = value
 
-    def keys(self):
-        """ Mock keys."""
-        return list(self.redis.keys())
+    def keys(self, pattern=".*"):
+        """ Mock keys with regex pattern matching."""
+        formatted_pattern = ""
+        for index in range(0, len(pattern)):
+            if index == 0 and pattern[index] == "*":
+                formatted_pattern += ".*"
+            elif pattern[index] == "*" and pattern[index - 1] != ".":
+                formatted_pattern += ".*"
+            else:
+                formatted_pattern += pattern[index]
+
+        ret = []
+        for key in self.redis.keys():
+            try:
+                dkey = self.deserialize_key(key)
+            except AttributeError:
+                dkey = key
+            if re.match(formatted_pattern, dkey):
+                ret.append(key)
+        return ret
 
     def hget(self, hashkey, key):
         """Mock hget."""
@@ -127,3 +147,16 @@ class MockRedisPipeline(object):
     def hdel(self, hashkey, key):
         """ Mock hdel"""
         return self.redis.hdel(hashkey, key)
+
+
+class MockRedisLock(object):
+    """ Mock redis-python lock object"""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass

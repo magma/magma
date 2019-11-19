@@ -15,7 +15,7 @@ const express = require('express');
 const proxy = require('express-http-proxy');
 const HttpsProxyAgent = require('https-proxy-agent');
 const url = require('url');
-const {apiCredentials, API_HOST, NETWORK_FALLBACK} = require('../config');
+const {apiCredentials, API_HOST} = require('../config');
 import auditLoggingDecorator from './auditLoggingDecorator';
 
 import {intersection} from 'lodash';
@@ -72,36 +72,21 @@ export async function networkIdFilter(req: FBCNMSRequest): Promise<boolean> {
 }
 
 export async function networksResponseDecorator(
-  proxyRes: ExpressResponse,
+  _proxyRes: ExpressResponse,
   proxyResData: Buffer,
   userReq: FBCNMSRequest,
-  userRes: ExpressResponse,
+  _userRes: ExpressResponse,
 ) {
-  let networkIds;
-  if (
-    (proxyRes.statusCode === 403 || proxyRes.statusCode === 401) &&
-    NETWORK_FALLBACK.length > 0
-  ) {
-    // Temporary hack -- if you don't have a root magma cert,
-    // it will return a 403.
-    userRes.statusCode = 200;
-    networkIds = NETWORK_FALLBACK;
-  } else {
-    networkIds = JSON.parse(proxyResData.toString('utf8'));
-  }
-
-  let result = networkIds;
+  let result = JSON.parse(proxyResData.toString('utf8'));
   if (userReq.organization) {
     const organization = await userReq.organization();
-    result = intersection(organization.networkIDs, networkIds);
+    result = intersection(result, organization.networkIDs);
   }
-
   if (!userReq.user.isSuperUser) {
     // the list of networks is further restricted to what the user
     // is allowed to see
     result = intersection(result, userReq.user.networkIDs);
   }
-
   return JSON.stringify(result);
 }
 
@@ -165,8 +150,9 @@ router.use(
   }),
 );
 
+const networkTypeRegex = '(feg|lte|cwf)';
 router.use(
-  '/magma/v1/lte/:networkID',
+  `/magma/v1/:networkType(${networkTypeRegex})/:networkID`,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: networkIdFilter,
@@ -176,7 +162,7 @@ router.use(
 );
 
 router.use(
-  '/magma/v1/cwf/:networkID',
+  '/magma/v1/symphony/:networkID',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     filter: networkIdFilter,

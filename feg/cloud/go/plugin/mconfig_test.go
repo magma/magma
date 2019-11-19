@@ -147,7 +147,7 @@ func TestBuilder_Build(t *testing.T) {
 			CreateSessionOnAuth:  false,
 		},
 		"health": &mconfig.GatewayHealthConfig{
-			RequiredServices:          []string{"S6A_PROXY", "SESSION_PROXY"},
+			RequiredServices:          []string{"SWX_PROXY", "SESSION_PROXY"},
 			UpdateIntervalSecs:        10,
 			UpdateFailureThreshold:    3,
 			CloudDisconnectPeriodSecs: 10,
@@ -249,14 +249,14 @@ var defaultConfig = &models.NetworkFederationConfigs{
 	},
 	ServedNetworkIds: []string{},
 	Health: &models.Health{
-		HealthServices:           []string{"S6A_PROXY", "SESSION_PROXY"},
+		HealthServices:           []string{"SWX_PROXY", "SESSION_PROXY"},
 		UpdateIntervalSecs:       10,
 		CloudDisablePeriodSecs:   10,
 		LocalDisablePeriodSecs:   1,
 		UpdateFailureThreshold:   3,
 		RequestFailureThreshold:  0.50,
 		MinimumRequestThreshold:  1,
-		CPUUtilizationThreshold:  0.90,
+		CPUUtilizationThreshold:  0.75,
 		MemoryAvailableThreshold: 0.90,
 	},
 }

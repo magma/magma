@@ -23,10 +23,6 @@ const LOGGER_HOST = process.env.LOGGER_HOST || 'fluentd:9880';
 
 const API_HOST = process.env.API_HOST || 'magma_test.local';
 
-const NETWORK_FALLBACK = process.env.NETWORK_FALLBACK
-  ? process.env.NETWORK_FALLBACK.split(',')
-  : [];
-
 let _cachedApiCredentials = null;
 function apiCredentials() {
   if (_cachedApiCredentials) {
@@ -65,5 +61,4 @@ module.exports = {
   LOG_LEVEL,
   LOGGER_HOST,
   MAPBOX_ACCESS_TOKEN,
-  NETWORK_FALLBACK,
 };

@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 package handlers_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -19,11 +20,15 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
+	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 	plugin2 "orc8r/devmand/cloud/go/plugin"
@@ -1245,13 +1250,16 @@ func TestDeleteAgent(t *testing.T) {
 	getAgent := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, agentUrl, obsidian.GET).HandlerFunc
 	deleteAgent := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, agentUrl, obsidian.DELETE).HandlerFunc
 
+	baseAgentsUrl := "/magma/v1/symphony/:network_id/agents"
+	listAgents := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, baseAgentsUrl, obsidian.GET).HandlerFunc
+
 	networkId := "n1"
 	agentId := "a1"
 
 	seedNetworks(t)
 	seedAgents(t)
 
-	expectedResult := tests.JSONMarshaler(models2.SymphonyAgent{
+	payload := tests.JSONMarshaler(models2.SymphonyAgent{
 		Name:        "agent_1",
 		Description: "agent 1",
 		Device: &models.GatewayDevice{
@@ -1278,7 +1286,7 @@ func TestDeleteAgent(t *testing.T) {
 		ParamNames:     []string{"network_id", "agent_id"},
 		ParamValues:    []string{networkId, agentId},
 		Handler:        getAgent,
-		ExpectedResult: expectedResult,
+		ExpectedResult: payload,
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -1304,6 +1312,58 @@ func TestDeleteAgent(t *testing.T) {
 		Handler:        getAgent,
 		ExpectedStatus: 404,
 		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Make sure the gateways are not in the network
+	expectedEnts := configurator.NetworkEntities{
+		{
+			NetworkID: networkId,
+			Type:      devmand.SymphonyDeviceType,
+			Key:       "d1",
+			GraphID:   "14",
+			Name:      "Device 1",
+			Config:    models2.NewDefaultSymphonyDeviceConfig(),
+		},
+		{
+			NetworkID: networkId,
+			Type:      devmand.SymphonyDeviceType,
+			Key:       "d2",
+			GraphID:   "10",
+			Name:      "Device 2",
+			Config:    models2.NewDefaultSymphonyDeviceConfig(),
+		},
+		{
+			NetworkID: networkId,
+			Type:      orc8r.UpgradeTierEntityType, Key: "t1",
+			GraphID: "13",
+			Version: 0,
+		},
+		{
+			NetworkID: networkId,
+			Type:      orc8r.UpgradeTierEntityType, Key: "t2",
+			GraphID: "12",
+			Version: 0,
+		},
+	}
+	actualEnts, _, err := configurator.LoadEntities(
+		networkId, nil, nil, nil,
+		[]storage.TypeAndKey{},
+		configurator.FullEntityLoadCriteria(),
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedEnts, actualEnts)
+
+	// Make sure they're not showing up here either
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            baseAgentsUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        listAgents,
+		ExpectedResult: tests.JSONMarshaler(map[string]models2.SymphonyAgent{}),
+		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -1546,7 +1606,7 @@ func TestUpdateDevice(t *testing.T) {
 		},
 	}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
@@ -1599,7 +1659,7 @@ func TestDeleteDevice(t *testing.T) {
 	// See that it's now gone
 	expectedEnts := configurator.NetworkEntities{}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
@@ -1749,7 +1809,7 @@ func TestPartialUpdateAndGetDevice(t *testing.T) {
 		},
 	}
 	actualEnts, _, err := configurator.LoadEntities(
-		networkId, strPtr(devmand.SymphonyDeviceType), strPtr(deviceId), nil,
+		networkId, swag.String(devmand.SymphonyDeviceType), swag.String(deviceId), nil,
 		[]storage.TypeAndKey{},
 		configurator.FullEntityLoadCriteria(),
 	)
@@ -1757,8 +1817,51 @@ func TestPartialUpdateAndGetDevice(t *testing.T) {
 	assert.Equal(t, expectedEnts, actualEnts)
 }
 
-func strPtr(str string) *string {
-	return &str
+func TestGetDeviceState(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.DevmandOrchestratorPlugin{})
+	test_init.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	e := echo.New()
+
+	deviceStateURL := "/magma/v1/symphony/:network_id/devices/:device_id/state"
+	handlers := handlers.GetHandlers()
+	getDeviceState := tests.GetHandlerByPathAndMethod(t, handlers, deviceStateURL, obsidian.GET).HandlerFunc
+	networkId := "n1"
+	deviceId := "d1"
+
+	seedNetworks(t)
+	seedAgents(t)
+
+	// Test missing state
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            deviceStateURL,
+		Handler:        getDeviceState,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// manually report the state and then read it back
+	// first encode the appropriate certificate into context
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportDeviceState(t, ctx, deviceId, models2.NewDefaultSymphonyDeviceState())
+	expected := models2.NewDefaultSymphonyDeviceState()
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            deviceStateURL,
+		Handler:        getDeviceState,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		ExpectedStatus: 200,
+		ExpectedResult: expected,
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 // n1 is a symphony network, n2 is not
@@ -1841,6 +1944,26 @@ func seedAgents(t *testing.T) {
 				Type: orc8r.UpgradeTierEntityType, Key: "t2",
 			},
 		},
+	)
+	assert.NoError(t, err)
+}
+
+func reportDeviceState(t *testing.T, ctx context.Context, deviceId string, deviceState *models2.SymphonyDeviceState) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedDeviceState, err := serde.Serialize(state.SerdeDomain, devmand.SymphonyDeviceStateType, deviceState)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     devmand.SymphonyDeviceStateType,
+			DeviceID: deviceId,
+			Value:    serializedDeviceState,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
 	)
 	assert.NoError(t, err)
 }

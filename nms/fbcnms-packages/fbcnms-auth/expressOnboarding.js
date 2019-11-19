@@ -57,7 +57,7 @@ export default function() {
         const userProps = await getPropsToUpdate(
           allowedProps,
           req.body,
-          props => ({
+          async props => ({
             ...props,
             organization: req.body.organization,
           }),

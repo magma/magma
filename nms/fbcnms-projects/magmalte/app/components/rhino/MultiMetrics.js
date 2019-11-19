@@ -24,8 +24,8 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from '@fbcnms/magmalte/app/components/insights/TimeRangeSelector';
-import Typography from '@material-ui/core/Typography';
 import {Route} from 'react-router-dom';
 
 import useMagmaAPI from '../../common/useMagmaAPI';
@@ -101,14 +101,18 @@ function MultiMetrics(props: {
           <GridListTile key={i} cols={1}>
             <Card>
               <CardContent>
-                <Typography component="h6" variant="h6">
+                <Text component="h6" variant="h6">
                   {config.label}
-                </Typography>
+                </Text>
                 <div style={{height: 350}}>
                   <AsyncMetric
                     label={config.label}
                     unit={config.unit || ''}
-                    queries={resolveQuery(config, selectedGatewayOrDefault)}
+                    queries={resolveQuery(
+                      config,
+                      'gatewayID',
+                      selectedGatewayOrDefault,
+                    )}
                     timeRange={timeRange}
                   />
                 </div>

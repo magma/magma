@@ -15,8 +15,6 @@ import (
 	"flag"
 	"fmt"
 	"net"
-	"os"
-	"strings"
 	"time"
 
 	"magma/orc8r/cloud/go/plugin"
@@ -24,6 +22,7 @@ import (
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/middleware/unary"
+	"magma/orc8r/cloud/go/util"
 
 	"github.com/golang/glog"
 	"google.golang.org/grpc"
@@ -118,7 +117,7 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 	}
 
 	// Check if service was started with print-grpc-payload flag or MAGMA_PRINT_GRPC_PAYLOAD env is set
-	if ev := strings.ToLower(os.Getenv(PrintGrpcPayloadEnv)); printGrpcPayload || isTruthy(ev) {
+	if printGrpcPayload || util.IsTruthyEnv(PrintGrpcPayloadEnv) {
 		ls := logCodec{encoding.GetCodec(grpc_proto.Name)}
 		if ls.protoCodec != nil {
 			glog.Errorf("Adding Debug Codec for service %s", serviceName)
@@ -178,14 +177,4 @@ func (service *Service) RunTest(lis net.Listener) error {
 // GetDefaultKeepaliveParameters returns the default keepalive server parameters.
 func GetDefaultKeepaliveParameters() keepalive.ServerParameters {
 	return defaultKeepaliveParams
-}
-
-func isTruthy(value string) bool {
-	if len(value) == 0 {
-		return false
-	}
-	if value == "0" || value == "false" || value == "no" {
-		return false
-	}
-	return true
 }

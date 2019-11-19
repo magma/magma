@@ -326,7 +326,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
      * provided by HSS or if we fail to select the APN provided
      * by HSS,send Attach Reject to UE
      */
-     _handle_apn_mismatch(ue_mm_context);
+    _handle_apn_mismatch(ue_mm_context);
+    unlock_ue_contexts(ue_mm_context);
     return RETURNerror;
   }
 
@@ -1299,7 +1300,6 @@ static int _emm_cn_pdn_disconnect_rsp(
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
-  uint32_t i = 0;
   proc_tid_t pti;
   #define ESM_SAP_BUFFER_SIZE 4096
   uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
@@ -1343,13 +1343,11 @@ static int _emm_cn_pdn_disconnect_rsp(
   pdn_context_t *pdn_context = ue_mm_context->pdn_contexts[cid];
 
   ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel =
-    calloc(1, ((pdn_context->esm_data.n_bearers)*(sizeof(ebi_t))));
+    calloc(pdn_context->esm_data.n_bearers, sizeof(ebi_t));
   //Fill the default bearer ID in 0 index
-  ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[0] =
-    pdn_context->default_ebi;
-  for (i = 0; i < pdn_context->esm_data.n_bearers; i++) {
+  for (uint32_t i = 0; i < pdn_context->esm_data.n_bearers; i++) {
     int idx = ue_mm_context->pdn_contexts[cid]->bearer_contexts[i];
-    ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[i+1] =
+    ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[i] =
       ue_mm_context->bearer_contexts[idx]->ebi;
   }
   ue_mm_context->emm_context.esm_ctx.n_bearers =

@@ -8,6 +8,9 @@
  */
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
@@ -116,7 +119,7 @@ class LocalEnforcer {
 
   uint64_t get_charging_credit(
     const std::string &imsi,
-    uint32_t charging_key,
+    const CreditKey &charging_key,
     Bucket bucket) const;
 
   uint64_t get_monitor_credit(
@@ -182,6 +185,17 @@ class LocalEnforcer {
     const std::string &ip_addr,
     RulesToProcess *rules_to_activate,
     RulesToProcess *rules_to_deactivate);
+
+  /**
+   * Process the list of rule names given and fill in rules_to_deactivate by
+   * determining whether each one is dynamic or static.
+   */
+  void process_rules_to_remove(
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
+  const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+    rules_to_remove,
+  RulesToProcess* rules_to_deactivate);
 
   /**
    * Process the policy reauth request to get rules to activate/deactivate

@@ -73,14 +73,6 @@ void nas_itti_pdn_connectivity_req(
   esm_proc_data_t *proc_data_pP,
   esm_proc_pdn_request_t request_typeP);
 
-void nas_itti_auth_info_req(
-  const mme_ue_s1ap_id_t ue_idP,
-  const imsi_t *const imsiP,
-  const bool is_initial_reqP,
-  plmn_t *const visited_plmnP,
-  const uint8_t num_vectorsP,
-  const_bstring const auts_pP);
-
 void nas_itti_establish_rej(
   const mme_ue_s1ap_id_t ue_idP,
   const imsi_t *const imsi_pP,

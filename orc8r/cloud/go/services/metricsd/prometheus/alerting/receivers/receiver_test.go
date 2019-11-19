@@ -10,11 +10,13 @@ package receivers
 
 import (
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -52,10 +54,19 @@ var (
 			},
 		}},
 	}
+	sampleEmailReceiver = Receiver{
+		Name: "email_receiver",
+		EmailConfigs: []*EmailConfig{{
+			To:        "test@mail.com",
+			From:      "sampleUser",
+			Headers:   map[string]string{"header": "value"},
+			Smarthost: "http://mail-server.com",
+		}},
+	}
 	sampleConfig = Config{
 		Route: &sampleRoute,
 		Receivers: []*Receiver{
-			&sampleSlackReceiver, &sampleReceiver, &sampleWebhookReceiver,
+			&sampleSlackReceiver, &sampleReceiver, &sampleWebhookReceiver, &sampleEmailReceiver,
 		},
 	}
 )
@@ -127,6 +138,9 @@ func TestConfig_GetReceiver(t *testing.T) {
 	rec = sampleConfig.GetReceiver("webhook_receiver")
 	assert.NotNil(t, rec)
 
+	rec = sampleConfig.GetReceiver("email_receiver")
+	assert.NotNil(t, rec)
+
 	rec = sampleConfig.GetReceiver("nonRoute")
 	assert.Nil(t, rec)
 }
@@ -185,4 +199,19 @@ func TestRouteJSONWrapper_ToPrometheusConfig(t *testing.T) {
 	route, err := jsonRoute.ToPrometheusConfig()
 	assert.NoError(t, err)
 	assert.Equal(t, expectedRoute, route)
+}
+
+// TestMarshalYamlEmailConfig checks that all EmailConfigs are marshaled with
+// requireTLS set to false
+func TestMarshalYamlEmailConfig(t *testing.T) {
+	valTrue := true
+	emailConf := EmailConfig{
+		To:         "test@mail.com",
+		RequireTLS: &valTrue,
+		Headers:    map[string]string{"test": "true", "new": "old"},
+	}
+	ymlData, err := yaml.Marshal(emailConf)
+	assert.NoError(t, err)
+	assert.True(t, strings.Contains(string(ymlData), "require_tls: false"))
+	assert.False(t, strings.Contains(string(ymlData), "require_tls: true"))
 }

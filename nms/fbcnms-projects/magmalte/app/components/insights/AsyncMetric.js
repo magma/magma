@@ -11,7 +11,7 @@
 import CircularProgress from '@material-ui/core/CircularProgress';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text.react';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import {Line} from 'react-chartjs-2';
 
@@ -229,6 +229,7 @@ function useDatasetsFetcher(props: Props) {
               unit: props.unit || '',
               fill: false,
               lineTension: 0,
+              pointHitRadius: 10,
               pointRadius: 0,
               borderWidth: 2,
               backgroundColor: getColorForIndex(index),
@@ -275,7 +276,7 @@ export default function AsyncMetric(props: Props) {
     return <Progress />;
   }
 
-  if (allDatasets?.length === 0) {
+  if (!allDatasets || allDatasets?.length === 0) {
     return <Text variant="body2">No Data</Text>;
   }
 
@@ -314,11 +315,16 @@ export default function AsyncMetric(props: Props) {
           mode: 'nearest',
           callbacks: {
             label: (tooltipItem, data) =>
-              tooltipItem.yLabel + data.datasets[tooltipItem.datasetIndex].unit,
+              data.datasets[tooltipItem.datasetIndex].label +
+              ': ' +
+              tooltipItem.yLabel +
+              ' ' +
+              data.datasets[tooltipItem.datasetIndex].unit,
           },
         },
       }}
       legend={{
+        display: allDatasets.length < 5,
         position: 'bottom',
         labels: {
           boxWidth: 12,

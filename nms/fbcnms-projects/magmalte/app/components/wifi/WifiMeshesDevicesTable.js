@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -24,8 +24,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
-import Typography from '@material-ui/core/Typography';
 import WifiDeviceDialog from './WifiDeviceDialog';
 import WifiMeshDialog from './WifiMeshDialog';
 import WifiMeshRow from './WifiMeshRow';
@@ -85,8 +85,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
       <WifiMeshRow
         enableDeviceEditing={true}
         key={meshID}
-        // $FlowFixMe: get can return null
-        gateways={this.state.meshes.get(meshID)}
+        gateways={this.state.meshes.get(meshID) || []}
         meshID={meshID}
         onDeleteMesh={this.onDeleteMesh}
         onDeleteDevice={this.onDeleteDevice}
@@ -97,7 +96,7 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
       <>
         <div className={this.props.classes.paper}>
           <div className={this.props.classes.header}>
-            <Typography variant="h5">Devices</Typography>
+            <Text variant="h5">Devices</Text>
             <div>
               <Tooltip title={'Last refreshed: ' + this.state.lastRefreshTime}>
                 <IconButton
@@ -108,13 +107,11 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
                 </IconButton>
               </Tooltip>
               <NestedRouteLink to="/add_mesh/">
-                <Button variant="contained" color="primary">
-                  New Mesh
-                </Button>
+                <Button>New Mesh</Button>
               </NestedRouteLink>
             </div>
           </div>
-          <Typography color="error">{this.state.errorMessage}</Typography>
+          <Text color="error">{this.state.errorMessage}</Text>
           <Paper elevation={2}>
             {this.state.isLoading ? <LinearProgress /> : null}
             <Table>

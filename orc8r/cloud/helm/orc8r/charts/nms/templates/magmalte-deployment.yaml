@@ -48,7 +48,7 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: nms-app
           image: "{{ .Values.magmalte.image.repository }}:{{ .Values.magmalte.image.tag }}"
           imagePullPolicy: {{ .Values.magmalte.image.pullPolicy }}
 {{ tuple $envAll $envAll.Values.pod.resources.magmalte | include "nms.kubernetes_resources" | indent 10 }}
@@ -58,9 +58,9 @@ spec:
             - start:dev
           env:
             - name: API_CERT_FILENAME
-              value: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.pem
+              value: /run/secrets/admin_operator.pem
             - name: API_PRIVATE_KEY_FILENAME
-              value: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.key.pem
+              value: /run/secrets/admin_operator.key.pem
             - name: API_HOST
               value: {{ .Values.magmalte.env.api_host | quote }}
             - name: HOST
@@ -86,21 +86,21 @@ spec:
           livenessProbe:
             exec:
               command:
-              - curl 
+              - curl
               - http://localhost:8081/healthz
             initialDelaySeconds: 60
           ports:
             - containerPort: 8081
           volumeMounts:
             - name: orc8r-secrets-certs
-              mountPath: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.pem
-              subPath: admin_operator.pem
+              mountPath: /run/secrets/admin_operator.pem
+              subPath: {{ .Values.magmalte.deployment.spec.operator_cert_name }}
             - name: orc8r-secrets-certs
-              mountPath: /usr/src/fbcnms-projects/magmalte/certs/admin_operator.key.pem
-              subPath: admin_operator.key.pem
+              mountPath: /run/secrets/admin_operator.key.pem
+              subPath: {{ .Values.magmalte.deployment.spec.operator_key_name }}
       volumes:
         - name: orc8r-secrets-certs
           secret:
-            secretName: orc8r-secrets-certs
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
             defaultMode: 0444
 {{- end }}

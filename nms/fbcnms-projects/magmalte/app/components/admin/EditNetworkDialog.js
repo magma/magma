@@ -10,7 +10,7 @@
 
 import type {network} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -27,7 +27,7 @@ import React from 'react';
 import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 
-import {AllNetworkTypes} from '@fbcnms/types/network';
+import {AllNetworkTypes, V1NetworkTypes} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -44,6 +44,9 @@ type Props = {
   onClose: () => void,
   onSave: () => void,
 };
+
+const v1NetworkTypesSet = new Set<string>(V1NetworkTypes);
+const v0NetworkTypes = AllNetworkTypes.filter(x => !v1NetworkTypesSet.has(x));
 
 export default function NetworkDialog(props: Props) {
   const classes = useStyles();
@@ -67,6 +70,7 @@ export default function NetworkDialog(props: Props) {
   ) =>
     setNetworkConfig({
       ...networkConfig,
+      // $FlowFixMe Set state for each field
       [field]: value,
     });
 
@@ -78,6 +82,12 @@ export default function NetworkDialog(props: Props) {
       .then(props.onSave)
       .catch(error => setError(error.response?.data?.error || error));
   };
+
+  const validNetworkTypes = v1NetworkTypesSet.has(networkConfig.type || '????')
+    ? // cannot change network types if v1
+      [networkConfig.type]
+    : // cannot change to a v1 network type
+      v0NetworkTypes;
 
   return (
     <Dialog open={true} onClose={props.onClose}>
@@ -104,7 +114,7 @@ export default function NetworkDialog(props: Props) {
             value={networkConfig.type}
             onChange={({target}) => updateNetwork('type', target.value)}
             input={<Input id="types" />}>
-            {AllNetworkTypes.map(type => (
+            {validNetworkTypes.map(type => (
               <MenuItem key={type} value={type}>
                 <ListItemText primary={type} />
               </MenuItem>
@@ -113,12 +123,10 @@ export default function NetworkDialog(props: Props) {
         </FormControl>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} color="primary">
+        <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} color="primary" variant="contained">
-          Save
-        </Button>
+        <Button onClick={onSave}>Save</Button>
       </DialogActions>
     </Dialog>
   );

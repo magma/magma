@@ -75,6 +75,12 @@ subscriber:
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
 
+# For LTE UE doesn't have an eth src so we need to fake it
+local_ue_eth_addr: True
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
+
 # Interface to NAT traffic to
 nat_iface: eth0
 

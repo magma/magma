@@ -125,6 +125,7 @@ cartography::DeviceConfigs DevConf::parseYamlDeviceConfigs(
       deviceConfig.id = device["id"].as<std::string>();
       deviceConfig.platform = device["platform"].as<std::string>();
       deviceConfig.ip = device["ip"].as<std::string>();
+      deviceConfig.readonly = device["readonly"].as<bool>();
 
       if (device["yangConfig"]) {
         deviceConfig.yangConfig =
@@ -208,6 +209,10 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
         deviceConfig.id = device.first.asString();
         deviceConfig.platform = device.second["platform"].asString();
         deviceConfig.ip = device.second["host"].asString();
+        if (device.second.get_ptr("readonly") != nullptr) {
+          deviceConfig.readonly = device.second["readonly"].asBool();
+        }
+
         if (device.second.get_ptr("deviceConfig") != nullptr) {
           deviceConfig.yangConfig = device.second["deviceConfig"].asString();
         }

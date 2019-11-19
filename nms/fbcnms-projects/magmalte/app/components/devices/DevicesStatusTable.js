@@ -7,13 +7,13 @@
  * @flow
  * @format
  */
-import type {DevicesGatewayPayload} from './DevicesUtils';
+import type {symphony_agent} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
-import DevicesDeviceDialog from './DevicesDeviceDialog';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import DevicesEditManagedDeviceDialog from './DevicesEditManagedDeviceDialog';
 import DevicesManagedDeviceRow from './DevicesManagedDeviceRow';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -22,18 +22,16 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
-import axios from 'axios';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import {Route} from 'react-router-dom';
+import {map} from 'lodash';
 
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
-import {
-  buildDevicesGatewayFromPayload,
-  mergeGatewaysDevices,
-} from './DevicesUtils';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {buildDevicesAgentFromPayload, mergeAgentsDevices} from './DevicesUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter} from '@fbcnms/ui/hooks';
 import {useCallback, useEffect, useState} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   actionsColumn: {
@@ -68,69 +66,41 @@ const REFRESH_INTERVAL = 10000;
 export default function DevicesStatusTable() {
   const classes = useStyles();
   const {match, relativePath, relativeUrl, history} = useRouter();
-  const [rawGateways, setRawGateways] = useState<?(DevicesGatewayPayload[])>(
-    null,
-  );
+  const [rawAgents, setRawAgents] = useState<?(symphony_agent[])>(null);
   const [devices, setDevices] = useState<?(string[])>(null);
 
-  const {isLoading: gatewaysIsLoading, error} = useAxios<
-    null,
-    DevicesGatewayPayload[],
-  >({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-    onResponse: useCallback(res => {
-      if (res.data) {
-        setRawGateways(res.data.filter(device => device.record));
-      }
-    }, []),
-  });
+  const {isLoading: agentsIsLoading, error} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdAgents,
+    {networkId: nullthrows(match.params.networkId)},
+    useCallback(response => setRawAgents(map(response, agent => agent)), []),
+  );
 
-  const {isLoading: devicesIsLoading, error: devicesError} = useAxios<
-    null,
-    string[],
-  >({
-    method: 'get',
-    url: MagmaAPIUrls.devices(match),
-    onResponse: useCallback(res => {
-      if (res.data) {
-        setDevices(res.data);
+  const {isLoading: devicesIsLoading, error: devicesError} = useMagmaAPI(
+    MagmaV1API.getSymphonyByNetworkIdDevices,
+    {networkId: nullthrows(match.params.networkId)},
+    useCallback(response => {
+      if (response != null) {
+        setDevices(Object.keys(response));
       }
     }, []),
-  });
+  );
 
   useEffect(() => {
-    if (!rawGateways) {
+    if (!rawAgents) {
       return;
     }
-
     const interval = setInterval(async () => {
-      await Promise.all(
-        rawGateways.map(async gateway => {
-          try {
-            const statusResponse = await axios.get(
-              MagmaAPIUrls.gatewayStatus(match, gateway.gateway_id),
-            );
-            const newGateways = [...rawGateways];
-            for (let i = 0; i < rawGateways.length; i++) {
-              if (newGateways[i].gateway_id === gateway.gateway_id) {
-                newGateways[i] = {
-                  ...newGateways[i],
-                  status: statusResponse.data,
-                };
-              }
-            }
-            setRawGateways(newGateways);
-          } catch (err) {
-            console.error(
-              `Warning: cannot refresh gateway id '${gateway.gateway_id}'. ${err}`,
-            );
-          }
-        }),
-      );
+      try {
+        const response = await MagmaV1API.getSymphonyByNetworkIdAgents({
+          networkId: nullthrows(match.params.networkId),
+        });
+        setRawAgents(map(response, agent => agent));
+      } catch (err) {
+        console.error(`Warning: cannot refresh'. ${err}`);
+      }
     }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
-  }, [match, rawGateways]);
+  }, [match, rawAgents]);
 
   let errorMessage = null;
   let fullDevices = {};
@@ -139,12 +109,12 @@ export default function DevicesStatusTable() {
     errorMessage = error.message;
   } else if (devicesError) {
     errorMessage = devicesError.message;
-  } else if (rawGateways != null && devices) {
-    const gateways = rawGateways.map(buildDevicesGatewayFromPayload);
-    fullDevices = mergeGatewaysDevices(gateways, devices);
+  } else if (rawAgents != null && devices) {
+    const agents = rawAgents.map(buildDevicesAgentFromPayload);
+    fullDevices = mergeAgentsDevices(agents, devices);
   }
 
-  if (error || devicesError || gatewaysIsLoading || devicesIsLoading) {
+  if (error || devicesError || agentsIsLoading || devicesIsLoading) {
     return <LoadingFiller />;
   }
 
@@ -152,8 +122,10 @@ export default function DevicesStatusTable() {
     <DevicesManagedDeviceRow
       enableDeviceEditing={true}
       deviceID={id}
-      onDeleteDevice={_deletedDeviceID => {
-        // delete doesn't actually work right now - wait until API V1
+      onDeleteDevice={deletedDeviceID => {
+        if (devices) {
+          setDevices(devices.filter(deviceId => deviceId != deletedDeviceID));
+        }
       }}
       key={id}
       device={fullDevices[id]}
@@ -164,14 +136,12 @@ export default function DevicesStatusTable() {
     <>
       <div className={classes.paper}>
         <div className={classes.header}>
-          <Typography variant="h5">Devices</Typography>
+          <Text variant="h5">Devices</Text>
           <NestedRouteLink to="/add_device/">
-            <Button variant="contained" color="primary">
-              New Device
-            </Button>
+            <Button>New Device</Button>
           </NestedRouteLink>
         </div>
-        {errorMessage && <Typography color="error">{errorMessage}</Typography>}
+        {errorMessage && <Text color="error">{errorMessage}</Text>}
         <Paper>
           <Table>
             <TableHead>
@@ -186,19 +156,6 @@ export default function DevicesStatusTable() {
           </Table>
         </Paper>
       </div>
-      <Route
-        path={relativePath('/new')}
-        render={() => (
-          <DevicesDeviceDialog
-            onSave={device => {
-              const existingGateways = rawGateways || [];
-              setRawGateways([...existingGateways, device]);
-              history.push(relativeUrl(''));
-            }}
-            onClose={() => history.push(relativeUrl(''))}
-          />
-        )}
-      />
       <Route
         path={relativePath('/add_device')}
         render={() => (

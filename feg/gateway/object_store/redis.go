@@ -28,7 +28,7 @@ type RedisClient interface {
 // RedisClientImpl is the implementation of the redis client using an actual connection
 // to redis using go-redis
 type RedisClientImpl struct {
-	rawClient *redis.Client
+	RawClient *redis.Client
 }
 
 // NewRedisClient gets the redis configuration from the service config and returns
@@ -39,7 +39,7 @@ func NewRedisClient() (RedisClient, error) {
 		return nil, err
 	}
 	return &RedisClientImpl{
-		rawClient: redis.NewClient(&redis.Options{
+		RawClient: redis.NewClient(&redis.Options{
 			Addr: fmt.Sprintf(address),
 		}),
 	}, nil
@@ -47,20 +47,20 @@ func NewRedisClient() (RedisClient, error) {
 
 // HSet sets a value at a hash,field pair
 func (client *RedisClientImpl) HSet(hash string, field string, value string) error {
-	return client.rawClient.HSet(hash, field, value).Err()
+	return client.RawClient.HSet(hash, field, value).Err()
 }
 
 // HGet gets a value at a hash,field pair
 func (client *RedisClientImpl) HGet(hash string, field string) (string, error) {
-	return client.rawClient.HGet(hash, field).Result()
+	return client.RawClient.HGet(hash, field).Result()
 }
 
 // HGetAll gets all the possible values for fields in a hash
 func (client *RedisClientImpl) HGetAll(hash string) (map[string]string, error) {
-	return client.rawClient.HGetAll(hash).Result()
+	return client.RawClient.HGetAll(hash).Result()
 }
 
 // HDel deletes a value at a hash,field pair
 func (client *RedisClientImpl) HDel(hash string, field string) error {
-	return client.rawClient.HDel(hash, field).Err()
+	return client.RawClient.HDel(hash, field).Err()
 }

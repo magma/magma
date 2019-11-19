@@ -8,7 +8,6 @@
  * @format
  */
 
-// TODO
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {
   network_cellular_configs,
@@ -21,7 +20,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {LTE} from '@fbcnms/types/network';
+import {CWF, FEG, LTE, SYMPHONY} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -87,29 +86,67 @@ router.post(
   asyncHandler(async (req: FBCNMSRequest, res) => {
     const {networkID, data} = req.body;
     const {name, description} = data;
+    const commonField = {
+      name,
+      description,
+      id: networkID,
+      ...NETWORK_FEATURES,
+    };
 
     let resp;
     try {
       if (data.networkType === LTE) {
         resp = await MagmaV1API.postLte({
           lteNetwork: {
+            ...commonField,
             cellular: DEFAULT_CELLULAR_CONFIG,
             dns: DEFAULT_DNS_CONFIG,
-            id: networkID,
-            name,
-            description,
-            ...NETWORK_FEATURES,
+          },
+        });
+      } else if (data.networkType === CWF) {
+        resp = await MagmaV1API.postCwf({
+          cwfNetwork: {
+            ...commonField,
+            dns: DEFAULT_DNS_CONFIG,
+            federation: {feg_network_id: data.fegNetworkID},
+            carrier_wifi: {
+              aaa_server: {},
+              default_rule_id: '',
+              eap_aka: {},
+              network_services: [],
+            },
+          },
+        });
+      } else if (data.networkType === FEG) {
+        resp = await MagmaV1API.postFeg({
+          fegNetwork: {
+            ...commonField,
+            dns: DEFAULT_DNS_CONFIG,
+            federation: {
+              aaa_server: {},
+              eap_aka: {},
+              gx: {},
+              gy: {},
+              health: {},
+              hss: {},
+              s6a: {},
+              served_network_ids: data.servedNetworkIDs.split(','),
+              swx: {},
+            },
+          },
+        });
+      } else if (data.networkType === SYMPHONY) {
+        resp = await MagmaV1API.postSymphony({
+          symphonyNetwork: {
+            ...commonField,
           },
         });
       } else {
         await MagmaV1API.postNetworks({
           network: {
-            name,
-            description,
-            id: networkID,
+            ...commonField,
             type: data.networkType,
             dns: DEFAULT_DNS_CONFIG,
-            ...NETWORK_FEATURES,
           },
         });
       }

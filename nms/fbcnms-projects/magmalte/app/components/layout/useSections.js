@@ -18,13 +18,21 @@ import {coalesceNetworkType} from '@fbcnms/types/network';
 import {useContext, useEffect, useState} from 'react';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import {CWF, LTE, RHINO, THIRD_PARTY, WAC, WIFI} from '@fbcnms/types/network';
+import {
+  CWF,
+  FEG,
+  LTE,
+  RHINO,
+  SYMPHONY,
+  THIRD_PARTY,
+  WIFI,
+} from '@fbcnms/types/network';
 import {getCWFSections} from '../cwf/CWFSections';
 import {getDevicesSections} from '@fbcnms/magmalte/app/components/devices/DevicesSections';
+import {getFEGSections} from '../feg/FEGSections';
 import {getLteSections} from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
-import {getWACSections} from '@fbcnms/magmalte/app/components/wac/WACSections';
 
 export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
@@ -48,14 +56,15 @@ export default function useSections(): SectionsConfigs {
   switch (networkType) {
     case WIFI:
       return getMeshSections(alertsEnabled);
+    case SYMPHONY:
     case THIRD_PARTY:
       return getDevicesSections(alertsEnabled);
-    case WAC:
-      return getWACSections();
     case RHINO:
       return getRhinoSections();
     case CWF:
       return getCWFSections();
+    case FEG:
+      return getFEGSections();
     case LTE:
     default:
       return getLteSections(alertsEnabled, logsEnabled);

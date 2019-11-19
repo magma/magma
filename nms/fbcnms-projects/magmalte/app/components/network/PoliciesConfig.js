@@ -8,16 +8,18 @@
  * @format
  */
 
-import type {ContextRouter, Match} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import PolicyBaseNameDialog from './PolicyBaseNameDialog';
 import PolicyRuleEditDialog from './PolicyRuleEditDialog';
 import React from 'react';
 import Table from '@material-ui/core/Table';
@@ -25,156 +27,254 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import axios from 'axios';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import Toolbar from '@material-ui/core/Toolbar';
 
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '../../common/MagmaAPI';
-import {Route, withRouter} from 'react-router-dom';
+import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
-import {withStyles} from '@material-ui/core/styles';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
-const styles = {};
+const useStyles = makeStyles({
+  header: {
+    flexGrow: 1,
+  },
+  actionsColumn: {
+    width: '300px',
+  },
+});
 
-type Rule = {[string]: any};
-type State = {
-  rules: ?Array<Rule>,
-};
+function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
+  const classes = useStyles();
+  const {match, relativePath, relativeUrl, history} = useRouter();
+  const [ruleIDs, setRuleIDs] = useState();
+  const [baseNames, setBaseNames] = useState();
 
-type Props = WithStyles<typeof styles> & ContextRouter & WithAlert & {};
-
-class PoliciesConfig extends React.Component<Props, State> {
-  state = {
-    rules: null,
-  };
-
-  componentDidMount() {
-    this.loadData().catch(error =>
-      this.props.alert(error.response?.data?.message || error),
-    );
-  }
-
-  async loadData() {
-    const rules = await axios.get(
-      MagmaAPIUrls.networkPolicyRules(this.props.match),
-    );
-    const results = await axios.all(
-      rules.data.map(ruleId =>
-        axios.get(MagmaAPIUrls.networkPolicyRule(this.props.match, ruleId)),
-      ),
-    );
-
-    this.setState({rules: results.map(r => r.data)});
-  }
-
-  render() {
-    const {rules} = this.state;
-    if (!rules) {
-      return <LoadingFiller />;
-    }
-
-    const rows = rules.map(rule => (
-      <TableRow key={rule.id}>
-        <TableCell>{rule.id}</TableCell>
-        <TableCell>{rule.priority}</TableCell>
-        <TableCell>
-          <NestedRouteLink to={`/edit/${encodeURIComponent(rule.id)}/`}>
-            <IconButton>
-              <EditIcon />
-            </IconButton>
-          </NestedRouteLink>
-          <IconButton onClick={() => this.onDeleteRule(rule)}>
-            <DeleteIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-    ));
-
-    return (
-      <>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Precedence</TableCell>
-              <TableCell>
-                <NestedRouteLink to="/add/">
-                  <Button color="primary" variant="contained">
-                    Add Rule
-                  </Button>
-                </NestedRouteLink>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          {<TableBody>{rows}</TableBody>}
-        </Table>
-        <Route
-          path={`${this.props.match.path}/add`}
-          component={this.renderAddDialog}
-        />
-        <Route
-          path={`${this.props.match.path}/edit/:ruleID`}
-          component={this.renderEditDialog}
-        />
-      </>
-    );
-  }
-
-  renderAddDialog = () => (
-    // $FlowFixMe: missing prop. Please fix.
-    <PolicyRuleEditDialog
-      onCancel={this.handleCloseDialog}
-      onSave={this.onAddRule}
-    />
+  const networkID = nullthrows(match.params.networkId);
+  useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPoliciesRules,
+    {networkId: networkID},
+    setRuleIDs,
+  );
+  useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPoliciesBaseNames,
+    {networkId: networkID},
+    setBaseNames,
   );
 
-  onAddRule = rule => {
-    const rules = [...nullthrows(this.state.rules), rule];
-    this.setState({rules});
-    this.handleCloseDialog();
+  if (!ruleIDs || !baseNames) {
+    return <LoadingFiller />;
+  }
+
+  const onDelete = id => {
+    const newRuleIDs = [...nullthrows(ruleIDs)];
+    newRuleIDs.splice(findIndex(newRuleIDs, id2 => id2 === id), 1);
+    setRuleIDs(newRuleIDs);
   };
 
-  renderEditDialog = ({match}: {match: Match}) => {
-    const rule = nullthrows(this.state.rules).find(
-      r => r.id == match.params.ruleID,
+  const deleteBaseName = async name => {
+    const confirmed = await props.confirm(
+      `Are you sure you want to remove the base name "${name}"?`,
     );
-    return (
-      <PolicyRuleEditDialog
-        // $FlowFixMe: rule is nullable. Please fix.
-        rule={rule}
-        onCancel={this.handleCloseDialog}
-        onSave={this.onEditRule}
+
+    if (confirmed) {
+      await MagmaV1API.deleteNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+        networkId: networkID,
+        baseName: name,
+      });
+
+      const newBaseNames = [...nullthrows(baseNames)];
+      newBaseNames.splice(findIndex(newBaseNames, name2 => name2 === name), 1);
+      setBaseNames(newBaseNames);
+    }
+  };
+
+  return (
+    <>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>ID</TableCell>
+            <TableCell>Precedence</TableCell>
+            <TableCell className={classes.actionsColumn}>
+              <NestedRouteLink to="/add/">
+                <Button>Add Rule</Button>
+              </NestedRouteLink>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {ruleIDs.map(id => (
+            <RuleRow
+              mirrorNetwork={props.mirrorNetwork}
+              key={id}
+              ruleID={id}
+              onDelete={onDelete}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <Route
+        path={relativePath('/add')}
+        component={() => (
+          <PolicyRuleEditDialog
+            mirrorNetwork={props.mirrorNetwork}
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={ruleID => {
+              setRuleIDs([...nullthrows(ruleIDs), ruleID]);
+              history.push(relativeUrl(''));
+            }}
+          />
+        )}
       />
-    );
-  };
+      <Toolbar>
+        <Text className={classes.header} variant="h5">
+          Base Names
+        </Text>
+      </Toolbar>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Name</TableCell>
+            <TableCell className={classes.actionsColumn}>
+              <NestedRouteLink to="/add_base_name/">
+                <Button>Add Base Name</Button>
+              </NestedRouteLink>
+            </TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {baseNames.map(name => (
+            <TableRow>
+              <TableCell>{name}</TableCell>
+              <TableCell>
+                <NestedRouteLink to={`/edit_base_name/${name}`}>
+                  <IconButton>
+                    <EditIcon />
+                  </IconButton>
+                </NestedRouteLink>
+                <IconButton onClick={() => deleteBaseName(name)}>
+                  <DeleteIcon />
+                </IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Route
+        path={relativePath('/add_base_name')}
+        component={() => (
+          <PolicyBaseNameDialog
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={baseName => {
+              setBaseNames([...nullthrows(baseNames), baseName]);
+              history.push(relativeUrl(''));
+            }}
+          />
+        )}
+      />
+      <Route
+        path={relativePath('/edit_base_name/:baseName')}
+        component={() => (
+          <PolicyBaseNameDialog
+            onCancel={() => history.push(relativeUrl(''))}
+            onSave={() => history.push(relativeUrl(''))}
+          />
+        )}
+      />
+    </>
+  );
+}
 
-  onEditRule = rule => {
-    const rules = [...nullthrows(this.state.rules)];
-    rules[findIndex(rules, r => r.id === rule.id)] = rule;
-    this.setState({rules});
-    this.handleCloseDialog();
-  };
+type Props = WithAlert & {
+  ruleID: string,
+  onDelete: () => void,
+  mirrorNetwork?: string,
+};
 
-  onDeleteRule = async (rule: Rule) => {
-    const confirmed = await this.props.confirm(
-      `Are you sure you want to remove the rule "${rule.id}"?`,
+const RuleRow = withAlert((props: Props) => {
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
+  const {match, relativePath, relativeUrl, history} = useRouter();
+  const networkID = nullthrows(match.params.networkId);
+
+  const {response: rule} = useMagmaAPI(
+    MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId,
+    {networkId: networkID, ruleId: props.ruleID},
+    undefined,
+    lastRefreshTime,
+  );
+
+  const onDeleteRule = async () => {
+    const confirmed = await props.confirm(
+      `Are you sure you want to remove the rule "${props.ruleID}"?`,
     );
 
     if (!confirmed) {
       return;
     }
 
-    await axios.delete(
-      MagmaAPIUrls.networkPolicyRule(this.props.match, rule.id),
+    const data = [
+      {
+        networkId: networkID,
+        ruleId: props.ruleID,
+      },
+    ];
+    if (props.mirrorNetwork) {
+      data.push({
+        networkId: props.mirrorNetwork,
+        ruleId: props.ruleID,
+      });
+    }
+    await Promise.all(
+      data.map(d =>
+        MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(d),
+      ),
     );
-    const rules = nullthrows(this.state.rules).slice();
-    rules.splice(findIndex(rules, r => r.id === rule.id), 1);
-    this.setState({rules});
+
+    props.onDelete();
   };
 
-  handleCloseDialog = () => {
-    this.props.history.push(`${this.props.match.url}/`);
-  };
-}
+  const editPath = `/edit/${encodeURIComponent(props.ruleID)}/`;
+  return (
+    <TableRow>
+      <TableCell>{props.ruleID}</TableCell>
+      <TableCell>
+        {rule ? rule.priority : <CircularProgress size={20} />}
+      </TableCell>
+      <TableCell>
+        <NestedRouteLink to={editPath}>
+          <IconButton>
+            <EditIcon />
+          </IconButton>
+        </NestedRouteLink>
+        <IconButton onClick={onDeleteRule}>
+          <DeleteIcon />
+        </IconButton>
+        <Route
+          path={relativePath(editPath)}
+          component={() =>
+            rule ? (
+              <PolicyRuleEditDialog
+                mirrorNetwork={props.mirrorNetwork}
+                rule={rule}
+                onCancel={() => history.push(relativeUrl(''))}
+                onSave={() => {
+                  setLastRefreshTime(new Date().getTime());
+                  history.push(relativeUrl(''));
+                }}
+              />
+            ) : (
+              <LoadingFillerBackdrop />
+            )
+          }
+        />
+      </TableCell>
+    </TableRow>
+  );
+});
 
-export default withStyles(styles)(withRouter(withAlert(PoliciesConfig)));
+export default withAlert(PoliciesConfig);

@@ -42,18 +42,21 @@
 #include <sys/types.h>
 #include <dirent.h>
 
+
 std::vector <std::string> read_directory(const std::string& dir_path) {
-    const std::string absolute_dir_path = realpath(dir_path.c_str(), nullptr);
+    char* absolute_dir_path = realpath(dir_path.c_str(), nullptr);
 
     std::vector <std::string> res;
     DIR *dir;
     struct dirent *ent;
-    dir = opendir(absolute_dir_path.c_str());
+    dir = opendir(absolute_dir_path);
+    char file_name[MAX_FILE_NAME_LENGTH];
     while ((ent = readdir (dir)) != nullptr) {
-        res.emplace_back(absolute_dir_path + "/" + ent->d_name);
+        sprintf(file_name, "%s/%s", absolute_dir_path, ent->d_name);
+        res.emplace_back(file_name);
     }
     closedir (dir);
-
+    free(absolute_dir_path);
     return res;
 }
 

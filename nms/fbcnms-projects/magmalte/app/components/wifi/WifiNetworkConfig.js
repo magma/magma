@@ -12,7 +12,7 @@ import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
@@ -237,11 +237,7 @@ class WifiNetworkConfig extends React.Component<Props, State> {
           />
         </FormGroup>
         <FormGroup row className={classes.formGroup}>
-          <Button
-            className={classes.saveButton}
-            variant="contained"
-            color="primary"
-            onClick={this.handleSave}>
+          <Button className={classes.saveButton} onClick={this.handleSave}>
             Save
           </Button>
         </FormGroup>
@@ -283,7 +279,9 @@ class WifiNetworkConfig extends React.Component<Props, State> {
   handleConfigChange = (field, value) => {
     this.setState({
       config: {
+        // $FlowFixMe Set state for each field
         ...this.state.config,
+        // $FlowFixMe Set state for each field
         [field]: value,
       },
     });

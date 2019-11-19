@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {PolicyFlow} from './PolicyTypes';
 import type {WithStyles} from '@material-ui/core';
+import type {flow_description} from '@fbcnms/magma-api';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -23,8 +23,8 @@ import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import RemoveCircleOutline from '@material-ui/icons/RemoveCircleOutline';
 import Select from '@material-ui/core/Select';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 
 import {ACTION, DIRECTION, PROTOCOL} from './PolicyTypes';
 import {withStyles} from '@material-ui/core/styles';
@@ -49,10 +49,11 @@ const styles = {
   removeIcon: {alignSelf: 'baseline'},
 };
 
+type ActionType = $Keys<typeof ACTION>;
 type Props = WithStyles<typeof styles> & {
   index: number,
-  flow: PolicyFlow,
-  handleActionChange: (number, string) => void,
+  flow: flow_description,
+  handleActionChange: (number, ActionType) => void,
   handleFieldChange: (number, string, string | number) => void,
   handleDelete: number => void,
 };
@@ -66,7 +67,7 @@ class PolicyFlowFields extends React.Component<Props> {
           <ExpansionPanelSummary
             classes={{root: classes.root, expanded: classes.expanded}}
             expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="body2">Flow {this.props.index + 1}</Typography>
+            <Text variant="body2">Flow {this.props.index + 1}</Text>
           </ExpansionPanelSummary>
           <ExpansionPanelDetails classes={{root: classes.block}}>
             <div className={classes.flex}>
@@ -167,7 +168,11 @@ class PolicyFlowFields extends React.Component<Props> {
   }
 
   handleActionChange = ({target}) =>
-    this.props.handleActionChange(this.props.index, target.value);
+    this.props.handleActionChange(
+      this.props.index,
+      // eslint-disable-next-line flowtype/no-weak-types
+      ((target.value: any): ActionType),
+    );
   handleDirectionChange = ({target}) =>
     this.props.handleFieldChange(this.props.index, 'direction', target.value);
   handleProtocolChange = ({target}) =>

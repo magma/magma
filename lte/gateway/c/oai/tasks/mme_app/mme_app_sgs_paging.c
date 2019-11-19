@@ -154,7 +154,7 @@ static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt)
       "\n",
       sgsap_paging_req_pP->service_indicator,
       (uint8_t) ue_context_p->granted_service,
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
     IMSI_STRING_TO_IMSI64((char *) sgsap_paging_req_pP->imsi, &imsi64);
     mme_app_send_sgsap_paging_reject(
       ue_context_p,
@@ -235,11 +235,11 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt)
       "\n",
       sgsap_paging_req_pP->service_indicator,
       (uint8_t) ue_context_p->granted_service,
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
     mme_app_send_sgsap_paging_reject(
       ue_context_p,
       imsi64,
-      ue_context_p->imsi_len,
+      ue_context_p->emm_context._imsi.length,
       SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER);
     increment_counter(
       "sgsap_paging_reject", 1, 1, "cause", "ue_requested_only_sms");
@@ -262,7 +262,7 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt)
       "Received Paging Request while vlr-rliable is :%d for imsi" IMSI_64_FMT
       "\n",
       sgs_context->vlr_reliable,
-      ue_context_p->imsi);
+      ue_context_p->emm_context._imsi64);
     /* Handling for paging received without LAI and vlr-reliable flag set to false is same */
     rc = _sgsap_handle_paging_request_without_lai(
       ue_context_p, sgsap_paging_req_pP);
@@ -341,7 +341,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_connected(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Connected state for IMSI:" IMSI_64_FMT
     "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
 
   /* Fetch TMSI if present */
   if (
@@ -401,7 +401,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_connected(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Connected state for IMSI:" IMSI_64_FMT
     "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
 
   if (
     RETURNok != (rc = mme_app_send_sgsap_service_request(
@@ -442,7 +442,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
   OAILOG_INFO(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Idle state for IMSI:" IMSI_64_FMT "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   if (ue_context_p->ppf) {
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
@@ -455,7 +455,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
         LOG_MME_APP,
         "Received SGS-paging request Unable to retrieve S-TMSI from "
         "IMSI " IMSI_64_FMT "\n",
-        ue_context_p->imsi);
+        ue_context_p->emm_context._imsi64);
       rc = mme_app_paging_request_helper(
         ue_context_p, false, NAS_PAGING_ID_IMSI, CN_DOMAIN_PS);
     } else {
@@ -518,7 +518,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
   OAILOG_INFO(
     LOG_MME_APP,
     "Received SGSAP-Paging Request in UE Idle state for IMSI:" IMSI_64_FMT "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   if (ue_context_p->ppf) {
     /* Paging timer shall not be started, if paging procedure initiated for CSFB
      * Reference: spec-24.301 section: 5.6.2.3
@@ -531,7 +531,7 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
         LOG_MME_APP,
         "Received SGS-paging request Unable to retrieve S-TMSI from "
         "IMSI " IMSI_64_FMT "\n",
-        ue_context_p->imsi);
+        ue_context_p->emm_context._imsi64);
       rc = mme_app_paging_request_helper(
         ue_context_p, false, NAS_PAGING_ID_IMSI, CN_DOMAIN_PS);
     } else {
@@ -596,18 +596,22 @@ int mme_app_send_sgsap_service_request(
     (void *) sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
 
   IMSI64_TO_STRING(
-    ue_context_p->imsi, sgsap_service_req_pP->imsi, ue_context_p->imsi_len);
-  sgsap_service_req_pP->imsi_length = ue_context_p->imsi_len;
+    ue_context_p->emm_context._imsi64,
+    sgsap_service_req_pP->imsi,
+    ue_context_p->emm_context._imsi.length);
+  sgsap_service_req_pP->imsi_length = ue_context_p->emm_context._imsi.length;
   sgsap_service_req_pP->service_indicator = service_indicator;
-  if (ue_context_p->member_present_mask & UE_CTXT_MEMBER_IMEI_SV) {
+  if (IS_EMM_CTXT_PRESENT_IMEISV(&(ue_context_p->emm_context))) {
     sgsap_service_req_pP->presencemask |=
       SERVICE_REQUEST_IMEISV_PARAMETER_PRESENT;
     hexa_to_ascii(
-      (uint8_t *) ue_context_p->imeisv.u.value,
+      (uint8_t*) ue_context_p->emm_context._imeisv.u.value,
       sgsap_service_req_pP->opt_imeisv,
       8);
-    sgsap_service_req_pP->opt_imeisv[ue_context_p->imeisv.length] = '\0';
-    sgsap_service_req_pP->opt_imeisv_length = ue_context_p->imeisv.length;
+    sgsap_service_req_pP->opt_imeisv[ue_context_p->emm_context._imeisv.length] =
+      '\0';
+    sgsap_service_req_pP->opt_imeisv_length =
+      ue_context_p->emm_context._imeisv.length;
   }
   sgsap_service_req_pP->opt_ecgi = ue_context_p->e_utran_cgi;
   sgsap_service_req_pP->presencemask |= SERVICE_REQUEST_ECGI_PARAMETER_PRESENT;
@@ -618,7 +622,7 @@ int mme_app_send_sgsap_service_request(
   OAILOG_INFO(
     LOG_MME_APP,
     "Send SGSAP-Service Request for IMSI " IMSI_64_FMT "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -708,7 +712,7 @@ int mme_app_send_sgsap_paging_reject(
     OAILOG_INFO(
       LOG_MME_APP,
       "Send SGSAP-Paging Reject for IMSI" IMSI_64_FMT " with sgs-cause :%d \n",
-      ue_context_p->imsi,
+      ue_context_p->emm_context._imsi64,
       (int) sgs_cause);
   } else {
     OAILOG_INFO(
@@ -762,7 +766,7 @@ int sgs_handle_null_paging_request(const sgs_fsm_t *evt)
     LOG_MME_APP,
     "Send SGSAP_Paging Reject for Paging Request received in"
     "SGS-NULL state for imsi: " IMSI_64_FMT "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   rc = mme_app_send_sgsap_paging_reject(
     ue_context_p,
     imsi64,
@@ -804,10 +808,12 @@ static int _mme_app_send_sgsap_ue_unreachable(
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgsap_ue_unreachable_pP = &message_p->ittiMsg.sgsap_ue_unreachable;
   memset(
-    (void *) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));
+    (void*) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));
 
   IMSI64_TO_STRING(
-    ue_context_p->imsi, sgsap_ue_unreachable_pP->imsi, ue_context_p->imsi_len);
+    ue_context_p->emm_context._imsi64,
+    sgsap_ue_unreachable_pP->imsi,
+    ue_context_p->emm_context._imsi.length);
   sgsap_ue_unreachable_pP->imsi_length =
     (uint8_t) strlen(sgsap_ue_unreachable_pP->imsi);
   sgsap_ue_unreachable_pP->sgs_cause = sgs_cause;
@@ -815,7 +821,7 @@ static int _mme_app_send_sgsap_ue_unreachable(
   OAILOG_INFO(
     LOG_MME_APP,
     "Send SGSAP-UE-unreachable for IMSI" IMSI_64_FMT " with sgs-cause :%d \n",
-    ue_context_p->imsi,
+    ue_context_p->emm_context._imsi64,
     (int) sgs_cause);
   rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
 
@@ -856,7 +862,7 @@ static int _sgsap_handle_paging_request_without_lai(
     LOG_MME_APP,
     "Handle sgsap-paging request received without LAI for IMSI " IMSI_64_FMT
     "\n",
-    ue_context_p->imsi);
+    ue_context_p->emm_context._imsi64);
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
     // Send N/W Initiated Detach Request to NAS
     message_p =

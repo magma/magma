@@ -16,7 +16,7 @@ import type {
   network_ran_configs,
 } from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormHelperText from '@material-ui/core/FormHelperText';
@@ -127,8 +127,10 @@ class NetworkConfig extends React.Component<Props, State> {
       }
       const newConfig = {
         ...this.state.config,
+        // $FlowFixMe Set state for each field
         [epcOrRan]: {
           ...this.state.config[epcOrRan],
+          // $FlowFixMe Set state for each field
           [field]: evt.target.value,
         },
       };
@@ -160,6 +162,7 @@ class NetworkConfig extends React.Component<Props, State> {
   ) => {
     return evt =>
       this.setState({
+        // $FlowFixMe Set state for each field
         [tddOrFdd]: {
           ...this.state[tddOrFdd],
           [field]: evt.target.value,
@@ -333,8 +336,6 @@ class NetworkConfig extends React.Component<Props, State> {
           <Button
             disabled={!this.canSubmitForm()}
             className={classes.saveButton}
-            variant="contained"
-            color="primary"
             onClick={this.handleSave}>
             Save
           </Button>

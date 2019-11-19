@@ -13,6 +13,7 @@ import (
 	"log"
 	"time"
 
+	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/gateway/directoryd"
 
 	"golang.org/x/net/context"
@@ -33,6 +34,8 @@ type eapAuth struct {
 	sessionTout      time.Duration // Idle Session Timeout
 	accounting       *accountingService
 }
+
+const MacAddrKey = "mac_addr"
 
 // NewEapAuthenticator returns a new instance of EAP Auth service
 func NewEapAuthenticator(
@@ -104,7 +107,17 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 			return resp, nil // log error, but don't pass to caller, the auth only users will still be able to connect
 		}
-		directoryd.AddIMSI(imsi)
+		updateRequest := &orcprotos.UpdateRecordRequest{
+			Id:       imsi,
+			Location: "hwid", // actual hwid will be filled in by directory service
+			Fields: []*orcprotos.DirectoryField{
+				{
+					Key:   MacAddrKey,
+					Value: resp.Ctx.GetMacAddr(),
+				},
+			},
+		}
+		go directoryd.UpdateRecord(updateRequest) // execute in a new goroutine in case calls to directoryd take long time
 	}
 	return resp, nil
 }

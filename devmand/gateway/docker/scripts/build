@@ -21,6 +21,10 @@ if [ -z ${DEVICE_CONFIG_FILE+x} ]; then
   export DEVICE_CONFIG_FILE="/var/opt/magma/configs/gateway.mconfig"
 fi
 
+if [ -z ${HOST_PUBLIC_ADDRESS+x} ]; then
+  export HOST_PUBLIC_ADDRESS="192.168.90.100"
+fi
+
 if [ ! -f docker-compose.override.yml ]; then
 cat << EOF > docker-compose.override.yml
 version: '3.7'
@@ -31,6 +35,7 @@ services:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+      - HOST_PUBLIC_ADDRESS=${HOST_PUBLIC_ADDRESS}
 EOF
 fi
 

@@ -11,6 +11,7 @@ endif
 TESTS=magma/common/redis/tests \
 	  magma/common/tests \
       magma/configuration/tests \
+      magma/directoryd/tests \
       magma/magmad/check/tests \
       magma/magmad/check/kernel_check/tests \
       magma/magmad/check/machine_check/tests \

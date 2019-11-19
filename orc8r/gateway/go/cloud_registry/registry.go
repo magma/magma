@@ -9,22 +9,28 @@ LICENSE file in the root directory of this source tree.
 package cloud_registry
 
 import (
-"fmt"
-"strings"
-"time"
+	"fmt"
+	"strings"
+	"sync/atomic"
+	"time"
 
-"golang.org/x/net/context"
-"google.golang.org/grpc"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
-"magma/orc8r/cloud/go/service/config"
- platform_registry "magma/orc8r/cloud/go/registry"
+	platform_registry "magma/orc8r/cloud/go/registry"
+	"magma/orc8r/cloud/go/service/config"
 )
 
 const (
-	grpcMaxTimeoutSec = 60
-	grpcMaxDelaySec   = 10
+	grpcMaxTimeoutSec       = 60
+	grpcMaxDelaySec         = 10
 	controlProxyServiceName = "CONTROL_PROXY"
 )
+
+// control proxy config map
+// it'll be initialized on demand and used thereafter
+// any changed to the control proxy service config file would require process restart to take effect
+var controlProxyConfig atomic.Value
 
 type CloudRegistry interface {
 	GetCloudConnection(service string) (*grpc.ClientConn, error)
@@ -44,12 +50,17 @@ func New() *ProxiedCloudRegistry {
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
 func (cr *ProxiedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
-	// moduleName is "" since all feg configs lie in /etc/magma/configs without a module name
-	serviceConfig, err := config.GetServiceConfig("", "control_proxy")
-	if err != nil {
-		return nil, err
+	cpc, ok := controlProxyConfig.Load().(*config.ConfigMap)
+	if (!ok) || cpc == nil {
+		var err error
+		// moduleName is "" since all feg configs lie in /etc/magma/configs without a module name
+		cpc, err = config.GetServiceConfig("", "control_proxy")
+		if err != nil {
+			return nil, err
+		}
+		controlProxyConfig.Store(cpc)
 	}
-	return cr.GetCloudConnectionFromServiceConfig(serviceConfig, service)
+	return cr.GetCloudConnectionFromServiceConfig(cpc, service)
 }
 
 // GetCloudConnectionFromServiceConfig returns a connection to the cloud

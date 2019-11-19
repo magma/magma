@@ -13,12 +13,16 @@ package devmand
 const ModuleName = "devmand"
 
 const (
+	// Configurator Entity Types
 	SymphonyNetworkType = "symphony"
 	SymphonyAgentType   = "symphony_agent"
 	SymphonyDeviceType  = "symphony_device"
 
-	// DevmandGatewayType is the type for DevmandGateway
+	// State Service Types
+	SymphonyDeviceStateType = "symphony_device"
+
+	// DO NOT USE
+	// V0 Configurator Entity Types
 	DevmandGatewayType = "devmand_gateway"
-	// DeviceType is the type for Device
-	DeviceType = "device"
+	DeviceType         = "device"
 )
