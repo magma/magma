@@ -60,8 +60,13 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			DynamicServices:         []string{},
 			FeatureFlags:            map[string]bool{},
 		},
-		"metricsd":     &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
-		"td-agent-bit": &mconfig.FluentBit{ExtraTags: map[string]string{"network_id": "n1", "gateway_id": "gw1"}},
+		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     1000,
+			ThrottleWindow:   5,
+			ThrottleInterval: "1m",
+		},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -103,8 +108,13 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			DynamicServices: []string{},
 			FeatureFlags:    map[string]bool{},
 		},
-		"metricsd":     &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
-		"td-agent-bit": &mconfig.FluentBit{ExtraTags: map[string]string{"network_id": "n1", "gateway_id": "gw1"}},
+		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     1000,
+			ThrottleWindow:   5,
+			ThrottleInterval: "1m",
+		},
 	}
 	assert.Equal(t, expected, actual)
 }

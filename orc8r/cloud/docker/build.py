@@ -14,8 +14,8 @@
 import argparse
 import glob
 import subprocess
-from subprocess import PIPE
 from collections import namedtuple
+from subprocess import PIPE
 from typing import List
 
 import os
@@ -27,9 +27,19 @@ SRC_ROOT = 'src'
 HOST_MAGMA_ROOT = '../../../.'
 DEFAULT_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'modules.yml')
 FB_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'fb/config/modules.yml')
-METRICS_DOCKER_FILE = 'docker-compose.metrics.yml'
-ORC8R_DOCKER_FILE = 'docker-compose.yml'
-OVERRIDE_DOCKER_FILE = 'docker-compose.override.yml'
+
+COMPOSE_FILES = [
+    'docker-compose.yml',
+    'docker-compose.metrics.yml',
+
+    # For now, this file is left out of the build because the fluentd daemonset
+    # and forwarder pod shouldn't change very frequently - we can build and
+    # push locally when they need to be updated.
+    # We can integrate this into the CI pipeline if/when we see the need for it
+    # 'docker-compose.logging.yml',
+
+    'docker-compose.override.yml',
+]
 
 # Root directory where external modules will be mounted
 GUEST_MODULE_ROOT = 'modules'
@@ -40,50 +50,67 @@ MagmaModule = namedtuple('MagmaModule', ['is_external', 'host_path', 'name'])
 
 def main() -> None:
     args = _parse_args()
+
+    # Create build context only if we're not mounting
+    # If we're building, we always need to build controller first because proxy
+    # copies metricsd binary and plugins from controller
+    files_args = _get_docker_files_command_args(args)
+    if not args.mount:
+        _create_build_context()
+    _build_controller_if_necessary(args)
+
     if args.mount:
         # Mount the source code and run a container with bash shell
         _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
     elif args.tests:
         # Run unit tests
-        _create_build_context()
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
     elif args.nocache:
         # Build containers without go-cache in base image
-        _create_build_context()
-        if args.all:
-            # Build all containers
-            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', OVERRIDE_DOCKER_FILE,
-                         'build', 'controller'])
-            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
-                         '-f', OVERRIDE_DOCKER_FILE, 'build'])
-        else:
-            # Build all non-metrics containers
-            _run_docker(['build', 'controller'])
-            _run_docker(['build'])
+        _run_docker(files_args + ['build'])
     else:
-        _create_build_context()
-        # Check if orc8r_cache image exists
-        result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
-                stdout=PIPE, stderr=PIPE)
-        if result.stdout == b'':
-            print("Orc8r_cache image does not exist. Building...")
-            _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
-
         # Build images using go-cache base image
-        if args.all:
-            # Build all containers
-            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', OVERRIDE_DOCKER_FILE,
-                         'build', '--build-arg', 'baseImage=orc8r_cache',
-                         'controller'])
-            _run_docker(['-f', ORC8R_DOCKER_FILE, '-f', METRICS_DOCKER_FILE,
-                         '-f', OVERRIDE_DOCKER_FILE, 'build', '--build-arg',
-                         'baseImage=orc8r_cache'])
-        else:
-            # Build all non-metrics containers
-            _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache',
-                         'controller'])
-            _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache'])
+        _build_cache_if_necessary()
+        _run_docker(files_args + ['build',
+                                  '--build-arg', 'baseImage=orc8r_cache'])
+
+
+def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
+    if args.all:
+        ret = []
+        for f in COMPOSE_FILES:
+            ret.append('-f')
+            ret.append(f)
+        return ret
+
+    # docker-compose uses docker-compose.yml and docker-compose.override.yml
+    # by default
+    return []
+
+
+def _build_controller_if_necessary(args: argparse.Namespace) -> None:
+    # We don't build the controller container if we're running tests or
+    # generating code
+    if args.mount or args.tests:
+        return
+
+    # controller will always only use docker-compose.yml and override so we
+    # don't need to worry about file args (-f)
+    if args.nocache:
+        _run_docker(['build', 'controller'])
+    else:
+        _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache',
+                     'controller'])
+
+
+def _build_cache_if_necessary() -> None:
+    # Check if orc8r_cache image exists
+    result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
+                            stdout=PIPE, stderr=PIPE)
+    if result.stdout == b'':
+        print("Orc8r_cache image does not exist. Building...")
+        _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
 
 
 def _run_docker(cmd: List[str]) -> None:
@@ -217,7 +244,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument('--nocache', '-n', action='store_true',
                         help='Build the images without go cache base image')
     parser.add_argument('--all', '-a', action='store_true',
-                        help='Build all containers, including metrics containers')
+                        help='Build all containers')
     args = parser.parse_args()
     return args
 

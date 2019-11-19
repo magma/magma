@@ -63,6 +63,13 @@
     Set {{k}} {{v}}
 {% endfor %}
 
+[FILTER]
+    Name     throttle
+    Match    *
+    Rate     {{ throttle_rate }}
+    Window   {{ throttle_window }}
+    Interval {{ throttle_interval}}
+
 [OUTPUT]
     Name          forward
     Match         *
