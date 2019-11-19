@@ -52,10 +52,11 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-            name: {{ .Release.Name }}-fluentd-foward-configs
+            name: {{ .Release.Name }}-fluentd-forward-configs
         - name: certs
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+            defaultMode: 0444
 
       containers:
         - name: {{ $serviceName }}
@@ -77,11 +78,14 @@ spec:
             - name: config-volume
               mountPath: /fluentd/etc
             - name: certs
-              mountPath: /var/opt/magma/certs/controller.crt
-              subPath: controller.crt
+              mountPath: /var/opt/magma/certs/fluentd.pem
+              subPath: fluentd.pem
             - name: certs
-              mountPath: /var/opt/magma/certs/controller.key
-              subPath: controller.key
+              mountPath: /var/opt/magma/certs/fluentd.key
+              subPath: fluentd.key
+            - name: certs
+              mountPath: /var/opt/magma/certs/certifier.pem
+              subPath: certifier.pem
 
           resources:
 {{ toYaml .Values.fluentd_forward.resources | indent 12 }}
