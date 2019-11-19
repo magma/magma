@@ -10,10 +10,8 @@
 import type {AlertConfig} from './AlarmAPIType';
 
 import Grid from '@material-ui/core/Grid';
-import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import PrometheusEditor from './PrometheusEditor';
 import React from 'react';
-import grey from '@material-ui/core/colors/grey';
 import {cloneDeep} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -44,20 +42,6 @@ const useStyles = makeStyles(theme => ({
   editingSpace: {
     height: '100%',
     padding: '30px',
-  },
-  previewSpace: {
-    height: '100%',
-    backgroundColor: grey[100],
-    padding: '40px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  alertPreview: {
-    fontStyle: 'italic',
-    fontSize: 15,
-    fontWeight: 500,
-    marginBottom: '20px',
   },
 }));
 
@@ -116,12 +100,6 @@ export default function AddEditAlert(props: Props) {
           saveAlertRule={saveAlert}
           rule={alertConfig}
         />
-      </Grid>
-      <Grid className={classes.previewSpace} item xs={3}>
-        <div className={classes.alertPreview}>RULE PREVIEW</div>
-        <div>
-          <PrettyJSON jsonObject={alertConfig} />
-        </div>
       </Grid>
     </Grid>
   );
