@@ -25,6 +25,7 @@
           "feg/deploy_install"
         ]
       }
-    ]
+    ],
+    "Symphony": ["symphony/quick_start", "symphony/download_requirements", "symphony/building_the_symphony_agent"]
   }
 }
