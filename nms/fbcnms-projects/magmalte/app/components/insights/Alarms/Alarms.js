@@ -17,6 +17,7 @@ import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 export default function Alarms() {
   const {isFeatureEnabled} = React.useContext(AppContext);
   const experimentalAlertsEnabled = isFeatureEnabled('alerts_experimental');
+  const thresholdEditorEnabled = isFeatureEnabled('alert_threshold_expression');
   return (
     <FBCAlarms
       apiUtil={MagmaAlarmsApiUtil}
@@ -24,6 +25,7 @@ export default function Alarms() {
         `/nms/${match.params.networkId || ''}/alerts/${keyName}`
       }
       experimentalTabsEnabled={experimentalAlertsEnabled}
+      thresholdEditorEnabled={thresholdEditorEnabled}
       filterLabels={filterSymphonyLabels}
     />
   );

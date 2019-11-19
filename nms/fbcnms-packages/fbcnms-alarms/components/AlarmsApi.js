@@ -14,6 +14,7 @@ import type {
   AlertRoutingTree,
   AlertSuppression,
   FiringAlarm,
+  PrometheusLabelset,
 } from './AlarmAPIType';
 
 export type ApiRequest = {
@@ -54,4 +55,7 @@ export type ApiUtil = {|
 
   // routes
   getRoutes: (req: ApiRequest) => Promise<Array<AlertRoutingTree>>,
+
+  // metric series
+  getMetricSeries: (req: ApiRequest) => Promise<Array<PrometheusLabelset>>,
 |};

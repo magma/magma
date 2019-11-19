@@ -108,6 +108,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'alert_threshold_expression',
+    title: 'Alerts Threshold Expression Editor',
+    enabledByDefault: true,
+  },
+  {
     id: 'logs',
     title: 'Logs',
     enabledByDefault: false,

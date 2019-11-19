@@ -25,6 +25,7 @@ type Props = {
   onExit: () => void,
   initialConfig: ?AlertConfig,
   isNew: boolean,
+  thresholdEditorEnabled: boolean,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -94,11 +95,13 @@ export default function AddEditAlert(props: Props) {
       data-testid="add-edit-alert">
       <Grid className={classes.editingSpace} item xs>
         <PrometheusEditor
+          apiUtil={props.apiUtil}
           onExit={props.onExit}
           updateAlertConfig={setAlertConfig}
           isNew={props.isNew}
           saveAlertRule={saveAlert}
           rule={alertConfig}
+          thresholdEditorEnabled={props.thresholdEditorEnabled}
         />
       </Grid>
     </Grid>

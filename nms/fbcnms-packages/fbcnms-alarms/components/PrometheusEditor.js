@@ -12,24 +12,30 @@ import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
-import IconButton from '@material-ui/core/IconButton';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
+import ToggleableExpressionEditor from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
+import {AdvancedExpressionEditor} from './ToggleableExpressionEditor';
+
 import {makeStyles} from '@material-ui/styles';
+import {thresholdToPromQL} from './ToggleableExpressionEditor';
 
 //TODO move to more shared location
 import {SEVERITY} from './SimpleTable';
 
 import type {AlertConfig} from './AlarmAPIType';
+import type {ApiUtil} from './AlarmsApi';
+import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
 type Props = {
+  apiUtil: ApiUtil,
   rule: ?AlertConfig,
   updateAlertConfig: AlertConfig => void,
   saveAlertRule: () => Promise<void>,
   onExit: () => void,
   isNew: boolean,
+  thresholdEditorEnabled: boolean,
 };
 
 type MenuItemProps = {key: string, value: string, children: string};
@@ -80,11 +86,11 @@ type FormState = {
   timeUnit: string,
 };
 
-type inputChangeFunc = (
+export type InputChangeFunc = (
   formUpdate: (val: string) => $Shape<FormState>,
 ) => (event: SyntheticInputEvent<HTMLElement>) => void;
 
-function RuleNameEditor(props: {onChange: inputChangeFunc, ruleName: string}) {
+function RuleNameEditor(props: {onChange: InputChangeFunc, ruleName: string}) {
   return (
     <TextField
       required
@@ -97,45 +103,8 @@ function RuleNameEditor(props: {onChange: inputChangeFunc, ruleName: string}) {
   );
 }
 
-function AdvancedExpressionEditor(props: {
-  onChange: inputChangeFunc,
-  expression: string,
-}) {
-  const classes = useStyles();
-  return (
-    <TextField
-      required
-      label="Expression"
-      placeholder="Ex: up == 0"
-      value={props.expression}
-      onChange={props.onChange(value => ({expression: value}))}
-      fullWidth
-      InputProps={{
-        endAdornment: (
-          <InputAdornment position="end">
-            <Tooltip
-              title={
-                'To learn more about how to write alert expressions, click ' +
-                'on the help icon to open the prometheus querying basics guide.'
-              }
-              placement="right">
-              <IconButton
-                className={classes.helpButton}
-                href="https://prometheus.io/docs/prometheus/latest/querying/basics/"
-                target="_blank"
-                size="small">
-                <HelpIcon />
-              </IconButton>
-            </Tooltip>
-          </InputAdornment>
-        ),
-      }}
-    />
-  );
-}
-
 function SeverityEditor(props: {
-  onChange: inputChangeFunc,
+  onChange: InputChangeFunc,
   severity: string,
   options: Array<MenuItemProps>,
 }) {
@@ -155,7 +124,7 @@ function SeverityEditor(props: {
 }
 
 function TimeEditor(props: {
-  onChange: inputChangeFunc,
+  onChange: InputChangeFunc,
   timeNumber: string,
   timeUnit: string,
 }) {
@@ -189,7 +158,7 @@ function TimeEditor(props: {
 }
 
 function TimeNumberEditor(props: {
-  onChange: inputChangeFunc,
+  onChange: InputChangeFunc,
   timeNumber: string,
 }) {
   return (
@@ -204,7 +173,7 @@ function TimeNumberEditor(props: {
 }
 
 function TimeUnitEditor(props: {
-  onChange: inputChangeFunc,
+  onChange: InputChangeFunc,
   timeUnit: string,
   timeUnits: Array<TimeUnit>,
 }) {
@@ -228,7 +197,18 @@ export default function PrometheusEditor(props: Props) {
   const {updateAlertConfig, onExit, saveAlertRule, isNew, rule} = props;
 
   const classes = useStyles();
-  const [form, setFormState] = React.useState<FormState>(fromAlertConfig(rule));
+  const [formState, setFormState] = React.useState<FormState>(
+    fromAlertConfig(rule),
+  );
+  const [
+    thresholdExpression,
+    setThresholdExpression,
+  ] = React.useState<ThresholdExpression>({
+    metricName: '',
+    comparator: null,
+    value: 0,
+    filter: {name: '', value: ''},
+  });
 
   /**
    * Passes the event value to an updater function which returns an update
@@ -241,13 +221,28 @@ export default function PrometheusEditor(props: Props) {
     ) => {
       const value = event.target.value;
       const updatedForm = {
-        ...form,
+        ...formState,
         ...formUpdate(value),
       };
       setFormState(updatedForm);
       updateAlertConfig(toAlertConfig(updatedForm));
     },
-    [form],
+    [formState, updateAlertConfig],
+  );
+
+  // TODO: pull out common functionality between this and handleInputChange
+  const updateThresholdExpression = React.useCallback(
+    (expression: ThresholdExpression) => {
+      setThresholdExpression(expression);
+      const stringExpression = thresholdToPromQL(expression);
+      const updatedForm = {
+        ...formState,
+        expression: stringExpression,
+      };
+      setFormState(updatedForm);
+      updateAlertConfig(toAlertConfig(updatedForm));
+    },
+    [formState, updateAlertConfig],
   );
 
   const severityOptions = React.useMemo<Array<MenuItemProps>>(
@@ -266,27 +261,38 @@ export default function PrometheusEditor(props: Props) {
         <Grid item xs={12} sm={3}>
           <RuleNameEditor
             onChange={handleInputChange}
-            ruleName={form.ruleName}
+            ruleName={formState.ruleName}
           />
         </Grid>
-        <Grid item xs={12} sm={3}>
-          <AdvancedExpressionEditor
+        {props.thresholdEditorEnabled ? (
+          <ToggleableExpressionEditor
+            apiUtil={props.apiUtil}
             onChange={handleInputChange}
-            expression={form.expression}
+            onThresholdExpressionChange={updateThresholdExpression}
+            expression={thresholdExpression}
+            stringExpression={formState.expression}
           />
-        </Grid>
+        ) : (
+          <Grid item xs={4}>
+            <AdvancedExpressionEditor
+              expression={formState.expression}
+              onChange={handleInputChange}
+            />
+          </Grid>
+        )}
+
         <Grid item xs={12} sm={3}>
           <SeverityEditor
             onChange={handleInputChange}
             options={severityOptions}
-            severity={form.severity}
+            severity={formState.severity}
           />
         </Grid>
         <Grid container item xs={12} sm={3} spacing={1} alignItems="flex-end">
           <TimeEditor
             onChange={handleInputChange}
-            timeNumber={form.timeNumber}
-            timeUnit={form.timeUnit}
+            timeNumber={formState.timeNumber}
+            timeUnit={formState.timeUnit}
           />
         </Grid>
       </Grid>
