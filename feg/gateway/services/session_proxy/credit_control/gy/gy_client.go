@@ -53,7 +53,7 @@ type GyClient struct {
 
 var (
 	apnOverwrite      string
-	serviceIdentifier int = -1
+	serviceIdentifier int64 = -1
 )
 
 // NewGyClient contructs a new GyClient with the magma diameter settings
@@ -68,7 +68,7 @@ func NewConnectedGyClient(
 	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
 	if len(siStr) > 0 {
 		var err error
-		serviceIdentifier, err = strconv.Atoi(siStr)
+		serviceIdentifier, err = strconv.ParseInt(siStr, 10, 0)
 		if err != nil {
 			serviceIdentifier = -1
 		}
@@ -336,7 +336,12 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	}
 	if serviceIdentifier >= 0 {
 		avpGroup = append(
-			avpGroup, diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
+			avpGroup,
+			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
+	} else if credits.ServiceIdentifier != nil {
+		avpGroup = append(
+			avpGroup,
+			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(*credits.ServiceIdentifier)))
 	}
 
 	/*** Altamira OCS needs empty RSU ***/
@@ -381,10 +386,11 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 	creditList := make([]*ReceivedCredits, 0, len(cca.CreditControl))
 	for _, mscc := range cca.CreditControl {
 		receivedCredits := &ReceivedCredits{
-			ResultCode:   mscc.ResultCode,
-			GrantedUnits: &mscc.GrantedServiceUnit,
-			ValidityTime: mscc.ValidityTime,
-			RatingGroup:  mscc.RatingGroup,
+			ResultCode:        mscc.ResultCode,
+			GrantedUnits:      &mscc.GrantedServiceUnit,
+			ValidityTime:      mscc.ValidityTime,
+			RatingGroup:       mscc.RatingGroup,
+			ServiceIdentifier: mscc.ServiceIdentifier,
 		}
 		if mscc.FinalUnitIndication != nil {
 			receivedCredits.IsFinal = true
