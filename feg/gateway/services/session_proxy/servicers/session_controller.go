@@ -154,13 +154,13 @@ func (srv *CentralSessionController) CreateSession(
 	}, nil
 }
 
-func removeDuplicateChargingKeys(keysIn []uint32) []uint32 {
-	keysOut := []uint32{}
-	keyMap := make(map[uint32]bool)
+func removeDuplicateChargingKeys(keysIn []policydb.ChargingKey) []policydb.ChargingKey {
+	keysOut := []policydb.ChargingKey{}
+	keyMap := make(map[policydb.ChargingKey]struct{})
 	for _, k := range keysIn {
 		if _, ok := keyMap[k]; !ok {
 			keysOut = append(keysOut, k)
-			keyMap[k] = true
+			keyMap[k] = struct{}{}
 		}
 	}
 	return keysOut

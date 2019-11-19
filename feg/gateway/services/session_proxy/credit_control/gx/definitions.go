@@ -109,6 +109,7 @@ type RuleDefinition struct {
 	FlowInformations    []*FlowInformation   `avp:"Flow-Information"`
 	RedirectInformation *RedirectInformation `avp:"Redirect-Information"`
 	Qos                 *QosInformation      `avp:"QoS-Information"`
+	ServiceIdentifier   *uint32              `avp:"Service-Identifier"`
 }
 
 // QoS per service date flow message

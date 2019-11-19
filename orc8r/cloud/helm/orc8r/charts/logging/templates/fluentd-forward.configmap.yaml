@@ -22,8 +22,8 @@ data:
       bind 0.0.0.0
 
       <transport tls>
-        cert_path /var/opt/magma/certs/controller.crt
-        private_key_path /var/opt/magma/certs/controller.key
+        cert_path /var/opt/magma/certs/fluentd.pem
+        private_key_path /var/opt/magma/certs/fluentd.key
 
         client_cert_auth true
         ca_path /var/opt/magma/certs/certifier.pem

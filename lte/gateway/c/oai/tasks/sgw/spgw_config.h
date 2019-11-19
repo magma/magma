@@ -28,6 +28,7 @@
 
 #ifndef FILE_SPGW_CONFIG_SEEN
 #define FILE_SPGW_CONFIG_SEEN
+
 #include "sgw_config.h"
 #include "pgw_config.h"
 #include "service303.h"
@@ -53,5 +54,7 @@ void spgw_config_init(spgw_config_t *);
 int spgw_config_parse_file(spgw_config_t *);
 
 void spgw_config_display(spgw_config_t *);
+
+void free_spgw_config(spgw_config_t* spgw_config_p);
 
 #endif /* FILE_SPGW_CONFIG_SEEN */

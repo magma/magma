@@ -8,6 +8,9 @@
  */
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
@@ -116,7 +119,7 @@ class LocalEnforcer {
 
   uint64_t get_charging_credit(
     const std::string &imsi,
-    uint32_t charging_key,
+    const CreditKey &charging_key,
     Bucket bucket) const;
 
   uint64_t get_monitor_credit(

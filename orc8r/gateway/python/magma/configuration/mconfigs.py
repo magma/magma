@@ -28,11 +28,10 @@ def filter_configs_by_key(configs_by_key: Dict[str, TAny]) -> Dict[str, TAny]:
     Returns:
         The input map without any services which currently don't exist.
     """
-    services = service_configs.get_service_config_value(
-        'magmad',
-        'magma_services', [],
-    )
+    magmad_cfg = service_configs.load_service_config('magmad')
+    services = magmad_cfg.get('magma_services', [])
     services.append('magmad')
+    services += magmad_cfg.get('registered_dynamic_services', [])
     services = set(services)
 
     filtered_configs_by_key = {}
