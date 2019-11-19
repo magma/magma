@@ -13,18 +13,17 @@ from unittest.mock import MagicMock, Mock, patch
 
 from google.protobuf.any_pb2 import Any
 from google.protobuf.json_format import MessageToJson
-from orc8r.protos.mconfig.mconfigs_pb2 import MagmaD, MetricsD
-from orc8r.protos.mconfig_pb2 import GatewayConfigs
-
 from magma.configuration.mconfig_managers import MconfigManagerImpl
 from magma.magmad.config_manager import CONFIG_STREAM_NAME, ConfigManager
+from orc8r.protos.mconfig.mconfigs_pb2 import MagmaD, MetricsD
+from orc8r.protos.mconfig_pb2 import GatewayConfigs
 
 
 class ConfigManagerTest(TestCase):
     """
     Tests for the config manager class
     """
-    @patch('magma.configuration.service_configs.get_service_config_value')
+    @patch('magma.configuration.service_configs.load_service_config')
     def test_update(self, config_mock):
         """
         Test that mconfig updates are handled correctly
@@ -50,7 +49,9 @@ class ConfigManagerTest(TestCase):
         updated_mconfig.configs_by_key['metricsd'].CopyFrom(some_any)
 
         # Set up mock dependencies
-        config_mock.return_value = ['magmad', 'metricsd']
+        config_mock.return_value = {
+            'magma_services': ['magmad', 'metricsd'],
+        }
 
         @asyncio.coroutine
         def _mock_restart_services(): return "blah"
