@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
@@ -86,7 +87,7 @@ func getCCRInitRequest(
 func getCCRInitialCreditRequest(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
-	keys []uint32,
+	keys []policydb.ChargingKey,
 	initMethod gy.InitMethod,
 ) *gy.CreditControlRequest {
 	var msgType credit_control.CreditRequestType
@@ -106,7 +107,12 @@ func getCCRInitialCreditRequest(
 	}
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		usedCredits = append(usedCredits, &gy.UsedCredits{RatingGroup: key})
+		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
+		if key.ServiceIdTracking {
+			sid := key.ServiceIdentifier
+			uc.ServiceIdentifier = &sid
+		}
+		usedCredits = append(usedCredits, uc)
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     pReq.SessionId,
@@ -237,11 +243,15 @@ func addMissingResponses(
 	leftoverRequests map[credit_control.RequestKey]*gy.CreditControlRequest,
 ) []*protos.CreditUpdateResponse {
 	for _, ccr := range leftoverRequests {
-		responses = append(responses, &protos.CreditUpdateResponse{
+		resp := &protos.CreditUpdateResponse{
 			Success:     false,
 			Sid:         addSidPrefix(ccr.IMSI),
 			ChargingKey: ccr.Credits[0].RatingGroup,
-		})
+		}
+		if ccr.Credits[0].ServiceIdentifier != nil {
+			resp.ServiceIdentifier = &protos.ServiceIdentifier{Value: *ccr.Credits[0].ServiceIdentifier}
+		}
+		responses = append(responses, resp)
 		metrics.UpdateGyRecentRequestMetrics(fmt.Errorf("Gy update failure"))
 	}
 	return responses
@@ -262,12 +272,16 @@ func getSingleCreditResponsesFromCCA(
 	}
 	receivedCredit := answer.Credits[0]
 	msccSuccess := receivedCredit.ResultCode == diameter.SuccessCode || receivedCredit.ResultCode == 0 // 0: not set
-	return &protos.CreditUpdateResponse{
+	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
 	}
+	if receivedCredit.ServiceIdentifier != nil {
+		res.ServiceIdentifier = &protos.ServiceIdentifier{Value: *receivedCredit.ServiceIdentifier}
+	}
+	return res
 }
 
 func getInitialCreditResponsesFromCCA(
@@ -283,6 +297,9 @@ func getInitialCreditResponsesFromCCA(
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
 			ResultCode:  credit.ResultCode,
+		}
+		if credit.ServiceIdentifier != nil {
+			response.ServiceIdentifier = &protos.ServiceIdentifier{Value: *credit.ServiceIdentifier}
 		}
 		responses = append(responses, response)
 	}

@@ -93,6 +93,7 @@ add_library(SESSION_MANAGER
     PipelinedClient.h
     SessionRules.cpp
     SessionRules.h
+    CreditKey.h
     CreditPool.cpp
     CreditPool.h
     SessionProxyResponderHandler.cpp
