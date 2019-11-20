@@ -45,8 +45,7 @@ require (
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb // indirect
-	google.golang.org/grpc v1.21.1
+	google.golang.org/grpc v1.25.0
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000

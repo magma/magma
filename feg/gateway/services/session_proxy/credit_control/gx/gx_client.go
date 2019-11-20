@@ -175,7 +175,7 @@ func createReAuthAnswerMessage(
 			avp.SessionID,
 			avp.Mbit,
 			0,
-			datatype.UTF8String(diameter.EncodeSessionID(diamClient.OriginHost(), answer.SessionID))))
+			datatype.UTF8String(diameter.EncodeSessionID(diamClient.OriginRealm(), answer.SessionID))))
 	return ret
 }
 
@@ -253,7 +253,7 @@ func (gxClient *GxClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gxClient.diamClient.OriginHost(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gxClient.diamClient.OriginRealm(), request.SessionID))))
 
 	return m, nil
 }

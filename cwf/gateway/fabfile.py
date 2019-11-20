@@ -24,6 +24,7 @@ TRF_SERVER_SUBNET = "192.168.129.0"
 CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
 
+
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                destroy_vm="False"):
     """
@@ -86,7 +87,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_test_configs)
     execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_start_ue_simulator)
-    execute(_run_integ_tests)
+    execute(_run_integ_tests, test_host, trf_host)
 
 
 def _transfer_docker_images():
@@ -145,15 +146,16 @@ def _build_gateway():
              ' -f docker-compose.integ-test.yml'
              ' build --parallel')
 
+
 def _run_gateway():
     """ Runs the gateway's docker images """
     with cd(CWAG_ROOT + '/docker'):
         sudo(' docker-compose'
-            ' -f docker-compose.yml'
-            ' -f docker-compose.override.yml'
-            ' -f docker-compose.integ-test.yml'
-            ' up -d '
-            ' --force-recreate')
+             ' -f docker-compose.yml'
+             ' -f docker-compose.override.yml'
+             ' -f docker-compose.integ-test.yml'
+             ' up -d '
+             ' --force-recreate')
 
 
 def _start_ue_simulator():
@@ -174,24 +176,27 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests():
+def _run_integ_tests(test_host, trf_host):
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
         result = run('make integ_test', warn_only=True)
-    _clean_up()
+
+    if not test_host and not trf_host:
+        # Clean up only for now when running locally
+        execute(_clean_up)
     if result.return_code == 0:
         print("Integration Test Passed!")
+        sys.exit(0)
     else:
         print("Integration Test returned ", result.return_code)
-        raise Exception()
+        sys.exit(result.return_code)
 
 
 def _clean_up():
     # already in cwag test vm at this point
-    with cd(CWAG_ROOT):
-        # Kill uesim service
-        run('pkill go')
+    # Kill uesim service
+    run('pkill go', warn_only=True)
 
     with lcd(LTE_AGW_ROOT):
         vagrant_setup("magma_trfserver", False)
-        run('pkill iperf3 > /dev/null &', pty=False)
+        run('pkill iperf3 > /dev/null &', pty=False, warn_only=True)

@@ -1,0 +1,95 @@
+### Mercurial ###
+.hg/
+.hgignore
+.hgsigs
+.hgsub
+.hgsubstate
+.hgtags
+
+### Docker ###
+**/.dockerignore
+**/Dockerfile
+**/docker-compose.*.yml
+
+### CircleCI ###
+.circleci
+
+### Buck ###
+**/TARGETS
+**/BUCK
+*.bzl
+buck-out/
+.buckconfig.local
+.buckd/
+.buckversion
+.fakebuckversion
+
+### Go ###
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+### Go Patch ###
+/vendor/
+/Godeps/
+
+### Node ###
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+**/build
+
+# Dependency directories
+**/node_modules/*
+**/jspm_packages/*
+
+### Vim ###
+# Swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+
+# Session
+Session.vim
+
+# Temporary
+.netrwhist
+# Auto-generated tag files
+tags
+# Persistent undo
+[._]*.un~
+
+### Terraform ###
+# Local .terraform directories
+**/.terraform/*
+
+# .tfstate files
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+
+# Ignore any .tfvars files that are generated automatically for each Terraform run. Most
+# .tfvars files are managed as part of configuration and so should be included in
+# version control.
+#
+# example.tfvars
+
+# Ignore override files as they are usually used to override resources locally and so
+# are not checked in
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

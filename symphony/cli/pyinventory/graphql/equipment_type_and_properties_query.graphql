@@ -1,0 +1,18 @@
+query EquipmentTypeAndPropertiesQuery($id: ID!) {
+  equipment(id: $id) {
+    equipmentType {
+      name
+    }
+    properties {
+      propertyType {
+        id
+      }
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+    }
+  }
+}

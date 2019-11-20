@@ -1,0 +1,27 @@
+{
+  "name": "@fbcnms/platform-server-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js",
+    "enableAllNetworkIDsForOrganization": "node -r '@fbcnms/babel-register' scripts/enableAllNetworkIDsForOrganization.js",
+    "grpc": "cp ../../../../fbcode/fbc/symphony/graph/graphgrpc/rpc.proto server/graphgrpc/graph.proto",
+    "start": "yarn run start:prod",
+    "start:dev": "nodemon scripts/server",
+    "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
+    "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js"
+  },
+  "dependencies": {
+    "@fbcnms/babel-register": "^0.1.0",
+    "@fbcnms/platform-server": "^0.1.0",
+    "@opencensus/core": "^0.0.13",
+    "@opencensus/exporter-prometheus": "^0.0.13",
+    "@opencensus/nodejs": "^0.0.13",
+    "dotenv": "^6.0.0",
+    "grpc": "^1.20.2",
+    "grpc-caller": "^0.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}

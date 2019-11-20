@@ -1,0 +1,57 @@
+run:
+  timeout: 5m
+  build-tags:
+    - integration
+    - nolibfb
+  skip-dirs:
+    - cli
+    - docs
+    - infra
+
+linters-settings:
+  errcheck:
+    ignore: fmt:.*,Read|Write|Close,io:Copy
+  dupl:
+    threshold: 180
+  funlen:
+    lines: 100
+    statements: 50
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dupl
+    - errcheck
+    - funlen
+    - gocritic
+    - gofmt
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - misspell
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unused
+    - varcheck
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - dupl
+        - gosec
+        - funlen
+    - text: duplicate struct tag "choice"
+      linters:
+        - staticcheck
+    - path: (^|/)importer($|/)
+      linters:
+        - funlen

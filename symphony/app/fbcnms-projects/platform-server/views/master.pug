@@ -1,0 +1,16 @@
+// Copyright 2004-present Facebook. All Rights Reserved.
+doctype html
+html
+  head
+    title Connectivity Platform
+    meta(charset="utf-8")
+    meta(http-equiv="x-ua-compatible" content="ie=edge")
+    meta(name="description", content="Connectivity Platform")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    link(rel="shortcut icon" type="image/png" href="/inventory/static/images/favicon.png")
+    script(src=staticDist("vendor.js", "inventory"))
+    script.
+      var CONFIG = !{configJson};
+  body
+    div(id="root")
+    script(src=staticDist("master.js", "inventory"))
