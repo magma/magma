@@ -323,7 +323,7 @@ class WifiDeviceDialog extends React.Component<Props, State> {
       ...otherFields,
       latitude: parseFloat(latitude),
       longitude: parseFloat(longitude),
-      additional_props: additionalPropsToObject(additional_props),
+      additional_props: additionalPropsToObject(additional_props) || {},
     };
   }
 

@@ -8,15 +8,10 @@
  * @format
  */
 
-export type WifiConfig = {
-  mesh_id?: string,
-  info?: string,
-  longitude?: number,
-  latitude?: number,
-  client_channel: string,
-  is_production: boolean,
-  additional_props: ?{[string]: string},
-};
+import type {gateway_wifi_configs} from '@fbcnms/magma-api';
+
+// TODO: remove this when wifi is fully converted to V1 API
+export type WifiConfig = gateway_wifi_configs;
 
 export type Record = {
   hardware_id: string,
