@@ -42,6 +42,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/unrolled/render v1.0.1
 	github.com/vektah/gqlparser v1.1.2
+	github.com/volatiletech/authboss v2.3.0+incompatible
 	go.opencensus.io v0.22.2
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.12.0
