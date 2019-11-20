@@ -17,6 +17,10 @@ void sshReadNotificationThread(struct event_base* base);
 void sshReadNotificationThread(struct event_base* base) {
   while (true) {
     int rv = event_base_dispatch(base);
+    if (event_base_got_exit(base)) {
+      MLOG(MDEBUG) << "event_base_exit called, terminating";
+      return;
+    }
     if (rv == 1) {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       continue;
@@ -29,11 +33,9 @@ void sshReadNotificationThread(struct event_base* base) {
   }
 }
 
-devmand::channels::cli::SshSocketReader::SshSocketReader() {
-  base = event_base_new();
-  std::thread notificationThread(sshReadNotificationThread, base);
-  notificationThread.detach();
-}
+devmand::channels::cli::SshSocketReader::SshSocketReader()
+    : base(event_base_new()),
+      notificationThread(std::thread(sshReadNotificationThread, base)) {}
 
 struct event* devmand::channels::cli::SshSocketReader::addSshReader(
     event_callback_fn callbackFn,
@@ -46,6 +48,9 @@ struct event* devmand::channels::cli::SshSocketReader::addSshReader(
 }
 
 devmand::channels::cli::SshSocketReader::~SshSocketReader() {
+  event_base_loopbreak(base);
+  event_base_loopexit(base, nullptr);
+  notificationThread.join();
   event_base_free(base);
 }
 

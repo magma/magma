@@ -21,6 +21,7 @@ namespace cli {
 class SshSocketReader {
  private:
   struct event_base* base;
+  std::thread notificationThread;
 
  public:
   static SshSocketReader& getInstance(); // singleton
