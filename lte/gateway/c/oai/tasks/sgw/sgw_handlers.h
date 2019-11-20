@@ -88,7 +88,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
     *const s11_pcrf_ded_bearer_deactv_rsp);
 bool is_enb_ip_address_same(const fteid_t *fte_p, ip_address_t *ip_p);
 int send_activate_dedicated_bearer_rsp_to_pgw(
-  spgw_state_t *state,
+  spgw_state_t* state,
   gtpv2c_cause_value_t cause,
   teid_t s_gw_teid_S11_S4,
   ebi_t ebi,

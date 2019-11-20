@@ -144,7 +144,8 @@ int _send_pcrf_bearer_actv_rsp(
   OAILOG_INFO(
     LOG_MME_APP,
     "Sending create_dedicated_bearer_rsp to SGW with EBI %u teid %u\n",
-    ebi, bc->s_gw_fteid_s1u.teid);
+    ebi,
+    bc->s_gw_fteid_s1u.teid);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
