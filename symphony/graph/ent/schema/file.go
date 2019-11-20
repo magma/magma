@@ -22,7 +22,7 @@ func (File) Fields() []ent.Field {
 			StructTag(`gqlgen:"fileName"`),
 		field.Int("size").
 			StructTag(`gqlgen:"sizeInBytes"`).
-			Positive().
+			NonNegative().
 			Optional(),
 		field.Time("modified_at").
 			StructTag(`gqlgen:"modified"`).
