@@ -303,12 +303,18 @@ func addMissingGxResponses(
 
 // getSingleUsageMonitorResponseFromCCA creates a UsageMonitoringUpdateResponse proto from a CCA
 func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) *protos.UsageMonitoringUpdateResponse {
+	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
+		srv.dbClient,
+		answer.RuleInstallAVP,
+	)
 	res := &protos.UsageMonitoringUpdateResponse{
-		Success:       answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
-		SessionId:     request.SessionID,
-		Sid:           addSidPrefix(request.IMSI),
-		ResultCode:    answer.ResultCode,
-		RulesToRemove: srv.getRulesToRemoveFromAVP(answer.RuleRemoveAVP),
+		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+		SessionId:             request.SessionID,
+		Sid:                   addSidPrefix(request.IMSI),
+		ResultCode:            answer.ResultCode,
+		RulesToRemove:         srv.getRulesToRemoveFromAVP(answer.RuleRemoveAVP),
+		StaticRulesToInstall:  staticRules,
+		DynamicRulesToInstall: dynamicRules,
 	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)

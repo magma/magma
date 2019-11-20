@@ -633,13 +633,79 @@ func TestGxUsageMonitoring(t *testing.T) {
 	assert.Nil(t, update.Credit.GrantedUnits)
 	assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
 
+	// Test that static rule install avp in CCA-Update by rule names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{"static1", "static2"}, []string{})).Times(1)
+
+	ruleInstallUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "static1", update.StaticRulesToInstall[0].RuleId)
+	assert.Equal(t, "static2", update.StaticRulesToInstall[1].RuleId)
+
+	// Test that static rule install avp in CCA-Update by rule base names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+
+	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "base_rule_1", update.StaticRulesToInstall[0].RuleId)
+	assert.Equal(t, "base_rule_2", update.StaticRulesToInstall[1].RuleId)
+
+	// Test that dynamic rule install avp in CCA-Update gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(returnDynamicRuleInstallGxUpdateResponse).Times(1)
+
+	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "dyn_rule_20", update.DynamicRulesToInstall[0].PolicyRule.Id)
+
 	// Test that rule remove avp in CCA-Update by rule names gets propagated properly
 	mocks.gx.On(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
-	).Return(nil).Run(returnRuleDisableByRuleNameGxUpdateResponse).Times(1)
+	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule1", "rule2"}, []string{})).Times(1)
 
 	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
@@ -660,7 +726,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
-	).Return(nil).Run(returnRuleDisableByBaseNameGxUpdateResponse).Times(1)
+	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
 	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
 
 	ruleDisableUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -926,7 +992,34 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 	}
 }
 
-func returnRuleDisableByRuleNameGxUpdateResponse(args mock.Arguments) {
+func getRuleInstallGxUpdateResponse(ruleNames, baseNames []string) func(mock.Arguments) {
+	return func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+		for _, report := range request.UsageReports {
+			monitors = append(monitors, &gx.UsageMonitoringInfo{
+				MonitoringKey:      report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+				Level:              report.Level,
+			})
+		}
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+			UsageMonitors: monitors,
+			RuleInstallAVP: []*gx.RuleInstallAVP{
+				{
+					RuleNames:     ruleNames,
+					RuleBaseNames: baseNames,
+				},
+			},
+		}
+	}
+}
+
+func returnDynamicRuleInstallGxUpdateResponse(args mock.Arguments) {
 	done := args.Get(1).(chan interface{})
 	request := args.Get(2).(*gx.CreditControlRequest)
 	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
@@ -937,40 +1030,52 @@ func returnRuleDisableByRuleNameGxUpdateResponse(args mock.Arguments) {
 			Level:              report.Level,
 		})
 	}
+	activationTime := time.Unix(1, 0)
+	deactivationTime := time.Unix(2, 0)
 	done <- &gx.CreditControlAnswer{
 		ResultCode:    uint32(diameter.SuccessCode),
 		SessionID:     request.SessionID,
 		RequestNumber: request.RequestNumber,
 		UsageMonitors: monitors,
-		RuleRemoveAVP: []*gx.RuleRemoveAVP{
-			{
-				RuleNames: []string{"rule1", "rule2"},
+		RuleInstallAVP: []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleDefinitions: []*gx.RuleDefinition{
+					&gx.RuleDefinition{
+						RuleName: "dyn_rule_20",
+						//RatingGroup: swag.Uint32(20),
+					},
+				},
+				RuleActivationTime:   &activationTime,
+				RuleDeactivationTime: &deactivationTime,
 			},
 		},
 	}
 }
 
-func returnRuleDisableByBaseNameGxUpdateResponse(args mock.Arguments) {
-	done := args.Get(1).(chan interface{})
-	request := args.Get(2).(*gx.CreditControlRequest)
-	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
-	for _, report := range request.UsageReports {
-		monitors = append(monitors, &gx.UsageMonitoringInfo{
-			MonitoringKey:      report.MonitoringKey,
-			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
-			Level:              report.Level,
-		})
-	}
-	done <- &gx.CreditControlAnswer{
-		ResultCode:    uint32(diameter.SuccessCode),
-		SessionID:     request.SessionID,
-		RequestNumber: request.RequestNumber,
-		UsageMonitors: monitors,
-		RuleRemoveAVP: []*gx.RuleRemoveAVP{
-			{
-				RuleBaseNames: []string{"base_10"},
+func getRuleDisableGxUpdateResponse(ruleNames []string, ruleBaseNames []string) func(mock.Arguments) {
+	return func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+		for _, report := range request.UsageReports {
+			monitors = append(monitors, &gx.UsageMonitoringInfo{
+				MonitoringKey:      report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+				Level:              report.Level,
+			})
+		}
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+			UsageMonitors: monitors,
+			RuleRemoveAVP: []*gx.RuleRemoveAVP{
+				{
+					RuleNames:     ruleNames,
+					RuleBaseNames: ruleBaseNames,
+				},
 			},
-		},
+		}
 	}
 }
 
