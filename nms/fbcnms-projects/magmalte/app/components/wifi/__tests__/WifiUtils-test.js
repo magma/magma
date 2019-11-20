@@ -12,7 +12,7 @@ import {RAW_GATEWAY} from '../test/GatewayMock';
 import {
   additionalPropsToArray,
   additionalPropsToObject,
-  buildWifiGatewayFromPayload,
+  buildWifiGatewayFromPayloadV1,
   calculateLinkLocalMac,
   getAdditionalProp,
   isMeshNetwork,
@@ -24,7 +24,7 @@ import {
 const NOW = 1561157125000;
 
 it('renders without crashing', () => {
-  const gateway = buildWifiGatewayFromPayload(RAW_GATEWAY, NOW);
+  const gateway = buildWifiGatewayFromPayloadV1(RAW_GATEWAY, NOW);
   expect(gateway).toEqual({
     id: 'shared_d_id_5ce28cf1aeb6',
     meshid: 'shared_d',
@@ -64,13 +64,13 @@ it('renders without crashing', () => {
 });
 
 it('geojson connections', () => {
-  const gateway = buildWifiGatewayFromPayload(RAW_GATEWAY, NOW);
+  const gateway = buildWifiGatewayFromPayloadV1(RAW_GATEWAY, NOW);
   const connections = wifiGeoJsonConnections([gateway, gateway]);
   expect(connections).toEqual([]);
 });
 
 it('geojson collection', () => {
-  const gateway = buildWifiGatewayFromPayload(RAW_GATEWAY, NOW);
+  const gateway = buildWifiGatewayFromPayloadV1(RAW_GATEWAY, NOW);
   const geojson = wifiGeoJson([gateway], new Set([gateway.id]));
   const expected = [
     {

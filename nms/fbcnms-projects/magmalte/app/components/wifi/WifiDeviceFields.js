@@ -9,6 +9,7 @@
  */
 
 import type {WithStyles} from '@material-ui/core';
+import type {gateway_status, gateway_wifi_configs} from '@fbcnms/magma-api';
 
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -32,21 +33,18 @@ const styles = {
 
 type Props = WithStyles<typeof styles> & {
   macAddress: string,
-  status: ?{
-    [key: string]: string,
-    meta: {
-      [key: string]: string,
-    },
-  },
-  configs: {[string]: any},
+  status: ?gateway_status,
+  configs: gateway_wifi_configs,
+  additionalProps: Array<[string, string]>,
   handleMACAddressChange?: string => void,
-  configChangeHandler: (string, any) => void,
+  configChangeHandler: (string, string | number) => void,
+  additionalPropsChangeHandler: (Array<[string, string]>) => void,
 };
 
 class WifiDeviceFields extends React.Component<Props> {
   render() {
     const reboot_if_bootid = getAdditionalProp(
-      this.props.configs.additional_props,
+      this.props.additionalProps,
       'reboot_if_bootid',
     );
     return (
@@ -109,7 +107,7 @@ class WifiDeviceFields extends React.Component<Props> {
                 checked={
                   this.props.status !== null &&
                   reboot_if_bootid !== null &&
-                  reboot_if_bootid === this.props.status?.meta.boot_id
+                  reboot_if_bootid === this.props.status?.meta?.boot_id
                 }
                 onChange={this.handleRequestReboot}
                 color="primary"
@@ -119,8 +117,8 @@ class WifiDeviceFields extends React.Component<Props> {
           />
         </FormGroup>
         <KeyValueFields
-          keyValuePairs={this.props.configs.additional_props || [['', '']]}
-          onChange={this.handleAdditionalPropsChange}
+          keyValuePairs={this.props.additionalProps || [['', '']]}
+          onChange={this.props.additionalPropsChangeHandler}
         />
       </>
     );
@@ -138,10 +136,9 @@ class WifiDeviceFields extends React.Component<Props> {
     this.props.configChangeHandler('client_channel', target.value);
   handleIsProductionChange = ({target}) =>
     this.props.configChangeHandler('is_production', target.checked);
-  handleAdditionalPropsChange = value =>
-    this.props.configChangeHandler('additional_props', value);
+
   handleRequestReboot = ({target}) => {
-    const keyValuePairs = (this.props.configs.additional_props || []).slice(0);
+    const keyValuePairs = this.props.additionalProps.slice(0);
     if (target.checked && this.props.status && this.props.status.meta) {
       // add the reboot directive
       setAdditionalProp(
@@ -157,7 +154,7 @@ class WifiDeviceFields extends React.Component<Props> {
         keyValuePairs.push(['', '']);
       }
     }
-    this.props.configChangeHandler('additional_props', keyValuePairs);
+    this.props.additionalPropsChangeHandler(keyValuePairs);
   };
 }
 

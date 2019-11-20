@@ -8,29 +8,30 @@
  * @format
  */
 
-export const RAW_GATEWAY = {
-  config: {
-    magmad_gateway: {
-      autoupgrade_enabled: true,
-      autoupgrade_poll_interval: 300,
-      checkin_interval: 15,
-      checkin_timeout: 12,
-      tier: 'default',
-    },
-    wifi_gateway: {
-      additional_props: {example_prop: 'lol', expected_is_gateway: '1'},
-      client_channel: '1',
-      info: 'binney lab, top shelf back wall',
-      is_production: true,
-      latitude: 83,
-      longitude: -70,
-      mesh_id: 'shared_d',
-      mesh_rssi_threshold: -80,
-    },
+import type {wifi_gateway} from '@fbcnms/magma-api';
+
+export const RAW_GATEWAY: wifi_gateway = {
+  description: '',
+  magmad: {
+    autoupgrade_enabled: true,
+    autoupgrade_poll_interval: 300,
+    checkin_interval: 15,
+    checkin_timeout: 12,
   },
-  gateway_id: 'shared_d_id_5ce28cf1aeb6',
+  tier: 'default',
+  wifi: {
+    additional_props: {example_prop: 'lol', expected_is_gateway: '1'},
+    client_channel: '1',
+    info: 'binney lab, top shelf back wall',
+    is_production: true,
+    latitude: 83,
+    longitude: -70,
+    mesh_id: 'shared_d',
+    mesh_rssi_threshold: -80,
+  },
+  id: 'shared_d_id_5ce28cf1aeb6',
   name: '5ce28cf1aeb6',
-  record: {
+  device: {
     hardware_id: 'faceb00c-face-b00c-face-5ce28cf1aeb6',
     key: {key_type: 'ECHO'},
   },

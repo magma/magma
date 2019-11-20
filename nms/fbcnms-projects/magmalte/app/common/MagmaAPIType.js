@@ -8,11 +8,9 @@
  * @format
  */
 
-import type {gateway_wifi_configs} from '@fbcnms/magma-api';
+import type {gateway_device, gateway_wifi_configs} from '@fbcnms/magma-api';
 
 // TODO: remove this when wifi is fully converted to V1 API
 export type WifiConfig = gateway_wifi_configs;
 
-export type Record = {
-  hardware_id: string,
-};
+export type Record = gateway_device;
