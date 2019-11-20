@@ -320,6 +320,7 @@ input AddWorkOrderInput {
   locationId: ID
   projectId: ID
   properties: [PropertyInput!]
+  checkList: [CheckListItemInput!]
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -726,8 +727,12 @@ type CheckListItem {
 }
 
 input CheckListItemInput {
-  id: ID!
+  id: ID
   title: String!
+  type: CheckListItemType!
+  index: Int
+  helpText: String
+  enumValues: String
   stringValue: String
   checked: Boolean
 }

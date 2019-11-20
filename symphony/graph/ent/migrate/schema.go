@@ -23,7 +23,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "title", Type: field.TypeString},
 		{Name: "type", Type: field.TypeString},
-		{Name: "index", Type: field.TypeInt},
+		{Name: "index", Type: field.TypeInt, Nullable: true},
 		{Name: "checked", Type: field.TypeBool, Nullable: true},
 		{Name: "string_val", Type: field.TypeString, Nullable: true},
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},

@@ -25,6 +25,7 @@ type CheckListItemUpdate struct {
 	_type            *string
 	index            *int
 	addindex         *int
+	clearindex       bool
 	checked          *bool
 	clearchecked     bool
 	string_val       *string
@@ -63,6 +64,14 @@ func (cliu *CheckListItemUpdate) SetIndex(i int) *CheckListItemUpdate {
 	return cliu
 }
 
+// SetNillableIndex sets the index field if the given value is not nil.
+func (cliu *CheckListItemUpdate) SetNillableIndex(i *int) *CheckListItemUpdate {
+	if i != nil {
+		cliu.SetIndex(*i)
+	}
+	return cliu
+}
+
 // AddIndex adds i to index.
 func (cliu *CheckListItemUpdate) AddIndex(i int) *CheckListItemUpdate {
 	if cliu.addindex == nil {
@@ -70,6 +79,13 @@ func (cliu *CheckListItemUpdate) AddIndex(i int) *CheckListItemUpdate {
 	} else {
 		*cliu.addindex += i
 	}
+	return cliu
+}
+
+// ClearIndex clears the value of index.
+func (cliu *CheckListItemUpdate) ClearIndex() *CheckListItemUpdate {
+	cliu.index = nil
+	cliu.clearindex = true
 	return cliu
 }
 
@@ -261,6 +277,9 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 	if value := cliu.addindex; value != nil {
 		updater.Add(checklistitem.FieldIndex, *value)
 	}
+	if cliu.clearindex {
+		updater.SetNull(checklistitem.FieldIndex)
+	}
 	if value := cliu.checked; value != nil {
 		updater.Set(checklistitem.FieldChecked, *value)
 	}
@@ -330,6 +349,7 @@ type CheckListItemUpdateOne struct {
 	_type            *string
 	index            *int
 	addindex         *int
+	clearindex       bool
 	checked          *bool
 	clearchecked     bool
 	string_val       *string
@@ -361,6 +381,14 @@ func (cliuo *CheckListItemUpdateOne) SetIndex(i int) *CheckListItemUpdateOne {
 	return cliuo
 }
 
+// SetNillableIndex sets the index field if the given value is not nil.
+func (cliuo *CheckListItemUpdateOne) SetNillableIndex(i *int) *CheckListItemUpdateOne {
+	if i != nil {
+		cliuo.SetIndex(*i)
+	}
+	return cliuo
+}
+
 // AddIndex adds i to index.
 func (cliuo *CheckListItemUpdateOne) AddIndex(i int) *CheckListItemUpdateOne {
 	if cliuo.addindex == nil {
@@ -368,6 +396,13 @@ func (cliuo *CheckListItemUpdateOne) AddIndex(i int) *CheckListItemUpdateOne {
 	} else {
 		*cliuo.addindex += i
 	}
+	return cliuo
+}
+
+// ClearIndex clears the value of index.
+func (cliuo *CheckListItemUpdateOne) ClearIndex() *CheckListItemUpdateOne {
+	cliuo.index = nil
+	cliuo.clearindex = true
 	return cliuo
 }
 
@@ -565,6 +600,11 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 	if value := cliuo.addindex; value != nil {
 		updater.Add(checklistitem.FieldIndex, *value)
 		cli.Index += *value
+	}
+	if cliuo.clearindex {
+		var value int
+		cli.Index = value
+		updater.SetNull(checklistitem.FieldIndex)
 	}
 	if value := cliuo.checked; value != nil {
 		updater.Set(checklistitem.FieldChecked, *value)

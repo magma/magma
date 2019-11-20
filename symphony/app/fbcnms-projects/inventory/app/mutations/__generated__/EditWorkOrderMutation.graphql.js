@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7407f42ca5b5d4303cd383cb72360506
+ * @relayHash dde01675ae3bd5fbc32ebded5410addc
  */
 
 /* eslint-disable */
@@ -17,6 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type WorkOrderDetails_workOrder$ref = any;
 type WorkOrdersView_workOrder$ref = any;
+export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type EditWorkOrderInput = {|
@@ -51,8 +52,12 @@ export type PropertyInput = {|
   isInstanceProperty?: ?boolean,
 |};
 export type CheckListItemInput = {|
-  id: string,
+  id?: ?string,
   title: string,
+  type: CheckListItemType,
+  index?: ?number,
+  helpText?: ?string,
+  enumValues?: ?string,
   stringValue?: ?string,
   checked?: ?boolean,
 |};

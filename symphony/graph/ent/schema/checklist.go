@@ -62,7 +62,8 @@ func (CheckListItem) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("title"),
 		field.String("type"),
-		field.Int("index"),
+		field.Int("index").
+			Optional(),
 		field.Bool("checked").
 			Optional(),
 		field.String("string_val").

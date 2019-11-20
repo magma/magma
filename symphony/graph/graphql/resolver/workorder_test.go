@@ -1252,29 +1252,74 @@ func TestAddWorkOrderWithCheckList(t *testing.T) {
 	defer r.drv.Close()
 	ctx := viewertest.NewContext(r.client)
 	mr, wr := r.Mutation(), r.WorkOrder()
-
-	indexValue := 1
-	fooCL := models.CheckListDefinitionInput{
-		Title: "Foo",
-		Type:  "none",
-		Index: &indexValue,
-	}
-	clInputs := []*models.CheckListDefinitionInput{&fooCL}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
-		Name:      "example_type_a",
-		CheckList: clInputs,
+		Name: "example_type_a",
 	})
 	require.NoError(t, err)
+	indexValue := 1
+	fooCL := models.CheckListItemInput{
+		Title: "Foo",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs := []*models.CheckListItemInput{&fooCL}
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            longWorkOrderName,
 		WorkOrderTypeID: woType.ID,
+		CheckList:       clInputs,
 	})
 	require.NoError(t, err)
 	cls := workOrder.QueryCheckListItems().AllX(ctx)
 	require.Len(t, cls, 1)
 
-	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("none")).OnlyX(ctx)
+	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
 	require.Equal(t, "Foo", fooCLFetched.Title, "verifying check list name")
+
+	cl, err := wr.CheckList(ctx, workOrder)
+	require.NoError(t, err)
+	require.Len(t, cl, 1)
+}
+
+func TestEditWorkOrderWithCheckList(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr, wr := r.Mutation(), r.WorkOrder()
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type_a",
+	})
+	require.NoError(t, err)
+	indexValue := 1
+	fooCL := models.CheckListItemInput{
+		Title: "Foo",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs := []*models.CheckListItemInput{&fooCL}
+	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            longWorkOrderName,
+		WorkOrderTypeID: woType.ID,
+		CheckList:       clInputs,
+	})
+	require.NoError(t, err)
+
+	barCL := models.CheckListItemInput{
+		Title: "Bar",
+		Type:  "simple",
+		Index: &indexValue,
+	}
+	clInputs = []*models.CheckListItemInput{&barCL}
+	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:        workOrder.ID,
+		CheckList: clInputs,
+	})
+	require.NoError(t, err)
+	cls := workOrder.QueryCheckListItems().AllX(ctx)
+	require.Len(t, cls, 1)
+
+	fooCLFetched := workOrder.QueryCheckListItems().Where(checklistitem.Type("simple")).OnlyX(ctx)
+	require.Equal(t, "Bar", fooCLFetched.Title, "verifying check list name")
 
 	cl, err := wr.CheckList(ctx, workOrder)
 	require.NoError(t, err)

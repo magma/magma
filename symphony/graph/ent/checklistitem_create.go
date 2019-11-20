@@ -46,6 +46,14 @@ func (clic *CheckListItemCreate) SetIndex(i int) *CheckListItemCreate {
 	return clic
 }
 
+// SetNillableIndex sets the index field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableIndex(i *int) *CheckListItemCreate {
+	if i != nil {
+		clic.SetIndex(*i)
+	}
+	return clic
+}
+
 // SetChecked sets the checked field.
 func (clic *CheckListItemCreate) SetChecked(b bool) *CheckListItemCreate {
 	clic.checked = &b
@@ -131,9 +139,6 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 	}
 	if clic._type == nil {
 		return nil, errors.New("ent: missing required field \"type\"")
-	}
-	if clic.index == nil {
-		return nil, errors.New("ent: missing required field \"index\"")
 	}
 	if len(clic.work_order) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"work_order\"")

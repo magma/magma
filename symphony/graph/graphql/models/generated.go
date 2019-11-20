@@ -96,16 +96,17 @@ type AddProjectTypeInput struct {
 }
 
 type AddWorkOrderInput struct {
-	Name            string             `json:"name"`
-	Description     *string            `json:"description"`
-	WorkOrderTypeID string             `json:"workOrderTypeId"`
-	LocationID      *string            `json:"locationId"`
-	ProjectID       *string            `json:"projectId"`
-	Properties      []*PropertyInput   `json:"properties"`
-	Assignee        *string            `json:"assignee"`
-	Index           *int               `json:"index"`
-	Status          *WorkOrderStatus   `json:"status"`
-	Priority        *WorkOrderPriority `json:"priority"`
+	Name            string                `json:"name"`
+	Description     *string               `json:"description"`
+	WorkOrderTypeID string                `json:"workOrderTypeId"`
+	LocationID      *string               `json:"locationId"`
+	ProjectID       *string               `json:"projectId"`
+	Properties      []*PropertyInput      `json:"properties"`
+	CheckList       []*CheckListItemInput `json:"checkList"`
+	Assignee        *string               `json:"assignee"`
+	Index           *int                  `json:"index"`
+	Status          *WorkOrderStatus      `json:"status"`
+	Priority        *WorkOrderPriority    `json:"priority"`
 }
 
 type AddWorkOrderTypeInput struct {
@@ -125,10 +126,14 @@ type CheckListDefinitionInput struct {
 }
 
 type CheckListItemInput struct {
-	ID          string  `json:"id"`
-	Title       string  `json:"title"`
-	StringValue *string `json:"stringValue"`
-	Checked     *bool   `json:"checked"`
+	ID          *string           `json:"id"`
+	Title       string            `json:"title"`
+	Type        CheckListItemType `json:"type"`
+	Index       *int              `json:"index"`
+	HelpText    *string           `json:"helpText"`
+	EnumValues  *string           `json:"enumValues"`
+	StringValue *string           `json:"stringValue"`
+	Checked     *bool             `json:"checked"`
 }
 
 type CommentInput struct {

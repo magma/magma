@@ -550,6 +550,24 @@ func IndexLTE(v int) predicate.CheckListItem {
 	)
 }
 
+// IndexIsNil applies the IsNil predicate on the "index" field.
+func IndexIsNil() predicate.CheckListItem {
+	return predicate.CheckListItem(
+		func(s *sql.Selector) {
+			s.Where(sql.IsNull(s.C(FieldIndex)))
+		},
+	)
+}
+
+// IndexNotNil applies the NotNil predicate on the "index" field.
+func IndexNotNil() predicate.CheckListItem {
+	return predicate.CheckListItem(
+		func(s *sql.Selector) {
+			s.Where(sql.NotNull(s.C(FieldIndex)))
+		},
+	)
+}
+
 // CheckedEQ applies the EQ predicate on the "checked" field.
 func CheckedEQ(v bool) predicate.CheckListItem {
 	return predicate.CheckListItem(

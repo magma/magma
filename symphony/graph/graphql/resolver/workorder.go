@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
@@ -115,12 +116,7 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 func (r mutationResolver) AddWorkOrder(
 	ctx context.Context, input models.AddWorkOrderInput,
 ) (*ent.WorkOrder, error) {
-
 	c := r.ClientFrom(ctx)
-	wot, err := c.WorkOrderType.Get(ctx, input.WorkOrderTypeID)
-	if err != nil {
-		return nil, errors.Wrap(err, "creating work order")
-	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -148,17 +144,15 @@ func (r mutationResolver) AddWorkOrder(
 	); err != nil {
 		return nil, errors.Wrap(err, "creating work order properties")
 	}
-	defs, err := wot.QueryCheckListDefinitions().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "fetching check list definitions")
-	}
-	for _, def := range defs {
-		def := def
+	for _, clInput := range input.CheckList {
 		if _, err = c.CheckListItem.Create().
-			SetTitle(def.Title).
-			SetType(def.Type).
-			SetIndex(def.Index).
-			SetNillableEnumValues(def.EnumValues).
+			SetTitle(clInput.Title).
+			SetType(clInput.Type.String()).
+			SetNillableIndex(clInput.Index).
+			SetNillableEnumValues(clInput.EnumValues).
+			SetNillableHelpText(clInput.HelpText).
+			SetNillableChecked(clInput.Checked).
+			SetNillableStringVal(clInput.StringValue).
 			SetWorkOrderID(wo.ID).
 			Save(ctx); err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
@@ -239,16 +233,56 @@ func (r mutationResolver) EditWorkOrder(
 			}
 		}
 	}
-	cl := client.CheckListItem
+	ids, i := make([]string, len(input.CheckList)), 0
 	for _, clInput := range input.CheckList {
-		if _, err = cl.UpdateOneID(clInput.ID).
+		cli, err := r.createOrUpdateCheckListItem(ctx, clInput)
+		if err != nil {
+			return nil, err
+		}
+		ids[i] = cli.ID
+	}
+	currentCL := wo.QueryCheckListItems().IDsX(ctx)
+	addedCLIds, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
+	mutation.
+		RemoveCheckListItemIDs(deletedCLIds...).
+		AddCheckListItemIDs(addedCLIds...)
+	return mutation.Save(ctx)
+}
+
+func (r mutationResolver) createOrUpdateCheckListItem(
+	ctx context.Context,
+	clInput *models.CheckListItemInput) (*ent.CheckListItem, error) {
+	client := r.ClientFrom(ctx)
+	cl := client.CheckListItem
+	if clInput.ID == nil {
+		cli, err := cl.Create().
+			SetTitle(clInput.Title).
+			SetType(clInput.Type.String()).
+			SetNillableIndex(clInput.Index).
+			SetNillableEnumValues(clInput.EnumValues).
+			SetNillableHelpText(clInput.HelpText).
 			SetNillableChecked(clInput.Checked).
 			SetNillableStringVal(clInput.StringValue).
-			Save(ctx); err != nil {
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating check list definition")
+		}
+		return cli, nil
+	} else {
+		cli, err := cl.UpdateOneID(*clInput.ID).
+			SetTitle(clInput.Title).
+			SetType(clInput.Type.String()).
+			SetNillableIndex(clInput.Index).
+			SetNillableEnumValues(clInput.EnumValues).
+			SetNillableHelpText(clInput.HelpText).
+			SetNillableChecked(clInput.Checked).
+			SetNillableStringVal(clInput.StringValue).
+			Save(ctx)
+		if err != nil {
 			return nil, errors.Wrap(err, "updating check list definition")
 		}
+		return cli, nil
 	}
-	return mutation.Save(ctx)
 }
 
 func (r mutationResolver) AddWorkOrderType(

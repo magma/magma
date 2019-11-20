@@ -5346,6 +5346,7 @@ input AddWorkOrderInput {
   locationId: ID
   projectId: ID
   properties: [PropertyInput!]
+  checkList: [CheckListItemInput!]
   assignee: String
   index: Int
   status: WorkOrderStatus
@@ -5752,8 +5753,12 @@ type CheckListItem {
 }
 
 input CheckListItemInput {
-  id: ID!
+  id: ID
   title: String!
+  type: CheckListItemType!
+  index: Int
+  helpText: String
+  enumValues: String
   stringValue: String
   checked: Boolean
 }
@@ -28517,6 +28522,12 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "checkList":
+			var err error
+			it.CheckList, err = ec.unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "assignee":
 			var err error
 			it.Assignee, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -28685,13 +28696,37 @@ func (ec *executionContext) unmarshalInputCheckListItemInput(ctx context.Context
 		switch k {
 		case "id":
 			var err error
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "title":
 			var err error
 			it.Title, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "type":
+			var err error
+			it.Type, err = ec.unmarshalNCheckListItemType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemType(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "index":
+			var err error
+			it.Index, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "helpText":
+			var err error
+			it.HelpText, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "enumValues":
+			var err error
+			it.EnumValues, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37454,7 +37489,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
