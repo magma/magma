@@ -57,6 +57,7 @@ def main() -> None:
     files_args = _get_docker_files_command_args(args)
     if not args.mount:
         _create_build_context()
+    _build_cache_if_necessary(args)
     _build_controller_if_necessary(args)
 
     if args.mount:
@@ -71,7 +72,6 @@ def main() -> None:
         _run_docker(files_args + ['build'])
     else:
         # Build images using go-cache base image
-        _build_cache_if_necessary()
         _run_docker(files_args + ['build',
                                   '--build-arg', 'baseImage=orc8r_cache'])
 
@@ -89,6 +89,18 @@ def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
     return []
 
 
+def _build_cache_if_necessary(args: argparse.Namespace) -> None:
+    if args.nocache or args.mount or args.test:
+        return
+
+    # Check if orc8r_cache image exists
+    result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
+                            stdout=PIPE, stderr=PIPE)
+    if result.stdout == b'':
+        print("Orc8r_cache image does not exist. Building...")
+        _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
+
+
 def _build_controller_if_necessary(args: argparse.Namespace) -> None:
     # We don't build the controller container if we're running tests or
     # generating code
@@ -102,15 +114,6 @@ def _build_controller_if_necessary(args: argparse.Namespace) -> None:
     else:
         _run_docker(['build', '--build-arg', 'baseImage=orc8r_cache',
                      'controller'])
-
-
-def _build_cache_if_necessary() -> None:
-    # Check if orc8r_cache image exists
-    result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
-                            stdout=PIPE, stderr=PIPE)
-    if result.stdout == b'':
-        print("Orc8r_cache image does not exist. Building...")
-        _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
 
 
 def _run_docker(cmd: List[str]) -> None:
