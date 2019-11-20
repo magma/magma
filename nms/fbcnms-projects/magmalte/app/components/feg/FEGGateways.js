@@ -12,7 +12,9 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {federation_gateway} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import FEGGatewayDialog from './FEGGatewayDialog';
 import IconButton from '@material-ui/core/IconButton';
@@ -33,7 +35,6 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayStatus} from '../GatewayUtils';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
@@ -76,8 +77,6 @@ const useStyles = makeStyles(theme => ({
     verticalAlign: 'bottom',
   },
 }));
-
-const FIVE_MINS = 5 * 60 * 1000;
 
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(federation_gateway[])>(null);
@@ -123,34 +122,12 @@ function CWFGateways(props: WithAlert & {}) {
   };
 
   const rows = gateways.map(gateway => (
-    <TableRow key={gateway.id}>
-      <TableCell>
-        <span className={classes.gatewayName}>{gateway.name}</span>
-        <GatewayStatus
-          isGrey={!gateway.status?.checkin_time}
-          isActive={
-            Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
-            FIVE_MINS
-          }
-        />
-        {clusterStatus?.active_gateway === gateway.id && (
-          <Tooltip title="Primary FEG" placement="right">
-            <StarIcon className={classes.star} />
-          </Tooltip>
-        )}
-      </TableCell>
-      <TableCell>{gateway.device.hardware_id}</TableCell>
-      <TableCell>
-        <IconButton
-          color="primary"
-          onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
-          <EditIcon />
-        </IconButton>
-        <IconButton color="primary" onClick={() => deleteGateway(gateway)}>
-          <DeleteIcon />
-        </IconButton>
-      </TableCell>
-    </TableRow>
+    <GatewayRow
+      key={gateway.id}
+      gateway={gateway}
+      onDelete={deleteGateway}
+      isPrimary={clusterStatus?.active_gateway === gateway.id}
+    />
   ));
 
   return (
@@ -206,6 +183,52 @@ function CWFGateways(props: WithAlert & {}) {
         )}
       />
     </div>
+  );
+}
+
+function GatewayRow(props: {
+  gateway: federation_gateway,
+  onDelete: federation_gateway => void,
+  isPrimary: boolean,
+}) {
+  const classes = useStyles();
+  const {gateway, onDelete, isPrimary} = props;
+  const {match, history, relativeUrl} = useRouter();
+  const {isLoading, response} = useMagmaAPI(
+    MagmaV1API.getFegByNetworkIdGatewaysByGatewayIdHealthStatus,
+    {networkId: nullthrows(match.params.networkId), gatewayId: gateway.id},
+  );
+
+  return (
+    <TableRow key={gateway.id}>
+      <TableCell>
+        <span className={classes.gatewayName}>{gateway.name}</span>
+        {isLoading ? (
+          <CircularProgress size={20} />
+        ) : (
+          <DeviceStatusCircle
+            isGrey={!response?.status}
+            isActive={response?.status === 'HEALTHY'}
+          />
+        )}
+        {isPrimary && (
+          <Tooltip title="Primary FEG" placement="right">
+            <StarIcon className={classes.star} />
+          </Tooltip>
+        )}
+      </TableCell>
+      <TableCell>{gateway.device.hardware_id}</TableCell>
+      <TableCell>
+        <IconButton
+          color="primary"
+          onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
+          <EditIcon />
+        </IconButton>
+        <IconButton color="primary" onClick={() => onDelete(gateway)}>
+          <DeleteIcon />
+        </IconButton>
+      </TableCell>
+    </TableRow>
   );
 }
 
