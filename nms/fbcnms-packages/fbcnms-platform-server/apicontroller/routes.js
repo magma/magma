@@ -116,28 +116,10 @@ const proxyErrorHandler = (err, res, next) => {
 };
 
 router.use(
-  /^\/magma\/networks$/,
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    userResDecorator: networksResponseDecorator,
-  }),
-);
-
-router.use(
   /^\/magma\/v1\/networks$/,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
     userResDecorator: networksResponseDecorator,
-    proxyErrorHandler,
-  }),
-);
-
-router.use(
-  '/magma/networks/:networkID',
-  proxy(API_HOST, {
-    ...PROXY_OPTIONS,
-    filter: networkIdFilter,
-    userResDecorator: auditLoggingDecorator,
     proxyErrorHandler,
   }),
 );
