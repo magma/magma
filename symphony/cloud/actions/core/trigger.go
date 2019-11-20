@@ -9,5 +9,6 @@ type Trigger interface {
 	ID() TriggerID
 	Description() string
 	SupportedActionIDs() []ActionID
+	SupportedFilters() []Filter
 	Evaluate(Rule) (bool, error)
 }

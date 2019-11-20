@@ -37,6 +37,12 @@ func (m *Trigger) SupportedActionIDs() []core.ActionID {
 	return args.Get(0).([]core.ActionID)
 }
 
+// SupportedFilters returns the supported actions for this trigger
+func (m *Trigger) SupportedFilters() []core.Filter {
+	args := m.Called()
+	return args.Get(0).([]core.Filter)
+}
+
 // Evaluate runs evaluations of this trigger
 func (m *Trigger) Evaluate(r core.Rule) (bool, error) {
 	args := m.Called(r)

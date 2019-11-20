@@ -33,6 +33,19 @@ func (*trigger) SupportedActionIDs() []core.ActionID {
 	}
 }
 
+func (*trigger) SupportedFilters() []core.Filter {
+	return []core.Filter{
+		core.NewStringFieldFilter(
+			"networkID",
+			"the alerts networkID",
+		),
+		core.NewStringFieldFilter(
+			"gatewayID",
+			"the alerts gatewayID",
+		),
+	}
+}
+
 // Evaluate evaluates the user-supplied rule for if this rule
 // should be executed or not
 func (*trigger) Evaluate(rule core.Rule) (bool, error) {
