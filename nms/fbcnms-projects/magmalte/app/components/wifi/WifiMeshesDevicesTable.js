@@ -15,6 +15,7 @@ import type {WithStyles} from '@material-ui/core';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import IconButton from '@material-ui/core/IconButton';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
@@ -29,12 +30,11 @@ import Tooltip from '@material-ui/core/Tooltip';
 import WifiDeviceDialog from './WifiDeviceDialog';
 import WifiMeshDialog from './WifiMeshDialog';
 import WifiMeshRow from './WifiMeshRow';
-import axios from 'axios';
-
 import nullthrows from '@fbcnms/util/nullthrows';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+
 import {Route, withRouter} from 'react-router-dom';
-import {buildWifiGatewayFromPayload, meshesURL} from './WifiUtils';
+import {buildWifiGatewayFromPayloadV1} from './WifiUtils';
+import {map} from 'lodash';
 import {sortBy} from 'lodash';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -99,12 +99,14 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
             <Text variant="h5">Devices</Text>
             <div>
               <Tooltip title={'Last refreshed: ' + this.state.lastRefreshTime}>
-                <IconButton
-                  color="inherit"
-                  onClick={this.fetchMeshes}
-                  disabled={this.state.isLoading}>
-                  <RefreshIcon />
-                </IconButton>
+                <span>
+                  <IconButton
+                    color="inherit"
+                    onClick={this.fetchMeshes}
+                    disabled={this.state.isLoading}>
+                    <RefreshIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
               <NestedRouteLink to="/add_mesh/">
                 <Button>New Mesh</Button>
@@ -152,35 +154,32 @@ class WifiMeshesDevicesTable extends React.Component<Props, State> {
 
   fetchMeshes = () => {
     this.setState({isLoading: true});
-    axios
-      .all([
-        axios.get(MagmaAPIUrls.gateways(this.props.match, true)),
-        axios.get(meshesURL(this.props.match)),
-      ])
-      .then(
-        axios.spread((gatewaysResponse, meshesResponse) => {
-          const meshes = new Map();
-          meshesResponse.data.forEach(meshID => meshes.set(meshID, []));
+    const networkId = nullthrows(this.props.match.params.networkId);
+    Promise.all([
+      MagmaV1API.getWifiByNetworkIdGateways({networkId}),
+      MagmaV1API.getWifiByNetworkIdMeshes({networkId}),
+    ])
+      .then(([gatewaysResponse, meshesResponse]) => {
+        const meshes = new Map();
+        meshesResponse.forEach(meshID => meshes.set(meshID, []));
 
-          const now = new Date().getTime();
-          gatewaysResponse.data
-            // TODO: skip filter when magma API bug fixed t34643616
-            .filter(gateway => gateway.record && gateway.config)
-            .forEach(gatewayPayload => {
-              const gateway = buildWifiGatewayFromPayload(gatewayPayload, now);
-              meshes.set(gateway.meshid, meshes.get(gateway.meshid) || []);
-              nullthrows(meshes.get(gateway.meshid)).push(gateway);
-            });
-
-          meshes.forEach(gateways => gateways.sort(this.sortDevices));
-          this.setState({
-            isLoading: false,
-            meshes: meshes,
-            lastRefreshTime: new Date().toLocaleString(),
-            errorMessage: null,
+        const now = new Date().getTime();
+        map(gatewaysResponse) // turn id->gateway map into gateway list
+          .filter(gateway => gateway.device)
+          .forEach(gatewayPayload => {
+            const gateway = buildWifiGatewayFromPayloadV1(gatewayPayload, now);
+            meshes.set(gateway.meshid, meshes.get(gateway.meshid) || []);
+            nullthrows(meshes.get(gateway.meshid)).push(gateway);
           });
-        }),
-      )
+
+        meshes.forEach(gateways => gateways.sort(this.sortDevices));
+        this.setState({
+          isLoading: false,
+          meshes: meshes,
+          lastRefreshTime: new Date().toLocaleString(),
+          errorMessage: null,
+        });
+      })
       .catch((error, _) =>
         this.setState({
           errorMessage: error.toString(),
