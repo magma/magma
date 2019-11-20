@@ -9,10 +9,8 @@
  */
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import axios from 'axios';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../../common/useMagmaAPI';
-import {MagmaAPIUrls} from '../../../common/MagmaAPI';
 
 import type {ApiUtil} from '@fbcnms/alarms/components/AlarmsApi';
 
@@ -31,14 +29,9 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     });
     return alerts;
   },
-  viewMatchingAlerts: async ({networkId, expression}) => {
-    // TODO: switch to correct MagmaV1API
-    const response = await axios.get(
-      `${MagmaAPIUrls.network(
-        nullthrows(networkId),
-      )}/matching_alerts/${expression}`,
-    );
-    return response.data;
+  viewMatchingAlerts: async ({networkId: _, expression: __}) => {
+    console.warn('not implemented');
+    return [];
   },
   // Alert Rules
   createAlertRule: async ({networkId, rule}) => {
