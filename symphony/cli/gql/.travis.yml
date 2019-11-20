@@ -1,0 +1,16 @@
+language: python
+sudo: false
+python:
+- 2.7
+- 3.3
+- 3.4
+- 3.5
+cache: pip
+install:
+- pip install -r ./dev_requirements.txt
+- pip install -e .
+script:
+- flake8 gql
+- py.test --cov=gql tests
+after_success:
+- coveralls

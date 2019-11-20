@@ -1,0 +1,65 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package resolverutil
+
+import (
+	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/pkg/errors"
+)
+
+// GetPropertyPredicate returns the property predicate for the filter
+func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error) {
+	var pred predicate.Property
+	switch p.Type {
+	case models.PropertyKindString, models.PropertyKindEmail, models.PropertyKindDate, models.PropertyKindEnum:
+		if p.StringValue != nil {
+			pred = property.StringVal(*p.StringValue)
+		}
+	case models.PropertyKindInt:
+		if p.IntValue != nil {
+			pred = property.IntVal(*p.IntValue)
+		}
+	case models.PropertyKindBool:
+		if p.BooleanValue != nil {
+			pred = property.BoolVal(*p.BooleanValue)
+		}
+	case models.PropertyKindFloat:
+		if p.FloatValue != nil {
+			pred = property.FloatVal(*p.FloatValue)
+		}
+	default:
+		return nil, errors.Errorf("operator not supported for kind %q", p.Type)
+	}
+	return pred, nil
+}
+
+// GetPropertyTypePredicate returns the propertyType predicate for the filter
+func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyType, error) {
+	var pred predicate.PropertyType
+	switch p.Type {
+	case models.PropertyKindString, models.PropertyKindEmail, models.PropertyKindDate, models.PropertyKindEnum:
+		if p.StringValue != nil {
+			pred = propertytype.StringVal(*p.StringValue)
+		}
+	case models.PropertyKindInt:
+		if p.IntValue != nil {
+			pred = propertytype.IntVal(*p.IntValue)
+		}
+	case models.PropertyKindBool:
+		if p.BooleanValue != nil {
+			pred = propertytype.BoolVal(*p.BooleanValue)
+		}
+	case models.PropertyKindFloat:
+		if p.FloatValue != nil {
+			pred = propertytype.FloatVal(*p.FloatValue)
+		}
+	default:
+		return nil, errors.Errorf("operator not supported for kind %q", p.Type)
+	}
+	return pred, nil
+}
