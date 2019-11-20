@@ -247,35 +247,38 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     const networkId = nullthrows(this.props.match.params.networkId);
     const gatewayId = nullthrows(this.props.match.params.deviceID);
 
-    const requests = [];
-    if (this.state.wifiConfigsChanged) {
-      requests.push(
-        MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdWifi({
-          networkId,
-          gatewayId,
-          config: this.getWifiConfigs(),
-        }),
-      );
+    try {
+      const requests = [];
+      if (this.state.wifiConfigsChanged) {
+        requests.push(
+          MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdWifi({
+            networkId,
+            gatewayId,
+            config: this.getWifiConfigs(),
+          }),
+        );
+      }
+
+      if (this.state.magmaConfigsChanged) {
+        requests.push(
+          MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdMagmad({
+            networkId,
+            gatewayId,
+            magmad: this.getMagmaConfigs(),
+          }),
+        );
+      }
+      await Promise.all(requests);
+
+      const result = await MagmaV1API.getWifiByNetworkIdGatewaysByGatewayId({
+        networkId,
+        gatewayId,
+      });
+
+      this.props.onSave(buildWifiGatewayFromPayloadV1(result));
+    } catch (e) {
+      this.setState({error: e?.response?.data?.message || e.message});
     }
-
-    if (this.state.magmaConfigsChanged) {
-      requests.push(
-        MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdMagmad({
-          networkId,
-          gatewayId,
-          magmad: this.getMagmaConfigs(),
-        }),
-      );
-    }
-
-    await Promise.all(requests);
-
-    const result = await MagmaV1API.getWifiByNetworkIdGatewaysByGatewayId({
-      networkId,
-      gatewayId,
-    });
-
-    this.props.onSave(buildWifiGatewayFromPayloadV1(result));
   };
 
   onCreate = async () => {
@@ -318,6 +321,13 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     const {latitude, longitude, ...otherFields} = nullthrows(
       this.state.wifiConfigs,
     );
+
+    if (latitude && Number.isNaN(parseFloat(latitude))) {
+      throw Error('Latitude invalid');
+    }
+    if (longitude && Number.isNaN(parseFloat(longitude))) {
+      throw Error('Longitude invalid');
+    }
 
     const configs = {
       ...otherFields,
