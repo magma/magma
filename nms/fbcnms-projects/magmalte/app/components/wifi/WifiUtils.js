@@ -14,9 +14,6 @@ import type {
   wifi_gateway,
 } from '@fbcnms/magma-api';
 
-import type {Match} from 'react-router-dom';
-import type {Record} from '@fbcnms/magmalte/app/common/MagmaAPIType';
-
 import nullthrows from '@fbcnms/util/nullthrows';
 import type {
   MagmaConnectionFeature,
@@ -29,28 +26,6 @@ import {assign, flatMap, flatten, groupBy, partition} from 'lodash';
 const MS_IN_MIN = 60 * 1000;
 const MS_IN_HOUR = 60 * MS_IN_MIN;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
-
-export type WifiGatewayStatus = gateway_status;
-
-// TODO: remove this and replace with type wifi_gateway from fbcnms/magma-api
-export type WifiGatewayPayload = {
-  gateway_id: string,
-  config: {
-    wifi_gateway?: gateway_wifi_configs,
-    magmad_gateway?: {
-      autoupgrade_enabled: boolean,
-      autoupgrade_poll_interval: number,
-      checkin_interval: number,
-      checkin_timeout: number,
-      tier: string,
-    },
-    [key: string]: string,
-  },
-  record: ?(Record & {
-    [key: string]: mixed,
-  }),
-  status: ?WifiGatewayStatus,
-};
 
 type WifiVersionAttributes = {
   hash: string,
@@ -78,16 +53,11 @@ export type WifiGateway = {
   up: ?boolean,
   upDanger: ?boolean,
 
-  status: ?WifiGatewayStatus,
+  status: ?gateway_status,
 
   coordinates: [number, number],
   isGateway: ?boolean,
 };
-
-export const meshesURL = (match: Match) =>
-  `/nms/apicontroller/magma/networks/${nullthrows(
-    match.params.networkId,
-  )}/mesh`;
 
 // parses long version str into key/value of type WifiVersionAttributes
 const versionRegExp = new RegExp(
@@ -122,29 +92,9 @@ export function buildWifiGatewayFromPayloadV1(
   gateway: wifi_gateway,
   now?: number,
 ): WifiGateway {
-  /*
-  This function converts a new V1 api gateway to a legacy WifiGatewayPayload.
-  TODO: This fn will be removed when all the wifi endpoints are converted to V1.
-  */
-  const v0Gateway: WifiGatewayPayload = {
-    ...gateway,
-    gateway_id: gateway.id,
-    record: {...gateway.device},
-    config: {
-      magmad_gateway: {...gateway.magmad, tier: gateway.tier},
-      wifi_gateway: {...gateway.wifi},
-    },
-  };
-  return buildWifiGatewayFromPayload(v0Gateway, now);
-}
-
-export function buildWifiGatewayFromPayload(
-  gateway: WifiGatewayPayload,
-  now?: number,
-): WifiGateway {
-  if (!gateway.record || !gateway.config) {
+  if (!gateway.device || !gateway.wifi) {
     throw Error(
-      `Something very wrong with ${gateway.gateway_id}. Gateway without 'record' or 'config'`,
+      `Something very wrong with ${gateway.id}. Gateway without 'device' or 'wifi'`,
     );
   }
 
@@ -165,7 +115,7 @@ export function buildWifiGatewayFromPayload(
   let coordinates = [NaN, NaN];
   let isGateway = null;
 
-  const {status, config} = gateway;
+  const {status, wifi} = gateway;
 
   if (status) {
     checkinTime = status.checkin_time;
@@ -206,28 +156,28 @@ export function buildWifiGatewayFromPayload(
     }
   }
 
-  let longitude = parseFloat(config.wifi_gateway?.longitude);
-  let latitude = parseFloat(config.wifi_gateway?.latitude);
+  let longitude = parseFloat(wifi?.longitude);
+  let latitude = parseFloat(wifi?.latitude);
 
   // 180 is the antimeridian
   if (longitude !== NaN && Math.abs(longitude) > 180) longitude %= 180;
   // 90 is north/south pole
   if (latitude !== NaN && Math.abs(latitude) > 90) latitude %= 90;
 
-  if (config && config.wifi_gateway) {
-    meshid = config.wifi_gateway.mesh_id || meshid;
-    info = config.wifi_gateway.info || info;
+  if (wifi) {
+    meshid = wifi.mesh_id || meshid;
+    info = wifi.info || info;
     coordinates = [longitude, latitude];
   }
 
   return {
-    id: gateway.gateway_id,
+    id: gateway.id,
     meshid,
 
-    hwid: gateway.record?.hardware_id || 'Error: Missing hwid',
+    hwid: gateway.device?.hardware_id || 'Error: Missing hwid',
     info,
 
-    wifi_config: config.wifi_gateway,
+    wifi_config: wifi,
 
     readTime: currentTime,
     checkinTime,

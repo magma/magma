@@ -9,8 +9,9 @@
  */
 
 import type {Node} from 'react';
-import type {WifiGateway, WifiGatewayStatus} from './WifiUtils';
+import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
+import type {gateway_status} from '@fbcnms/magma-api';
 
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import React from 'react';
@@ -97,7 +98,7 @@ export const InfoRow = (props: {
 };
 
 const NeighborsList = (props: {
-  status: ?WifiGatewayStatus,
+  status: ?gateway_status,
   classes: {+[string]: string},
 }) => {
   const {status} = props;
