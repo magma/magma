@@ -160,9 +160,9 @@ Magma provides an UI for configuring and monitoring the networks. To set up
 the NMS to talk to your local Orchestrator:
 
 ```bash
-HOST [magma]$ cd nms/fbcnms-projects/magmalte
-HOST [magma/nms/fbcnms-projects/magmalte] $ docker-compose up -d
-HOST [magma/nms/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
+HOST [magma]$ cd symphony/app/fbcnms-projects/magmalte
+HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose up -d
+HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting 
