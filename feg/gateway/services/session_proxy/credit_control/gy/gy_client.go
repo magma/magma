@@ -254,7 +254,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginHost(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginRealm(), request.SessionID))))
 
 	return m, nil
 }
@@ -310,7 +310,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with current TASA OCS*********************
+	/********************** TBD - doesn't work with some OCSes *********************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{

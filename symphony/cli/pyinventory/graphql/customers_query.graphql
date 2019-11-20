@@ -1,0 +1,11 @@
+query CustomersQuery {
+  customers {
+    edges {
+      node {
+        id
+        name
+        externalId
+      }
+    }
+  }
+}

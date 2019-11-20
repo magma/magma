@@ -40,7 +40,7 @@
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
-void itti_free_msg_content(MessageDef *const message_p)
+void itti_free_msg_content(MessageDef* const message_p)
 {
   switch (ITTI_MSG_ID(message_p)) {
     case ASYNC_SYSTEM_COMMAND: {
@@ -79,8 +79,8 @@ void itti_free_msg_content(MessageDef *const message_p)
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF:
       if (message_p->ittiMsg.mme_app_connection_establishment_cnf.nas_pdu[0]) {
-        bdestroy_wrapper(&message_p->ittiMsg.
-          mme_app_connection_establishment_cnf.nas_pdu[0]);
+        bdestroy_wrapper(
+          &message_p->ittiMsg.mme_app_connection_establishment_cnf.nas_pdu[0]);
       }
       break;
 
