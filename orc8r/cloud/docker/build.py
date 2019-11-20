@@ -90,7 +90,7 @@ def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
 
 
 def _build_cache_if_necessary(args: argparse.Namespace) -> None:
-    if args.nocache or args.mount or args.test:
+    if args.nocache or args.mount or args.tests:
         return
 
     # Check if orc8r_cache image exists
