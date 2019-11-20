@@ -110,11 +110,6 @@ void *mme_app_thread(void *args)
           &MME_APP_CREATE_DEDICATED_BEARER_REJ(received_message_p));
       } break;
 
-      case NAS_CONNECTION_ESTABLISHMENT_CNF: {
-        mme_app_handle_conn_est_cnf(mme_app_desc_p,
-          &NAS_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
-      } break;
-
       case MME_APP_DELETE_DEDICATED_BEARER_RSP: {
         mme_app_handle_delete_dedicated_bearer_rsp(mme_app_desc_p,
           &MME_APP_DELETE_DEDICATED_BEARER_RSP(received_message_p));

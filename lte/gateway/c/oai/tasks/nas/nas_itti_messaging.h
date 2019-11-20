@@ -57,21 +57,6 @@ int nas_itti_erab_setup_req(
   const bitrate_t gbr_ul,
   bstring nas_msg);
 
-void nas_itti_establish_rej(
-  const mme_ue_s1ap_id_t ue_idP,
-  const imsi_t *const imsi_pP,
-  uint8_t initial_reqP);
-
-void nas_itti_establish_cnf(
-  const mme_ue_s1ap_id_t ue_idP,
-  const nas_error_code_t error_codeP,
-  bstring msgP,
-  const uint16_t selected_encryption_algorithmP,
-  const uint16_t selected_integrity_algorithmP,
-  const uint8_t csfb_response,
-  const uint8_t presencemask,
-  const uint8_t service_type);
-
 void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP);
 
 void nas_itti_dedicated_eps_bearer_complete(

@@ -117,7 +117,6 @@ typedef struct itti_mme_app_connection_establishment_cnf_s {
   // MME UE S1AP ID 2  (optional)
   // Management Based MDT Allowed (optional)
 
-  //itti_nas_conn_est_cnf_t nas_conn_est_cnf;
 } itti_mme_app_connection_establishment_cnf_t;
 
 typedef struct itti_mme_app_initial_context_setup_rsp_s {
