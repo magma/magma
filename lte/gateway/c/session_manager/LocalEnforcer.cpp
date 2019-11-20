@@ -630,7 +630,13 @@ void LocalEnforcer::complete_termination(
                << "session ID " << session_id;
 }
 
-void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
+bool LocalEnforcer::rules_to_process_is_not_empty(
+  const RulesToProcess& rules_to_process) {
+  return rules_to_process.static_rules.size() > 0 ||
+         rules_to_process.dynamic_rules.size() > 0;
+}
+
+void LocalEnforcer::update_session_credit(const UpdateSessionResponse& response)
 {
   for (const auto &credit_update_resp : response.responses()) {
     auto it = session_map_.find(credit_update_resp.sid());
@@ -657,6 +663,7 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
     }
     it->second->get_monitor_pool().receive_credit(usage_monitor_resp);
 
+    RulesToProcess rules_to_activate;
     RulesToProcess rules_to_deactivate;
     process_rules_to_remove(
       imsi,
@@ -664,21 +671,46 @@ void LocalEnforcer::update_session_credit(const UpdateSessionResponse &response)
       usage_monitor_resp.rules_to_remove(),
       &rules_to_deactivate);
 
-    bool deactivate_success;
-    if (rules_to_deactivate.static_rules.size() > 0 ||
-        rules_to_deactivate.dynamic_rules.size() > 0) {
+    process_rules_to_install(
+      imsi,
+      it->second,
+      usage_monitor_resp.static_rules_to_install(),
+      usage_monitor_resp.dynamic_rules_to_install(),
+      &rules_to_activate,
+      &rules_to_deactivate);
+
+    auto ip_addr = it->second->get_subscriber_ip_addr();
+    bool deactivate_success = true;
+    bool activate_success = true;
+
+    if (rules_to_process_is_not_empty(rules_to_deactivate)) {
       deactivate_success = pipelined_client_->deactivate_flows_for_rules(
         imsi,
         rules_to_deactivate.static_rules,
         rules_to_deactivate.dynamic_rules);
     }
+
+    if (rules_to_process_is_not_empty(rules_to_activate)) {
+      activate_success = pipelined_client_->activate_flows_for_rules(
+        imsi,
+        ip_addr,
+        rules_to_activate.static_rules,
+        rules_to_activate.dynamic_rules);
+    }
+
+    // TODO If either deactivating/activating rules fail, sessiond should
+    // manage the failed states. In the meantime, we will just log error for
+    // now.
     if (!deactivate_success) {
-      // TODO Look into handling this error better
       MLOG(MERROR) << "Could not deactivate flows for IMSI "
                    << imsi << "during update";
-      continue;
     }
-  }
+
+    if (!activate_success) {
+      MLOG(MERROR) << "Could not activate flows for IMSI "
+                   << imsi << "during update";
+    }
+   }
 }
 
 void LocalEnforcer::terminate_subscriber(
@@ -774,18 +806,14 @@ void LocalEnforcer::init_policy_reauth(
 
   auto ip_addr = it->second->get_subscriber_ip_addr();
   bool deactivate_success = true;
-  if (
-    rules_to_deactivate.static_rules.size() > 0 ||
-    rules_to_deactivate.dynamic_rules.size() > 0) {
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
       request.imsi(),
       rules_to_deactivate.static_rules,
       rules_to_deactivate.dynamic_rules);
   }
   bool activate_success = true;
-  if (
-    rules_to_activate.static_rules.size() > 0 ||
-    rules_to_activate.dynamic_rules.size() > 0) {
+ if (rules_to_process_is_not_empty(rules_to_activate)) {
     activate_success = pipelined_client_->activate_flows_for_rules(
       request.imsi(),
       ip_addr,
@@ -840,27 +868,19 @@ void LocalEnforcer::process_rules_to_remove(
   }
 }
 
-void LocalEnforcer::get_rules_from_policy_reauth_request(
-  const PolicyReAuthRequest &request,
-  const std::unique_ptr<SessionState> &session,
-  RulesToProcess *rules_to_activate,
-  RulesToProcess *rules_to_deactivate)
+void LocalEnforcer::process_rules_to_install(
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
+  const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+    static_rules_to_install,
+  const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+    dynamic_rules_to_install,
+  RulesToProcess* rules_to_activate,
+  RulesToProcess* rules_to_deactivate)
 {
-  MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
-  if (revalidation_required(request.event_triggers())) {
-    schedule_revalidation(request.revalidation_time());
-  }
-
   std::time_t current_time = time(NULL);
-  std::string imsi = request.imsi();
-
-  process_rules_to_remove(
-    request.imsi(),
-    session,
-    request.rules_to_remove(),
-    rules_to_deactivate);
   auto ip_addr = session->get_subscriber_ip_addr();
-  for (const auto &static_rule : request.rules_to_install()) {
+  for (const auto &static_rule : static_rules_to_install) {
     auto activation_time =
       TimeUtil::TimestampToSeconds(static_rule.activation_time());
     if (activation_time > current_time) {
@@ -882,7 +902,7 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
     }
   }
 
-  for (const auto &dynamic_rule : request.dynamic_rules_to_install()) {
+  for (const auto &dynamic_rule : dynamic_rules_to_install) {
     auto activation_time =
       TimeUtil::TimestampToSeconds(dynamic_rule.activation_time());
     if (activation_time > current_time) {
@@ -903,6 +923,34 @@ void LocalEnforcer::get_rules_from_policy_reauth_request(
       rules_to_deactivate->dynamic_rules.push_back(dynamic_rule.policy_rule());
     }
   }
+}
+
+void LocalEnforcer::get_rules_from_policy_reauth_request(
+  const PolicyReAuthRequest &request,
+  const std::unique_ptr<SessionState> &session,
+  RulesToProcess *rules_to_activate,
+  RulesToProcess *rules_to_deactivate)
+{
+  MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
+  if (revalidation_required(request.event_triggers())) {
+    schedule_revalidation(request.revalidation_time());
+  }
+
+  std::string imsi = request.imsi();
+
+  process_rules_to_remove(
+    imsi,
+    session,
+    request.rules_to_remove(),
+    rules_to_deactivate);
+
+  process_rules_to_install(
+    imsi,
+    session,
+    request.rules_to_install(),
+    request.dynamic_rules_to_install(),
+    rules_to_activate,
+    rules_to_deactivate);
 }
 
 bool LocalEnforcer::revalidation_required(
