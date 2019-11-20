@@ -1,0 +1,14 @@
+query ServiceTypeServicesQuery($id: ID!) {
+  serviceType(id: $id) {
+    services {
+      id
+      name
+      externalId
+      customer {
+        id
+        name
+        externalId
+      }
+    }
+  }
+}

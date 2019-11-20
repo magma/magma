@@ -1,0 +1,8 @@
+query EquipmentTypeEquipmentQuery($id: ID!) {
+  equipmentType(id: $id) {
+    equipments {
+      id
+      name
+    }
+  }
+}

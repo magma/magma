@@ -1,0 +1,125 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// Code generated (@generated) by entc, DO NOT EDIT.
+
+package ent
+
+import (
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/facebookincubator/ent/dialect/sql"
+)
+
+// SurveyTemplateCategory is the model entity for the SurveyTemplateCategory schema.
+type SurveyTemplateCategory struct {
+	config `json:"-"`
+	// ID of the ent.
+	ID string `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
+	// UpdateTime holds the value of the "update_time" field.
+	UpdateTime time.Time `json:"update_time,omitempty"`
+	// CategoryTitle holds the value of the "category_title" field.
+	CategoryTitle string `json:"category_title,omitempty"`
+	// CategoryDescription holds the value of the "category_description" field.
+	CategoryDescription string `json:"category_description,omitempty"`
+}
+
+// FromRows scans the sql response data into SurveyTemplateCategory.
+func (stc *SurveyTemplateCategory) FromRows(rows *sql.Rows) error {
+	var scanstc struct {
+		ID                  int
+		CreateTime          sql.NullTime
+		UpdateTime          sql.NullTime
+		CategoryTitle       sql.NullString
+		CategoryDescription sql.NullString
+	}
+	// the order here should be the same as in the `surveytemplatecategory.Columns`.
+	if err := rows.Scan(
+		&scanstc.ID,
+		&scanstc.CreateTime,
+		&scanstc.UpdateTime,
+		&scanstc.CategoryTitle,
+		&scanstc.CategoryDescription,
+	); err != nil {
+		return err
+	}
+	stc.ID = strconv.Itoa(scanstc.ID)
+	stc.CreateTime = scanstc.CreateTime.Time
+	stc.UpdateTime = scanstc.UpdateTime.Time
+	stc.CategoryTitle = scanstc.CategoryTitle.String
+	stc.CategoryDescription = scanstc.CategoryDescription.String
+	return nil
+}
+
+// QuerySurveyTemplateQuestions queries the survey_template_questions edge of the SurveyTemplateCategory.
+func (stc *SurveyTemplateCategory) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
+	return (&SurveyTemplateCategoryClient{stc.config}).QuerySurveyTemplateQuestions(stc)
+}
+
+// Update returns a builder for updating this SurveyTemplateCategory.
+// Note that, you need to call SurveyTemplateCategory.Unwrap() before calling this method, if this SurveyTemplateCategory
+// was returned from a transaction, and the transaction was committed or rolled back.
+func (stc *SurveyTemplateCategory) Update() *SurveyTemplateCategoryUpdateOne {
+	return (&SurveyTemplateCategoryClient{stc.config}).UpdateOne(stc)
+}
+
+// Unwrap unwraps the entity that was returned from a transaction after it was closed,
+// so that all next queries will be executed through the driver which created the transaction.
+func (stc *SurveyTemplateCategory) Unwrap() *SurveyTemplateCategory {
+	tx, ok := stc.config.driver.(*txDriver)
+	if !ok {
+		panic("ent: SurveyTemplateCategory is not a transactional entity")
+	}
+	stc.config.driver = tx.drv
+	return stc
+}
+
+// String implements the fmt.Stringer.
+func (stc *SurveyTemplateCategory) String() string {
+	var builder strings.Builder
+	builder.WriteString("SurveyTemplateCategory(")
+	builder.WriteString(fmt.Sprintf("id=%v", stc.ID))
+	builder.WriteString(", create_time=")
+	builder.WriteString(stc.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", update_time=")
+	builder.WriteString(stc.UpdateTime.Format(time.ANSIC))
+	builder.WriteString(", category_title=")
+	builder.WriteString(stc.CategoryTitle)
+	builder.WriteString(", category_description=")
+	builder.WriteString(stc.CategoryDescription)
+	builder.WriteByte(')')
+	return builder.String()
+}
+
+// id returns the int representation of the ID field.
+func (stc *SurveyTemplateCategory) id() int {
+	id, _ := strconv.Atoi(stc.ID)
+	return id
+}
+
+// SurveyTemplateCategories is a parsable slice of SurveyTemplateCategory.
+type SurveyTemplateCategories []*SurveyTemplateCategory
+
+// FromRows scans the sql response data into SurveyTemplateCategories.
+func (stc *SurveyTemplateCategories) FromRows(rows *sql.Rows) error {
+	for rows.Next() {
+		scanstc := &SurveyTemplateCategory{}
+		if err := scanstc.FromRows(rows); err != nil {
+			return err
+		}
+		*stc = append(*stc, scanstc)
+	}
+	return nil
+}
+
+func (stc SurveyTemplateCategories) config(cfg config) {
+	for _i := range stc {
+		stc[_i].config = cfg
+	}
+}

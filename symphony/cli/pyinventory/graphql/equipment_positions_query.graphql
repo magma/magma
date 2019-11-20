@@ -1,0 +1,20 @@
+query EquipmentPositionsQuery($id: ID!) {
+  equipment(id: $id) {
+    equipmentType {
+      positionDefinitions {
+        id
+        name
+      }
+    }
+    positions {
+      definition {
+        id
+        name
+      }
+      attachedEquipment {
+        id
+        name
+      }
+    }
+  }
+}
