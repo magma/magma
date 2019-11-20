@@ -85,6 +85,10 @@ const PATHS: Array<{
     resolver: (_, params) => [params[2], 'network wifi configs'],
   },
   {
+    path: '/magma/v1/networks/:networkId',
+    resolver: (_, params) => [params[1], 'network'],
+  },
+  {
     path: '/magma/v1/cwf/:networkId/gateways',
     resolver: req => [req.body.id, 'carrier wifi gateway'],
   },

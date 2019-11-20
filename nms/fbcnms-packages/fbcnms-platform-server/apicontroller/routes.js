@@ -22,6 +22,8 @@ import {intersection} from 'lodash';
 
 const router = express.Router();
 
+const PROXY_TIMEOUT_MS = 30000;
+
 let agent = null;
 if (process.env.HTTPS_PROXY) {
   const options = url.parse(process.env.HTTPS_PROXY);
@@ -30,7 +32,7 @@ if (process.env.HTTPS_PROXY) {
 const PROXY_OPTIONS = {
   https: true,
   memoizeHost: false,
-  timeout: 5000,
+  timeout: PROXY_TIMEOUT_MS,
   proxyReqOptDecorator: (proxyReqOpts, _originalReq) => {
     return {
       ...proxyReqOpts,
