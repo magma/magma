@@ -306,9 +306,22 @@ class WifiDeviceDialog extends React.Component<Props, State> {
         tier: 'default',
       };
 
+      // Workaround(1): there's a bug when creating gateways
+      //     where meshId needs to be updated to correctly store the association
+      // 1) create gateway with no meshID, then
+      // 2) update gateway with meshID - association will be created.
+      const {mesh_id: _, ...wifiConfigsNoMesh} = gateway.wifi;
       await MagmaV1API.postWifiByNetworkIdGateways({
         networkId: nullthrows(this.props.match.params.networkId),
-        gateway,
+        // TODO: replace with "gateway" after workaround(1) is unneeded
+        gateway: {...gateway, wifi: wifiConfigsNoMesh},
+      });
+
+      // TODO: remove this section after workaround(1) is unneeded
+      await MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdWifi({
+        networkId: nullthrows(this.props.match.params.networkId),
+        gatewayId: gateway.id,
+        config: gateway.wifi,
       });
 
       this.props.onSave(buildWifiGatewayFromPayloadV1(gateway));
