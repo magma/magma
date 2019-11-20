@@ -142,16 +142,16 @@ int mme_app_handle_sgsap_alert_request(mme_app_desc_t *mme_app_desc_p,
     /*Initialize SGS context to default values*/
     ue_context_p->sgs_context->sgs_state = SGS_NULL;
     ue_context_p->sgs_context->vlr_reliable = false;
-    ue_context_p->sgs_context->ts6_1_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->sgs_context->ts6_1_timer.sec =
       mme_config.sgs_config.ts6_1_sec;
-    ue_context_p->sgs_context->ts8_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->sgs_context->ts8_timer.sec = mme_config.sgs_config.ts8_sec;
-    ue_context_p->sgs_context->ts9_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context_p->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->sgs_context->ts9_timer.sec = mme_config.sgs_config.ts9_sec;
-    ue_context_p->sgs_context->ts10_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context_p->sgs_context->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->sgs_context->ts10_timer.sec = mme_config.sgs_config.ts10_sec;
-    ue_context_p->sgs_context->ts13_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context_p->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context_p->sgs_context->ts13_timer.sec = mme_config.sgs_config.ts13_sec;
   }
 

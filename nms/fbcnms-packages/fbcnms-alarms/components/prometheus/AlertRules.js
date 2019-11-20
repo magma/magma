@@ -32,6 +32,7 @@ import type {ApiUtil} from '../AlarmsApi';
 
 type Props = {
   apiUtil: ApiUtil,
+  thresholdEditorEnabled?: boolean,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -201,6 +202,7 @@ export default function AlertRules(props: Props) {
           setLastRefreshTime(new Date().toLocaleString());
         }}
         rule={currentAlert}
+        thresholdEditorEnabled={props.thresholdEditorEnabled || false}
       />
     );
   }
@@ -265,6 +267,7 @@ export default function AlertRules(props: Props) {
           setCurrentAlert(null);
           setIsAddEditAlert(true);
         }}
+        aria-label="Add Alert"
         data-testid="add-edit-alert-button">
         <AddIcon />
       </Fab>

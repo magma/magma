@@ -15,34 +15,49 @@ import (
 	"time"
 
 	"fbc/lib/go/radius/rfc2869"
-	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
 
 	"github.com/go-openapi/swag"
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	KiloBytes = 1024
+	Buffer    = 50 * KiloBytes
+)
+
 func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
-	tr, _ := NewTestRunner()
+	tr := NewTestRunner()
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+
 	ues, err := tr.ConfigUEs(1)
 	assert.NoError(t, err)
+	imsi := ues[0].GetImsi()
 
-	ue := ues[0]
-	err = tr.AddPCRFRules(getAllAcceptingPCRFRule(ue.GetImsi()))
+	// setup policy rules & monitor
+	// 1. Install a usage monitor
+	// 2. Install a static rule that passes all traffic tied to the usage monitor above
+	// 3. Install a dynamic rule that points to the static rule above
+	err = ruleManager.AddUsageMonitor(imsi, "mkey1", 1000*KiloBytes, 250*KiloBytes)
 	assert.NoError(t, err)
-	err = tr.AddPCRFUsageMonitors(getUsageMonitor(ue.GetImsi()))
+	err = ruleManager.AddStaticPassAll("static-pass-all", "mkey1")
 	assert.NoError(t, err)
-	fmt.Printf("************************* Successfully added PCRF rules and monitors for IMSI: %s\n", ue.GetImsi())
+	err = ruleManager.AddDynamicRules(imsi, []string{"static-pass-all"}, nil)
+	assert.NoError(t, err)
 
-	radiusP, err := tr.Authenticate(ue.GetImsi())
+	// wait for the rules to be synced into sessiond
+	time.Sleep(1 * time.Second)
+
+	radiusP, err := tr.Authenticate(imsi)
 	assert.NoError(t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(t, eapMessage)
-	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode))
+	assert.NotNil(t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
+	assert.True(t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
 
-	// Send a small amount of data to start the session
-	err = tr.GenULTraffic(ue.GetImsi(), swag.String("2048K"))
+	// TODO assert CCR-I
+	err = tr.GenULTraffic(imsi, swag.String("500K"))
 	assert.NoError(t, err)
 
 	// Wait for the traffic to go through
@@ -52,45 +67,15 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	// amount of data was passed through
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	subID := "IMSI" + ue.Imsi
-	record := recordsBySubID[subID]
-	assert.NotNil(t, recordsBySubID[subID])
-	assert.Equal(t, makeRuleIDFromIMSI(ue.Imsi), record.RuleId)
+	record := recordsBySubID["IMSI"+imsi]
+	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	assert.Equal(t, "static-pass-all", record.RuleId)
 	// We should not be seeing > 1024k data here
-	assert.True(t, record.BytesTx > uint64(0))
-	assert.True(t, record.BytesTx <= uint64(2048000))
+	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
+	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 	// TODO Talk to PCRF and verify appropriate CCRs propagate up
 
 	// Clear hss, ocs, and pcrf
+	assert.NoError(t, ruleManager.RemoveInstalledRules())
 	assert.NoError(t, tr.CleanUp())
-}
-
-func getAllAcceptingPCRFRule(imsi string) *protos.AccountRules {
-	return &protos.AccountRules{
-		Imsi:          imsi,
-		RuleNames:     []string{},
-		RuleBaseNames: []string{},
-		RuleDefinitions: []*protos.RuleDefinition{
-			{
-				MonitoringKey:    "mkey1",
-				ChargineRuleName: makeRuleIDFromIMSI(imsi),
-				Precedence:       100,
-				FlowDescriptions: []string{"permit out ip from any to any", "permit in ip from any to any"},
-			},
-		},
-	}
-}
-
-func getUsageMonitor(imsi string) *protos.UsageMonitorInfo {
-	return &protos.UsageMonitorInfo{
-		Imsi: imsi,
-		UsageMonitorCredits: []*protos.UsageMonitorCredit{
-			{
-				MonitoringKey:   "mkey1",
-				Volume:          4096,
-				ReturnBytes:     1024,
-				MonitoringLevel: protos.UsageMonitorCredit_RuleLevel,
-			},
-		},
-	}
 }

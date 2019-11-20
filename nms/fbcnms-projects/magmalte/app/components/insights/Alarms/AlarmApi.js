@@ -24,6 +24,7 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   ) => {
     return useMagmaAPI(func, params, undefined, cacheCounter);
   },
+  // Alerts
   viewFiringAlerts: async ({networkId}) => {
     const alerts = await MagmaV1API.getNetworksByNetworkIdAlerts({
       networkId: nullthrows(networkId),
@@ -39,6 +40,7 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     );
     return response.data;
   },
+  // Alert Rules
   createAlertRule: async ({networkId, rule}) => {
     const rules = await MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig(
       {
@@ -81,5 +83,11 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   getRoutes: () => {
     console.warn('not implemented');
     return Promise.resolve([]);
+  },
+  getMetricSeries: async ({networkId}) => {
+    const series = await MagmaV1API.getNetworksByNetworkIdPrometheusSeries({
+      networkId: nullthrows(networkId),
+    });
+    return series;
   },
 };

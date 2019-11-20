@@ -14,7 +14,7 @@ namespace devices {
 
 class EchoDevice : public Device {
  public:
-  EchoDevice(Application& application, const Id& id);
+  EchoDevice(Application& application, const Id& id, bool readonly_);
 
   EchoDevice() = delete;
   virtual ~EchoDevice() = default;

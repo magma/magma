@@ -1690,6 +1690,29 @@ int sgw_handle_s5_create_bearer_response(
     "Sending S11 Create Session Response to MME, MME S11 teid = %u\n",
     create_session_response_p->teid);
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+
+  /* Remove the default bearer context entry already created as create session
+   * response failure is received
+   */
+  if (new_bearer_ctxt_info_p) {
+    sgw_cm_remove_eps_bearer_entry(
+      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.
+      pdn_connection, sgi_create_endpoint_resp.eps_bearer_id);
+    sgw_cm_remove_bearer_context_information(state,
+      bearer_resp_p->context_teid);
+    OAILOG_INFO(
+      LOG_SPGW_APP,
+      "Deleted default bearer context with SGW C-plane TEID = %u "
+      "as create session response failure is received\n",
+      create_session_response_p->teid);
+  } else {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Could not get hash table entry for SGW C-plane TEID = %u "
+      "did not delete default bearer context\n",
+      create_session_response_p->teid);
+  }
+
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
@@ -2112,6 +2135,7 @@ int sgw_handle_nw_initiated_actv_bearer_req(
   const itti_s5_nw_init_actv_bearer_request_t *const itti_s5_actv_bearer_req)
 {
   MessageDef *message_p = NULL;
+  pgw_ni_cbr_proc_t *pgw_ni_cbr_proc = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -2232,13 +2256,20 @@ int sgw_handle_nw_initiated_actv_bearer_req(
       sizeof(bearer_qos_t));
 
     // Create temporary spgw bearer context entry
-    pgw_ni_cbr_proc_t *pgw_ni_cbr_proc =
-      pgw_create_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
+    pgw_ni_cbr_proc =
+      pgw_get_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
     if (!pgw_ni_cbr_proc) {
-      OAILOG_ERROR(
+      OAILOG_DEBUG(
         LOG_SPGW_APP,
-        "Failed to create temporary eps bearer context entry\n");
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+        "Creating a new temporary eps bearer context entry\n");
+      pgw_ni_cbr_proc =
+        pgw_create_procedure_create_bearer(s_plus_p_gw_eps_bearer_ctxt_info_p);
+      if (!pgw_ni_cbr_proc) {
+        OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to create temporary eps bearer context entry\n");
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
+      }
     }
     struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_p =
       calloc(1, sizeof(*sgw_eps_bearer_entry_p));
@@ -2337,8 +2368,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   uint32_t rc = RETURNok;
   sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
   sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_entry_p = NULL;
-  struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_p =
-    NULL;
+  struct sgw_eps_bearer_entry_wrapper_s *sgw_eps_bearer_entry_p = NULL;
   gtpv2c_cause_value_t cause = REQUEST_REJECTED;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
   pgw_ni_cbr_proc_t *pgw_ni_cbr_proc = NULL;
@@ -2371,8 +2401,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->
         s_gw_teid_S1u_S12_S4_up)) {
        /* If UE accepted the request create eps bearer context.
-         * If UE did not accept the request send reject to NW
-         */
+        * If UE did not accept the request send reject to NW
+        */
         if (s11_actv_bearer_rsp->cause.cause_value == REQUEST_ACCEPTED) {
           eps_bearer_ctxt_p =
             sgw_eps_bearer_entry_p->sgw_eps_bearer_entry;
@@ -2390,7 +2420,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               s11_actv_bearer_rsp->bearer_contexts.
               bearer_contexts[msg_bearer_index].s1u_enb_fteid.teid;
 
-            eps_bearer_ctxt_entry_p = sgw_cm_insert_eps_bearer_ctxt_in_collection(
+            eps_bearer_ctxt_entry_p =
+              sgw_cm_insert_eps_bearer_ctxt_in_collection(
               &spgw_context->sgw_eps_bearer_context_information.pdn_connection,
               eps_bearer_ctxt_p);
             if (eps_bearer_ctxt_entry_p == NULL) {

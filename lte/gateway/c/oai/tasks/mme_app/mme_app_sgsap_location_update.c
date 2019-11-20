@@ -302,7 +302,8 @@ static int _is_combined_tau(
   DevAssert(ue_context != NULL);
   DevAssert(ue_context->sgs_context != NULL);
 
-  ue_context->tau_updt_type = itti_nas_location_update_req->tau_updt_type;
+  ue_context->emm_context.tau_updt_type =
+    itti_nas_location_update_req->tau_updt_type;
   ue_context->sgs_context->ongoing_procedure = COMBINED_TAU;
 
   //Store granted service type based on TAU Update type & additional updt type
@@ -341,20 +342,23 @@ static int _is_combined_tau(
     rc = RETURNok;
   } else if (ue_context->sgs_context->sgs_state == SGS_ASSOCIATED) {
     if (
-      (ue_context->tau_updt_type ==
+      (ue_context->emm_context.tau_updt_type ==
        EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) ||
-      ((ue_context->tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING) &&
+      ((ue_context->emm_context.tau_updt_type ==
+        EPS_UPDATE_TYPE_PERIODIC_UPDATING) &&
        (ue_context->sgs_context->vlr_reliable == false))) {
       OAILOG_INFO(
         LOG_MME_APP,
         "In SGS_ASSOCIATED, tau_updt_type %d\n",
-        ue_context->tau_updt_type);
+        ue_context->emm_context.tau_updt_type);
       //ue_context->sgs_context->sgs_state = SGS_LA_UPDATE_REQUESTED;
       rc = RETURNok;
     }
     if (
-      (ue_context->tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
-      (ue_context->tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
+      (ue_context->emm_context.tau_updt_type ==
+       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
+      (ue_context->emm_context.tau_updt_type ==
+       EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
       if (ue_context->sgs_context->vlr_reliable == true) {
         OAILOG_INFO(
           LOG_MME_APP, "Did not send Location Update Request to MSC\n");
@@ -367,7 +371,7 @@ static int _is_combined_tau(
             LOG_MME_APP,
             "Failed to send SGS Location update accept to NAS for "
             "UE" IMSI_64_FMT "\n",
-            ue_context->imsi);
+            ue_context->emm_context._imsi64);
         }
         if ((mme_ue_context_get_ue_sgs_neaf(
            itti_nas_location_update_req->ue_id) == true)) {
@@ -375,15 +379,16 @@ static int _is_combined_tau(
             LOG_MME_APP,
             "Sending UE Activity Ind to MSC for UE ID %d\n",
             itti_nas_location_update_req->ue_id);
-           /* neaf flag is true*/
-           /* send the SGSAP Ue activity indication to MSC/VLR */
-           char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-           IMSI64_TO_STRING(ue_context->imsi, imsi_str,
-                ue_context->imsi_len);
-           _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str,
-                                                    strlen(imsi_str));
-           mme_ue_context_update_ue_sgs_neaf(
-              itti_nas_location_update_req->ue_id, false);
+          /* neaf flag is true*/
+          /* send the SGSAP Ue activity indication to MSC/VLR */
+          char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+          IMSI64_TO_STRING(
+            ue_context->emm_context._imsi64,
+            imsi_str,
+            ue_context->emm_context._imsi.length);
+          _mme_app_send_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+          mme_ue_context_update_ue_sgs_neaf(
+            itti_nas_location_update_req->ue_id, false);
         }
       } else {
         rc = RETURNok;
@@ -432,22 +437,22 @@ int mme_app_handle_nas_cs_domain_location_update_req(
     ue_context->sgs_context->sgs_state = SGS_NULL;
     ue_context->sgs_context->vlr_reliable = false;
     ue_context->sgs_context->neaf = false;
-    ue_context->sgs_context->ts6_1_timer.id = SGS_TIMER_INACTIVE_ID;
-    ue_context->sgs_context->ts8_timer.id = SGS_TIMER_INACTIVE_ID;
-    ue_context->sgs_context->ts9_timer.id = SGS_TIMER_INACTIVE_ID;
-    ue_context->sgs_context->ts10_timer.id = SGS_TIMER_INACTIVE_ID;
-    ue_context->sgs_context->ts13_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context->sgs_context->ts6_1_timer.sec = mme_config.sgs_config.ts6_1_sec;
-    ue_context->sgs_context->ts8_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context->sgs_context->ts8_timer.sec = mme_config.sgs_config.ts8_sec;
     ue_context->sgs_context->ts8_retransmission_count = 0;
-    ue_context->sgs_context->ts9_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context->sgs_context->ts9_timer.sec = mme_config.sgs_config.ts9_sec;
     ue_context->sgs_context->ts9_retransmission_count = 0;
-    ue_context->sgs_context->ts10_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context->sgs_context->ts10_timer.sec = mme_config.sgs_config.ts10_sec;
     ue_context->sgs_context->ts10_retransmission_count = 0;
-    ue_context->sgs_context->ts13_timer.id = SGS_TIMER_INACTIVE_ID;
+    ue_context->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
     ue_context->sgs_context->ts13_timer.sec = mme_config.sgs_config.ts13_sec;
     ue_context->sgs_context->ts13_retransmission_count = 0;
     ue_context->sgs_context->call_cancelled = false;
@@ -500,7 +505,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
     OAILOG_INFO(
       LOG_MME_APP,
       "Sending Location Update message to SGS task with IMSI" IMSI_64_FMT "\n",
-      ue_context->imsi);
+      ue_context->emm_context._imsi64);
     send_itti_sgsap_location_update_req(ue_context);
   } else if(ue_context->sgs_context->ts6_1_timer.id !=
             MME_APP_TIMER_INACTIVE_ID) {
@@ -544,8 +549,10 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMSI
   IMSI64_TO_STRING(
-    ue_context->imsi, sgsap_location_update_req->imsi, ue_context->imsi_len);
-  sgsap_location_update_req->imsi_length = ue_context->imsi_len;
+    ue_context->emm_context._imsi64,
+    sgsap_location_update_req->imsi,
+    ue_context->emm_context._imsi.length);
+  sgsap_location_update_req->imsi_length = ue_context->emm_context._imsi.length;
 
   //EPS Location update type
   //If Combined attach is received, set Location Update type as IMSI_ATTACH
@@ -555,11 +562,13 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
   //If Combined TAU is received, set Location Update type based the tau_updt_type
   else if (ue_context->sgs_context->ongoing_procedure == COMBINED_TAU) {
     if (
-      (ue_context->tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
-      (ue_context->tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
+      (ue_context->emm_context.tau_updt_type ==
+       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
+      (ue_context->emm_context.tau_updt_type ==
+       EPS_UPDATE_TYPE_PERIODIC_UPDATING)) {
       sgsap_location_update_req->locationupdatetype = NORMAL_LOCATION_UPDATE;
     } else if (
-      ue_context->tau_updt_type ==
+      ue_context->emm_context.tau_updt_type ==
       EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING_WITH_IMSI_ATTACH) {
       sgsap_location_update_req->locationupdatetype = IMSI_ATTACH;
     }
@@ -577,7 +586,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context)
 
   //IMEISV
   sgsap_location_update_req->presencemask |= SGSAP_IMEISV;
-  imeisv_t *imeisv = &ue_context->imeisv;
+  imeisv_t* imeisv = &ue_context->emm_context._imeisv;
   IMEISV_TO_STRING(imeisv, sgsap_location_update_req->imeisv, MAX_IMEISV_SIZE);
 
   //TAI - TAI List currently not available in MME APP UE Context
@@ -930,13 +939,13 @@ int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t *fsm_evt)
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  if (sgs_context->ts6_1_timer.id != SGS_TIMER_INACTIVE_ID) {
+  if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     OAILOG_DEBUG(
       LOG_MME_APP,
       "Dropping Location Update Accept as Ts6-1 timer is running\n");
   }
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not running
-  else if (sgs_context->ts6_1_timer.id == SGS_TIMER_INACTIVE_ID) {
+  else if (sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID) {
     /* If Ts8/Ts9 timer is running, drop the message
     *  If Ts8/Ts9 timer is not running and SGs state is SGs-ASSOCIATED, drop the message
     *  If Ts8/Ts9 timer is not running and the SGs state is SGs-NULL or LA-UPDATE_REQUESTED
@@ -996,7 +1005,7 @@ int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t *fsm_evt)
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not running
-  if (sgs_context->ts6_1_timer.id == SGS_TIMER_INACTIVE_ID) {
+  if (sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID) {
     /* If Ts8/Ts9 timer is running, drop the message
     *  If Ts8/Ts9 timer is not running and SGs state is SGs-ASSOCIATED, drop the message
     */
@@ -1063,14 +1072,14 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t *fsm_evt)
         LOG_MME_APP,
         "Failed to send SGS Location update accept to NAS for UE " IMSI_64_FMT
         "\n",
-        ue_context_p->imsi);
+        ue_context_p->emm_context._imsi64);
       rc = RETURNerror;
     }
     unlock_ue_contexts(ue_context_p);
   }
 
   // If we received Location Updt Accept from MSC/VLR and ts6_1_timer is not running
-  else if (sgs_context->ts6_1_timer.id == SGS_TIMER_INACTIVE_ID) {
+  else if (sgs_context->ts6_1_timer.id == MME_APP_TIMER_INACTIVE_ID) {
     /* If Ts8/Ts9 timer is running, drop the message
     *  If Ts8/Ts9 timer is not running and SGs state is SGs-ASSOCIATED, drop the message
     *  If Ts8/Ts9 timer is not running and the SGs state is SGs-NULL or LA-UPDATE_REQUESTED
@@ -1171,11 +1180,11 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t *fsm_evt)
   sgs_context->sgs_state = SGS_NULL;
   /*Stop Ts6-1 timer*/
 
-  if (sgs_context->ts6_1_timer.id != SGS_TIMER_INACTIVE_ID) {
+  if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     if (timer_remove(sgs_context->ts6_1_timer.id, NULL)) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
     }
-    sgs_context->ts6_1_timer.id = SGS_TIMER_INACTIVE_ID;
+    sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
 
   if (itti_sgsap_location_update_rej_p->presencemask & SGSAP_LAI) {

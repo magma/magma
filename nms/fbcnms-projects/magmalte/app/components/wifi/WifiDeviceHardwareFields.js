@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {Record} from '@fbcnms/magmalte/app/common/MagmaAPIType';
 import type {WithStyles} from '@material-ui/core';
+import type {gateway_device} from '@fbcnms/magma-api';
 
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
@@ -25,7 +25,7 @@ const styles = {
 };
 
 type Props = WithStyles<typeof styles> & {
-  record: Record,
+  record: gateway_device,
 };
 
 class WifiDeviceHardwareFields extends React.Component<Props> {

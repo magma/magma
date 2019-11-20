@@ -14,12 +14,6 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 find_library(NETSNMPAGENT netsnmpagent)
 find_library(NETSNMPMIBS netsnmpmibs)
 find_library(NETSNMP netsnmp)
-find_library(MGM_ASYNC_GRPC ASYNC_GRPC ${MGM_COM_DIR}/async_grpc)
-find_library(MGM_CONFIG CONFIG HINTS ${MGM_COM_DIR}/config)
-find_library(MGM_SERVICE303_LIB SERVICE303_LIB HINTS ${MGM_COM_DIR}/service303)
-find_library(MGM_DATASTORE DATASTORE HINTS ${MGM_COM_DIR}/datastore)
-find_library(MGM_POLICYDB POLICYDB HINTS ${MGM_COM_DIR}/policydb)
-find_library(MGM_SRVC_REG SERVICE_REGISTRY HINTS ${MGM_COM_DIR}/service_registry)
 
 add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/Application.cpp
@@ -45,6 +39,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/DeviceIdentifiers.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/DhcpdConfig.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorQueue.cpp
@@ -53,6 +48,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/ConfigGenerator.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/utils/Time.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
 )
@@ -105,6 +101,13 @@ target_link_libraries(devman_channel_snmp
   ${NETSNMPMIBS}
   ${NETSNMP})
 
+find_library(MGM_ASYNC_GRPC ASYNC_GRPC ${MGM_COM_DIR}/async_grpc)
+find_library(MGM_CONFIG CONFIG HINTS ${MGM_COM_DIR}/config)
+find_library(MGM_SERVICE303_LIB SERVICE303_LIB HINTS ${MGM_COM_DIR}/service303)
+find_library(MGM_DATASTORE DATASTORE HINTS ${MGM_COM_DIR}/datastore)
+find_library(MGM_POLICYDB POLICYDB HINTS ${MGM_COM_DIR}/policydb)
+find_library(MGM_SRVC_REG SERVICE_REGISTRY HINTS ${MGM_COM_DIR}/service_registry)
+
 add_library(devman_service_magma
   ${PROJECT_SOURCE_DIR}/src/devmand/magma/DevConf.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/magma/Service.cpp
@@ -148,8 +151,10 @@ target_link_libraries(devmand
   devman_service_magma)
 
 add_executable(devmantest
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/ConfigGeneratorTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/DeviceIdentifiersTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp

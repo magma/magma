@@ -188,6 +188,7 @@ static void *sgw_intertask_interface(void *args_p)
       case TERMINATE_MESSAGE: {
         put_spgw_state();
         sgw_exit();
+        OAI_FPRINTF_INFO("TASK_SGW terminated\n");
         itti_exit_task();
       } break;
 

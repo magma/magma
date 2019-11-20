@@ -7,6 +7,9 @@
  * @flow
  * @format
  */
+import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
+import type {TimeRange} from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
+import type {WifiGateway} from './WifiUtils';
 
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
@@ -17,24 +20,23 @@ import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TimeRangeSelector from '@fbcnms/magmalte/app/components/insights/TimeRangeSelector';
 import WifiSelectMesh from './WifiSelectMesh';
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
+
 import {Route} from 'react-router-dom';
-import type {MetricGraphConfig} from '@fbcnms/magmalte/app/components/insights/Metrics';
-import type {TimeRange} from '@fbcnms/magmalte/app/components/insights/AsyncMetric';
-import type {WifiGateway} from './WifiUtils';
-
-import {buildWifiGatewayFromPayload, meshesURL} from './WifiUtils';
-
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
+import {buildWifiGatewayFromPayloadV1} from './WifiUtils';
 import {find} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {map} from 'lodash';
 import {resolveQuery} from '@fbcnms/magmalte/app/components/insights/Metrics';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -115,9 +117,8 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
     error: meshesError,
     isLoading: meshesIsLoading,
     response: meshesResponse,
-  } = useAxios({
-    method: 'get',
-    url: meshesURL(match),
+  } = useMagmaAPI(MagmaV1API.getWifiByNetworkIdMeshes, {
+    networkId: nullthrows(match.params.networkId),
   });
 
   useSnackbar('Error fetching meshes', {variant: 'error'}, meshesError);
@@ -126,9 +127,8 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
     error: devicesError,
     isLoading: devicesIsLoading,
     response: devicesResponse,
-  } = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
+  } = useMagmaAPI(MagmaV1API.getWifiByNetworkIdGateways, {
+    networkId: nullthrows(match.params.networkId),
   });
 
   useSnackbar('Error fetching devices', {variant: 'error'}, devicesError);
@@ -138,25 +138,22 @@ function Metrics(props: {parentRelativeUrl: string => string}) {
     meshesError ||
     devicesIsLoading ||
     !devicesResponse ||
-    !devicesResponse.data ||
     meshesIsLoading ||
-    !meshesResponse ||
-    !meshesResponse.data
+    !meshesResponse
   ) {
     return <LoadingFiller />;
   }
 
-  const meshes: string[] = meshesResponse.data || [];
+  const meshes: string[] = meshesResponse || [];
   if (!meshes || meshes.length <= 0) {
     return <Text variant="h5">No meshes on this network</Text>;
   }
 
   const selectedMeshOrDefault = meshId || meshes[0];
 
-  const devices: Array<WifiGateway> = (devicesResponse.data || [])
-    // TODO: skip filter when magma API bug fixed t34643616
-    .filter(device => device.record && device.config)
-    .map(rawGateway => buildWifiGatewayFromPayload(rawGateway))
+  const devices: Array<WifiGateway> = map(devicesResponse || {})
+    .filter(device => device.device)
+    .map(device => buildWifiGatewayFromPayloadV1(device))
     // filter by selected meshID
     .filter(
       device =>

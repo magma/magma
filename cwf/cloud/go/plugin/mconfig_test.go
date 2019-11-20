@@ -18,6 +18,7 @@ import (
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	orcmconfig "magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -96,6 +97,9 @@ func TestBuilder_Build(t *testing.T) {
 			RelayEnabled: true,
 		},
 		"redirectd": &ltemconfig.RedirectD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"directoryd": &orcmconfig.DirectoryD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}

@@ -28,6 +28,7 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	lte_protos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/cloud/go/protos"
 )
 
 type accountingService struct {
@@ -121,7 +122,10 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 			err = Error(codes.Unavailable, err)
 		}
 	} else {
-		directoryd.RemoveIMSI(sessionImsi)
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: sessionImsi,
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
 
@@ -173,7 +177,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi)
+	metrics.SessionTerminate.WithLabelValues(apn, imsi).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -206,7 +210,10 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
 	} else {
-		directoryd.RemoveIMSI(aaaCtx.GetImsi())
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: aaaCtx.GetImsi(),
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)

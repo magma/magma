@@ -10,11 +10,13 @@
 
 #include <ctime>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "ServiceAction.h"
+#include "CreditKey.h"
 
 namespace magma {
 

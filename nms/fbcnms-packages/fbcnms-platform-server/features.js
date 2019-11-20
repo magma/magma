@@ -108,6 +108,11 @@ const arrayConfigs = [
     enabledByDefault: false,
   },
   {
+    id: 'alert_threshold_expression',
+    title: 'Alerts Threshold Expression Editor',
+    enabledByDefault: true,
+  },
+  {
     id: 'logs',
     title: 'Logs',
     enabledByDefault: false,
@@ -165,18 +170,12 @@ const arrayConfigs = [
   {
     id: 'multi_subject_reports',
     title: 'Multi Subject Reports',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
+    enabledByDefault: true,
   },
   {
     id: 'equipment_live_status',
     title: 'Equipment Live Status',
     enabledByDefault: false,
-  },
-  {
-    id: 'upload_location_properties_on_equipment',
-    title: 'Upload Location Properties On Equipment ',
-    enabledByDefault: true,
   },
 ];
 

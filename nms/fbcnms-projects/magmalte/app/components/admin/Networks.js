@@ -10,6 +10,8 @@
 
 import AddNetworkDialog from './AddNetworkDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteIcon from '@material-ui/icons/Delete';
+import DialogWithConfirmationPhrase from '@fbcnms/ui/components/DialogWithConfirmationPhrase';
 import EditIcon from '@material-ui/icons/Edit';
 import EditNetworkDialog from './EditNetworkDialog';
 import IconButton from '@material-ui/core/IconButton';
@@ -52,6 +54,7 @@ function Networks() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const {relativePath, relativeUrl, history} = useRouter();
   const [networks, setNetworks] = useState(null);
+  const [networkToDelete, setNetworkToDelete] = useState(null);
 
   const {error, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworks,
@@ -70,6 +73,9 @@ function Networks() {
         <IconButton
           onClick={() => history.push(relativeUrl(`/edit/${network}`))}>
           <EditIcon />
+        </IconButton>
+        <IconButton color="primary" onClick={() => setNetworkToDelete(network)}>
+          <DeleteIcon />
         </IconButton>
       </TableCell>
     </TableRow>
@@ -103,6 +109,27 @@ function Networks() {
             <TableBody>{rows}</TableBody>
           </Table>
         </Paper>
+      )}
+      {networkToDelete && (
+        <DialogWithConfirmationPhrase
+          title="Warning!"
+          message={
+            'Deleting a network is a serious action and cannot be ' +
+            'un-done. Please type the Network ID below if you are confident ' +
+            'about this action.'
+          }
+          label="Network ID"
+          confirmationPhrase={networkToDelete}
+          onClose={() => setNetworkToDelete(null)}
+          onConfirm={async () => {
+            await MagmaV1API.deleteNetworksByNetworkId({
+              networkId: networkToDelete,
+            });
+
+            setNetworks(networks.filter(n => n != networkToDelete));
+            setNetworkToDelete(null);
+          }}
+        />
       )}
       <Route
         path={relativePath('/new')}

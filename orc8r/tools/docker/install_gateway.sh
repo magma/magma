@@ -150,7 +150,7 @@ cp recreate_services_cron /etc/cron.d/
 cd /var/opt/magma/docker
 
 echo "Logging into docker registry at $DOCKER_REGISTRY"
-docker login "$DOCKER_REGISTRY"
+docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$DOCKER_REGISTRY"
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
 

@@ -10,6 +10,7 @@
 
 import Button from '../../components/design-system/Button';
 import React from 'react';
+import classNames from 'classnames';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -23,6 +24,10 @@ const useStyles = makeStyles(_theme => ({
     '& > :first-child': {
       marginRight: '8px',
     },
+  },
+  grayButtonContainer: {
+    backgroundColor: 'white',
+    padding: '10px',
   },
 }));
 
@@ -56,6 +61,15 @@ const ButtonsRoot = () => {
           Default
         </Button>
       </div>
+      <div
+        className={classNames(classes.container, classes.grayButtonContainer)}>
+        <Button onClick={onButtonClicked} skin="gray">
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} skin="gray" disabled>
+          Default
+        </Button>
+      </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} variant="text">
           Default
@@ -86,6 +100,14 @@ const ButtonsRoot = () => {
           Default
         </Button>
         <Button onClick={onButtonClicked} variant="text" skin="red" disabled>
+          Default
+        </Button>
+      </div>
+      <div className={classes.container}>
+        <Button onClick={onButtonClicked} variant="text" skin="gray">
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} variant="text" skin="gray" disabled>
           Default
         </Button>
       </div>

@@ -11,17 +11,18 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
+import type {network_wifi_configs} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormGroup from '@material-ui/core/FormGroup';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {
   additionalPropsToArray,
   additionalPropsToObject,
@@ -59,7 +60,8 @@ const styles = theme => ({
 });
 
 type State = {
-  config: {[string]: any},
+  config: network_wifi_configs,
+  additionalProps: Array<[string, string]>,
   isLoading: boolean,
 };
 
@@ -68,20 +70,18 @@ type Props = ContextRouter & WithAlert & WithStyles<typeof styles> & {};
 class WifiNetworkConfig extends React.Component<Props, State> {
   state = {
     config: {},
+    additionalProps: [],
     isLoading: true,
   };
 
   componentDidMount() {
-    axios
-      .get(MagmaAPIUrls.networkConfigsForType(this.props.match, 'wifi'))
-      .then(response =>
+    MagmaV1API.getWifiByNetworkIdWifi({
+      networkId: nullthrows(this.props.match.params.networkId),
+    })
+      .then(data =>
         this.setState({
-          config: {
-            ...response.data,
-            additional_props: additionalPropsToArray(
-              response.data.additional_props,
-            ),
-          },
+          config: {...data},
+          additionalProps: additionalPropsToArray(data.additional_props) || [],
           isLoading: false,
         }),
       )
@@ -126,7 +126,7 @@ class WifiNetworkConfig extends React.Component<Props, State> {
             label="Ping Host List"
             margin="normal"
             className={classes.textField}
-            value={config.ping_host_list}
+            value={(config.ping_host_list || []).join(',')}
             onChange={this.handlePingHostListChanged}
           />
           <TextField
@@ -231,7 +231,7 @@ class WifiNetworkConfig extends React.Component<Props, State> {
         </FormGroup>
         <FormGroup className={classes.formGroup}>
           <KeyValueFields
-            keyValuePairs={this.state.config.additional_props || [['', '']]}
+            keyValuePairs={this.state.additionalProps || [['', '']]}
             onChange={this.handleAdditionalPropsChange}
             classes={{inputValue: classes.keyValueFieldsInputValue}}
           />
@@ -274,9 +274,12 @@ class WifiNetworkConfig extends React.Component<Props, State> {
   handleXWFUAMSecretChanged = ({target}) =>
     this.handleConfigChange('xwf_uam_secret', target.value);
   handleAdditionalPropsChange = value =>
-    this.handleConfigChange('additional_props', value);
+    this.setState({additionalProps: value});
 
-  handleConfigChange = (field, value) => {
+  handleConfigChange = (
+    field: string,
+    value: string | number | Array<string>,
+  ) => {
     this.setState({
       config: {
         ...this.state.config,
@@ -286,25 +289,23 @@ class WifiNetworkConfig extends React.Component<Props, State> {
   };
 
   handleSave = () => {
-    axios
-      .put(
-        MagmaAPIUrls.networkConfigsForType(this.props.match, 'wifi'),
-        this.getConfigs(),
-      )
+    MagmaV1API.putWifiByNetworkIdWifi({
+      networkId: nullthrows(this.props.match.params.networkId),
+      config: this.getConfigs(),
+    })
       .then(_resp => this.props.alert('Saved successfully'))
       .catch(this.props.alert);
   };
 
-  getConfigs() {
+  getConfigs(): network_wifi_configs {
     return {
       ...this.state.config,
       ping_num_packets: parseInt(this.state.config.ping_num_packets),
       ping_timeout_secs: parseInt(this.state.config.ping_timeout_secs),
       xwf_radius_auth_port: parseInt(this.state.config.xwf_radius_auth_port),
       xwf_radius_acct_port: parseInt(this.state.config.xwf_radius_acct_port),
-      additional_props: additionalPropsToObject(
-        this.state.config.additional_props,
-      ),
+      additional_props:
+        additionalPropsToObject(this.state.additionalProps) || {},
     };
   }
 }

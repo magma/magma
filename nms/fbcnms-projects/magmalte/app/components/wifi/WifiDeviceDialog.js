@@ -10,10 +10,12 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {
-  Record,
-  WifiConfig,
-} from '@fbcnms/magmalte/app/common/MagmaAPIType';
-import type {magmad_gateway_configs} from '@fbcnms/magma-api';
+  gateway_device,
+  gateway_status,
+  gateway_wifi_configs,
+  magmad_gateway_configs,
+  wifi_gateway,
+} from '@fbcnms/magma-api';
 
 import type {WifiGateway} from './WifiUtils';
 import type {WithStyles} from '@material-ui/core';
@@ -33,7 +35,6 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import WifiDeviceFields from './WifiDeviceFields';
 import WifiDeviceHardwareFields from './WifiDeviceHardwareFields';
-import axios from 'axios';
 
 import GatewayCommandFields from '@fbcnms/magmalte/app/components/GatewayCommandFields';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -42,13 +43,8 @@ import {
   DEFAULT_WIFI_GATEWAY_CONFIGS,
   additionalPropsToArray,
   additionalPropsToObject,
-  buildWifiGatewayFromPayload,
+  buildWifiGatewayFromPayloadV1,
 } from './WifiUtils';
-import {
-  MagmaAPIUrls,
-  createDevice,
-  fetchDevice,
-} from '@fbcnms/magmalte/app/common/MagmaAPI';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -67,23 +63,14 @@ type Props = ContextRouter &
   };
 
 type State = {
-  record: ?Record,
+  record: ?gateway_device,
   macAddress: string,
   magmaConfigs: ?magmad_gateway_configs,
   magmaConfigsChanged: boolean,
   error: string,
-  status: ?{
-    [key: string]: string,
-    meta: {
-      [key: string]: string,
-    },
-  },
-  wifiConfigs: ?{
-    ...WifiConfig,
-    latitude: string,
-    longitude: string,
-    additional_props: Array<[string, string]>,
-  },
+  status: ?gateway_status,
+  wifiConfigs: ?gateway_wifi_configs,
+  additionalProps: Array<[string, string]>,
   wifiConfigsChanged: boolean,
   tab: number,
 };
@@ -107,12 +94,10 @@ class WifiDeviceDialog extends React.Component<Props, State> {
         : {
             mesh_id: nullthrows(meshID),
             info: '',
-            latitude: '',
-            longitude: '',
             client_channel: '11',
             is_production: false,
-            additional_props: [['', '']],
           },
+      additionalProps: [['', '']],
       wifiConfigsChanged: false,
     }: State);
   }
@@ -125,19 +110,17 @@ class WifiDeviceDialog extends React.Component<Props, State> {
 
     (async () => {
       try {
-        const device = await fetchDevice(this.props.match, deviceID);
+        const device = await MagmaV1API.getWifiByNetworkIdGatewaysByGatewayId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          gatewayId: deviceID,
+        });
         this.setState({
-          record: {...device.record},
-          magmaConfigs: {
-            ...device.config.magmad_gateway,
-          },
-          status: {...device.status},
-          wifiConfigs: {
-            ...device.config.wifi_gateway,
-            additional_props: additionalPropsToArray(
-              device.config.wifi_gateway.additional_props,
-            ),
-          },
+          record: device.device,
+          magmaConfigs: device.magmad,
+          status: device.status,
+          wifiConfigs: device.wifi,
+          additionalProps:
+            additionalPropsToArray(device.wifi.additional_props) || [],
         });
       } catch (error) {
         this.props.onCancel();
@@ -176,10 +159,12 @@ class WifiDeviceDialog extends React.Component<Props, State> {
             macAddress={this.state.macAddress}
             status={this.state.status}
             configs={nullthrows(this.state.wifiConfigs)}
+            additionalProps={this.state.additionalProps}
             handleMACAddressChange={
               deviceID ? undefined : this.handleMACAddressChange
             }
             configChangeHandler={this.wifiConfigChangeHandler}
+            additionalPropsChangeHandler={this.wifiPropsConfigChangeHandler}
           />
         );
         break;
@@ -239,59 +224,70 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     this.setState({
       wifiConfigsChanged: true,
       wifiConfigs: {
-        ...this.state.wifiConfigs,
+        ...nullthrows(this.state.wifiConfigs),
         [fieldName]: value,
       },
     });
+  };
+  wifiPropsConfigChangeHandler = additionalProps => {
+    this.setState({wifiConfigsChanged: true, additionalProps});
   };
 
   magmaConfigChangeHandler = (fieldName, value) => {
     this.setState({
       magmaConfigsChanged: true,
       magmaConfigs: {
-        ...this.state.magmaConfigs,
+        ...nullthrows(this.state.magmaConfigs),
         [fieldName]: value,
       },
     });
   };
 
   onEdit = async () => {
-    const {match} = this.props;
-    const deviceID = nullthrows(match.params.deviceID);
+    const networkId = nullthrows(this.props.match.params.networkId);
+    const gatewayId = nullthrows(this.props.match.params.deviceID);
 
-    const requests = [];
-    if (this.state.wifiConfigsChanged) {
-      requests.push(
-        axios.put(
-          MagmaAPIUrls.gatewayConfigsForType(match, deviceID, 'wifi'),
-          this.getWifiConfigs(),
-        ),
-      );
+    try {
+      const requests = [];
+      if (this.state.wifiConfigsChanged) {
+        requests.push(
+          MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdWifi({
+            networkId,
+            gatewayId,
+            config: this.getWifiConfigs(),
+          }),
+        );
+      }
+
+      if (this.state.magmaConfigsChanged) {
+        requests.push(
+          MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdMagmad({
+            networkId,
+            gatewayId,
+            magmad: this.getMagmaConfigs(),
+          }),
+        );
+      }
+      await Promise.all(requests);
+
+      const result = await MagmaV1API.getWifiByNetworkIdGatewaysByGatewayId({
+        networkId,
+        gatewayId,
+      });
+
+      this.props.onSave(buildWifiGatewayFromPayloadV1(result));
+    } catch (e) {
+      this.setState({error: e?.response?.data?.message || e.message});
     }
-
-    if (this.state.magmaConfigsChanged) {
-      requests.push(
-        MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
-          networkId: nullthrows(match.params.networkId),
-          gatewayId: deviceID,
-          magmad: this.getMagmaConfigs(),
-        }),
-      );
-    }
-
-    await axios.all(requests);
-    const result = await fetchDevice(match, deviceID);
-    this.props.onSave(buildWifiGatewayFromPayload(result));
   };
 
   onCreate = async () => {
-    const {match} = this.props;
     if (!this.state.macAddress || !nullthrows(this.state.wifiConfigs).info) {
       this.setState({error: 'MAC Address and Info fields cannot be empty'});
       return;
     }
 
-    const meshID = nullthrows(match.params.meshID);
+    const meshID = nullthrows(this.props.match.params.meshID);
     const macAddress = this.state.macAddress.replace(/[:]/g, '').toLowerCase();
 
     const data = {
@@ -300,29 +296,61 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     };
 
     try {
-      const result = await createDevice(
-        meshID + '_id_' + macAddress,
-        data,
-        'wifi',
-        DEFAULT_WIFI_GATEWAY_CONFIGS,
-        this.getWifiConfigs(),
-        match,
-      );
-      this.props.onSave(buildWifiGatewayFromPayload(result));
+      const gateway: wifi_gateway = {
+        id: `${meshID}_id_${macAddress}`,
+        name: macAddress,
+        description: macAddress,
+        device: data,
+        magmad: DEFAULT_WIFI_GATEWAY_CONFIGS,
+        wifi: this.getWifiConfigs(),
+        tier: 'default',
+      };
+
+      // Workaround(1): there's a bug when creating gateways
+      //     where meshId needs to be updated to correctly store the association
+      // 1) create gateway with no meshID, then
+      // 2) update gateway with meshID - association will be created.
+      const {mesh_id: _, ...wifiConfigsNoMesh} = gateway.wifi;
+      await MagmaV1API.postWifiByNetworkIdGateways({
+        networkId: nullthrows(this.props.match.params.networkId),
+        // TODO: replace with "gateway" after workaround(1) is unneeded
+        gateway: {...gateway, wifi: wifiConfigsNoMesh},
+      });
+
+      // TODO: remove this section after workaround(1) is unneeded
+      await MagmaV1API.putWifiByNetworkIdGatewaysByGatewayIdWifi({
+        networkId: nullthrows(this.props.match.params.networkId),
+        gatewayId: gateway.id,
+        config: gateway.wifi,
+      });
+
+      this.props.onSave(buildWifiGatewayFromPayloadV1(gateway));
     } catch (e) {
       this.setState({error: e.response.data.message || e.message});
     }
   };
 
-  getWifiConfigs(): WifiConfig {
-    const wifiConfigs = nullthrows(this.state.wifiConfigs);
-    const {additional_props, latitude, longitude, ...otherFields} = wifiConfigs;
-    return {
+  getWifiConfigs(): gateway_wifi_configs {
+    const {latitude, longitude, ...otherFields} = nullthrows(
+      this.state.wifiConfigs,
+    );
+
+    if (latitude && Number.isNaN(parseFloat(latitude))) {
+      throw Error('Latitude invalid');
+    }
+    if (longitude && Number.isNaN(parseFloat(longitude))) {
+      throw Error('Longitude invalid');
+    }
+
+    const configs = {
       ...otherFields,
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
-      additional_props: additionalPropsToObject(additional_props),
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
+      additional_props:
+        additionalPropsToObject(this.state.additionalProps) || {},
     };
+
+    return configs;
   }
 
   getMagmaConfigs(): magmad_gateway_configs {

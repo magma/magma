@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {PolicyFlow} from './PolicyTypes';
 import type {WithStyles} from '@material-ui/core';
+import type {flow_description} from '@fbcnms/magma-api';
 
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -49,10 +49,11 @@ const styles = {
   removeIcon: {alignSelf: 'baseline'},
 };
 
+type ActionType = $Keys<typeof ACTION>;
 type Props = WithStyles<typeof styles> & {
   index: number,
-  flow: PolicyFlow,
-  handleActionChange: (number, string) => void,
+  flow: flow_description,
+  handleActionChange: (number, ActionType) => void,
   handleFieldChange: (number, string, string | number) => void,
   handleDelete: number => void,
 };
@@ -167,7 +168,11 @@ class PolicyFlowFields extends React.Component<Props> {
   }
 
   handleActionChange = ({target}) =>
-    this.props.handleActionChange(this.props.index, target.value);
+    this.props.handleActionChange(
+      this.props.index,
+      // eslint-disable-next-line flowtype/no-weak-types
+      ((target.value: any): ActionType),
+    );
   handleDirectionChange = ({target}) =>
     this.props.handleFieldChange(this.props.index, 'direction', target.value);
   handleProtocolChange = ({target}) =>

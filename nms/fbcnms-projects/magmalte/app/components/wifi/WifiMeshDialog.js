@@ -10,6 +10,7 @@
 
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
+import type {mesh_wifi_configs} from '@fbcnms/magma-api';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -22,15 +23,12 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormLabel from '@material-ui/core/FormLabel';
 import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
-import axios from 'axios';
 
-import {
-  additionalPropsToArray,
-  additionalPropsToObject,
-  meshesURL,
-} from './WifiUtils';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {additionalPropsToArray, additionalPropsToObject} from './WifiUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -62,7 +60,8 @@ type Props = ContextRouter &
 
 type State = {
   meshID: string,
-  configs: {[string]: any},
+  configs: mesh_wifi_configs,
+  additionalProps: ?Array<[string, string]>,
   error?: string,
 };
 
@@ -74,19 +73,18 @@ class WifiMeshDialog extends React.Component<Props, State> {
     this.state = {
       meshID: meshID || '',
       configs: {},
+      additionalProps: [],
     };
 
     if (meshID) {
-      axios
-        .get(`${meshesURL(props.match)}/${meshID}/configs`)
-        .then(response =>
+      MagmaV1API.getWifiByNetworkIdMeshesByMeshIdConfig({
+        networkId: nullthrows(props.match.params.networkId),
+        meshId: meshID,
+      })
+        .then(configs =>
           this.setState({
-            configs: {
-              ...response.data,
-              additional_props: additionalPropsToArray(
-                response.data.additional_props,
-              ),
-            },
+            configs,
+            additionalProps: additionalPropsToArray(configs.additional_props),
           }),
         )
         .catch(() => this.props.onCancel());
@@ -142,7 +140,7 @@ class WifiMeshDialog extends React.Component<Props, State> {
               label="Enable XWF"
             />
             <KeyValueFields
-              keyValuePairs={this.state.configs.additional_props || [['', '']]}
+              keyValuePairs={this.state.additionalProps || [['', '']]}
               onChange={this.handleAdditionalPropsChange}
             />
           </FormGroup>
@@ -159,43 +157,52 @@ class WifiMeshDialog extends React.Component<Props, State> {
 
   handlemeshIDChange = event => this.setState({meshID: event.target.value});
   handleSSIDChange = ({target}) =>
-    this.configChangeHandler('ssid', target.value);
-  handlePasswordChange = ({target}) =>
-    this.configChangeHandler('password', target.value);
-  handledEnableXWFChange = ({target}) =>
-    this.configChangeHandler('xwf_enabled', target.checked);
-  handleAdditionalPropsChange = value =>
-    this.configChangeHandler('additional_props', value);
-
-  configChangeHandler = (fieldName, value) => {
     this.setState({
       configs: {
         ...this.state.configs,
-        [fieldName]: value,
+        ssid: target.value,
       },
     });
-  };
+  handlePasswordChange = ({target}) =>
+    this.setState({
+      configs: {
+        ...this.state.configs,
+        password: target.value,
+      },
+    });
+  handledEnableXWFChange = ({target}) =>
+    this.setState({
+      configs: {
+        ...this.state.configs,
+        xwf_enabled: target.checked,
+      },
+    });
+  handleAdditionalPropsChange = value =>
+    this.setState({additionalProps: value});
 
   onSave = async () => {
     try {
       const editingMeshID = this.props.match.params.meshID;
-      const url = meshesURL(this.props.match);
       if (editingMeshID) {
-        await axios.put(`${url}/${editingMeshID}/configs`, this.getConfigs());
+        await MagmaV1API.putWifiByNetworkIdMeshesByMeshIdConfig({
+          networkId: nullthrows(this.props.match.params.networkId),
+          meshId: editingMeshID,
+          meshWifiConfigs: this.getConfigs(),
+        });
         this.props.onSave(editingMeshID);
         return;
       }
 
-      // creating a mesh requires two steps:
-      // 1st Step: create the mesh object
-      await axios.post(url, {mesh_id: this.state.meshID, gateway_ids: []});
-
-      // 2nd Step: create the config object
-      await axios.post(
-        `${url}/${this.state.meshID}/configs`,
-        this.getConfigs(),
-      );
-
+      // create a mesh
+      await MagmaV1API.postWifiByNetworkIdMeshes({
+        networkId: nullthrows(this.props.match.params.networkId),
+        wifiMesh: {
+          id: this.state.meshID,
+          config: this.getConfigs(),
+          name: this.state.meshID,
+          gateway_ids: [],
+        },
+      });
       this.props.onSave(this.state.meshID);
     } catch (e) {
       this.setState({error: e.response.data.message || e.message});
@@ -206,9 +213,8 @@ class WifiMeshDialog extends React.Component<Props, State> {
     return {
       ...this.state.configs,
       mesh_frequency: parseInt(this.state.configs.mesh_frequency),
-      additional_props: additionalPropsToObject(
-        this.state.configs.additional_props,
-      ),
+      additional_props:
+        additionalPropsToObject(this.state.additionalProps) || undefined,
     };
   };
 }

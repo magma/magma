@@ -35,9 +35,6 @@ services:
   pipelined:
     ip_address: 127.0.0.1
     port: 50063
-  s6a_service:
-    ip_address: 127.0.0.1
-    port: 50064
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
@@ -50,9 +47,6 @@ services:
   policydb:
     ip_address: 127.0.0.1
     port: 50068
-  sgs_service:
-    ip_address: 127.0.0.1
-    port: 50069
   vpnservice:
     ip_address: 127.0.0.1
     port: 50070
@@ -62,6 +56,12 @@ services:
   captive_portal:
     ip_address: 127.0.0.1
     port: 50072
+  sgs_service:
+    ip_address: 127.0.0.1
+    port: 50073
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 50073
   spgw_service:
     ip_address: 127.0.0.1
     port: 50073
