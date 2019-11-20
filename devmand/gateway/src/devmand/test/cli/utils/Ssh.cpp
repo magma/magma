@@ -176,6 +176,7 @@ shared_ptr<server> startSshServer(
             MLOG(MDEBUG) << "PTY requested";
             pty = 1;
             ssh_message_channel_request_reply_success(message);
+            ssh_message_free(message);
             break;
           }
           if (!pty) {
@@ -197,6 +198,7 @@ shared_ptr<server> startSshServer(
             MLOG(MDEBUG) << "Shell requested";
             shell = 1;
             ssh_message_channel_request_reply_success(message);
+            ssh_message_free(message);
             break;
           }
           if (!shell) {
