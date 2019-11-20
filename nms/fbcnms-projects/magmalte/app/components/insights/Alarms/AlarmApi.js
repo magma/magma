@@ -84,4 +84,10 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     console.warn('not implemented');
     return Promise.resolve([]);
   },
+  getMetricSeries: async ({networkId}) => {
+    const series = await MagmaV1API.getNetworksByNetworkIdPrometheusSeries({
+      networkId: nullthrows(networkId),
+    });
+    return series;
+  },
 };

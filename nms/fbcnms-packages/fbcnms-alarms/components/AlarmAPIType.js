@@ -133,3 +133,7 @@ export type AlertSuppression = {
 export type Labels = {
   [string]: string,
 };
+
+export type PrometheusLabelset = {
+  [string]: string,
+};

@@ -8,11 +8,14 @@
  * @format
  */
 
-import type {Match} from 'react-router-dom';
 import type {
-  Record,
-  WifiConfig,
-} from '@fbcnms/magmalte/app/common/MagmaAPIType';
+  gateway_status,
+  gateway_wifi_configs,
+  wifi_gateway,
+} from '@fbcnms/magma-api';
+
+import type {Match} from 'react-router-dom';
+import type {Record} from '@fbcnms/magmalte/app/common/MagmaAPIType';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import type {
@@ -27,18 +30,13 @@ const MS_IN_MIN = 60 * 1000;
 const MS_IN_HOUR = 60 * MS_IN_MIN;
 const MS_IN_DAY = 24 * MS_IN_HOUR;
 
-export type WifiGatewayStatus = {
-  checkin_time?: number,
-  vpn_ip?: string,
-  meta?: {
-    [key: string]: string,
-  },
-};
+export type WifiGatewayStatus = gateway_status;
 
+// TODO: remove this and replace with type wifi_gateway from fbcnms/magma-api
 export type WifiGatewayPayload = {
   gateway_id: string,
   config: {
-    wifi_gateway?: WifiConfig,
+    wifi_gateway?: gateway_wifi_configs,
     magmad_gateway?: {
       autoupgrade_enabled: boolean,
       autoupgrade_poll_interval: number,
@@ -66,7 +64,7 @@ export type WifiGateway = {
   id: string,
   meshid: string,
 
-  wifi_config: ?WifiConfig,
+  wifi_config: ?gateway_wifi_configs,
 
   hwid: string,
   info: string,
@@ -118,6 +116,26 @@ function _parseVersion(version: string): ?WifiVersionAttributes {
     };
   }
   return null;
+}
+
+export function buildWifiGatewayFromPayloadV1(
+  gateway: wifi_gateway,
+  now?: number,
+): WifiGateway {
+  /*
+  This function converts a new V1 api gateway to a legacy WifiGatewayPayload.
+  TODO: This fn will be removed when all the wifi endpoints are converted to V1.
+  */
+  const v0Gateway: WifiGatewayPayload = {
+    ...gateway,
+    gateway_id: gateway.id,
+    record: {...gateway.device},
+    config: {
+      magmad_gateway: {...gateway.magmad, tier: gateway.tier},
+      wifi_gateway: {...gateway.wifi},
+    },
+  };
+  return buildWifiGatewayFromPayload(v0Gateway, now);
 }
 
 export function buildWifiGatewayFromPayload(

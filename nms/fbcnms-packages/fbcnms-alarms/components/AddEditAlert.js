@@ -10,10 +10,8 @@
 import type {AlertConfig} from './AlarmAPIType';
 
 import Grid from '@material-ui/core/Grid';
-import PrettyJSON from '@fbcnms/ui/components/PrettyJSON';
 import PrometheusEditor from './PrometheusEditor';
 import React from 'react';
-import grey from '@material-ui/core/colors/grey';
 import {cloneDeep} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -27,6 +25,7 @@ type Props = {
   onExit: () => void,
   initialConfig: ?AlertConfig,
   isNew: boolean,
+  thresholdEditorEnabled: boolean,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -44,20 +43,6 @@ const useStyles = makeStyles(theme => ({
   editingSpace: {
     height: '100%',
     padding: '30px',
-  },
-  previewSpace: {
-    height: '100%',
-    backgroundColor: grey[100],
-    padding: '40px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  alertPreview: {
-    fontStyle: 'italic',
-    fontSize: 15,
-    fontWeight: 500,
-    marginBottom: '20px',
   },
 }));
 
@@ -110,18 +95,14 @@ export default function AddEditAlert(props: Props) {
       data-testid="add-edit-alert">
       <Grid className={classes.editingSpace} item xs>
         <PrometheusEditor
+          apiUtil={props.apiUtil}
           onExit={props.onExit}
           updateAlertConfig={setAlertConfig}
           isNew={props.isNew}
           saveAlertRule={saveAlert}
           rule={alertConfig}
+          thresholdEditorEnabled={props.thresholdEditorEnabled}
         />
-      </Grid>
-      <Grid className={classes.previewSpace} item xs={3}>
-        <div className={classes.alertPreview}>RULE PREVIEW</div>
-        <div>
-          <PrettyJSON jsonObject={alertConfig} />
-        </div>
       </Grid>
     </Grid>
   );

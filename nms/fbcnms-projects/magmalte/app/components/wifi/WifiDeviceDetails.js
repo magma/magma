@@ -436,7 +436,7 @@ const WifiDeviceDetails = (props: Props) => {
               .map((key: string) => {
                 if (key !== 'additional_props') {
                   return (
-                    <div>
+                    <div key={key}>
                       <span style={{fontWeight: 'bold'}}>config.{key}</span>:{' '}
                       <span style={{whiteSpace: 'normal'}}>
                         {wifi_config[key]}
@@ -448,7 +448,7 @@ const WifiDeviceDetails = (props: Props) => {
                     .filter(Boolean)
                     .sort((a, b) => a.localeCompare(b))
                     .map((propkey: string) => (
-                      <div>
+                      <div key={propkey}>
                         <span style={{fontWeight: 'bold'}}>
                           config.prop.{propkey}
                         </span>
@@ -469,7 +469,7 @@ const WifiDeviceDetails = (props: Props) => {
             {Object.keys(status?.meta || {})
               .sort((a, b) => a.localeCompare(b))
               .map((key: string) => (
-                <div>
+                <div key={key}>
                   <span style={{fontWeight: 'bold'}}>{key}</span>:{' '}
                   <span style={{whiteSpace: 'normal'}}>
                     {(status?.meta || {})[key]}

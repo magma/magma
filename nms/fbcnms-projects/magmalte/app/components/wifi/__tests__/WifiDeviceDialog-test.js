@@ -14,7 +14,7 @@ import WifiDeviceDialog from '../WifiDeviceDialog';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 
-import axiosMock from 'axios';
+import MagmaAPIBindings from '@fbcnms/magma-api';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -22,16 +22,17 @@ import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {RAW_GATEWAY} from '../test/GatewayMock';
 
 jest.mock('axios');
+jest.mock('@fbcnms/magma-api');
 
 const Wrapper = props => (
   <MemoryRouter
-    initialEntries={['/dialog/mesh1/' + props.deviceID]}
+    initialEntries={['/dialog/network1/mesh1/' + props.deviceID]}
     initialIndex={0}>
     <MuiThemeProvider theme={defaultTheme}>
       <MuiStylesThemeProvider theme={defaultTheme}>
         <Switch>
           <Route
-            path="/dialog/:meshID/:deviceID"
+            path="/dialog/:networkId/:meshID/:deviceID"
             render={() => (
               <WifiDeviceDialog
                 title="Edit Device Dialog"
@@ -41,7 +42,7 @@ const Wrapper = props => (
             )}
           />
           <Route
-            path="/dialog/:meshID/"
+            path="/dialog/:networkId/:meshID/"
             render={() => (
               <WifiDeviceDialog
                 title="Add Device Dialog"
@@ -60,9 +61,10 @@ afterEach(cleanup);
 
 describe('<WifiDeviceDialog />', () => {
   beforeEach(() => {
-    axiosMock.get.mockResolvedValueOnce({
-      data: [RAW_GATEWAY],
-    });
+    // eslint-disable-next-line max-len
+    MagmaAPIBindings.getWifiByNetworkIdGatewaysByGatewayId.mockResolvedValueOnce(
+      RAW_GATEWAY,
+    );
   });
 
   it('no deviceID shows Add Device', async () => {
@@ -85,7 +87,9 @@ describe('<WifiDeviceDialog />', () => {
 
     await wait();
 
-    expect(axiosMock.get).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getWifiByNetworkIdGatewaysByGatewayId,
+    ).toHaveBeenCalledTimes(1);
 
     fireEvent.click(getByText('Controller'));
     expect(getByText('Autoupgrade Enabled').textContent).toContain(

@@ -32,6 +32,7 @@ import type {ApiUtil} from '../AlarmsApi';
 
 type Props = {
   apiUtil: ApiUtil,
+  thresholdEditorEnabled?: boolean,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -201,6 +202,7 @@ export default function AlertRules(props: Props) {
           setLastRefreshTime(new Date().toLocaleString());
         }}
         rule={currentAlert}
+        thresholdEditorEnabled={props.thresholdEditorEnabled || false}
       />
     );
   }

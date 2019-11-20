@@ -79,6 +79,7 @@ func getCCRInitRequest(
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		Type:          credit_control.CRTInit,
+		RatType:       getCreditRATType(pReq.GetRatType()),
 	}
 }
 
@@ -129,6 +130,7 @@ func getCCRInitialCreditRequest(
 		Qos:           qos,
 		Credits:       usedCredits,
 		Type:          msgType,
+		RatType:       getCreditRATType(pReq.GetRatType()),
 	}
 }
 
@@ -344,6 +346,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
 				Type:         gy.UsedCreditsType(update.Usage.Type),
 			}},
+			RatType: getCreditRATType(update.GetRatType()),
 		})
 	}
 	return requests
@@ -374,6 +377,7 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		PlmnID:        termination.PlmnId,
 		UserLocation:  termination.UserLocation,
 		Type:          credit_control.CRTTerminate,
+		RatType:       getCreditRATType(termination.GetRatType()),
 	}
 }
 
@@ -383,4 +387,13 @@ func removeSidPrefix(imsi string) string {
 
 func addSidPrefix(imsi string) string {
 	return "IMSI" + imsi
+}
+
+func getCreditRATType(prt protos.RATType) string {
+	switch prt {
+	case protos.RATType_TGPP_WLAN:
+		return gy.RAT_TYPE_WLAN
+	default: // including protos.RATType_TGPP_LTE
+		return gy.RAT_TYPE_EUTRAN
+	}
 }

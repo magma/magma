@@ -17,6 +17,7 @@ import Drawer from '@material-ui/core/Drawer';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import IconButton from '@material-ui/core/IconButton';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MapView from '@fbcnms/magmalte/app/components/MapView';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import RefreshIcon from '@material-ui/icons/Refresh';
@@ -28,20 +29,19 @@ import WifiMapFeatureDetail from './WifiMapFeatureDetail';
 import WifiMapMarker from './WifiMapMarker';
 import WifiSelectConnType from './WifiSelectConnType';
 import WifiSelectMesh from './WifiSelectMesh';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
 
+import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '../../common/useMagmaAPI';
 import {Route, Switch} from 'react-router-dom';
-import {groupBy} from 'lodash';
-
 import {buildLayer, layerNameForFeature, searchDevices} from './WifiMapLayers';
 import {
-  buildWifiGatewayFromPayload,
-  meshesURL,
+  buildWifiGatewayFromPayloadV1,
   wifiGeoJson,
   wifiGeoJsonConnections,
 } from './WifiUtils';
+import {groupBy, map} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useAxios, useRouter, useSnackbar} from '@fbcnms/ui/hooks';
+import {useRouter, useSnackbar} from '@fbcnms/ui/hooks';
 
 const DRAWER_WIDTH = 440;
 
@@ -98,22 +98,23 @@ function Map() {
     isLoading: gatewaysIsLoading,
     error: gatewaysError,
     response: gatewaysResponse,
-    loadedUrl: gatewaysLoadedUrl,
-  } = useAxios({
-    method: 'get',
-    url: MagmaAPIUrls.gateways(match, true),
-    cacheCounter: lastRefreshTime,
-  });
+  } = useMagmaAPI(
+    MagmaV1API.getWifiByNetworkIdGateways,
+    {networkId: nullthrows(match.params.networkId)},
+    undefined, // onResponse
+    lastRefreshTime, // cacheCounter
+  );
 
   const {
     isLoading: meshesIsLoading,
     error: meshesError,
     response: meshesResponse,
-  } = useAxios({
-    method: 'get',
-    url: meshesURL(match),
-    cacheCounter: lastRefreshTime,
-  });
+  } = useMagmaAPI(
+    MagmaV1API.getWifiByNetworkIdMeshes,
+    {networkId: nullthrows(match.params.networkId)},
+    undefined, // onResponse
+    lastRefreshTime, // cacheCounter
+  );
 
   useSnackbar(
     'Unable to load map data',
@@ -121,16 +122,16 @@ function Map() {
     meshesError || gatewaysError,
   );
 
+  // TODO: use onResponse() instead
   useEffect(() => {
     setDevices(
-      (gatewaysResponse?.data || [])
-        // TODO: skip filter when magma API bug fixed t34643616
-        .filter(device => device.record && device.config)
-        .map(rawGateway => buildWifiGatewayFromPayload(rawGateway)),
+      map(gatewaysResponse || {}) // turn id->device map into device list
+        .filter(device => device.device)
+        .map(device => buildWifiGatewayFromPayloadV1(device)),
     );
     setClickedFeatures(null); // clear; no easy way to update clicked feature
   }, [gatewaysResponse]);
-  const meshes: string[] = meshesResponse?.data || [];
+  const meshes: string[] = meshesResponse || [];
 
   // Callback when the marker is clicked
   const onMarkerClick = useCallback(
@@ -217,7 +218,7 @@ function Map() {
         classes={{mapContainer: classes.mapContainer}}
         onClickFeatures={setClickedFeatures}
         showMarkerLabels={showMarkerLabels}
-        zoomHash={`url:${gatewaysLoadedUrl || ''} mesh:${meshID || ''}`}
+        zoomHash={`url:${match.params.networkId || ''} mesh:${meshID || ''}`}
       />
       <Drawer
         variant="permanent"

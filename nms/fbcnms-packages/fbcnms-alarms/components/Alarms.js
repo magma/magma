@@ -63,10 +63,17 @@ type Props = {
   apiUtil: ApiUtil,
   makeTabLink: ({match: Match, keyName: string}) => string,
   experimentalTabsEnabled: boolean,
+  thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
 };
 export default function Alarms(props: Props) {
-  const {apiUtil, filterLabels, makeTabLink, experimentalTabsEnabled} = props;
+  const {
+    apiUtil,
+    filterLabels,
+    makeTabLink,
+    experimentalTabsEnabled,
+    thresholdEditorEnabled,
+  } = props;
   const classes = useStyles();
   const {match, location} = useRouter();
 
@@ -109,7 +116,12 @@ export default function Alarms(props: Props) {
         />
         <Route
           path={`${match.path}/alert_rules`}
-          render={() => <AlertRules {...alarmProps} />}
+          render={() => (
+            <AlertRules
+              {...alarmProps}
+              thresholdEditorEnabled={thresholdEditorEnabled}
+            />
+          )}
         />
         <Route
           path={`${match.path}/suppressions`}

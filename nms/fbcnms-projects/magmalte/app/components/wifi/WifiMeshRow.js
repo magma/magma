@@ -30,15 +30,12 @@ import React from 'react';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
-import axios from 'axios';
 import url from 'url';
 import {groupBy} from 'lodash';
 
 import WifiDeviceDetails, {InfoRow} from './WifiDeviceDetails';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MagmaAPIUrls} from '@fbcnms/magmalte/app/common/MagmaAPI';
-import {meshesURL} from './WifiUtils';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -393,29 +390,19 @@ class WifiMeshRow extends React.Component<Props, State> {
           return;
         }
 
-        const requests = this.props.gateways.map(device =>
-          MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
-            networkId: nullthrows(this.props.match.params.networkId),
-            gatewayId: device.id,
-          }),
-        );
-        const requestsc = this.props.gateways.map(device =>
-          axios.delete(
-            MagmaAPIUrls.gatewayConfigsForType(
-              this.props.match,
-              device.id,
-              'wifi',
-            ),
+        await Promise.all(
+          this.props.gateways.map(device =>
+            MagmaV1API.deleteWifiByNetworkIdGatewaysByGatewayId({
+              networkId: nullthrows(this.props.match.params.networkId),
+              gatewayId: device.id,
+            }),
           ),
         );
 
-        // delete all devices and wifi configs
-        await axios.all([...requests, ...requestsc]);
-
-        // delete mesh
-        await axios.delete(
-          meshesURL(this.props.match) + '/' + this.props.meshID,
-        );
+        await MagmaV1API.deleteWifiByNetworkIdMeshesByMeshId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          meshId: this.props.meshID,
+        });
 
         this.props.onDeleteMesh(this.props.meshID);
       });
@@ -429,20 +416,11 @@ class WifiMeshRow extends React.Component<Props, State> {
           return;
         }
 
-        // delete all parts
-        await axios.all([
-          MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
-            networkId: nullthrows(this.props.match.params.networkId),
-            gatewayId: device.id,
-          }),
-          axios.delete(
-            MagmaAPIUrls.gatewayConfigsForType(
-              this.props.match,
-              device.id,
-              'wifi',
-            ),
-          ),
-        ]);
+        // V1 API call will delete all parts of the device
+        await MagmaV1API.deleteWifiByNetworkIdGatewaysByGatewayId({
+          networkId: nullthrows(this.props.match.params.networkId),
+          gatewayId: device.id,
+        });
 
         this.props.onDeleteDevice(device);
       });

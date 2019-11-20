@@ -22,6 +22,7 @@ export type FeatureID =
   | 'site_survey'
   | 'alerts'
   | 'alerts_experimental'
+  | 'alert_threshold_expression'
   | 'equipment_export'
   | 'import_exported_equipemnt'
   | 'file_categories'

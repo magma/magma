@@ -270,5 +270,6 @@ function mockApiUtil(): ApiUtil {
     getSuppressions: apiMock,
     getReceivers: apiMock,
     getRoutes: apiMock,
+    getMetricSeries: apiMock,
   };
 }

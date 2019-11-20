@@ -23,9 +23,6 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
   },
-  subtext: {
-    fontSize: theme.typography.pxToRem(13),
-  },
   slash: {
     color: SymphonyTheme.palette.D400,
     margin: '0 6px',
@@ -84,24 +81,26 @@ const Breadcrumb = (props: Props) => {
           placement="top"
           title={
             typeof subtext === 'string' ? (
-              <Text className={classes.subtext} color="light">
+              <Text className={classes.subtext} variant="caption" color="light">
                 {subtext}
               </Text>
             ) : (
               subtext ?? ''
             )
           }>
-          <Text
-            className={classNames({
-              [classes.breadcrumbName]: true,
-              [classes.parentBreadcrumb]: !isLastBreadcrumb,
-              [classes.hover]: !!onClick,
-              [classes.smallText]: size === 'small',
-              [classes.largeText]: size !== 'small',
-            })}
-            onClick={() => onClick && onClick(id)}>
-            {name}
-          </Text>
+          <div>
+            <Text
+              className={classNames({
+                [classes.breadcrumbName]: true,
+                [classes.parentBreadcrumb]: !isLastBreadcrumb,
+                [classes.hover]: !!onClick,
+                [classes.smallText]: size === 'small',
+                [classes.largeText]: size !== 'small',
+              })}
+              onClick={() => onClick && onClick(id)}>
+              {name}
+            </Text>
+          </div>
         </Tooltip>
       </div>
       {!isLastBreadcrumb && (
