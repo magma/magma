@@ -15,7 +15,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicated(unittest.TestCase):
+class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,7 +25,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer test with a single UE """
+        """ attach/detach + dedicated bearer deactivation with invalid IMSI
+            test with a single UE """
         num_ues = 1
         detach_type = [s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
                        s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value]
@@ -61,20 +62,10 @@ class TestAttachDetachDedicated(unittest.TestCase):
 
             time.sleep(5)
             print("********************** Deleting dedicated bearer for IMSI",
-                  ''.join([str(i) for i in req.imsi]))
+                  ''.join('001010000000004'))
+            # Deactivate bearer with invalid imsi
             self._spgw_util.delete_bearer(
-                'IMSI' + ''.join([str(i) for i in req.imsi]), 5, 6)
-
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response,
-                            s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value)
-
-            print("******************* Received deactivate eps bearer context")
-
-            deactv_bearer_req = response.cast(
-                s1ap_types.UeDeActvBearCtxtReq_t)
-            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId)
+                'IMSI' + ''.join('001010000000004'), 5, 6)
 
             time.sleep(5)
             print("********************** Running UE detach for UE id ",

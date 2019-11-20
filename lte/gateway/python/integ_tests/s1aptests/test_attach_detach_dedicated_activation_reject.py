@@ -15,7 +15,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachDedicated(unittest.TestCase):
+class TestAttachDetachDedicatedReject(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,7 +25,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer test with a single UE """
+        """ attach/detach + dedicated bearer activation reject test with a
+            single UE """
         num_ues = 1
         detach_type = [s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
                        s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value]
@@ -56,25 +57,12 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
             act_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t)
-            self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId)
-
-            time.sleep(5)
-            print("********************** Deleting dedicated bearer for IMSI",
-                  ''.join([str(i) for i in req.imsi]))
-            self._spgw_util.delete_bearer(
-                'IMSI' + ''.join([str(i) for i in req.imsi]), 5, 6)
-
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response,
-                            s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value)
-
-            print("******************* Received deactivate eps bearer context")
-
-            deactv_bearer_req = response.cast(
-                s1ap_types.UeDeActvBearCtxtReq_t)
-            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId)
+            ded_bearer_rej = s1ap_types.UeActDedBearCtxtRej_t()
+            ded_bearer_rej.ue_Id = req.ue_id
+            ded_bearer_rej.bearerId = act_ded_ber_ctxt_req.bearerId
+            # Send Bearer Activation Reject
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej)
 
             time.sleep(5)
             print("********************** Running UE detach for UE id ",

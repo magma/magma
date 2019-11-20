@@ -15,7 +15,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestAttachDetachMultipleDedicated(unittest.TestCase):
+class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -25,25 +25,25 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + multiple dedicated bearer test with a single UE """
-        num_dedicated_bearers = 3
-        bearer_ids = []
-        self._s1ap_wrapper.configUEDevice(1)
+        """ attach/detach + dedicated bearer deactivation timer expiry test
+            with a single UE """
+        num_ues = 1
+        self._s1ap_wrapper.configUEDevice(num_ues)
 
-        req = self._s1ap_wrapper.ue_req
-        print("********************** Running End to End attach for UE id",
-              req.ue_id)
-        # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
-            req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+        for i in range(num_ues):
+            req = self._s1ap_wrapper.ue_req
+            print("********************** Running End to End attach for ",
+                  "UE id ", req.ue_id)
+            # Now actually complete the attach
+            self._s1ap_wrapper._s1_util.attach(
+                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+                s1ap_types.ueAttachAccept_t)
 
-        # Wait on EMM Information from MME
-        self._s1ap_wrapper._s1_util.receive_emm_info()
+            # Wait on EMM Information from MME
+            self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        time.sleep(2)
-        for i in range(num_dedicated_bearers):
+            time.sleep(5)
             print("********************** Adding dedicated bearer to IMSI",
                   ''.join([str(i) for i in req.imsi]))
             self._spgw_util.create_bearer(
@@ -56,16 +56,12 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 s1ap_types.UeActDedBearCtxtReq_t)
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req.bearerId)
-            bearer_ids.append(act_ded_ber_ctxt_req.bearerId)
-            print("********************** Added dedicated bearer with",
-                  "with bearer id", act_ded_ber_ctxt_req.bearerId)
 
-        time.sleep(2)
-        for i in range(num_dedicated_bearers):
+            time.sleep(5)
             print("********************** Deleting dedicated bearer for IMSI",
                   ''.join([str(i) for i in req.imsi]))
             self._spgw_util.delete_bearer(
-                'IMSI' + ''.join([str(i) for i in req.imsi]), 5, bearer_ids[i])
+                'IMSI' + ''.join([str(i) for i in req.imsi]), 5, 6)
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(response,
@@ -73,17 +69,15 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
 
             print("******************* Received deactivate eps bearer context")
 
-            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, bearer_ids[i])
-
-            print("********************** Deleted dedicated bearer with"
-                  "with bearer id", bearer_ids[i])
-
-        time.sleep(2)
-        print("********************** Running UE detach for UE id ", req.ue_id)
-        # Now detach the UE
-        self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+            # Do not send deactivate eps bearer context accept
+            time.sleep(50)
+            print("********************** Running UE detach for UE id ",
+                  req.ue_id)
+            # Now detach the UE
+            self._s1ap_wrapper.s1_util.detach(
+                req.ue_id,
+                s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+                False)
 
 
 if __name__ == "__main__":
