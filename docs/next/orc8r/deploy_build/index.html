@@ -71,7 +71,7 @@ builds are completed.</p>
 <span class="hljs-keyword">done</span>
 </code></pre>
 <p>While we're here, you can build and publish the NMS containers as well:</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/nms/fbcnms-projects/magmalte
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/symphony/app/fbcnms-projects/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i magmalte -v <span class="hljs-variable">${MAGMA_TAG}</span>
 </code></pre>
