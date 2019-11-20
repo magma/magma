@@ -1,7 +1,9 @@
 #! /bin/sh
 
+set -e # exit on any error
+
 TEMP_FILE=$(mktemp)
-yarn -s swagger2js gen swagger.yml -t flow -c MagmaAPIBindings -b >"$TEMP_FILE"
+yarn --silent swagger2js gen swagger.yml -t flow -c MagmaAPIBindings -b > "$TEMP_FILE"
 
 HEADER="/**
  * Copyright 2004-present Facebook. All Rights Reserved.
