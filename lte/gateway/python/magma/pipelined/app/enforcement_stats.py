@@ -18,7 +18,7 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
@@ -50,6 +50,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     """
 
     APP_NAME = 'enforcement_stats'
+    APP_TYPE = ControllerType.LOGICAL
     SESSIOND_RPC_TIMEOUT = 10
     # 0xffffffffffffffff is reserved in openflow
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
