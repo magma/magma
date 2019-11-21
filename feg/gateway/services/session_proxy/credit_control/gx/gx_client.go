@@ -274,8 +274,10 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 	m.NewAVP(avp.Offline, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
 	// ENABLE_ONLINE(1)
 	m.NewAVP(avp.Online, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(1))
-	// Bearer-Usage - GENERAL(0)
-	m.NewAVP(avp.BearerUsage, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
+	if request.RATType != credit_control.RAT_WLAN {
+		// Bearer-Usage - GENERAL(0)
+		m.NewAVP(avp.BearerUsage, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
+	}
 	if len(request.SpgwIPV4) > 0 {
 		m.NewAVP(avp.TGPPSGSNAddress, avp.Vbit, diameter.Vendor3GPP, datatype.IPv4(net.ParseIP(request.SpgwIPV4)))
 		m.NewAVP(avp.TGPPGGSNAddress, avp.Vbit, diameter.Vendor3GPP, datatype.IPv4(net.ParseIP(request.SpgwIPV4)))
