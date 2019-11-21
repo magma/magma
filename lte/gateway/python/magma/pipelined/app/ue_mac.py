@@ -14,14 +14,14 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
-from .base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    load_direction
+from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
 
 
 class UEMacAddressController(MagmaController):
@@ -33,6 +33,7 @@ class UEMacAddressController(MagmaController):
     """
 
     APP_NAME = "ue_mac"
+    APP_TYPE = ControllerType.SPECIAL
     UEMacConfig = namedtuple(
         'UEMacConfig',
         ['gre_tunnel_port'],
@@ -43,8 +44,7 @@ class UEMacAddressController(MagmaController):
         self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
-            self._service_manager.get_next_table_num(self.APP_NAME)
-        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+            self._service_manager.get_table_num(INGRESS)
         self.arpd_controller_fut = kwargs['app_futures']['arpd']
         self.arp_contoller = None
         self._datapath = None
@@ -143,7 +143,7 @@ class UEMacAddressController(MagmaController):
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
         # Set so packet skips enforcement and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        action = load_passthrough(parser)
 
         # Install UDP flows for DNS
         ulink_match_udp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -178,7 +178,7 @@ class UEMacAddressController(MagmaController):
     def _delete_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
         # Set so packet skips enforcement controller
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        action = load_passthrough(parser)
 
         # Install UDP flows for DNS
         ulink_match_udp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -210,7 +210,7 @@ class UEMacAddressController(MagmaController):
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
         # Set so packet skips enforcement controller
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        action = load_passthrough(parser)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
                                   udp_src=68,
@@ -241,7 +241,7 @@ class UEMacAddressController(MagmaController):
         parser = self._datapath.ofproto_parser
 
         # Set so packet skips enforcement controller
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        action = load_passthrough(parser)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
                                   udp_src=68,

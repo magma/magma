@@ -13,7 +13,8 @@ from .base import MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import load_direction, Direction
+from magma.pipelined.openflow.registers import load_direction, Direction, \
+    PASSTHROUGH_REG_VAL
 
 # ingress and egress service names -- used by other controllers
 INGRESS = "ingress"
