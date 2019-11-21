@@ -142,7 +142,7 @@ class UEMacAddressController(MagmaController):
 
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
-        # Set so inout knows to skip tables and send to egress
+        # Set so packet skips enforcement and send to egress
         action = load_direction(parser, Direction.PASSTHROUGH)
 
         # Install UDP flows for DNS
@@ -177,7 +177,7 @@ class UEMacAddressController(MagmaController):
 
     def _delete_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
-        # Set so inout knows to skip tables and send to egress
+        # Set so packet skips enforcement controller
         action = load_direction(parser, Direction.PASSTHROUGH)
 
         # Install UDP flows for DNS
@@ -209,7 +209,7 @@ class UEMacAddressController(MagmaController):
     def _add_dhcp_passthrough_flows(self, sid, mac_addr):
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
-        # Set so inout knows to skip tables and send to egress
+        # Set so packet skips enforcement controller
         action = load_direction(parser, Direction.PASSTHROUGH)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
@@ -240,7 +240,7 @@ class UEMacAddressController(MagmaController):
     def _delete_dhcp_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
 
-        # Set so inout knows to skip tables and send to egress
+        # Set so packet skips enforcement controller
         action = load_direction(parser, Direction.PASSTHROUGH)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
