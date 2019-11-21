@@ -62,6 +62,7 @@ typedef enum emmcn_primitive_s {
   _EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL,
   _EMMCN_CS_DOMAIN_MM_INFORMATION_REQ,
   _EMMCN_DEACTIVATE_BEARER_REQ, // LG
+  _EMMCN_PDN_DISCONNECT_RES,
   _EMMCN_END
 } emm_cn_primitive_t;
 
@@ -96,6 +97,8 @@ typedef struct itti_mme_app_create_dedicated_bearer_req_s
 
 typedef struct itti_mme_app_delete_dedicated_bearer_req_s
   emm_cn_deactivate_dedicated_bearer_req_t;
+
+typedef struct itti_mme_app_pdn_disconnect_rsp_s emm_cn_pdn_disconnect_rsp_t;
 
 typedef struct emm_cn_deregister_ue_s {
   uint32_t ue_id;
@@ -138,6 +141,7 @@ typedef struct emm_mme_ul_s {
     emm_cn_cs_domain_location_updt_acc_t emm_cn_cs_domain_location_updt_acc;
     emm_cn_cs_domain_location_updt_fail_t emm_cn_cs_domain_location_updt_fail;
     emm_cn_cs_domain_mm_information_req_t *emm_cn_cs_domain_mm_information_req;
+    emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp;
   } u;
 } emm_cn_t;
 

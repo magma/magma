@@ -870,6 +870,19 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
 
+  /* If VoLTE is enabled and UE has sent PDN Disconnect
+   * send mme_app_itti_pdn_disconnect_rsp to NAS.
+   * NAS will trigger deactivate Bearer Context Req to UE
+   */
+  if (
+    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) &&
+    (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+    mme_app_itti_pdn_disconnect_rsp(
+      ue_context_p->mme_ue_s1ap_id, delete_sess_resp_pP->lbi);
+    unlock_ue_contexts(ue_context_p);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
   /*
    * If UE is already in idle state, skip asking eNB to release UE context and just clean up locally.
    * This can happen during implicit detach and UE initiated detach when UE sends detach req (type = switch off)
@@ -3037,10 +3050,19 @@ void mme_app_handle_erab_rel_cmd(mme_app_desc_t *mme_app_desc_p,
     s1ap_e_rab_rel_cmd->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
     s1ap_e_rab_rel_cmd->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
 
-    // E-RAB to Be Setup List
-    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
-    s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
-      bearer_context->ebi;
+    // E-RAB to be released list
+    if (itti_erab_rel_cmd->bearers_to_be_rel) {
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items =
+        itti_erab_rel_cmd->n_bearers;
+      for (uint8_t idx = 0; idx < itti_erab_rel_cmd->n_bearers; idx++) {
+        s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[idx].e_rab_id =
+          itti_erab_rel_cmd->bearers_to_be_rel[idx];
+      }
+    } else {
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
+      s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
+        bearer_context->ebi;
+    }
     //s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0; //Pruthvi TDB
     s1ap_e_rab_rel_cmd->nas_pdu =
       itti_erab_rel_cmd->nas_msg;
@@ -3157,6 +3179,39 @@ void mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
      delete_dedicated_bearer_rej->no_of_bearers,
      delete_dedicated_bearer_rej->s_gw_teid_s11_s4,
      UE_NOT_RESPONDING);
+
+  unlock_ue_contexts(ue_context_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_handle_pdn_disconnect_req(
+  mme_app_desc_t* mme_app_desc_p,
+  itti_mme_app_pdn_disconnect_req_t* const mme_app_pdn_disconnect_req)
+{
+  struct ue_mm_context_s* ue_context_p = NULL;
+
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Received pdn_disconnect_req from NAS for UE: " MME_UE_S1AP_ID_FMT "\n",
+    mme_app_pdn_disconnect_req->ue_id);
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_app_pdn_disconnect_req->ue_id);
+
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
+      "\n",
+      mme_app_pdn_disconnect_req->ue_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  //Send Delete Session Req to SGW
+  mme_app_send_delete_session_request(
+    ue_context_p,
+    mme_app_pdn_disconnect_req->lbi,
+    mme_app_pdn_disconnect_req->pid);
 
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);

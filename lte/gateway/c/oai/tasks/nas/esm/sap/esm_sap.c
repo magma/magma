@@ -701,6 +701,19 @@ static int _esm_sap_recv(
           pti,
           ebi,
           is_standalone);
+
+        //Process standalone PDN Connectivity Request if VoLTE is enabled
+        if (mme_config.eps_network_feature_support
+              .ims_voice_over_ps_session_in_s1) {
+          esm_cause = esm_recv_pdn_connectivity_request(
+            emm_context,
+            pti,
+            ebi,
+            &esm_msg.pdn_connectivity_request,
+            &ebi,
+            is_standalone);
+          break;
+        }
         if (is_standalone == true) {
           /* Rejecting PDN Connectivity message as there is no code to handle standalone message yet*/
           if (
@@ -724,7 +737,12 @@ static int _esm_sap_recv(
 
         if (!is_standalone) { // Do not process if its a standalone message
           esm_cause = esm_recv_pdn_connectivity_request(
-            emm_context, pti, ebi, &esm_msg.pdn_connectivity_request, &ebi);
+            emm_context,
+            pti,
+            ebi,
+            &esm_msg.pdn_connectivity_request,
+            &ebi,
+            is_standalone);
         }
        OAILOG_DEBUG(
          LOG_NAS_ESM,
@@ -874,6 +892,15 @@ static int _esm_sap_recv(
          */
           esm_cause = ESM_CAUSE_SUCCESS;
         } else {
+          /* If VoLTE is enabled and UE has sent PDN Disconnect
+           * send deactivate_eps_bearer_context_req after
+           * receiving delete session response from SGW
+           */
+          if (mme_config.eps_network_feature_support
+                .ims_voice_over_ps_session_in_s1) {
+            emm_context->esm_ctx.is_pdn_disconnect = true;
+            OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
+          }
           /*
          * Return deactivate EPS bearer context request message
          */

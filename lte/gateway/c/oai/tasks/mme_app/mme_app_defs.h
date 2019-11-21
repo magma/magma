@@ -298,6 +298,10 @@ void mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
   itti_mme_app_delete_dedicated_bearer_rej_t
   *const delete_dedicated_bearer_rej);
 
+void mme_app_handle_pdn_disconnect_req(
+  mme_app_desc_t *mme_app_desc_p,
+  itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req);
+
 void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_path_switch_request_t *const path_switch_req_p);
 

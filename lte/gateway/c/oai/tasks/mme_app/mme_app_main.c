@@ -530,6 +530,11 @@ void *mme_app_thread(void *args)
           &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
       } break;
 
+      case MME_APP_PDN_DISCONNECT_REQ: {
+        mme_app_handle_pdn_disconnect_req(mme_app_desc_p,
+          &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
+      } break;
+
       case S1AP_PATH_SWITCH_REQUEST: {
         mme_app_handle_path_switch_request(mme_app_desc_p,
           &S1AP_PATH_SWITCH_REQUEST(received_message_p));
