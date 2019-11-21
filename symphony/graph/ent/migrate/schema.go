@@ -46,7 +46,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "title_work_order_id",
+				Name:    "checklistitem_title_work_order_id",
 				Unique:  true,
 				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[8]},
 			},
@@ -78,7 +78,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "title_work_order_type_id",
+				Name:    "checklistitemdefinition_title_work_order_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{CheckListItemDefinitionsColumns[1], CheckListItemDefinitionsColumns[6]},
 			},
@@ -546,7 +546,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "name_type_id_parent_id",
+				Name:    "location_name_type_id_parent_id",
 				Unique:  true,
 				Columns: []*schema.Column{LocationsColumns[3], LocationsColumns[8], LocationsColumns[9]},
 			},
@@ -604,7 +604,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "name_type_id",
+				Name:    "project_name_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{ProjectsColumns[3], ProjectsColumns[7]},
 			},
@@ -812,27 +812,27 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "name_location_type_id",
+				Name:    "propertytype_name_location_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
 			},
 			{
-				Name:    "name_equipment_port_type_id",
+				Name:    "propertytype_name_equipment_port_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[17]},
 			},
 			{
-				Name:    "name_equipment_type_id",
+				Name:    "propertytype_name_equipment_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[19]},
 			},
 			{
-				Name:    "name_link_equipment_port_type_id",
+				Name:    "propertytype_name_link_equipment_port_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[18]},
 			},
 			{
-				Name:    "name_work_order_type_id",
+				Name:    "propertytype_name_work_order_type_id",
 				Unique:  true,
 				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[23]},
 			},
@@ -1051,7 +1051,7 @@ var (
 		},
 		Indexes: []*schema.Index{
 			{
-				Name:    "index_category_id",
+				Name:    "surveytemplatequestion_index_category_id",
 				Unique:  true,
 				Columns: []*schema.Column{SurveyTemplateQuestionsColumns[6], SurveyTemplateQuestionsColumns[7]},
 			},
