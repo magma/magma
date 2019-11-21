@@ -1925,14 +1925,15 @@ int mme_app_paging_request_helper(
   paging_request->domain_indicator = domain_indicator;
 
   // Send TAI List
-  paging_request->tai_list_count = ue_context_p->emm_context.
-    _tai_list.numberoflists ;
-  tai_list_t *tai_list = &ue_context_p->emm_context._tai_list;
-  paging_tai_list_t *p_tai_list = NULL;
-  for (int tai_list_idx = 0;
-    tai_list_idx < paging_request->tai_list_count; tai_list_idx++) {
+  paging_request->tai_list_count =
+    ue_context_p->emm_context._tai_list.numberoflists;
+  tai_list_t* tai_list = &ue_context_p->emm_context._tai_list;
+  paging_tai_list_t* p_tai_list = NULL;
+  for (int tai_list_idx = 0; tai_list_idx < paging_request->tai_list_count;
+       tai_list_idx++) {
     p_tai_list = &paging_request->paging_tai_list[tai_list_idx];
-    mme_app_update_paging_tai_list(p_tai_list,
+    mme_app_update_paging_tai_list(
+      p_tai_list,
       &tai_list->partial_tai_list[tai_list_idx],
       tai_list->partial_tai_list[tai_list_idx].numberofelements);
   }
@@ -3279,8 +3280,8 @@ void mme_app_handle_path_switch_req_failure(
 }
 
 void mme_app_update_paging_tai_list(
-  paging_tai_list_t *p_tai_list,
-  partial_tai_list_t *tai_list,
+  paging_tai_list_t* p_tai_list,
+  partial_tai_list_t* tai_list,
   uint8_t num_of_tac)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -3323,7 +3324,7 @@ void mme_app_update_paging_tai_list(
           tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit3;
 
         p_tai_list->tai_list[idx].tac =
-            tai_list->u.tai_one_plmn_consecutive_tacs.tac + idx;
+          tai_list->u.tai_one_plmn_consecutive_tacs.tac + idx;
       }
       break;
 
@@ -3342,8 +3343,7 @@ void mme_app_update_paging_tai_list(
         p_tai_list->tai_list[idx].mnc_digit3 =
           tai_list->u.tai_many_plmn[idx].mnc_digit3;
 
-        p_tai_list->tai_list[idx].tac=
-          tai_list->u.tai_many_plmn[idx].tac;
+        p_tai_list->tai_list[idx].tac = tai_list->u.tai_many_plmn[idx].tac;
       }
       break;
 
@@ -3352,7 +3352,7 @@ void mme_app_update_paging_tai_list(
         LOG_MME_APP,
         "BAD TAI list configuration, unknown TAI list type %u",
         tai_list->typeoflist);
-    break;
-    }
+      break;
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

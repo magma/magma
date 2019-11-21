@@ -104,15 +104,16 @@ typedef struct ue_description_s {
 
 /* Supported TAI items includes TAC and Broadcast PLMNs */
 typedef struct supported_tai_items_s {
-  uint16_t tac;             ///< Supported TAC value
-  uint8_t  bplmnlist_count; ///< Number of Broadcast PLMNs in the TAI
+  uint16_t tac;            ///< Supported TAC value
+  uint8_t bplmnlist_count; ///< Number of Broadcast PLMNs in the TAI
   plmn_t bplmns[S1AP_MAX_BROADCAST_PLMNS]; ///< List of Broadcast PLMNS
 } supported_tai_items_t;
 
 /* Supported TAs by eNB recieved in S1 Setup request message */
 typedef struct supported_ta_list_s {
   uint8_t list_count; ///< Number of TAIs in the list
-  supported_tai_items_t supported_tai_items[S1AP_MAX_TAI_ITEMS]; ///< List of TAIs
+  supported_tai_items_t
+    supported_tai_items[S1AP_MAX_TAI_ITEMS]; ///< List of TAIs
 } supported_ta_list_t;
 
 /* Main structure representing eNB association over s1ap
