@@ -57,9 +57,6 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_cancel_location_req_t *const clr_pP);
 
-int mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_pdn_connectivity_req_t *const nas_pdn_connectivity_req_p);
-
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
 
@@ -121,8 +118,10 @@ bool mme_app_dump_ue_context(
   void *unused_param_pP,
   void **unused_result_pP);
 
-int mme_app_handle_nas_dl_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_dl_data_req_t *const nas_dl_req_pP);
+int mme_app_handle_nas_dl_req(
+  const mme_ue_s1ap_id_t ue_id,
+  bstring nas_msg,
+  nas_error_code_t transaction_status);
 
 void mme_app_handle_e_rab_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_e_rab_setup_rsp_t *const e_rab_setup_rsp);
@@ -295,6 +294,10 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
   itti_mme_app_delete_dedicated_bearer_rej_t
   *const delete_dedicated_bearer_rej);
+
+void mme_app_handle_pdn_disconnect_req(
+  mme_app_desc_t *mme_app_desc_p,
+  itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req);
 
 void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_path_switch_request_t *const path_switch_req_p);

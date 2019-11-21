@@ -55,8 +55,9 @@ class SpgwStateConverter : StateConverter {
    * @param spgw_proto SpgwState proto object to be written to
    * Memory is owned by the caller
    */
-  static void spgw_state_to_proto(const spgw_state_t* spgw_state,
-                                  gateway::spgw::SpgwState* spgw_proto);
+  static void state_to_proto(
+    const spgw_state_t* spgw_state,
+    gateway::spgw::SpgwState* spgw_proto);
 
   /**
  * Main function to convert SPGW proto to state definition
@@ -64,9 +65,9 @@ class SpgwStateConverter : StateConverter {
  * @param spgw_state const pointer to spgw_state struct
  * Memory is owned by the caller
  */
-  static void spgw_proto_to_state(
-    const gateway::spgw::SpgwState &proto,
-    spgw_state_t *spgw_state);
+  static void proto_to_state(
+    const gateway::spgw::SpgwState& proto,
+    spgw_state_t* spgw_state);
 
  private:
   SpgwStateConverter();

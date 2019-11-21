@@ -5,8 +5,8 @@ All rights reserved.
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 """
-
 from collections import namedtuple
+import threading
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -14,13 +14,14 @@ from ryu.lib.packet import packet
 from ryu.lib.packet import ether_types, dhcp
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
-from .base import MagmaController
-from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.directoryd_client import update_record
+from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    load_direction
+from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
 
 
 class UEMacAddressController(MagmaController):
@@ -32,6 +33,7 @@ class UEMacAddressController(MagmaController):
     """
 
     APP_NAME = "ue_mac"
+    APP_TYPE = ControllerType.SPECIAL
     UEMacConfig = namedtuple(
         'UEMacConfig',
         ['gre_tunnel_port'],
@@ -42,8 +44,7 @@ class UEMacAddressController(MagmaController):
         self.config = self._get_config(kwargs['config'])
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
-            self._service_manager.get_next_table_num(self.APP_NAME)
-        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
+            self._service_manager.get_table_num(INGRESS)
         self.arpd_controller_fut = kwargs['app_futures']['arpd']
         self.arp_contoller = None
         self._datapath = None
@@ -97,6 +98,10 @@ class UEMacAddressController(MagmaController):
             self.arp_contoller.add_ue_arp_flows(self._datapath,
                                                 yiaddr, chaddr)
             self.logger.debug("Learned arp for imsi %s, ip %s", imsi, yiaddr)
+
+            # Associate IMSI to IPv4 addr in directory service
+            threading.Thread(target=update_record, args=(str(imsi),
+                                                         yiaddr)).start()
         else:
             self.logger.error("ARPD controller not ready, ARP learn FAILED")
 
@@ -137,8 +142,8 @@ class UEMacAddressController(MagmaController):
 
     def _add_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        # Set so packet skips enforcement and send to egress
+        action = load_passthrough(parser)
 
         # Install UDP flows for DNS
         ulink_match_udp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -172,8 +177,8 @@ class UEMacAddressController(MagmaController):
 
     def _delete_dns_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        # Set so packet skips enforcement controller
+        action = load_passthrough(parser)
 
         # Install UDP flows for DNS
         ulink_match_udp = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -204,8 +209,8 @@ class UEMacAddressController(MagmaController):
     def _add_dhcp_passthrough_flows(self, sid, mac_addr):
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
 
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        # Set so packet skips enforcement controller
+        action = load_passthrough(parser)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
                                   udp_src=68,
@@ -235,8 +240,8 @@ class UEMacAddressController(MagmaController):
     def _delete_dhcp_passthrough_flows(self, sid, mac_addr):
         parser = self._datapath.ofproto_parser
 
-        # Set so inout knows to skip tables and send to egress
-        action = load_direction(parser, Direction.PASSTHROUGH)
+        # Set so packet skips enforcement controller
+        action = load_passthrough(parser)
         uplink_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                   ip_proto=IPPROTO_UDP,
                                   udp_src=68,
@@ -274,9 +279,9 @@ class UEMacAddressController(MagmaController):
             return
 
         try:
-            # no need to decode the IMSI. The OFPMatch will
-            # give the already-encoded IMSI value, and we can match on that
-            imsi = _get_encoded_imsi_from_packetin(msg)
+            encoded_imsi = _get_encoded_imsi_from_packetin(msg)
+            # Decode the imsi to properly save in directoryd
+            imsi = decode_imsi(encoded_imsi)
         except MagmaOFError as e:
             # No packet direction, but intended for this table
             self.logger.error("Error obtaining IMSI from pkt-in: %s", e)

@@ -43,17 +43,19 @@ namespace lte {
 SpgwStateConverter::SpgwStateConverter() = default;
 SpgwStateConverter::~SpgwStateConverter() = default;
 
-void SpgwStateConverter::spgw_state_to_proto(const spgw_state_t* spgw_state,
-                                             SpgwState* proto) {
+void SpgwStateConverter::state_to_proto(
+  const spgw_state_t* spgw_state,
+  SpgwState* proto)
+{
   proto->Clear();
 
   sgw_state_to_proto(&spgw_state->sgw_state, proto->mutable_sgw_state());
   pgw_state_to_proto(&spgw_state->pgw_state, proto->mutable_pgw_state());
 }
 
-void SpgwStateConverter::spgw_proto_to_state(
-  const SpgwState &proto,
-  spgw_state_t *spgw_state)
+void SpgwStateConverter::proto_to_state(
+  const SpgwState& proto,
+  spgw_state_t* spgw_state)
 {
   sgw_proto_to_state(proto.sgw_state(), &spgw_state->sgw_state);
   pgw_proto_to_state(proto.pgw_state(), &spgw_state->pgw_state);

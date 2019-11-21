@@ -57,30 +57,6 @@ int nas_itti_erab_setup_req(
   const bitrate_t gbr_ul,
   bstring nas_msg);
 
-void nas_itti_pdn_config_req(
-  int ptiP,
-  unsigned int ue_idP,
-  const imsi_t *const imsi_pP,
-  esm_proc_data_t *proc_data_pP,
-  esm_proc_pdn_request_t request_typeP);
-
-void nas_itti_pdn_connectivity_req(
-  int ptiP,
-  const mme_ue_s1ap_id_t ue_idP,
-  const pdn_cid_t pdn_cidP,
-  const imsi_t *const imsi_pP,
-  imeisv_t imeisv,
-  esm_proc_data_t *proc_data_pP,
-  esm_proc_pdn_request_t request_typeP);
-
-void nas_itti_auth_info_req(
-  const mme_ue_s1ap_id_t ue_idP,
-  const imsi_t *const imsiP,
-  const bool is_initial_reqP,
-  plmn_t *const visited_plmnP,
-  const uint8_t num_vectorsP,
-  const_bstring const auts_pP);
-
 void nas_itti_establish_rej(
   const mme_ue_s1ap_id_t ue_idP,
   const imsi_t *const imsi_pP,
@@ -163,5 +139,10 @@ void nas_itti_dedicated_eps_bearer_deactivation_reject(
   const ebi_t ebiP,
   bool delete_default_bearer,
   teid_t s_gw_teid_s11_s4);
+
+void nas_itti_pdn_disconnect_req(
+  const mme_ue_s1ap_id_t ue_idP,
+  const pdn_cid_t pid,
+  const ebi_t lbi);
 
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

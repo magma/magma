@@ -1701,9 +1701,7 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_ATTACH;
 
       NO_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__3);
-      if (ue_mm_context_p->ue_radio_capability) {
-        bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
-      }
+      bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
       //----------------------------------------
       REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__4);
       emm_ctx_set_attribute_valid(

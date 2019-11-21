@@ -123,4 +123,8 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
+void mme_app_itti_pdn_disconnect_rsp(
+  const mme_ue_s1ap_id_t ue_idP,
+  const ebi_t lbi);
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

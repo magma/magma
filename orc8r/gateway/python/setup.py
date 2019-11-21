@@ -24,6 +24,7 @@ setup(
         'magma.common.health',
         'magma.common.redis',
         'magma.configuration',
+        'magma.directoryd',
         'magma.magmad',
         'magma.magmad.generic_command',
         'magma.magmad.check',
@@ -41,6 +42,7 @@ setup(
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
         'scripts/generate_service_config.py',
+        'scripts/generate_fluent_bit_config.py',
         'scripts/health_cli.py',
         'scripts/magma_conditional_service.py',
         'scripts/magma_get_config.py',
@@ -67,7 +69,7 @@ setup(
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'snowflake>=0.0.3',
-        'psutil==5.6.3',
+        'psutil==5.2.2',
         'cryptography>=1.9',
         'systemd-python>=234',
         'itsdangerous>=0.24',
@@ -76,5 +78,6 @@ setup(
         'python-dateutil>=1.4',
         # force same requests version as lte/gateway/python/setup.py
         'requests==2.22.0',
+        'jsonpickle',
     ]
 )

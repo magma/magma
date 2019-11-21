@@ -38,15 +38,16 @@ func NewDefaultSymphonyAgent() *SymphonyAgent {
 			CheckinInterval:         15,
 			CheckinTimeout:          5,
 		},
-		ManagedDevices: []string{"device_1", "device_2"},
+		ManagedDevices: []string{"d1", "d2"},
 	}
 }
 
 func NewDefaultSymphonyDevice() *SymphonyDevice {
 	return &SymphonyDevice{
-		Config: NewDefaultSymphonyDeviceConfig(),
-		ID:     "d1",
-		Name:   "Device 1",
+		Config:        NewDefaultSymphonyDeviceConfig(),
+		ID:            "d1",
+		Name:          "Device 1",
+		ManagingAgent: "",
 	}
 }
 
@@ -62,5 +63,11 @@ func NewDefaultSymphonyDeviceConfig() *SymphonyDeviceConfig {
 		DeviceType:   []string{"device_type 1", "device_type 2"},
 		Host:         "device_host",
 		Platform:     "device_platform",
+	}
+}
+
+func NewDefaultSymphonyDeviceState() *SymphonyDeviceState {
+	return &SymphonyDeviceState{
+		RawState: "{ SAMPLE_DEVICE: STATE }",
 	}
 }

@@ -12,9 +12,13 @@ package servicers
 
 import (
 	"errors"
+	"fmt"
 
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
+	"magma/orc8r/cloud/go/services/state"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -36,8 +40,22 @@ func (srv *DirectoryServicer) GetLocation(ctx context.Context, request *protos.G
 		return nil, errors.New("Empty GetLocationRequest")
 	}
 	glog.V(2).Infof("get location request: %v\n", request)
-	record, err := srv.storage.GetRecord(request.Table, request.Id)
-	return record, err
+	if request.GetTable() == protos.TableID_HWID_TO_HOSTNAME {
+		return srv.storage.GetRecord(request.Table, request.Id)
+	}
+	// Fetch IMSI directory records from state service
+	directoryState, err := state.GetState(request.GetNetworkID(), orc8r.DirectoryRecordType, request.GetId())
+	// In case of a legacy gateway, try retrieving using legacy db
+	if err != nil {
+		return srv.storage.GetRecord(request.Table, request.Id)
+	}
+	directoryRecord, ok := directoryState.ReportedState.(*directoryd.DirectoryRecord)
+	if !ok || len(directoryRecord.LocationHistory) == 0 {
+		return &protos.LocationRecord{}, fmt.Errorf("stored directory record is not properly formatted")
+	}
+	return &protos.LocationRecord{
+		Location: directoryRecord.LocationHistory[0],
+	}, nil
 }
 
 func (srv *DirectoryServicer) UpdateLocation(ctx context.Context, request *protos.UpdateDirectoryLocationRequest) (*protos.Void, error) {
@@ -59,8 +77,8 @@ func (srv *DirectoryServicer) UpdateLocation(ctx context.Context, request *proto
 		request.Record = &protos.LocationRecord{Location: gw.HardwareId}
 	}
 
-	srv.storage.UpdateOrCreateRecord(request.Table, request.Id, request.Record)
-	return ret, nil
+	err := srv.storage.UpdateOrCreateRecord(request.Table, request.Id, request.Record)
+	return ret, err
 }
 
 func (srv *DirectoryServicer) DeleteLocation(ctx context.Context, request *protos.DeleteLocationRequest) (*protos.Void, error) {
@@ -68,7 +86,18 @@ func (srv *DirectoryServicer) DeleteLocation(ctx context.Context, request *proto
 	if request == nil {
 		return nil, errors.New("Empty DeleteLocationRequest")
 	}
-
-	err := srv.storage.DeleteRecord(request.Table, request.Id)
+	if request.GetTable() == protos.TableID_HWID_TO_HOSTNAME {
+		return ret, srv.storage.DeleteRecord(request.Table, request.Id)
+	}
+	// Delete IMSI directory records from state service
+	reqId := state.StateID{
+		DeviceID: request.GetId(),
+		Type:     orc8r.DirectoryRecordType,
+	}
+	err := state.DeleteStates(request.GetNetworkID(), []state.StateID{reqId})
+	// In case of a legacy gateway, try retrieving using legacy db
+	if err != nil {
+		return ret, srv.storage.DeleteRecord(request.Table, request.Id)
+	}
 	return ret, err
 }

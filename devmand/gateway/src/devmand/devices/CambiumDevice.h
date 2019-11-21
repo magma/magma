@@ -24,6 +24,7 @@ class CambiumDevice : public Device {
   CambiumDevice(
       Application& application,
       const Id& id_,
+      bool readonly_,
       const folly::IPAddress& deviceIp_,
       const std::string& clientMac_,
       const std::string& clientId_,

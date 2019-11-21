@@ -39,19 +39,11 @@ func TestPolicyStreamers(t *testing.T) {
 	assert.NoError(t, err)
 
 	// create the rules first otherwise base names can't associate to them
-	id1 := "r1"
-	monitoringKey1 := swag.String("foo")
-	id2 := "r2"
-	priority2 := swag.Uint32(42)
-	id3 := "r3"
-	monitoringKey3 := swag.String("bar")
-
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
-			Config: &models.PolicyRule{
-				ID: &id1,
+			Config: &models.PolicyRuleConfig{
 				FlowList: []*models.FlowDescription{
 					{
 						Action: swag.String("PERMIT"),
@@ -63,15 +55,14 @@ func TestPolicyStreamers(t *testing.T) {
 						},
 					},
 				},
-				MonitoringKey: *monitoringKey1,
+				MonitoringKey: "foo",
 			},
 		},
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r2",
-			Config: &models.PolicyRule{
-				ID:       &id2,
-				Priority: priority2,
+			Config: &models.PolicyRuleConfig{
+				Priority: swag.Uint32(42),
 				Redirect: &models.RedirectInformation{
 					AddressType:   swag.String("IPv4"),
 					ServerAddress: swag.String("https://www.google.com"),
@@ -82,9 +73,8 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r3",
-			Config: &models.PolicyRule{
-				ID:            &id3,
-				MonitoringKey: *monitoringKey3,
+			Config: &models.PolicyRuleConfig{
+				MonitoringKey: "bar",
 			},
 		},
 	})
@@ -93,7 +83,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
-			Config: &models.BaseNameRecord{Name: models.BaseName("b1")},
+			Config: &models.BaseNameRecord{Name: "b1"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
@@ -102,7 +92,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
-			Config: &models.BaseNameRecord{Name: models.BaseName("b2")},
+			Config: &models.BaseNameRecord{Name: "b2"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
@@ -158,7 +148,7 @@ func TestPolicyStreamers(t *testing.T) {
 	expected = funk.Map(
 		expectedBNProtos,
 		func(bn *protos.ChargingRuleBaseNameRecord) *orcprotos.DataUpdate {
-			data, err := proto.Marshal(bn)
+			data, err := proto.Marshal(bn.RuleNamesSet)
 			assert.NoError(t, err)
 			return &orcprotos.DataUpdate{Key: bn.Name, Value: data}
 		},

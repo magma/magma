@@ -31,7 +31,7 @@ done
 While we're here, you can build and publish the NMS containers as well:
 
 ```bash
-cd magma/nms/fbcnms-projects/magmalte
+cd magma/symphony/app/fbcnms-projects/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i magmalte -v ${MAGMA_TAG}
 ```

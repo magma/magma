@@ -23,7 +23,6 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes/timestamp"
 	"golang.org/x/net/context"
 )
 
@@ -44,11 +43,12 @@ type SessionControllerConfig struct {
 	PCRFConfig     *diameter.DiameterServerConfig
 	RequestTimeout time.Duration
 	InitMethod     gy.InitMethod
-}
-
-type ruleTiming struct {
-	activationTime   *timestamp.Timestamp
-	deactivationTime *timestamp.Timestamp
+	// This flag enables a specific type of behavior.
+	// 1. Ensures a Gy CCR-I is called in CreateSession when Gx CCR-I succeeds,
+	// even if there is no rating group returned by Gx CCR-A.
+	// 2. Ensures all Multi Service Credit Control entities have 2001 result
+	// code for CreateSession to succeed.
+	UseGyForAuthOnly bool
 }
 
 // NewCentralSessionController constructs a CentralSessionController
@@ -86,18 +86,22 @@ func (srv *CentralSessionController) CreateSession(
 	}
 	metrics.PcrfCcrInitRequests.Inc()
 
-	var ruleNames []string
-	var ruleDefs []*gx.RuleDefinition
+	var staticRuleNames []string
+	var dynamicRuleDefs []*gx.RuleDefinition
 	for _, rule := range gxCCAInit.RuleInstallAVP {
-		ruleNames = append(ruleNames, rule.RuleNames...)
+		staticRuleNames = append(staticRuleNames, rule.RuleNames...)
 		if len(rule.RuleBaseNames) > 0 {
-			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+			staticRuleNames = append(staticRuleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
 		}
-		ruleDefs = append(ruleDefs, rule.RuleDefinitions...)
+		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
 	}
 
-	policyRules := getPolicyRulesFromDefinitions(ruleDefs)
-	keys, err := srv.dbClient.GetChargingKeysForRules(ruleNames, policyRules)
+	if srv.cfg.UseGyForAuthOnly {
+		return srv.handleUseGyForAuthOnly(imsi, request, gxCCAInit)
+	}
+
+	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
+	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
 	if err != nil {
 		glog.Errorf("Failed to get charging keys for rules: %s", err)
 		return nil, err
@@ -117,23 +121,23 @@ func (srv *CentralSessionController) CreateSession(
 			metrics.OcsCcrInitRequests.Inc()
 		}
 
-		updateRequest := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
-		ans, err := srv.sendSingleCreditRequest(updateRequest)
+		gyCCRInit := getCCRInitialCreditRequest(imsi, request, keys, srv.cfg.InitMethod)
+		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
 			metrics.OcsCcrInitSendFailures.Inc()
 			glog.Errorf("Failed to send second single credit request: %s", err)
 			return nil, err
 		}
+		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
+
 		metrics.OcsCcrInitRequests.Inc()
-		credits = getInitialCreditResponsesFromCCA(ans, updateRequest)
 	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
-
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
@@ -142,13 +146,40 @@ func (srv *CentralSessionController) CreateSession(
 	}, nil
 }
 
-func removeDuplicateChargingKeys(keysIn []uint32) []uint32 {
-	keysOut := []uint32{}
-	keyMap := make(map[uint32]bool)
+func (srv *CentralSessionController) handleUseGyForAuthOnly(
+	imsi string,
+	pReq *protos.CreateSessionRequest,
+	gxCCAInit *gx.CreditControlAnswer,
+) (*protos.CreateSessionResponse, error) {
+	gyCCRInit := getCCRInitRequest(imsi, pReq)
+	_, err := srv.sendSingleCreditRequest(gyCCRInit)
+	metrics.UpdateGyRecentRequestMetrics(err)
+	if err != nil {
+		metrics.OcsCcrInitSendFailures.Inc()
+		glog.Errorf("Failed to send second single credit request: %s", err)
+		return nil, err
+	}
+	metrics.OcsCcrInitRequests.Inc()
+
+	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
+		srv.dbClient,
+		gxCCAInit.RuleInstallAVP,
+	)
+	usageMonitors := getUsageMonitorsFromCCA(imsi, pReq.SessionId, gxCCAInit)
+	return &protos.CreateSessionResponse{
+		StaticRules:   staticRules,
+		DynamicRules:  dynamicRules,
+		UsageMonitors: usageMonitors,
+	}, nil
+}
+
+func removeDuplicateChargingKeys(keysIn []policydb.ChargingKey) []policydb.ChargingKey {
+	keysOut := []policydb.ChargingKey{}
+	keyMap := make(map[policydb.ChargingKey]struct{})
 	for _, k := range keysIn {
 		if _, ok := keyMap[k]; !ok {
 			keysOut = append(keysOut, k)
-			keyMap[k] = true
+			keyMap[k] = struct{}{}
 		}
 	}
 	return keysOut
@@ -194,13 +225,7 @@ func (srv *CentralSessionController) TerminateSession(
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		_, err := srv.sendTerminationGxRequest(
-			removeSidPrefix(request.Sid),
-			request.SessionId,
-			request.UeIpv4,
-			request.RequestNumber,
-			request.MonitorUsages,
-		)
+		_, err := srv.sendTerminationGxRequest(request)
 		metrics.UpdateGxRecentRequestMetrics(err)
 		if err != nil {
 			metrics.PcrfCcrTerminateSendFailures.Inc()

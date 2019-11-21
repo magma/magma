@@ -66,6 +66,7 @@
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
+#include "mme_config.h"
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
@@ -266,7 +267,6 @@ int sgw_handle_create_session_request(
       // TO DO free_wrapper new_bearer_ctxt_info_p and by cascade...
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
-
     eps_bearer_ctxt_p->eps_bearer_qos =
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
         .bearer_level_qos;
@@ -1435,6 +1435,11 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->trxn = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
       delete_session_req_pP->peer_ip.s_addr;
+
+    if (mme_config.eps_network_feature_support
+          .ims_voice_over_ps_session_in_s1) {
+      delete_session_resp_p->lbi = delete_session_req_pP->lbi;
+    }
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 
@@ -1690,6 +1695,29 @@ int sgw_handle_s5_create_bearer_response(
     "Sending S11 Create Session Response to MME, MME S11 teid = %u\n",
     create_session_response_p->teid);
   rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+
+  /* Remove the default bearer context entry already created as create session
+   * response failure is received
+   */
+  if (new_bearer_ctxt_info_p) {
+    sgw_cm_remove_eps_bearer_entry(
+      &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.
+      pdn_connection, sgi_create_endpoint_resp.eps_bearer_id);
+    sgw_cm_remove_bearer_context_information(state,
+      bearer_resp_p->context_teid);
+    OAILOG_INFO(
+      LOG_SPGW_APP,
+      "Deleted default bearer context with SGW C-plane TEID = %u "
+      "as create session response failure is received\n",
+      create_session_response_p->teid);
+  } else {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Could not get hash table entry for SGW C-plane TEID = %u "
+      "did not delete default bearer context\n",
+      create_session_response_p->teid);
+  }
+
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
@@ -2283,7 +2311,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   } else {
     OAILOG_INFO(
       LOG_SPGW_APP,
-      "Did not create new EPS bearer entry as"
+      "Did not create new EPS bearer entry as "
       "UE rejected the request for EBI %d\n",
       s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
         .eps_bearer_id);

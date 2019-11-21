@@ -488,16 +488,21 @@ class BootstrapManagerTest(TestCase):
         self.assertFalse(is_valid)
 
         # expiring soon
-        not_before = datetime.datetime.utcnow()
-        not_after = not_before + datetime.timedelta(hours=1)
-        cert = create_cert_message(not_before=not_before, not_after=not_after)
-        is_valid = self.manager._is_valid_certificate(cert)
-        self.assertFalse(is_valid)
+        with self.assertLogs() as log:
+            not_before = datetime.datetime.utcnow()
+            not_after = not_before + datetime.timedelta(hours=1)
+            cert = create_cert_message(not_before=not_before,
+                                       not_after=not_after)
+            is_valid = self.manager._is_valid_certificate(cert)
+            self.assertTrue(is_valid)
+            self.assertEqual(log.output,
+                             ['WARNING:root:Received a 1.0-hour certificate'])
 
         # correct
         cert = create_cert_message()
         is_valid = self.manager._is_valid_certificate(cert)
         self.assertTrue(is_valid)
+
 
 def create_cert(not_before, not_after):
     key = rsa.generate_private_key(65537, 2048, default_backend())

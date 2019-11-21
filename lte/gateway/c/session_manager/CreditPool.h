@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <unordered_map>
+#include "CreditKey.h"
 #include "SessionCredit.h"
 #include "SessionRules.h"
 
@@ -66,18 +68,18 @@ class CreditPool {
 
 /**
  * ChargingCreditPool manages a pool of credits for OCS-based charging. It is
- * keyed by rating groups (uint32) and receives CreditUpdateResponses to update
+ * keyed by rating groups & service Identity (uint32, [uint32]) and receives CreditUpdateResponses to update
  * credit
  */
 class ChargingCreditPool :
-  public CreditPool<uint32_t, CreditUpdateResponse, CreditUsage> {
+  public CreditPool<CreditKey, CreditUpdateResponse, CreditUsage> {
  public:
   ChargingCreditPool(const std::string &imsi);
 
-  bool add_used_credit(const uint32_t &key, uint64_t used_tx, uint64_t used_rx)
+  bool add_used_credit(const CreditKey &key, uint64_t used_tx, uint64_t used_rx)
     override;
 
-  bool reset_reporting_credit(const uint32_t &key) override;
+  bool reset_reporting_credit(const CreditKey &key) override;
 
   void get_updates(
     std::string imsi,
@@ -91,14 +93,16 @@ class ChargingCreditPool :
 
   bool receive_credit(const CreditUpdateResponse &update) override;
 
-  uint64_t get_credit(const uint32_t &key, Bucket bucket) override;
+  uint64_t get_credit(const CreditKey &key, Bucket bucket) override;
 
-  ChargingReAuthAnswer::Result reauth_key(uint32_t charging_key);
+  ChargingReAuthAnswer::Result reauth_key(const CreditKey &charging_key);
 
   ChargingReAuthAnswer::Result reauth_all();
 
  private:
-  std::unordered_map<uint32_t, std::unique_ptr<SessionCredit>> credit_map_;
+  std::unordered_map<
+    CreditKey, std::unique_ptr<SessionCredit>,
+    decltype(&ccHash), decltype(&ccEqual)> credit_map_;
   std::string imsi_;
 
  private:

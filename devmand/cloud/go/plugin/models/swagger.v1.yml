@@ -607,6 +607,22 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /symphony/{network_id}/devices/{device_id}/state:
+    get:
+      summary: Get the state of a Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: The description of the agent
+          schema:
+            $ref: '#/definitions/symphony_device_state'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   agent_id:
     in: path
@@ -706,6 +722,13 @@ definitions:
         $ref: '#/definitions/symphony_device_name'
       config:
         $ref: '#/definitions/symphony_device_config'
+      managing_agent:
+        $ref: '#/definitions/symphony_device_agent'
+  symphony_device_agent:
+    type: string
+    x-nullable: false
+    pattern: '^$|^[a-z][\da-z_]+$'
+    example: gw1
   symphony_device_id:
     description: The id of a Symphony device
     type: string
@@ -884,3 +907,25 @@ definitions:
       minLength: 1
       x-nullable: false
     example: ['device_1', 'device_2']
+  symphony_device_state:
+    type: object
+    minLength: 1
+    properties:
+      raw_state:
+        type: string
+    example:
+      raw_state:
+        '{
+          "interfaces": {
+            "interface": [
+              {
+                "config": {
+                  "description": "ACCESS PORT",
+                  "name": "g0/0/0",
+                  "type": "ethernetCsmacd"
+                },
+                "name": "g0/0/0"
+              }
+            ]
+          }
+        }'

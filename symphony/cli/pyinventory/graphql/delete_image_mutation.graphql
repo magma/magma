@@ -1,0 +1,10 @@
+mutation DeleteImageMutation(
+  $entityType: ImageEntity!
+  $entityId: ID!
+  $id: ID!
+) {
+  deleteImage(entityType: $entityType, entityId: $entityId, id: $id) {
+    id
+    fileName
+  }
+}

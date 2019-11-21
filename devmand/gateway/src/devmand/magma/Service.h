@@ -39,6 +39,9 @@ class Service : public ::devmand::Service {
   void
   setGaugeVA(const std::string& key, double value, size_t label_count, ...);
 
+  // The key that will tell orc8r how to store these states
+  static constexpr auto orc8rDeviceType = "symphony_device";
+
  private:
   ::magma::service303::MagmaService magmaService;
 };

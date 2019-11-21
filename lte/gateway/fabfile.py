@@ -94,6 +94,12 @@ def package(vcs='hg', all_deps="False",
         run('mkdir -p ~/magma-packages')
         run('mv *.deb ~/magma-packages')
 
+        with cd('release'):
+            run('cat mirrored_packages | '
+                'xargs -I% sudo aptitude download -q2 %')
+            run('cp *.deb ~/magma-packages')
+            run('sudo rm -f *.deb')
+
         if all_deps:
             pkg.download_all_pkgs()
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')

@@ -20,12 +20,15 @@
 
 #include <devmand/Config.h>
 #include <devmand/ErrorHandler.h>
+#include <devmand/channels/ping/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/utils/LifetimeTracker.h>
 
 using namespace std::chrono_literals;
 
 namespace devmand {
+
+using IPVersion = channels::ping::IPVersion;
 
 Application::Application()
     : deviceFactory(*this),
@@ -39,7 +42,10 @@ Application::Application()
   ErrorHandler::executeWithCatch(
       [this]() -> void {
         snmpEngine = addEngine<channels::snmp::Engine>(eventBase, name);
-        pingEngine = addEngine<channels::ping::Engine>(eventBase);
+        pingEngine =
+            addEngine<channels::ping::Engine>(eventBase, IPVersion::v4);
+        pingEngineIpv6 =
+            addEngine<channels::ping::Engine>(eventBase, IPVersion::v6);
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
 }
@@ -49,9 +55,23 @@ channels::snmp::Engine& Application::getSnmpEngine() {
   return *snmpEngine;
 }
 
-channels::ping::Engine& Application::getPingEngine() {
-  assert(pingEngine != nullptr);
-  return *pingEngine;
+channels::ping::Engine& Application::getPingEngine(IPVersion ipv) {
+  if (ipv == IPVersion::v6) {
+    assert(pingEngineIpv6 != nullptr);
+    return *pingEngineIpv6;
+  } else {
+    assert(pingEngine != nullptr);
+    return *pingEngine;
+  }
+}
+
+// get the relevant ping engine for the given IP (ipv4 or ipv6)
+channels::ping::Engine& Application::getPingEngine(folly::IPAddress ip) {
+  if (ip.isV6()) {
+    return getPingEngine(IPVersion::v6);
+  } else {
+    return getPingEngine(IPVersion::v4);
+  }
 }
 
 std::string Application::getName() const {

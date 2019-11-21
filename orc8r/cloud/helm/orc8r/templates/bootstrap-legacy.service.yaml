@@ -1,16 +1,19 @@
-# Copyright (c) 2018-present, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
 
 {{/*
-  Chart for a legacy open service for gateway bootstrapping.
-  We need this in place because old gateways are configured to connect to
-  cloud boostrap controller via port 443, not 9444. This service can go away
-  after all gateways in the field have been upgraded to talk to ports 9443/9444
+Chart for a legacy open service for gateway bootstrapping.
+We need this in place because old gateways are configured to connect to
+cloud boostrap controller via port 443, not 9444. This service can go away
+after all gateways in the field have been upgraded to talk to ports 9443/9444
 */}}
+{{- if .Values.proxy.service.legacyEnabled }}
 {{ $serviceType := .Values.proxy.service.type }}
 apiVersion: v1
 kind: Service
@@ -22,9 +25,10 @@ metadata:
     {{- with .Values.proxy.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-  {{- with .Values.proxy.service.annotations }}
+  {{- if or .Values.proxy.service.annotations .Values.proxy.service.extraAnnotations.bootstrapLagacy }}
   annotations:
-{{ toYaml . | indent 4 }}
+{{ with .Values.proxy.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
+{{ with .Values.proxy.service.extraAnnotations.bootstrapLagacy }}{{ toYaml . | indent 4 }}{{ end }}
   {{- end }}
 spec:
   selector:
@@ -40,3 +44,4 @@ spec:
       nodePort: {{ .nodePort }}
       {{- end }}
     {{- end }}
+{{- end }}

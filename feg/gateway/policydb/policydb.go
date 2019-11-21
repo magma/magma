@@ -19,9 +19,22 @@ import (
 	"github.com/golang/glog"
 )
 
+// ChargingKey defines a reporting key for a charging rule
+// the key could be the policy RatingGroup or RatingGroup and Service Identity combo
+type ChargingKey struct {
+	RatingGroup       uint32
+	ServiceIdTracking bool
+	ServiceIdentifier uint32
+}
+
+func (k ChargingKey) String() string {
+	return fmt.Sprintf("ChargingKey: RatingGroup = %d, ServiceIdTracking = %v, ServiceIdentifier = %d",
+		k.RatingGroup, k.ServiceIdTracking, k.ServiceIdentifier)
+}
+
 // PolicyDBClient defines interactions with the stored policy rules
 type PolicyDBClient interface {
-	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]uint32, error)
+	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]ChargingKey, error)
 	GetPolicyRuleByID(id string) (*protos.PolicyRule, error)
 	GetRuleIDsForBaseNames(baseNames []string) []string
 }
@@ -31,6 +44,15 @@ type RedisPolicyDBClient struct {
 	PolicyMap      object_store.ObjectMap
 	BaseNameMap    object_store.ObjectMap
 	StreamerClient streamer.Client
+}
+
+// CreateChargingKey creates & returns ChargingKey from a given policy
+func CreateChargingKey(rule *protos.PolicyRule) ChargingKey {
+	sid := rule.GetServiceIdentifier()
+	return ChargingKey{
+		RatingGroup:       rule.GetRatingGroup(),
+		ServiceIdTracking: sid != nil,
+		ServiceIdentifier: sid.GetValue()}
 }
 
 // NewRedisPolicyDBClient creates a new RedisPolicyDBClient
@@ -75,23 +97,22 @@ func (client *RedisPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyR
 // GetChargingKeysForRules retrieves the charging keys associated with the given
 // rule names from redis.
 func (client *RedisPolicyDBClient) GetChargingKeysForRules(
-	ruleIDs []string,
-	ruleDefs []*protos.PolicyRule,
-) ([]uint32, error) {
-	keys := []uint32{}
-	for _, id := range ruleIDs {
+	staticRuleIDs []string, dynamicRuleDefs []*protos.PolicyRule) ([]ChargingKey, error) {
+
+	keys := []ChargingKey{}
+	for _, id := range staticRuleIDs {
 		policy, err := client.GetPolicyRuleByID(id)
 		if err != nil {
 			glog.Errorf("Unable to get rating group for policy %s: %s", id, err)
 			continue
 		}
 		if needsCharging(policy) {
-			keys = append(keys, policy.RatingGroup)
+			keys = append(keys, CreateChargingKey(policy))
 		}
 	}
-	for _, policy := range ruleDefs {
+	for _, policy := range dynamicRuleDefs {
 		if needsCharging(policy) {
-			keys = append(keys, policy.RatingGroup)
+			keys = append(keys, CreateChargingKey(policy))
 		}
 	}
 	return keys, nil

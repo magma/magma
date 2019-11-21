@@ -20,14 +20,17 @@ using grpc::Status;
 using grpc::Server;
 using magma::orc8r::Service303;
 using magma::orc8r::ServiceInfo;
+using magma::orc8r::State;
 using magma::orc8r::Void;
 using magma::service303::MetricsSingleton;
 
 namespace magma { namespace service303 {
 
 using ServiceInfoMeta = std::map<std::string,std::string>;
+using States = std::list<std::map<std::string, std::string>>;
 using ServiceInfoCallback = std::function<ServiceInfoMeta()>;
 using ConfigReloadCallback = std::function<bool()>;
+using OperationalStatesCallback = std::function<States()>;
 
 /**
  * MagmaService provides the framework for all Magma services.
@@ -84,6 +87,17 @@ class MagmaService final : public Service303::Service {
      * Unsets the callback to request a config reload from a service
      */
     void ClearConfigReloadCallback();
+
+    /**
+     * Sets the callback to generate the operational states for a service
+     */
+    void SetOperationalStatesCallback(OperationalStatesCallback callback);
+
+    /**
+     * Unsets the callback to generate the operational states for a service
+     */
+    void ClearOperationalStatesCallback();
+
 
     /*
     * Returns the service info (name, version, state, etc.)
@@ -204,6 +218,7 @@ class MagmaService final : public Service303::Service {
     grpc::ServerBuilder builder_;
     ServiceInfoCallback service_info_callback_;
     ConfigReloadCallback config_reload_callback_;
+    OperationalStatesCallback operational_states_callback_;
 };
 
 }} // namespace magma::service303

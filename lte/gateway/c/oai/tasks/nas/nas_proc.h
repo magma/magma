@@ -52,6 +52,7 @@ Description NAS procedure call manager
 #include "nas/as_message.h"
 #include "bstrlib.h"
 #include "nas_messages_types.h"
+#include "mme_app_defs.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgs_messages_types.h"
@@ -116,17 +117,19 @@ int nas_proc_ul_transfer_ind(
  *      NAS procedures triggered by the mme applicative layer
  * --------------------------------------------------------------------------
  */
-int nas_proc_authentication_info_answer(s6a_auth_info_ans_t *ans);
+int nas_proc_authentication_info_answer(
+  mme_app_desc_t* mme_app_desc_p,
+  s6a_auth_info_ans_t* ans);
 int nas_proc_auth_param_res(
   mme_ue_s1ap_id_t ue_id,
   uint8_t nb_vectors,
   eutran_vector_t *vectors);
 int nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id, nas_cause_t cause);
 int nas_proc_deregister_ue(uint32_t ue_id);
-int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res);
-int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *nas_pdn_connectivity_rsp);
-int nas_proc_pdn_connectivity_fail(
-  emm_cn_pdn_fail_t *nas_pdn_connectivity_fail);
+int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id);
+int nas_proc_cs_respose_success(
+  emm_cn_cs_response_success_t* nas_cs_response_success);
+int nas_proc_ula_or_csrsp_fail(emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail);
 int nas_proc_create_dedicated_bearer(
   emm_cn_activate_dedicated_bearer_req_t *emm_cn_activate);
 int nas_proc_signalling_connection_rel_ind(mme_ue_s1ap_id_t ue_id);
@@ -148,4 +151,6 @@ int nas_proc_notify_service_reject(
   itti_nas_notify_service_reject_t *const service_reject_p);
 int nas_proc_delete_dedicated_bearer(
   emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate);
+int nas_proc_pdn_disconnect_rsp(
+  emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp);
 #endif /* FILE_NAS_PROC_SEEN*/

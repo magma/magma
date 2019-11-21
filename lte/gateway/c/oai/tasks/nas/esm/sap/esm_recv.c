@@ -42,6 +42,10 @@
 #include "common_defs.h"
 #include "esm_data.h"
 #include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_apn_selection.h"
+#include "mme_app_itti_messaging.h"
+#include "mme_app_state.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -144,11 +148,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   emm_context_t *emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_connectivity_request_msg *msg,
-  ebi_t *new_ebi)
+  const pdn_connectivity_request_msg* msg,
+  ebi_t* new_ebi,
+  bool is_standalone)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  int rc = RETURNerror;
   int esm_cause = ESM_CAUSE_SUCCESS;
+  pdn_cid_t pdn_cid = 0;
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
@@ -156,7 +163,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-SAP   - Received PDN Connectivity Request message "
-    "(ue_id=%u, pti=%d, ebi=%d)\n",
+    "(ue_id= " MME_UE_S1AP_ID_FMT ", pti=%u, ebi=%u)\n",
     ue_id,
     pti,
     ebi);
@@ -340,6 +347,88 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         ue_id);
   }
 
+  if (
+    (is_standalone) &&
+    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1)) {
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+      &mme_app_desc_p->mme_ue_contexts, ue_id);
+    //Select APN
+    struct apn_configuration_s* apn_config = mme_app_select_apn(
+      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
+    /*
+     * Execute the PDN connectivity procedure requested by the UE
+     */
+    if (!apn_config) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+    }
+
+    /* Find a free PDN Connection ID*/
+    for (pdn_cid = 0; pdn_cid < MAX_APN_PER_UE; pdn_cid++) {
+      if (!ue_mm_context_p->pdn_contexts[pdn_cid]) break;
+    }
+
+    if (pdn_cid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot find free pdn_cid for ue id" MME_UE_S1AP_ID_FMT
+        "\n",
+        ue_id);
+      unlock_ue_contexts(ue_mm_context_p);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INSUFFICIENT_RESOURCES);
+    }
+    // Update pdn connection id
+    emm_context->esm_ctx.esm_proc_data->pdn_cid = pdn_cid;
+
+    rc = esm_proc_pdn_connectivity_request(
+      emm_context,
+      pti,
+      pdn_cid,
+      apn_config->context_identifier,
+      emm_context->esm_ctx.esm_proc_data->request_type,
+      esm_data->apn,
+      esm_data->pdn_type,
+      esm_data->pdn_addr,
+      &esm_data->bearer_qos,
+      (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
+        &emm_context->esm_ctx.esm_proc_data->pco :
+        NULL,
+      &esm_cause);
+
+    if (rc != RETURNerror) {
+      /*
+       * Create local default EPS bearer context
+       */
+      rc = esm_proc_default_eps_bearer_context(
+        emm_context,
+        pti,
+        pdn_cid,
+        new_ebi,
+        esm_data->bearer_qos.qci,
+        &esm_cause);
+
+      if (rc != RETURNerror) {
+        esm_cause = ESM_CAUSE_SUCCESS;
+      }
+    }
+    //Send PDN Connectivity req
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d",
+      ue_id);
+
+    emm_context->esm_ctx.is_standalone = true;
+
+    mme_app_send_s11_create_session_req(
+      mme_app_desc_p, ue_mm_context_p, pdn_cid);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  }
+
 #if ORIGINAL_CODE
   /*
    * Execute the PDN connectivity procedure requested by the UE
@@ -347,7 +436,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   int pid = esm_proc_pdn_connectivity_request(
     emm_context,
     pti,
-    request_type,
+    emm_ctx->esm_ctx.esm_proc_data->request_type,
     &esm_data->apn,
     esm_data->pdn_type,
     &esm_data->pdn_addr,
@@ -366,8 +455,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     }
   }
 #else
-  nas_itti_pdn_config_req(
-    pti, ue_id, &emm_context->_imsi, esm_data, esm_data->request_type);
+  mme_app_send_s6a_update_location_req(
+    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
   esm_cause = ESM_CAUSE_SUCCESS;
 #endif
   /*
@@ -442,6 +531,10 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
+
+  esm_data->pti = pti;
+
   /*
    * Message processing
    */
@@ -451,6 +544,24 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   int pid = esm_proc_pdn_disconnect_request(emm_context, pti, &esm_cause);
 
   if (pid != RETURNerror) {
+
+    /* If VoLTE is enabled, send ITTI message to MME APP
+     * MME APP will trigger Delete session towards SGW
+     * to release the session
+     */
+    if (mme_config.eps_network_feature_support
+          .ims_voice_over_ps_session_in_s1) {
+      OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-SAP   - Sending PDN Disconnect Request message "
+        "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
+        ue_id,
+        pid,
+        ebi);
+      nas_itti_pdn_disconnect_req(ue_id, pid, *linked_ebi);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+    }
+
     /*
      * Get the identity of the default EPS bearer context assigned to
      * * * * the PDN connection to disconnect from
@@ -534,14 +645,9 @@ esm_cause_t esm_recv_information_response(
     &esm_cause);
 
   if (pid != RETURNerror) {
-    // Continue with pdn connectivity request
-    nas_itti_pdn_config_req(
-      pti,
-      ue_id,
-      &emm_context->_imsi,
-      emm_context->esm_ctx.esm_proc_data,
-      emm_context->esm_ctx.esm_proc_data->request_type);
-
+    // Continue with S6a Update Location Request
+    mme_app_send_s6a_update_location_req(
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
     esm_cause = ESM_CAUSE_SUCCESS;
   }
 

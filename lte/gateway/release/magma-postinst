@@ -43,5 +43,9 @@ systemctl disable dnsmasq
 systemctl stop lighttpd
 systemctl disable lighttpd
 
+# Restart rsyslog to pick up fluent-bit config, create fluent-bit DB directory
+systemctl restart rsyslog
+mkdir -p /var/opt/magma/fluent-bit
+
 # Restart all services on package install
 systemctl restart magma@* || true

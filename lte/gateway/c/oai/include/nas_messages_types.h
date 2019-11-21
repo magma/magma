@@ -45,19 +45,6 @@
 #include "common_ies.h"
 #include "nas/networkDef.h"
 
-#define NAS_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.nas_ul_data_ind
-#define NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_req
-#define NAS_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_cnf
-#define NAS_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.nas_dl_data_rej
-#define NAS_PDN_CONFIG_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_req
-#define NAS_PDN_CONFIG_RSP(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_rsp
-#define NAS_PDN_CONFIG_FAIL(mSGpTR) (mSGpTR)->ittiMsg.nas_pdn_config_fail
-#define NAS_PDN_CONNECTIVITY_REQ(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.nas_pdn_connectivity_req
-#define NAS_PDN_CONNECTIVITY_RSP(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.nas_pdn_connectivity_rsp
-#define NAS_PDN_CONNECTIVITY_FAIL(mSGpTR)                                      \
-  (mSGpTR)->ittiMsg.nas_pdn_connectivity_fail
 #define NAS_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                               \
   (mSGpTR)->ittiMsg.nas_conn_est_cnf
 #define NAS_BEARER_PARAM(mSGpTR) (mSGpTR)->ittiMsg.nas_bearer_param
@@ -87,16 +74,6 @@
   (mSGpTR)->ittiMsg.nas_notify_service_reject
 #define NAS_ERAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_rel_cmd
 
-typedef enum pdn_conn_rsp_cause_e {
-  CAUSE_OK = 16,
-  CAUSE_CONTEXT_NOT_FOUND = 64,
-  CAUSE_INVALID_MESSAGE_FORMAT = 65,
-  CAUSE_SERVICE_NOT_SUPPORTED = 68,
-  CAUSE_SYSTEM_FAILURE = 72,
-  CAUSE_NO_RESOURCES_AVAILABLE = 73,
-  CAUSE_ALL_DYNAMIC_ADDRESSES_OCCUPIED = 84
-} pdn_conn_rsp_cause_t;
-
 typedef struct itti_nas_cs_service_notification_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
 #define NAS_PAGING_ID_IMSI 0X00
@@ -105,82 +82,6 @@ typedef struct itti_nas_cs_service_notification_s {
   bstring
     cli; /* If CLI received in Sgsap-Paging_Req,shall sent in CS Service Notification */
 } itti_nas_cs_service_notification_t;
-
-typedef struct itti_nas_pdn_connectivity_req_s {
-  proc_tid_t
-    pti; // nas ref  Identity of the procedure transaction executed to activate the PDN connection entry
-  mme_ue_s1ap_id_t ue_id; // nas ref
-  char imsi[16];
-  uint8_t imsi_length;
-  uint8_t presencemask; // bitmask, to indicate the presence of parameters
-#define NAS_PRESENT_IMEI_SV (1 << 0)
-  imeisv_t imeisv; // Send IMEISV to MME app, received in Security mode Complete
-  bearer_qos_t bearer_qos;
-  protocol_configuration_options_t pco;
-  bstring apn;
-  pdn_cid_t pdn_cid;
-  bstring pdn_addr;
-  int pdn_type;
-  int request_type;
-} itti_nas_pdn_connectivity_req_t;
-
-typedef struct itti_nas_pdn_connectivity_rsp_s {
-  pdn_cid_t pdn_cid;
-  proc_tid_t
-    pti; // nas ref  Identity of the procedure transaction executed to activate the PDN connection entry
-  network_qos_t qos;
-  protocol_configuration_options_t pco;
-  bstring pdn_addr;
-  int pdn_type;
-  int request_type;
-
-  mme_ue_s1ap_id_t ue_id;
-
-  /* Key eNB */
-  //uint8_t                 kenb[32];
-
-  ambr_t ambr;
-  ambr_t apn_ambr;
-
-  /* EPS bearer ID */
-  unsigned ebi : 4;
-
-  /* QoS */
-  qci_t qci;
-  priority_level_t prio_level;
-  pre_emption_vulnerability_t pre_emp_vulnerability;
-  pre_emption_capability_t pre_emp_capability;
-
-  /* S-GW TEID for user-plane */
-  /* S-GW IP address for User-Plane */
-  fteid_t sgw_s1u_fteid;
-} itti_nas_pdn_connectivity_rsp_t;
-
-typedef struct itti_nas_pdn_connectivity_fail_s {
-  mme_ue_s1ap_id_t ue_id;
-  int pti;
-  pdn_conn_rsp_cause_t cause;
-} itti_nas_pdn_connectivity_fail_t;
-
-typedef struct itti_nas_pdn_config_req_s {
-  proc_tid_t
-    pti; // nas ref  Identity of the procedure transaction executed to activate the PDN connection entry
-  mme_ue_s1ap_id_t ue_id; // nas ref
-  char imsi[16];
-  uint8_t imsi_length;
-  bstring apn;
-  bstring pdn_addr;
-  pdn_type_t pdn_type;
-  int request_type;
-} itti_nas_pdn_config_req_t;
-
-typedef struct itti_nas_pdn_config_rsp_s {
-  mme_ue_s1ap_id_t ue_id; // nas ref
-} itti_nas_pdn_config_rsp_t;
-
-typedef struct itti_nas_pdn_config_fail_s {
-  mme_ue_s1ap_id_t ue_id; // nas ref
-} itti_nas_pdn_config_fail_t;
 
 typedef struct itti_nas_conn_est_rej_s {
   mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier   */
@@ -217,31 +118,6 @@ typedef struct itti_nas_info_transfer_s {
   bstring nas_msg; /* Uplink NAS message           */
 } itti_nas_info_transfer_t;
 
-typedef struct itti_nas_ul_data_ind_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
-  bstring nas_msg;        /* Uplink NAS message           */
-  tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message.  */
-  ecgi_t
-    cgi; /* Indicating the cell from which the UE has sent the NAS message.   */
-} itti_nas_ul_data_ind_t;
-
-typedef struct itti_nas_dl_data_req_s {
-  mme_ue_s1ap_id_t ue_id;              /* UE lower layer identifier        */
-  nas_error_code_t transaction_status; /* Transaction status               */
-  bstring nas_msg;                     /* Downlink NAS message             */
-} itti_nas_dl_data_req_t;
-
-typedef struct itti_nas_dl_data_cnf_s {
-  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier        */
-  nas_error_code_t err_code; /* Transaction status               */
-} itti_nas_dl_data_cnf_t;
-
-typedef struct itti_nas_dl_data_rej_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
-  bstring nas_msg;        /* Uplink NAS message           */
-  int err_code;
-} itti_nas_dl_data_rej_t;
 
 typedef struct itti_erab_setup_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
@@ -254,9 +130,11 @@ typedef struct itti_erab_setup_req_s {
 } itti_erab_setup_req_t;
 
 typedef struct itti_erab_rel_cmd_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
-  ebi_t ebi;              /* EPS bearer id        */
-  bstring nas_msg; /* NAS erab bearer context activation message           */
+  mme_ue_s1ap_id_t ue_id;   /* UE lower layer identifier   */
+  ebi_t ebi;                /* EPS bearer id        */
+  bstring nas_msg;          /* NAS erab bearer context activation message */
+  uint8_t n_bearers;        /*Number of bearers to be released*/
+  ebi_t* bearers_to_be_rel; /* Bearers to be released*/
 } itti_erab_rel_cmd_t;
 
 typedef struct itti_nas_attach_req_s {

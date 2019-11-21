@@ -847,6 +847,50 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
   assert_monitor_credit("IMSI1", REPORTED_RX, {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit("IMSI1", REPORTED_TX, {{"3", 1024}, {"4", 1079}});
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"3", 4096}, {"4", 4176}});
+
+  // Test rule removal in usage monitor response for CCA-Update
+  update_response.Clear();
+  monitor_updates = update_response.mutable_usage_monitor_responses();
+  auto monitor_updates_response = monitor_updates->Add();
+  create_monitor_update_response(
+    "IMSI1",
+    "3",
+    MonitoringLevel::PCC_RULE_LEVEL,
+    0,
+    monitor_updates_response);
+  monitor_updates_response->add_rules_to_remove("pcrf_only");
+
+  EXPECT_CALL(
+    *pipelined_client,
+    deactivate_flows_for_rules("IMSI1",
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credit(update_response);
+
+  // Test rule installation in usage monitor response for CCA-Update
+  update_response.Clear();
+  monitor_updates = update_response.mutable_usage_monitor_responses();
+  monitor_updates_response = monitor_updates->Add();
+  create_monitor_update_response(
+    "IMSI1",
+    "3",
+    MonitoringLevel::PCC_RULE_LEVEL,
+    0,
+    monitor_updates_response);
+
+  StaticRuleInstall static_rule_install;
+  static_rule_install.set_rule_id("pcrf_only");
+  auto res_rules_to_install = monitor_updates_response->add_static_rules_to_install();
+  res_rules_to_install->CopyFrom(static_rule_install);
+
+  EXPECT_CALL(
+    *pipelined_client,
+    activate_flows_for_rules("IMSI1", testing::_,
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credit(update_response);
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)

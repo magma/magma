@@ -45,7 +45,6 @@
 #include "mme_app_defs.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
-#include "s6a_message_utils.h"
 #include "service303.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
@@ -89,7 +88,7 @@ void *mme_app_thread(void *args)
     itti_receive_msg(TASK_MME_APP, &received_message_p);
     DevAssert(received_message_p);
     OAILOG_DEBUG(LOG_MME_APP, "Getting mme_nas_state");
-    mme_app_desc_p = get_mme_nas_state(true);
+    mme_app_desc_p = get_locked_mme_nas_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
@@ -135,6 +134,14 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s6a_cancel_location_req);
       } break;
 
+      case MME_APP_UPLINK_DATA_IND: {
+        nas_proc_ul_transfer_ind(
+          MME_APP_UL_DATA_IND(received_message_p).ue_id,
+          MME_APP_UL_DATA_IND(received_message_p).tai,
+          MME_APP_UL_DATA_IND(received_message_p).cgi,
+          &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
+      } break;
+
       case NAS_ERAB_SETUP_REQ: {
         mme_app_handle_erab_setup_req(mme_app_desc_p,
             &NAS_ERAB_SETUP_REQ(received_message_p));
@@ -143,47 +150,6 @@ void *mme_app_thread(void *args)
       case NAS_ERAB_REL_CMD: {
         mme_app_handle_erab_rel_cmd(mme_app_desc_p,
             &NAS_ERAB_REL_CMD(received_message_p));
-      } break;
-
-
-      case NAS_PDN_CONFIG_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP,
-          "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
-          received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        struct ue_mm_context_s *ue_context_p = NULL;
-        ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-            &mme_app_desc_p->mme_ue_contexts,
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        if (ue_context_p) {
-          mme_app_send_s6a_update_location_req(ue_context_p);
-          unlock_ue_contexts(ue_context_p);
-        } else {
-          OAILOG_ERROR(
-            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        }
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP, "Received PDN CONNECTIVITY REQ from NAS_MME\n");
-        mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_pdn_connectivity_req);
-      } break;
-
-      case NAS_UPLINK_DATA_IND: {
-        ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-            &mme_app_desc_p->mme_ue_contexts,
-            NAS_UL_DATA_IND(received_message_p).ue_id);
-        nas_proc_ul_transfer_ind(
-          NAS_UL_DATA_IND(received_message_p).ue_id,
-          NAS_UL_DATA_IND(received_message_p).tai,
-          NAS_UL_DATA_IND(received_message_p).cgi,
-          &NAS_UL_DATA_IND(received_message_p).nas_msg);
-        if (ue_context_p) {
-          unlock_ue_contexts(ue_context_p);
-        }
       } break;
 
       case S11_CREATE_BEARER_REQUEST: {
@@ -431,11 +397,6 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s1ap_ue_context_release_complete);
       } break;
 
-      case NAS_DOWNLINK_DATA_REQ: {
-        mme_app_handle_nas_dl_req(mme_app_desc_p,
-            &received_message_p->ittiMsg.nas_dl_data_req);
-      } break;
-
       case S1AP_ENB_DEREGISTERED_IND: {
         mme_app_handle_enb_deregister_ind(
           &received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
@@ -542,16 +503,44 @@ void *mme_app_thread(void *args)
           &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
       } break;
 
+      case MME_APP_PDN_DISCONNECT_REQ: {
+        mme_app_handle_pdn_disconnect_req(mme_app_desc_p,
+          &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
+      } break;
+
       case S1AP_PATH_SWITCH_REQUEST: {
         mme_app_handle_path_switch_request(mme_app_desc_p,
           &S1AP_PATH_SWITCH_REQUEST(received_message_p));
+      } break;
+
+      case S6A_AUTH_INFO_ANS: {
+        /*
+         * We received the authentication vectors from HSS,
+         * Normaly should trigger an authentication procedure towards UE.
+         */
+        nas_proc_authentication_info_answer(
+          mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));
+      } break;
+
+      case MME_APP_DOWNLINK_DATA_CNF: {
+        nas_proc_dl_transfer_cnf(
+          MME_APP_DL_DATA_CNF(received_message_p).ue_id,
+          MME_APP_DL_DATA_CNF(received_message_p).err_code,
+          &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
+      } break;
+
+      case MME_APP_DOWNLINK_DATA_REJ: {
+        nas_proc_dl_transfer_rej(
+          MME_APP_DL_DATA_REJ(received_message_p).ue_id,
+          MME_APP_DL_DATA_REJ(received_message_p).err_code,
+          &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
       } break;
 
       case TERMINATE_MESSAGE: {
         /*
        * Termination message received TODO -> release any data allocated
        */
-        put_mme_nas_state();
+        put_mme_nas_state(&mme_app_desc_p);
         mme_app_exit();
         itti_free_msg_content(received_message_p);
         itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
@@ -573,7 +562,7 @@ void *mme_app_thread(void *args)
       } break;
     }
 
-    put_mme_nas_state();
+    put_mme_nas_state(&mme_app_desc_p);
     itti_free_msg_content(received_message_p);
     itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
     received_message_p = NULL;
@@ -608,7 +597,6 @@ static void _check_mme_healthy_and_notify_service(void)
 {
   if (_is_mme_app_healthy()) {
     send_app_health_to_service303(TASK_MME_APP, true);
-    send_start_s6a_server(TASK_MME_APP);
   }
 }
 

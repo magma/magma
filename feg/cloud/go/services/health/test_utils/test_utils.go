@@ -38,7 +38,7 @@ func GetHealthyRequest() *protos.HealthRequest {
 	}
 
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
-	serviceStatsMap["S6A_PROXY"] = &serviceStats
+	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
@@ -70,7 +70,7 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 	}
 
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
-	serviceStatsMap["S6A_PROXY"] = &serviceStats
+	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
@@ -83,7 +83,7 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 		ServiceStatus: serviceStatsMap,
 		Health: &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: "Service: S6A_PROXY unhealthy",
+			HealthMessage: "Service: SWX_PROXY unhealthy",
 		},
 		Time: uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
 	}

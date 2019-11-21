@@ -20,13 +20,16 @@ import (
 // swagger:model policy_rule
 type PolicyRule struct {
 
+	// Subscribers which have been assigned this policy not as part of a base name
+	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
+
 	// flow list
 	// Required: true
 	FlowList []*FlowDescription `json:"flow_list"`
 
 	// id
 	// Required: true
-	ID *string `json:"id" magma_alt_name:"Id"`
+	ID PolicyID `json:"id"`
 
 	// monitoring key
 	MonitoringKey string `json:"monitoring_key,omitempty"`
@@ -52,6 +55,10 @@ type PolicyRule struct {
 // Validate validates this policy rule
 func (m *PolicyRule) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateAssignedSubscribers(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateFlowList(formats); err != nil {
 		res = append(res, err)
@@ -83,6 +90,26 @@ func (m *PolicyRule) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *PolicyRule) validateAssignedSubscribers(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AssignedSubscribers) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.AssignedSubscribers); i++ {
+
+		if err := m.AssignedSubscribers[i].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
+	return nil
+}
+
 func (m *PolicyRule) validateFlowList(formats strfmt.Registry) error {
 
 	if err := validate.Required("flow_list", "body", m.FlowList); err != nil {
@@ -110,7 +137,10 @@ func (m *PolicyRule) validateFlowList(formats strfmt.Registry) error {
 
 func (m *PolicyRule) validateID(formats strfmt.Registry) error {
 
-	if err := validate.Required("id", "body", m.ID); err != nil {
+	if err := m.ID.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("id")
+		}
 		return err
 	}
 

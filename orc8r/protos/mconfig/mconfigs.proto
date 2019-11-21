@@ -92,3 +92,14 @@ message MetricsD {
 message State {
     orc8r.LogLevel log_level = 1;
 }
+
+//------------------------------------------------------------------------------
+// Fluent Bit configs
+//------------------------------------------------------------------------------
+message FluentBit {
+    map<string, string> extra_tags = 1;
+
+    uint32 throttle_rate = 10;
+    uint32 throttle_window = 11;
+    string throttle_interval = 12;
+}
