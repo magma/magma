@@ -99,7 +99,7 @@ typedef struct emm_cn_ula_success_s {
 } emm_cn_ula_success_t;
 
 /* emm_cn_ula_or_csrsp_fail_s is used for handling failed
- * Locatio update procedure and Create session procedure
+ * Location update procedure and Create session procedure
  */
 typedef struct emm_cn_ula_or_csrsp_fail_s {
   mme_ue_s1ap_id_t ue_id;

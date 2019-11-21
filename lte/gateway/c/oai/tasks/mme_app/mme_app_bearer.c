@@ -874,16 +874,16 @@ int mme_app_handle_create_sess_resp(
       "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
       create_sess_resp_pP->cause.cause_value,
       ue_context_p->mme_ue_s1ap_id);
-    emm_cn_ula_or_csrsp_fail_t cn_csrsp_fail = {0};
+    emm_cn_ula_or_csrsp_fail_t create_session_response_fail = {0};
     bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
                   .eps_bearer_id /* - 5 */;
     current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
     if (current_bearer_p) {
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
-    cn_csrsp_fail.pti = transaction_identifier;
-    cn_csrsp_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
-    cn_csrsp_fail.cause =
+    create_session_response_fail.pti = transaction_identifier;
+    create_session_response_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+    create_session_response_fail.cause =
       (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -893,7 +893,7 @@ int mme_app_handle_create_sess_resp(
       ue_context_p->mme_ue_s1ap_id,
       bearer_id,
       transaction_identifier);
-    rc = nas_proc_ula_or_csrsp_fail(&cn_csrsp_fail);
+    rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }

@@ -511,8 +511,8 @@ int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id)
   emm_sap.primitive = EMMCN_ULA_SUCCESS;
   emm_sap.u.emm_cn.u.emm_cn_ula_success = &emm_cn_ula_success;
   OAILOG_INFO(
-    LOG_NAS,
-    "Received S6a-Update Location Answer Success for ue_id = ",
+    LOG_NAS_ESM,
+    "Received S6a-Update Location Answer Success for ue_id = "
      MME_UE_S1AP_ID_FMT "\n",
     emm_cn_ula_success.ue_id);
   rc = emm_sap_send(&emm_sap);
@@ -530,9 +530,9 @@ int nas_proc_cs_respose_success(
   emm_sap.primitive = EMMCN_CS_RESPONSE_SUCCESS;
   emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
   OAILOG_INFO(
-    LOG_NAS,
+    LOG_NAS_ESM,
     "Handle Create Session Response Success at NAS for ue_id = "
-     MME_UE_S1AP_ID_FMT "\n",
+    MME_UE_S1AP_ID_FMT "\n",
     cs_response_success->ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

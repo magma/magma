@@ -285,7 +285,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   pdn_cid_t pdn_cid = 0;
   ebi_t new_ebi = 0;
-  bool is_pdn_connectivity = false;
+  bool is_pdn_context_exist_for_apn = false;
 
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -340,7 +340,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
       (ue_mm_context->pdn_contexts[pdn_cid]) &&
       (ue_mm_context->pdn_contexts[pdn_cid]->context_identifier ==
        apn_config->context_identifier)) {
-      is_pdn_connectivity = true;
+      is_pdn_context_exist_for_apn = true;
       break;
     }
   }
@@ -397,8 +397,8 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
        * Create local default EPS bearer context
        */
       if (
-        (!is_pdn_connectivity) ||
-        ((is_pdn_connectivity) &&
+        (!is_pdn_context_exist_for_apn) ||
+        ((is_pdn_context_exist_for_apn) &&
          (EPS_BEARER_IDENTITY_UNASSIGNED ==
           ue_mm_context->pdn_contexts[pdn_cid]->default_ebi))) {
         rc = esm_proc_default_eps_bearer_context(
@@ -429,13 +429,11 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
-    if (!is_pdn_connectivity) {
+    if (!is_pdn_context_exist_for_apn) {
       if ((mme_app_send_s11_create_session_req(
         mme_app_desc_p, ue_mm_context, pdn_cid)) == RETURNok) {
         increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
       }
-    } else {
-      OAILOG_ERROR(LOG_NAS_ESM, "Received Invalid PDN type \n");
     }
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -636,9 +634,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
-    if (msg_pP->pdn_addr) {
-      bdestroy_wrapper(&msg_pP->pdn_addr);
-    }
+    bdestroy_wrapper(&msg_pP->pdn_addr);
     if (size > 0) {
       rsp = blk2bstr(emm_cn_sap_buffer, size);
     }
