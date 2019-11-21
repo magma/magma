@@ -71,6 +71,7 @@ target_link_libraries(devman
   m
   event
   event_core
+  event_pthreads
   ssh
   ssh_threads
   pcre

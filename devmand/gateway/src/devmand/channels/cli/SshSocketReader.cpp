@@ -17,6 +17,7 @@ void sshReadNotificationThread(struct event_base* base);
 void sshReadNotificationThread(struct event_base* base) {
   while (true) {
     int rv = event_base_dispatch(base);
+
     if (event_base_got_exit(base)) {
       MLOG(MDEBUG) << "event_base_exit called, terminating";
       return;
@@ -48,7 +49,6 @@ struct event* devmand::channels::cli::SshSocketReader::addSshReader(
 }
 
 devmand::channels::cli::SshSocketReader::~SshSocketReader() {
-  event_base_loopbreak(base);
   event_base_loopexit(base, nullptr);
   notificationThread.join();
   event_base_free(base);

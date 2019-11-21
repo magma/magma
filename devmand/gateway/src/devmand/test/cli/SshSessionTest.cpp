@@ -19,6 +19,7 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
+#include <event2/thread.h>
 
 namespace devmand {
 namespace test {
@@ -121,6 +122,24 @@ TEST_F(SshSessionTest, sessionReadingStopServer) {
   FAIL();
 }
 
+TEST_F(SshSessionTest, sessionWriteThenDestruct) {
+  evthread_use_pthreads();
+
+  const std::shared_ptr<SshSessionAsync>& session =
+      std::make_shared<SshSessionAsync>("testConn", executor);
+
+  session->openShell("127.0.0.1", 9999, "cisco", "cisco").get();
+
+  event* sessionEvent = SshSocketReader::getInstance().addSshReader(
+      readCallback, session->getSshFd(), session.get());
+  session->setEvent(sessionEvent);
+
+  session->write("echo 1").get();
+  session->readUntilOutput("1").get();
+
+  // Now make sure that session can cleanly disconnect
+}
+
 TEST_F(SshSessionTest, sessionStop) {
   const std::shared_ptr<SshSessionAsync>& session =
       std::make_shared<SshSessionAsync>("testConn", executor);
@@ -130,6 +149,8 @@ TEST_F(SshSessionTest, sessionStop) {
   event* sessionEvent = SshSocketReader::getInstance().addSshReader(
       readCallback, session->getSshFd(), session.get());
   session->setEvent(sessionEvent);
+
+  // Now make sure that session can cleanly disconnect
 }
 
 TEST_F(SshSessionTest, empty) {

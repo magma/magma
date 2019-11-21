@@ -11,6 +11,7 @@
 #include <libssh/libssh.h>
 #include <spdlog/spdlog.h>
 #include <iostream>
+#include <event2/thread.h>
 
 namespace devmand {
 namespace channels {
@@ -28,6 +29,7 @@ void Engine::initSsh() {
   ssh_threads_set_callbacks(ssh_threads_get_pthread());
   ssh_init();
   ssh_set_log_level(SSH_LOG_NOLOG);
+  evthread_use_pthreads();
 }
 
 void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
