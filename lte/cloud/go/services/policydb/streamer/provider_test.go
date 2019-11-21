@@ -148,7 +148,7 @@ func TestPolicyStreamers(t *testing.T) {
 	expected = funk.Map(
 		expectedBNProtos,
 		func(bn *protos.ChargingRuleBaseNameRecord) *orcprotos.DataUpdate {
-			data, err := proto.Marshal(bn)
+			data, err := proto.Marshal(bn.RuleNamesSet)
 			assert.NoError(t, err)
 			return &orcprotos.DataUpdate{Key: bn.Name, Value: data}
 		},
