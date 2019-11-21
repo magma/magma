@@ -149,7 +149,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
         </TableHead>
         <TableBody>
           {baseNames.map(name => (
-            <TableRow>
+            <TableRow key={name}>
               <TableCell>{name}</TableCell>
               <TableCell>
                 <NestedRouteLink to={`/edit_base_name/${name}`}>
