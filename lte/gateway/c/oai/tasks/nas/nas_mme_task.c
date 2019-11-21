@@ -62,20 +62,6 @@ static void *nas_intertask_interface(void *args_p)
           &MME_APP_CREATE_DEDICATED_BEARER_REQ(received_message_p));
         break;
 
-      case NAS_PDN_CONFIG_RSP: {
-        nas_proc_pdn_config_res(&NAS_PDN_CONFIG_RSP(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_FAIL: {
-        nas_proc_pdn_connectivity_fail(
-          &NAS_PDN_CONNECTIVITY_FAIL(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_RSP: {
-        nas_proc_pdn_connectivity_res(
-          &NAS_PDN_CONNECTIVITY_RSP(received_message_p));
-      } break;
-
       case NAS_IMPLICIT_DETACH_UE_IND: {
         nas_proc_implicit_detach_ue_ind(
           NAS_IMPLICIT_DETACH_UE_IND(received_message_p).ue_id);

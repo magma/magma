@@ -561,14 +561,13 @@ void mme_app_move_context(ue_mm_context_t *dst, ue_mm_context_t *src)
 
 //------------------------------------------------------------------------------
 void mme_ue_context_update_coll_keys(
-  mme_ue_context_t *const mme_ue_context_p,
-  ue_mm_context_t *const ue_context_p,
+  mme_ue_context_t* const mme_ue_context_p,
+  ue_mm_context_t* const ue_context_p,
   const enb_s1ap_id_key_t enb_s1ap_id_key,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
   const imsi64_t imsi,
-  uint8_t imsi_len,
   const s11_teid_t mme_teid_s11,
-  const guti_t *const guti_p) //  never NULL, if none put &ue_context_p->guti
+  const guti_t* const guti_p) //  never NULL, if none put &ue_context_p->guti
 {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
 

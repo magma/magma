@@ -174,111 +174,7 @@ static bool mme_app_construct_guti(
 static void notify_s1ap_new_ue_mme_s1ap_id_association(
   struct ue_mm_context_s *ue_context_p);
 
-//------------------------------------------------------------------------------
-int mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_pdn_connectivity_req_t *const nas_pdn_connectivity_req_pP)
-{
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  struct ue_mm_context_s *ue_context_p = NULL;
-  imsi64_t imsi64 = INVALID_IMSI64;
-  int rc = RETURNok;
-  mme_ue_s1ap_id_t ue_id = INVALID_MME_UE_S1AP_ID;
-  hashtable_rc_t h_rc = HASH_TABLE_OK;
-
-  DevAssert(nas_pdn_connectivity_req_pP);
-  IMSI_STRING_TO_IMSI64((char *) nas_pdn_connectivity_req_pP->imsi, &imsi64);
-  OAILOG_DEBUG(
-    LOG_MME_APP,
-    "Received NAS_PDN_CONNECTIVITY_REQ from NAS Handling imsi " IMSI_64_FMT
-    " pdn type = (%d)\n",
-    imsi64,
-    nas_pdn_connectivity_req_pP->pdn_type);
-
-  if (
-    (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
-    OAILOG_WARNING(
-      LOG_MME_APP,
-      "UE id is not present for this IMSI" IMSI_64_FMT
-      "Seems to be duplicate attach Request scenario\n",
-      imsi64);
-    mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
-    /*
-     * This is Duplicate Attach case.
-     * Since IMSI has been removed from the mme_ue_context hashtable, we need to insert
-     * it again in the mme_ue_context.
-     * Get the UE id from the message. And insert the IMSI again in the hashtable
-     */
-    ue_id = nas_pdn_connectivity_req_pP->ue_id;
-    if (ue_id == INVALID_MME_UE_S1AP_ID) {
-      OAILOG_ERROR(
-        LOG_MME_APP,
-        "ERROR***** Invalid UE Id received from NAS in PDN Connectivity "
-        "Request, (ue_id %u)\n",
-        ue_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-    }
-    ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
-    if (ue_context_p) {
-      if (ue_id != ue_context_p->mme_ue_s1ap_id) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "ERROR***** Abnormal case: ue_id does not match with ue_id in "
-          "ue_context %d, %d\n",
-          ue_id,
-          ue_context_p->mme_ue_s1ap_id);
-        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-      }
-      mme_ue_context_update_coll_keys(
-        &mme_app_desc_p->mme_ue_contexts,
-        ue_context_p,
-        ue_context_p->enb_s1ap_id_key,
-        ue_id,
-        imsi64,
-        nas_pdn_connectivity_req_pP->imsi_length,
-        ue_context_p->mme_teid_s11,
-        &ue_context_p->emm_context._guti);
-      /*
-       * In some cases if ue context already has valid value , hashtables are not updated by mme_ue_context_update_coll_keys
-       * function. Inserting mme_ue_s1ap_id in imsi hashtable explicitly
-       */
-      h_rc = hashtable_uint64_ts_insert(
-        mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
-        (const hash_key_t) imsi64,
-        ue_context_p->mme_ue_s1ap_id);
-      if (HASH_TABLE_OK != h_rc) {
-        OAILOG_ERROR(
-          LOG_MME_APP,
-          "Error could not update this ue context %p "
-          "enb_ue_s1ap_ue_id " ENB_UE_S1AP_ID_FMT
-          " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " imsi " IMSI_64_FMT ": %s\n",
-          ue_context_p,
-          ue_context_p->enb_ue_s1ap_id,
-          ue_context_p->mme_ue_s1ap_id,
-          imsi64,
-          hashtable_rc_code2string(h_rc));
-      }
-      mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
-    } else {
-      OAILOG_ERROR(
-        LOG_MME_APP,
-        "ERROR***** Invalid UE Id received from NAS in PDN Connectivity "
-        "Request %d\n",
-        ue_id);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-    }
-  }
-  rc = mme_app_send_s11_create_session_req(mme_app_desc_p,
-    ue_context_p, nas_pdn_connectivity_req_pP->pdn_cid);
-  if (rc == RETURNok) {
-    increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
-  }
-
-  unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-}
-
+//-----------------------------------------------------------------------------
 // sent by NAS
 //------------------------------------------------------------------------------
 void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
@@ -621,7 +517,6 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
             enb_s1ap_id_key,
             ue_context_p->mme_ue_s1ap_id,
             ue_nas_ctx->_imsi64,
-            ue_nas_ctx->_imsi.length,
             ue_context_p->mme_teid_s11,
             &guti);
           // Check if paging timer exists for UE and remove
@@ -942,13 +837,13 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_create_sess_resp(mme_app_desc_t *mme_app_desc_p,
-  itti_s11_create_session_response_t *const create_sess_resp_pP)
+int mme_app_handle_create_sess_resp(
+  mme_app_desc_t* mme_app_desc_p,
+  itti_s11_create_session_response_t* const create_sess_resp_pP)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  struct ue_mm_context_s *ue_context_p = NULL;
-  bearer_context_t *current_bearer_p = NULL;
-  MessageDef *message_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
+  bearer_context_t* current_bearer_p = NULL;
   ebi_t bearer_id = 0;
   int rc = RETURNok;
 
@@ -967,7 +862,8 @@ int mme_app_handle_create_sess_resp(mme_app_desc_t *mme_app_desc_p,
   }
 
   OAILOG_DEBUG(
-    LOG_MME_APP, "MME S11 teid = %u, cause = %d, ue_id = %u\n",
+    LOG_MME_APP,
+    "MME S11 teid = %u, cause = %d, ue_id = %u\n",
     create_sess_resp_pP->teid,
     create_sess_resp_pP->cause.cause_value,
     ue_context_p->mme_ue_s1ap_id);
@@ -987,34 +883,30 @@ int mme_app_handle_create_sess_resp(mme_app_desc_t *mme_app_desc_p,
     // Send PDN CONNECTIVITY FAIL message  to NAS layer
     increment_counter("mme_spgw_create_session_rsp", 1, 1, "result", "failure");
     OAILOG_DEBUG(
-      LOG_MME_APP, "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
+      LOG_MME_APP,
+      "Create Session Response Cause value = (%d) for ue_id =(%u)\n",
       create_sess_resp_pP->cause.cause_value,
       ue_context_p->mme_ue_s1ap_id);
-    message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_FAIL);
-    itti_nas_pdn_connectivity_fail_t *nas_pdn_connectivity_fail =
-      &message_p->ittiMsg.nas_pdn_connectivity_fail;
-    memset(
-      (void *) nas_pdn_connectivity_fail,
-      0,
-      sizeof(itti_nas_pdn_connectivity_fail_t));
+    emm_cn_ula_or_csrsp_fail_t create_session_response_fail = {0};
     bearer_id = create_sess_resp_pP->bearer_contexts_created.bearer_contexts[0]
                   .eps_bearer_id /* - 5 */;
     current_bearer_p = mme_app_get_bearer_context(ue_context_p, bearer_id);
     if (current_bearer_p) {
       transaction_identifier = current_bearer_p->transaction_identifier;
     }
-    nas_pdn_connectivity_fail->pti = transaction_identifier;
-    nas_pdn_connectivity_fail->ue_id = ue_context_p->mme_ue_s1ap_id;
-    nas_pdn_connectivity_fail->cause =
+    create_session_response_fail.pti = transaction_identifier;
+    create_session_response_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+    create_session_response_fail.cause =
       (pdn_conn_rsp_cause_t)(create_sess_resp_pP->cause.cause_value);
     OAILOG_ERROR(
-      LOG_MME_APP, "Sending NAS PDN connectivity failure for ue_id = (%u)"
+      LOG_MME_APP,
+      "Handling Create Session Response failure for ue_id = (%u)"
       ", bearer id = (%d)"
       ", pti = (%d)\n",
       ue_context_p->mme_ue_s1ap_id,
       bearer_id,
       transaction_identifier);
-    rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    rc = nas_proc_ula_or_csrsp_fail(&create_session_response_fail);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
@@ -1120,52 +1012,41 @@ int mme_app_handle_create_sess_resp(mme_app_desc_t *mme_app_desc_p,
         bearer_id);
     }
   }
-
-  //uint8_t *keNB = NULL;
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_RSP);
-  itti_nas_pdn_connectivity_rsp_t *nas_pdn_connectivity_rsp =
-    &message_p->ittiMsg.nas_pdn_connectivity_rsp;
-
-  nas_pdn_connectivity_rsp->pdn_cid = pdn_cx_id;
-  nas_pdn_connectivity_rsp->pti = transaction_identifier; // NAS internal ref
-  nas_pdn_connectivity_rsp->ue_id =
-    ue_context_p->mme_ue_s1ap_id; // NAS internal ref
-
-  nas_pdn_connectivity_rsp->pdn_addr =
+  /* Send Create Session Response to NAS module */
+  emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
+  nas_pdn_cs_respose_success.pdn_cid = pdn_cx_id;
+  nas_pdn_cs_respose_success.pti = transaction_identifier; // NAS internal ref
+  nas_pdn_cs_respose_success.pdn_addr =
     paa_to_bstring(&create_sess_resp_pP->paa);
-  nas_pdn_connectivity_rsp->pdn_type = create_sess_resp_pP->paa.pdn_type;
+  nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 
   // ASSUME NO HO now, so assume 1 bearer only and is default bearer
 
-  // here at this point OctetString are saved in resp, no loss of memory (apn, pdn_addr)
-  nas_pdn_connectivity_rsp->ue_id = ue_context_p->mme_ue_s1ap_id;
-  nas_pdn_connectivity_rsp->ebi = bearer_id;
-  nas_pdn_connectivity_rsp->qci = current_bearer_p->qci;
-  nas_pdn_connectivity_rsp->prio_level = current_bearer_p->priority_level;
-  nas_pdn_connectivity_rsp->pre_emp_vulnerability =
+  nas_pdn_cs_respose_success.ue_id = ue_context_p->mme_ue_s1ap_id;
+  nas_pdn_cs_respose_success.ebi = bearer_id;
+  nas_pdn_cs_respose_success.qci = current_bearer_p->qci;
+  nas_pdn_cs_respose_success.prio_level = current_bearer_p->priority_level;
+  nas_pdn_cs_respose_success.pre_emp_vulnerability =
     current_bearer_p->preemption_vulnerability;
-  nas_pdn_connectivity_rsp->pre_emp_capability =
+  nas_pdn_cs_respose_success.pre_emp_capability =
     current_bearer_p->preemption_capability;
-  nas_pdn_connectivity_rsp->sgw_s1u_fteid = current_bearer_p->s_gw_fteid_s1u;
+  nas_pdn_cs_respose_success.sgw_s1u_fteid = current_bearer_p->s_gw_fteid_s1u;
   // optional IE
-  nas_pdn_connectivity_rsp->ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
-  nas_pdn_connectivity_rsp->ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
+  nas_pdn_cs_respose_success.ambr.br_ul =
+    ue_context_p->subscribed_ue_ambr.br_ul;
+  nas_pdn_cs_respose_success.ambr.br_dl =
+    ue_context_p->subscribed_ue_ambr.br_dl;
 
-  // This IE is not applicable for TAU/RAU/Handover. If PGW decides to return PCO to the UE, PGW shall send PCO to
+  // This IE is not applicable for TAU/RAU/Handover.
+  // If PGW decides to return PCO to the UE, PGW shall send PCO to
   // SGW. If SGW receives the PCO IE, SGW shall forward it to MME/SGSN.
   if (create_sess_resp_pP->pco.num_protocol_or_container_id) {
     copy_protocol_configuration_options(
-      &nas_pdn_connectivity_rsp->pco, &create_sess_resp_pP->pco);
+      &nas_pdn_cs_respose_success.pco, &create_sess_resp_pP->pco);
     clear_protocol_configuration_options(&create_sess_resp_pP->pco);
   }
 
-  //Send PDN Connectivity Rsp to NAS
-  OAILOG_INFO(
-    TASK_MME_APP, "Sending PDN CONNECTIVITY RESPONSE to NAS for ue_id = (%d)\n"
-    " bearer ID = (%d)\n",
-    ue_context_p->mme_ue_s1ap_id,
-    bearer_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  nas_proc_cs_respose_success(&nas_pdn_cs_respose_success);
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -1978,33 +1859,30 @@ int mme_app_handle_paging_timer_expiry(ue_mm_context_t *ue_context_p)
     ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS);
 }
 
-void mme_app_handle_ulr_timer_expiry(ue_mm_context_t *ue_context_p)
+void mme_app_handle_ulr_timer_expiry(ue_mm_context_t* ue_context_p)
 {
-  MessageDef *message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
+  OAILOG_ERROR(
+    LOG_MME_APP,
+    "Update Location Timer expired for ue-id" MME_UE_S1AP_ID_FMT "\n",
+    ue_context_p->mme_ue_s1ap_id);
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   // Send PDN CONNECTIVITY FAIL message  to NAS layer
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_FAIL);
-  itti_nas_pdn_connectivity_fail_t *nas_pdn_connectivity_fail =
-    &message_p->ittiMsg.nas_pdn_connectivity_fail;
-  memset(
-    (void *) nas_pdn_connectivity_fail,
-    0,
-    sizeof(itti_nas_pdn_connectivity_fail_t));
-  nas_pdn_connectivity_fail->ue_id = ue_context_p->mme_ue_s1ap_id;
-  nas_pdn_connectivity_fail->cause = CAUSE_SYSTEM_FAILURE;
+  emm_cn_ula_or_csrsp_fail_t cn_ula_fail = {0};
+  cn_ula_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+  cn_ula_fail.cause = CAUSE_SYSTEM_FAILURE;
   for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
     if (ue_context_p->pdn_contexts[i]) {
-      bearer_context_t *bearer_context = mme_app_get_bearer_context(
+      bearer_context_t* bearer_context = mme_app_get_bearer_context(
         ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi);
-      nas_pdn_connectivity_fail->pti = bearer_context->transaction_identifier;
+      cn_ula_fail.pti = bearer_context->transaction_identifier;
       break;
     }
   }
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2880,7 +2758,6 @@ void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
       enb_s1ap_id_key,
       ue_context_p->mme_ue_s1ap_id,
       ue_context_p->emm_context._imsi64,
-      ue_context_p->emm_context._imsi.length,
       ue_context_p->mme_teid_s11,
       &ue_context_p->emm_context._guti);
   }

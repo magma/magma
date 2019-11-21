@@ -177,8 +177,9 @@ int esm_proc_eps_bearer_context_deactivate(
       *esm_cause = ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY;
 
       for (i = 0; i < BEARERS_PER_UE; i++) {
-        if ((ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
-            (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
+        if (
+          (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
+          (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
           continue;
         }
 

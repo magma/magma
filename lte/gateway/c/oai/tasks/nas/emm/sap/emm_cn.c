@@ -51,6 +51,7 @@
 #include "3gpp_29.274.h"
 #include "3gpp_24.301.h"
 #include "mme_app_ue_context.h"
+#include "dynamic_memory_check.h"
 #include "emm_cn.h"
 #include "emm_sap.h"
 #include "emm_proc.h"
@@ -62,6 +63,7 @@
 #include "esm_sap.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"
 #include "mme_config.h"
 #include "3gpp_23.003.h"
@@ -76,6 +78,7 @@
 #include "esm_data.h"
 #include "esm_msg.h"
 #include "esm_sapDef.h"
+#include "mme_app_defs.h"
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
@@ -102,8 +105,8 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
 static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP);
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP);
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -112,9 +115,9 @@ static const char *_emm_cn_primitive_str[] = {
   "EMM_CN_AUTHENTICATION_PARAM_RES",
   "EMM_CN_AUTHENTICATION_PARAM_FAIL",
   "EMM_CN_DEREGISTER_UE",
-  "EMM_CN_PDN_CONFIG_RES",
-  "EMM_CN_PDN_CONNECTIVITY_RES",
-  "EMM_CN_PDN_CONNECTIVITY_FAIL",
+  "EMM_CN_ULA_SUCCESS",
+  "EMM_CN_CS_RESPONSE_SUCCESS",
+  "EMM_CN_ULA_OR_CSRSP_FAIL",
   "EMM_CN_ACTIVATE_DEDICATED_BEARER_REQ",
   "EMMCN_IMPLICIT_DETACH_UE",
   "EMMCN_SMC_PROC_FAIL",
@@ -274,7 +277,7 @@ void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -282,7 +285,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   pdn_cid_t pdn_cid = 0;
   ebi_t new_ebi = 0;
-  bool is_pdn_connectivity = false;
+  bool is_pdn_context_exist_for_apn = false;
 
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -337,7 +340,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       (ue_mm_context->pdn_contexts[pdn_cid]) &&
       (ue_mm_context->pdn_contexts[pdn_cid]->context_identifier ==
        apn_config->context_identifier)) {
-      is_pdn_connectivity = true;
+      is_pdn_context_exist_for_apn = true;
       break;
     }
   }
@@ -394,8 +397,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
        * Create local default EPS bearer context
        */
       if (
-        (!is_pdn_connectivity) ||
-        ((is_pdn_connectivity) &&
+        (!is_pdn_context_exist_for_apn) ||
+        ((is_pdn_context_exist_for_apn) &&
          (EPS_BEARER_IDENTITY_UNASSIGNED ==
           ue_mm_context->pdn_contexts[pdn_cid]->default_ebi))) {
         rc = esm_proc_default_eps_bearer_context(
@@ -426,18 +429,12 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
-    if (!is_pdn_connectivity) {
-      nas_itti_pdn_connectivity_req(
-        emm_ctx->esm_ctx.esm_proc_data->pti,
-        msg_pP->ue_id,
-        pdn_cid,
-        &emm_ctx->_imsi,
-        emm_ctx->_imeisv,
-        emm_ctx->esm_ctx.esm_proc_data,
-        emm_ctx->esm_ctx.esm_proc_data->request_type);
-    } else {
+    if (!is_pdn_context_exist_for_apn) {
+      if ((mme_app_send_s11_create_session_req(
+        mme_app_desc_p, ue_mm_context, pdn_cid)) == RETURNok) {
+        increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
+      }
     }
-
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
@@ -532,7 +529,7 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -642,6 +639,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
+    bdestroy_wrapper(&msg_pP->pdn_addr);
     if (size > 0) {
       rsp = blk2bstr(emm_cn_sap_buffer, size);
     }
@@ -720,11 +718,11 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
+static int _emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
-  struct emm_context_s *emm_ctx_p = NULL;
+  struct emm_context_s* emm_ctx_p = NULL;
   ESM_msg esm_msg = {.header = {0}};
   int esm_cause;
   emm_ctx_p = emm_context_get(&_emm_data, msg->ue_id);
@@ -1421,16 +1419,16 @@ int emm_cn_send(const emm_cn_t *msg)
       rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
-    case EMMCN_PDN_CONFIG_RES:
-      rc = _emm_cn_pdn_config_res(msg->u.emm_cn_pdn_config_res);
+    case EMMCN_ULA_SUCCESS:
+      rc = _emm_cn_ula_success(msg->u.emm_cn_ula_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_RES:
-      rc = _emm_cn_pdn_connectivity_res(msg->u.emm_cn_pdn_res);
+    case EMMCN_CS_RESPONSE_SUCCESS:
+      rc = _emm_cn_cs_response_success(msg->u.emm_cn_cs_response_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_FAIL:
-      rc = _emm_cn_pdn_connectivity_fail(msg->u.emm_cn_pdn_fail);
+    case EMMCN_ULA_OR_CSRSP_FAIL:
+      rc = _emm_cn_ula_or_csrsp_fail(msg->u.emm_cn_ula_or_csrsp_fail);
       break;
 
     case EMMCN_ACTIVATE_DEDICATED_BEARER_REQ:
