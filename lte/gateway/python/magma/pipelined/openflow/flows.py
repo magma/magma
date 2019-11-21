@@ -319,8 +319,6 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
     """
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
 
-    _check_resubmit_action(actions, parser)
-
     if actions is None:
         actions = []
     actions = actions + [

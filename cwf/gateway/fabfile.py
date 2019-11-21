@@ -19,6 +19,7 @@ CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
 
+CWAG_TEST_IP = "192.168.128.2"
 TRF_SERVER_IP = "192.168.129.42"
 TRF_SERVER_SUBNET = "192.168.129.0"
 CWAG_BR_NAME = "cwag_br0"
@@ -56,7 +57,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     execute(_run_unit_tests)
     execute(_set_cwag_configs)
-    cwag_host_to_mac = execute(_get_cwag_br_mac)
+    cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]
 
@@ -84,9 +85,25 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
 
+    cwag_test_host_to_mac = execute(_get_br_mac, CWAG_TEST_BR_NAME)
+    host = env.hosts[0]
+    cwag_test_br_mac = cwag_test_host_to_mac[host]
     execute(_set_cwag_test_configs)
     execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_start_ue_simulator)
+
+    # Get back to the gateway vm to setup static arp
+    if not gateway_host:
+        vagrant_setup("cwag", destroy_vm)
+    else:
+        ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+    execute(_set_cwag_networking, cwag_test_br_mac)
+
+    # Start tests
+    if not test_host:
+        vagrant_setup("cwag_test", destroy_vm)
+    else:
+        ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_run_integ_tests, test_host, trf_host)
 
 
@@ -116,8 +133,12 @@ def _set_cwag_configs():
         sudo('cp redis.conf /var/opt/magma')
 
 
-def _get_cwag_br_mac():
-    mac = run("cat /sys/class/net/%s/address" % CWAG_BR_NAME)
+def _set_cwag_networking(mac):
+    sudo('arp -s %s %s' % (CWAG_TEST_IP, mac))
+
+
+def _get_br_mac(bridge_name):
+    mac = run("cat /sys/class/net/%s/address" % bridge_name)
     return mac
 
 
