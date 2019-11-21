@@ -312,15 +312,16 @@ int pgw_process_pco_link_mtu_request(
 }
 
 int pgw_process_pco_pcscf_ip_address_req(
-  protocol_configuration_options_t *const pco_resp,
-  const pco_protocol_or_container_id_t *const poc_id)
+  protocol_configuration_options_t* const pco_resp,
+  const pco_protocol_or_container_id_t* const poc_id)
 {
   pco_protocol_or_container_id_t poc_id_resp = {0};
   //TODO-Uncomment after copying P-CSCF Address from config
   //in_addr_t pcscf_ipv4_addr;
 
   OAILOG_DEBUG(
-    LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST \n");
+    LOG_SPGW_APP,
+    "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST \n");
   poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
   poc_id_resp.length = 4;
   // TODO - Copy P-CSCF Address from config

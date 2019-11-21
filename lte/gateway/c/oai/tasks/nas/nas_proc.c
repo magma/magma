@@ -1096,16 +1096,32 @@ int nas_proc_notify_service_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:    nas_proc_pdn_disconnect_rsp                                   **
+ **                                                                        **
+ ** Description: Processes _pdn_disconnect_rsp received from MME APP       **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **      emm_cn_pdn_disconnect_rsp : The received message from MME APP     **
+ **                                                                        **
+ ** Outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
 int nas_proc_pdn_disconnect_rsp(
-  emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp)
+  emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "Received pdn_disconnect_rsp for ue id %u\n",
+    emm_cn_pdn_disconnect_rsp->ue_id);
   emm_sap.primitive = EMMCN_PDN_DISCONNECT_RES;
   emm_sap.u.emm_cn.u.emm_cn_pdn_disconnect_rsp = emm_cn_pdn_disconnect_rsp;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
-

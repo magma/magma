@@ -71,9 +71,9 @@ static int _default_eps_bearer_activate(
   STOLEN_REF bstring *msg);
 
 static int _default_eps_bearer_activate_in_bearer_setup_req(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg);
+  STOLEN_REF bstring* msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -232,10 +232,10 @@ int esm_proc_default_eps_bearer_context_request(
     /* If VoLTE is enabled, send ACTIVATE DEFAULT EPS BEARER CONTEXT REQUEST
      * in ERAB SETUP REQ mesage
      */
-    if (mme_config.eps_network_feature_support.
-      ims_voice_over_ps_session_in_s1) {
-      rc = _default_eps_bearer_activate_in_bearer_setup_req
-        (emm_context, ebi, msg);
+    if (mme_config.eps_network_feature_support
+          .ims_voice_over_ps_session_in_s1) {
+      rc =
+        _default_eps_bearer_activate_in_bearer_setup_req(emm_context, ebi, msg);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
     }
     rc = _default_eps_bearer_activate(emm_context, ebi, msg);
@@ -526,10 +526,10 @@ static void _default_eps_bearer_activate_t3485_handler(void *args)
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
 
-      if (mme_config.eps_network_feature_support.
-        ims_voice_over_ps_session_in_s1) {
-          rc = _default_eps_bearer_activate_in_bearer_setup_req(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      if (mme_config.eps_network_feature_support
+            .ims_voice_over_ps_session_in_s1) {
+        rc = _default_eps_bearer_activate_in_bearer_setup_req(
+          esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
         rc = _default_eps_bearer_activate(
           esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
@@ -628,6 +628,11 @@ static int _default_eps_bearer_activate(
       *msg,
       mme_config.nas_config.t3485_sec,
       _default_eps_bearer_activate_t3485_handler);
+    if (rc != RETURNerror) {
+      OAILOG_DEBUG(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Started t3485 for ue_id=" MME_UE_S1AP_ID_FMT "\n", ue_id);
+    }
   }
   *msg = NULL;
 
@@ -641,8 +646,7 @@ static int _default_eps_bearer_activate(
  ** Description: Sends ACTIVATE DEFAULT EPS BEREAR CONTEXT REQUEST message **
  ** in ERAB_REQ message and starts timer T3485                             **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                               **
- **      ebi:       EPS bearer identity                                    **
+ ** Inputs: ebi:    EPS bearer identity                                    **
  **      msg:       Encoded ESM message to be sent                         **
  **      Others:    None                                                   **
  **                                                                        **
@@ -652,9 +656,9 @@ static int _default_eps_bearer_activate(
  **                                                                        **
  ***************************************************************************/
 static int _default_eps_bearer_activate_in_bearer_setup_req(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg)
+  STOLEN_REF bstring* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
@@ -663,13 +667,13 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
 
-  bearer_context_t *bearer_context = mme_app_get_bearer_context(
+  bearer_context_t* bearer_context = mme_app_get_bearer_context(
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context), ebi);
   /*
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  emm_esm_activate_bearer_req_t *emm_esm_activate =
+  emm_esm_activate_bearer_req_t* emm_esm_activate =
     &emm_sap.u.emm_esm.u.activate_bearer;
 
   emm_sap.primitive = EMMESM_ACTIVATE_BEARER_REQ;

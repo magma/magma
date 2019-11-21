@@ -334,16 +334,10 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     }
   }
 
-  if (mme_config.eps_network_feature_support.
-    ims_voice_over_ps_session_in_s1) {
+  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
     // Reset is_pdn_disconnect flag
     if (emm_context_p->esm_ctx.is_pdn_disconnect) {
       emm_context_p->esm_ctx.is_pdn_disconnect = false;
-    }
-    // Free bearers_to_be_rel list
-    if (emm_context_p->esm_ctx.bearers_to_be_rel) {
-      free_wrapper((void **) &emm_context_p->esm_ctx.bearers_to_be_rel);
-      emm_context_p->esm_ctx.bearers_to_be_rel = NULL;
     }
   }
   s_gw_teid_s11_s4 =
@@ -502,15 +496,10 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       nas_itti_dedicated_eps_bearer_deactivation_reject(
         ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
       // Reset is_pdn_disconnect flag
-      if (mme_config.eps_network_feature_support.
-        ims_voice_over_ps_session_in_s1){
+      if (mme_config.eps_network_feature_support
+            .ims_voice_over_ps_session_in_s1) {
         if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
           ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect = false;
-        }
-        //Free bearers_to_be_rel list
-        if (ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel) {
-          free(ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel);
-          ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel = NULL;
         }
       }
 

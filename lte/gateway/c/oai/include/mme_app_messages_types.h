@@ -219,7 +219,7 @@ typedef struct itti_mme_app_delete_dedicated_bearer_rej_s {
 typedef struct itti_mme_app_pdn_disconnect_req_s {
   /* UE identifier */
   mme_ue_s1ap_id_t ue_id;
-  ebi_t lbi; //Default EPS Bearer ID
+  ebi_t lbi;     //Default EPS Bearer ID
   pdn_cid_t pid; //PDN Connection ID
 } itti_mme_app_pdn_disconnect_req_t;
 

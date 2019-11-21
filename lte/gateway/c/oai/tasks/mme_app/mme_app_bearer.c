@@ -874,12 +874,11 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
    * send mme_app_itti_pdn_disconnect_rsp to NAS.
    * NAS will trigger deactivate Bearer Context Req to UE
    */
-  if ((mme_config.eps_network_feature_support.
-    ims_voice_over_ps_session_in_s1) &&
+  if (
+    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) &&
     (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     mme_app_itti_pdn_disconnect_rsp(
-      ue_context_p->mme_ue_s1ap_id,
-      delete_sess_resp_pP->lbi);
+      ue_context_p->mme_ue_s1ap_id, delete_sess_resp_pP->lbi);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -3055,9 +3054,9 @@ void mme_app_handle_erab_rel_cmd(mme_app_desc_t *mme_app_desc_p,
     if (itti_erab_rel_cmd->bearers_to_be_rel) {
       s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items =
         itti_erab_rel_cmd->n_bearers;
-      for (uint32_t i = 0; i < itti_erab_rel_cmd->n_bearers; i++) {
-        s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id =
-          itti_erab_rel_cmd->bearers_to_be_rel[i];
+      for (uint8_t idx = 0; idx < itti_erab_rel_cmd->n_bearers; idx++) {
+        s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[idx].e_rab_id =
+          itti_erab_rel_cmd->bearers_to_be_rel[idx];
       }
     } else {
       s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items = 1;
@@ -3186,17 +3185,22 @@ void mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
 }
 
 void mme_app_handle_pdn_disconnect_req(
-  itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req)
+  mme_app_desc_t* mme_app_desc_p,
+  itti_mme_app_pdn_disconnect_req_t* const mme_app_pdn_disconnect_req)
 {
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Received pdn_disconnect_req from NAS for UE: " MME_UE_S1AP_ID_FMT "\n",
+    mme_app_pdn_disconnect_req->ue_id);
+
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, mme_app_pdn_disconnect_req->ue_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
       LOG_MME_APP,
       "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
       "\n",

@@ -1295,26 +1295,24 @@ static int _emm_cn_cs_domain_mm_information_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static int _emm_cn_pdn_disconnect_rsp(
-  emm_cn_pdn_disconnect_rsp_t *msg)
+static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
   proc_tid_t pti;
-  #define ESM_SAP_BUFFER_SIZE 4096
+#define ESM_SAP_BUFFER_SIZE 4096
   uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   bstring rsp = NULL;
 
-  ESM_msg esm_msg;
-  memset(&esm_msg, 0, sizeof(ESM_msg));
+  ESM_msg esm_msg = {0};
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
 
 
-  pti = ue_mm_context->emm_context.esm_ctx.esm_proc_data->pti;
+  pti = ue_mm_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   /*
    * Build the ESM message to be sent to UE
    */
@@ -1324,59 +1322,76 @@ static int _emm_cn_pdn_disconnect_rsp(
     &esm_msg.deactivate_eps_bearer_context_request,
     ESM_CAUSE_REGULAR_DEACTIVATION);
 
+  if (rc != RETURNok) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Building of deactivate_eps_bearer_context_request failed for bearer"
+      "%u\n",
+      msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
   /*
    * Encode the ESM message
    */
   int size =
-    esm_msg_encode(&esm_msg, (uint8_t *) esm_sap_buffer, ESM_SAP_BUFFER_SIZE);
+    esm_msg_encode(&esm_msg, (uint8_t*) esm_sap_buffer, ESM_SAP_BUFFER_SIZE);
 
   if (size > 0) {
     rsp = blk2bstr(esm_sap_buffer, size);
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_EMM, "Message encoding failed for bearer %u\n", msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  /*
-   * Populate the bearer ID list to be sent in E-RAB Rel Cmd
-   * to enB
-   */
-  pdn_cid_t cid =
-    ue_mm_context->bearer_contexts[EBI_TO_INDEX(msg->lbi)]->pdn_cx_id;
-  pdn_context_t *pdn_context = ue_mm_context->pdn_contexts[cid];
-
-  ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel =
-    calloc(pdn_context->esm_data.n_bearers, sizeof(ebi_t));
-  //Fill the default bearer ID in 0 index
-  for (uint32_t i = 0; i < pdn_context->esm_data.n_bearers; i++) {
-    int idx = ue_mm_context->pdn_contexts[cid]->bearer_contexts[i];
-    ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel[i] =
-      ue_mm_context->bearer_contexts[idx]->ebi;
-  }
-  ue_mm_context->emm_context.esm_ctx.n_bearers =
-    pdn_context->esm_data.n_bearers;
   /*
    * Send the ESM message
    */
-  esm_proc_eps_bearer_context_deactivate_request(
-    true/*standalone*/,
-    &ue_mm_context->emm_context,
+  rc = esm_proc_eps_bearer_context_deactivate_request(
+    true /*standalone*/,
+    &ue_mm_context_p->emm_context,
     msg->lbi,
     &rsp,
-    true/*UE triggered*/);
+    true /*UE triggered*/);
+
+  if (rc != RETURNok) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Processing eps_bearer_context_deactivate_request failed for bearer"
+      "%u\n",
+      msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
 
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
   int pid = esm_proc_pdn_disconnect_request(
-    &ue_mm_context->emm_context, pti, &esm_cause);
+    &ue_mm_context_p->emm_context, pti, &esm_cause);
 
   if (pid != RETURNerror) {
     /*
      * Release the associated default EPS bearer context
      */
     int bid = 0;
-    esm_proc_eps_bearer_context_deactivate(
-      &ue_mm_context->emm_context, false, msg->lbi, &pid, &bid, &esm_cause);
+    rc = esm_proc_eps_bearer_context_deactivate(
+      &ue_mm_context_p->emm_context,
+      false /* Release locally */,
+      msg->lbi,
+      &pid,
+      &bid,
+      &esm_cause);
+    if (rc != RETURNok) {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Processing bearer deactivation failed for ebi %u\n",
+        msg->lbi);
+    }
   }
-  unlock_ue_contexts(ue_mm_context);
+  unlock_ue_contexts(ue_mm_context_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1454,9 +1469,8 @@ int emm_cn_send(const emm_cn_t *msg)
         msg->u.deactivate_dedicated_bearer_req);
       break;
 
-   case EMMCN_PDN_DISCONNECT_RES:
-      rc = _emm_cn_pdn_disconnect_rsp(
-        msg->u.emm_cn_pdn_disconnect_rsp);
+    case EMMCN_PDN_DISCONNECT_RES:
+      rc = _emm_cn_pdn_disconnect_rsp(msg->u.emm_cn_pdn_disconnect_rsp);
       break;
 
     default:

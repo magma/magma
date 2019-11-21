@@ -98,26 +98,33 @@ int nas_itti_erab_rel_cmd(
   MessageDef *message_p =
     itti_alloc_new_message(TASK_NAS_MME, NAS_ERAB_REL_CMD);
 
-  if (
-    mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context =
-      mme_ue_context_exists_mme_ue_s1ap_id(
+  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       &mme_app_desc_p->mme_ue_contexts, ue_id);
-    if (ue_mm_context) {
-      if ((ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) &&
-        ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel) {
+    if (ue_mm_context_p) {
+      if (ue_mm_context_p->emm_context.esm_ctx.is_pdn_disconnect) {
+        pdn_cid_t cid =
+          ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+        pdn_context_t* pdn_context_p = ue_mm_context_p->pdn_contexts[cid];
+        // Fill bearers_to_be_rel to be sent in ERAB_REL_CMD
         NAS_ERAB_REL_CMD(message_p).n_bearers =
-          ue_mm_context->emm_context.esm_ctx.n_bearers;
+          pdn_context_p->esm_data.n_bearers;
         NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel =
-          calloc(1, sizeof(ebi_t));
-        memcpy(
-          NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel,
-          ue_mm_context->emm_context.esm_ctx.bearers_to_be_rel,
-          sizeof(ebi_t));
+          calloc(NAS_ERAB_REL_CMD(message_p).n_bearers, sizeof(ebi_t));
+        for (uint8_t itr = 0; itr < pdn_context_p->esm_data.n_bearers; itr++) {
+          int idx = ue_mm_context_p->pdn_contexts[cid]->bearer_contexts[itr];
+          NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel[itr] =
+            ue_mm_context_p->bearer_contexts[idx]->ebi;
+        }
       }
+      unlock_ue_contexts(ue_mm_context_p);
+    } else {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Did not find UE context for ue_id" MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     }
-    unlock_ue_contexts(ue_mm_context);
   }
   NAS_ERAB_REL_CMD(message_p).ue_id = ue_id;
   NAS_ERAB_REL_CMD(message_p).ebi = ebi;
@@ -757,14 +764,13 @@ void nas_itti_dedicated_eps_bearer_deactivation_reject(
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
-
 void nas_itti_pdn_disconnect_req(
   const mme_ue_s1ap_id_t ue_idP,
   const pdn_cid_t pid,
   const ebi_t lbi)
 {
   OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p =
+  MessageDef* message_p =
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_PDN_DISCONNECT_REQ);
   MME_APP_PDN_DISCONNECT_REQ(message_p).ue_id = ue_idP;
   MME_APP_PDN_DISCONNECT_REQ(message_p).lbi = lbi;
@@ -773,12 +779,10 @@ void nas_itti_pdn_disconnect_req(
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
-void nas_itti_pdn_disconnect_rsp(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t lbi)
+void nas_itti_pdn_disconnect_rsp(const mme_ue_s1ap_id_t ue_idP, const ebi_t lbi)
 {
   OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p =
+  MessageDef* message_p =
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_PDN_DISCONNECT_RSP);
   MME_APP_PDN_DISCONNECT_RSP(message_p).ue_id = ue_idP;
   MME_APP_PDN_DISCONNECT_RSP(message_p).lbi = lbi;

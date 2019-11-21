@@ -147,11 +147,12 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   emm_context_t *emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_connectivity_request_msg *msg,
-  ebi_t *new_ebi,
+  const pdn_connectivity_request_msg* msg,
+  ebi_t* new_ebi,
   bool is_standalone)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  int rc = RETURNerror;
   int esm_cause = ESM_CAUSE_SUCCESS;
   pdn_cid_t pdn_cid = 0;
   mme_ue_s1ap_id_t ue_id =
@@ -345,31 +346,47 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         ue_id);
   }
 
-  if ((is_standalone) &&
+  if (
+    (is_standalone) &&
     (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1)) {
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       &mme_app_desc_p->mme_ue_contexts, ue_id);
     //Select APN
-    struct apn_configuration_s *apn_config =
-      mme_app_select_apn(
-        ue_mm_context,
-        emm_context->esm_ctx.esm_proc_data->apn);
+    struct apn_configuration_s* apn_config = mme_app_select_apn(
+      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
     if (!apn_config) {
       OAILOG_ERROR(
         LOG_NAS_ESM,
-        "ESM-PROC  - Cannot select APN for ue id %d",ue_id);
+        "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
     }
 
-    pdn_cid = emm_context->esm_ctx.esm_proc_data->pdn_cid + 1;
-    int pid = esm_proc_pdn_connectivity_request(
+    /* Find a free PDN Connection ID*/
+    for (pdn_cid = 0; pdn_cid < MAX_APN_PER_UE; pdn_cid++) {
+      if (!ue_mm_context_p->pdn_contexts[pdn_cid]) break;
+    }
+
+    if (pdn_cid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot find free pdn_cid for ue id" MME_UE_S1AP_ID_FMT
+        "\n",
+        ue_id);
+      unlock_ue_contexts(ue_mm_context_p);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INSUFFICIENT_RESOURCES);
+    }
+    // Update pdn connection id
+    emm_context->esm_ctx.esm_proc_data->pdn_cid = pdn_cid;
+
+    rc = esm_proc_pdn_connectivity_request(
       emm_context,
       pti,
-      pdn_cid,//Assign new pdn_cid
+      pdn_cid,
       apn_config->context_identifier,
       emm_context->esm_ctx.esm_proc_data->request_type,
       esm_data->apn,
@@ -381,13 +398,16 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         NULL,
       &esm_cause);
 
-    if (pid != RETURNerror) {
+    if (rc != RETURNerror) {
       /*
        * Create local default EPS bearer context
        */
-      pid = emm_context->esm_ctx.esm_proc_data->pdn_cid + 1;
-      int rc = esm_proc_default_eps_bearer_context(
-        emm_context, pti, pdn_cid, new_ebi, esm_data->bearer_qos.qci,
+      rc = esm_proc_default_eps_bearer_context(
+        emm_context,
+        pti,
+        pdn_cid,
+        new_ebi,
+        esm_data->bearer_qos.qci,
         &esm_cause);
 
       if (rc != RETURNerror) {
@@ -397,7 +417,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     //Send PDN Connectivity req
     OAILOG_INFO(
       LOG_NAS_ESM,
-      "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d",ue_id);
+      "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d",
+      ue_id);
 
     emm_context->esm_ctx.is_standalone = true;
 
@@ -409,7 +430,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       emm_context->_imeisv,
       emm_context->esm_ctx.esm_proc_data,
       emm_context->esm_ctx.esm_proc_data->request_type);
-    unlock_ue_contexts(ue_mm_context);
+    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
   }
 
@@ -515,7 +536,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
-  struct esm_proc_data_s *esm_data = emm_context->esm_ctx.esm_proc_data;
+  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
 
   esm_data->pti = pti;
 
@@ -533,12 +554,12 @@ esm_cause_t esm_recv_pdn_disconnect_request(
      * MME APP will trigger Delete session towards SGW
      * to release the session
      */
-    if (mme_config.eps_network_feature_support.
-      ims_voice_over_ps_session_in_s1) {
+    if (mme_config.eps_network_feature_support
+          .ims_voice_over_ps_session_in_s1) {
       OAILOG_INFO(
-      LOG_NAS_ESM,
+        LOG_NAS_ESM,
         "ESM-SAP   - Sending PDN Disconnect Request message "
-        "(ue_id=%d, pid=%d, ebi=%d)\n",
+        "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
         ue_id,
         pid,
         ebi);

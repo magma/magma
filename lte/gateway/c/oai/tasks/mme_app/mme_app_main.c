@@ -531,7 +531,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case MME_APP_PDN_DISCONNECT_REQ: {
-        mme_app_handle_pdn_disconnect_req(
+        mme_app_handle_pdn_disconnect_req(mme_app_desc_p,
           &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
       } break;
 

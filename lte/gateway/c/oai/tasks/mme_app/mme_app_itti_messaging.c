@@ -325,13 +325,21 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
 }
 
 void mme_app_itti_pdn_disconnect_rsp(
-  const mme_ue_s1ap_id_t ue_idP,
+  const mme_ue_s1ap_id_t ue_id,
   const ebi_t lbi)
 {
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p =
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef* message_p =
     itti_alloc_new_message(TASK_MME_APP, MME_APP_PDN_DISCONNECT_RSP);
-  MME_APP_PDN_DISCONNECT_RSP(message_p).ue_id = ue_idP;
+  if (!message_p) {
+    OAILOG_ERROR(
+      TASK_MME_APP,
+      "Message allocation failed for MME_APP_PDN_DISCONNECT_RSP"
+      "for ue_id =" MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
+    OAILOG_FUNC_OUT(LOG_NAS);
+  }
+  MME_APP_PDN_DISCONNECT_RSP(message_p).ue_id = ue_id;
   MME_APP_PDN_DISCONNECT_RSP(message_p).lbi = lbi;
   itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
