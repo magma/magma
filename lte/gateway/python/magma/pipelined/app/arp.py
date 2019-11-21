@@ -10,7 +10,7 @@ import netifaces
 from collections import namedtuple
 
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
@@ -34,6 +34,7 @@ class ArpController(MagmaController):
     with MAC address of the default gateway.
     """
     APP_NAME = 'arpd'
+    APP_TYPE = ControllerType.PHYSICAL
     FLOW_PUSH_INTERVAL_SECS = 15
 
     # Inherited from app_manager.RyuApp

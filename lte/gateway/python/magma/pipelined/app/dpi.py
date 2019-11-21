@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from magma.pipelined.openflow import flows
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
 import shlex
@@ -29,6 +29,7 @@ class DPIController(MagmaController):
     """
 
     APP_NAME = "dpi"
+    APP_TYPE = ControllerType.LOGICAL
     UPDATE_INTERVAL = 10  # seconds
 
     def __init__(self, *args, **kwargs):

@@ -14,7 +14,7 @@ from ryu.lib.packet import ether_types
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 
 
 class AccessControlController(MagmaController):
@@ -28,6 +28,7 @@ class AccessControlController(MagmaController):
     """
 
     APP_NAME = "access_control"
+    APP_TYPE = ControllerType.PHYSICAL
     CONFIG_INBOUND_DIRECTION = 'inbound'
     CONFIG_OUTBOUND_DIRECTION = 'outbound'
 
