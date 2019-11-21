@@ -341,8 +341,8 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 			},
 		})
 	}
-	// Argentina TZ (UTC-3hrs) TODO: Make it configurable
-	m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0})))
+	// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
+	//m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0})))
 }
 
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
