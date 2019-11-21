@@ -25,6 +25,9 @@ type SymphonyDevice struct {
 	// Required: true
 	ID SymphonyDeviceID `json:"id"`
 
+	// managing agent
+	ManagingAgent SymphonyDeviceAgent `json:"managing_agent,omitempty"`
+
 	// name
 	// Required: true
 	Name SymphonyDeviceName `json:"name"`
@@ -39,6 +42,10 @@ func (m *SymphonyDevice) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateManagingAgent(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -75,6 +82,22 @@ func (m *SymphonyDevice) validateID(formats strfmt.Registry) error {
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("id")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *SymphonyDevice) validateManagingAgent(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ManagingAgent) { // not required
+		return nil
+	}
+
+	if err := m.ManagingAgent.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("managing_agent")
 		}
 		return err
 	}

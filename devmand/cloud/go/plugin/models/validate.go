@@ -40,6 +40,10 @@ func (m *SymphonyDeviceConfig) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *SymphonyDeviceAgent) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *SymphonyDeviceState) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
