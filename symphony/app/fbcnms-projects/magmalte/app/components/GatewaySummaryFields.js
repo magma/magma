@@ -15,6 +15,7 @@ import type {WithStyles} from '@material-ui/core';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Check from '@material-ui/icons/Check';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
@@ -25,7 +26,6 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
-import {GatewayStatus} from './GatewayUtils';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -83,14 +83,14 @@ class GatewaySummaryFields extends React.Component<Props, State> {
           <FormField label="Version">{gateway.version}</FormField>
           <FormField label="VPN IP">{gateway.vpnIP}</FormField>
           <FormField label="RF Transmitter">
-            <GatewayStatus
+            <DeviceStatusCircle
               isGrey={false}
               isActive={gateway.enodebRFTXEnabled}
             />
             {gateway.enodebRFTXEnabled ? '' : 'Not '}
             Allowed
             {'  '}
-            <GatewayStatus
+            <DeviceStatusCircle
               isGrey={gateway.isBackhaulDown}
               isActive={gateway.enodebConnected && gateway.enodebRFTXOn}
             />
@@ -98,7 +98,7 @@ class GatewaySummaryFields extends React.Component<Props, State> {
             Connected
           </FormField>
           <FormField label="GPS synchronized">
-            <GatewayStatus
+            <DeviceStatusCircle
               isGrey={gateway.isBackhaulDown}
               isActive={gateway.enodebConnected && gateway.gpsConnected}
             />
@@ -106,7 +106,7 @@ class GatewaySummaryFields extends React.Component<Props, State> {
             Synced
           </FormField>
           <FormField label="MME">
-            <GatewayStatus
+            <DeviceStatusCircle
               isGrey={gateway.isBackhaulDown}
               isActive={gateway.enodebConnected && gateway.mmeConnected}
             />

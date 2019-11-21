@@ -17,6 +17,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 import AddGatewayDialog from './AddGatewayDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DeleteIcon from '@material-ui/icons/Delete';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditGatewayDialog from './EditGatewayDialog';
 import EditIcon from '@material-ui/icons/Edit';
 import IconButton from '@material-ui/core/IconButton';
@@ -33,7 +34,6 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayStatus} from './GatewayUtils';
 import {MAGMAD_DEFAULT_CONFIGS} from './AddGatewayDialog';
 import {find} from 'lodash';
 import {withRouter} from 'react-router-dom';
@@ -87,7 +87,7 @@ class Gateways extends React.Component<Props, State> {
     const rows = (gateways || []).map(gateway => (
       <TableRow key={gateway.logicalID}>
         <TableCell>
-          <GatewayStatus
+          <DeviceStatusCircle
             isGrey={!gateway.enodebRFTXOn}
             isActive={gateway.enodebRFTXOn === gateway.enodebRFTXEnabled}
           />
