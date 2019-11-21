@@ -51,9 +51,9 @@ func TestMigrator(t *testing.T) {
 	defer c.AssertExpectations(t)
 
 	err = NewMigrator(MigratorConfig{
-		Driver:     drv,
-		Logger:     logtest.NewTestLogger(t),
-		newCreator: func(dialect.Driver) creator { return &c },
+		Driver:  drv,
+		Logger:  logtest.NewTestLogger(t),
+		Creator: func(dialect.Driver) Creator { return &c },
 	}).Migrate(context.Background(), "foo", "bar", "baz")
 	assert.NoError(t, err)
 }
@@ -76,9 +76,9 @@ func TestMigratorError(t *testing.T) {
 	defer c.AssertExpectations(t)
 
 	err = NewMigrator(MigratorConfig{
-		Driver:     drv,
-		Logger:     logtest.NewTestLogger(t),
-		newCreator: func(dialect.Driver) creator { return &c },
+		Driver:  drv,
+		Logger:  logtest.NewTestLogger(t),
+		Creator: func(dialect.Driver) Creator { return &c },
 	}).Migrate(context.Background(), "foo", "bar", "baz")
 	assert.EqualError(t, err, "migrating schema: bad database")
 }

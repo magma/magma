@@ -16,6 +16,7 @@ import Button from '@fbcnms/ui/components/design-system/Button';
 import CWFEditGatewayDialog from './CWFEditGatewayDialog';
 import ChevronRight from '@material-ui/icons/ChevronRight';
 import DeleteIcon from '@material-ui/icons/Delete';
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
@@ -34,7 +35,6 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '../../common/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {GatewayStatus} from '../GatewayUtils';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
@@ -168,7 +168,7 @@ function CWFGateways(props: WithAlert & {}) {
             {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
           </IconButton>
           <span className={classes.gatewayName}>{gateway.name}</span>
-          <GatewayStatus
+          <DeviceStatusCircle
             isGrey={!gateway.status?.checkin_time}
             isActive={
               Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <

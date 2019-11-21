@@ -26,19 +26,19 @@ type (
 		driver     dialect.Driver
 		logger     log.Logger
 		options    []schema.MigrateOption
-		newCreator func(dialect.Driver) creator
+		newCreator func(dialect.Driver) Creator
 	}
 
 	// MigratorConfig configures migrator.
 	MigratorConfig struct {
 		dialect.Driver
 		log.Logger
-		Options    []schema.MigrateOption
-		newCreator func(dialect.Driver) creator
+		Options []schema.MigrateOption
+		Creator func(dialect.Driver) Creator
 	}
 
-	// creator defines the interface for table creation.
-	creator interface {
+	// Creator defines the interface for schema creation.
+	Creator interface {
 		Create(context.Context, ...schema.MigrateOption) error
 	}
 )
@@ -48,8 +48,8 @@ func NewMigrator(cfg MigratorConfig) *Migrator {
 	if cfg.Logger == nil {
 		cfg.Logger = log.NewNopLogger()
 	}
-	if cfg.newCreator == nil {
-		cfg.newCreator = func(driver dialect.Driver) creator {
+	if cfg.Creator == nil {
+		cfg.Creator = func(driver dialect.Driver) Creator {
 			return migrate.NewSchema(driver)
 		}
 	}
@@ -60,7 +60,7 @@ func NewMigrator(cfg MigratorConfig) *Migrator {
 		driver:     cfg.Driver,
 		logger:     cfg.Logger,
 		options:    cfg.Options,
-		newCreator: cfg.newCreator,
+		newCreator: cfg.Creator,
 	}
 }
 

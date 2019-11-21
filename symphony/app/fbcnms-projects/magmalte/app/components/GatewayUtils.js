@@ -8,12 +8,7 @@
  * @format
  */
 
-import type {WithStyles} from '@material-ui/core';
 import type {lte_gateway} from '@fbcnms/magma-api';
-
-import {withStyles} from '@material-ui/core/styles';
-
-import React from 'react';
 
 export const toString = (input: ?number | ?string): string => {
   return input !== null && input !== undefined ? input + '' : '';
@@ -62,49 +57,6 @@ export type GatewayV1 = {
   ...GatewaySharedFields,
   rawGateway: lte_gateway,
 };
-
-const styles = {
-  status: {
-    width: '10px',
-    height: '10px',
-    borderRadius: '50%',
-    display: 'inline-block',
-    textAlign: 'center',
-    color: 'white',
-    fontSize: '10px',
-    fontWeight: 'bold',
-    marginRight: '5px',
-  },
-};
-
-const GatewayStatusElement = (
-  props: WithStyles<typeof styles> & {isGrey: boolean, isActive: boolean},
-) => {
-  if (props.isGrey) {
-    return (
-      <span
-        className={props.classes.status}
-        style={{backgroundColor: '#bec3c8'}}
-      />
-    );
-  } else if (props.isActive) {
-    return (
-      <span
-        className={props.classes.status}
-        style={{backgroundColor: '#05a503'}}
-      />
-    );
-  } else {
-    return (
-      <span
-        className={props.classes.status}
-        style={{backgroundColor: '#fa3a3f'}}
-      />
-    );
-  }
-};
-
-export const GatewayStatus = withStyles(styles)(GatewayStatusElement);
 
 export type GatewayPayload = {
   gateway_id: GatewayId,

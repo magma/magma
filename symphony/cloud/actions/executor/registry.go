@@ -78,3 +78,12 @@ func (r Registry) MustRegisterAction(action core.Action) {
 		panic(fmt.Sprintf("could not register action: %v", err))
 	}
 }
+
+// Triggers returns a slice of all registered triggers
+func (r Registry) Triggers() []core.Trigger {
+	v := make([]core.Trigger, 0, len(r.triggers))
+	for _, value := range r.triggers {
+		v = append(v, value)
+	}
+	return v
+}
