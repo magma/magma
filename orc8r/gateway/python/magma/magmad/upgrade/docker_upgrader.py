@@ -163,7 +163,7 @@ async def download_update(
                       format(control_proxy_config['rootca_cert']), shell=True,
                       check=True)
     await run_command("update-ca-certificates", shell=True, check=True)
-    git_clone_cmd = "git -c http.proxy=https://{}:{} -C {} clone {}".format(
+    git_clone_cmd = "git -c https.proxy=https://{}:{} -C {} clone {}".format(
         control_proxy_config['bootstrap_address'],
         control_proxy_config['bootstrap_port'], MAGMA_GITHUB_PATH,
         MAGMA_GITHUB_URL)
