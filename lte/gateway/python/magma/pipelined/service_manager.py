@@ -40,6 +40,7 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -194,6 +195,7 @@ class ServiceManager:
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
 
     # Mapping between services defined in mconfig and the names and modules of
@@ -233,6 +235,10 @@ class ServiceManager:
         ACCESS_CONTROL_SERVICE_NAME: [
             App(name=AccessControlController.APP_NAME,
                 module=AccessControlController.__module__),
+        ],
+        TUNNEL_LEARN_SERVICE_NAME: [
+            App(name=TunnelLearnController.APP_NAME,
+                module=TunnelLearnController.__module__),
         ],
         RYU_REST_SERVICE_NAME: [
             App(name='ryu_rest_app', module='ryu.app.ofctl_rest'),
