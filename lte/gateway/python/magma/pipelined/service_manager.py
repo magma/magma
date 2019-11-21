@@ -45,7 +45,8 @@ from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.inout import EGRESS, INGRESS, InOutController
+from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
+    InOutController
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
@@ -83,15 +84,19 @@ class _TableManager:
     """
 
     INGRESS_TABLE_NUM = 1
+    PHYSICAL_TO_LOGICAL_TABLE_NUM = 21
     EGRESS_TABLE_NUM = 20
     MAIN_TABLE_START_NUM = 2
-    MAIN_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
-    SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
+    # TODO temp fix, with the new inout middle table(physical->logical) we need
+    # to redo the table allocation and split controllers into physical|logical
+    MAIN_TABLE_LIMIT_NUM = PHYSICAL_TO_LOGICAL_TABLE_NUM  # exclusive
+    SCRATCH_TABLE_START_NUM = PHYSICAL_TO_LOGICAL_TABLE_NUM + 1  # 22
     SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
 
     def __init__(self):
         self._tables_by_app = {
             INGRESS: Tables(main_table=self.INGRESS_TABLE_NUM),
+            PHYSICAL_TO_LOGICAL: Tables(main_table=self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
             EGRESS: Tables(main_table=self.EGRESS_TABLE_NUM),
         }
 
