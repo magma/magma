@@ -16,7 +16,7 @@ import glob
 import subprocess
 from collections import namedtuple
 from subprocess import PIPE
-from typing import List, Iterable
+from typing import Iterable, List
 
 import os
 import shutil
@@ -217,11 +217,13 @@ def _get_modules() -> List[MagmaModule]:
                 ),
             )
         for ext_module in conf['external_modules']:
-            # NOTE: host_path for external modules is relative to the
-            # $MAGMA_ROOT/orc8r/cloud directory on the host for legacy reasons.
+            # Because of the behavior of os.path.join, if host_path is an
+            # absolute path then module_abspath will be equal to that value
             module_abspath = os.path.abspath(
-                os.path.join(HOST_MAGMA_ROOT, 'orc8r', 'cloud',
-                             ext_module['host_path']),
+                os.path.join(
+                    HOST_MAGMA_ROOT,
+                    os.path.expandvars(ext_module['host_path']),
+                ),
             )
             modules.append(
                 MagmaModule(
