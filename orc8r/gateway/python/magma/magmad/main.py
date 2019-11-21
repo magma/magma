@@ -104,7 +104,7 @@ def main():
     # This is called when bootstrap succeeds and when _bootstrap_check is
     # invoked but bootstrap is not needed. If it's invoked right after certs
     # are generated, certs_generated is true, control_proxy will restart.
-    async def bootstrap_success_cb(certs_generated):
+    async def bootstrap_success_cb(certs_generated: bool):
         nonlocal first_time_bootstrap
         if first_time_bootstrap:
             if stream_client:
@@ -116,10 +116,16 @@ def main():
             svcs_to_restart = []
             if 'control_proxy' in services:
                 svcs_to_restart.append('control_proxy')
+
             # fluent-bit caches TLS client certs in memory, so we need to
             # restart it whenever the certs change
-            if 'td-agent-bit' in services:
+            fresh_mconfig = get_mconfig_manager().load_service_mconfig(
+                'magmad', mconfigs_pb2.MagmaD(),
+            )
+            dynamic_svcs = fresh_mconfig.dynamic_services or []
+            if 'td-agent-bit' in dynamic_svcs:
                 svcs_to_restart.append('td-agent-bit')
+
             await service_manager.restart_services(services=svcs_to_restart)
 
     # Create bootstrap manager

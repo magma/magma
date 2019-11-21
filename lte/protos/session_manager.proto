@@ -68,6 +68,7 @@ message ChargingReAuthRequest {
     ENTIRE_SESSION = 1;
   }
   Type type = 4;
+  ServiceIdentifier service_identifier = 5;
 }
 
 message ChargingReAuthAnswer {
@@ -289,6 +290,7 @@ message CreditUsage {
   }
   UpdateType type = 5;
   string monitoring_key = 6;
+  ServiceIdentifier service_identifier = 7;
 }
 
 message CreditUsageUpdate {
@@ -318,6 +320,7 @@ message CreditUpdateResponse {
   ChargingCredit credit = 4;
   ResponseType type = 5;
   uint32 result_code = 6;
+  ServiceIdentifier service_identifier = 7;
 }
 
 // PCRF USAGE MONITORING
@@ -368,6 +371,8 @@ message UsageMonitoringUpdateResponse {
   google.protobuf.Timestamp revalidation_time = 6;
   uint32 result_code = 7;
   repeated string rules_to_remove = 8;
+  repeated StaticRuleInstall static_rules_to_install = 9;
+  repeated DynamicRuleInstall dynamic_rules_to_install = 10;
 }
 
 

@@ -170,7 +170,6 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
 
         return service_configs[service_name]
 
-
     def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
         mconfig = self.load_mconfig()
         return mconfig.metadata

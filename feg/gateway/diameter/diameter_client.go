@@ -48,9 +48,17 @@ type Client struct {
 	originStateID  uint32
 }
 
+// OriginRealm returns client's config Realm
+func (c *Client) OriginRealm() string {
+	if c != nil && c.cfg != nil && len(c.cfg.Realm) > 0 {
+		return c.cfg.Realm
+	}
+	return "magma"
+}
+
 // OriginHost returns client's config Host
 func (c *Client) OriginHost() string {
-	if c != nil && c.cfg != nil {
+	if c != nil && c.cfg != nil && len(c.cfg.Host) > 0 {
 		return c.cfg.Host
 	}
 	return "magma"
@@ -368,13 +376,13 @@ func ExtractImsiFromSessionID(diamSid string) (string, error) {
 
 // EncodeSessionID encodes SessionID in rfc6733 compliant form:
 // <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
-// OriginHost;rand#;rand#;IMSIxyz
-func EncodeSessionID(originHost, sid string) string {
+// OriginHost/Realm;rand#;rand#;IMSIxyz
+func EncodeSessionID(diamIdentity, sid string) string {
 	split := strings.Split(sid, "-")
 	if len(split) > 1 && strings.HasPrefix(split[0], "IMSI") {
 		rndPart := split[1]
 		r2l := len(rndPart) / 2
-		return fmt.Sprintf("%s;%s;%s;%s", originHost, rndPart[:r2l], rndPart[r2l:], split[0])
+		return fmt.Sprintf("%s;%s;%s;%s", diamIdentity, rndPart[:r2l], rndPart[r2l:], split[0])
 	}
 	return sid // not magma generated SID, return as is
 

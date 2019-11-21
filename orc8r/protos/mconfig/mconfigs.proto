@@ -98,4 +98,8 @@ message State {
 //------------------------------------------------------------------------------
 message FluentBit {
     map<string, string> extra_tags = 1;
+
+    uint32 throttle_rate = 10;
+    uint32 throttle_window = 11;
+    string throttle_interval = 12;
 }

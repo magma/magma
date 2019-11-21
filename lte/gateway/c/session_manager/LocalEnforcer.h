@@ -8,6 +8,9 @@
  */
 #pragma once
 
+#include <unordered_map>
+#include <unordered_set>
+
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
@@ -101,7 +104,7 @@ class LocalEnforcer {
    * Update allowed credit from the cloud in the system
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credit(const UpdateSessionResponse &response);
+  void update_session_credit(const UpdateSessionResponse& response);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -116,7 +119,7 @@ class LocalEnforcer {
 
   uint64_t get_charging_credit(
     const std::string &imsi,
-    uint32_t charging_key,
+    const CreditKey &charging_key,
     Bucket bucket) const;
 
   uint64_t get_monitor_credit(
@@ -192,6 +195,16 @@ class LocalEnforcer {
   const std::unique_ptr<SessionState>& session,
   const google::protobuf::RepeatedPtrField<std::basic_string<char>>
     rules_to_remove,
+  RulesToProcess* rules_to_deactivate);
+
+  void process_rules_to_install(
+  const std::string& imsi,
+  const std::unique_ptr<SessionState>& session,
+  const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+    static_rules_to_install,
+  const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+    dynamic_rules_to_install,
+  RulesToProcess* rules_to_activate,
   RulesToProcess* rules_to_deactivate);
 
   /**
@@ -286,6 +299,8 @@ class LocalEnforcer {
     * Install flow for redirection through pipelined
     */
   void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
+
+  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 };
 
 } // namespace magma

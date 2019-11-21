@@ -40,12 +40,19 @@ const (
 	POOL_EXHAUSTED
 )
 
+const (
+	// 3GPP TS 29.274 RAT Types (for Gy)
+	RAT_TYPE_WLAN   = "\x03"
+	RAT_TYPE_EUTRAN = "\x06"
+)
+
 type UsedCredits struct {
-	RatingGroup  uint32
-	InputOctets  uint64
-	OutputOctets uint64
-	TotalOctets  uint64
-	Type         UsedCreditsType
+	RatingGroup       uint32
+	ServiceIdentifier *uint32
+	InputOctets       uint64
+	OutputOctets      uint64
+	TotalOctets       uint64
+	Type              UsedCreditsType
 }
 
 type CreditControlRequest struct {
@@ -63,6 +70,7 @@ type CreditControlRequest struct {
 	Msisdn        []byte
 	Qos           *QosRequestInfo
 	Credits       []*UsedCredits
+	RatType       string
 }
 
 type QosRequestInfo struct {
@@ -71,13 +79,14 @@ type QosRequestInfo struct {
 }
 
 type ReceivedCredits struct {
-	ResultCode     uint32
-	RatingGroup    uint32
-	GrantedUnits   *credit_control.GrantedServiceUnit
-	ValidityTime   uint32
-	IsFinal        bool
-	FinalAction    FinalUnitAction // unused if IsFinal is false
-	RedirectServer RedirectServer
+	ResultCode        uint32
+	RatingGroup       uint32
+	ServiceIdentifier *uint32
+	GrantedUnits      *credit_control.GrantedServiceUnit
+	ValidityTime      uint32
+	IsFinal           bool
+	FinalAction       FinalUnitAction // unused if IsFinal is false
+	RedirectServer    RedirectServer
 }
 
 type CreditControlAnswer struct {
@@ -112,6 +121,7 @@ type MSCCDiameterMessage struct {
 	ValidityTime        uint32                            `avp:"Validity-Time"`
 	FinalUnitIndication *FinalUnitIndication              `avp:"Final-Unit-Indication"`
 	RatingGroup         uint32                            `avp:"Rating-Group"`
+	ServiceIdentifier   *uint32                           `avp:"Service-Identifier"`
 }
 
 type CCADiameterMessage struct {

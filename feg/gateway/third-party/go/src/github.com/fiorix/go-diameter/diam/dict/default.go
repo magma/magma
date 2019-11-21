@@ -1149,6 +1149,7 @@ var gxcreditcontrolXML = `<?xml version="1.0" encoding="UTF-8"?>
             <data type="Grouped">
                 <rule avp="Charging-Rule-Name" required="true" max="1"/>
                 <rule avp="Rating-Group" required="false" max="1"/>
+                <rule avp="Service-Identifier" required="false" max="1"/>
                 <rule avp="Flow-Information" required="false"/>
                 <rule avp="Flow-Description" required="false"/>
                 <rule avp="Precedence" required="false" max="1"/>

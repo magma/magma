@@ -1,0 +1,17 @@
+{
+  "wiki": {
+    "Inventory": [
+      "inventory-intro",
+      "csv-upload",
+      "py-inventory",
+      "export"
+    ],
+    "NMS": [
+      "nms-overview"
+    ],
+    "Mobile App": [
+      "mobile-app-intro",
+      "root-device"
+    ]
+  }
+}
