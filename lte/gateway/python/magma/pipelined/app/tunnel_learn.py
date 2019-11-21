@@ -7,8 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from .base import MagmaController
-from magma.pipelined.app.inout import PHYSICAL_TO_LOGICAL
+from .base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG
@@ -25,12 +24,13 @@ class TunnelLearnController(MagmaController):
     """
 
     APP_NAME = "tunnel_learn"
+    APP_TYPE = ControllerType.PHYSICAL
 
     def __init__(self, *args, **kwargs):
         super(TunnelLearnController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
-            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
+            self._service_manager.get_next_table_num(self.APP_NAME)
         self.tunnel_learn_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._datapath = None

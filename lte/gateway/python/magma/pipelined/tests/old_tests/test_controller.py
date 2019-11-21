@@ -19,7 +19,7 @@ from ryu.base.app_manager import AppManager
 
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pkt_tester.tests.test_topology_builder import check_env
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 
 
 

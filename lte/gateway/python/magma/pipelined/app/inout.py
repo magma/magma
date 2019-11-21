@@ -80,8 +80,9 @@ class InOutController(MagmaController):
         Raises:
             MagmaOFError if any of the default flows fail to install.
         """
-        #TODO fix
-        next_main_table = self._service_manager.get_table_num('enforcement')
+        tbl_num = self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
+        logical_table = \
+            self._service_manager.get_next_table_num(PHYSICAL_TO_LOGICAL)
         egress = self._service_manager.get_table_num(EGRESS)
 
         # Allow passthrough pkts(skip enforcement and send to egress table)
@@ -94,7 +95,7 @@ class InOutController(MagmaController):
         flows.add_resubmit_next_service_flow(dp,
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
             match, [], priority=flows.DEFAULT_PRIORITY,
-            resubmit_table=next_main_table)
+            resubmit_table=logical_table)
 
     def _install_default_egress_flows(self, dp):
         """
