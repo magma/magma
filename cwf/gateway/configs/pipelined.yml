@@ -107,4 +107,4 @@ monitored_ifaces: ['cwag_br0',
 ## IMPORTANT ##
 ###############
 ovs_gtp_port_number: 32768
-ovs_uplink_port_name: eth2
+ovs_uplink_port_name: cwag_patch
