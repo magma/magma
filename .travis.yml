@@ -147,7 +147,6 @@ matrix:
         - docker
       env:
         - MAGMA_ROOT=$TRAVIS_BUILD_DIR
-
       before_install:
         - ./travis/setup_container_tests.sh
       install:
@@ -155,6 +154,11 @@ matrix:
       script:
         - cd ${MAGMA_ROOT}/orc8r/cloud/docker
         - python3 build.py --nocache
+      deploy:
+        - provider: script
+          script: ./travis/deploy_orc8r.sh proxy controller
+          on:
+            branch: master
 
     - stage: Build
       language: python
@@ -167,7 +171,6 @@ matrix:
         - docker
       env:
         - MAGMA_ROOT=$TRAVIS_BUILD_DIR
-
       before_install:
         - ./travis/setup_container_tests.sh
       install:
@@ -175,6 +178,11 @@ matrix:
       script:
         - cd ${MAGMA_ROOT}/orc8r/cloud/docker
         - python3 build.py -nc
+      deploy:
+        - provider: script
+          script: ./travis/deploy_orc8r.sh prometheus-cache config-manager grafana
+          on:
+            branch: master
 
     - stage: Build
       language: minimal
@@ -184,10 +192,15 @@ matrix:
       services:
         - docker
       env:
-        - NMS_ROOT=$TRAVIS_BUILD_DIR/symphony/app
+        - NMS_ROOT=$TRAVIS_BUILD_DIR/symphony/app/fbcnms-projects/magmalte
       script:
         - cd ${NMS_ROOT}
-        - docker build -t magmalte -f fbcnms-projects/magmalte/Dockerfile .
+        - docker-compose build magmalte
+      deploy:
+        - provider: script
+          script: ./travis/deploy_nms.sh
+          on:
+            branch: master
 
 stages:
   - Tests
