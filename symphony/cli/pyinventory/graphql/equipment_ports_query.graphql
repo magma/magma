@@ -1,0 +1,13 @@
+query EquipmentPortsQuery($id: ID!) {
+  equipment(id: $id) {
+    ports {
+      definition {
+        id
+        name
+      }
+      link {
+        id
+      }
+    }
+  }
+}

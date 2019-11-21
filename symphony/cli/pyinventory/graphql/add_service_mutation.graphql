@@ -1,0 +1,19 @@
+mutation AddServiceMutation($data: ServiceCreateData!) {
+  addService(data: $data) {
+    id
+    name
+    externalId
+    customer {
+      id
+      name
+      externalId
+    }
+    terminationPoints {
+      id
+      name
+    }
+    links {
+      id
+    }
+  }
+}

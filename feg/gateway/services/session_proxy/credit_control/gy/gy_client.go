@@ -254,7 +254,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginHost(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginRealm(), request.SessionID))))
 
 	return m, nil
 }
@@ -265,13 +265,17 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	svcInfoGrp := []*diam.AVP{}
 	csAddr, _, _ := net.SplitHostPort(server.Addr)
 
+	ratType := request.RatType
+	if len(ratType) == 0 {
+		ratType = RAT_TYPE_EUTRAN
+	}
 	psInfoAvps := []*diam.AVP{
 		// Set PDP Type as IPV4(0)
 		diam.NewAVP(avp.TGPPPDPType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0)),
 		// Argentina TZ (UTC-3hrs) TODO: Make it configurable
 		diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
-		// Set RAT Type as EUTRAN(6)-3GPP TS 29.274
-		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString("\x06")),
+		// Set RAT Type as EUTRAN(6). See 3GPP TS 29.274, 8.17 "Table 8.17-1: RAT Type values"
+		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ratType)),
 		// Set it to 0
 		diam.NewAVP(avp.TGPPSelectionMode, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("0")),
 		diam.NewAVP(avp.TGPPNSAPI, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString("5")),
@@ -306,7 +310,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with current TASA OCS*********************
+	/********************** TBD - doesn't work with some OCSes *********************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{

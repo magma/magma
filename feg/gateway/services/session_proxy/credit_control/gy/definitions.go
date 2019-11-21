@@ -40,6 +40,12 @@ const (
 	POOL_EXHAUSTED
 )
 
+const (
+	// 3GPP TS 29.274 RAT Types (for Gy)
+	RAT_TYPE_WLAN   = "\x03"
+	RAT_TYPE_EUTRAN = "\x06"
+)
+
 type UsedCredits struct {
 	RatingGroup       uint32
 	ServiceIdentifier *uint32
@@ -64,6 +70,7 @@ type CreditControlRequest struct {
 	Msisdn        []byte
 	Qos           *QosRequestInfo
 	Credits       []*UsedCredits
+	RatType       string
 }
 
 type QosRequestInfo struct {

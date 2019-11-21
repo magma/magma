@@ -148,7 +148,7 @@ matrix:
       dist: xenial
 
       env:
-        - NMS_ROOT=$TRAVIS_BUILD_DIR/nms
+        - NMS_ROOT=$TRAVIS_BUILD_DIR/symphony/app
 
       addons:
         apt:

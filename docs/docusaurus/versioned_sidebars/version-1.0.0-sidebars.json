@@ -34,6 +34,11 @@
           "version-1.0.0-feg/deploy_install"
         ]
       }
+    ],
+    "Symphony": [
+      "version-1.0.0-symphony/quick_start",
+      "version-1.0.0-symphony/symphony_download_requirements",
+      "version-1.0.0-symphony/building_the_symphony_agent"
     ]
   }
 }

@@ -3,9 +3,11 @@
 
 package protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -16,7 +18,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type DevmandGatewayConfig struct {
 	ManagedDevices       []string `protobuf:"bytes,1,rep,name=managed_devices,json=managedDevices,proto3" json:"managed_devices,omitempty"`
@@ -29,16 +31,17 @@ func (m *DevmandGatewayConfig) Reset()         { *m = DevmandGatewayConfig{} }
 func (m *DevmandGatewayConfig) String() string { return proto.CompactTextString(m) }
 func (*DevmandGatewayConfig) ProtoMessage()    {}
 func (*DevmandGatewayConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{0}
+	return fileDescriptor_d47fb5564620b7cc, []int{0}
 }
+
 func (m *DevmandGatewayConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DevmandGatewayConfig.Unmarshal(m, b)
 }
 func (m *DevmandGatewayConfig) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_DevmandGatewayConfig.Marshal(b, m, deterministic)
 }
-func (dst *DevmandGatewayConfig) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DevmandGatewayConfig.Merge(dst, src)
+func (m *DevmandGatewayConfig) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DevmandGatewayConfig.Merge(m, src)
 }
 func (m *DevmandGatewayConfig) XXX_Size() int {
 	return xxx_messageInfo_DevmandGatewayConfig.Size(m)
@@ -73,16 +76,17 @@ func (m *ManagedDevice) Reset()         { *m = ManagedDevice{} }
 func (m *ManagedDevice) String() string { return proto.CompactTextString(m) }
 func (*ManagedDevice) ProtoMessage()    {}
 func (*ManagedDevice) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{1}
+	return fileDescriptor_d47fb5564620b7cc, []int{1}
 }
+
 func (m *ManagedDevice) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ManagedDevice.Unmarshal(m, b)
 }
 func (m *ManagedDevice) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ManagedDevice.Marshal(b, m, deterministic)
 }
-func (dst *ManagedDevice) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ManagedDevice.Merge(dst, src)
+func (m *ManagedDevice) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ManagedDevice.Merge(m, src)
 }
 func (m *ManagedDevice) XXX_Size() int {
 	return xxx_messageInfo_ManagedDevice.Size(m)
@@ -142,16 +146,17 @@ func (m *Channels) Reset()         { *m = Channels{} }
 func (m *Channels) String() string { return proto.CompactTextString(m) }
 func (*Channels) ProtoMessage()    {}
 func (*Channels) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{2}
+	return fileDescriptor_d47fb5564620b7cc, []int{2}
 }
+
 func (m *Channels) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Channels.Unmarshal(m, b)
 }
 func (m *Channels) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Channels.Marshal(b, m, deterministic)
 }
-func (dst *Channels) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Channels.Merge(dst, src)
+func (m *Channels) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Channels.Merge(m, src)
 }
 func (m *Channels) XXX_Size() int {
 	return xxx_messageInfo_Channels.Size(m)
@@ -202,16 +207,17 @@ func (m *SNMPChannel) Reset()         { *m = SNMPChannel{} }
 func (m *SNMPChannel) String() string { return proto.CompactTextString(m) }
 func (*SNMPChannel) ProtoMessage()    {}
 func (*SNMPChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{3}
+	return fileDescriptor_d47fb5564620b7cc, []int{3}
 }
+
 func (m *SNMPChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_SNMPChannel.Unmarshal(m, b)
 }
 func (m *SNMPChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_SNMPChannel.Marshal(b, m, deterministic)
 }
-func (dst *SNMPChannel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SNMPChannel.Merge(dst, src)
+func (m *SNMPChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SNMPChannel.Merge(m, src)
 }
 func (m *SNMPChannel) XXX_Size() int {
 	return xxx_messageInfo_SNMPChannel.Size(m)
@@ -255,16 +261,17 @@ func (m *FrinxChannel) Reset()         { *m = FrinxChannel{} }
 func (m *FrinxChannel) String() string { return proto.CompactTextString(m) }
 func (*FrinxChannel) ProtoMessage()    {}
 func (*FrinxChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{4}
+	return fileDescriptor_d47fb5564620b7cc, []int{4}
 }
+
 func (m *FrinxChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_FrinxChannel.Unmarshal(m, b)
 }
 func (m *FrinxChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_FrinxChannel.Marshal(b, m, deterministic)
 }
-func (dst *FrinxChannel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FrinxChannel.Merge(dst, src)
+func (m *FrinxChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FrinxChannel.Merge(m, src)
 }
 func (m *FrinxChannel) XXX_Size() int {
 	return xxx_messageInfo_FrinxChannel.Size(m)
@@ -352,16 +359,17 @@ func (m *CambiumChannel) Reset()         { *m = CambiumChannel{} }
 func (m *CambiumChannel) String() string { return proto.CompactTextString(m) }
 func (*CambiumChannel) ProtoMessage()    {}
 func (*CambiumChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{5}
+	return fileDescriptor_d47fb5564620b7cc, []int{5}
 }
+
 func (m *CambiumChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_CambiumChannel.Unmarshal(m, b)
 }
 func (m *CambiumChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_CambiumChannel.Marshal(b, m, deterministic)
 }
-func (dst *CambiumChannel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_CambiumChannel.Merge(dst, src)
+func (m *CambiumChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_CambiumChannel.Merge(m, src)
 }
 func (m *CambiumChannel) XXX_Size() int {
 	return xxx_messageInfo_CambiumChannel.Size(m)
@@ -411,16 +419,17 @@ func (m *OtherChannel) Reset()         { *m = OtherChannel{} }
 func (m *OtherChannel) String() string { return proto.CompactTextString(m) }
 func (*OtherChannel) ProtoMessage()    {}
 func (*OtherChannel) Descriptor() ([]byte, []int) {
-	return fileDescriptor_devmand_service_ccd07b3a38890d0a, []int{6}
+	return fileDescriptor_d47fb5564620b7cc, []int{6}
 }
+
 func (m *OtherChannel) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_OtherChannel.Unmarshal(m, b)
 }
 func (m *OtherChannel) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_OtherChannel.Marshal(b, m, deterministic)
 }
-func (dst *OtherChannel) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_OtherChannel.Merge(dst, src)
+func (m *OtherChannel) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_OtherChannel.Merge(m, src)
 }
 func (m *OtherChannel) XXX_Size() int {
 	return xxx_messageInfo_OtherChannel.Size(m)
@@ -449,11 +458,9 @@ func init() {
 	proto.RegisterMapType((map[string]string)(nil), "magma.devmand.OtherChannel.ChannelPropsEntry")
 }
 
-func init() {
-	proto.RegisterFile("devmand_service.proto", fileDescriptor_devmand_service_ccd07b3a38890d0a)
-}
+func init() { proto.RegisterFile("devmand_service.proto", fileDescriptor_d47fb5564620b7cc) }
 
-var fileDescriptor_devmand_service_ccd07b3a38890d0a = []byte{
+var fileDescriptor_d47fb5564620b7cc = []byte{
 	// 608 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x7c, 0x54, 0xcd, 0x6e, 0xd4, 0x3c,
 	0x14, 0x55, 0xe6, 0xa7, 0x4d, 0x6e, 0x92, 0xe9, 0xf7, 0x59, 0x45, 0x44, 0x53, 0x2a, 0xaa, 0x40,
