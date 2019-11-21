@@ -44,6 +44,7 @@
 #include "mme_api.h"
 #include "mme_app_desc.h"
 #include "mme_app_apn_selection.h"
+#include "mme_app_itti_messaging.h"
 #include "mme_app_state.h"
 
 /****************************************************************************/
@@ -422,14 +423,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     emm_context->esm_ctx.is_standalone = true;
 
-    nas_itti_pdn_connectivity_req(
-      emm_context->esm_ctx.esm_proc_data->pti,
-      ue_id,
-      pdn_cid,
-      &emm_context->_imsi,
-      emm_context->_imeisv,
-      emm_context->esm_ctx.esm_proc_data,
-      emm_context->esm_ctx.esm_proc_data->request_type);
+    mme_app_send_s11_create_session_req(
+      mme_app_desc_p, ue_mm_context_p, pdn_cid);
     unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
   }
