@@ -104,6 +104,7 @@ MAGMA_DEPS=(
     "libfolly-dev" # required for C++ services
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
+    "td-agent-bit >= 1.3.2" # fluent-bit
     )
 
 # OAI runtime dependencies
@@ -276,6 +277,7 @@ $(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@
 $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
 $(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
 $(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
+$(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
 ${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \
@@ -290,6 +292,7 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
+${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
