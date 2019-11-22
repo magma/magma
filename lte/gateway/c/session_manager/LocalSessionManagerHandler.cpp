@@ -18,6 +18,62 @@ using grpc::Status;
 
 namespace magma {
 
+LocalSessionManagerStub::LocalSessionManagerStub(
+  folly::EventBase *evb):
+  evb_(evb)
+{
+}
+
+void LocalSessionManagerStub::ReportRuleStats(
+  ServerContext *context,
+  const RuleRecordTable *request,
+  std::function<void(Status, Void)> response_callback)
+{
+  response_callback(Status::OK, Void());
+}
+
+void LocalSessionManagerStub::CreateSession(
+  ServerContext *context,
+  const LocalCreateSessionRequest *request,
+  std::function<void(Status, LocalCreateSessionResponse)> response_callback)
+{
+  auto imsi = request->sid().id();
+  auto sid = id_gen_.gen_session_id(imsi);
+  LocalCreateSessionResponse resp;
+  resp.set_session_id(sid);
+  evb_->runInEventBaseThread(
+    [resp, response_callback]() {
+      try {
+        response_callback(grpc::Status::OK, resp);
+      } catch (...) {
+        std::exception_ptr ep = std::current_exception();
+        MLOG(MERROR) << "CreateSession response_callback exception: "
+                     << (ep ? ep.__cxa_exception_type()->name()
+                            : "<unknown");
+      }
+    }
+  );
+}
+
+void LocalSessionManagerStub::EndSession(
+  ServerContext *context,
+  const SubscriberID *request,
+  std::function<void(Status, LocalEndSessionResponse)> response_callback)
+{
+  evb_->runInEventBaseThread(
+    [response_callback]() {
+      try {
+        response_callback(grpc::Status::OK, LocalEndSessionResponse());
+      } catch (...) {
+        std::exception_ptr ep = std::current_exception();
+        MLOG(MERROR) << "EndSession response_callback exception: "
+                     << (ep ? ep.__cxa_exception_type()->name()
+                            : "<unknown");
+      }
+    }
+  );
+}
+
 const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 

@@ -10,6 +10,7 @@
 
 #include <functional>
 
+#include <folly/io/async/EventBaseManager.h>
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
@@ -53,6 +54,44 @@ class LocalSessionManagerHandler {
     ServerContext* context,
     const SubscriberID* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) = 0;
+};
+
+/**
+ * LocalSessionManagerStub processes gRPC requests to the session manager.
+ * Stub responses are returned to always succeed.
+ */
+class LocalSessionManagerStub : public LocalSessionManagerHandler {
+ public:
+  LocalSessionManagerStub(folly::EventBase *evb);
+
+  /**
+   * Report flow stats from pipelined and track the usage per rule
+   */
+  void ReportRuleStats(
+    ServerContext *context,
+    const RuleRecordTable *request,
+    std::function<void(Status, Void)> response_callback);
+
+  /**
+   * Create a new session, initializing credit monitoring and requesting credit
+   * from the cloud
+   */
+  void CreateSession(
+    ServerContext *context,
+    const LocalCreateSessionRequest *request,
+    std::function<void(Status, LocalCreateSessionResponse)> response_callback);
+
+  /**
+   * Terminate a session, untracking credit and terminating in the cloud
+   */
+  void EndSession(
+    ServerContext *context,
+    const SubscriberID *request,
+    std::function<void(Status, LocalEndSessionResponse)> response_callback);
+
+ private:
+  SessionIDGenerator id_gen_;
+  folly::EventBase *evb_;
 };
 
 /**
