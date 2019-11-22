@@ -81,19 +81,6 @@ typedef struct itti_nas_cs_service_notification_s {
     cli; /* If CLI received in Sgsap-Paging_Req,shall sent in CS Service Notification */
 } itti_nas_cs_service_notification_t;
 
-typedef struct itti_nas_conn_est_rej_s {
-  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier   */
-  s_tmsi_t s_tmsi;           /* UE identity                 */
-  nas_error_code_t err_code; /* Transaction status          */
-  bstring nas_msg;           /* NAS message to transfer     */
-  uint32_t nas_ul_count;     /* UL NAS COUNT                */
-  uint16_t selected_encryption_algorithm;
-  uint16_t selected_integrity_algorithm;
-} itti_nas_conn_est_rej_t;
-
-typedef struct itti_nas_conn_rel_ind_s {
-} itti_nas_conn_rel_ind_t;
-
 typedef struct itti_nas_info_transfer_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
   //nas_error_code_t err_code;     /* Transaction status               */

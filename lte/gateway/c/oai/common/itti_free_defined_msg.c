@@ -78,19 +78,13 @@ void itti_free_msg_content(MessageDef* const message_p)
       break;
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF:
-      if (message_p->ittiMsg.mme_app_connection_establishment_cnf.nas_pdu[0]) {
-        bdestroy_wrapper(
+      bdestroy_wrapper(
           &message_p->ittiMsg.mme_app_connection_establishment_cnf.nas_pdu[0]);
-      }
       break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: break;
 
     case MME_APP_DELETE_SESSION_RSP:
-      // DO nothing
-      break;
-
-    case NAS_CONNECTION_RELEASE_IND:
       // DO nothing
       break;
 
