@@ -63,7 +63,7 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
-        lib_path = os.environ['S1AP_ROOT']
+        lib_path = os.environ['S1AP_TESTER_ROOT']
         lib = os.path.join(lib_path, 'bin', S1ApUtil.lib_name)
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)
