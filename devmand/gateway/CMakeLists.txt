@@ -72,6 +72,8 @@ target_link_libraries(devman
   ssh_threads
   pcre
   ydk
+  ydk_openconfig
+  ydk_ietf
   curl
   xslt
   xml2
@@ -151,6 +153,7 @@ target_link_libraries(devmand
   devman_service_magma)
 
 add_executable(devmantest
+  ${PROJECT_SOURCE_DIR}/src/devmand/Test.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ConfigGeneratorTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
