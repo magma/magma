@@ -112,7 +112,7 @@ int s1ap_mme_handle_initial_ue_message(
     "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
     "\n",
     enb_ue_s1ap_id);
-  ue_ref = s1ap_state_get_ue_enbid(state, eNB_ref, enb_ue_s1ap_id);
+  ue_ref = s1ap_state_get_ue_enbid(eNB_ref, enb_ue_s1ap_id);
 
   if (ue_ref == NULL) {
     tai_t tai = {0};
@@ -275,7 +275,6 @@ int s1ap_mme_handle_uplink_nas_transport(
     enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
-            state,
             enb_ref,
             (enb_ue_s1ap_id_t) uplinkNASTransport_p->eNB_UE_S1AP_ID))) {
       OAILOG_WARNING(
@@ -413,7 +412,7 @@ int s1ap_generate_downlink_nas_transport(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
     } else {
       OAILOG_ERROR(
         LOG_S1AP, "No eNB for SCTP association id %d \n", sctp_assoc_id);
@@ -514,7 +513,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
     }
   }
   // TODO remove soon:
@@ -930,7 +929,7 @@ void s1ap_handle_mme_ue_id_notification(
   enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   if (enb_ref) {
     ue_description_t *ue_ref =
-      s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
+      s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
     if (ue_ref) {
       ue_ref->mme_ue_s1ap_id = mme_ue_s1ap_id;
       hashtable_rc_t h_rc = hashtable_ts_insert(
@@ -978,7 +977,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
     sctp_assoc_id_t sctp_assoc_id = (sctp_assoc_id_t)(uintptr_t) id;
     enb_description_t *enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
     if (enb_ref) {
-      ue_ref = s1ap_state_get_ue_enbid(state, enb_ref, enb_ue_s1ap_id);
+      ue_ref = s1ap_state_get_ue_enbid(enb_ref, enb_ue_s1ap_id);
     }
   }
   if (!ue_ref) {

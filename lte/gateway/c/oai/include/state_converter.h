@@ -28,6 +28,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "3gpp_23.003.h"
+#include "assertions.h"
 #include "common_types.h"
 #include "hashtable.h"
 #include "log.h"
@@ -104,6 +105,7 @@ class StateConverter {
           state_ht->name->data);
       }
     }
+    FREE_HASHTABLE_KEY_ARRAY(ht_keys);
   }
 
   template<typename ProtoMessage, typename NodeType>
@@ -118,7 +120,8 @@ class StateConverter {
       NodeType* node_type;
       node_type = (NodeType*) calloc(1, sizeof(NodeType));
       conversion_callable(proto, node_type);
-      auto ht_rc = hashtable_ts_insert(state_ht, entry.first, node_type);
+      auto ht_rc =
+        hashtable_ts_insert(state_ht, (hash_key_t) entry.first, node_type);
       if (ht_rc != HASH_TABLE_OK) {
         if (ht_rc == HASH_TABLE_INSERT_OVERWRITTEN_DATA) {
           OAILOG_INFO(LOG_SPGW_APP, "Overwriting data on key: %i", entry.first);
