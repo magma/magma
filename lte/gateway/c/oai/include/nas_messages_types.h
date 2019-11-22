@@ -45,8 +45,6 @@
 #include "common_ies.h"
 #include "nas/networkDef.h"
 
-#define NAS_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                               \
-  (mSGpTR)->ittiMsg.nas_conn_est_cnf
 #define NAS_BEARER_PARAM(mSGpTR) (mSGpTR)->ittiMsg.nas_bearer_param
 #define NAS_AUTHENTICATION_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_auth_req
 #define NAS_AUTHENTICATION_PARAM_REQ(mSGpTR)                                   \
@@ -82,35 +80,6 @@ typedef struct itti_nas_cs_service_notification_s {
   bstring
     cli; /* If CLI received in Sgsap-Paging_Req,shall sent in CS Service Notification */
 } itti_nas_cs_service_notification_t;
-
-typedef struct itti_nas_conn_est_rej_s {
-  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier   */
-  s_tmsi_t s_tmsi;           /* UE identity                 */
-  nas_error_code_t err_code; /* Transaction status          */
-  bstring nas_msg;           /* NAS message to transfer     */
-  uint32_t nas_ul_count;     /* UL NAS COUNT                */
-  uint16_t selected_encryption_algorithm;
-  uint16_t selected_integrity_algorithm;
-} itti_nas_conn_est_rej_t;
-
-typedef struct itti_nas_conn_est_cnf_s {
-  mme_ue_s1ap_id_t ue_id;    /* UE lower layer identifier   */
-  nas_error_code_t err_code; /* Transaction status          */
-  bstring nas_msg;           /* NAS message to transfer     */
-
-  uint8_t kenb[32];
-
-  uint32_t ul_nas_count;
-  uint16_t encryption_algorithm_capabilities;
-  uint16_t integrity_algorithm_capabilities;
-  uint8_t csfb_response;
-  uint8_t
-    presencemask; /* Indicates the presence of some params like service type */
-  uint8_t service_type;
-} itti_nas_conn_est_cnf_t;
-
-typedef struct itti_nas_conn_rel_ind_s {
-} itti_nas_conn_rel_ind_t;
 
 typedef struct itti_nas_info_transfer_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
