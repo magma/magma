@@ -1309,12 +1309,9 @@ int sgw_handle_delete_session_request(
       delete_session_resp_p->teid =
         ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
 
-      if (spgw_config.pgw_config.relay_enabled) {
-        // TODO make async
-        char *imsi =
-          (char *) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
-        pcef_end_session(imsi);
-      }
+      // TODO make async
+      char* imsi = (char*) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
+      pcef_end_session(imsi);
 
       itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
