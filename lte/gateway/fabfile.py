@@ -98,7 +98,7 @@ def package(vcs='hg', all_deps="False",
             run('cat mirrored_packages | '
                 'xargs -I% sudo aptitude download -q2 %')
             run('cp *.deb ~/magma-packages')
-            run('rm *.deb')
+            run('sudo rm -f *.deb')
 
         if all_deps:
             pkg.download_all_pkgs()
