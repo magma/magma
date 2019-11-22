@@ -130,9 +130,11 @@ typedef struct itti_erab_setup_req_s {
 } itti_erab_setup_req_t;
 
 typedef struct itti_erab_rel_cmd_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
-  ebi_t ebi;              /* EPS bearer id        */
-  bstring nas_msg; /* NAS erab bearer context activation message           */
+  mme_ue_s1ap_id_t ue_id;   /* UE lower layer identifier   */
+  ebi_t ebi;                /* EPS bearer id        */
+  bstring nas_msg;          /* NAS erab bearer context activation message */
+  uint8_t n_bearers;        /*Number of bearers to be released*/
+  ebi_t* bearers_to_be_rel; /* Bearers to be released*/
 } itti_erab_rel_cmd_t;
 
 typedef struct itti_nas_attach_req_s {

@@ -52,10 +52,10 @@ export const RAW_GATEWAY: wifi_gateway = {
       },
     },
     meta: {
-      how: 'meta',
       version:
         'Facebook Wi-Fi soma-image-1.0 (nbg6817) Release 52461bc4d24d+dirty (yerv@devvm354 Wed Jun 19 18:30:23 UTC 2019) (fbpkg:none) (cfg:none)',
       is_gateway: 'true',
+      openr_inet_monitor: 'success',
       default_route: 'eth0,10.1.0.1',
       default_route_v6:
         'eth0,fe80::7e25:8602:ccfb:3819;eth0,fe80::c242:d002:cc83:52d8;eth0,fe80::200:5eff:fe00:201',

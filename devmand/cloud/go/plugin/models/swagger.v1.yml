@@ -722,6 +722,13 @@ definitions:
         $ref: '#/definitions/symphony_device_name'
       config:
         $ref: '#/definitions/symphony_device_config'
+      managing_agent:
+        $ref: '#/definitions/symphony_device_agent'
+  symphony_device_agent:
+    type: string
+    x-nullable: false
+    pattern: '^$|^[a-z][\da-z_]+$'
+    example: gw1
   symphony_device_id:
     description: The id of a Symphony device
     type: string

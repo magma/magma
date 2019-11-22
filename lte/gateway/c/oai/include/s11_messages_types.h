@@ -1136,6 +1136,7 @@ typedef struct itti_s11_delete_session_response_s {
   /* GTPv2-C specific parameters */
   void *trxn;
   struct in_addr peer_ip;
+  ebi_t lbi;
 } itti_s11_delete_session_response_t;
 
 //-----------------------------------------------------------------------------

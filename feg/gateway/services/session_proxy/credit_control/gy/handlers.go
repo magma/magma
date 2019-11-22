@@ -57,6 +57,9 @@ func getGyReAuthRequestProto(diamReq *ReAuthRequest, imsi, sid string) *protos.C
 	if diamReq.RatingGroup != nil {
 		protoReq.ChargingKey = *diamReq.RatingGroup
 		protoReq.Type = protos.ChargingReAuthRequest_SINGLE_SERVICE
+		if diamReq.ServiceIdentifier != nil {
+			protoReq.ServiceIdentifier = &protos.ServiceIdentifier{Value: *diamReq.ServiceIdentifier}
+		}
 	} else {
 		protoReq.ChargingKey = 0
 		protoReq.Type = protos.ChargingReAuthRequest_ENTIRE_SESSION

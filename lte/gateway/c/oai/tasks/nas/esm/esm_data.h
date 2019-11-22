@@ -176,6 +176,8 @@ typedef struct esm_context_s {
     is_emergency; /* Indicates whether a PDN connection for emergency bearer services is established       */
   struct esm_proc_data_s *esm_proc_data;
   struct nas_timer_s T3489;
+  bool is_standalone;
+  bool is_pdn_disconnect;
 } esm_context_t;
 
 /*

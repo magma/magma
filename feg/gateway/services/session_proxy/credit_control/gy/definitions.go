@@ -135,8 +135,9 @@ type CCADiameterMessage struct {
 // ReAuthRequest is a diameter request received from the OCS to initiate a
 // credit update
 type ReAuthRequest struct {
-	SessionID   string  `avp:"Session-Id"`
-	RatingGroup *uint32 `avp:"Rating-Group"`
+	SessionID         string  `avp:"Session-Id"`
+	RatingGroup       *uint32 `avp:"Rating-Group"`
+	ServiceIdentifier *uint32 `avp:"Service-Identifier"`
 }
 
 // ReAuthAnswer is a diameter answer sent back to the OCS after a credit update

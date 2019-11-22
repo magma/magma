@@ -196,6 +196,9 @@ describe('AddEditAlert > Prometheus Editor', () => {
         },
         for: '1m',
         expr: 'vector(1)',
+        annotations: {
+          description: '',
+        },
       },
     });
   });
@@ -233,7 +236,7 @@ function mockRules() {
   return [
     {
       alert: '<<test>>',
-      annotations: {},
+      annotations: {description: ''},
       labels: {},
       expr: 'up == 0',
       for: '1m',

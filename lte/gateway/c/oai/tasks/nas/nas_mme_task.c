@@ -130,6 +130,11 @@ static void *nas_intertask_interface(void *args_p)
           &MME_APP_DELETE_DEDICATED_BEARER_REQ(received_message_p));
         break;
 
+      case MME_APP_PDN_DISCONNECT_RSP:
+        nas_proc_pdn_disconnect_rsp(
+          &MME_APP_PDN_DISCONNECT_RSP(received_message_p));
+        break;
+
       case TERMINATE_MESSAGE: {
         put_mme_nas_state(&mme_app_desc_p);
         nas_exit();

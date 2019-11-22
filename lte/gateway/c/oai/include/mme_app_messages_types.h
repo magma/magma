@@ -67,6 +67,10 @@
   (mSGpTR)->ittiMsg.mme_app_delete_dedicated_bearer_rsp
 #define MME_APP_DELETE_DEDICATED_BEARER_REJ(mSGpTR)                            \
   (mSGpTR)->ittiMsg.mme_app_delete_dedicated_bearer_rej
+#define MME_APP_PDN_DISCONNECT_REQ(mSGpTR)                                     \
+  (mSGpTR)->ittiMsg.mme_app_pdn_disconnect_req
+#define MME_APP_PDN_DISCONNECT_RSP(mSGpTR)                                     \
+  (mSGpTR)->ittiMsg.mme_app_pdn_disconnect_rsp
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {
   mme_ue_s1ap_id_t ue_id;
@@ -211,5 +215,18 @@ typedef struct itti_mme_app_delete_dedicated_bearer_rej_s {
   teid_t s_gw_teid_s11_s4;
   bool delete_default_bearer;
 } itti_mme_app_delete_dedicated_bearer_rej_t;
+
+typedef struct itti_mme_app_pdn_disconnect_req_s {
+  /* UE identifier */
+  mme_ue_s1ap_id_t ue_id;
+  ebi_t lbi;     //Default EPS Bearer ID
+  pdn_cid_t pid; //PDN Connection ID
+} itti_mme_app_pdn_disconnect_req_t;
+
+typedef struct itti_mme_app_pdn_disconnect_rsp_s {
+  /* UE identifier */
+  mme_ue_s1ap_id_t ue_id;
+  ebi_t lbi; //Default EPS Bearer ID
+} itti_mme_app_pdn_disconnect_rsp_t;
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

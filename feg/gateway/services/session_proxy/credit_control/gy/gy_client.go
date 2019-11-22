@@ -272,8 +272,8 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	psInfoAvps := []*diam.AVP{
 		// Set PDP Type as IPV4(0)
 		diam.NewAVP(avp.TGPPPDPType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0)),
-		// Argentina TZ (UTC-3hrs) TODO: Make it configurable
-		diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
+		// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
+		// diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
 		// Set RAT Type as EUTRAN(6). See 3GPP TS 29.274, 8.17 "Table 8.17-1: RAT Type values"
 		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ratType)),
 		// Set it to 0
