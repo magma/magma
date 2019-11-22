@@ -65,6 +65,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     if gateway_host:
         execute(_transfer_docker_images)
     else:
+        execute(_stop_gateway)
         execute(_build_gateway)
     execute(_run_gateway)
 
@@ -158,6 +159,16 @@ def _set_cwag_test_networking(mac):
     sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
 
 
+def _stop_gateway():
+    """ Stop the gateway docker images """
+    with cd(CWAG_ROOT + '/docker'):
+        sudo(' docker-compose'
+             ' -f docker-compose.yml'
+             ' -f docker-compose.override.yml'
+             ' -f docker-compose.integ-test.yml'
+             ' down')
+
+
 def _build_gateway():
     """ Builds the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
@@ -175,8 +186,7 @@ def _run_gateway():
              ' -f docker-compose.yml'
              ' -f docker-compose.override.yml'
              ' -f docker-compose.integ-test.yml'
-             ' up -d '
-             ' --force-recreate')
+             ' up -d ')
 
 
 def _start_ue_simulator():
