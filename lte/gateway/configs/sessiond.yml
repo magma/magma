@@ -33,3 +33,7 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: false
+
+# If enabled, will use the local CentralSessionManager running in captive_portal
+# when relay is not enabled.
+captive_portal_enabled: false

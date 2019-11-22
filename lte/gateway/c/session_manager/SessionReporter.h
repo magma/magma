@@ -38,7 +38,7 @@ class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
   folly::EventBase *base_;
 };
 
-class SessionCloudReporter : public GRPCReceiver{
+class SessionReporter : public GRPCReceiver {
  public:
   /**
    * Proxy an UpdateSessionRequest gRPC call to the cloud
@@ -62,9 +62,9 @@ class SessionCloudReporter : public GRPCReceiver{
     std::function<void(grpc::Status, SessionTerminateResponse)> callback) = 0;
 };
 
-class SessionCloudReporterImpl : public SessionCloudReporter {
+class SessionReporterImpl : public SessionReporter {
  public:
-  SessionCloudReporterImpl(
+  SessionReporterImpl(
     folly::EventBase *base,
     std::shared_ptr<grpc::Channel> channel);
 

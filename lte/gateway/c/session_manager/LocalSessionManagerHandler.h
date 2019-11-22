@@ -15,7 +15,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "SessionID.h"
 
 using grpc::Server;
@@ -102,8 +102,8 @@ class LocalSessionManagerStub : public LocalSessionManagerHandler {
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
-    LocalEnforcer* monitor,
-    SessionCloudReporter* reporter);
+    LocalEnforcer *monitor,
+    SessionReporter *reporter);
 
   ~LocalSessionManagerHandlerImpl() {}
   /**
@@ -132,8 +132,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
-  LocalEnforcer* enforcer_;
-  SessionCloudReporter* reporter_;
+  LocalEnforcer *enforcer_;
+  SessionReporter *reporter_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;

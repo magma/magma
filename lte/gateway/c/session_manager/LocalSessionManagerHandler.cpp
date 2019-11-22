@@ -78,8 +78,8 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer* enforcer,
-  SessionCloudReporter* reporter):
+  LocalEnforcer *enforcer,
+  SessionReporter *reporter):
   enforcer_(enforcer),
   reporter_(reporter),
   current_epoch_(0),
@@ -340,8 +340,8 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
 }
 
 static void report_termination(
-  SessionCloudReporter& reporter,
-  const SessionTerminateRequest& term_req)
+  SessionReporter &reporter,
+  const SessionTerminateRequest &term_req)
 {
   reporter.report_terminate_session(
     term_req,

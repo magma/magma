@@ -51,7 +51,7 @@ static void mark_rule_failures(
   PolicyReAuthAnswer& answer_out);
 
 LocalEnforcer::LocalEnforcer(
-  std::shared_ptr<SessionCloudReporter> reporter,
+  std::shared_ptr<SessionReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
   std::shared_ptr<SpgwServiceClient> spgw_client,

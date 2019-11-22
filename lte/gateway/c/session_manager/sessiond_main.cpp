@@ -13,7 +13,7 @@
 
 #include "SessionManagerServer.h"
 #include "LocalEnforcer.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "MagmaService.h"
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
@@ -51,34 +51,53 @@ static magma::mconfig::SessionD load_mconfig()
   return mconfig;
 }
 
-static void run_bare_service303()
-{
+static void run_bare_service303(
+    folly::EventBase *base) {
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
+  auto local_handler = std::make_unique<magma::LocalSessionManagerStub>(
+    base);
+  magma::LocalSessionManagerAsyncService local_service(
+    server.GetNewCompletionQueue(), std::move(local_handler));
+  server.AddServiceToServer(&local_service);
   server.Start();
+
+  std::thread local_thread([&]() {
+    MLOG(MINFO) << "Started local service thread";
+    local_service.wait_for_requests(); // block here instead of on server
+    local_service.stop();              // stop queue after server shuts down
+  });
+
+  base->loopForever();
   server.WaitForShutdown(); // blocks forever
   server.Stop();
+  local_thread.join();
 }
 
-static bool sessiond_enabled(const magma::mconfig::SessionD &mconfig)
-{
-  return mconfig.relay_enabled();
+static bool sessiond_enabled(
+    const magma::mconfig::SessionD &mconfig,
+    const YAML::Node &config) {
+  if (mconfig.relay_enabled() || config[""]) {
+    return true;
+  } else if (
+    !config["captive_portal_enabled"].IsDefined() ||
+    config["captive_portal_enabled"].as<bool>()) {
+    return true;
+  }
+  return false;
 }
 
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
+  const magma::mconfig::SessionD &mconfig,
   const YAML::Node &config)
 {
-  if (
-    !config["use_proxied_controller"].IsDefined() ||
-    config["use_proxied_controller"].as<bool>()) {
+  if (mconfig.relay_enabled()) {
     MLOG(MINFO) << "Using proxied sessiond controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   }
-  auto port = config["local_controller_port"].as<std::string>();
-  auto addr = "127.0.0.1:" + port;
-  MLOG(MINFO) << "Using local address " << addr << " for controller";
-  return grpc::CreateCustomChannel(
-    addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
+  MLOG(MINFO) << "Using local captive_portal controller";
+  return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+    "captive_portal", magma::ServiceRegistrySingleton::LOCAL);
 }
 
 static uint32_t get_log_verbosity(const YAML::Node &config)
@@ -117,13 +136,13 @@ int main(int argc, char *argv[])
     magma::ServiceConfigLoader {}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config));
 
-  if (!sessiond_enabled(mconfig)) {
+  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
+
+  if (!sessiond_enabled(mconfig, config)) {
     MLOG(MINFO) << "Credit control disabled, local enforcer not running";
-    run_bare_service303();
+    run_bare_service303(evb);
     return 0;
   }
-
-  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
   // prep rule manager and rule update loop
   auto rule_store = std::make_shared<magma::StaticRuleStore>();
@@ -180,8 +199,8 @@ int main(int argc, char *argv[])
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  auto reporter = std::make_shared<magma::SessionCloudReporterImpl>(
-    evb, get_controller_channel(config));
+  auto reporter = std::make_shared<magma::SessionReporterImpl>(
+    evb, get_controller_channel(mconfig, config));
   std::thread reporter_thread([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();
