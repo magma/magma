@@ -80,7 +80,7 @@ jobs:
   southpoll_test:
     machine:
       image: circleci/classic:latest
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -100,7 +100,7 @@ jobs:
 
   southpoll_publish_dev:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -120,7 +120,7 @@ jobs:
 
   southpoll_publish_prod:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -141,7 +141,7 @@ jobs:
 
   southpoll_firstparty:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
@@ -161,7 +161,7 @@ jobs:
 
   southpoll_thirdparty:
     machine:
-      docker_layer_caching: true
+      docker_layer_caching: false
     steps:
       - checkout
       - build/determinator:
