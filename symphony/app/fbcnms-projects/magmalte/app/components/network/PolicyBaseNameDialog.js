@@ -49,10 +49,10 @@ export default function(props: Props) {
       MagmaV1API.getNetworksByNetworkIdPoliciesBaseNamesByBaseName({
         networkId: nullthrows(match.params.networkId),
         baseName: editingBaseName,
-      }).then(ruleNames =>
+      }).then(response =>
         setBaseName({
           name: editingBaseName,
-          ruleNames: ruleNames.join(','),
+          ruleNames: response.rule_names.join(','),
         }),
       );
     } else {
@@ -65,21 +65,22 @@ export default function(props: Props) {
   }
 
   const onSave = async () => {
+    const baseNameRecord = {
+      name: baseName.name,
+      rule_names: baseName.ruleNames.split(','),
+    };
     try {
       if (editingBaseName) {
         await MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
           networkId: nullthrows(match.params.networkId),
           baseName: editingBaseName,
-          chargingRuleBaseName: baseName.ruleNames.split(','),
+          baseNameRecord,
         });
         props.onSave(editingBaseName);
       } else {
         await MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames({
           networkId: nullthrows(match.params.networkId),
-          chargingRuleBaseName: {
-            name: baseName.name,
-            rule_names: baseName.ruleNames.split(','),
-          },
+          baseNameRecord,
         });
       }
 

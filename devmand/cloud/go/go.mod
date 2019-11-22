@@ -18,6 +18,7 @@ require (
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.3.0
+	github.com/thoas/go-funk v0.4.0
 
 	magma/orc8r/cloud/go v0.0.0
 )

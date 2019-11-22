@@ -84,6 +84,7 @@ type FormState = {
   severity: string,
   timeNumber: string,
   timeUnit: string,
+  description: string,
 };
 
 export type InputChangeFunc = (
@@ -129,7 +130,7 @@ function TimeEditor(props: {
   timeUnit: string,
 }) {
   return (
-    <>
+    <Grid container spacing={1} alignItems="flex-end">
       <Grid item xs={6}>
         <TimeNumberEditor
           onChange={props.onChange}
@@ -153,7 +154,7 @@ function TimeEditor(props: {
           <HelpIcon />
         </Tooltip>
       </Grid>
-    </>
+    </Grid>
   );
 }
 
@@ -190,6 +191,20 @@ function TimeUnitEditor(props: {
         </MenuItem>
       ))}
     </TextField>
+  );
+}
+
+function DescriptionEditor(props: {
+  onChange: InputChangeFunc,
+  description: string,
+}) {
+  return (
+    <TextField
+      value={props.description}
+      onChange={props.onChange(val => ({description: val}))}
+      label="Description"
+      fullWidth
+    />
   );
 }
 
@@ -257,7 +272,7 @@ export default function PrometheusEditor(props: Props) {
 
   return (
     <Grid container spacing={3}>
-      <Grid container item direction="column" spacing={2} wrap="nowrap">
+      <Grid container direction="column" spacing={2} wrap="nowrap">
         <Grid item xs={12} sm={3}>
           <RuleNameEditor
             onChange={handleInputChange}
@@ -288,16 +303,22 @@ export default function PrometheusEditor(props: Props) {
             severity={formState.severity}
           />
         </Grid>
-        <Grid container item xs={12} sm={3} spacing={1} alignItems="flex-end">
+        <Grid item xs={12} sm={3}>
           <TimeEditor
             onChange={handleInputChange}
             timeNumber={formState.timeNumber}
             timeUnit={formState.timeUnit}
           />
         </Grid>
+        <Grid item xs={12} sm={3}>
+          <DescriptionEditor
+            onChange={handleInputChange}
+            description={formState.description}
+          />
+        </Grid>
       </Grid>
 
-      <Grid container item>
+      <Grid item>
         <Button
           variant="outlined"
           onClick={() => onExit()}
@@ -322,6 +343,7 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
       ruleName: '',
       expression: '',
       severity: '',
+      description: '',
       timeNumber: '',
       timeUnit: '',
     };
@@ -332,6 +354,7 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
     ruleName: rule.alert,
     expression: rule.expr,
     severity: rule.labels?.severity || '',
+    description: rule.annotations?.description || '',
     timeNumber,
     timeUnit,
   };
@@ -345,6 +368,9 @@ function toAlertConfig(form: FormState): AlertConfig {
       severity: form.severity,
     },
     for: `${form.timeNumber}${form.timeUnit}`,
+    annotations: {
+      description: form.description,
+    },
   };
 }
 

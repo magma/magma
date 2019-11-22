@@ -125,4 +125,9 @@ void nas_itti_dedicated_eps_bearer_deactivation_reject(
   bool delete_default_bearer,
   teid_t s_gw_teid_s11_s4);
 
+void nas_itti_pdn_disconnect_req(
+  const mme_ue_s1ap_id_t ue_idP,
+  const pdn_cid_t pid,
+  const ebi_t lbi);
+
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

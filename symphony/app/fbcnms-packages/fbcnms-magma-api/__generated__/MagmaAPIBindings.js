@@ -57,6 +57,8 @@ export type allowed_gre_peers = Array < allowed_gre_peer >
 ;
 export type base_name = string;
 export type base_name_record = {
+    assigned_subscribers ? : Array < subscriber_id >
+        ,
     name: base_name,
     rule_names: rule_names,
 };
@@ -716,10 +718,23 @@ export type platform_info = {
         ,
     vpn_ip ? : string,
 };
+export type policy_id = string;
 export type policy_rule = {
+    assigned_subscribers ? : Array < subscriber_id >
+        ,
     flow_list: Array < flow_description >
         ,
-    id: string,
+    id: policy_id,
+    monitoring_key ? : string,
+    priority: number,
+    qos ? : flow_qos,
+    rating_group ? : number,
+    redirect ? : redirect_information,
+    tracking_type ? : "ONLY_OCS" | "ONLY_PCRF" | "OCS_AND_PCRF" | "NO_TRACKING",
+};
+export type policy_rule_config = {
+    flow_list: Array < flow_description >
+        ,
     monitoring_key ? : string,
     priority: number,
     qos ? : flow_qos,
@@ -858,9 +873,14 @@ export type snmp_channel = {
 };
 export type sub_profile = string;
 export type subscriber = {
-    id: string,
+    active_base_names ? : Array < base_name >
+        ,
+    active_policies ? : Array < policy_id >
+        ,
+    id: subscriber_id,
     lte: lte_subscription,
 };
+export type subscriber_id = string;
 export type subscription_profile = {
     max_dl_bit_rate ? : number,
     max_ul_bit_rate ? : number,
@@ -5125,7 +5145,8 @@ export default class MagmaAPIBindings {
             parameters: {
                 'networkId': string,
             }
-        ): Promise < rule_names >
+        ): Promise < Array < base_name >
+        >
         {
             let path = '/networks/{network_id}/policies/base_names';
             let body;
@@ -5141,7 +5162,7 @@ export default class MagmaAPIBindings {
     static async postNetworksByNetworkIdPoliciesBaseNames(
             parameters: {
                 'networkId': string,
-                'chargingRuleBaseName': base_name_record,
+                'baseNameRecord': base_name_record,
             }
         ): Promise < base_name >
         {
@@ -5154,12 +5175,12 @@ export default class MagmaAPIBindings {
 
             path = path.replace('{network_id}', `${parameters['networkId']}`);
 
-            if (parameters['chargingRuleBaseName'] === undefined) {
-                throw new Error('Missing required  parameter: chargingRuleBaseName');
+            if (parameters['baseNameRecord'] === undefined) {
+                throw new Error('Missing required  parameter: baseNameRecord');
             }
 
-            if (parameters['chargingRuleBaseName'] !== undefined) {
-                body = parameters['chargingRuleBaseName'];
+            if (parameters['baseNameRecord'] !== undefined) {
+                body = parameters['baseNameRecord'];
             }
 
             return await this.request(path, 'POST', query, body);
@@ -5192,7 +5213,7 @@ export default class MagmaAPIBindings {
                 'networkId': string,
                 'baseName': string,
             }
-        ): Promise < rule_names >
+        ): Promise < base_name_record >
         {
             let path = '/networks/{network_id}/policies/base_names/{base_name}';
             let body;
@@ -5215,7 +5236,7 @@ export default class MagmaAPIBindings {
         parameters: {
             'networkId': string,
             'baseName': string,
-            'chargingRuleBaseName': rule_names,
+            'baseNameRecord': base_name_record,
         }
     ): Promise < "Success" > {
         let path = '/networks/{network_id}/policies/base_names/{base_name}';
@@ -5233,16 +5254,35 @@ export default class MagmaAPIBindings {
 
         path = path.replace('{base_name}', `${parameters['baseName']}`);
 
-        if (parameters['chargingRuleBaseName'] === undefined) {
-            throw new Error('Missing required  parameter: chargingRuleBaseName');
+        if (parameters['baseNameRecord'] === undefined) {
+            throw new Error('Missing required  parameter: baseNameRecord');
         }
 
-        if (parameters['chargingRuleBaseName'] !== undefined) {
-            body = parameters['chargingRuleBaseName'];
+        if (parameters['baseNameRecord'] !== undefined) {
+            body = parameters['baseNameRecord'];
         }
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getNetworksByNetworkIdPoliciesBaseNamesViewFull(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < {
+            [string]: base_name_record,
+        } >
+        {
+            let path = '/networks/{network_id}/policies/base_names?view=full';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworksByNetworkIdPoliciesRules(
             parameters: {
                 'networkId': string,
@@ -5366,6 +5406,25 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getNetworksByNetworkIdPoliciesRulesViewFull(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < {
+            [string]: policy_rule,
+        } >
+        {
+            let path = '/networks/{network_id}/policies/rules?view=full';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async deleteNetworksByNetworkIdPrometheusAlertConfig(
         parameters: {
             'networkId': string,

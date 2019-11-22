@@ -42,6 +42,7 @@ setup(
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
         'scripts/generate_service_config.py',
+        'scripts/generate_fluent_bit_config.py',
         'scripts/health_cli.py',
         'scripts/magma_conditional_service.py',
         'scripts/magma_get_config.py',

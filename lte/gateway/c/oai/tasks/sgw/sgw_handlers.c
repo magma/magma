@@ -66,6 +66,7 @@
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
+#include "mme_config.h"
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
@@ -266,7 +267,6 @@ int sgw_handle_create_session_request(
       // TO DO free_wrapper new_bearer_ctxt_info_p and by cascade...
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
-
     eps_bearer_ctxt_p->eps_bearer_qos =
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
         .bearer_level_qos;
@@ -1435,6 +1435,11 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->trxn = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
       delete_session_req_pP->peer_ip.s_addr;
+
+    if (mme_config.eps_network_feature_support
+          .ims_voice_over_ps_session_in_s1) {
+      delete_session_resp_p->lbi = delete_session_req_pP->lbi;
+    }
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 

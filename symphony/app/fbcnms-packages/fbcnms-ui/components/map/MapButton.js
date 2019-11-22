@@ -19,6 +19,7 @@ const useStyles = makeStyles(theme => ({
     borderRadius: '4px',
     height: '30px',
     border: 0,
+    paddingTop: '3px',
   },
   selected: {
     color: theme.palette.blue60,

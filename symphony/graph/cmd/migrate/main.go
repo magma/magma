@@ -12,9 +12,11 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
 	"github.com/facebookincubator/symphony/cloud/log"
+	entmigrate "github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/graphgrpc"
 	"github.com/facebookincubator/symphony/graph/migrate"
 
+	"github.com/facebookincubator/ent/dialect"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes/empty"
 	"go.uber.org/zap"
@@ -25,6 +27,7 @@ func main() {
 	dsn := flag.String("db_dsn", "", "data source name")
 	dc := flag.Bool("drop_column", false, "enable column drop")
 	di := flag.Bool("drop_index", false, "enable index drop")
+	plan := flag.Bool("plan", false, "print the execution plan")
 	flag.Parse()
 
 	logger, _ := log.Config{Format: "console"}.Build()
@@ -44,14 +47,29 @@ func main() {
 		names[i] = tenant.Name
 	}
 
-	if err := migrate.NewMigrator(migrate.MigratorConfig{
+	cfg := migrate.MigratorConfig{
 		Driver: driver,
 		Logger: logger,
 		Options: []schema.MigrateOption{
 			schema.WithDropColumn(*dc),
 			schema.WithDropIndex(*di),
 		},
-	}).Migrate(context.Background(), names...); err != nil {
+	}
+	if *plan {
+		cfg.Creator = func(driver dialect.Driver) migrate.Creator {
+			return planner{entmigrate.NewSchema(driver)}
+		}
+	}
+
+	if err := migrate.NewMigrator(cfg).Migrate(context.Background(), names...); err != nil {
 		os.Exit(1)
 	}
+}
+
+type planner struct {
+	*entmigrate.Schema
+}
+
+func (c planner) Create(ctx context.Context, opts ...schema.MigrateOption) error {
+	return c.WriteTo(ctx, os.Stdout, opts...)
 }

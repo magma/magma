@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin
@@ -42,6 +42,7 @@ class EnforcementController(PolicyMixin, MagmaController):
     """
 
     APP_NAME = "enforcement"
+    APP_TYPE = ControllerType.LOGICAL
     ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
     # Should not overlap with the drop flow as drop matches all packets.
     MIN_ENFORCE_PROGRAMMED_FLOW = ENFORCE_DROP_PRIORITY + 1

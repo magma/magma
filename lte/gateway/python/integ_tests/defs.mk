@@ -71,7 +71,7 @@ cloud_tests/metrics_export_test.py \
 cloud_tests/config_test.py
 
 S1AP_TESTER_CFG=$(MAGMA_ROOT)/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
-S1AP_PYTHON_PATH=$(S1AP_ROOT)/bin
+S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
 
 # Local integ tests are run on the magma access gateway, not the test VM
 LOCAL_INTEG_TESTS = gxgy_tests

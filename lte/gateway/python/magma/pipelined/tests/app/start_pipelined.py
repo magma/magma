@@ -15,7 +15,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
     BadConfigError
 

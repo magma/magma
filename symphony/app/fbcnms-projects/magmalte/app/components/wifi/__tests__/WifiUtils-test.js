@@ -64,9 +64,91 @@ it('renders without crashing', () => {
 });
 
 it('geojson connections', () => {
-  const gateway = buildWifiGatewayFromPayloadV1(RAW_GATEWAY, NOW);
-  const connections = wifiGeoJsonConnections([gateway, gateway]);
-  expect(connections).toEqual([]);
+  const now = RAW_GATEWAY.status?.checkin_time || NOW;
+  const gatewayA = buildWifiGatewayFromPayloadV1(
+    {
+      ...RAW_GATEWAY,
+      name: '5ce28cf1ae00',
+      id: 'devicea_id_5ce28cf1ae00',
+      device: {
+        hardware_id: 'faceb00c-face-b00c-face-5ce28cf1ae00',
+        key: {key_type: 'ECHO'},
+      },
+      status: {
+        ...RAW_GATEWAY.status,
+        meta: {
+          ...(RAW_GATEWAY.status?.meta || {}),
+          openr_neighbors: '5ce28cf1ae01',
+        },
+      },
+    },
+    now,
+  );
+  const gatewayB = buildWifiGatewayFromPayloadV1(
+    {
+      ...RAW_GATEWAY,
+      name: '5ce28cf1ae01',
+      id: 'deviceb_id_5ce28cf1ae01',
+      device: {
+        hardware_id: 'faceb00c-face-b00c-face-5ce28cf1ae01',
+        key: {key_type: 'ECHO'},
+      },
+      status: {
+        ...RAW_GATEWAY.status,
+        meta: {
+          ...(RAW_GATEWAY.status?.meta || {}),
+          openr_neighbors: '5ce28cf1ae00',
+        },
+      },
+    },
+    now,
+  );
+  const connections = wifiGeoJsonConnections([gatewayB, gatewayA]);
+  expect(connections).toEqual([
+    {
+      geometry: {
+        coordinates: [[-70, 83], [-70, 83]],
+        type: 'LineString',
+      },
+      properties: {
+        deviceId0: 'devicea_id_5ce28cf1ae00',
+        deviceId1: 'deviceb_id_5ce28cf1ae01',
+        deviceInfo0: 'binney lab, top shelf back wall',
+        deviceInfo1: 'binney lab, top shelf back wall',
+        deviceMac0: '5ce28cf1ae00',
+        deviceMac1: '5ce28cf1ae01',
+        highestConnectionType: 'openr',
+        id: 'devicea_id_5ce28cf1ae00-deviceb_id_5ce28cf1ae01',
+        info0to1_L2ExpectedThroughput: undefined,
+        info0to1_L2Exptime: undefined,
+        info0to1_L2InactiveTime: undefined,
+        info0to1_L2MeshPlink: undefined,
+        info0to1_L2Metric: undefined,
+        info0to1_L2RxBitrate: undefined,
+        info0to1_L2Signal: undefined,
+        info0to1_OpenrIp: undefined,
+        info0to1_OpenrIpv6: undefined,
+        info0to1_OpenrMetric: undefined,
+        info1to0_L2ExpectedThroughput: undefined,
+        info1to0_L2Exptime: undefined,
+        info1to0_L2InactiveTime: undefined,
+        info1to0_L2MeshPlink: undefined,
+        info1to0_L2Metric: undefined,
+        info1to0_L2RxBitrate: undefined,
+        info1to0_L2Signal: undefined,
+        info1to0_OpenrIp: undefined,
+        info1to0_OpenrIpv6: undefined,
+        info1to0_OpenrMetric: undefined,
+        meshid0: 'shared_d',
+        meshid1: 'shared_d',
+        name: 'binney lab, top shelf back wall binney lab, top shelf back wall',
+        title:
+          'binney lab, top shelf back wall <--> binney lab, top shelf back wall: openr',
+        unidirectional: false,
+      },
+      type: 'Feature',
+    },
+  ]);
 });
 
 it('geojson collection', () => {

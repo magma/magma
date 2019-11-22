@@ -311,6 +311,23 @@ int pgw_process_pco_link_mtu_request(
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }
 
+int pgw_process_pco_pcscf_ip_address_req(
+  protocol_configuration_options_t* const pco_resp,
+  const pco_protocol_or_container_id_t* const poc_id)
+{
+  pco_protocol_or_container_id_t poc_id_resp = {0};
+  //TODO-Uncomment after copying P-CSCF Address from config
+  //in_addr_t pcscf_ipv4_addr;
+
+  OAILOG_DEBUG(
+    LOG_SPGW_APP,
+    "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST \n");
+  poc_id_resp.id = PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST;
+  poc_id_resp.length = 4;
+  // TODO - Copy P-CSCF Address from config
+  return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
+}
+
 //------------------------------------------------------------------------------
 
 int pgw_process_pco_request(
@@ -357,6 +374,12 @@ int pgw_process_pco_request(
         break;
 
       case PCO_CI_IPV4_LINK_MTU_REQUEST:
+        pgw_process_pco_link_mtu_request(
+          pco_resp, &pco_req->protocol_or_container_ids[id]);
+        pco_ids->ci_ipv4_link_mtu_request = true;
+        break;
+
+      case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
         pgw_process_pco_link_mtu_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_ipv4_link_mtu_request = true;
