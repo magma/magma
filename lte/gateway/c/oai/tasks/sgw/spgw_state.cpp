@@ -21,7 +21,7 @@
 
 #include "spgw_state.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 extern "C" {
 #include "assertions.h"
@@ -97,6 +97,10 @@ void pgw_free_pcc_rule(void** rule)
     if (pcc_rule) {
       if (pcc_rule->name) {
         bdestroy_wrapper(&pcc_rule->name);
+      }
+      auto* sdf_template = (sdf_template_t*) &pcc_rule->sdf_template;
+      if (sdf_template) {
+        free_wrapper((void**) (&pcc_rule->sdf_template));
       }
       free_wrapper(rule);
     }
