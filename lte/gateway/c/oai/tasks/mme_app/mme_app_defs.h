@@ -60,8 +60,7 @@ int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
 
-void mme_app_handle_detach_req(mme_app_desc_t *mme_app_desc_p,
-    const itti_nas_detach_req_t *const detach_req_p);
+void mme_app_handle_detach_req(ue_mm_context_t* ue_context_p);
 
 void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
   const itti_nas_sgs_detach_req_t *const sgs_detach_req_p);

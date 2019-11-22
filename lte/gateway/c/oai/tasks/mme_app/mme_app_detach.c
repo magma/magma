@@ -101,8 +101,7 @@ void mme_app_send_delete_session_request(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_detach_req(mme_app_desc_t *mme_app_desc_p,
-    const itti_nas_detach_req_t *const detach_req_p)
+void mme_app_handle_detach_req(ue_mm_context_t* ue_context_p)
 {
   struct ue_mm_context_s *ue_context = NULL;
 

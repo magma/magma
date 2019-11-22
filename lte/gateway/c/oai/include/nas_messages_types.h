@@ -50,7 +50,6 @@
 #define NAS_AUTHENTICATION_PARAM_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.nas_auth_param_req
 #define NAS_SGS_DETACH_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_sgs_detach_req
-#define NAS_DETACH_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_detach_req
 #define NAS_ERAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_setup_req
 #define NAS_IMPLICIT_DETACH_UE_IND(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.nas_implicit_detach_ue_ind
@@ -144,12 +143,6 @@ typedef struct itti_nas_auth_param_req_s {
   uint8_t auts[14];
   uint8_t num_vectors;
 } itti_nas_auth_param_req_t;
-
-typedef struct itti_nas_detach_req_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-  long cause;
-} itti_nas_detach_req_t;
 
 typedef struct itti_nas_implicit_detach_ue_ind_s {
   /* UE identifier */

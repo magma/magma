@@ -98,6 +98,7 @@
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
 #include "dynamic_memory_check.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -444,7 +445,7 @@ int emm_proc_attach_request(
           OAILOG_DEBUG(
             LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
             ue_id);
-          nas_itti_detach_req(ue_id);
+          mme_app_handle_detach_req(mme_app_desc_p, );
           unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
@@ -494,7 +495,7 @@ int emm_proc_attach_request(
           OAILOG_DEBUG(
             LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
             ue_id);
-          nas_itti_detach_req(ue_id);
+          mme_app_handle_detach_req(mme_app_desc_p, );
           OAILOG_WARNING(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(

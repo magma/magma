@@ -163,20 +163,6 @@ void nas_itti_dedicated_eps_bearer_reject(
 }
 
 //------------------------------------------------------------------------------
-void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p;
-
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_DETACH_REQ);
-
-  NAS_DETACH_REQ(message_p).ue_id = ue_idP;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
-//------------------------------------------------------------------------------
 void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
 {
   OAILOG_FUNC_IN(LOG_NAS);

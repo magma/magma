@@ -53,12 +53,6 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_sgs_detach_req_t,
   nas_sgs_detach_req)
-MESSAGE_DEF(
-  NAS_DETACH_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_detach_req_t,
-  nas_detach_req)
-
 /* MME app -> NAS layer messages */
 MESSAGE_DEF(
   NAS_IMPLICIT_DETACH_UE_IND,

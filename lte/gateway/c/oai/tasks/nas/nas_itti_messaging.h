@@ -57,8 +57,6 @@ int nas_itti_erab_setup_req(
   const bitrate_t gbr_ul,
   bstring nas_msg);
 
-void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP);
-
 void nas_itti_dedicated_eps_bearer_complete(
   const mme_ue_s1ap_id_t ue_idP,
   const ebi_t ebiP);

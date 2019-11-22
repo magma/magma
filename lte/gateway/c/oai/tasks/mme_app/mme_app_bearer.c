@@ -190,7 +190,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     "Handle MME_APP_CONNECTION_ESTABLISHMENT_CNF for ue-id " MME_UE_S1AP_ID_FMT
     "\n",
     nas_conn_est_cnf_p->ue_id);
-  mme_app_desc_p = get_locked_mme_nas_state(false);
+  mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts, nas_conn_est_cnf_p->ue_id);
 
@@ -420,8 +420,8 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
            ue_context_p->sgs_context->service_indicator, ue_context_p))) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to send CS-Service Request to SGS-Task for ue-id :%u \n",
-          ue_context_p->mme_ue_s1ap_id);
+          "Failed to send CS-Service Request to SGS-Task for ue-id:"
+           MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
       }
     }
   }

@@ -925,7 +925,7 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
           "UE.ue_id=" MME_UE_S1AP_ID_FMT " \n",
           msg->ue_id);
         //Clean up S1AP and MME UE Context
-        nas_itti_detach_req(msg->ue_id);
+        mme_app_handle_detach_req(mme_app_desc_p);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
@@ -1426,7 +1426,8 @@ static int _emm_as_send(const emm_as_t *msg)
         } else {
           OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "EMMAS-SAP - Sending establish_cnf to S1AP UE ID 0x%x selected eea "
+            "EMMAS-SAP - Sending establish_cnf to MME-APP module for UE ID: "
+            MME_UE_S1AP_ID_FMT " selected eea "
             "0x%04X selected eia 0x%04X\n",
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.selected_encryption_algorithm,
@@ -1440,8 +1441,9 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_NAS_RELEASE_REQ:
-        nas_itti_detach_req(as_msg.msg.nas_release_req
-                              .ue_id); //, as_msg.msg.nas_release_req.cause);
+        mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+        mme_app_handle_detach_req(mme_app_desc_p,
+           as_msg.msg.nas_release_req.ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         break;
 
