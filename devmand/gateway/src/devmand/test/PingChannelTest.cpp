@@ -75,6 +75,7 @@ TEST_F(PingChannelTest, checkPingIpv6) {
   channels::ping::Engine engineV6(eventBase, channels::ping::IPVersion::v6);
   auto channel = std::make_shared<channels::ping::Channel>(engineV6, local3);
   EXPECT_NE(0, channel->ping().get());
+  stop();
 }
 
 } // namespace test
