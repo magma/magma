@@ -222,7 +222,7 @@ export default function PrometheusEditor(props: Props) {
     metricName: '',
     comparator: null,
     value: 0,
-    filter: {name: '', value: ''},
+    filters: [],
   });
 
   /**
