@@ -52,9 +52,9 @@ func (p *MockPolicyClient) IgnoreAnswer(request *gx.CreditControlRequest) {
 	return
 }
 
-func (p *MockPolicyClient) EnableConnections() {
+func (p *MockPolicyClient) EnableConnections() error {
 	p.Called()
-	return
+	return nil
 }
 
 func (p *MockPolicyClient) DisableConnections(period time.Duration) {
@@ -99,9 +99,9 @@ func (cc *MockCreditClient) IgnoreAnswer(request *gy.CreditControlRequest) {
 	return
 }
 
-func (cc *MockCreditClient) EnableConnections() {
+func (cc *MockCreditClient) EnableConnections() error {
 	cc.Called()
-	return
+	return nil
 }
 
 func (cc *MockCreditClient) DisableConnections(period time.Duration) {

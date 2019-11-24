@@ -203,7 +203,7 @@ func (hm *HealthManager) takeSystemUp() error {
 		}
 	}
 	if len(allActionErrors) > 0 {
-		return fmt.Errorf("Encountered the following errors while taking SYSTEM_DOWN:\n%s\n",
+		return fmt.Errorf("Encountered the following errors while taking SYSTEM_UP:\n%s\n",
 			strings.Join(allActionErrors, "\n"),
 		)
 	}

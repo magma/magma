@@ -268,14 +268,19 @@ func (srv *CentralSessionController) Disable(
 	return &orcprotos.Void{}, nil
 }
 
-// Enable enables diameter connection creation
-// If creation is already enabled, Enable has no effect
+// Enable enables diameter connection creation and gets a connection to the
+// diameter server(s). If creation is already enabled and a connection already
+// exists, Enable has no effect
 func (srv *CentralSessionController) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	srv.policyClient.EnableConnections()
-	srv.creditClient.EnableConnections()
+	pcErr := srv.policyClient.EnableConnections()
+	ccErr := srv.creditClient.EnableConnections()
+	if pcErr != nil || ccErr != nil {
+		return &orcprotos.Void{}, fmt.Errorf("An error occurred while enabling connections; policyClient err: %s, creditClient err: %s",
+			pcErr, ccErr)
+	}
 	return &orcprotos.Void{}, nil
 }
 
