@@ -36,16 +36,6 @@
 */
 
 MESSAGE_DEF(
-  NAS_CONNECTION_ESTABLISHMENT_CNF,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_conn_est_cnf_t,
-  nas_conn_est_cnf)
-MESSAGE_DEF(
-  NAS_CONNECTION_RELEASE_IND,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_conn_rel_ind_t,
-  nas_conn_rel_ind)
-MESSAGE_DEF(
   NAS_ERAB_SETUP_REQ,
   MESSAGE_PRIORITY_MED,
   itti_erab_setup_req_t,

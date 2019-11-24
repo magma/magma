@@ -21,7 +21,7 @@
 
 #include "spgw_state.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 extern "C" {
 #include "assertions.h"
@@ -33,11 +33,10 @@ extern "C" {
 
 using magma::lte::SpgwStateManager;
 
-
 int spgw_state_init(bool persist_state, const spgw_config_t* config)
 {
   SpgwStateManager::getInstance().init(persist_state, config);
-  return SpgwStateManager::getInstance().read_state_from_db();
+  return RETURNok;
 }
 
 spgw_state_t* get_spgw_state(bool read_from_db)
@@ -98,6 +97,10 @@ void pgw_free_pcc_rule(void** rule)
     if (pcc_rule) {
       if (pcc_rule->name) {
         bdestroy_wrapper(&pcc_rule->name);
+      }
+      auto* sdf_template = (sdf_template_t*) &pcc_rule->sdf_template;
+      if (sdf_template) {
+        free_wrapper((void**) (&pcc_rule->sdf_template));
       }
       free_wrapper(rule);
     }

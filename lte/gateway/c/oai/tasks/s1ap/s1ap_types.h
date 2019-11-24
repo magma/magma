@@ -34,6 +34,14 @@ struct enb_description_s;
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1 // in seconds
 
+typedef struct s1ap_state_s {
+  // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
+  hash_table_ts_t enbs;
+  // contains sctp association id, key is mme_ue_s1ap_id
+  hash_table_ts_t mmeid2associd;
+  uint32_t num_enbs;
+} s1ap_state_t;
+
 enum s1_timer_class_s {
   S1AP_INVALID_TIMER_CLASS,
   S1AP_ENB_TIMER,

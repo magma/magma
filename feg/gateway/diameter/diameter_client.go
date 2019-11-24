@@ -135,15 +135,17 @@ func logErrors(ec <-chan *diam.ErrorReport) {
 }
 
 // BeginConnection attempts to begin a new connection with the server
-func (client *Client) BeginConnection(server *DiameterServerConfig) {
+func (client *Client) BeginConnection(server *DiameterServerConfig) error {
 	if client.connMan == nil {
-		glog.Errorf("No connection manager to initiate connection with")
-		return
+		err := fmt.Errorf("No connection manager to initiate connection with")
+		glog.Error(err)
+		return err
 	}
 	_, err := client.connMan.GetConnection(client.smClient, server)
 	if err != nil {
 		glog.Error(err)
 	}
+	return err
 }
 
 func (client *Client) Retries() uint {

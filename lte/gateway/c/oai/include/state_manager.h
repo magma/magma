@@ -38,6 +38,11 @@ extern "C" {
 
 #include "ServiceConfigLoader.h"
 
+// TODO: Move this to redis wrapper
+namespace {
+constexpr char LOCALHOST[] = "127.0.0.1";
+}
+
 namespace magma {
 namespace lte {
 
@@ -75,10 +80,6 @@ class StateManager {
    */
   virtual int read_state_from_db()
   {
-    AssertFatal(
-      is_initialized,
-      "StateManager init() function should be called to initialize state");
-
     if (persist_state_enabled) {
       auto db_read_fut = db_client->get(table_key);
       db_client->sync_commit();

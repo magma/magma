@@ -174,35 +174,36 @@ static bool mme_app_construct_guti(
 static void notify_s1ap_new_ue_mme_s1ap_id_association(
   struct ue_mm_context_s *ue_context_p);
 
-//-----------------------------------------------------------------------------
-// sent by NAS
 //------------------------------------------------------------------------------
-void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_conn_est_cnf_t *const nas_conn_est_cnf_pP)
+void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  struct ue_mm_context_s *ue_context_p = NULL;
-  MessageDef *message_p = NULL;
-  itti_mme_app_connection_establishment_cnf_t *establishment_cnf_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
+  emm_context_t emm_context = {0};
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  MessageDef* message_p = NULL;
+  itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
   int rc = RETURNok;
 
   OAILOG_DEBUG(
     LOG_MME_APP,
-    "Received NAS_CONNECTION_ESTABLISHMENT_CNF from NAS ue " MME_UE_S1AP_ID_FMT
+    "Handle MME_APP_CONNECTION_ESTABLISHMENT_CNF for ue-id " MME_UE_S1AP_ID_FMT
     "\n",
-    nas_conn_est_cnf_pP->ue_id);
+    nas_conn_est_cnf_p->ue_id);
+  mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, nas_conn_est_cnf_pP->ue_id);
+    &mme_app_desc_p->mme_ue_contexts, nas_conn_est_cnf_p->ue_id);
 
   if (!ue_context_p) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
-      nas_conn_est_cnf_pP->ue_id);
+      nas_conn_est_cnf_p->ue_id);
     // memory leak
-    bdestroy_wrapper(&nas_conn_est_cnf_pP->nas_msg);
+    bdestroy_wrapper(&nas_conn_est_cnf_p->nas_msg);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  emm_context = ue_context_p->emm_context;
   /* Check that if Service Request is recieved in response to SGS Paging for MT SMS */
   if (ue_context_p->sgs_context) {
     /*
@@ -217,7 +218,7 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
     LOG_MME_APP,
     "CSFB Service Type = (%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
     ue_context_p->sgs_context->csfb_service_type,
-    nas_conn_est_cnf_pP->ue_id);
+    nas_conn_est_cnf_p->ue_id);
     if (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_SMS) {
       /* send SGS SERVICE request message to SGS */
       if (
@@ -248,44 +249,43 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
   }
 
   if (
-    (((nas_conn_est_cnf_pP->presencemask) & SERVICE_TYPE_PRESENT) ==
+    (((nas_conn_est_cnf_p->presencemask) & SERVICE_TYPE_PRESENT) ==
      SERVICE_TYPE_PRESENT) &&
-   ((nas_conn_est_cnf_pP->service_type == MO_CS_FB) ||
-    (nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL))) {
+   ((nas_conn_est_cnf_p->service_type == MO_CS_FB) ||
+    (nas_conn_est_cnf_p->service_type == MO_CS_FB_EMRGNCY_CALL))) {
     if (ue_context_p->sgs_context != NULL) {
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_MO_CALL;
     } else {
       OAILOG_ERROR(
         LOG_MME_APP,
-        "SGS context doesn't exist for UE %06" PRIX32 "/dec%u\n",
-        nas_conn_est_cnf_pP->ue_id,
-        nas_conn_est_cnf_pP->ue_id);
+        "SGS context doesn't exist for UE" MME_UE_S1AP_ID_FMT "\n",
+        nas_conn_est_cnf_p->ue_id);
       mme_app_notify_service_reject_to_nas(
         ue_context_p->mme_ue_s1ap_id,
         EMM_CAUSE_CONGESTION,
         INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
-    if(nas_conn_est_cnf_pP->service_type == MO_CS_FB_EMRGNCY_CALL){
+    if(nas_conn_est_cnf_p->service_type == MO_CS_FB_EMRGNCY_CALL){
      ue_context_p->sgs_context->is_emergency_call = true;
     }
   }
   if (
     (ue_context_p->sgs_context) &&
     (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_CALL)) {
-    if (nas_conn_est_cnf_pP->csfb_response == CSFB_REJECTED_BY_UE) {
+    if (nas_conn_est_cnf_p->csfb_response == CSFB_REJECTED_BY_UE) {
       /* CSFB MT calll rejected by user, send sgsap-paging reject to VLR */
       if (
         (rc = mme_app_send_sgsap_paging_reject(
            ue_context_p,
-           ue_context_p->emm_context._imsi64,
-           ue_context_p->emm_context._imsi.length,
+           emm_context._imsi64,
+           emm_context._imsi.length,
            SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
         OAILOG_WARNING(
           LOG_MME_APP,
           "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
           "SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER" IMSI_64_FMT "\n",
-          ue_context_p->emm_context._imsi64);
+          emm_context._imsi64);
       }
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
@@ -295,7 +295,7 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
   establishment_cnf_p =
     &message_p->ittiMsg.mme_app_connection_establishment_cnf;
 
-  establishment_cnf_p->ue_id = nas_conn_est_cnf_pP->ue_id;
+  establishment_cnf_p->ue_id = nas_conn_est_cnf_p->ue_id;
 
   if (
     (ue_context_p->sgs_context != NULL) &&
@@ -340,14 +340,14 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
           fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
         establishment_cnf_p->gtp_teid[j] = bc->s_gw_fteid_s1u.teid;
         if (!j) {
-          establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_pP->nas_msg;
-          nas_conn_est_cnf_pP->nas_msg = NULL;
+          establishment_cnf_p->nas_pdu[j] = nas_conn_est_cnf_p->nas_msg;
+          nas_conn_est_cnf_p->nas_msg = NULL;
 #if DEBUG_IS_ON
           if (!establishment_cnf_p->nas_pdu[j]) {
             OAILOG_ERROR(
               LOG_MME_APP,
               "No NAS PDU found ue " MME_UE_S1AP_ID_FMT "\n",
-              nas_conn_est_cnf_pP->ue_id);
+              nas_conn_est_cnf_p->ue_id);
           }
 #endif
         }
@@ -361,10 +361,34 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms =
-    nas_conn_est_cnf_pP->encryption_algorithm_capabilities;
+    ((uint16_t) emm_context._ue_network_capability.eea &
+    ~(1 << 7)) << 1;
+
   establishment_cnf_p->ue_security_capabilities_integrity_algorithms =
-    nas_conn_est_cnf_pP->integrity_algorithm_capabilities;
-  memcpy(establishment_cnf_p->kenb, nas_conn_est_cnf_pP->kenb, AUTH_KENB_SIZE);
+    ((uint16_t) emm_context._ue_network_capability.eia &
+    ~(1 << 7)) << 1;
+
+  if (!((0 <= emm_context._security.vector_index) &&
+    (MAX_EPS_AUTH_VECTORS > emm_context._security.vector_index))) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Invalid security vector index %d",
+      emm_context._security.vector_index);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  derive_keNB(
+    emm_context._vector[emm_context._security.vector_index].kasme,
+    emm_context._security.kenb_ul_count.seq_num |
+    (emm_context._security.kenb_ul_count.overflow << 8),
+    establishment_cnf_p->kenb);
+
+  /* Genarate Next HOP key parameter */
+  derive_NH(
+    emm_context._vector[emm_context._security.vector_index].kasme,
+    establishment_cnf_p->kenb,
+    emm_context._security.next_hop,
+    &emm_context._security.next_hop_chaining_count);
 
   OAILOG_DEBUG(
     LOG_MME_APP,
@@ -396,8 +420,8 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
            ue_context_p->sgs_context->service_indicator, ue_context_p))) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to send CS-Service Request to SGS-Task for ue-id :%u \n",
-          ue_context_p->mme_ue_s1ap_id);
+          "Failed to send CS-Service Request to SGS-Task for ue-id:"
+           MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
       }
     }
   }
@@ -423,7 +447,7 @@ void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
     ue_context_p->initial_context_setup_rsp_timer.id =
       MME_APP_TIMER_INACTIVE_ID;
   } else {
-    OAILOG_DEBUG(
+    OAILOG_INFO(
       LOG_MME_APP,
       "MME APP : Sent Initial context Setup Request and Started guard timer "
       "for UE id  %d \n",

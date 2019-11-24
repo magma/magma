@@ -38,7 +38,7 @@ type CreditClient interface {
 		request *CreditControlRequest,
 	) error
 	IgnoreAnswer(request *CreditControlRequest)
-	EnableConnections()
+	EnableConnections() error
 	DisableConnections(period time.Duration)
 }
 
@@ -49,6 +49,7 @@ type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
 // over Gy
 type GyClient struct {
 	diamClient *diameter.Client
+	serverCfg  *diameter.DiameterServerConfig
 }
 
 var (
@@ -59,6 +60,7 @@ var (
 // NewGyClient contructs a new GyClient with the magma diameter settings
 func NewConnectedGyClient(
 	diamClient *diameter.Client,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
@@ -80,21 +82,22 @@ func NewConnectedGyClient(
 			true,
 			credit_control.NewASRHandler(diamClient, cloudRegistry))
 	}
-	return &GyClient{diamClient: diamClient}
+	return &GyClient{
+		diamClient: diamClient,
+		serverCfg:  serverCfg,
+	}
 }
 
 // NewGyClient contructs a new GyClient with the magma diameter settings
 func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
-	servers []*diameter.DiameterServerConfig,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
 	diamClient := diameter.NewClient(clientCfg)
-	for _, server := range servers {
-		diamClient.BeginConnection(server)
-	}
-	return NewConnectedGyClient(diamClient, reAuthHandler, cloudRegistry)
+	diamClient.BeginConnection(serverCfg)
+	return NewConnectedGyClient(diamClient, serverCfg, reAuthHandler, cloudRegistry)
 }
 
 // SendCreditControlRequest sends a Credit Control Request to the
@@ -149,8 +152,9 @@ func (gyClient *GyClient) IgnoreAnswer(request *CreditControlRequest) {
 	)
 }
 
-func (gyClient *GyClient) EnableConnections() {
+func (gyClient *GyClient) EnableConnections() error {
 	gyClient.diamClient.EnableConnectionCreation()
+	return gyClient.diamClient.BeginConnection(gyClient.serverCfg)
 }
 
 func (gyClient *GyClient) DisableConnections(period time.Duration) {
