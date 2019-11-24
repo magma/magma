@@ -38,7 +38,7 @@ type PolicyClient interface {
 		request *CreditControlRequest,
 	) error
 	IgnoreAnswer(request *CreditControlRequest)
-	EnableConnections()
+	EnableConnections() error
 	DisableConnections(period time.Duration)
 }
 
@@ -48,6 +48,7 @@ type PolicyClient interface {
 // allowed AVPs, and purposes are different
 type GxClient struct {
 	diamClient             *diameter.Client
+	serverCfg              *diameter.DiameterServerConfig
 	pcrf91Compliant        bool // to support PCRF which is 29.212 release 9.1 compliant
 	dontUseEUIIpIfEmpty    bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
 	framedIpv4AddrRequired bool // PCRF requires FramedIpv4Addr to be included
@@ -56,6 +57,7 @@ type GxClient struct {
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
 func NewConnectedGxClient(
 	diamClient *diameter.Client,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GxClient {
@@ -70,6 +72,7 @@ func NewConnectedGxClient(
 	}
 	return &GxClient{
 		diamClient:             diamClient,
+		serverCfg:              serverCfg,
 		pcrf91Compliant:        *pcrf91Compliant || util.IsTruthyEnv(PCRF91CompliantEnv),
 		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || util.IsTruthyEnv(DisableEUIIPv6IfNoIPEnv),
 		framedIpv4AddrRequired: util.IsTruthyEnv(FramedIPv4AddrRequiredEnv),
@@ -80,15 +83,13 @@ func NewConnectedGxClient(
 // NewGxClient contructs a new GxClient with the magma diameter settings
 func NewGxClient(
 	clientCfg *diameter.DiameterClientConfig,
-	servers []*diameter.DiameterServerConfig,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GxClient {
 	diamClient := diameter.NewClient(clientCfg)
-	for _, server := range servers {
-		diamClient.BeginConnection(server)
-	}
-	return NewConnectedGxClient(diamClient, reAuthHandler, cloudRegistry)
+	diamClient.BeginConnection(serverCfg)
+	return NewConnectedGxClient(diamClient, serverCfg, reAuthHandler, cloudRegistry)
 }
 
 // SendCreditControlRequest sends a Gx Credit Control Requests to the
@@ -134,8 +135,9 @@ func (gxClient *GxClient) IgnoreAnswer(request *CreditControlRequest) {
 	)
 }
 
-func (gxClient *GxClient) EnableConnections() {
+func (gxClient *GxClient) EnableConnections() error {
 	gxClient.diamClient.EnableConnectionCreation()
+	return gxClient.diamClient.BeginConnection(gxClient.serverCfg)
 }
 
 func (gxClient *GxClient) DisableConnections(period time.Duration) {
