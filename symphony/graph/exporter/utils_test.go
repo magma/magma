@@ -295,7 +295,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client)
+	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
 	props, err := propertiesSlice(ctx, equipment, propertyTypes)
@@ -379,7 +379,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client)
+	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
 	props, err := propertiesSlice(ctx, equipment, propertyTypes)
@@ -440,7 +440,7 @@ func TestSamePropertyTypesForCSV(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	propertyTypes, err := propertyTypesSlice(ctx, []string{equ.ID}, client)
+	propertyTypes, err := propertyTypesSlice(ctx, []string{equ.ID}, client, models.PropertyEntityEquipment)
 
 	require.Len(t, propertyTypes, 1)
 	require.Contains(t, propertyTypes, pa.Name)
