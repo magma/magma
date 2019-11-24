@@ -448,38 +448,44 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       mapType: editingLocationType?.mapType ?? 'map',
       mapZoomLevel: String(editingLocationType?.mapZoomLevel ?? 8),
       numberOfLocations: editingLocationType?.numberOfLocations ?? 0,
-      propertyTypes: propertyTypes || [
-        {
-          id: 'PropertyType@tmp',
-          name: '',
-          index: editingLocationType?.propertyTypes?.length ?? 0,
-          type: 'string',
-          booleanValue: false,
-          stringValue: null,
-          intValue: null,
-          floatValue: null,
-          latitudeValue: null,
-          longitudeValue: null,
-          isEditable: true,
-          isInstanceProperty: true,
-        },
-      ],
-      surveyTemplateCategories: surveyTemplateCategories || [
-        {
-          id: 'Category@tmp',
-          categoryTitle: '',
-          categoryDescription: '',
-          surveyTemplateQuestions: [
-            {
-              id: 'Question@tmp',
-              questionTitle: '',
-              questionDescription: '',
-              questionType: 'BOOL',
-              index: 0,
-            },
-          ],
-        },
-      ],
+      propertyTypes:
+        propertyTypes.length > 0
+          ? propertyTypes
+          : [
+              {
+                id: 'PropertyType@tmp',
+                name: '',
+                index: editingLocationType?.propertyTypes?.length ?? 0,
+                type: 'string',
+                booleanValue: false,
+                stringValue: null,
+                intValue: null,
+                floatValue: null,
+                latitudeValue: null,
+                longitudeValue: null,
+                isEditable: true,
+                isInstanceProperty: true,
+              },
+            ],
+      surveyTemplateCategories:
+        surveyTemplateCategories.length > 0
+          ? surveyTemplateCategories
+          : [
+              {
+                id: 'Category@tmp',
+                categoryTitle: '',
+                categoryDescription: '',
+                surveyTemplateQuestions: [
+                  {
+                    id: 'Question@tmp',
+                    questionTitle: '',
+                    questionDescription: '',
+                    questionType: 'BOOL',
+                    index: 0,
+                  },
+                ],
+              },
+            ],
     };
   }
 }
