@@ -130,7 +130,8 @@ func (hm *HealthManager) handleUpdateHealthFailure(
 		return err
 	}
 
-	glog.V(2).Info("Consecutive update failures exceed threshold; Disabling FeG services' diameter connections...")
+	glog.Warningf("Consecutive update failures exceed threshold %d; Disabling FeG services' diameter connections!",
+		hm.config.GetUpdateFailureThreshold())
 	actionErr := hm.takeSystemDown(hm.config.GetLocalDisconnectPeriodSecs(), req.HealthStats.ServiceStatus)
 	if actionErr != nil {
 		glog.Error(actionErr)
