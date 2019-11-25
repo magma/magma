@@ -13,7 +13,7 @@
 
 #include "SessionManagerServer.h"
 #include "LocalEnforcer.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "MagmaService.h"
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
@@ -51,34 +51,17 @@ static magma::mconfig::SessionD load_mconfig()
   return mconfig;
 }
 
-static void run_bare_service303()
-{
-  magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
-  server.Start();
-  server.WaitForShutdown(); // blocks forever
-  server.Stop();
-}
-
-static bool sessiond_enabled(const magma::mconfig::SessionD &mconfig)
-{
-  return mconfig.relay_enabled();
-}
-
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
-  const YAML::Node &config)
+  const magma::mconfig::SessionD &mconfig)
 {
-  if (
-    !config["use_proxied_controller"].IsDefined() ||
-    config["use_proxied_controller"].as<bool>()) {
+  if (mconfig.relay_enabled()) {
     MLOG(MINFO) << "Using proxied sessiond controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   }
-  auto port = config["local_controller_port"].as<std::string>();
-  auto addr = "127.0.0.1:" + port;
-  MLOG(MINFO) << "Using local address " << addr << " for controller";
-  return grpc::CreateCustomChannel(
-    addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
+  MLOG(MINFO) << "Using local captive_portal controller";
+  return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+    "captive_portal", magma::ServiceRegistrySingleton::LOCAL);
 }
 
 static uint32_t get_log_verbosity(const YAML::Node &config)
@@ -116,12 +99,6 @@ int main(int argc, char *argv[])
   auto config =
     magma::ServiceConfigLoader {}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config));
-
-  if (!sessiond_enabled(mconfig)) {
-    MLOG(MINFO) << "Credit control disabled, local enforcer not running";
-    run_bare_service303();
-    return 0;
-  }
 
   folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
@@ -180,8 +157,8 @@ int main(int argc, char *argv[])
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  auto reporter = std::make_shared<magma::SessionCloudReporterImpl>(
-    evb, get_controller_channel(config));
+  auto reporter = std::make_shared<magma::SessionReporterImpl>(
+    evb, get_controller_channel(mconfig));
   std::thread reporter_thread([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();

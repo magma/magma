@@ -15,7 +15,7 @@
 #include <folly/io/async/EventBaseManager.h>
 
 #include "AAAClient.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
@@ -37,7 +37,7 @@ class LocalEnforcer {
   LocalEnforcer();
 
   LocalEnforcer(
-    std::shared_ptr<SessionCloudReporter> reporter,
+    std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
@@ -150,7 +150,7 @@ class LocalEnforcer {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
-  std::shared_ptr<SessionCloudReporter> reporter_;
+  std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;

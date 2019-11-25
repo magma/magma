@@ -39,7 +39,7 @@ class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp()
   {
-    reporter = std::make_shared<MockSessionCloudReporter>();
+    reporter = std::make_shared<MockSessionReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
@@ -107,7 +107,7 @@ class LocalEnforcerTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<MockSessionCloudReporter> reporter;
+  std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;

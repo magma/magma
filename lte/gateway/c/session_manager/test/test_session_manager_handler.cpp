@@ -30,7 +30,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   protected:
   protected:
     virtual void SetUp() {
-        reporter = std::make_shared<MockSessionCloudReporter>();
+        reporter = std::make_shared<MockSessionReporter>();
         auto rule_store = std::make_shared<StaticRuleStore>();
         auto pipelined_client = std::make_shared<MockPipelinedClient>();
         auto spgw_client = std::make_shared<MockSpgwServiceClient>();
@@ -50,7 +50,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
   protected:
     std::shared_ptr<LocalSessionManagerHandlerImpl> session_manager;
-    std::shared_ptr<MockSessionCloudReporter> reporter;
+    std::shared_ptr<MockSessionReporter> reporter;
     std::shared_ptr <LocalEnforcer> local_enforcer;
     SessionIDGenerator id_gen_;
     folly::EventBase *evb;

@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "MagmaService.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
@@ -52,7 +52,7 @@ class SessiondTest : public ::testing::Test {
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
-    reporter = std::make_shared<SessionCloudReporterImpl>(evb, test_channel);
+    reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
@@ -144,7 +144,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<MockCentralController> controller_mock;
   std::shared_ptr<MockPipelined> pipelined_mock;
   std::shared_ptr<LocalEnforcer> monitor;
-  std::shared_ptr<SessionCloudReporterImpl> reporter;
+  std::shared_ptr<SessionReporterImpl> reporter;
   std::shared_ptr<LocalSessionManagerAsyncService> session_manager;
   std::shared_ptr<SessionProxyResponderAsyncService> proxy_responder;
   std::shared_ptr<service303::MagmaService> local_service;
