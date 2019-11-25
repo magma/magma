@@ -59,45 +59,51 @@ func (ptq *ProjectTypeQuery) Order(o ...Order) *ProjectTypeQuery {
 // QueryProjects chains the current query on the projects edge.
 func (ptq *ProjectTypeQuery) QueryProjects() *ProjectQuery {
 	query := &ProjectQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(project.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(projecttype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(projecttype.ProjectsColumn), t2.C(projecttype.FieldID))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = projecttype.Table
+	step.From.Column = projecttype.FieldID
+	step.To.Table = project.Table
+	step.To.Column = project.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = projecttype.ProjectsTable
+	step.Edge.Columns = append(step.Edge.Columns, projecttype.ProjectsColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (ptq *ProjectTypeQuery) QueryProperties() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(propertytype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(projecttype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(projecttype.PropertiesColumn), t2.C(projecttype.FieldID))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = projecttype.Table
+	step.From.Column = projecttype.FieldID
+	step.To.Table = propertytype.Table
+	step.To.Column = propertytype.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = projecttype.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, projecttype.PropertiesColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (ptq *ProjectTypeQuery) QueryWorkOrders() *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(workorderdefinition.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(projecttype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(projecttype.WorkOrdersColumn), t2.C(projecttype.FieldID))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = projecttype.Table
+	step.From.Column = projecttype.FieldID
+	step.To.Table = workorderdefinition.Table
+	step.To.Column = workorderdefinition.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = projecttype.WorkOrdersTable
+	step.Edge.Columns = append(step.Edge.Columns, projecttype.WorkOrdersColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 

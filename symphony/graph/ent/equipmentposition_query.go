@@ -58,45 +58,51 @@ func (epq *EquipmentPositionQuery) Order(o ...Order) *EquipmentPositionQuery {
 // QueryDefinition chains the current query on the definition edge.
 func (epq *EquipmentPositionQuery) QueryDefinition() *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: epq.config}
-
-	builder := sql.Dialect(epq.driver.Dialect())
-	t1 := builder.Table(equipmentpositiondefinition.Table)
-	t2 := epq.sqlQuery()
-	t2.Select(t2.C(equipmentposition.DefinitionColumn))
-	query.sql = builder.Select(t1.Columns(equipmentpositiondefinition.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmentpositiondefinition.FieldID), t2.C(equipmentposition.DefinitionColumn))
+	step := &sql.Step{}
+	step.From.V = epq.sqlQuery()
+	step.From.Table = equipmentposition.Table
+	step.From.Column = equipmentposition.FieldID
+	step.To.Table = equipmentpositiondefinition.Table
+	step.To.Column = equipmentpositiondefinition.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = equipmentposition.DefinitionTable
+	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.DefinitionColumn)
+	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (epq *EquipmentPositionQuery) QueryParent() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-
-	builder := sql.Dialect(epq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := epq.sqlQuery()
-	t2.Select(t2.C(equipmentposition.ParentColumn))
-	query.sql = builder.Select(t1.Columns(equipment.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipment.FieldID), t2.C(equipmentposition.ParentColumn))
+	step := &sql.Step{}
+	step.From.V = epq.sqlQuery()
+	step.From.Table = equipmentposition.Table
+	step.From.Column = equipmentposition.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = equipmentposition.ParentTable
+	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.ParentColumn)
+	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 
 // QueryAttachment chains the current query on the attachment edge.
 func (epq *EquipmentPositionQuery) QueryAttachment() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-
-	builder := sql.Dialect(epq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := epq.sqlQuery()
-	t2.Select(t2.C(equipmentposition.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmentposition.AttachmentColumn), t2.C(equipmentposition.FieldID))
+	step := &sql.Step{}
+	step.From.V = epq.sqlQuery()
+	step.From.Table = equipmentposition.Table
+	step.From.Column = equipmentposition.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.O2O
+	step.Edge.Inverse = false
+	step.Edge.Table = equipmentposition.AttachmentTable
+	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.AttachmentColumn)
+	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 

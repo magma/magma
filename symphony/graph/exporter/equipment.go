@@ -78,7 +78,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		for i, e := range equips.Equipment {
 			equipIDs[i] = e.ID
 		}
-		propertyTypes, err = propertyTypesSlice(ctx, equipIDs, client)
+		propertyTypes, err = propertyTypesSlice(ctx, equipIDs, client, models.PropertyEntityEquipment)
 		if err != nil {
 			log.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")

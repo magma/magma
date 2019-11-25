@@ -41,6 +41,19 @@ func EquipmentTypes(ctx context.Context, client *ent.Client) (*models.EquipmentT
 	return &models.EquipmentTypeConnection{Edges: edges}, err
 }
 
+// EquipmentPortTypes is a helper to bring equipment port types
+func EquipmentPortTypes(ctx context.Context, client *ent.Client) (*models.EquipmentPortTypeConnection, error) {
+	ets, err := client.EquipmentPortType.Query().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "querying equipment types")
+	}
+	edges := make([]*models.EquipmentPortTypeEdge, len(ets))
+	for i, et := range ets {
+		edges[i] = &models.EquipmentPortTypeEdge{Node: et}
+	}
+	return &models.EquipmentPortTypeConnection{Edges: edges}, err
+}
+
 // EquipmentTypes is a helper to bring equipment types
 func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error) {
 	var (
@@ -118,7 +131,10 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
 	}
-	ports, err := query.Limit(*limit).All(ctx)
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	ports, err := query.All(ctx)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying links failed")
@@ -164,7 +180,10 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
 	}
-	links, err := query.Limit(*limit).All(ctx)
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	links, err := query.All(ctx)
 
 	if err != nil {
 		return nil, errors.Wrapf(err, "Querying links failed")

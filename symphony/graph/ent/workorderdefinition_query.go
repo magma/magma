@@ -58,30 +58,34 @@ func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuer
 // QueryType chains the current query on the type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: wodq.config}
-
-	builder := sql.Dialect(wodq.driver.Dialect())
-	t1 := builder.Table(workordertype.Table)
-	t2 := wodq.sqlQuery()
-	t2.Select(t2.C(workorderdefinition.TypeColumn))
-	query.sql = builder.Select(t1.Columns(workordertype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.FieldID), t2.C(workorderdefinition.TypeColumn))
+	step := &sql.Step{}
+	step.From.V = wodq.sqlQuery()
+	step.From.Table = workorderdefinition.Table
+	step.From.Column = workorderdefinition.FieldID
+	step.To.Table = workordertype.Table
+	step.To.Column = workordertype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = workorderdefinition.TypeTable
+	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.TypeColumn)
+	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: wodq.config}
-
-	builder := sql.Dialect(wodq.driver.Dialect())
-	t1 := builder.Table(projecttype.Table)
-	t2 := wodq.sqlQuery()
-	t2.Select(t2.C(workorderdefinition.ProjectTypeColumn))
-	query.sql = builder.Select(t1.Columns(projecttype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(projecttype.FieldID), t2.C(workorderdefinition.ProjectTypeColumn))
+	step := &sql.Step{}
+	step.From.V = wodq.sqlQuery()
+	step.From.Table = workorderdefinition.Table
+	step.From.Column = workorderdefinition.FieldID
+	step.To.Table = projecttype.Table
+	step.To.Column = projecttype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = workorderdefinition.ProjectTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.ProjectTypeColumn)
+	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 

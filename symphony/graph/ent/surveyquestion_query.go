@@ -60,60 +60,68 @@ func (sqq *SurveyQuestionQuery) Order(o ...Order) *SurveyQuestionQuery {
 // QuerySurvey chains the current query on the survey edge.
 func (sqq *SurveyQuestionQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: sqq.config}
-
-	builder := sql.Dialect(sqq.driver.Dialect())
-	t1 := builder.Table(survey.Table)
-	t2 := sqq.sqlQuery()
-	t2.Select(t2.C(surveyquestion.SurveyColumn))
-	query.sql = builder.Select(t1.Columns(survey.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(survey.FieldID), t2.C(surveyquestion.SurveyColumn))
+	step := &sql.Step{}
+	step.From.V = sqq.sqlQuery()
+	step.From.Table = surveyquestion.Table
+	step.From.Column = surveyquestion.FieldID
+	step.To.Table = survey.Table
+	step.To.Column = survey.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = surveyquestion.SurveyTable
+	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.SurveyColumn)
+	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (sqq *SurveyQuestionQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: sqq.config}
-
-	builder := sql.Dialect(sqq.driver.Dialect())
-	t1 := builder.Table(surveywifiscan.Table)
-	t2 := sqq.sqlQuery()
-	t2.Select(t2.C(surveyquestion.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(surveyquestion.WifiScanColumn), t2.C(surveyquestion.FieldID))
+	step := &sql.Step{}
+	step.From.V = sqq.sqlQuery()
+	step.From.Table = surveyquestion.Table
+	step.From.Column = surveyquestion.FieldID
+	step.To.Table = surveywifiscan.Table
+	step.To.Column = surveywifiscan.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = surveyquestion.WifiScanTable
+	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.WifiScanColumn)
+	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (sqq *SurveyQuestionQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: sqq.config}
-
-	builder := sql.Dialect(sqq.driver.Dialect())
-	t1 := builder.Table(surveycellscan.Table)
-	t2 := sqq.sqlQuery()
-	t2.Select(t2.C(surveyquestion.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(surveyquestion.CellScanColumn), t2.C(surveyquestion.FieldID))
+	step := &sql.Step{}
+	step.From.V = sqq.sqlQuery()
+	step.From.Table = surveyquestion.Table
+	step.From.Column = surveyquestion.FieldID
+	step.To.Table = surveycellscan.Table
+	step.To.Column = surveycellscan.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = surveyquestion.CellScanTable
+	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.CellScanColumn)
+	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPhotoData chains the current query on the photo_data edge.
 func (sqq *SurveyQuestionQuery) QueryPhotoData() *FileQuery {
 	query := &FileQuery{config: sqq.config}
-
-	builder := sql.Dialect(sqq.driver.Dialect())
-	t1 := builder.Table(file.Table)
-	t2 := sqq.sqlQuery()
-	t2.Select(t2.C(surveyquestion.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(surveyquestion.PhotoDataColumn), t2.C(surveyquestion.FieldID))
+	step := &sql.Step{}
+	step.From.V = sqq.sqlQuery()
+	step.From.Table = surveyquestion.Table
+	step.From.Column = surveyquestion.FieldID
+	step.To.Table = file.Table
+	step.To.Column = file.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = surveyquestion.PhotoDataTable
+	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.PhotoDataColumn)
+	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 

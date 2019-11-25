@@ -60,65 +60,68 @@ func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
 // QueryPorts chains the current query on the ports edge.
 func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(equipmentport.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(link.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(link.PortsColumn), t2.C(link.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = link.Table
+	step.From.Column = link.FieldID
+	step.To.Table = equipmentport.Table
+	step.To.Column = equipmentport.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = link.PortsTable
+	step.Edge.Columns = append(step.Edge.Columns, link.PortsColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(workorder.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(link.WorkOrderColumn))
-	query.sql = builder.Select(t1.Columns(workorder.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.FieldID), t2.C(link.WorkOrderColumn))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = link.Table
+	step.From.Column = link.FieldID
+	step.To.Table = workorder.Table
+	step.To.Column = workorder.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = link.WorkOrderTable
+	step.Edge.Columns = append(step.Edge.Columns, link.WorkOrderColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(property.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(link.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(link.PropertiesColumn), t2.C(link.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = link.Table
+	step.From.Column = link.FieldID
+	step.To.Table = property.Table
+	step.To.Column = property.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = link.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, link.PropertiesColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (lq *LinkQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(service.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(link.FieldID))
-	t3 := builder.Table(link.ServiceTable)
-	t4 := builder.Select(t3.C(link.ServicePrimaryKey[0])).
-		From(t3).
-		Join(t2).
-		On(t3.C(link.ServicePrimaryKey[1]), t2.C(link.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(service.FieldID), t4.C(link.ServicePrimaryKey[0]))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = link.Table
+	step.From.Column = link.FieldID
+	step.To.Table = service.Table
+	step.To.Column = service.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = true
+	step.Edge.Table = link.ServiceTable
+	step.Edge.Columns = append(step.Edge.Columns, link.ServicePrimaryKey...)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 

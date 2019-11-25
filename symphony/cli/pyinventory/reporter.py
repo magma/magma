@@ -25,6 +25,9 @@ class FailedOperationException(Exception):
     def log_failed_operation(self, row_identifier: str, row: Dict[str, Any]) -> None:
         self.reporter.log_failed_operation(row_identifier, row, self)
 
+    def __str__(self) -> str:
+        return "{} ({})".format(self.err_msg, self.err_id)
+
 
 class Reporter(ABC):
     @abstractmethod
