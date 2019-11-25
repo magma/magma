@@ -10,6 +10,8 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/cloud/ctxgroup"
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -19,6 +21,15 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
+
+type portfilterInput struct {
+	Name          models.EquipmentFilterType `json:"name"`
+	Operator      models.FilterOperator      `jsons:"operator"`
+	StringValue   string                     `json:"stringValue"`
+	IDSet         []string                   `json:"idSet"`
+	PropertyValue models.PropertyTypeInput   `json:"propertyValue"`
+	BoolValue     bool                       `json:"boolValue"`
+}
 
 type portsRower struct {
 	log log.Logger
@@ -185,7 +196,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 
 func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
 	var ret []*models.PortFilterInput
-	var inputs []filterInput
+	var inputs []portfilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
@@ -202,6 +213,7 @@ func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {
 			Operator:      models.FilterOperator(upperOp),
 			StringValue:   &StringVal,
 			PropertyValue: &propVal,
+			BoolValue:     pointer.ToBool(f.BoolValue),
 			IDSet:         f.IDSet,
 			MaxDepth:      &maxDepth,
 		}

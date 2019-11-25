@@ -201,7 +201,7 @@ func TestPortWithFilters(t *testing.T) {
 	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
 	pDef2 := r.client.EquipmentPortDefinition.Query().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 
-	f, err := json.Marshal([]filterInput{
+	f1, err := json.Marshal([]portfilterInput{
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",
@@ -212,9 +212,14 @@ func TestPortWithFilters(t *testing.T) {
 			Operator: "IS_ONE_OF",
 			IDSet:    []string{pDef2.ID},
 		},
+		{
+			Name:      "PORT_INST_HAS_LINK",
+			Operator:  "IS",
+			BoolValue: true,
+		},
 	})
 	require.NoError(t, err)
-	f2, err := json.Marshal([]filterInput{
+	f2, err := json.Marshal([]portfilterInput{
 		{
 			Name:     "PROPERTY",
 			Operator: "IS",
@@ -228,7 +233,16 @@ func TestPortWithFilters(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	for i, filter := range [][]byte{f, f2} {
+	f3, err := json.Marshal([]portfilterInput{
+		{
+			Name:      "PORT_INST_HAS_LINK",
+			Operator:  "IS",
+			BoolValue: false,
+		},
+	})
+	require.NoError(t, err)
+
+	for i, filter := range [][]byte{f1, f2, f3} {
 		req, err := http.NewRequest("GET", server.URL, nil)
 		require.NoError(t, err)
 		req.Header.Set(tenantHeader, "fb-test")
@@ -272,6 +286,7 @@ func TestPortWithFilters(t *testing.T) {
 						"",
 						"",
 					}, ln[1:])
+					require.Equal(t, 2, linesCount)
 				}
 			}
 			if i == 1 {
@@ -297,10 +312,13 @@ func TestPortWithFilters(t *testing.T) {
 						"t1",
 						"",
 					}, ln[1:])
+					require.Equal(t, 2, linesCount)
 				}
 			}
+			if i == 2 {
+				require.Equal(t, 1, linesCount)
+			}
 		}
-		require.Equal(t, 2, linesCount)
 		err = res.Body.Close()
 		require.NoError(t, err)
 	}
