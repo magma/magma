@@ -575,6 +575,11 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 		v := workorder.UpdateDefaultUpdateTime()
 		wou.update_time = &v
 	}
+	if wou.name != nil {
+		if err := workorder.NameValidator(*wou.name); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
+	}
 	if len(wou._type) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
@@ -1619,6 +1624,11 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 	if wouo.update_time == nil {
 		v := workorder.UpdateDefaultUpdateTime()
 		wouo.update_time = &v
+	}
+	if wouo.name != nil {
+		if err := workorder.NameValidator(*wouo.name); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
 	}
 	if len(wouo._type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")

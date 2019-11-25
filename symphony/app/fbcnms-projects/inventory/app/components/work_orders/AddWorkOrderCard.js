@@ -190,7 +190,9 @@ class AddWorkOrderCard extends React.Component<Props, State> {
             onClick={this.navigateToMainPage}>
             Cancel
           </Button>
-          <Button onClick={this._saveWorkOrder}>Save</Button>
+          <Button disabled={!workOrder.name} onClick={this._saveWorkOrder}>
+            Save
+          </Button>
         </div>
         <div className={classes.contentRoot}>
           <div className={classes.cards}>
