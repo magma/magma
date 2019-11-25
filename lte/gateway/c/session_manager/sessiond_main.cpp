@@ -58,10 +58,11 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
     MLOG(MINFO) << "Using proxied sessiond controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
+  } else {
+    MLOG(MINFO) << "Using local captive_portal controller";
+    return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "captive_portal", magma::ServiceRegistrySingleton::LOCAL);
   }
-  MLOG(MINFO) << "Using local captive_portal controller";
-  return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-    "captive_portal", magma::ServiceRegistrySingleton::LOCAL);
 }
 
 static uint32_t get_log_verbosity(const YAML::Node &config)
