@@ -458,10 +458,11 @@ int mme_api_new_guti(
 
   if (ue_context) {
     for (nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
-      nb_gummei++) {
+         nb_gummei++) {
       /* comparing UE serving cell plmn with the gummei list in
        * mme configuration. */
-      IS_PLMN_EQUAL(ue_context->emm_context.originating_tai,
+      IS_PLMN_EQUAL(
+        ue_context->emm_context.originating_tai,
         mme_config.gummei.gummei[nb_gummei].plmn,
         is_plmn_equal);
       if (is_plmn_equal == true) {
@@ -473,9 +474,7 @@ int mme_api_new_guti(
     if (is_plmn_equal == true) {
       is_plmn_equal = false;
     } else {
-      OAILOG_ERROR(
-        LOG_NAS,
-        "Serving PLMN not matching with GUMMEI List!\n");
+      OAILOG_ERROR(LOG_NAS, "Serving PLMN not matching with GUMMEI List!\n");
       unlock_ue_contexts(ue_context);
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
     }
@@ -498,13 +497,13 @@ int mme_api_new_guti(
          * if PLMN matches is_plmn_equal will be set to 'true', if not 'false'.
          * _emm_data.conf.tai_list value gets updated with
          * mme configuration file TAI_LIST values */
-        IS_PLMN_EQUAL(_emm_data.conf.tai_list.partial_tai_list[i]
-          .u.tai_one_plmn_non_consecutive_tacs,
+        IS_PLMN_EQUAL(
+          _emm_data.conf.tai_list.partial_tai_list[i]
+            .u.tai_one_plmn_non_consecutive_tacs,
           guti->gummei.plmn,
           is_plmn_equal);
 
-        if (is_plmn_equal == true)
-        {
+        if (is_plmn_equal == true) {
           is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
@@ -535,13 +534,13 @@ int mme_api_new_guti(
          * if PLMN matches is_plmn_equal will be set to 'true', if not 'false'.
          * _emm_data.conf.tai_list value gets updated with
          * mme configuration file TAI_LIST values */
-        IS_PLMN_EQUAL(_emm_data.conf.tai_list.partial_tai_list[i]
-          .u.tai_one_plmn_consecutive_tacs,
+        IS_PLMN_EQUAL(
+          _emm_data.conf.tai_list.partial_tai_list[i]
+            .u.tai_one_plmn_consecutive_tacs,
           guti->gummei.plmn,
           is_plmn_equal);
 
-        if (is_plmn_equal == true)
-        {
+        if (is_plmn_equal == true) {
           is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
@@ -565,15 +564,15 @@ int mme_api_new_guti(
         break;
       case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
         for (p_cnt = 0;
-          p_cnt < (_emm_data.conf.tai_list.partial_tai_list[i].
-          numberofelements + 1); p_cnt++) {
-          IS_PLMN_EQUAL(_emm_data.conf.tai_list.partial_tai_list[i]
-            .u.tai_many_plmn[p_cnt],
+             p_cnt <
+             (_emm_data.conf.tai_list.partial_tai_list[i].numberofelements + 1);
+             p_cnt++) {
+          IS_PLMN_EQUAL(
+            _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[p_cnt],
             guti->gummei.plmn,
             is_plmn_equal);
 
-          if (is_plmn_equal == true)
-          {
+          if (is_plmn_equal == true) {
             tai_list->partial_tai_list[j].numberofelements =
               _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
             tai_list->partial_tai_list[j].typeoflist =
@@ -582,17 +581,18 @@ int mme_api_new_guti(
             for (int t = 0;
                  t < (tai_list->partial_tai_list[j].numberofelements + 1);
                  t++) {
-              COPY_PLMN(tai_list->partial_tai_list[j].u.tai_many_plmn[t],
+              COPY_PLMN(
+                tai_list->partial_tai_list[j].u.tai_many_plmn[t],
                 _emm_data.conf.tai_list.partial_tai_list[i].u.tai_many_plmn[t]);
 
               // _emm_data.conf.tai_list is sorted
               tai_list->partial_tai_list[j].u.tai_many_plmn[t].tac =
                 _emm_data.conf.tai_list.partial_tai_list[i]
-                .u.tai_many_plmn[t]
-                .tac;
+                  .u.tai_many_plmn[t]
+                  .tac;
             }
             j += 1;
-	        break;
+            break;
           }
         }
         if (is_plmn_equal != true) {

@@ -795,9 +795,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
     config_pP->gummei.nb = 0;
     if (setting != NULL) {
       num = config_setting_length(setting);
-      OAILOG_INFO(
-        LOG_MME_APP,
-        "Number of GUMMEIs supported =%d\n", num);
+      OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs supported =%d\n", num);
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
 

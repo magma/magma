@@ -84,17 +84,17 @@ typedef enum {
   UE_REGISTERED,
 } mm_state_t;
 
-typedef struct gummei_list_s{
+typedef struct gummei_list_s {
   uint8_t num_gummei;
   gummei_t gummei[MAX_GUMMEI];
-}gummei_list_t;
+} gummei_list_t;
 /*
  * EPS Mobility Management configuration data
  * ------------------------------------------
  */
 typedef struct mme_api_emm_config_s {
   mme_api_feature_t features; /* Supported features           */
-  gummei_list_t gummei; /* EPS Globally Unique MME Identity List*/
+  gummei_list_t gummei;       /* EPS Globally Unique MME Identity List*/
   uint8_t prefered_integrity_algorithm
     [8]; // choice in NAS_SECURITY_ALGORITHMS_EIA0, etc
   uint8_t prefered_ciphering_algorithm
@@ -210,7 +210,7 @@ void mme_ue_context_update_ue_sgs_neaf(
     } else {                                                                   \
       iSpLMNeQUAL = false;                                                     \
     }                                                                          \
-  }while(0)
+  } while (0)
 
 #define COPY_GUMMEI(gUTI, gUMMEIvAl)                                           \
   do {                                                                         \
@@ -222,7 +222,7 @@ void mme_ue_context_update_ue_sgs_neaf(
     gUTI->gummei.plmn.mnc_digit1 = gUMMEIvAl.plmn.mnc_digit1;                  \
     gUTI->gummei.plmn.mnc_digit2 = gUMMEIvAl.plmn.mnc_digit2;                  \
     gUTI->gummei.plmn.mnc_digit3 = gUMMEIvAl.plmn.mnc_digit3;                  \
-  }while(0)
+  } while (0)
 
 #define COPY_PLMN(pLMN1, pLMN2)                                                \
   do {                                                                         \
@@ -232,5 +232,5 @@ void mme_ue_context_update_ue_sgs_neaf(
     pLMN1.mnc_digit1 = pLMN2.mnc_digit1;                                       \
     pLMN1.mnc_digit2 = pLMN2.mnc_digit2;                                       \
     pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
-  }while(0)
+  } while (0)
 #endif /* FILE_MME_API_SEEN*/
