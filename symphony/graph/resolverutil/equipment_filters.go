@@ -53,15 +53,9 @@ func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilt
 		}
 		return q, nil
 	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
-		if p.Type != models.PropertyKindDate {
-			return nil, errors.Errorf("property kind should be type")
-		}
-
-		propPred := property.StringValGT(*p.StringValue)
-		propTypePred := propertytype.StringValGT(*p.StringValue)
-		if filter.Operator == models.FilterOperatorDateLessThan {
-			propPred = property.StringValLT(*p.StringValue)
-			propTypePred = propertytype.StringValLT(*p.StringValue)
+		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)
+		if err != nil {
+			return nil, err
 		}
 		q = q.Where(equipment.Or(
 			equipment.HasPropertiesWith(
