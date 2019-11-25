@@ -312,6 +312,7 @@ func (r mutationResolver) AddWorkOrderType(
 			SetTitle(def.Title).
 			SetType(def.Type.String()).
 			SetNillableIndex(def.Index).
+			SetNillableHelpText(def.HelpText).
 			SetNillableEnumValues(def.EnumValues).
 			SetWorkOrderType(typ).
 			Save(ctx); err != nil {
