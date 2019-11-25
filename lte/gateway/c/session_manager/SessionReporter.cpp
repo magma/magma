@@ -8,7 +8,9 @@
  */
 #include <iostream>
 #include <glog/logging.h>
-#include "CloudReporter.h"
+#include "ServiceRegistrySingleton.h"
+#include "SessionReporter.h"
+#include "magma_logging.h"
 
 namespace magma {
 
@@ -31,7 +33,7 @@ void AsyncEvbResponse<ResponseType>::handle_response()
   });
 }
 
-SessionCloudReporterImpl::SessionCloudReporterImpl(
+SessionReporterImpl::SessionReporterImpl(
   folly::EventBase *base,
   std::shared_ptr<grpc::Channel> channel):
   base_(base),
@@ -39,7 +41,7 @@ SessionCloudReporterImpl::SessionCloudReporterImpl(
 {
 }
 
-void SessionCloudReporterImpl::report_updates(
+void SessionReporterImpl::report_updates(
   const UpdateSessionRequest &request,
   std::function<void(grpc::Status, UpdateSessionResponse)> callback)
 {
@@ -49,7 +51,7 @@ void SessionCloudReporterImpl::report_updates(
     cloud_response->get_context(), request, &queue_)));
 }
 
-void SessionCloudReporterImpl::report_create_session(
+void SessionReporterImpl::report_create_session(
   const CreateSessionRequest &request,
   std::function<void(grpc::Status, CreateSessionResponse)> callback)
 {
@@ -59,7 +61,7 @@ void SessionCloudReporterImpl::report_create_session(
     cloud_response->get_context(), request, &queue_)));
 }
 
-void SessionCloudReporterImpl::report_terminate_session(
+void SessionReporterImpl::report_terminate_session(
   const SessionTerminateRequest &request,
   std::function<void(grpc::Status, SessionTerminateResponse)> callback)
 {

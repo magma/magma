@@ -82,8 +82,8 @@ add_library(SESSION_MANAGER
     SessionCredit.h
     RuleStore.cpp
     RuleStore.h
-    CloudReporter.cpp
-    CloudReporter.h
+    SessionReporter.cpp
+    SessionReporter.h
     SessionID.cpp
     SessionID.h
     ServiceAction.h

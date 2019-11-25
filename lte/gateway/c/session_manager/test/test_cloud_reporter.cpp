@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "ServiceRegistrySingleton.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "MagmaService.h"
 #include "SessiondMocks.h"
 
@@ -24,7 +24,7 @@ using ::testing::Test;
 
 namespace magma {
 
-class CloudReporterTest : public ::testing::Test {
+class SessionReporterTest : public ::testing::Test {
  protected:
   /**
    * Create magma service and run in separate thread
@@ -38,7 +38,7 @@ class CloudReporterTest : public ::testing::Test {
     mock_cloud = std::make_shared<MockCentralController>();
     magma_service->AddServiceToServer(mock_cloud.get());
 
-    reporter = std::make_shared<SessionCloudReporterImpl>(&evb, channel);
+    reporter = std::make_shared<SessionReporterImpl>(&evb, channel);
 
     std::thread reporter_thread([&]() {
       std::cout << "Started reporter thread\n";
@@ -78,7 +78,7 @@ class CloudReporterTest : public ::testing::Test {
  protected:
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MockCentralController> mock_cloud;
-  std::shared_ptr<SessionCloudReporter> reporter;
+  std::shared_ptr<SessionReporter> reporter;
   folly::EventBase evb;
   MockCallback mock_callback;
 };
@@ -89,7 +89,7 @@ MATCHER_P(CheckCreateResponseRuleSize, size, "")
 }
 
 // Test requests on single thread
-TEST_F(CloudReporterTest, test_single_call)
+TEST_F(SessionReporterTest, test_single_call)
 {
   EXPECT_CALL(mock_callback, create_callback(_, CheckCreateResponseRuleSize(1)))
     .Times(1);
@@ -114,7 +114,7 @@ TEST_F(CloudReporterTest, test_single_call)
 }
 
 // Test multiple calls at the same time, wait for all to finish
-TEST_F(CloudReporterTest, test_multi_call)
+TEST_F(SessionReporterTest, test_multi_call)
 {
   EXPECT_CALL(mock_callback, create_callback(_, _)).Times(2);
   EXPECT_CALL(mock_callback, update_callback(_, _)).Times(1);

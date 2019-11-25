@@ -18,7 +18,7 @@
 
 #include <folly/io/async/EventBase.h>
 
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
@@ -164,7 +164,7 @@ class MockSessionHandler final : public LocalSessionManagerHandler {
       std::function<void(Status, LocalEndSessionResponse)>));
 };
 
-class MockSessionCloudReporter : public SessionCloudReporter {
+class MockSessionReporter : public SessionReporter {
   public:
     MOCK_METHOD2(
       report_updates,
