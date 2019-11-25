@@ -459,7 +459,7 @@ int mme_api_new_guti(
   if (ue_context) {
     for (nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
       nb_gummei++) {
-      IS_PLMN_EQUAL(ue_context->serving_cell_tai,
+      IS_PLMN_EQUAL(ue_context->emm_context.originating_tai,
         mme_config.gummei.gummei[nb_gummei].plmn,
         is_plmn_equal);
       if (is_plmn_equal == true) {
