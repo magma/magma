@@ -298,7 +298,7 @@ func TestPropertiesForCSV(t *testing.T) {
 	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
-	props, err := propertiesSlice(ctx, equipment, propertyTypes)
+	props, err := propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 	require.Contains(t, props, strVal)
 	require.Contains(t, props, strconv.Itoa(intVal))
@@ -382,7 +382,7 @@ func TestPropertyTypesForCSV(t *testing.T) {
 	propertyTypes, err := propertyTypesSlice(ctx, []string{equipment.ID}, client, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 
-	props, err := propertiesSlice(ctx, equipment, propertyTypes)
+	props, err := propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 	require.Contains(t, props, strVal)
 	require.Contains(t, props, strconv.Itoa(intVal))

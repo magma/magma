@@ -152,7 +152,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 		return err
 	})
 	g.Go(func(ctx context.Context) (err error) {
-		properties, err = propertiesSlice(ctx, equipment, propertyTypes)
+		properties, err = propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
 		return err
 	})
 	g.Go(func(ctx context.Context) (err error) {

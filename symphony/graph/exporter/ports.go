@@ -11,13 +11,13 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/symphony/cloud/ctxgroup"
+	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-
-	"github.com/facebookincubator/symphony/cloud/log"
 )
 
 type portsRower struct {
@@ -30,7 +30,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	var (
 		err            error
 		filterInput    []*models.PortFilterInput
-		portDataHeader = [...]string{bom + "Port ID", " Port Name", "Port Type", "Equipment Name", "Equipment Type"}
+		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkHeader     = [...]string{"Linked Port ID", "Linked Port name", "Linked Port Equipment ID", "Linked Port Equipment"}
 	)
@@ -55,7 +55,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	allrows := make([][]string, len(portsList)+1)
 
 	var orderedLocTypes, propertyTypes []string
-	cg.Go(func(ctx context.Context) (err error) {
+	cg.Go(func(ctx context.Context) error {
 		orderedLocTypes, err = locationTypeHierarchy(ctx, client)
 		if err != nil {
 			log.Error("cannot query location types", zap.Error(err))
@@ -63,7 +63,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		}
 		return nil
 	})
-	cg.Go(func(ctx context.Context) (err error) {
+	cg.Go(func(ctx context.Context) error {
 		portIDs := make([]string, len(portsList))
 		for i, p := range portsList {
 			portIDs[i] = p.ID
@@ -104,8 +104,83 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	return allrows, nil
 }
 
+// nolint: ineffassign
 func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes []string, propertyTypes []string) ([]string, error) {
-	return []string{port.ID, port.QueryDefinition().OnlyX(ctx).Name}, nil
+	var (
+		posName              string
+		lParents, properties []string
+		linkData             = make([]string, 4)
+		eParents             = make([]string, maxEquipmentParents)
+	)
+	parentEquip, err := port.QueryParent().Only(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying equipment for port (id=%s)", port.ID)
+	}
+	portDefinition := port.QueryDefinition().OnlyX(ctx)
+	g := ctxgroup.WithContext(ctx)
+
+	g.Go(func(ctx context.Context) error {
+		lParents, err = locationHierarchy(ctx, parentEquip, orderedLocTypes)
+		return err
+	})
+	g.Go(func(ctx context.Context) error {
+		properties, err = propertiesSlice(ctx, port, propertyTypes, models.PropertyEntityPort)
+		return err
+	})
+	g.Go(func(ctx context.Context) error {
+		pos, err := parentEquip.QueryParentPosition().Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return err
+		}
+		err = nil
+		if pos != nil {
+			def, err := pos.QueryDefinition().Only(ctx)
+			if err != nil {
+				return err
+			}
+			posName = def.Name
+			eParents = parentHierarchy(ctx, *parentEquip)
+		}
+		return nil
+	})
+	g.Go(func(ctx context.Context) error {
+		link, err := port.QueryLink().Only(ctx)
+		if err != nil && !ent.IsNotFound(err) {
+			return err
+		}
+		if ent.IsNotFound(err) {
+			err = nil
+			return nil
+		}
+		err = nil
+
+		if link != nil {
+			otherPort, err := link.QueryPorts().Where(equipmentport.Not(equipmentport.ID(port.ID))).Only(ctx)
+			if err != nil {
+				return err
+			}
+			otherEquip := otherPort.QueryParent().OnlyX(ctx)
+			linkData = []string{otherPort.ID, otherPort.QueryDefinition().OnlyX(ctx).Name, otherEquip.ID, otherEquip.Name}
+		}
+		return nil
+	})
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
+
+	portType := ""
+	pt, err := portDefinition.QueryEquipmentPortType().Only(ctx)
+	if err == nil {
+		portType = pt.Name
+	}
+	row := []string{port.ID, portDefinition.Name, portType, parentEquip.Name, parentEquip.QueryType().OnlyX(ctx).Name}
+	row = append(row, lParents...)
+	row = append(row, eParents...)
+	row = append(row, posName)
+	row = append(row, linkData...)
+	row = append(row, properties...)
+
+	return row, nil
 }
 
 func paramToPortFilterInput(params string) ([]*models.PortFilterInput, error) {

@@ -179,22 +179,39 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 	return propTypes, nil
 }
 
-func propertiesSlice(ctx context.Context, equipment *ent.Equipment, propertyTypes []string) ([]string, error) {
-	var props = make([]string, len(propertyTypes))
-	typs := equipment.QueryType().QueryPropertyTypes().AllX(ctx)
+func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []string, entityType models.PropertyEntity) ([]string, error) {
+	var ret = make([]string, len(propertyTypes))
+	var typs []*ent.PropertyType
+	var props []*ent.Property
+
+	if entityType == models.PropertyEntityEquipment {
+		entity := instance.(*ent.Equipment)
+		var err error
+		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for equipment %s (id=%s)", entity.Name, entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	} else {
+		entity := instance.(*ent.EquipmentPort)
+		var err error
+		typs, err = entity.QueryDefinition().QueryEquipmentPortType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	}
+
 	for _, typ := range typs {
 		idx := index(propertyTypes, typ.Name)
 		val, err := propertyValue(ctx, typ.Type, typ)
 		if err != nil {
 			return nil, err
 		}
-		props[idx] = val
+		ret[idx] = val
 	}
-	propsForEquip, err := equipment.QueryProperties().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, p := range propsForEquip {
+
+	for _, p := range props {
 		propTypeName := p.QueryType().OnlyX(ctx).Name
 		idx := index(propertyTypes, propTypeName)
 		if idx == -1 {
@@ -205,9 +222,9 @@ func propertiesSlice(ctx context.Context, equipment *ent.Equipment, propertyType
 		if err != nil {
 			return nil, err
 		}
-		props[idx] = val
+		ret[idx] = val
 	}
-	return props, nil
+	return ret, nil
 }
 
 func propertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
