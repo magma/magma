@@ -250,18 +250,18 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
 	case boolVal:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case equipmentVal:
-		p, ok := v.(*ent.Property)
-		if ok {
-			return p.QueryEquipmentValue().OnlyXID(ctx), nil
+	case equipmentVal, locationVal:
+		property, ok := v.(*ent.Property)
+		if !ok {
+			return "", nil
 		}
-		return "", nil
-	case locationVal:
-		p, ok := v.(*ent.Property)
-		if ok {
-			return p.QueryLocationValue().OnlyXID(ctx), nil
+		var id string
+		if typ == equipmentVal {
+			id, _ = property.QueryEquipmentValue().OnlyID(ctx)
+		} else {
+			id, _ = property.QueryLocationValue().OnlyID(ctx)
 		}
-		return "", nil
+		return id, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}
