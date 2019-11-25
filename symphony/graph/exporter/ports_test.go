@@ -6,11 +6,16 @@ package exporter
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/location"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -170,5 +175,133 @@ func TestPortsExport(t *testing.T) {
 		default:
 			require.Fail(t, "line does not match")
 		}
+	}
+}
+
+func TestPortWithFilters(t *testing.T) {
+	r, err := newExporterTestResolver(t)
+	require.NoError(t, err)
+	log := r.exporter.log
+	ctx := viewertest.NewContext(r.client)
+	e := &exporter{log, portsRower{log}}
+	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+
+	prepareData(ctx, t, *r)
+	/*
+		helper: data now is of type:
+		loc(grandParent):
+			loc(parent):
+				loc(child):
+						parentEquipment(equipemtnType): with portType1 (has 2 string props)
+						childEquipment(equipemtnType): with portType2 (no props props)
+						these ports are linked together
+	*/
+	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
+	pDef2 := r.client.EquipmentPortDefinition.Query().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
+
+	f, err := json.Marshal([]filterInput{
+		{
+			Name:     "LOCATION_INST",
+			Operator: "IS_ONE_OF",
+			IDSet:    []string{loc.ID},
+		},
+		{
+			Name:     "PORT_DEF",
+			Operator: "IS_ONE_OF",
+			IDSet:    []string{pDef2.ID},
+		},
+	})
+	require.NoError(t, err)
+	f2, err := json.Marshal([]filterInput{
+		{
+			Name:     "PROPERTY",
+			Operator: "IS",
+			PropertyValue: models.PropertyTypeInput{
+				ID:          pointer.ToString("tmp@propertyType"),
+				Name:        propStr,
+				StringValue: pointer.ToString("t1"),
+				Type:        "string",
+			},
+		},
+	})
+	require.NoError(t, err)
+
+	for i, filter := range [][]byte{f, f2} {
+		req, err := http.NewRequest("GET", server.URL, nil)
+		require.NoError(t, err)
+		req.Header.Set(tenantHeader, "fb-test")
+
+		q := req.URL.Query()
+		q.Add("filters", string(filter))
+		req.URL.RawQuery = q.Encode()
+
+		res, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
+
+		reader := csv.NewReader(res.Body)
+		linesCount := 0
+		for {
+			ln, err := reader.Read()
+			if err == io.EOF {
+				break
+			}
+			linesCount++
+			require.NoError(t, err, "error reading row")
+			if i == 0 {
+				if ln[1] == portName1 {
+					ln[12] = "--"
+					ln[14] = "--"
+					require.EqualValues(t, []string{
+						portName2,
+						"",
+						currEquip,
+						equipmentType2Name,
+						grandParentLocation,
+						parentLocation,
+						childLocation,
+						"",
+						"",
+						parentEquip,
+						positionName,
+						"--",
+						portName1,
+						"--",
+						parentEquip,
+						"",
+						"",
+					}, ln[1:])
+				}
+			}
+			if i == 1 {
+				if ln[1] == portName1 {
+					ln[12] = "--"
+					ln[14] = "--"
+					require.EqualValues(t, []string{
+						portName1,
+						"portType1",
+						parentEquip,
+						equipmentTypeName,
+						grandParentLocation,
+						parentLocation,
+						childLocation,
+						"",
+						"",
+						"",
+						"",
+						"--",
+						"port2",
+						"--",
+						currEquip,
+						"t1",
+						"",
+					}, ln[1:])
+				}
+			}
+		}
+		require.Equal(t, 2, linesCount)
+		err = res.Body.Close()
+		require.NoError(t, err)
 	}
 }
