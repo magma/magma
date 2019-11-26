@@ -51,7 +51,7 @@ class Snmpv2Device : public PingDevice {
   Snmpv2Device(Snmpv2Device&&) = delete;
   Snmpv2Device& operator=(Snmpv2Device&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

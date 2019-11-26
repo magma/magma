@@ -28,12 +28,13 @@
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
+#include <devmand/syslog/Manager.h>
 
 namespace devmand {
 
 using Services = std::list<std::unique_ptr<Service>>;
 using ChannelEngines = std::set<std::unique_ptr<channels::Engine>>;
-using Devices = std::map<devices::Id, std::unique_ptr<devices::Device>>;
+using Devices = std::map<devices::Id, std::shared_ptr<devices::Device>>;
 using IPVersion = channels::ping::IPVersion;
 
 class Application : public MetricSink {
@@ -53,7 +54,7 @@ class Application : public MetricSink {
   void add(const cartography::DeviceConfig& deviceConfig);
   void del(const cartography::DeviceConfig& deviceConfig);
 
-  void add(std::unique_ptr<devices::Device>&& device);
+  void add(std::shared_ptr<devices::Device>&& device);
   void add(std::unique_ptr<Service>&& service);
 
   void addPlatform(
@@ -95,6 +96,8 @@ class Application : public MetricSink {
   channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine(IPVersion ipv = IPVersion::v4);
   channels::ping::Engine& getPingEngine(folly::IPAddress ip);
+
+  syslog::Manager& getSyslogManager();
 
  private:
   void pollDevices();
@@ -162,6 +165,8 @@ class Application : public MetricSink {
    * to discover devices on the network.
    */
   cartography::Cartographer cartographer;
+
+  syslog::Manager syslogManager;
 
   static constexpr auto name = "devmand";
   static constexpr auto version = "0.0";
