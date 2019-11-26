@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SymphonyDevice Management properties for a Symphony device
-// swagger:model symphony_device
-type SymphonyDevice struct {
+// MutableSymphonyDevice A Symphony device with the read-only fields omitted
+// swagger:model mutable_symphony_device
+type MutableSymphonyDevice struct {
 
 	// config
 	// Required: true
@@ -31,13 +31,10 @@ type SymphonyDevice struct {
 	// name
 	// Required: true
 	Name SymphonyDeviceName `json:"name"`
-
-	// state
-	State *SymphonyDeviceState `json:"state,omitempty"`
 }
 
-// Validate validates this symphony device
-func (m *SymphonyDevice) Validate(formats strfmt.Registry) error {
+// Validate validates this mutable symphony device
+func (m *MutableSymphonyDevice) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateConfig(formats); err != nil {
@@ -56,17 +53,13 @@ func (m *SymphonyDevice) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateState(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
 }
 
-func (m *SymphonyDevice) validateConfig(formats strfmt.Registry) error {
+func (m *MutableSymphonyDevice) validateConfig(formats strfmt.Registry) error {
 
 	if err := validate.Required("config", "body", m.Config); err != nil {
 		return err
@@ -84,7 +77,7 @@ func (m *SymphonyDevice) validateConfig(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SymphonyDevice) validateID(formats strfmt.Registry) error {
+func (m *MutableSymphonyDevice) validateID(formats strfmt.Registry) error {
 
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -96,7 +89,7 @@ func (m *SymphonyDevice) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SymphonyDevice) validateManagingAgent(formats strfmt.Registry) error {
+func (m *MutableSymphonyDevice) validateManagingAgent(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.ManagingAgent) { // not required
 		return nil
@@ -112,7 +105,7 @@ func (m *SymphonyDevice) validateManagingAgent(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SymphonyDevice) validateName(formats strfmt.Registry) error {
+func (m *MutableSymphonyDevice) validateName(formats strfmt.Registry) error {
 
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -124,26 +117,8 @@ func (m *SymphonyDevice) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SymphonyDevice) validateState(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.State) { // not required
-		return nil
-	}
-
-	if m.State != nil {
-		if err := m.State.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("state")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
 // MarshalBinary interface implementation
-func (m *SymphonyDevice) MarshalBinary() ([]byte, error) {
+func (m *MutableSymphonyDevice) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -151,8 +126,8 @@ func (m *SymphonyDevice) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SymphonyDevice) UnmarshalBinary(b []byte) error {
-	var res SymphonyDevice
+func (m *MutableSymphonyDevice) UnmarshalBinary(b []byte) error {
+	var res MutableSymphonyDevice
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

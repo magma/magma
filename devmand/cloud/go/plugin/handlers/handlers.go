@@ -353,7 +353,7 @@ func createDevice(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &symphonymodels.SymphonyDevice{}
+	payload := &symphonymodels.MutableSymphonyDevice{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -404,7 +404,7 @@ func updateDevice(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &symphonymodels.SymphonyDevice{}
+	payload := &symphonymodels.MutableSymphonyDevice{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
