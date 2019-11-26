@@ -53,7 +53,6 @@ module.exports.overrides = [
       'jest.config.js',
       'jest.*.config.js',
       'fbcnms-packages/eslint-config-fbcnms/**/*.js',
-      'fbcnms-packages/fb/fbcnms-fbt/**/*.js',
       'fbcnms-packages/fbcnms-auth/**/*.js',
       'fbcnms-packages/fbcnms-babel-register/**/*.js',
       'fbcnms-packages/fbcnms-express-middleware/**/*.js',
