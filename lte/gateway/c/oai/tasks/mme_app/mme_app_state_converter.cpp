@@ -522,6 +522,7 @@ void MmeNasStateConverter::pdn_context_list_to_proto(
   UeContext* ue_context_proto,
   int num_active_contexts)
 {
+  num_active_contexts = 1; // TODO: fix acounting of nb_active_pdn_contexts
   for (int i = 0; i < num_active_contexts; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
       OAILOG_INFO(LOG_MME_APP, "Writing PDN context at index %d", i);
