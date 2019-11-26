@@ -67,6 +67,7 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 	}
 
 	for _, route := range routes {
+		route := route
 		router.Path("/" + route.name).
 			Methods(http.MethodGet).
 			Handler(&route.handler).
