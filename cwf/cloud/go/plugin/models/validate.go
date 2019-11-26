@@ -9,7 +9,10 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/go-openapi/strfmt"
+	"github.com/pkg/errors"
 )
 
 func (m *CwfNetwork) ValidateModel() error {
@@ -29,6 +32,13 @@ func (m *NetworkCarrierWifiConfigs) ValidateModel() error {
 func (m *GatewayCwfConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
+	}
+	set := make(map[string]int)
+	for _, peer := range m.AllowedGrePeers {
+		set[string(peer.IP)]++
+		if set[string(peer.IP)] > 1 {
+			return errors.New(fmt.Sprintf("Found duplicate peer %s", string(peer.IP)))
+		}
 	}
 	return nil
 }

@@ -492,6 +492,25 @@ func TestCwfGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Test update gateway CarrierWifi config (invalid config)
+	badPayloadConf := &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "2.2.2.2", Key: swag.Uint32(444)},
+			{IP: "2.2.2.2", Key: swag.Uint32(444)},
+		},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        updateCarrierWifiGatewayConfig,
+		Payload:        badPayloadConf,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "Found duplicate peer 2.2.2.2",
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test update gateway CarrierWifi config
 	payloadConf := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
@@ -499,7 +518,7 @@ func TestCwfGateways(t *testing.T) {
 		},
 	}
 	tc = tests.Test{
-		Method:         "GET",
+		Method:         "PUT",
 		URL:            "/magma/v1/cwf/n1/gateways/g1",
 		Handler:        updateCarrierWifiGatewayConfig,
 		Payload:        payloadConf,
