@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, List
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
-    UpdateSessionResponse, DynamicRuleInstall, StaticRuleInstall, \
+    UpdateSessionResponse, StaticRuleInstall, \
     ChargingCredit, GrantedUnits, CreditUnit, CreditUpdateResponse
 from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
