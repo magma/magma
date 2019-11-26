@@ -87,11 +87,11 @@ const chartConfigs: MetricGraphConfig[] = [
     ],
   },
   {
-    label: 'Session Terminate',
+    label: 'Session Stop',
     basicQueryConfigs: [],
     customQueryConfigs: [
       {
-        resolveQuery: _ => `sum(session_terminate)`,
+        resolveQuery: _ => `sum(session_stop)`,
       },
     ],
   },
