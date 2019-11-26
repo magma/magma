@@ -17,7 +17,6 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {ErrorCodes} from '@fbcnms/auth/errorCodes';
 import {SnackbarProvider} from 'notistack';
 import {TopBarContextProvider} from '@fbcnms/ui/components/layout/TopBarContext';
-import {getLoggedOutFeatureWithoutContext} from '../../fbcnms-platform-server/features';
 import {useEffect, useState} from 'react';
 
 const DIALOG_MESSAGE =
@@ -33,22 +32,18 @@ const ApplicationMain = (props: Props) => {
   const [loggedOutAlertOpen, setLoggedOutAlertOpen] = useState(false);
 
   useEffect(() => {
-    if (getLoggedOutFeatureWithoutContext()) {
-      const interceptor = axios.interceptors.response.use(
-        response => response,
-        error => {
-          if (
-            error.response?.data?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN
-          ) {
-            // axios request sent while user is logged out, open dialog
-            setLoggedOutAlertOpen(true);
-          } else {
-            return Promise.reject(error);
-          }
-        },
-      );
-      return () => axios.interceptors.request.eject(interceptor);
-    }
+    const interceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response?.data?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN) {
+          // axios request sent while user is logged out, open dialog
+          setLoggedOutAlertOpen(true);
+        } else {
+          return Promise.reject(error);
+        }
+      },
+    );
+    return () => axios.interceptors.request.eject(interceptor);
   }, []);
 
   return (
