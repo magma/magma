@@ -465,13 +465,13 @@ int mme_api_new_guti(
         ue_context->emm_context.originating_tai,
         mme_config.gummei.gummei[nb_gummei].plmn,
         is_plmn_equal);
-      if (is_plmn_equal == true) {
+      if (is_plmn_equal) {
         /* Copies the GUMMEI value from configuration to the emm context */
         COPY_GUMMEI(guti, _emm_data.conf.gummei.gummei[nb_gummei]);
         break;
       }
     }
-    if (is_plmn_equal == true) {
+    if (is_plmn_equal) {
       is_plmn_equal = false;
     } else {
       OAILOG_ERROR(LOG_NAS, "Serving PLMN not matching with GUMMEI List!\n");
@@ -503,7 +503,7 @@ int mme_api_new_guti(
           guti->gummei.plmn,
           is_plmn_equal);
 
-        if (is_plmn_equal == true) {
+        if (is_plmn_equal) {
           is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
@@ -540,7 +540,7 @@ int mme_api_new_guti(
           guti->gummei.plmn,
           is_plmn_equal);
 
-        if (is_plmn_equal == true) {
+        if (is_plmn_equal) {
           is_plmn_equal = false;
           tai_list->partial_tai_list[j].numberofelements =
             _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
@@ -572,7 +572,7 @@ int mme_api_new_guti(
             guti->gummei.plmn,
             is_plmn_equal);
 
-          if (is_plmn_equal == true) {
+          if (is_plmn_equal) {
             tai_list->partial_tai_list[j].numberofelements =
               _emm_data.conf.tai_list.partial_tai_list[i].numberofelements;
             tai_list->partial_tai_list[j].typeoflist =
@@ -595,7 +595,7 @@ int mme_api_new_guti(
             break;
           }
         }
-        if (is_plmn_equal != true) {
+        if (!is_plmn_equal) {
           OAILOG_ERROR(
             LOG_NAS,
             "GUTI PLMN does not match with mme configuration tai list\n");
