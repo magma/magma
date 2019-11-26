@@ -33,6 +33,7 @@ const useStyles = makeStyles({
 });
 
 type Props = {
+  mirrorNetwork?: string,
   onCancel: () => void,
   onSave: string => void,
 };
@@ -69,19 +70,35 @@ export default function(props: Props) {
       name: baseName.name,
       rule_names: baseName.ruleNames.split(','),
     };
+
+    const data = [
+      {
+        networkId: nullthrows(match.params.networkId),
+        baseNameRecord,
+      },
+    ];
+
+    if (props.mirrorNetwork) {
+      data.push({
+        networkId: props.mirrorNetwork,
+        baseNameRecord,
+      });
+    }
+
     try {
       if (editingBaseName) {
-        await MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
-          networkId: nullthrows(match.params.networkId),
-          baseName: editingBaseName,
-          baseNameRecord,
-        });
-        props.onSave(editingBaseName);
+        await Promise.all(
+          data.map(d =>
+            MagmaV1API.putNetworksByNetworkIdPoliciesBaseNamesByBaseName({
+              ...d,
+              baseName: editingBaseName,
+            }),
+          ),
+        );
       } else {
-        await MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames({
-          networkId: nullthrows(match.params.networkId),
-          baseNameRecord,
-        });
+        await Promise.all(
+          data.map(d => MagmaV1API.postNetworksByNetworkIdPoliciesBaseNames(d)),
+        );
       }
 
       props.onSave(baseName.name);
