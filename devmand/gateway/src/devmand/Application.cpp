@@ -211,12 +211,12 @@ void Application::del(const cartography::DeviceConfig& deviceConfig) {
   }
 }
 
-void Application::add(std::unique_ptr<devices::Device>&& device) {
+void Application::add(std::shared_ptr<devices::Device>&& device) {
   ErrorHandler::executeWithCatch(
       [this, &device]() {
         devices.emplace(
             device->getId(),
-            std::forward<std::unique_ptr<devices::Device>>(device));
+            std::forward<std::shared_ptr<devices::Device>>(device));
       },
       [this]() { this->statusCode = EXIT_FAILURE; });
 }
@@ -284,6 +284,10 @@ folly::EventBase& Application::getEventBase() {
 
 DhcpdConfig& Application::getDhcpdConfig() {
   return dhcpdConfig;
+}
+
+syslog::Manager& Application::getSyslogManager() {
+  return syslogManager;
 }
 
 } // namespace devmand

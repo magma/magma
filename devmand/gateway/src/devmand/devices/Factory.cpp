@@ -31,7 +31,7 @@ void Factory::setDefaultPlatform(PlatformBuilder defaultPlatformBuilder_) {
   defaultPlatformBuilder = defaultPlatformBuilder_;
 }
 
-std::unique_ptr<devices::Device> Factory::createDevice(
+std::shared_ptr<devices::Device> Factory::createDevice(
     const cartography::DeviceConfig& deviceConfig) {
   LOG(INFO) << "Loading device " << deviceConfig.id << " on platform "
             << deviceConfig.platform << " ip " << deviceConfig.ip;
@@ -47,7 +47,7 @@ std::unique_ptr<devices::Device> Factory::createDevice(
     builder = builderIt->second;
   }
 
-  std::unique_ptr<devices::Device> device{nullptr};
+  std::shared_ptr<devices::Device> device{nullptr};
   if (builder != nullptr) {
     ErrorHandler::executeWithCatch([this, &builder, &deviceConfig, &device]() {
       device = builder(app, deviceConfig);

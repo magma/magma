@@ -23,7 +23,7 @@ class EchoDevice : public Device {
   EchoDevice(EchoDevice&&) = delete;
   EchoDevice& operator=(EchoDevice&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

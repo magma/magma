@@ -19,7 +19,7 @@
 namespace devmand {
 namespace devices {
 
-std::unique_ptr<devices::Device> PingDevice::createDevice(
+std::shared_ptr<devices::Device> PingDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   return std::make_unique<devices::PingDevice>(

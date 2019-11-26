@@ -29,11 +29,11 @@ namespace devices {
 
 enum class DeviceConfigType { YangJson, NativeConfigJson };
 
-class Device {
+class Device : public std::enable_shared_from_this<Device> {
  public:
   Device(Application& application, const Id& id_, bool readonly_);
   Device() = delete;
-  virtual ~Device() = default;
+  virtual ~Device();
   Device(const Device&) = delete;
   Device& operator=(const Device&) = delete;
   Device(Device&&) = delete;
@@ -88,6 +88,7 @@ class Device {
   Id id;
   const bool readonly;
   folly::dynamic lastConfig;
+  folly::dynamic lastState;
 };
 
 } // namespace devices

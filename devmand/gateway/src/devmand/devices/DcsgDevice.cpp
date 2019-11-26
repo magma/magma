@@ -19,7 +19,7 @@ namespace devices {
 
 const char* deviceConfigFilePathTemplate = "/var/www/{}.conf";
 
-std::unique_ptr<devices::Device> DcsgDevice::createDevice(
+std::shared_ptr<devices::Device> DcsgDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;

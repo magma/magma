@@ -38,7 +38,7 @@ struct DeviceConfig {
   std::string platform;
   std::string ip;
   std::string yangConfig;
-  bool readonly;
+  bool readonly{false};
 
   std::map<std::string, ChannelConfig> channelConfigs;
 

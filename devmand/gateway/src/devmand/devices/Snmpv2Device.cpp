@@ -59,7 +59,7 @@ static std::string getTypeString(int ifMibType) {
   return folly::sformat("iana-if-type:{}", ts);
 }
 
-std::unique_ptr<devices::Device> Snmpv2Device::createDevice(
+std::shared_ptr<devices::Device> Snmpv2Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;

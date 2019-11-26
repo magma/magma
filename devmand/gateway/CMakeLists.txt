@@ -42,7 +42,6 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/DeviceIdentifiers.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/DhcpdConfig.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorHandler.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/ErrorQueue.cpp
@@ -51,6 +50,7 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/syslog/Manager.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/utils/ConfigGenerator.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/utils/Time.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
@@ -192,7 +192,7 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/StructuredUbntDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DevConfTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/DeviceIdentifiersTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/SyslogManagerTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DiffTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ErrorQueueTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/EventBaseTest.cpp
