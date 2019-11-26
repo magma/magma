@@ -177,6 +177,11 @@ const arrayConfigs = [
     title: 'Equipment Live Status',
     enabledByDefault: false,
   },
+  {
+    id: 'logged_out_alert',
+    title: 'Logged Out Alert',
+    enabledByDefault: true,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
@@ -220,6 +225,18 @@ export async function getEnabledFeatures(
   );
 
   return results.filter(Boolean);
+}
+
+/* Do not use this function, it is only for the logged out feature flag since
+ * the code to be gated is implemented outside of AppContextProvider. Please use
+ * useContext(AppContext).isFeatureEnabled('my_feature') instead.
+ */
+export function getLoggedOutFeatureWithoutContext(): boolean {
+  const {appData} = window.CONFIG;
+  if (appData.enabledFeatures.indexOf('logged_out_alert') !== -1) {
+    return true;
+  }
+  return false;
 }
 
 export default {...featureConfigs};
