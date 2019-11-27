@@ -105,7 +105,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
     def _get_static_rules(self) -> List[StaticRuleInstall]:
         """ Return a static rule for redirection to captive portal """
-        if self.redirect_rule_name in self._rules:
+        if self.redirect_rule_name is not None and\
+                self.redirect_rule_name in self._rules:
             return [StaticRuleInstall(rule_id=self.redirect_rule_name)]
         return []
 
