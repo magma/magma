@@ -55,7 +55,6 @@ const PowerSearchOperatorComponent = (props: Props) => {
       return (
         <div className={classes.operator}>
           <Select
-            autoFocus={true}
             value={operator}
             margin="none"
             variant="outlined"
