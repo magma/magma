@@ -121,6 +121,12 @@ int main(int argc, char *argv[])
     pipelined_client->rpc_response_loop();
   });
 
+  auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
+  std::thread directoryd_thread([&]() {
+    MLOG(MINFO) << "Started pipelined response thread";
+    directoryd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
 
@@ -169,6 +175,7 @@ int main(int argc, char *argv[])
     reporter,
     rule_store,
     pipelined_client,
+    directoryd_client,
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>());
@@ -207,6 +214,7 @@ int main(int argc, char *argv[])
   local_thread.join();
   proxy_thread.join();
   rule_manager_thread.join();
+  directoryd_thread.join();
   policy_loader_thread.join();
   optional_client_thread.join();
 

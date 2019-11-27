@@ -98,6 +98,19 @@ class MockPipelinedClient : public PipelinedClient {
       const std::string &mac_addr));
 };
 
+class MockDirectorydClient : public AsyncDirectorydClient {
+ public:
+  MockDirectorydClient()
+  {
+    ON_CALL(*this, get_directoryd_ip_field(_,_)).WillByDefault(Return(true));
+  }
+
+  MOCK_METHOD2(get_directoryd_ip_field,
+    bool(
+      const std::string& imsi,
+      std::function<void(Status status, DirectoryField)> callback));
+};
+
 /**
  * Mock handler to mock actual request handling and just test server
  */

@@ -42,10 +42,12 @@ class LocalEnforcerTest : public ::testing::Test {
     reporter = std::make_shared<MockSessionReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
+    directoryd_client = std::make_shared<MockDirectorydClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, spgw_client, aaa_client, 0);
+      reporter, rule_store, pipelined_client, directoryd_client, spgw_client,
+      aaa_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -111,6 +113,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   folly::EventBase *evb;
