@@ -89,7 +89,7 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevicesError) {
   EXPECT_ANY_THROW(PlaintextCliDevice::createDevice(app, getConfig("9998")));
 }
 
-TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
+TEST_F(PlaintextCliDeviceTest, DISABLED_plaintextCliDevice) {
   Application app;
 
   std::vector<std::unique_ptr<Device>> ds;

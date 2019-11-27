@@ -418,7 +418,7 @@ static const string EXPECTED_OUTPUT =
     "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, getState) {
+TEST_F(StructuredUbntDeviceTest, DISABLED_getState) {
   devmand::Application app;
   cartography::DeviceConfig deviceConfig;
   devmand::cartography::ChannelConfig chnlCfg;
