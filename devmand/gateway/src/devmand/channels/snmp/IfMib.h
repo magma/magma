@@ -49,22 +49,35 @@ class IfMib {
   static folly::Future<InterfaceIndicies> getInterfaceIndicies(
       channels::snmp::Channel& channel);
   static folly::Future<InterfacePairs> getInterfaceNames(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceOperStatuses(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceAdminStatuses(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceMtus(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceTypes(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceDescriptions(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
   static folly::Future<InterfacePairs> getInterfaceLastChange(
-      channels::snmp::Channel& channel);
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices);
 
   static folly::Future<InterfacePairs> getInterfaceField(
       channels::snmp::Channel& channel,
+      const std::string& oid,
+      const std::function<std::string(std::string)>& formatter = nullptr);
+
+  static folly::Future<InterfacePairs> getInterfaceField(
+      channels::snmp::Channel& channel,
+      const InterfaceIndicies& indices,
       const std::string& oid,
       const std::function<std::string(std::string)>& formatter = nullptr);
 };
