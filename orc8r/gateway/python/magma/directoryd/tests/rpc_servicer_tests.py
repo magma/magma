@@ -9,9 +9,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 from concurrent import futures
 import grpc
 from unittest import TestCase, mock
-
 from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
     DeleteRecordRequest, GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
@@ -122,3 +122,32 @@ class DirectorydRpcServiceTests(TestCase):
             get_req.field_key = "ipv4_addr"
             self._stub.GetDirectoryField(get_req)
         self.assertEqual(err.exception.code(), grpc.StatusCode.NOT_FOUND)
+
+    @mock.patch("redis.Redis", MockRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    def test_get_all(self):
+        self._servicer._redis_dict.clear()
+
+        req = UpdateRecordRequest()
+        req.id = "IMSI557"
+        req.fields["mac_addr"] = "aa:bb:aa:bb:aa:bb"
+        self._stub.UpdateRecord(req)
+        self.assertTrue(req.id in self._servicer._redis_dict)
+
+        req2 = UpdateRecordRequest()
+        req2.id = "IMSI556"
+        req2.fields["ipv4_addr"] = "192.168.127.11"
+        self._stub.UpdateRecord(req2)
+        self.assertTrue(req2.id in self._servicer._redis_dict)
+
+        void_req = Void()
+        ret = self._stub.GetAllDirectoryRecords(void_req)
+        self.assertEqual(2, len(ret.records))
+        for record in ret.records:
+            if record.id == "IMSI556":
+                self.assertEqual(record.fields["ipv4_addr"], "192.168.127.11")
+            elif record.id == "IMSI557":
+                self.assertEqual(record.fields["mac_addr"],
+                                 "aa:bb:aa:bb:aa:bb")
+            else:
+                raise AssertionError()
