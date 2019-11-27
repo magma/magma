@@ -38,6 +38,14 @@ class AsyncDirectorydClient : public GRPCReceiver {
   bool get_directoryd_ip_field(
     const std::string& imsi,
     std::function<void(Status status, DirectoryField)> callback);
+  /**
+   * Update the directoryd record
+   * @param update_request - request used to update the record
+   * @return status of update
+   */
+  void update_directoryd_record(
+    const UpdateRecordRequest &request,
+    std::function<void(Status status, Void)> callback);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
