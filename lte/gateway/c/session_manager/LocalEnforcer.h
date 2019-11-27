@@ -12,11 +12,13 @@
 #include <unordered_set>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
 #include "AAAClient.h"
 #include "SessionReporter.h"
 #include "PipelinedClient.h"
+#include "DirectorydClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SpgwServiceClient.h"
@@ -40,6 +42,7 @@ class LocalEnforcer {
     std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
@@ -153,6 +156,7 @@ class LocalEnforcer {
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
