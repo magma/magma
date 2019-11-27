@@ -1312,6 +1312,7 @@ func TestEditWorkOrderWithCheckList(t *testing.T) {
 	clInputs = []*models.CheckListItemInput{&barCL}
 	workOrder, err = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
 		ID:        workOrder.ID,
+		Name:      longWorkOrderName,
 		CheckList: clInputs,
 	})
 	require.NoError(t, err)

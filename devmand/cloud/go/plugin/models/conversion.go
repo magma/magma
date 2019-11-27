@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 
@@ -182,10 +183,26 @@ func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *Symp
 			m.ManagingAgent = SymphonyDeviceAgent(tk.Key)
 		}
 	}
+	state, err := state.GetState(ent.NetworkID, devmand.SymphonyDeviceStateType, ent.Key)
+	if err == nil {
+		m.State = state.ReportedState.(*SymphonyDeviceState)
+	}
 	return m
 }
 
-func (m *SymphonyDevice) ToEntityUpdateCriteria(nID string) ([]configurator.EntityUpdateCriteria, error) {
+func (m *MutableSymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *MutableSymphonyDevice {
+	m.Name = SymphonyDeviceName(ent.Name)
+	m.ID = SymphonyDeviceID(ent.Key)
+	m.Config = ent.Config.(*SymphonyDeviceConfig)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			m.ManagingAgent = SymphonyDeviceAgent(tk.Key)
+		}
+	}
+	return m
+}
+
+func (m *MutableSymphonyDevice) ToEntityUpdateCriteria(nID string) ([]configurator.EntityUpdateCriteria, error) {
 	updates := []configurator.EntityUpdateCriteria{
 		configurator.EntityUpdateCriteria{
 			Type:      devmand.SymphonyDeviceType,

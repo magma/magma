@@ -82,10 +82,21 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
     );
 
     if (confirmed) {
-      await MagmaV1API.deleteNetworksByNetworkIdPoliciesBaseNamesByBaseName({
-        networkId: networkID,
-        baseName: name,
-      });
+      const data = [
+        {
+          networkId: networkID,
+          baseName: name,
+        },
+      ];
+
+      if (props.mirrorNetwork) {
+        data.push({networkId: props.mirrorNetwork, baseName: name});
+      }
+      await Promise.all(
+        data.map(d =>
+          MagmaV1API.deleteNetworksByNetworkIdPoliciesBaseNamesByBaseName(d),
+        ),
+      );
 
       const newBaseNames = [...nullthrows(baseNames)];
       newBaseNames.splice(findIndex(newBaseNames, name2 => name2 === name), 1);
@@ -169,6 +180,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
         path={relativePath('/add_base_name')}
         component={() => (
           <PolicyBaseNameDialog
+            mirrorNetwork={props.mirrorNetwork}
             onCancel={() => history.push(relativeUrl(''))}
             onSave={baseName => {
               setBaseNames([...nullthrows(baseNames), baseName]);

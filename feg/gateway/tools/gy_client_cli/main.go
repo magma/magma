@@ -110,7 +110,7 @@ func main() {
 
 	config := &cliConfig{
 		serverCfg:    serverCfg,
-		gyClient:     gy.NewGyClient(clientCfg, []*diameter.DiameterServerConfig{serverCfg}, handleReAuth, nil),
+		gyClient:     gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil),
 		imsi:         imsi,
 		sessionID:    fmt.Sprintf("%s-%s", imsi, sid),
 		ueIP:         ueIP,

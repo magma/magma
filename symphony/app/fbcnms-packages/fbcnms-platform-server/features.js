@@ -177,6 +177,11 @@ const arrayConfigs = [
     title: 'Equipment Live Status',
     enabledByDefault: false,
   },
+  {
+    id: 'logged_out_alert',
+    title: 'Logged Out Alert',
+    enabledByDefault: true,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};

@@ -28,22 +28,38 @@ type Props = {
   children: React.Element<*>,
 };
 
+/* Do not use this function or pattern elsewhere! It is only for the logged out
+ * feature since the code to be gated is outside of AppContextProvider. Use
+ * useContext(AppContext).isFeatureEnabled('my_feature') instead.
+ */
+const getLoggedOutFeatureWithoutContext = (): boolean => {
+  const {appData} = window.CONFIG;
+  if (appData.enabledFeatures.indexOf('logged_out_alert') !== -1) {
+    return true;
+  }
+  return false;
+};
+
 const ApplicationMain = (props: Props) => {
   const [loggedOutAlertOpen, setLoggedOutAlertOpen] = useState(false);
 
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      response => response,
-      error => {
-        if (error.response?.data?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN) {
-          // axios request sent while user is logged out, open dialog
-          setLoggedOutAlertOpen(true);
-        } else {
-          return Promise.reject(error);
-        }
-      },
-    );
-    return () => axios.interceptors.request.eject(interceptor);
+    if (getLoggedOutFeatureWithoutContext()) {
+      const interceptor = axios.interceptors.response.use(
+        response => response,
+        error => {
+          if (
+            error.response?.data?.errorCode === ErrorCodes.USER_NOT_LOGGED_IN
+          ) {
+            // axios request sent while user is logged out, open dialog
+            setLoggedOutAlertOpen(true);
+          } else {
+            return Promise.reject(error);
+          }
+        },
+      );
+      return () => axios.interceptors.request.eject(interceptor);
+    }
   }, []);
 
   return (

@@ -37266,7 +37266,7 @@ func (ec *executionContext) marshalNLocation2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
+			ret[i] = ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -37609,7 +37609,7 @@ func (ec *executionContext) marshalNProperty2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -38275,7 +38275,7 @@ func (ec *executionContext) marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -39688,7 +39688,7 @@ func (ec *executionContext) unmarshalOPropertyTypeInput2ᚕᚖgithubᚗcomᚋfac
 	var err error
 	res := make([]*models.PropertyTypeInput, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}

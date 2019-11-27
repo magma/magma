@@ -130,7 +130,8 @@ func (hm *HealthManager) handleUpdateHealthFailure(
 		return err
 	}
 
-	glog.V(2).Info("Consecutive update failures exceed threshold; Disabling FeG services' diameter connections...")
+	glog.Warningf("Consecutive update failures exceed threshold %d; Disabling FeG services' diameter connections!",
+		hm.config.GetUpdateFailureThreshold())
 	actionErr := hm.takeSystemDown(hm.config.GetLocalDisconnectPeriodSecs(), req.HealthStats.ServiceStatus)
 	if actionErr != nil {
 		glog.Error(actionErr)
@@ -203,7 +204,7 @@ func (hm *HealthManager) takeSystemUp() error {
 		}
 	}
 	if len(allActionErrors) > 0 {
-		return fmt.Errorf("Encountered the following errors while taking SYSTEM_DOWN:\n%s\n",
+		return fmt.Errorf("Encountered the following errors while taking SYSTEM_UP:\n%s\n",
 			strings.Join(allActionErrors, "\n"),
 		)
 	}

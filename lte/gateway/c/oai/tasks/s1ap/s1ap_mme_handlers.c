@@ -1565,8 +1565,11 @@ int s1ap_mme_handle_path_switch_request(
 
   enb_association = s1ap_state_get_enb(state, assoc_id);
   if (enb_association == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "Ignore Path Switch Request from unknown assoc "
-      "%u\n", assoc_id);
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "Ignore Path Switch Request from unknown assoc "
+      "%u\n",
+      assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -1576,8 +1579,9 @@ int s1ap_mme_handle_path_switch_request(
     pathSwitchRequest_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
   OAILOG_DEBUG(
     LOG_S1AP,
-    "Path Switch Request message received from eNB UE S1AP ID: "
-    ENB_UE_S1AP_ID_FMT "\n", enb_ue_s1ap_id);
+    "Path Switch Request message received from eNB UE S1AP "
+    "ID: " ENB_UE_S1AP_ID_FMT "\n",
+    enb_ue_s1ap_id);
 
   /* If all the E-RAB ID IEs in E-RABToBeSwitchedDLList is set to the
    * same value, send PATH SWITCH REQUEST FAILURE message to eNB */
@@ -1603,7 +1607,7 @@ int s1ap_mme_handle_path_switch_request(
       pathSwitchRequest_p->sourceMME_UE_S1AP_ID);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
-    new_ue_ref_p = s1ap_state_get_ue_enbid(state, enb_association, enb_ue_s1ap_id);
+    new_ue_ref_p = s1ap_state_get_ue_enbid(enb_association, enb_ue_s1ap_id);
     if (new_ue_ref_p != NULL) {
       OAILOG_ERROR(
         LOG_S1AP,
@@ -1690,10 +1694,13 @@ int s1ap_mme_handle_path_switch_request(
     TBCD_TO_PLMN_T(&pathSwitchRequest_p->tai.pLMNidentity, &tai);
 
     // UE Security Capabilities mandatory IE
-    BIT_STRING_TO_INT16(&pathSwitchRequest_p->ueSecurityCapabilities
-      .encryptionAlgorithms, encryption_algorithm_capabilitie);
-    BIT_STRING_TO_INT16(&pathSwitchRequest_p->ueSecurityCapabilities
-      .integrityProtectionAlgorithms, integrity_algorithm_capabilities);
+    BIT_STRING_TO_INT16(
+      &pathSwitchRequest_p->ueSecurityCapabilities.encryptionAlgorithms,
+      encryption_algorithm_capabilitie);
+    BIT_STRING_TO_INT16(
+      &pathSwitchRequest_p->ueSecurityCapabilities
+         .integrityProtectionAlgorithms,
+      integrity_algorithm_capabilities);
   }
 
   s1ap_mme_itti_s1ap_path_switch_request(
@@ -2364,7 +2371,7 @@ int s1ap_mme_handle_enb_reset(
               (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
             if (
               (ue_ref_p = s1ap_state_get_ue_enbid(
-                 state, enb_association, enb_ue_s1ap_id)) != NULL) {
+                 enb_association, enb_ue_s1ap_id)) != NULL) {
               enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = enb_ue_s1ap_id;
               reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =

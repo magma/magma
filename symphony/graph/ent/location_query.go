@@ -64,150 +64,170 @@ func (lq *LocationQuery) Order(o ...Order) *LocationQuery {
 // QueryType chains the current query on the type edge.
 func (lq *LocationQuery) QueryType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(locationtype.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.TypeColumn))
-	query.sql = builder.Select(t1.Columns(locationtype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(locationtype.FieldID), t2.C(location.TypeColumn))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = locationtype.Table
+	step.To.Column = locationtype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = location.TypeTable
+	step.Edge.Columns = append(step.Edge.Columns, location.TypeColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (lq *LocationQuery) QueryParent() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.ParentColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(location.ParentColumn))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = location.ParentTable
+	step.Edge.Columns = append(step.Edge.Columns, location.ParentColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryChildren chains the current query on the children edge.
 func (lq *LocationQuery) QueryChildren() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.ChildrenColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = location.ChildrenTable
+	step.Edge.Columns = append(step.Edge.Columns, location.ChildrenColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (lq *LocationQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(file.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FilesColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = file.Table
+	step.To.Column = file.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = location.FilesTable
+	step.Edge.Columns = append(step.Edge.Columns, location.FilesColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (lq *LocationQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.EquipmentColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = location.EquipmentTable
+	step.Edge.Columns = append(step.Edge.Columns, location.EquipmentColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LocationQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(property.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.PropertiesColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = property.Table
+	step.To.Column = property.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = location.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, location.PropertiesColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QuerySurvey chains the current query on the survey edge.
 func (lq *LocationQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(survey.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.SurveyColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = survey.Table
+	step.To.Column = survey.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = location.SurveyTable
+	step.Edge.Columns = append(step.Edge.Columns, location.SurveyColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (lq *LocationQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(surveywifiscan.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.WifiScanColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = surveywifiscan.Table
+	step.To.Column = surveywifiscan.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = location.WifiScanTable
+	step.Edge.Columns = append(step.Edge.Columns, location.WifiScanColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (lq *LocationQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(surveycellscan.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.CellScanColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = surveycellscan.Table
+	step.To.Column = surveycellscan.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = location.CellScanTable
+	step.Edge.Columns = append(step.Edge.Columns, location.CellScanColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (lq *LocationQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-
-	builder := sql.Dialect(lq.driver.Dialect())
-	t1 := builder.Table(workorder.Table)
-	t2 := lq.sqlQuery()
-	t2.Select(t2.C(location.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(location.WorkOrdersColumn), t2.C(location.FieldID))
+	step := &sql.Step{}
+	step.From.V = lq.sqlQuery()
+	step.From.Table = location.Table
+	step.From.Column = location.FieldID
+	step.To.Table = workorder.Table
+	step.To.Column = workorder.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = location.WorkOrdersTable
+	step.Edge.Columns = append(step.Edge.Columns, location.WorkOrdersColumn)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 

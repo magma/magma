@@ -39,7 +39,7 @@ class Device : public Snmpv2Device {
   Device(Device&&) = delete;
   Device& operator=(Device&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

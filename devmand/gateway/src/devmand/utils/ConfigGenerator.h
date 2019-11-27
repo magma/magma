@@ -22,7 +22,7 @@ class ConfigGenerator final {
  public:
   ConfigGenerator(
       const std::string& configFile_,
-      const std::string& fileTemplate_);
+      const std::string& fileTemplate_ = "{}");
   ConfigGenerator() = delete;
   ~ConfigGenerator() = default;
   ConfigGenerator(const ConfigGenerator&) = delete;

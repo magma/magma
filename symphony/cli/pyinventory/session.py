@@ -8,7 +8,6 @@ from enum import Enum
 from typing import Optional
 
 from gql.gql.transport.http import HTTPTransport
-from graphql.execution import ExecutionResult
 from graphql.language.printer import print_ast
 
 
@@ -27,6 +26,13 @@ def encode_variable(variable):
         return variable.value
     else:
         return variable.__dict__
+
+
+class ExtendedExecutionResult:
+    def __init__(self, errors, data, extensions):
+        self.errors = errors
+        self.data = data
+        self.extensions = extensions
 
 
 class RequestsHTTPSessionTransport(HTTPTransport):
@@ -56,9 +62,15 @@ class RequestsHTTPSessionTransport(HTTPTransport):
 
         result = request.json()
 
+        extensions = {}
+        if "x-correlation-id" in request.headers:
+            extensions["err_id"] = request.headers["x-correlation-id"]
+
         assert (
             "errors" in result or "data" in result
         ), 'Received non-compatible response "{}"'.format(result)
 
         data = result.get("data") if return_json else request.text
-        return ExecutionResult(errors=result.get("errors"), data=data)
+        return ExtendedExecutionResult(
+            errors=result.get("errors"), data=data, extensions=extensions
+        )

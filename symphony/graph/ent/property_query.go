@@ -64,150 +64,170 @@ func (pq *PropertyQuery) Order(o ...Order) *PropertyQuery {
 // QueryType chains the current query on the type edge.
 func (pq *PropertyQuery) QueryType() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(propertytype.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.TypeColumn))
-	query.sql = builder.Select(t1.Columns(propertytype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(propertytype.FieldID), t2.C(property.TypeColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = propertytype.Table
+	step.To.Column = propertytype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = property.TypeTable
+	step.Edge.Columns = append(step.Edge.Columns, property.TypeColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (pq *PropertyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.LocationColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(property.LocationColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.LocationTable
+	step.Edge.Columns = append(step.Edge.Columns, property.LocationColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (pq *PropertyQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.EquipmentColumn))
-	query.sql = builder.Select(t1.Columns(equipment.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipment.FieldID), t2.C(property.EquipmentColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.EquipmentTable
+	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (pq *PropertyQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(service.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.ServiceColumn))
-	query.sql = builder.Select(t1.Columns(service.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(service.FieldID), t2.C(property.ServiceColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = service.Table
+	step.To.Column = service.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.ServiceTable
+	step.Edge.Columns = append(step.Edge.Columns, property.ServiceColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentPort chains the current query on the equipment_port edge.
 func (pq *PropertyQuery) QueryEquipmentPort() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(equipmentport.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.EquipmentPortColumn))
-	query.sql = builder.Select(t1.Columns(equipmentport.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmentport.FieldID), t2.C(property.EquipmentPortColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = equipmentport.Table
+	step.To.Column = equipmentport.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.EquipmentPortTable
+	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentPortColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLink chains the current query on the link edge.
 func (pq *PropertyQuery) QueryLink() *LinkQuery {
 	query := &LinkQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(link.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.LinkColumn))
-	query.sql = builder.Select(t1.Columns(link.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(link.FieldID), t2.C(property.LinkColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = link.Table
+	step.To.Column = link.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.LinkTable
+	step.Edge.Columns = append(step.Edge.Columns, property.LinkColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (pq *PropertyQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(workorder.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.WorkOrderColumn))
-	query.sql = builder.Select(t1.Columns(workorder.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.FieldID), t2.C(property.WorkOrderColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = workorder.Table
+	step.To.Column = workorder.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.WorkOrderTable
+	step.Edge.Columns = append(step.Edge.Columns, property.WorkOrderColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProject chains the current query on the project edge.
 func (pq *PropertyQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(project.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.ProjectColumn))
-	query.sql = builder.Select(t1.Columns(project.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(project.FieldID), t2.C(property.ProjectColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = project.Table
+	step.To.Column = project.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = property.ProjectTable
+	step.Edge.Columns = append(step.Edge.Columns, property.ProjectColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentValue chains the current query on the equipment_value edge.
 func (pq *PropertyQuery) QueryEquipmentValue() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.EquipmentValueColumn))
-	query.sql = builder.Select(t1.Columns(equipment.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipment.FieldID), t2.C(property.EquipmentValueColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = property.EquipmentValueTable
+	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentValueColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocationValue chains the current query on the location_value edge.
 func (pq *PropertyQuery) QueryLocationValue() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-
-	builder := sql.Dialect(pq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := pq.sqlQuery()
-	t2.Select(t2.C(property.LocationValueColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(property.LocationValueColumn))
+	step := &sql.Step{}
+	step.From.V = pq.sqlQuery()
+	step.From.Table = property.Table
+	step.From.Column = property.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = property.LocationValueTable
+	step.Edge.Columns = append(step.Edge.Columns, property.LocationValueColumn)
+	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 

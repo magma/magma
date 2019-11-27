@@ -148,7 +148,9 @@ class GraphqlClient:
             re.search('"email":"{}"'.format(self.email).encode(), response.content)
             is not None
         ), "Credentials are incorrect"
-        self.session.headers.update({"x-csrf-token": csrf_token})
+        self.session.headers.update(
+            {"x-csrf-token": csrf_token, "User-Agent": "Pyinventory/" + __version__}
+        )
 
     def _get_latest_python_package_version(self) -> Optional[Tuple[str, str]]:
 

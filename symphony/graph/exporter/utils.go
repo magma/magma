@@ -14,6 +14,8 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
@@ -116,54 +118,100 @@ func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLoc
 	return parents, nil
 }
 
-func propertyTypesSlice(ctx context.Context, equip []string, c *ent.Client) ([]string, error) {
-	equipTypes, err := resolverutil.EquipmentTypes(ctx, c)
-	if err != nil {
-		return nil, err
-	}
+func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (
-		propTypes               []string
-		alreadyAppended         = map[string]string{}
-		equipTypesWithEquipment []ent.EquipmentType
+		propTypes       []string
+		alreadyAppended = map[string]string{}
 	)
 
-	for _, typ := range equipTypes.Edges {
-		equipType := typ.Node
-		if equipType.QueryEquipment().Where(equipment.IDIn(equip...)).ExistX(ctx) {
-			equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
+	if entity == models.PropertyEntityEquipment {
+		var equipTypesWithEquipment []ent.EquipmentType
+		equipTypes, err := resolverutil.EquipmentTypes(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, typ := range equipTypes.Edges {
+			equipType := typ.Node
+			if equipType.QueryEquipment().Where(equipment.IDIn(ids...)).ExistX(ctx) {
+				equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
+			}
+		}
+		for _, equipType := range equipTypesWithEquipment {
+			pts, err := equipType.QueryPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "querying property types")
+			}
+			for _, ptype := range pts {
+				if _, ok := alreadyAppended[ptype.Name]; !ok {
+					alreadyAppended[ptype.Name] = ""
+					propTypes = append(propTypes, ptype.Name)
+				}
+			}
 		}
 	}
-	for _, equipType := range equipTypesWithEquipment {
-		pts, err := equipType.QueryPropertyTypes().All(ctx)
+	if entity == models.PropertyEntityPort {
+		var portTypesWithPorts []ent.EquipmentPortType
+		portTypes, err := resolverutil.EquipmentPortTypes(ctx, c)
 		if err != nil {
-			return nil, errors.Wrap(err, "querying property types")
+			return nil, err
 		}
-		for _, ptype := range pts {
-			if _, ok := alreadyAppended[ptype.Name]; !ok {
-				alreadyAppended[ptype.Name] = ""
-				propTypes = append(propTypes, ptype.Name)
+
+		for _, typ := range portTypes.Edges {
+			portType := typ.Node
+			if portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).ExistX(ctx) {
+				portTypesWithPorts = append(portTypesWithPorts, *portType)
+			}
+		}
+		for _, portType := range portTypesWithPorts {
+			pts, err := portType.QueryPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "querying property types")
+			}
+			for _, ptype := range pts {
+				if _, ok := alreadyAppended[ptype.Name]; !ok {
+					alreadyAppended[ptype.Name] = ""
+					propTypes = append(propTypes, ptype.Name)
+				}
 			}
 		}
 	}
 	return propTypes, nil
 }
 
-func propertiesSlice(ctx context.Context, equipment *ent.Equipment, propertyTypes []string) ([]string, error) {
-	var props = make([]string, len(propertyTypes))
-	typs := equipment.QueryType().QueryPropertyTypes().AllX(ctx)
+func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []string, entityType models.PropertyEntity) ([]string, error) {
+	var ret = make([]string, len(propertyTypes))
+	var typs []*ent.PropertyType
+	var props []*ent.Property
+
+	if entityType == models.PropertyEntityEquipment {
+		entity := instance.(*ent.Equipment)
+		var err error
+		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for equipment %s (id=%s)", entity.Name, entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	} else {
+		entity := instance.(*ent.EquipmentPort)
+		var err error
+		typs, err = entity.QueryDefinition().QueryEquipmentPortType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	}
+
 	for _, typ := range typs {
 		idx := index(propertyTypes, typ.Name)
 		val, err := propertyValue(ctx, typ.Type, typ)
 		if err != nil {
 			return nil, err
 		}
-		props[idx] = val
+		ret[idx] = val
 	}
-	propsForEquip, err := equipment.QueryProperties().All(ctx)
-	if err != nil {
-		return nil, err
-	}
-	for _, p := range propsForEquip {
+
+	for _, p := range props {
 		propTypeName := p.QueryType().OnlyX(ctx).Name
 		idx := index(propertyTypes, propTypeName)
 		if idx == -1 {
@@ -174,9 +222,9 @@ func propertiesSlice(ctx context.Context, equipment *ent.Equipment, propertyType
 		if err != nil {
 			return nil, err
 		}
-		props[idx] = val
+		ret[idx] = val
 	}
-	return props, nil
+	return ret, nil
 }
 
 func propertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
@@ -202,18 +250,18 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
 	case boolVal:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case equipmentVal:
-		p, ok := v.(*ent.Property)
-		if ok {
-			return p.QueryEquipmentValue().OnlyXID(ctx), nil
+	case equipmentVal, locationVal:
+		property, ok := v.(*ent.Property)
+		if !ok {
+			return "", nil
 		}
-		return "", nil
-	case locationVal:
-		p, ok := v.(*ent.Property)
-		if ok {
-			return p.QueryLocationValue().OnlyXID(ctx), nil
+		var id string
+		if typ == equipmentVal {
+			id, _ = property.QueryEquipmentValue().OnlyID(ctx)
+		} else {
+			id, _ = property.QueryLocationValue().OnlyID(ctx)
 		}
-		return "", nil
+		return id, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

@@ -34,4 +34,5 @@ export type FeatureID =
   | 'services'
   | 'planned_equipment'
   | 'multi_subject_reports'
-  | 'equipment_live_status';
+  | 'equipment_live_status'
+  | 'logged_out_alert';

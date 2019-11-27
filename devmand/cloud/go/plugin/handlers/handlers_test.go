@@ -1893,8 +1893,12 @@ func TestGetDeviceState(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	e := echo.New()
 
+	listDevicesURL := "/magma/v1/symphony/:network_id/devices"
+	getDeviceUrl := "/magma/v1/symphony/:network_id/devices/:device_id"
 	deviceStateURL := "/magma/v1/symphony/:network_id/devices/:device_id/state"
 	handlers := handlers.GetHandlers()
+	listDevices := tests.GetHandlerByPathAndMethod(t, handlers, listDevicesURL, obsidian.GET).HandlerFunc
+	getDevice := tests.GetHandlerByPathAndMethod(t, handlers, getDeviceUrl, obsidian.GET).HandlerFunc
 	getDeviceState := tests.GetHandlerByPathAndMethod(t, handlers, deviceStateURL, obsidian.GET).HandlerFunc
 	networkId := "n1"
 	deviceId := "d1"
@@ -1919,7 +1923,6 @@ func TestGetDeviceState(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	reportDeviceState(t, ctx, deviceId, models2.NewDefaultSymphonyDeviceState())
 	expected := models2.NewDefaultSymphonyDeviceState()
-
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            deviceStateURL,
@@ -1928,6 +1931,53 @@ func TestGetDeviceState(t *testing.T) {
 		ParamValues:    []string{networkId, deviceId},
 		ExpectedStatus: 200,
 		ExpectedResult: expected,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// And we can see it in our GET calls too
+	expectedResponseList := map[string]models2.SymphonyDevice{
+		"d1": models2.SymphonyDevice{
+			Config:        models2.NewDefaultSymphonyDeviceConfig(),
+			ID:            "d1",
+			Name:          "Device 1",
+			ManagingAgent: "a1",
+			State:         models2.NewDefaultSymphonyDeviceState(),
+		},
+		"d2": models2.SymphonyDevice{
+			Config:        models2.NewDefaultSymphonyDeviceConfig(),
+			ID:            "d2",
+			Name:          "Device 2",
+			ManagingAgent: "a1",
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            listDevicesURL,
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkId},
+		Handler:        listDevices,
+		ExpectedResult: tests.JSONMarshaler(expectedResponseList),
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedResponse := models2.SymphonyDevice{
+		Config:        models2.NewDefaultSymphonyDeviceConfig(),
+		ID:            "d1",
+		Name:          "Device 1",
+		ManagingAgent: "a1",
+		State:         models2.NewDefaultSymphonyDeviceState(),
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            getDeviceUrl,
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "device_id"},
+		ParamValues:    []string{networkId, deviceId},
+		Handler:        getDevice,
+		ExpectedResult: tests.JSONMarshaler(expectedResponse),
+		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
 }

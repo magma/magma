@@ -57,15 +57,17 @@ func (tq *TechnicianQuery) Order(o ...Order) *TechnicianQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: tq.config}
-
-	builder := sql.Dialect(tq.driver.Dialect())
-	t1 := builder.Table(workorder.Table)
-	t2 := tq.sqlQuery()
-	t2.Select(t2.C(technician.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(technician.WorkOrdersColumn), t2.C(technician.FieldID))
+	step := &sql.Step{}
+	step.From.V = tq.sqlQuery()
+	step.From.Table = technician.Table
+	step.From.Column = technician.FieldID
+	step.To.Table = workorder.Table
+	step.To.Column = workorder.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = technician.WorkOrdersTable
+	step.Edge.Columns = append(step.Edge.Columns, technician.WorkOrdersColumn)
+	query.sql = sql.SetNeighbors(tq.driver.Dialect(), step)
 	return query
 }
 

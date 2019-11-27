@@ -63,9 +63,11 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 		handler exporter
 	}{
 		{"equipment", exporter{log, equipmentRower{log}}},
+		{"ports", exporter{log, portsRower{log}}},
 	}
 
 	for _, route := range routes {
+		route := route
 		router.Path("/" + route.name).
 			Methods(http.MethodGet).
 			Handler(&route.handler).

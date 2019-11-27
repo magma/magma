@@ -8,9 +8,6 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 log_level: INFO
 
-# If disabled, allows all traffic from the subscribers
-captive_portal_enabled: True
-
 # Captive Portal URL to redirect the subscribers
 # If the portal is running locally, use DNSd to resolve the host to
 # 192.168.128.1
@@ -26,11 +23,6 @@ subscriber_profile_substr_match: ''
 bridge_interface: gtp_br0
 
 # Static rule name for captive_portal redirect
-redirect_rule_name: redirect
-
-# Specifies an {ip -> [ports]} map to allow traffic
-# NOTE: Right not we only support TCP traffic for the ports
-whitelisted_ips:
-  local: [80, 443]
-  # 'local' is the same as using:
-  # 192.168.128.1: [80, 443]
+# To disable, leave empty
+# If disabled, allows all traffic from the subscribers
+redirect_rule_name:

@@ -400,6 +400,9 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 	if woc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
+	if err := workorder.NameValidator(*woc.name); err != nil {
+		return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+	}
 	if woc.status == nil {
 		v := workorder.DefaultStatus
 		woc.status = &v

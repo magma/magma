@@ -131,6 +131,7 @@ USR = '''
   }'''
 
 
+@unittest.skip('Skipping due to dependency on redis')
 class SessionRpcServicerTest(unittest.TestCase):
     def setUp(self):
         self.servicer = SessionRpcServicer(self._get_config())
