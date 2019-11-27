@@ -64,8 +64,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
     LocalEnforcer* monitor,
-    SessionReporter* reporter);
-
+    SessionReporter* reporter,
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client);
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
@@ -95,6 +95,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  private:
   LocalEnforcer* enforcer_;
   SessionReporter* reporter_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
@@ -107,6 +108,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   bool restart_pipelined(const std::uint64_t& epoch);
 
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
+
+  void add_session_to_directory_record(
+    const std::string& imsi,
+    const std::string& session_id);
 
   void send_create_session(
     const CreateSessionRequest& request,
