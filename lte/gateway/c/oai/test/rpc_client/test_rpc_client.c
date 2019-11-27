@@ -31,9 +31,9 @@ int main(int argc, char **argv)
   struct in_addr ipv4_addr2;
   struct in_addr ipv4_addr3;
 
+  char apn[10] = "oai.ipv4";
   {
     char str[INET_ADDRSTRLEN];
-    char apn[10] = "oai.ipv4"
     printf("Allocating IP address...\n");
 
     status = allocate_ipv4_address("0001", apn, &ipv4_addr1);
