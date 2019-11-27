@@ -39,6 +39,9 @@ const useStyles = makeStyles(_theme => ({
   cancelButton: {
     marginRight: '8px',
   },
+  panel: {
+    margin: '16px 0px',
+  },
 }));
 
 type Props = {
@@ -243,7 +246,7 @@ const AddEditProjectTypeCard = (props: Props) => {
           );
         }}
       />
-      <ExpandingPanel title="Properties">
+      <ExpandingPanel title="Properties" className={classes.panel}>
         <PropertyTypeTable
           propertyTypes={(projectTypeInput.properties ?? []: any)}
           onPropertiesChanged={properties => {

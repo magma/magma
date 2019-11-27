@@ -81,6 +81,9 @@ const styles = theme => ({
   cancelButton: {
     marginRight: '8px',
   },
+  panel: {
+    margin: '16px 0px',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -153,7 +156,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               onDescriptionChange={this.descriptionChanged}
             />
           </ExpandingPanel>
-          <ExpandingPanel title="Properties">
+          <ExpandingPanel title="Properties" className={classes.panel}>
             <PropertyTypeTable
               propertyTypes={propertyTypes}
               onPropertiesChanged={this._propertyChangedHandler}
