@@ -189,6 +189,7 @@ const AddEditProjectTypeCard = (props: Props) => {
           {
             id: 'project_templates',
             name: 'Project Templates',
+            onClick: onCancelClicked,
           },
           editingProjectType
             ? {

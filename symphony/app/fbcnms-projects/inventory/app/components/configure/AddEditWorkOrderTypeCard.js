@@ -43,7 +43,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {
-    padding: '24px 16px',
+    padding: '24px',
     maxHeight: '100%',
     overflow: 'hidden',
     display: 'flex',
@@ -117,6 +117,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
             {
               id: 'wo_templates',
               name: 'Work Order Templates',
+              onClick: onClose,
             },
             this.props.editingWorkOrderType
               ? {
