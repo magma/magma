@@ -63,6 +63,7 @@ export default function ActionsAutocomplete(props: Props) {
       value={props.value}
       renderTags={renderTags}
       renderInput={params => (
+        // $FlowFixMe - cannot spread interfaces
         <TextField {...params} variant="standard" margin="normal" fullWidth />
       )}
     />
