@@ -14,7 +14,7 @@ import * as React from 'react';
 import PowerSearchBoolFilter from './PowerSearchBoolFilter';
 
 const PowerSearchPortHasLinkFilter = (props: FilterProps) => {
-  return <PowerSearchBoolFilter label="Is Linked" {...props} />;
+  return <PowerSearchBoolFilter {...props} label="Is Linked" />;
 };
 
 export default PowerSearchPortHasLinkFilter;

@@ -184,6 +184,7 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
         <InputContext.Provider value={{disabled, value: value ?? ''}}>
           {prefix && <div className={classes.prefix}>{prefix}</div>}
           <input
+            {...rest}
             className={classes.input}
             disabled={disabled}
             onFocus={onInputFocused}
@@ -192,7 +193,6 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
             onKeyDown={onKeyDown}
             value={value}
             ref={forwardedRef}
-            {...rest}
           />
           {suffix && <div className={classes.suffix}>{suffix}</div>}
         </InputContext.Provider>

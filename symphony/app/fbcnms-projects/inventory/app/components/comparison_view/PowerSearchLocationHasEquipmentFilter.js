@@ -14,7 +14,7 @@ import * as React from 'react';
 import PowerSearchBoolFilter from './PowerSearchBoolFilter';
 
 const PowerSearchLocationHasEquipmentFilter = (props: FilterProps) => {
-  return <PowerSearchBoolFilter label="Has Equipment" {...props} />;
+  return <PowerSearchBoolFilter {...props} label="Has Equipment" />;
 };
 
 export default PowerSearchLocationHasEquipmentFilter;
