@@ -310,7 +310,9 @@ void CambiumDevice::updateYang(
     case folly::dynamic::DOUBLE:
     case folly::dynamic::INT64:
     case folly::dynamic::STRING:
-    default: { return; }
+    default: {
+      return;
+    }
   }
 }
 

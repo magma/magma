@@ -1,3 +1,0 @@
-#!/bin/bash
-find ./src \( -name "*.[hc]pp" -or -name "*.h" \) \
-    -exec clang-format -i --style=file {} \;

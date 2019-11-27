@@ -1,0 +1,3 @@
+#!/bin/bash
+docker build -f Dockerfile --tag formatter ..
+docker run -v "$(realpath ../../):/cache/devmand/repo:rw" formatter

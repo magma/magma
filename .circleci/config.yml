@@ -55,8 +55,9 @@ jobs:
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
 
   southpoll_lint:
-    docker:
-      - image: fedora:latest
+    machine:
+      image: circleci/classic:latest
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
@@ -64,14 +65,14 @@ jobs:
       - run:
           name: Running lints on the devmand image
           command: |
-            sudo dnf update -y
-            sudo dnf install -y clang-format
-            cd ./devmand/gateway/
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            cd devmand/gateway/format
             ./format
             if [[ $(git diff HEAD --name-only) ]]; then
                echo "############################"
                echo "Changes required!"
-               git diff HEAD | less
+               git diff --no-pager HEAD
                echo "Please run the format script"
                echo "############################"
                exit 1
