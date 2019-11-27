@@ -59,16 +59,11 @@ func (ltq *LocationTypeQuery) Order(o ...Order) *LocationTypeQuery {
 // QueryLocations chains the current query on the locations edge.
 func (ltq *LocationTypeQuery) QueryLocations() *LocationQuery {
 	query := &LocationQuery{config: ltq.config}
-	step := &sql.Step{}
-	step.From.V = ltq.sqlQuery()
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = locationtype.LocationsTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.LocationsColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
+	)
 	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }
@@ -76,16 +71,11 @@ func (ltq *LocationTypeQuery) QueryLocations() *LocationQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (ltq *LocationTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: ltq.config}
-	step := &sql.Step{}
-	step.From.V = ltq.sqlQuery()
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = locationtype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }
@@ -93,16 +83,11 @@ func (ltq *LocationTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 // QuerySurveyTemplateCategories chains the current query on the survey_template_categories edge.
 func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: ltq.config}
-	step := &sql.Step{}
-	step.From.V = ltq.sqlQuery()
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = surveytemplatecategory.Table
-	step.To.Column = surveytemplatecategory.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = locationtype.SurveyTemplateCategoriesTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.SurveyTemplateCategoriesColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sql.Edge(sql.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
+	)
 	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }

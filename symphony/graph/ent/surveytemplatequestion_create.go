@@ -174,6 +174,7 @@ func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyT
 		insert.Set(surveytemplatequestion.FieldIndex, *value)
 		stq.Index = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(surveytemplatequestion.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

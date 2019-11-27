@@ -193,6 +193,7 @@ func (epdc *EquipmentPositionDefinitionCreate) sqlSave(ctx context.Context) (*Eq
 		insert.Set(equipmentpositiondefinition.FieldVisibilityLabel, *value)
 		epd.VisibilityLabel = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmentpositiondefinition.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -426,6 +426,7 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		insert.Set(location.FieldSiteSurveyNeeded, *value)
 		l.SiteSurveyNeeded = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(location.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

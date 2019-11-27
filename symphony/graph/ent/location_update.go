@@ -604,6 +604,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -622,8 +623,9 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(location.Table).Where(sql.InInts(location.FieldID, ids...))
+		updater = builder.Update(location.Table)
 	)
+	updater = updater.Where(sql.InInts(location.FieldID, ids...))
 	if value := lu.update_time; value != nil {
 		updater.Set(location.FieldUpdateTime, *value)
 	}
@@ -1654,6 +1656,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1677,8 +1680,9 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(location.Table).Where(sql.InInts(location.FieldID, ids...))
+		updater = builder.Update(location.Table)
 	)
+	updater = updater.Where(sql.InInts(location.FieldID, ids...))
 	if value := luo.update_time; value != nil {
 		updater.Set(location.FieldUpdateTime, *value)
 		l.UpdateTime = *value

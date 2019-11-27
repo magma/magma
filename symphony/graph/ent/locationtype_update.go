@@ -312,6 +312,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -330,8 +331,9 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(locationtype.Table).Where(sql.InInts(locationtype.FieldID, ids...))
+		updater = builder.Update(locationtype.Table)
 	)
+	updater = updater.Where(sql.InInts(locationtype.FieldID, ids...))
 	if value := ltu.update_time; value != nil {
 		updater.Set(locationtype.FieldUpdateTime, *value)
 	}
@@ -796,6 +798,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -819,8 +822,9 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(locationtype.Table).Where(sql.InInts(locationtype.FieldID, ids...))
+		updater = builder.Update(locationtype.Table)
 	)
+	updater = updater.Where(sql.InInts(locationtype.FieldID, ids...))
 	if value := ltuo.update_time; value != nil {
 		updater.Set(locationtype.FieldUpdateTime, *value)
 		lt.UpdateTime = *value

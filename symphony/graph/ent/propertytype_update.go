@@ -715,6 +715,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -733,8 +734,9 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(propertytype.Table).Where(sql.InInts(propertytype.FieldID, ids...))
+		updater = builder.Update(propertytype.Table)
 	)
+	updater = updater.Where(sql.InInts(propertytype.FieldID, ids...))
 	if value := ptu.update_time; value != nil {
 		updater.Set(propertytype.FieldUpdateTime, *value)
 	}
@@ -1746,6 +1748,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1769,8 +1772,9 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(propertytype.Table).Where(sql.InInts(propertytype.FieldID, ids...))
+		updater = builder.Update(propertytype.Table)
 	)
+	updater = updater.Where(sql.InInts(propertytype.FieldID, ids...))
 	if value := ptuo.update_time; value != nil {
 		updater.Set(propertytype.FieldUpdateTime, *value)
 		pt.UpdateTime = *value

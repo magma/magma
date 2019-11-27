@@ -174,6 +174,7 @@ func (stc *ServiceTypeCreate) sqlSave(ctx context.Context) (*ServiceType, error)
 		insert.Set(servicetype.FieldHasCustomer, *value)
 		st.HasCustomer = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(servicetype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

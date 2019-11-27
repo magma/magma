@@ -514,6 +514,7 @@ func (scsc *SurveyCellScanCreate) sqlSave(ctx context.Context) (*SurveyCellScan,
 		insert.Set(surveycellscan.FieldLongitude, *value)
 		scs.Longitude = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(surveycellscan.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

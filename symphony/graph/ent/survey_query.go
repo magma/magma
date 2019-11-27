@@ -59,16 +59,11 @@ func (sq *SurveyQuery) Order(o ...Order) *SurveyQuery {
 // QueryLocation chains the current query on the location edge.
 func (sq *SurveyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = survey.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.LocationColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, survey.LocationTable, survey.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -76,16 +71,11 @@ func (sq *SurveyQuery) QueryLocation() *LocationQuery {
 // QuerySourceFile chains the current query on the source_file edge.
 func (sq *SurveyQuery) QuerySourceFile() *FileQuery {
 	query := &FileQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = survey.SourceFileTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.SourceFileColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -93,16 +83,11 @@ func (sq *SurveyQuery) QuerySourceFile() *FileQuery {
 // QueryQuestions chains the current query on the questions edge.
 func (sq *SurveyQuery) QueryQuestions() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = survey.QuestionsTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.QuestionsColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, sq.sqlQuery()),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }

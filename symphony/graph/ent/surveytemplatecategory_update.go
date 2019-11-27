@@ -133,6 +133,7 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -151,8 +152,9 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveytemplatecategory.Table).Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
+		updater = builder.Update(surveytemplatecategory.Table)
 	)
+	updater = updater.Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
 	if value := stcu.update_time; value != nil {
 		updater.Set(surveytemplatecategory.FieldUpdateTime, *value)
 	}
@@ -327,6 +329,7 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -350,8 +353,9 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveytemplatecategory.Table).Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
+		updater = builder.Update(surveytemplatecategory.Table)
 	)
+	updater = updater.Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
 	if value := stcuo.update_time; value != nil {
 		updater.Set(surveytemplatecategory.FieldUpdateTime, *value)
 		stc.UpdateTime = *value

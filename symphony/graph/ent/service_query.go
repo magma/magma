@@ -61,16 +61,11 @@ func (sq *ServiceQuery) Order(o ...Order) *ServiceQuery {
 // QueryType chains the current query on the type edge.
 func (sq *ServiceQuery) QueryType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = servicetype.Table
-	step.To.Column = servicetype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = service.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, service.TypeColumn)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(servicetype.Table, servicetype.FieldID),
+		sql.Edge(sql.M2O, false, service.TypeTable, service.TypeColumn),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -78,16 +73,11 @@ func (sq *ServiceQuery) QueryType() *ServiceTypeQuery {
 // QueryDownstream chains the current query on the downstream edge.
 func (sq *ServiceQuery) QueryDownstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = service.DownstreamTable
-	step.Edge.Columns = append(step.Edge.Columns, service.DownstreamPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -95,16 +85,11 @@ func (sq *ServiceQuery) QueryDownstream() *ServiceQuery {
 // QueryUpstream chains the current query on the upstream edge.
 func (sq *ServiceQuery) QueryUpstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.UpstreamTable
-	step.Edge.Columns = append(step.Edge.Columns, service.UpstreamPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -112,16 +97,11 @@ func (sq *ServiceQuery) QueryUpstream() *ServiceQuery {
 // QueryProperties chains the current query on the properties edge.
 func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, service.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, service.PropertiesTable, service.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -129,16 +109,11 @@ func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 // QueryTerminationPoints chains the current query on the termination_points edge.
 func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
 	query := &EquipmentQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.TerminationPointsTable
-	step.Edge.Columns = append(step.Edge.Columns, service.TerminationPointsPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -146,16 +121,11 @@ func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
 // QueryLinks chains the current query on the links edge.
 func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.LinksTable
-	step.Edge.Columns = append(step.Edge.Columns, service.LinksPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
@@ -163,16 +133,11 @@ func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 // QueryCustomer chains the current query on the customer edge.
 func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 	query := &CustomerQuery{config: sq.config}
-	step := &sql.Step{}
-	step.From.V = sq.sqlQuery()
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = customer.Table
-	step.To.Column = customer.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.CustomerTable
-	step.Edge.Columns = append(step.Edge.Columns, service.CustomerPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sql.To(customer.Table, customer.FieldID),
+		sql.Edge(sql.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }

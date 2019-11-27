@@ -149,6 +149,7 @@ func (tc *TechnicianCreate) sqlSave(ctx context.Context) (*Technician, error) {
 		insert.Set(technician.FieldEmail, *value)
 		t.Email = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(technician.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

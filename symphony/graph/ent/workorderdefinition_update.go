@@ -180,6 +180,7 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -198,8 +199,9 @@ func (wodu *WorkOrderDefinitionUpdate) sqlSave(ctx context.Context) (n int, err 
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(workorderdefinition.Table).Where(sql.InInts(workorderdefinition.FieldID, ids...))
+		updater = builder.Update(workorderdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(workorderdefinition.FieldID, ids...))
 	if value := wodu.update_time; value != nil {
 		updater.Set(workorderdefinition.FieldUpdateTime, *value)
 	}
@@ -426,6 +428,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -449,8 +452,9 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(workorderdefinition.Table).Where(sql.InInts(workorderdefinition.FieldID, ids...))
+		updater = builder.Update(workorderdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(workorderdefinition.FieldID, ids...))
 	if value := woduo.update_time; value != nil {
 		updater.Set(workorderdefinition.FieldUpdateTime, *value)
 		wod.UpdateTime = *value

@@ -245,6 +245,7 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -263,8 +264,9 @@ func (cliu *CheckListItemUpdate) sqlSave(ctx context.Context) (n int, err error)
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(checklistitem.Table).Where(sql.InInts(checklistitem.FieldID, ids...))
+		updater = builder.Update(checklistitem.Table)
 	)
+	updater = updater.Where(sql.InInts(checklistitem.FieldID, ids...))
 	if value := cliu.title; value != nil {
 		updater.Set(checklistitem.FieldTitle, *value)
 	}
@@ -560,6 +562,7 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -583,8 +586,9 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(checklistitem.Table).Where(sql.InInts(checklistitem.FieldID, ids...))
+		updater = builder.Update(checklistitem.Table)
 	)
+	updater = updater.Where(sql.InInts(checklistitem.FieldID, ids...))
 	if value := cliuo.title; value != nil {
 		updater.Set(checklistitem.FieldTitle, *value)
 		cli.Title = *value

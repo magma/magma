@@ -155,6 +155,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 		insert.Set(customer.FieldExternalID, *value)
 		c.ExternalID = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(customer.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

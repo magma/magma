@@ -283,6 +283,7 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -301,8 +302,9 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentportdefinition.Table).Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
+		updater = builder.Update(equipmentportdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
 	if value := epdu.update_time; value != nil {
 		updater.Set(equipmentportdefinition.FieldUpdateTime, *value)
 	}
@@ -695,6 +697,7 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -718,8 +721,9 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentportdefinition.Table).Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
+		updater = builder.Update(equipmentportdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
 	if value := epduo.update_time; value != nil {
 		updater.Set(equipmentportdefinition.FieldUpdateTime, *value)
 		epd.UpdateTime = *value

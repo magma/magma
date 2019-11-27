@@ -58,16 +58,11 @@ func (eptq *EquipmentPortTypeQuery) Order(o ...Order) *EquipmentPortTypeQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := &sql.Step{}
-	step.From.V = eptq.sqlQuery()
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentporttype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (eptq *EquipmentPortTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 // QueryLinkPropertyTypes chains the current query on the link_property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryLinkPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := &sql.Step{}
-	step.From.V = eptq.sqlQuery()
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentporttype.LinkPropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.LinkPropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
@@ -92,16 +82,11 @@ func (eptq *EquipmentPortTypeQuery) QueryLinkPropertyTypes() *PropertyTypeQuery 
 // QueryPortDefinitions chains the current query on the port_definitions edge.
 func (eptq *EquipmentPortTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: eptq.config}
-	step := &sql.Step{}
-	step.From.V = eptq.sqlQuery()
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentporttype.PortDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.PortDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
+	)
 	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
