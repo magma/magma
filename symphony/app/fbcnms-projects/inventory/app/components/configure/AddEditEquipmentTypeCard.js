@@ -37,6 +37,7 @@ import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
@@ -211,11 +212,38 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
     );
   }
   onSave = () => {
-    const {name} = this.state.editingEquipmentType;
+    const {
+      name,
+      positionDefinitions,
+      portDefinitions,
+    } = this.state.editingEquipmentType;
+    const {enqueueSnackbar} = this.props;
+
+    let error = null;
     if (!name) {
-      this.setState({error: 'Name cannot be empty'});
+      error = 'Name cannot be empty';
+    }
+
+    const hasDuplicateNames = (arr: Array<string>) =>
+      arr.length !== new Set(arr).size;
+
+    if (hasDuplicateNames(positionDefinitions.map(p => p.name))) {
+      error = 'Cannot have duplicate position names';
+    }
+
+    if (hasDuplicateNames(portDefinitions.map(p => p.name))) {
+      error = 'Cannot have duplicate port names';
+    }
+
+    if (error !== null) {
+      enqueueSnackbar(error, {
+        children: key => (
+          <SnackbarItem id={key} message={nullthrows(error)} variant="error" />
+        ),
+      });
       return;
     }
+
     this.setState({isSaving: true});
     if (this.props.editingEquipmentType) {
       this.editEquipmentType();
