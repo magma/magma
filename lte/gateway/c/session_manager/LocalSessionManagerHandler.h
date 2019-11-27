@@ -63,7 +63,7 @@ class LocalSessionManagerHandler {
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
-    LocalEnforcer* monitor,
+    std::shared_ptr<LocalEnforcer> monitor,
     SessionReporter* reporter,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client);
   ~LocalSessionManagerHandlerImpl() {}
@@ -93,7 +93,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
-  LocalEnforcer* enforcer_;
+  std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   SessionIDGenerator id_gen_;

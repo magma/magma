@@ -86,6 +86,8 @@ add_library(SESSION_MANAGER
     SessionState.h
     SessionCredit.cpp
     SessionCredit.h
+    RestartHandler.cpp
+    RestartHandler.h
     RuleStore.cpp
     RuleStore.h
     SessionReporter.cpp
