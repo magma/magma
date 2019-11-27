@@ -41,6 +41,7 @@ private:
    SessionReporter* reporter_;
    std::unordered_map<std::string, std::string> sessions_to_terminate_;
    static const uint max_cleanup_retries_;
+   static const uint directoryd_rpc_interval_s_;
 
 };
 } // namespace sessiond

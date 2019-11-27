@@ -6,6 +6,9 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
+#include <chrono>
+#include <future>
+
 #include "RestartHandler.h"
 #include "magma_logging.h"
 
@@ -13,6 +16,7 @@ namespace magma {
 namespace sessiond {
 
 const uint RestartHandler::max_cleanup_retries_ = 3;
+const uint RestartHandler::directoryd_rpc_interval_s_ = 10;
 
 RestartHandler::RestartHandler(
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
@@ -25,36 +29,49 @@ RestartHandler::RestartHandler(
 }
 
 void RestartHandler::cleanup_previous_sessions() {
-  auto res = directoryd_client_->get_all_directoryd_records(
-    [this](Status status, AllDirectoryRecords response) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "DirectoryD call failed. "
-          "Not terminating previous sessions";
-        return;
-      }
-      auto records = response.records();
-      for (auto& record : records) {
-        auto session_iter = record.fields().find("session_id");
-        if (session_iter == record.fields().end()) {
-          continue;
+  uint rpc_try = 0;
+  bool finished = false;
+  while (!finished && rpc_try < max_cleanup_retries_) {
+    std::promise<bool> p;
+    std::future<bool> f = p.get_future();
+    auto res = directoryd_client_->get_all_directoryd_records(
+      [this, &p] (
+       Status status, AllDirectoryRecords response) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "DirectoryD call to fetch all records failed...";
+          p.set_value(false);
+          return;
         }
-        auto session_id = session_iter->second;
-        sessions_to_terminate_.insert({record.id(), session_id});
-        uint current_try = 0;
-        while (!sessions_to_terminate_.empty() &&
-          current_try < max_cleanup_retries_) {
-            for (const auto& iter: sessions_to_terminate_) {
-              terminate_previous_session(iter.first, iter.second);
-            }
-            current_try++;
+        auto records = response.records();
+        for (auto& record : records) {
+          auto session_iter = record.fields().find("session_id");
+          if (session_iter == record.fields().end()) {
+            continue;
+          }
+          auto session_id = session_iter->second;
+          sessions_to_terminate_.insert({record.id(), session_id});
+          uint current_try = 0;
+          while (!sessions_to_terminate_.empty() &&
+            current_try < max_cleanup_retries_) {
+              for (const auto& iter: sessions_to_terminate_) {
+                terminate_previous_session(iter.first, iter.second);
+              }
+              current_try++;
+          }
+          if (sessions_to_terminate_.empty()) {
+            MLOG(MINFO) << "Successfully terminated all old sessions";
+          } else {
+            MLOG(MERROR) << "Terminating old sessions failed";
+          }
+          p.set_value(true);
         }
-        if (sessions_to_terminate_.empty()) {
-          MLOG(MINFO) << "Successfully terminated all old sessions";
-        } else {
-          MLOG(MERROR) << "Terminating old sessions failed";
-        }
-      }
-    });
+      });
+    f.wait();
+    finished = f.get();
+    rpc_try++;
+    std::this_thread::sleep_for(std::chrono::seconds(
+     directoryd_rpc_interval_s_));
+  }
 }
 
 void RestartHandler::terminate_previous_session(
