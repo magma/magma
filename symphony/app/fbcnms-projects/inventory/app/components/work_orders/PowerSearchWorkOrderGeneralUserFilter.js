@@ -21,7 +21,7 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
   const [tokens, setTokens] = useState([]);
 
   useEffect(() => {
-    axios.get('/user/async/').then(response => setUsers(response.data.users));
+    axios.get('/user/list/').then(response => setUsers(response.data.users));
   }, []);
 
   const {
