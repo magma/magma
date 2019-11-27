@@ -57,13 +57,8 @@ class DirectorydRpcServiceTests(TestCase):
         self.assertEqual(actual_record.location_history, ['aaa-bbb'])
         self.assertEqual(actual_record.identifiers, {})
 
-        record_field = req.fields.add()
-        record_field.key = "mac_addr"
-        record_field.value = "aa:aa:bb:bb:cc:cc"
-
-        record_field2 = req.fields.add()
-        record_field2.key = "ipv4_addr"
-        record_field2.value = "192.168.172.12"
+        req.fields["mac_addr"] = "aa:aa:bb:bb:cc:cc"
+        req.fields["ipv4_addr"] = "192.168.172.12"
 
         self._stub.UpdateRecord(req)
         actual_record2 = self._servicer._redis_dict[req.id]
@@ -113,9 +108,7 @@ class DirectorydRpcServiceTests(TestCase):
 
         req = UpdateRecordRequest()
         req.id = "IMSI557"
-        directory_field = req.fields.add()
-        directory_field.key = "mac_addr"
-        directory_field.value = "aa:bb:aa:bb:aa:bb"
+        req.fields["mac_addr"] = "aa:bb:aa:bb:aa:bb"
         self._stub.UpdateRecord(req)
         self.assertTrue(req.id in self._servicer._redis_dict)
 
