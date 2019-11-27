@@ -79,6 +79,7 @@ const NameDescriptionSection = ({
         margin="dense"
         value={name}
         onChange={event => onNameChange && onNameChange(event.target.value)}
+        autoFocus
       />
       <Text className={classNames(classes.fieldName, classes.descriptionTitle)}>
         Description

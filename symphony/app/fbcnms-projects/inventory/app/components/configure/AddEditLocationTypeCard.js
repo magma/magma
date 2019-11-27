@@ -92,6 +92,12 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
     isSaving: false,
   };
 
+  _nameInputRef = React.createRef();
+
+  componentDidMount() {
+    this._nameInputRef.current && this._nameInputRef.current.focus();
+  }
+
   render() {
     const {classes, onClose} = this.props;
     const {editingLocationType} = this.state;
@@ -125,6 +131,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                       className={classes.input}
                       value={editingLocationType.name}
                       onChange={this.nameChanged}
+                      ref={this._nameInputRef}
                     />
                   </FormField>
                 </Grid>

@@ -94,6 +94,12 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
     isSaving: false,
   };
 
+  _nameInputRef = React.createRef();
+
+  componentDidMount() {
+    this._nameInputRef.current && this._nameInputRef.current.focus();
+  }
+
   render() {
     const {classes, onClose} = this.props;
     const {editingEquipmentType} = this.state;
@@ -129,6 +135,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
                     className={classes.input}
                     value={this.state.editingEquipmentType.name}
                     onChange={this.handleNameChanged}
+                    ref={this._nameInputRef}
                   />
                 </FormField>
               </Grid>
