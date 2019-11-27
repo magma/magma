@@ -67,13 +67,6 @@ class IfMib {
       channels::snmp::Channel& channel,
       const std::string& oid,
       const std::function<std::string(std::string)>& formatter = nullptr);
-
- private:
-  static folly::Future<InterfaceIndicies> handleNextInterfaceIndex(
-      channels::snmp::Channel& channel,
-      int numInterfacesRemaining,
-      InterfaceIndicies indicies,
-      channels::snmp::Oid marker);
 };
 
 } // namespace snmp

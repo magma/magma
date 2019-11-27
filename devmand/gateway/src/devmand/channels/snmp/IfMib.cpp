@@ -35,36 +35,15 @@ folly::Future<int> IfMib::getNumberOfInterfaces(
       channel.asyncGet(channels::snmp::Oid(".1.3.6.1.2.1.2.1.0")));
 }
 
-folly::Future<InterfaceIndicies> IfMib::handleNextInterfaceIndex(
-    channels::snmp::Channel& channel,
-    int numInterfacesRemaining,
-    InterfaceIndicies indicies,
-    channels::snmp::Oid marker) {
-  // TODO I need to look into cancellable futures in the case of the device
-  // lifetime ending.
-  if (numInterfacesRemaining != 0) {
-    return channel.asyncGetNext(marker).thenValue(
-        [&channel, numInterfacesRemaining, indicies = std::move(indicies)](
-            auto response) mutable {
-          indicies.emplace_back(response.value.asInt());
-          return IfMib::handleNextInterfaceIndex(
-              channel,
-              numInterfacesRemaining - 1,
-              std::move(indicies),
-              response.oid);
-        });
-  }
-  return folly::makeFuture<InterfaceIndicies>(std::move(indicies));
-}
-
 folly::Future<InterfaceIndicies> IfMib::getInterfaceIndicies(
     channels::snmp::Channel& channel) {
-  return getNumberOfInterfaces(channel).thenValue(
-      [&channel](auto numberOfInterfaces) {
-        channels::snmp::Oid marker(".1.3.6.1.2.1.2.1.0");
-        InterfaceIndicies indicies;
-        return IfMib::handleNextInterfaceIndex(
-            channel, numberOfInterfaces, std::move(indicies), marker);
+  return channel.walk(channels::snmp::Oid(".1.3.6.1.2.1.2.2.1.1"))
+      .thenValue([](auto responses) {
+        InterfaceIndicies indices;
+        for (auto res : responses) {
+          indices.push_back((int)res.value.asInt());
+        }
+        return indices;
       });
 }
 
