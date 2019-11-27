@@ -20,10 +20,8 @@ import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import MarkLocationTypeIsSiteMutation from '../../mutations/MarkLocationTypeIsSiteMutation';
 import React from 'react';
 import RemoveLocationTypeMutation from '../../mutations/RemoveLocationTypeMutation';
-import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -93,8 +91,6 @@ class LocationTypeItem extends React.Component<Props> {
                 instanceNamePlural="locations"
                 onDelete={this.onDelete}
                 onEdit={onEdit}
-                isStarred={locationType.isSite}
-                onStar={this.onStar}
               />
             </ExpansionPanelSummary>
             <ExpansionPanelDetails>
@@ -110,28 +106,6 @@ class LocationTypeItem extends React.Component<Props> {
       </div>
     );
   }
-
-  onStar = () => {
-    const {id, isSite} = this.props.locationType;
-    MarkLocationTypeIsSiteMutation(
-      {id, isSite: !isSite},
-      {
-        onCompleted: (_, errors) => {
-          if (errors && errors[0]) {
-            this.props.enqueueSnackbar(errors[0].message, {
-              children: key => (
-                <SnackbarItem
-                  id={key}
-                  message={errors[0].message}
-                  variant="error"
-                />
-              ),
-            });
-          }
-        },
-      },
-    );
-  };
 
   onDelete = () => {
     this.props
@@ -179,7 +153,6 @@ export default withSnackbar(
               ...DynamicPropertyTypesGrid_propertyTypes
             }
             numberOfLocations
-            isSite
           }
         `,
       }),

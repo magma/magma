@@ -119,6 +119,7 @@ input AddLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
   surveyTemplateCategories: [SurveyTemplateCategoryInput!]
@@ -129,6 +130,7 @@ input EditLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
 }
@@ -1672,16 +1674,6 @@ type Mutation {
     """
     parentLocationID: ID
   ): Location
-  markLocationTypeIsSite(
-    """
-    The ID of the location type
-    """
-    id: ID!
-    """
-    Is the location type a site or not
-    """
-    isSite: Boolean!
-  ): LocationType
   editLocationTypesIndex(
     """
     edit the location index to the location

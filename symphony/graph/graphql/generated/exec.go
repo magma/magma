@@ -406,7 +406,6 @@ type ComplexityRoot struct {
 		EditWorkOrderType                        func(childComplexity int, input models.EditWorkOrderTypeInput) int
 		ExecuteWorkOrder                         func(childComplexity int, id string) int
 		MarkLocationPropertyAsExternalID         func(childComplexity int, propertyName string) int
-		MarkLocationTypeIsSite                   func(childComplexity int, id string, isSite bool) int
 		MarkSiteSurveyNeeded                     func(childComplexity int, locationID string, needed bool) int
 		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *string, positionDefinitionID *string, equipmentID string) int
 		MoveLocation                             func(childComplexity int, locationID string, parentLocationID *string) int
@@ -929,7 +928,6 @@ type MutationResolver interface {
 	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID string) ([]*ent.SurveyWiFiScan, error)
 	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID string) ([]*ent.SurveyCellScan, error)
 	MoveLocation(ctx context.Context, locationID string, parentLocationID *string) (*ent.Location, error)
-	MarkLocationTypeIsSite(ctx context.Context, id string, isSite bool) (*ent.LocationType, error)
 	EditLocationTypesIndex(ctx context.Context, locationTypesIndex []*models.LocationTypeIndex) ([]*ent.LocationType, error)
 	AddTechnician(ctx context.Context, input models.TechnicianInput) (*ent.Technician, error)
 	AddWorkOrder(ctx context.Context, input models.AddWorkOrderInput) (*ent.WorkOrder, error)
@@ -2775,18 +2773,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MarkLocationPropertyAsExternalID(childComplexity, args["propertyName"].(string)), true
-
-	case "Mutation.markLocationTypeIsSite":
-		if e.complexity.Mutation.MarkLocationTypeIsSite == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markLocationTypeIsSite_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkLocationTypeIsSite(childComplexity, args["id"].(string), args["isSite"].(bool)), true
 
 	case "Mutation.markSiteSurveyNeeded":
 		if e.complexity.Mutation.MarkSiteSurveyNeeded == nil {
@@ -5145,6 +5131,7 @@ input AddLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
   surveyTemplateCategories: [SurveyTemplateCategoryInput!]
@@ -5155,6 +5142,7 @@ input EditLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
 }
@@ -6698,16 +6686,6 @@ type Mutation {
     """
     parentLocationID: ID
   ): Location
-  markLocationTypeIsSite(
-    """
-    The ID of the location type
-    """
-    id: ID!
-    """
-    Is the location type a site or not
-    """
-    isSite: Boolean!
-  ): LocationType
   editLocationTypesIndex(
     """
     edit the location index to the location
@@ -7412,28 +7390,6 @@ func (ec *executionContext) field_Mutation_markLocationPropertyAsExternalID_args
 		}
 	}
 	args["propertyName"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_markLocationTypeIsSite_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 bool
-	if tmp, ok := rawArgs["isSite"]; ok {
-		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["isSite"] = arg1
 	return args, nil
 }
 
@@ -16604,47 +16560,6 @@ func (ec *executionContext) _Mutation_moveLocation(ctx context.Context, field gr
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_markLocationTypeIsSite(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_markLocationTypeIsSite_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkLocationTypeIsSite(rctx, args["id"].(string), args["isSite"].(bool))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.LocationType)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editLocationTypesIndex(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -28321,6 +28236,12 @@ func (ec *executionContext) unmarshalInputAddLocationTypeInput(ctx context.Conte
 			if err != nil {
 				return it, err
 			}
+		case "isSite":
+			var err error
+			it.IsSite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "properties":
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) {
@@ -29090,6 +29011,12 @@ func (ec *executionContext) unmarshalInputEditLocationTypeInput(ctx context.Cont
 		case "mapZoomLevel":
 			var err error
 			it.MapZoomLevel, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isSite":
+			var err error
+			it.IsSite, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33198,8 +33125,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addCellScans(ctx, field)
 		case "moveLocation":
 			out.Values[i] = ec._Mutation_moveLocation(ctx, field)
-		case "markLocationTypeIsSite":
-			out.Values[i] = ec._Mutation_markLocationTypeIsSite(ctx, field)
 		case "editLocationTypesIndex":
 			out.Values[i] = ec._Mutation_editLocationTypesIndex(ctx, field)
 		case "addTechnician":
@@ -36533,7 +36458,7 @@ func (ec *executionContext) marshalNEquipment2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, sel, v[i])
+			ret[i] = ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -37489,7 +37414,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

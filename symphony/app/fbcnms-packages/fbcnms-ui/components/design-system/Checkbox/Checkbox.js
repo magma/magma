@@ -36,13 +36,14 @@ const useStyles = makeStyles(_theme => ({
 export type SelectionType = 'checked' | 'unchecked';
 
 type Props = {
+  className?: string,
   checked: boolean,
-  indeterminate: boolean,
+  indeterminate?: boolean,
   onChange?: (selection: SelectionType) => void,
 };
 
 const Checkbox = (props: Props) => {
-  const {checked, indeterminate, onChange} = props;
+  const {className, checked, indeterminate, onChange} = props;
   const classes = useStyles();
   const CheckboxIcon = indeterminate
     ? IndeterminateCheckBoxIcon
@@ -52,7 +53,7 @@ const Checkbox = (props: Props) => {
 
   return (
     <div
-      className={classNames(classes.root)}
+      className={classNames(classes.root, className)}
       onClick={() =>
         onChange &&
         onChange(

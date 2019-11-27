@@ -19,6 +19,7 @@ import type {WithStyles} from '@material-ui/core';
 import AddLocationTypeMutation from '../../mutations/AddLocationTypeMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CardSection from '../CardSection';
+import Checkbox from '@fbcnms/ui/components/design-system/Checkbox/Checkbox';
 import EditLocationTypeMutation from '../../mutations/EditLocationTypeMutation';
 import EditLocationTypeSurveyTemplateCategoriesMutation from '../../mutations/EditLocationTypeSurveyTemplateCategoriesMutation';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
@@ -68,6 +69,14 @@ const styles = theme => ({
     padding: '8px 24px',
     overflowY: 'auto',
   },
+  isSiteContainer: {
+    marginTop: '16px',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  checkbox: {
+    marginRight: '8px',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -108,7 +117,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       <FormLabel error>{this.state.error}</FormLabel>
     ) : null;
 
-    const {mapType, mapZoomLevel} = editingLocationType;
+    const {mapType, mapZoomLevel, isSite} = editingLocationType;
     return (
       <>
         <div className={classes.cards}>
@@ -142,6 +151,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 onMapTypeChanged={this.mapTypeChanged}
                 onMapZoomLevelChanged={this.mapZoomLevelChanged}
               />
+              <div className={classes.isSiteContainer}>
+                <Checkbox
+                  className={classes.checkbox}
+                  checked={isSite}
+                  onChange={this.isSiteChanged}
+                />
+                <Text variant="body2">This Location Type is a Site</Text>
+              </div>
             </div>
           </SectionedCard>
           <SectionedCard>
@@ -211,12 +228,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       mapZoomLevel,
       propertyTypes,
       surveyTemplateCategories,
+      isSite,
     } = this.state.editingLocationType;
 
     return {
       input: {
-        name: name,
-        mapType: mapType,
+        name,
+        mapType,
+        isSite,
         mapZoomLevel: parseInt(mapZoomLevel, 10),
         properties: propertyTypes
           .filter(propType => !!propType.name)
@@ -240,14 +259,16 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
       mapType,
       mapZoomLevel,
       propertyTypes,
+      isSite,
     } = this.state.editingLocationType;
 
     return {
       input: {
-        id: id,
-        name: name,
-        mapType: mapType,
+        id,
+        name,
+        mapType,
         mapZoomLevel: parseInt(mapZoomLevel, 10),
+        isSite,
         properties: propertyTypes
           .filter(propType => !!propType.name)
           .map(this.deleteTempId),
@@ -387,6 +408,14 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
   mapTypeChanged = this.fieldChangedHandler('mapType');
   mapZoomLevelChanged = this.fieldChangedHandler('mapZoomLevel');
   nameChanged = this.fieldChangedHandler('name');
+  isSiteChanged = selection => {
+    this.setState({
+      editingLocationType: {
+        ...this.state.editingLocationType,
+        isSite: selection === 'checked',
+      },
+    });
+  };
 
   _propertyChangedHandler = properties => {
     this.setState(prevState => {
@@ -451,7 +480,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
     return {
       id: editingLocationType?.id ?? 'LocationType@tmp0',
       name: editingLocationType?.name ?? '',
-      isSite: false,
+      isSite: editingLocationType?.isSite ?? false,
       mapType: editingLocationType?.mapType ?? 'map',
       mapZoomLevel: String(editingLocationType?.mapZoomLevel ?? 8),
       numberOfLocations: editingLocationType?.numberOfLocations ?? 0,
@@ -508,6 +537,7 @@ export default withStyles(styles)(
             mapType
             mapZoomLevel
             numberOfLocations
+            isSite
             propertyTypes {
               id
               name

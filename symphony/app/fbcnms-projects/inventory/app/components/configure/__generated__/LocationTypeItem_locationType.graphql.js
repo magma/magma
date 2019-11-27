@@ -26,7 +26,6 @@ export type LocationTypeItem_locationType = {|
     +$fragmentRefs: DynamicPropertyTypesGrid_propertyTypes$ref
   |}>,
   +numberOfLocations: number,
-  +isSite: boolean,
   +$refType: LocationTypeItem_locationType$ref,
 |};
 export type LocationTypeItem_locationType$data = LocationTypeItem_locationType;
@@ -87,16 +86,9 @@ const node/*: ReaderFragment*/ = {
       "name": "numberOfLocations",
       "args": null,
       "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "isSite",
-      "args": null,
-      "storageKey": null
     }
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'b434621661559f2e7f360f7350892fe2';
+(node/*: any*/).hash = 'dbc429726327dcfb05c2a80d49cfa429';
 module.exports = node;
