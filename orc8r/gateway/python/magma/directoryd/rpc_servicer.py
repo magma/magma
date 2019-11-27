@@ -122,8 +122,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             if record.location_history[0] != hwid:
                 record.location_history = [hwid] + record.location_history
 
-            for field in request.fields:
-                record.identifiers[field.key] = field.value
+            for field_key in request.fields:
+                record.identifiers[field_key] = request.fields[field_key]
 
             # Truncate location history to the five most recent hwid's
             record.location_history = \

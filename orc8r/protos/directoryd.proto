@@ -67,7 +67,7 @@ service DirectoryService {
 message UpdateRecordRequest {
   string id = 1;
   string location = 2;
-  repeated DirectoryField fields = 3;
+  map <string, string> fields = 3;
 }
 
 message DirectoryField {
