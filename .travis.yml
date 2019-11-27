@@ -29,7 +29,7 @@ matrix:
       os: linux
       dist: xenial
       go:
-        - 1.11.x
+        - 1.13.x
       env:
         - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
 
