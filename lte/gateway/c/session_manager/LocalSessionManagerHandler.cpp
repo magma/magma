@@ -22,7 +22,7 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer* enforcer,
+  std::shared_ptr<LocalEnforcer> enforcer,
   SessionReporter* reporter,
   std::shared_ptr<AsyncDirectorydClient> directoryd_client):
   enforcer_(enforcer),

@@ -11,6 +11,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
 #include <orc8r/protos/directoryd.grpc.pb.h>
 
@@ -44,8 +45,23 @@ class AsyncDirectorydClient : public GRPCReceiver {
    * @return status of update
    */
   void update_directoryd_record(
-    const UpdateRecordRequest &request,
+    const UpdateRecordRequest& request,
     std::function<void(Status status, Void)> callback);
+   /**
+   * Delete the directoryd record for the specified ID
+   * @param delelete_request - request used to delete the record
+   * @return status of delete
+   */
+  bool delete_directoryd_record(
+    const DeleteRecordRequest& request,
+    std::function<void(Status status, Void)> callback);
+
+  /**
+   * Get all directory records
+   * @return true if the operation was successful
+   */
+  bool get_all_directoryd_records(
+    std::function<void(Status status, AllDirectoryRecords)> callback);
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds

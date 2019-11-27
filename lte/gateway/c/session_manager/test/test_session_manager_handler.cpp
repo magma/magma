@@ -47,7 +47,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
         session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-                local_enforcer.get(), reporter.get(), directoryd_client);
+                local_enforcer, reporter.get(), directoryd_client);
     }
 
   protected:
