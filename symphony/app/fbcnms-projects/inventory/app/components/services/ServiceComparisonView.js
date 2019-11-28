@@ -22,7 +22,7 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import ServiceCard from './ServiceCard';
+import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
@@ -170,7 +170,7 @@ const ServiceComparisonView = () => {
   if (selectedServiceCardId != null) {
     return (
       <InventoryErrorBoundary>
-        <ServiceCard serviceId={selectedServiceCardId} />
+        <ServiceCardQueryRenderer serviceId={selectedServiceCardId} />
       </InventoryErrorBoundary>
     );
   }

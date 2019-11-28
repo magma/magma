@@ -68,7 +68,9 @@ type Props = {
   rightContent?: React.Node,
   defaultExpanded?: boolean,
   expandedClassName?: string,
+  expanded?: boolean,
   expansionPanelSummaryClassName?: string,
+  onChange?: boolean => void,
 };
 
 const ExpandingPanel = ({
@@ -78,15 +80,21 @@ const ExpandingPanel = ({
   title,
   rightContent,
   defaultExpanded,
+  expanded,
   expandedClassName,
   expansionPanelSummaryClassName,
+  onChange,
 }: Props) => {
   const classes = useStyles();
   return (
     <ExpansionPanel
       className={classNames(classes.expansionPanel, className)}
       classes={{expanded: expandedClassName}}
-      defaultExpanded={defaultExpanded}>
+      defaultExpanded={defaultExpanded}
+      expanded={expanded}
+      onChange={(event, expanded) => {
+        onChange && onChange(expanded);
+      }}>
       <ExpansionPanelSummary
         className={classNames(
           classes.expansionPanelSummary,
