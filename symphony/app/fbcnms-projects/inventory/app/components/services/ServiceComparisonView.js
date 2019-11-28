@@ -145,13 +145,6 @@ const ServiceComparisonView = () => {
     .concat(servicePropertiesFilterConfigs)
     .concat(locationTypesFilterConfigs);
 
-  const navigateToAddService = (selectedServiceTypeId: ?string) => {
-    history.push(
-      match.url +
-        (selectedServiceTypeId ? `?serviceType=${selectedServiceTypeId}` : ''),
-    );
-  };
-
   const navigateToService = (selectedServiceId: ?string) => {
     history.push(
       match.url + (selectedServiceId ? `?service=${selectedServiceId}` : ''),
@@ -228,8 +221,8 @@ const ServiceComparisonView = () => {
           key={`new_service_${dialogKey}`}
           open={dialogOpen}
           onClose={hideDialog}
-          onServiceTypeSelected={typeId => {
-            navigateToAddService(typeId);
+          onServiceCreated={serviceId => {
+            navigateToService(serviceId);
             setDialogOpen(false);
           }}
         />

@@ -13,6 +13,10 @@ import type {ServiceTypesListQuery_serviceType} from './__generated__/ServiceTyp
 import type {WithStyles} from '@material-ui/core';
 
 import Avatar from '@material-ui/core/Avatar';
+import Button from '@fbcnms/ui/components/design-system/Button';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import LinearScaleIcon from '@material-ui/icons/LinearScale';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -20,6 +24,8 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
@@ -41,17 +47,33 @@ const styles = _ => ({
   listAvatar: {
     minWidth: '52px',
   },
+  dialogTitle: {
+    padding: '24px',
+    paddingBottom: '16px',
+  },
+  serviceTypesDialogContent: {
+    padding: 0,
+    height: '400px',
+    overflowY: 'scroll',
+  },
+  dialogActions: {
+    padding: '24px',
+    bottom: 0,
+    display: 'flex',
+    justifyContent: 'flex-end',
+    width: '100%',
+    backgroundColor: symphony.palette.white,
+  },
 });
 
 type Props = ContextRouter & {
-  onSelect: ?(serviceTypeId: ?string) => void,
+  onSelect: (serviceTypeId: string) => void,
+  onClose: () => void,
 } & WithStyles<typeof styles>;
 
 type State = {
-  errorMessage: ?string,
   serviceTypes: Array<ServiceTypesListQuery_serviceType>,
   selectedServiceTypeId: ?string,
-  showDialog: boolean,
 };
 
 graphql`
@@ -76,10 +98,8 @@ const serviceTypesQuery = graphql`
 
 class ServiceTypesList extends React.Component<Props, State> {
   state = {
-    errorMessage: null,
     serviceTypes: [],
     selectedServiceTypeId: null,
-    showDialog: false,
   };
 
   componentDidMount() {
@@ -92,7 +112,7 @@ class ServiceTypesList extends React.Component<Props, State> {
 
   render() {
     const {selectedServiceTypeId} = this.state;
-    const {classes} = this.props;
+    const {classes, onSelect, onClose} = this.props;
     const listItems = this.state.serviceTypes
       .slice()
       .sort((serviceTypeA, serviceTypeB) =>
@@ -113,15 +133,31 @@ class ServiceTypesList extends React.Component<Props, State> {
           <ListItemText primary={serviceType.name} />
         </ListItem>
       ));
-    return <List>{listItems}</List>;
+    return (
+      <>
+        <DialogTitle className={classes.dialogTitle}>
+          <Text variant="h6">Select a Service type</Text>
+        </DialogTitle>
+        <DialogContent className={classes.serviceTypesDialogContent}>
+          <List>{listItems}</List>
+        </DialogContent>
+        <DialogActions className={classes.dialogActions}>
+          <Button onClick={onClose} skin="regular">
+            Cancel
+          </Button>
+          <Button
+            disabled={selectedServiceTypeId === null}
+            onClick={() => onSelect(nullthrows(selectedServiceTypeId))}>
+            Select
+          </Button>
+        </DialogActions>
+      </>
+    );
   }
 
   handleListItemClick = (event, selectedServiceType) => {
     const selectedServiceTypeId = selectedServiceType?.id;
-    this.setState(
-      {selectedServiceTypeId},
-      () => this.props.onSelect && this.props.onSelect(selectedServiceTypeId),
-    );
+    this.setState({selectedServiceTypeId});
   };
 }
 
