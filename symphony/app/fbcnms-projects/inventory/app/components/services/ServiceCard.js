@@ -125,6 +125,12 @@ const styles = _ => ({
   addLink: {
     marginRight: '8px',
   },
+  dialog: {
+    width: '80%',
+    maxWidth: '1280px',
+    height: '90%',
+    maxHeight: '800px',
+  },
 });
 
 const ServiceCard = (props: Props) => {
@@ -240,7 +246,8 @@ const ServiceCard = (props: Props) => {
           open={true}
           onClose={() => setShowAddLinkDialog(false)}
           maxWidth={false}
-          fullWidth={true}>
+          fullWidth={true}
+          classes={{paperFullWidth: classes.dialog}}>
           <AddLinkToServiceDialog
             service={service}
             onClose={() => setShowAddLinkDialog(false)}

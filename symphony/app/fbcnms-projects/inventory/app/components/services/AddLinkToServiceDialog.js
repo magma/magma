@@ -8,9 +8,8 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
 import type {Equipment, Link} from '../../common/Equipment';
-import type {PowerSearchEquipmentResultsTable_equipment} from '../comparison_view/__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
+import type {PowerSearchLinkFirstEquipmentResultsTable_equipment} from './__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
 import type {Service} from '../../common/Service';
 import type {WithStyles} from '@material-ui/core';
 
@@ -18,15 +17,14 @@ import AvailableLinksTable from './AvailableLinksTable';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentComparisonViewQueryRenderer';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
-import PowerSearchEquipmentResultsTable from '../comparison_view/PowerSearchEquipmentResultsTable';
+import PowerSearchLinkFirstEquipmentResultsTable from './PowerSearchLinkFirstEquipmentResultsTable';
 import React from 'react';
-import Step from '@material-ui/core/Step';
-import StepConnector from '@material-ui/core/StepConnector/StepConnector.js';
-import StepLabel from '@material-ui/core/StepLabel';
-import Stepper from '@material-ui/core/Stepper';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -64,6 +62,9 @@ const styles = theme => ({
   },
   root: {
     minWidth: '80vh',
+    paddingTop: '0px',
+    paddingLeft: '32px',
+    paddingRight: '32px',
   },
   searchResults: {
     flexGrow: 1,
@@ -72,14 +73,20 @@ const styles = theme => ({
     backgroundColor: theme.palette.common.white,
     height: '100%',
   },
+  title: {
+    display: 'block',
+  },
+  subtitle: {
+    display: 'block',
+    color: symphony.palette.D500,
+  },
 });
 
 type Props = {
   service: Service,
   onClose: () => void,
   onAddLink: (link: Link) => void,
-} & WithStyles<typeof styles> &
-  ContextRouter;
+} & WithStyles<typeof styles>;
 
 type State = {
   activeEquipement: ?Equipment,
@@ -123,8 +130,8 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
 
   handleElementSelected = equipment => {
     this.setState(state => ({
-      activeStep: state.activeStep + 1,
       activeEquipement: equipment,
+      activeStep: state.activeStep + 1,
     }));
   };
 
@@ -137,18 +144,15 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   getStepContent = () => {
-    const {classes, service, history} = this.props;
+    const {classes, service} = this.props;
     const EquipmentTable = (props: {
-      equipment: PowerSearchEquipmentResultsTable_equipment,
+      equipment: PowerSearchLinkFirstEquipmentResultsTable_equipment,
     }) => {
       return (
         <div className={classes.searchResults}>
-          <PowerSearchEquipmentResultsTable
+          <PowerSearchLinkFirstEquipmentResultsTable
             equipment={props.equipment}
             onEquipmentSelected={this.handleElementSelected}
-            onWorkOrderSelected={workOrderId =>
-              history.replace(`inventory?workorder=${workOrderId}`)
-            }
           />
         </div>
       );
@@ -221,44 +225,38 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, onAddLink} = this.props;
-    const {activeStep, activeLink} = this.state;
+    const {classes, onAddLink, service, onClose} = this.props;
+    const {activeStep, activeLink, activeEquipement} = this.state;
     const lastStep = activeStep == steps.length - 1;
-    const connector = (
-      <StepConnector
-        classes={{
-          active: classes.connectorActive,
-          completed: classes.connectorCompleted,
-          disabled: classes.connectorDisabled,
-          line: classes.connectorLine,
-        }}
-      />
-    );
 
     return (
       <>
+        <DialogTitle>
+          <Text className={classes.title} variant="h6">
+            Add link to {service.name}
+          </Text>
+          <Text className={classes.subtitle} variant="subtitle2" color="light">
+            Select the equipment associated with the link.
+          </Text>
+        </DialogTitle>
         <DialogContent div className={classes.root}>
-          <Stepper
-            alternativeLabel
-            activeStep={activeStep}
-            connector={connector}>
-            {steps.map(label => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
           <div className={classes.content}>{this.getStepContent()}</div>
         </DialogContent>
         <DialogActions>
-          <Button
-            disabled={activeStep === 0}
-            skin="regular"
-            onClick={this.handleBack}>
-            Back
-          </Button>
           {!lastStep && (
-            <Button disabled={activeStep != 1} onClick={this.handleNext}>
+            <Button skin="regular" onClick={onClose}>
+              Cancel
+            </Button>
+          )}
+          {lastStep && (
+            <Button skin="regular" onClick={this.handleBack}>
+              Back
+            </Button>
+          )}
+          {!lastStep && (
+            <Button
+              disabled={activeEquipement === null}
+              onClick={this.handleNext}>
               Next
             </Button>
           )}

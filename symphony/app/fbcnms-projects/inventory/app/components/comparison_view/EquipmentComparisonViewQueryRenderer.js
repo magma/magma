@@ -18,6 +18,7 @@ import * as React from 'react';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import PowerSearchEquipmentResultsTable_equipment from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
+import PowerSearchLinkFirstEquipmentResultsTable_equipment from '../services/__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import useLocationTypes from './hooks/locationTypesHook';
@@ -69,7 +70,9 @@ type Props = {
   limit?: number,
   showExport?: boolean,
   children: (props: {
-    equipment: PowerSearchEquipmentResultsTable_equipment,
+    equipment:
+      | PowerSearchEquipmentResultsTable_equipment
+      | PowerSearchLinkFirstEquipmentResultsTable_equipment,
   }) => React.Element<*>,
 };
 
@@ -81,6 +84,7 @@ const equipmentSearchQuery = graphql`
     equipmentSearch(limit: $limit, filters: $filters) {
       equipment {
         ...PowerSearchEquipmentResultsTable_equipment
+        ...PowerSearchLinkFirstEquipmentResultsTable_equipment
       }
       count
     }
