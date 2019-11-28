@@ -465,7 +465,7 @@ Wait for the NMS pods (`nms-magmalte`, `nms-nginx-proxy`) to transition into
 `Running` state, then create a user on the NMS:
 
 ```bash
-kubectl -n magma exec -it -n magma \
+kubectl exec -it -n magma \
   $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
   yarn setAdminPassword <admin user email> <admin user password>
 ```
