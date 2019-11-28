@@ -22,7 +22,6 @@ export const mutation = graphql`
     editWorkOrderType(input: $input) {
       id
       name
-      ...WorkOrderTypeItem_workOrderType
       ...AddEditWorkOrderTypeCard_editingWorkOrderType
     }
   }
