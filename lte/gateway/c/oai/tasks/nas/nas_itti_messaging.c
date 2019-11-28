@@ -401,23 +401,6 @@ void nas_itti_cs_domain_location_update_req(
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
-/*TAU Complete message to be sent to MME APP*/
-void nas_itti_tau_complete(unsigned int ue_idP)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p = NULL;
-
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_TAU_COMPLETE);
-  memset(
-    &message_p->ittiMsg.nas_tau_complete, 0, sizeof(itti_nas_tau_complete_t));
-
-  NAS_TAU_COMPLETE(message_p).ue_id = ue_idP;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
 void nas_itti_sgsap_ue_activity_ind(
   const char *imsi,
   const unsigned int imsi_len)

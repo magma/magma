@@ -63,7 +63,6 @@
 #define NAS_DATA_LENGHT_MAX 256
 #define NAS_EXTENDED_SERVICE_REQ(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.nas_extended_service_req
-#define NAS_TAU_COMPLETE(mSGpTR) (mSGpTR)->ittiMsg.nas_tau_complete
 #define NAS_NOTIFY_SERVICE_REJECT(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.nas_notify_service_reject
 #define NAS_ERAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_rel_cmd
@@ -184,11 +183,6 @@ typedef struct itti_nas_cs_domain_location_update_fail_s {
   int reject_cause;
   lai_t laicsfb;
 } itti_nas_cs_domain_location_update_fail_t;
-
-typedef struct itti_nas_tau_complete {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-} itti_nas_tau_complete_t;
 
 /* ITTI message used to intimate service reject for ongoing service request procedure
  * from mme_app to nas

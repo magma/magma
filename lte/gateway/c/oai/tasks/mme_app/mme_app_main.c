@@ -424,12 +424,6 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.sgsap_location_update_rej);
       } break;
 
-      case NAS_TAU_COMPLETE: {
-        /*Received TAU Complete message from NAS task*/
-        mme_app_handle_nas_tau_complete(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_tau_complete);
-      } break;
-
       case SGSAP_ALERT_REQUEST: {
         /*Received SGSAP Alert Request message from SGS task*/
         mme_app_handle_sgsap_alert_request(mme_app_desc_p,
