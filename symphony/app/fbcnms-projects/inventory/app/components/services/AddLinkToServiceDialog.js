@@ -8,7 +8,9 @@
  * @format
  */
 
+import type {ContextRouter} from 'react-router-dom';
 import type {Equipment, Link} from '../../common/Equipment';
+import type {PowerSearchEquipmentResultsTable_equipment} from '../comparison_view/__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
 import type {Service} from '../../common/Service';
 import type {WithStyles} from '@material-ui/core';
 
@@ -18,6 +20,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentComparisonViewQueryRenderer';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import PowerSearchEquipmentResultsTable from '../comparison_view/PowerSearchEquipmentResultsTable';
 import React from 'react';
 import Step from '@material-ui/core/Step';
 import StepConnector from '@material-ui/core/StepConnector/StepConnector.js';
@@ -25,6 +28,7 @@ import StepLabel from '@material-ui/core/StepLabel';
 import Stepper from '@material-ui/core/Stepper';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {graphql} from 'react-relay';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -74,7 +78,8 @@ type Props = {
   service: Service,
   onClose: () => void,
   onAddLink: (link: Link) => void,
-} & WithStyles<typeof styles>;
+} & WithStyles<typeof styles> &
+  ContextRouter;
 
 type State = {
   activeEquipement: ?Equipment,
@@ -132,15 +137,29 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   getStepContent = () => {
-    const {classes, service} = this.props;
+    const {classes, service, history} = this.props;
+    const EquipmentTable = (props: {
+      equipment: PowerSearchEquipmentResultsTable_equipment,
+    }) => {
+      return (
+        <div className={classes.searchResults}>
+          <PowerSearchEquipmentResultsTable
+            equipment={props.equipment}
+            onEquipmentSelected={this.handleElementSelected}
+            onWorkOrderSelected={workOrderId =>
+              history.replace(`inventory?workorder=${workOrderId}`)
+            }
+          />
+        </div>
+      );
+    };
     switch (this.state.activeStep) {
       case 0:
         return (
           <div className={classes.searchResults}>
-            <EquipmentComparisonViewQueryRenderer
-              limit={50}
-              onEquipmentSelected={this.handleElementSelected}
-            />
+            <EquipmentComparisonViewQueryRenderer limit={50}>
+              {props => <EquipmentTable {...props} />}
+            </EquipmentComparisonViewQueryRenderer>
           </div>
         );
       case 1:
@@ -257,4 +276,4 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(AddLinkToServiceDialog);
+export default withRouter(withStyles(styles)(AddLinkToServiceDialog));

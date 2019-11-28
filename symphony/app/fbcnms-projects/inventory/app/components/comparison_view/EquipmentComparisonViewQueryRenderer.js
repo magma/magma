@@ -7,7 +7,6 @@
  * @flow
  * @format
  */
-import type {Equipment} from '../../common/Equipment';
 import type {EquipmentComparisonViewQueryRendererSearchQueryResponse} from './__generated__/EquipmentComparisonViewQueryRendererSearchQuery.graphql.js';
 import type {
   FilterConfig,
@@ -15,15 +14,14 @@ import type {
   FiltersQuery,
 } from './ComparisonViewTypes';
 
+import * as React from 'react';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
-import PowerSearchEquipmentResultsTable from './PowerSearchEquipmentResultsTable';
-import React, {useState} from 'react';
+import PowerSearchEquipmentResultsTable_equipment from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {
@@ -33,6 +31,7 @@ import {
 } from './FilterUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
 
 const PROPERTY_FILTER_NAME = 'inst_property';
 
@@ -67,9 +66,11 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props = {
-  onEquipmentSelected?: (equipment: Equipment) => void,
   limit?: number,
   showExport?: boolean,
+  children: (props: {
+    equipment: PowerSearchEquipmentResultsTable_equipment,
+  }) => React.Element<*>,
 };
 
 const equipmentSearchQuery = graphql`
@@ -88,10 +89,9 @@ const equipmentSearchQuery = graphql`
 
 const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
-  const {limit, onEquipmentSelected, showExport} = props;
+  const {limit, showExport, children} = props;
   const [filters, setFilters] = useState(([]: FiltersQuery));
   const [count, setCount] = useState((0: number));
-  const {history} = useRouter();
 
   const equipmentDataResponse = usePropertyFilters('equipment');
 
@@ -169,17 +169,9 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
               </div>
             );
           }
-          return (
-            <div className={classes.searchResults}>
-              <PowerSearchEquipmentResultsTable
-                equipment={equipment}
-                onEquipmentSelected={onEquipmentSelected}
-                onWorkOrderSelected={workOrderId =>
-                  history.replace(`inventory?workorder=${workOrderId}`)
-                }
-              />
-            </div>
-          );
+          return children({
+            equipment,
+          });
         }}
       />
     </div>
