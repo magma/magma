@@ -61,130 +61,119 @@ func (sq *ServiceQuery) Order(o ...Order) *ServiceQuery {
 // QueryType chains the current query on the type edge.
 func (sq *ServiceQuery) QueryType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(servicetype.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.TypeColumn))
-	query.sql = builder.Select(t1.Columns(servicetype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(servicetype.FieldID), t2.C(service.TypeColumn))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = servicetype.Table
+	step.To.Column = servicetype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = service.TypeTable
+	step.Edge.Columns = append(step.Edge.Columns, service.TypeColumn)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryDownstream chains the current query on the downstream edge.
 func (sq *ServiceQuery) QueryDownstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(service.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	t3 := builder.Table(service.DownstreamTable)
-	t4 := builder.Select(t3.C(service.DownstreamPrimaryKey[0])).
-		From(t3).
-		Join(t2).
-		On(t3.C(service.DownstreamPrimaryKey[1]), t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(service.FieldID), t4.C(service.DownstreamPrimaryKey[0]))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = service.Table
+	step.To.Column = service.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = true
+	step.Edge.Table = service.DownstreamTable
+	step.Edge.Columns = append(step.Edge.Columns, service.DownstreamPrimaryKey...)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryUpstream chains the current query on the upstream edge.
 func (sq *ServiceQuery) QueryUpstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(service.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	t3 := builder.Table(service.UpstreamTable)
-	t4 := builder.Select(t3.C(service.UpstreamPrimaryKey[1])).
-		From(t3).
-		Join(t2).
-		On(t3.C(service.UpstreamPrimaryKey[0]), t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(service.FieldID), t4.C(service.UpstreamPrimaryKey[1]))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = service.Table
+	step.To.Column = service.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = false
+	step.Edge.Table = service.UpstreamTable
+	step.Edge.Columns = append(step.Edge.Columns, service.UpstreamPrimaryKey...)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(property.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(service.PropertiesColumn), t2.C(service.FieldID))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = property.Table
+	step.To.Column = property.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = service.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, service.PropertiesColumn)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryTerminationPoints chains the current query on the termination_points edge.
 func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
 	query := &EquipmentQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	t3 := builder.Table(service.TerminationPointsTable)
-	t4 := builder.Select(t3.C(service.TerminationPointsPrimaryKey[1])).
-		From(t3).
-		Join(t2).
-		On(t3.C(service.TerminationPointsPrimaryKey[0]), t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(equipment.FieldID), t4.C(service.TerminationPointsPrimaryKey[1]))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = false
+	step.Edge.Table = service.TerminationPointsTable
+	step.Edge.Columns = append(step.Edge.Columns, service.TerminationPointsPrimaryKey...)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinks chains the current query on the links edge.
 func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(link.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	t3 := builder.Table(service.LinksTable)
-	t4 := builder.Select(t3.C(service.LinksPrimaryKey[1])).
-		From(t3).
-		Join(t2).
-		On(t3.C(service.LinksPrimaryKey[0]), t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(link.FieldID), t4.C(service.LinksPrimaryKey[1]))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = link.Table
+	step.To.Column = link.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = false
+	step.Edge.Table = service.LinksTable
+	step.Edge.Columns = append(step.Edge.Columns, service.LinksPrimaryKey...)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCustomer chains the current query on the customer edge.
 func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 	query := &CustomerQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(customer.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(service.FieldID))
-	t3 := builder.Table(service.CustomerTable)
-	t4 := builder.Select(t3.C(service.CustomerPrimaryKey[1])).
-		From(t3).
-		Join(t2).
-		On(t3.C(service.CustomerPrimaryKey[0]), t2.C(service.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t4).
-		On(t1.C(customer.FieldID), t4.C(service.CustomerPrimaryKey[1]))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = service.Table
+	step.From.Column = service.FieldID
+	step.To.Table = customer.Table
+	step.To.Column = customer.FieldID
+	step.Edge.Rel = sql.M2M
+	step.Edge.Inverse = false
+	step.Edge.Table = service.CustomerTable
+	step.Edge.Columns = append(step.Edge.Columns, service.CustomerPrimaryKey...)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 

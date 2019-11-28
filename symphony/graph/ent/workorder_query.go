@@ -66,150 +66,170 @@ func (woq *WorkOrderQuery) Order(o ...Order) *WorkOrderQuery {
 // QueryType chains the current query on the type edge.
 func (woq *WorkOrderQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(workordertype.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.TypeColumn))
-	query.sql = builder.Select(t1.Columns(workordertype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.FieldID), t2.C(workorder.TypeColumn))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = workordertype.Table
+	step.To.Column = workordertype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.TypeTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.TypeColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (woq *WorkOrderQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(equipment.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.EquipmentColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = equipment.Table
+	step.To.Column = equipment.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = workorder.EquipmentTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.EquipmentColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinks chains the current query on the links edge.
 func (woq *WorkOrderQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(link.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.LinksColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = link.Table
+	step.To.Column = link.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = workorder.LinksTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.LinksColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(file.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.FilesColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = file.Table
+	step.To.Column = file.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.FilesTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.FilesColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (woq *WorkOrderQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.LocationColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(workorder.LocationColumn))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.LocationTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.LocationColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryComments chains the current query on the comments edge.
 func (woq *WorkOrderQuery) QueryComments() *CommentQuery {
 	query := &CommentQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(comment.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.CommentsColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = comment.Table
+	step.To.Column = comment.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.CommentsTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.CommentsColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (woq *WorkOrderQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(property.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.PropertiesColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = property.Table
+	step.To.Column = property.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.PropertiesColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCheckListItems chains the current query on the check_list_items edge.
 func (woq *WorkOrderQuery) QueryCheckListItems() *CheckListItemQuery {
 	query := &CheckListItemQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(checklistitem.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workorder.CheckListItemsColumn), t2.C(workorder.FieldID))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = checklistitem.Table
+	step.To.Column = checklistitem.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.CheckListItemsTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.CheckListItemsColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryTechnician chains the current query on the technician edge.
 func (woq *WorkOrderQuery) QueryTechnician() *TechnicianQuery {
 	query := &TechnicianQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(technician.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.TechnicianColumn))
-	query.sql = builder.Select(t1.Columns(technician.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(technician.FieldID), t2.C(workorder.TechnicianColumn))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = technician.Table
+	step.To.Column = technician.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = workorder.TechnicianTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.TechnicianColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProject chains the current query on the project edge.
 func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: woq.config}
-
-	builder := sql.Dialect(woq.driver.Dialect())
-	t1 := builder.Table(project.Table)
-	t2 := woq.sqlQuery()
-	t2.Select(t2.C(workorder.ProjectColumn))
-	query.sql = builder.Select(t1.Columns(project.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(project.FieldID), t2.C(workorder.ProjectColumn))
+	step := &sql.Step{}
+	step.From.V = woq.sqlQuery()
+	step.From.Table = workorder.Table
+	step.From.Column = workorder.FieldID
+	step.To.Table = project.Table
+	step.To.Column = project.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = workorder.ProjectTable
+	step.Edge.Columns = append(step.Edge.Columns, workorder.ProjectColumn)
+	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 

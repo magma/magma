@@ -150,6 +150,11 @@ var (
 	// UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	UpdateDefaultUpdateTime = descUpdateTime.UpdateDefault.(func() time.Time)
 
+	// descName is the schema descriptor for name field.
+	descName = fields[0].Descriptor()
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator = descName.Validators[0].(func(string) error)
+
 	// descStatus is the schema descriptor for status field.
 	descStatus = fields[1].Descriptor()
 	// DefaultStatus holds the default value on creation for the status field.

@@ -57,15 +57,17 @@ func (clidq *CheckListItemDefinitionQuery) Order(o ...Order) *CheckListItemDefin
 // QueryWorkOrderType chains the current query on the work_order_type edge.
 func (clidq *CheckListItemDefinitionQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: clidq.config}
-
-	builder := sql.Dialect(clidq.driver.Dialect())
-	t1 := builder.Table(workordertype.Table)
-	t2 := clidq.sqlQuery()
-	t2.Select(t2.C(checklistitemdefinition.WorkOrderTypeColumn))
-	query.sql = builder.Select(t1.Columns(workordertype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.FieldID), t2.C(checklistitemdefinition.WorkOrderTypeColumn))
+	step := &sql.Step{}
+	step.From.V = clidq.sqlQuery()
+	step.From.Table = checklistitemdefinition.Table
+	step.From.Column = checklistitemdefinition.FieldID
+	step.To.Table = workordertype.Table
+	step.To.Column = workordertype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = checklistitemdefinition.WorkOrderTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, checklistitemdefinition.WorkOrderTypeColumn)
+	query.sql = sql.SetNeighbors(clidq.driver.Dialect(), step)
 	return query
 }
 

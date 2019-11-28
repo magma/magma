@@ -157,7 +157,7 @@ func TestExportWithFilters(t *testing.T) {
 
 	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
 
-	f, err := json.Marshal([]filterInput{
+	f, err := json.Marshal([]equipmentFilterInput{
 		{
 			Name:     "LOCATION_INST",
 			Operator: "IS_ONE_OF",

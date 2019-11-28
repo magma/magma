@@ -93,7 +93,11 @@ const WorkOrderSaveButton = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   }, [workOrder, locationId, properties, enqueueError, history, match]);
 
-  return <Button onClick={saveWorkOrder}>Save</Button>;
+  return (
+    <Button disabled={!workOrder.name} onClick={saveWorkOrder}>
+      Save
+    </Button>
+  );
 };
 
 export default WorkOrderSaveButton;

@@ -592,7 +592,7 @@ int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id)
 
 //------------------------------------------------------------------------------
 int nas_proc_nw_initiated_detach_ue_request(
-  itti_nas_nw_initiated_detach_ue_req_t *const nw_initiated_detach_p)
+  emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};

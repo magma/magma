@@ -91,8 +91,9 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 
-	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsIn()))
-	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsOut()))
+	imsi := metrics.DecorateIMSI(s.GetCtx().GetImsi())
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsOut()))
 
 	return &protos.AcctResp{}, nil
 }
@@ -115,19 +116,21 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	apn := s.GetCtx().GetApn()
 	s.Unlock()
 
+	imsi := metrics.DecorateIMSI(sessionImsi)
 	var err error
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(sessionImsi))
+		_, err = session_manager.EndSession(makeSID(imsi))
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+		metrics.EndSession.WithLabelValues(apn, imsi).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: sessionImsi,
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
+	metrics.AcctStop.WithLabelValues(apn, imsi)
 
 	return &protos.AcctResp{}, err
 }
@@ -177,7 +180,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi).Inc()
+	metrics.SessionTerminate.WithLabelValues(apn, metrics.DecorateIMSI(imsi)).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -209,6 +212,7 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 
 	if srv.config.GetAccountingEnabled() {
 		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+		metrics.EndSession.WithLabelValues(aaaCtx.GetApn(), metrics.DecorateIMSI(aaaCtx.GetImsi())).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: aaaCtx.GetImsi(),

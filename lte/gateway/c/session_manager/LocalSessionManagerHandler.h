@@ -14,7 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "SessionID.h"
 
 using grpc::Server;
@@ -32,8 +32,8 @@ class LocalSessionManagerHandler {
    * Report flow stats from pipelined and track the usage per rule
    */
   virtual void ReportRuleStats(
-    ServerContext *context,
-    const RuleRecordTable *request,
+    ServerContext* context,
+    const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) = 0;
 
   /**
@@ -64,7 +64,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
     LocalEnforcer* monitor,
-    SessionCloudReporter* reporter);
+    SessionReporter* reporter);
 
   ~LocalSessionManagerHandlerImpl() {}
   /**
@@ -94,7 +94,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
  private:
   LocalEnforcer* enforcer_;
-  SessionCloudReporter* reporter_;
+  SessionReporter* reporter_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;

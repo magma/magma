@@ -18,7 +18,7 @@
 namespace devmand {
 namespace devices {
 
-std::unique_ptr<devices::Device> CambiumDevice::createDevice(
+std::shared_ptr<devices::Device> CambiumDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;

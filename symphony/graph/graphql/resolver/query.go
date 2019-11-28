@@ -163,15 +163,7 @@ func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.E
 func (r queryResolver) EquipmentPortTypes(
 	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.EquipmentPortTypeConnection, error) {
-	ets, err := r.ClientFrom(ctx).EquipmentPortType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying equipment types")
-	}
-	edges := make([]*models.EquipmentPortTypeEdge, len(ets))
-	for i, et := range ets {
-		edges[i] = &models.EquipmentPortTypeEdge{Node: et}
-	}
-	return &models.EquipmentPortTypeConnection{Edges: edges}, err
+	return resolverutil.EquipmentPortTypes(ctx, r.ClientFrom(ctx))
 }
 
 func (r queryResolver) EquipmentPortDefinitions(ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int) (*models.EquipmentPortDefinitionConnection, error) {

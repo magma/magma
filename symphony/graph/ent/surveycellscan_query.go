@@ -58,30 +58,34 @@ func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: scsq.config}
-
-	builder := sql.Dialect(scsq.driver.Dialect())
-	t1 := builder.Table(surveyquestion.Table)
-	t2 := scsq.sqlQuery()
-	t2.Select(t2.C(surveycellscan.SurveyQuestionColumn))
-	query.sql = builder.Select(t1.Columns(surveyquestion.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(surveyquestion.FieldID), t2.C(surveycellscan.SurveyQuestionColumn))
+	step := &sql.Step{}
+	step.From.V = scsq.sqlQuery()
+	step.From.Table = surveycellscan.Table
+	step.From.Column = surveycellscan.FieldID
+	step.To.Table = surveyquestion.Table
+	step.To.Column = surveyquestion.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = surveycellscan.SurveyQuestionTable
+	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.SurveyQuestionColumn)
+	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: scsq.config}
-
-	builder := sql.Dialect(scsq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := scsq.sqlQuery()
-	t2.Select(t2.C(surveycellscan.LocationColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(surveycellscan.LocationColumn))
+	step := &sql.Step{}
+	step.From.V = scsq.sqlQuery()
+	step.From.Table = surveycellscan.Table
+	step.From.Column = surveycellscan.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = surveycellscan.LocationTable
+	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.LocationColumn)
+	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 

@@ -59,45 +59,51 @@ func (sq *SurveyQuery) Order(o ...Order) *SurveyQuery {
 // QueryLocation chains the current query on the location edge.
 func (sq *SurveyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(survey.LocationColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(survey.LocationColumn))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = survey.Table
+	step.From.Column = survey.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = survey.LocationTable
+	step.Edge.Columns = append(step.Edge.Columns, survey.LocationColumn)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QuerySourceFile chains the current query on the source_file edge.
 func (sq *SurveyQuery) QuerySourceFile() *FileQuery {
 	query := &FileQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(file.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(survey.SourceFileColumn))
-	query.sql = builder.Select(t1.Columns(file.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(file.FieldID), t2.C(survey.SourceFileColumn))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = survey.Table
+	step.From.Column = survey.FieldID
+	step.To.Table = file.Table
+	step.To.Column = file.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = survey.SourceFileTable
+	step.Edge.Columns = append(step.Edge.Columns, survey.SourceFileColumn)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryQuestions chains the current query on the questions edge.
 func (sq *SurveyQuery) QueryQuestions() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: sq.config}
-
-	builder := sql.Dialect(sq.driver.Dialect())
-	t1 := builder.Table(surveyquestion.Table)
-	t2 := sq.sqlQuery()
-	t2.Select(t2.C(survey.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(survey.QuestionsColumn), t2.C(survey.FieldID))
+	step := &sql.Step{}
+	step.From.V = sq.sqlQuery()
+	step.From.Table = survey.Table
+	step.From.Column = survey.FieldID
+	step.To.Table = surveyquestion.Table
+	step.To.Column = surveyquestion.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = survey.QuestionsTable
+	step.Edge.Columns = append(step.Edge.Columns, survey.QuestionsColumn)
+	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 

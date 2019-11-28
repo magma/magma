@@ -46,13 +46,6 @@ type GatewaySharedFields = {
   },
 };
 
-// Gateway will be removed once we get rid of all v0
-// Introducing GatewayV1 to wrap the new strictly typed gateway type from v1 API
-export type Gateway = {
-  ...GatewaySharedFields,
-  rawGateway: GatewayPayload,
-};
-
 export type GatewayV1 = {
   ...GatewaySharedFields,
   rawGateway: lte_gateway,

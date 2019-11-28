@@ -44,15 +44,18 @@ export default function useSnackbar(
         setSnackbarKey(k);
       }
     }
+    /*eslint-disable react-hooks/exhaustive-deps*/
   }, [
+    // we shouldn't add snackbarKey
+    // to the dependency list otherwise it'd creeate an infinite recursion
     closeSnackbar,
     dismissPrevious,
     enqueueSnackbar,
     message,
     show,
-    snackbarKey,
     stringConfig,
   ]);
+  /*eslint-enable react-hooks/exhaustive-deps*/
 }
 
 export function useEnqueueSnackbar() {

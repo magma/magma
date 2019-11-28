@@ -8,6 +8,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -28,11 +30,33 @@ func prepareLocationData(ctx context.Context, r *TestResolver, props []*models.P
 	mr := r.Mutation()
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name: "date_established",
+				Type: models.PropertyKindDate,
+			},
+			{
+				Name: "stringProp",
+				Type: models.PropertyKindString,
+			},
+		},
 	})
+	datePropDef := locType1.QueryPropertyTypes().Where(propertytype.Name("date_established")).OnlyX(ctx)
+	strPropDef := locType1.QueryPropertyTypes().Where(propertytype.Name("stringProp")).OnlyX(ctx)
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name: "loc_inst1",
 		Type: locType1.ID,
+		Properties: []*models.PropertyInput{
+			{
+				PropertyTypeID: datePropDef.ID,
+				StringValue:    pointer.ToString("1988-03-29"),
+			},
+			{
+				PropertyTypeID: strPropDef.ID,
+				StringValue:    pointer.ToString("testProp"),
+			},
+		},
 	})
 
 	locType2, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
@@ -193,6 +217,50 @@ func TestSearchMultipleFilters(t *testing.T) {
 		FilterType: models.LocationFilterTypeLocationType,
 		Operator:   models.FilterOperatorIsOneOf,
 		IDSet:      []string{data.locType2.ID},
+	}
+	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1, &f2}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+}
+
+func TestSearchLocationProperties(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	prepareLocationData(ctx, r, nil)
+	/*
+		helper: data now is of type:
+		 loc1 (loc_type1): - properties
+			eq_inst (eq_type)
+			loc2 (loc_type2)
+	*/
+	qr := r.Query()
+	f1 := models.LocationFilterInput{
+		FilterType: models.LocationFilterTypeProperty,
+		Operator:   models.FilterOperatorDateLessThan,
+		PropertyValue: &models.PropertyTypeInput{
+			Type:        models.PropertyKindDate,
+			Name:        "date_established",
+			StringValue: pointer.ToString("2019-11-15"),
+		},
+	}
+
+	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+
+	f2 := models.LocationFilterInput{
+		FilterType: models.LocationFilterTypeProperty,
+		Operator:   models.FilterOperatorIs,
+		PropertyValue: &models.PropertyTypeInput{
+			Type:        models.PropertyKindString,
+			Name:        "stringProp",
+			StringValue: pointer.ToString("testProp"),
+		},
 	}
 	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1, &f2}, pointer.ToInt(100))
 	require.NoError(t, err)

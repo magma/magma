@@ -32,6 +32,7 @@ type Props = {
   onEdit?: ?() => void,
   onStar?: ?() => void,
   isStarred?: boolean,
+  allowDelete?: ?boolean,
 } & WithStyles<typeof styles>;
 
 const styles = theme => ({
@@ -137,8 +138,11 @@ class ConfigureExpansionPanel extends React.Component<Props> {
   }
 
   deleteButton = () => {
-    const {classes, instanceCount} = this.props;
-    const disabled = instanceCount > 0;
+    const {classes, instanceCount, allowDelete} = this.props;
+    const disabled =
+      allowDelete !== undefined && allowDelete !== null
+        ? !allowDelete
+        : instanceCount > 0;
     const deleteButton = (
       <IconButton
         disabled={disabled}

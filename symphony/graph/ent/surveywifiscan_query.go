@@ -58,30 +58,34 @@ func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (swfsq *SurveyWiFiScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: swfsq.config}
-
-	builder := sql.Dialect(swfsq.driver.Dialect())
-	t1 := builder.Table(surveyquestion.Table)
-	t2 := swfsq.sqlQuery()
-	t2.Select(t2.C(surveywifiscan.SurveyQuestionColumn))
-	query.sql = builder.Select(t1.Columns(surveyquestion.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(surveyquestion.FieldID), t2.C(surveywifiscan.SurveyQuestionColumn))
+	step := &sql.Step{}
+	step.From.V = swfsq.sqlQuery()
+	step.From.Table = surveywifiscan.Table
+	step.From.Column = surveywifiscan.FieldID
+	step.To.Table = surveyquestion.Table
+	step.To.Column = surveyquestion.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = surveywifiscan.SurveyQuestionTable
+	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.SurveyQuestionColumn)
+	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: swfsq.config}
-
-	builder := sql.Dialect(swfsq.driver.Dialect())
-	t1 := builder.Table(location.Table)
-	t2 := swfsq.sqlQuery()
-	t2.Select(t2.C(surveywifiscan.LocationColumn))
-	query.sql = builder.Select(t1.Columns(location.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(location.FieldID), t2.C(surveywifiscan.LocationColumn))
+	step := &sql.Step{}
+	step.From.V = swfsq.sqlQuery()
+	step.From.Table = surveywifiscan.Table
+	step.From.Column = surveywifiscan.FieldID
+	step.To.Table = location.Table
+	step.To.Column = location.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = false
+	step.Edge.Table = surveywifiscan.LocationTable
+	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.LocationColumn)
+	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }
 

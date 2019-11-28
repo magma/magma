@@ -24,7 +24,6 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/gateway/mconfig"
 
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -53,9 +52,9 @@ func (p *MockPolicyClient) IgnoreAnswer(request *gx.CreditControlRequest) {
 	return
 }
 
-func (p *MockPolicyClient) EnableConnections() {
+func (p *MockPolicyClient) EnableConnections() error {
 	p.Called()
-	return
+	return nil
 }
 
 func (p *MockPolicyClient) DisableConnections(period time.Duration) {
@@ -100,9 +99,9 @@ func (cc *MockCreditClient) IgnoreAnswer(request *gy.CreditControlRequest) {
 	return
 }
 
-func (cc *MockCreditClient) EnableConnections() {
+func (cc *MockCreditClient) EnableConnections() error {
 	cc.Called()
-	return
+	return nil
 }
 
 func (cc *MockCreditClient) DisableConnections(period time.Duration) {
@@ -1099,6 +1098,38 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		policydb: &MockPolicyDBClient{},
 	}
 
+	// send static rules back
+	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		activationTime := time.Unix(1, 0)
+		deactivationTime := time.Unix(2, 0)
+		ruleInstalls := []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleNames:            []string{"static_rule_1"},
+				RuleActivationTime:   &activationTime,
+				RuleDeactivationTime: &deactivationTime,
+			},
+		}
+
+		done <- &gx.CreditControlAnswer{
+			ResultCode:     uint32(diameter.SuccessCode),
+			SessionID:      request.SessionID,
+			RequestNumber:  request.RequestNumber,
+			RuleInstallAVP: ruleInstalls,
+		}
+	}).Once()
+
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
+
+	mocks.gy.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
+
 	cfg := getTestConfig(gy.PerKeyInit)
 	cfg.UseGyForAuthOnly = true
 	srv := servicers.NewCentralSessionController(
@@ -1107,8 +1138,15 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		mocks.policydb,
 		cfg,
 	)
-
-	standardUsageTest(t, srv, mocks, gy.PerKeyInit)
+	ctx := context.Background()
+	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.NoError(t, err)
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
@@ -1165,88 +1203,6 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	})
 	mocks.gx.AssertExpectations(t)
 	assert.NoError(t, err)
-}
-
-func TestSessionControllerUseGyForAuthOnlyFail(t *testing.T) {
-	mocks := &sessionMocks{
-		gy:       &MockCreditClient{},
-		gx:       &MockPolicyClient{},
-		policydb: &MockPolicyDBClient{},
-	}
-
-	// Send back DIAMETER_SUCCESS (2001) from gx
-	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		done := args.Get(1).(chan interface{})
-		request := args.Get(2).(*gx.CreditControlRequest)
-
-		activationTime := time.Unix(1, 0)
-		deactivationTime := time.Unix(2, 0)
-		ruleInstalls := []*gx.RuleInstallAVP{
-			&gx.RuleInstallAVP{
-				RuleNames: []string{"static_rule_1"},
-				RuleDefinitions: []*gx.RuleDefinition{
-					&gx.RuleDefinition{
-						RuleName:    "dyn_rule_20",
-						RatingGroup: swag.Uint32(20),
-					},
-				},
-				RuleActivationTime:   &activationTime,
-				RuleDeactivationTime: &deactivationTime,
-			},
-		}
-
-		done <- &gx.CreditControlAnswer{
-			ResultCode:     uint32(diameter.SuccessCode),
-			SessionID:      request.SessionID,
-			RequestNumber:  request.RequestNumber,
-			RuleInstallAVP: ruleInstalls,
-		}
-	}).Once()
-	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
-		[]policydb.ChargingKey{{RatingGroup: 1}, {RatingGroup: 20}}, nil).Once()
-
-	// return success for CCA but Diameter-Rating-Failed for Multiple-Services-Credit-Control
-	mocks.gy.On(
-		"SendCreditControlRequest",
-		mock.Anything,
-		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
-	).Return(nil).Run(returnGyMSCCDiameterRatingFailed).Once()
-
-	cfg := getTestConfig(gy.PerKeyInit)
-	cfg.UseGyForAuthOnly = true
-	srv := servicers.NewCentralSessionController(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
-	ctx := context.Background()
-	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
-		SessionId: "00101-1234",
-	})
-	mocks.gx.AssertExpectations(t)
-	assert.Error(t, err)
-}
-
-func returnGyMSCCDiameterRatingFailed(args mock.Arguments) {
-	done := args.Get(1).(chan interface{})
-	request := args.Get(2).(*gy.CreditControlRequest)
-	credits := make([]*gy.ReceivedCredits, 0, len(request.Credits))
-	for _ = range request.Credits {
-		credits = append(credits, &gy.ReceivedCredits{
-			ResultCode: diameter.DiameterRatingFailed,
-		})
-	}
-	done <- &gy.CreditControlAnswer{
-		ResultCode:    uint32(diameter.SuccessCode),
-		SessionID:     request.SessionID,
-		RequestNumber: request.RequestNumber,
-		Credits:       credits,
-	}
 }
 
 func returnGySuccessNoRatingGroup(args mock.Arguments) {

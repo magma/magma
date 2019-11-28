@@ -94,8 +94,6 @@ void nas_itti_cs_domain_location_update_req(
 
 void nas_itti_tau_complete(unsigned int ue_idP);
 
-void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type);
-
 void nas_itti_sgsap_tmsi_reallocation_comp(
   const char *imsi,
   const unsigned int imsi_len);

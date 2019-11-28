@@ -8,6 +8,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -38,7 +42,7 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 	wot, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "WO-type1"})
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{Name: "wo1", WorkOrderTypeID: wot.ID})
 	wo2, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{Name: "wo2", WorkOrderTypeID: wot.ID})
-	wo2, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{ID: wo2.ID, Status: models.WorkOrderStatusDone})
+	wo2, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{ID: wo2.ID, Name: "wo2", Status: models.WorkOrderStatusDone})
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
 	})
@@ -48,10 +52,25 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 		Type: locType1.ID,
 	})
 
+	ptyp, _ := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
+		Name: "portType1",
+		LinkProperties: []*models.PropertyTypeInput{
+			{
+				Name:        "propStr",
+				Type:        "string",
+				StringValue: pointer.ToString("t1"),
+			},
+			{
+				Name: "connected_date",
+				Type: models.PropertyKindDate,
+			},
+		},
+	})
+
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type",
 		Ports: []*models.EquipmentPortInput{
-			{Name: "typ1_p1"},
+			{Name: "typ1_p1", PortTypeID: &ptyp.ID},
 			{Name: "typ1_p2"},
 		},
 	})
@@ -89,10 +108,24 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 		Location:   &loc1.ID,
 		Properties: props,
 	})
+
+	strProp := ptyp.QueryLinkPropertyTypes().Where(propertytype.Name("propStr")).OnlyX(ctx)
+	dateProp := ptyp.QueryLinkPropertyTypes().Where(propertytype.Name("connected_date")).OnlyX(ctx)
+
 	l1, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: e1.ID, Port: defs[0].ID},
 			{Equipment: e3.ID, Port: defs2[0].ID},
+		},
+		Properties: []*models.PropertyInput{
+			{
+				PropertyTypeID: strProp.ID,
+				StringValue:    pointer.ToString("newVal"),
+			},
+			{
+				PropertyTypeID: dateProp.ID,
+				StringValue:    pointer.ToString("1988-03-29"),
+			},
 		},
 		WorkOrder: &wo1.ID,
 	})
@@ -547,4 +580,54 @@ func TestSearchLinksByService(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res4.Links, 0)
 
+}
+
+func TestSearchLinksByProperty(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	prepareLinkData(ctx, r, nil)
+	/*
+		helper: data now is of type:
+		(loc1) link1 :
+			e1(pos1, type1) <--> e3 (pos1, type2)
+			state: PENDING
+		(loc1) link2 :
+			e2(pos2, type1) <--> e4 (pos2, type2)
+			state: DONE
+	*/
+	qr := r.Query()
+	limit := 100
+
+	f1 := models.LinkFilterInput{
+		FilterType: models.LinkFilterTypeProperty,
+		Operator:   models.FilterOperatorIs,
+		PropertyValue: &models.PropertyTypeInput{
+			Name:        "propStr",
+			Type:        models.PropertyKindString,
+			StringValue: pointer.ToString("newVal"),
+		},
+	}
+
+	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	links := res1.Links
+	require.Len(t, links, 1)
+
+	f2 := models.LinkFilterInput{
+		FilterType: models.LinkFilterTypeProperty,
+		Operator:   models.FilterOperatorDateLessThan,
+		PropertyValue: &models.PropertyTypeInput{
+			Name:        "connected_date",
+			Type:        models.PropertyKindDate,
+			StringValue: pointer.ToString("2019-01-01"),
+		},
+	}
+
+	res2, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	links = res2.Links
+	require.Len(t, links, 1)
 }

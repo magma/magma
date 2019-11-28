@@ -236,9 +236,7 @@ int pgw_handle_create_bearer_request(
       bearer_req_p->context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
   }
-  if (
-    spgw_config.pgw_config.relay_enabled &&
-    sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
+  if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);

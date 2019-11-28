@@ -47,6 +47,7 @@ setup(
         'scripts/magma_conditional_service.py',
         'scripts/magma_get_config.py',
         'scripts/magmad_cli.py',
+        'scripts/service_util.py',
         'scripts/service303_cli.py',
         'scripts/show_gateway_info.py',
     ],

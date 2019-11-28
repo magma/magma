@@ -63,3 +63,18 @@ func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyTyp
 	}
 	return pred, nil
 }
+
+// GetDatePropertyPred returns the property and propertyType predicate for the date
+func GetDatePropertyPred(p models.PropertyTypeInput, operator models.FilterOperator) (predicate.Property, predicate.PropertyType, error) {
+	if p.Type != models.PropertyKindDate {
+		return nil, nil, errors.Errorf("property kind should be type")
+	}
+
+	propPred := property.StringValGT(*p.StringValue)
+	propTypePred := propertytype.StringValGT(*p.StringValue)
+	if operator == models.FilterOperatorDateLessThan {
+		propPred = property.StringValLT(*p.StringValue)
+		propTypePred = propertytype.StringValLT(*p.StringValue)
+	}
+	return propPred, propTypePred, nil
+}

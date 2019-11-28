@@ -362,11 +362,9 @@ int mme_app_handle_s6a_cancel_location_req(
   mme_app_desc_t* mme_app_desc_p,
   const s6a_cancel_location_req_t* const clr_pP)
 {
-  int rc = RETURNok;
   uint64_t imsi = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   int cla_result = DIAMETER_SUCCESS;
-  itti_nas_sgs_detach_req_t sgs_detach_req = {0};
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(clr_pP);
@@ -426,27 +424,33 @@ int mme_app_handle_s6a_cancel_location_req(
       ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
     // Set the flag and send detach to UE after receiving service req
     ue_context_p->emm_context.nw_init_bearer_deactv = true;
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-
   } else {
-    // Send N/W Initiated Detach Request to NAS
+    // Send N/W Initiated Detach Request to NAS module
 
     OAILOG_INFO(
       LOG_MME_APP,
-      "Sending Detach to NAS for (ue_id = " MME_UE_S1AP_ID_FMT " \n",
+      "Sending Detach Req to NAS module for (ue_id = " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-    rc = mme_app_send_nas_detach_request(
-      ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH);
-
-    // Send SGS explicit network initiated Detach Ind to SGS
-    if (ue_context_p->sgs_context) {
-      sgs_detach_req.ue_id = ue_context_p->mme_ue_s1ap_id;
-      sgs_detach_req.detach_type = SGS_DETACH_TYPE_NW_INITIATED_EPS;
-      mme_app_handle_sgs_detach_req(mme_app_desc_p, &sgs_detach_req);
+    if ((mme_app_handle_nw_initiated_detach_request(
+      ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH)) == RETURNerror) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to handle network initiated Detach Request in nas module for "
+        "ue-id: "MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
+      unlock_ue_contexts(ue_context_p);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    } else {
+      // Send SGS explicit network initiated Detach Ind to SGS
+      if (ue_context_p->sgs_context) {
+        mme_app_handle_sgs_detach_req(ue_context_p,
+          EMM_SGS_NW_INITIATED_EPS_DETACH);
+      }
     }
   }
   unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 int mme_app_send_s6a_cancel_location_ans(

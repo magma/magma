@@ -233,13 +233,13 @@ func (r mutationResolver) EditWorkOrder(
 			}
 		}
 	}
-	ids, i := make([]string, len(input.CheckList)), 0
+	ids := make([]string, 0, len(input.CheckList))
 	for _, clInput := range input.CheckList {
 		cli, err := r.createOrUpdateCheckListItem(ctx, clInput)
 		if err != nil {
 			return nil, err
 		}
-		ids[i] = cli.ID
+		ids = append(ids, cli.ID)
 	}
 	currentCL := wo.QueryCheckListItems().IDsX(ctx)
 	addedCLIds, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
@@ -312,6 +312,7 @@ func (r mutationResolver) AddWorkOrderType(
 			SetTitle(def.Title).
 			SetType(def.Type.String()).
 			SetNillableIndex(def.Index).
+			SetNillableHelpText(def.HelpText).
 			SetNillableEnumValues(def.EnumValues).
 			SetWorkOrderType(typ).
 			Save(ctx); err != nil {

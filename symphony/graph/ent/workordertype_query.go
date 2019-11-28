@@ -60,60 +60,68 @@ func (wotq *WorkOrderTypeQuery) Order(o ...Order) *WorkOrderTypeQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (wotq *WorkOrderTypeQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: wotq.config}
-
-	builder := sql.Dialect(wotq.driver.Dialect())
-	t1 := builder.Table(workorder.Table)
-	t2 := wotq.sqlQuery()
-	t2.Select(t2.C(workordertype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.WorkOrdersColumn), t2.C(workordertype.FieldID))
+	step := &sql.Step{}
+	step.From.V = wotq.sqlQuery()
+	step.From.Table = workordertype.Table
+	step.From.Column = workordertype.FieldID
+	step.To.Table = workorder.Table
+	step.To.Column = workorder.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = workordertype.WorkOrdersTable
+	step.Edge.Columns = append(step.Edge.Columns, workordertype.WorkOrdersColumn)
+	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (wotq *WorkOrderTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: wotq.config}
-
-	builder := sql.Dialect(wotq.driver.Dialect())
-	t1 := builder.Table(propertytype.Table)
-	t2 := wotq.sqlQuery()
-	t2.Select(t2.C(workordertype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.PropertyTypesColumn), t2.C(workordertype.FieldID))
+	step := &sql.Step{}
+	step.From.V = wotq.sqlQuery()
+	step.From.Table = workordertype.Table
+	step.From.Column = workordertype.FieldID
+	step.To.Table = propertytype.Table
+	step.To.Column = propertytype.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workordertype.PropertyTypesTable
+	step.Edge.Columns = append(step.Edge.Columns, workordertype.PropertyTypesColumn)
+	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
 
 // QueryDefinitions chains the current query on the definitions edge.
 func (wotq *WorkOrderTypeQuery) QueryDefinitions() *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: wotq.config}
-
-	builder := sql.Dialect(wotq.driver.Dialect())
-	t1 := builder.Table(workorderdefinition.Table)
-	t2 := wotq.sqlQuery()
-	t2.Select(t2.C(workordertype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.DefinitionsColumn), t2.C(workordertype.FieldID))
+	step := &sql.Step{}
+	step.From.V = wotq.sqlQuery()
+	step.From.Table = workordertype.Table
+	step.From.Column = workordertype.FieldID
+	step.To.Table = workorderdefinition.Table
+	step.To.Column = workorderdefinition.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = workordertype.DefinitionsTable
+	step.Edge.Columns = append(step.Edge.Columns, workordertype.DefinitionsColumn)
+	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCheckListDefinitions chains the current query on the check_list_definitions edge.
 func (wotq *WorkOrderTypeQuery) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
 	query := &CheckListItemDefinitionQuery{config: wotq.config}
-
-	builder := sql.Dialect(wotq.driver.Dialect())
-	t1 := builder.Table(checklistitemdefinition.Table)
-	t2 := wotq.sqlQuery()
-	t2.Select(t2.C(workordertype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.CheckListDefinitionsColumn), t2.C(workordertype.FieldID))
+	step := &sql.Step{}
+	step.From.V = wotq.sqlQuery()
+	step.From.Table = workordertype.Table
+	step.From.Column = workordertype.FieldID
+	step.To.Table = checklistitemdefinition.Table
+	step.To.Column = checklistitemdefinition.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = false
+	step.Edge.Table = workordertype.CheckListDefinitionsTable
+	step.Edge.Columns = append(step.Edge.Columns, workordertype.CheckListDefinitionsColumn)
+	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
 

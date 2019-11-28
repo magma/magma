@@ -49,6 +49,8 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_app_state.h"
+#include "emm_cnDef.h"
+#include "nas_proc.h"
 #include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
@@ -278,39 +280,6 @@ static int _sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt)
       ue_context_p, sgsap_paging_req_pP);
   }
   unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-}
-
-/**********************************************************************************
- **                                                                              **
- ** Name:    mme_app_send_nas_detach_request                                     **
- ** Description   Build and send nas detach request                              **
- ** Inputs:  ue_id       : ue identity                                           **
- **          detach_type : Network detach type                                   **
- ** Outputs:                                                                     **
- **          Return:    RETURNok, RETURNerror                                    **
- **
-***********************************************************************************/
-int mme_app_send_nas_detach_request(mme_ue_s1ap_id_t ue_id, uint8_t detach_type)
-{
-  int rc = RETURNerror;
-  MessageDef *message_p = NULL;
-  itti_nas_nw_initiated_detach_ue_req_t *sgsap_nas_detach_pP = NULL;
-  OAILOG_FUNC_IN(LOG_MME_APP);
-
-  message_p =
-    itti_alloc_new_message(TASK_MME_APP, NAS_NW_INITIATED_DETACH_UE_REQ);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
-  sgsap_nas_detach_pP = &message_p->ittiMsg.nas_nw_initiated_detach_ue_req;
-  memset(
-    (void *) sgsap_nas_detach_pP,
-    0,
-    sizeof(itti_nas_nw_initiated_detach_ue_req_t));
-
-  sgsap_nas_detach_pP->ue_id = ue_id;
-  sgsap_nas_detach_pP->detach_type = detach_type;
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
-
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -843,10 +812,9 @@ static int _sgsap_handle_paging_request_without_lai(
   ue_mm_context_t *ue_context_p,
   itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
 {
-  MessageDef *message_p = NULL;
   int rc = RETURNok;
   s1ap_cn_domain_t cn_domain = CN_DOMAIN_CS;
-  uint8_t paging_id = NAS_PAGING_ID_IMSI;
+  uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (!ue_context_p) {
@@ -865,14 +833,11 @@ static int _sgsap_handle_paging_request_without_lai(
     ue_context_p->emm_context._imsi64);
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
     // Send N/W Initiated Detach Request to NAS
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_NW_INITIATED_DETACH_UE_REQ);
-    AssertFatal(message_p, "itti_alloc_new_message Failed");
-    message_p->ittiMsg.nas_nw_initiated_detach_ue_req.ue_id =
-      ue_context_p->mme_ue_s1ap_id;
-    message_p->ittiMsg.nas_nw_initiated_detach_ue_req.detach_type =
-      SGS_INITIATED_IMSI_DETACH;
-    rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach = {0};
+
+    emm_cn_nw_initiated_detach.ue_id = ue_context_p->mme_ue_s1ap_id;
+    emm_cn_nw_initiated_detach.detach_type = SGS_INITIATED_IMSI_DETACH;
+    rc = nas_proc_nw_initiated_detach_ue_request(&emm_cn_nw_initiated_detach);
   } else if (ue_context_p->ecm_state == ECM_IDLE) {
     /* While UE is in ECM_IDLE and mobile reachability timer is still running
      * The value of ppf-paging proceeding flag will be "true"
@@ -880,7 +845,7 @@ static int _sgsap_handle_paging_request_without_lai(
     if (ue_context_p->ppf) {
       /* if Paging request received without LAI for MT SMS, always page with S-TMSI */
       if (sgsap_paging_req_pP->service_indicator == SGSAP_SMS_INDICATOR) {
-        paging_id = NAS_PAGING_ID_TMSI;
+        paging_id = MME_APP_PAGING_ID_TMSI;
         cn_domain = CN_DOMAIN_PS;
       }
       /* if Paging request received without LAI for CS call, always page with IMSI */

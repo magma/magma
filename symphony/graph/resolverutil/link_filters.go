@@ -8,6 +8,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -138,6 +140,34 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 		if pred != nil {
 			q = q.Where(link.HasPropertiesWith(pred))
 		}
+		return q, nil
+	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
+		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)
+		if err != nil {
+			return nil, err
+		}
+		q = q.Where(link.Or(
+			link.HasPropertiesWith(
+				property.And(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					),
+					propPred,
+				),
+			),
+			link.And(
+				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasPropertyTypesWith(
+					propertytype.Name(p.Name),
+					propertytype.Type(p.Type.String()),
+					propTypePred,
+				)))),
+				link.Not(link.HasPortsWith(equipmentport.HasPropertiesWith(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					)),
+				)))))
 		return q, nil
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)

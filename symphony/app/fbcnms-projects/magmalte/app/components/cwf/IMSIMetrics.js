@@ -118,9 +118,14 @@ export default function() {
 
 function ImsiAndIPMenuItem(props: {imsi: string}) {
   const {match} = useRouter();
+  // The directory record endpoint requires that "IMSI" be prepended
+  // to imsi number. Some metric series might have that on their label.
+  const queryIMSI = props.imsi.startsWith('IMSI')
+    ? props.imsi
+    : 'IMSI' + props.imsi;
   const {response} = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
-    {networkId: match.params.networkId, subscriberId: props.imsi},
+    {networkId: match.params.networkId, subscriberId: queryIMSI},
   );
 
   const ipv4 = response?.ipv4_addr;

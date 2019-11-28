@@ -233,14 +233,15 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     } else if (
       ue_context_p->sgs_context->csfb_service_type ==
       CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
-      //Send itti detach request message to NAS to trigger N/W initiated imsi detach request towards UE
+      //Inform to NAS module to trigger N/W initiated imsi detach request towards UE
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Sending itti detach request to NAS-MME (ue_id = " MME_UE_S1AP_ID_FMT ")\n"
+        "Send SGS intiated Detach request to NAS module for (ue_id = "
+        MME_UE_S1AP_ID_FMT ")\n"
         "csfb service type = CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI\n",
         ue_context_p->mme_ue_s1ap_id);
 
-      mme_app_send_nas_detach_request(
+      mme_app_handle_nw_initiated_detach_request(
         ue_context_p->mme_ue_s1ap_id, SGS_INITIATED_IMSI_DETACH);
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
       unlock_ue_contexts(ue_context_p);
@@ -2662,11 +2663,12 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
        (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO(
       LOG_MME_APP,
-      "Send detach to NAS for EBI %d as delete_default_bearer = true\n",
+      "Send MME initiated Detach Req to NAS module for EBI %u"
+      " as delete_default_bearer is true\n",
       nw_init_bearer_deactv_req_p->ebi[0]);
-    //Send Deatch Request to NAS
+    //Inform MME initiated Deatch Request to NAS module
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
-      mme_app_send_nas_detach_request(
+      mme_app_handle_nw_initiated_detach_request(
         ue_context_p->mme_ue_s1ap_id, MME_INITIATED_EPS_DETACH);
     } else {
       //If UE is in IDLE state send Paging Req

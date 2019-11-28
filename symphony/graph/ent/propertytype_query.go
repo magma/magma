@@ -63,120 +63,136 @@ func (ptq *PropertyTypeQuery) Order(o ...Order) *PropertyTypeQuery {
 // QueryProperties chains the current query on the properties edge.
 func (ptq *PropertyTypeQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(property.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.FieldID))
-	query.sql = builder.Select().
-		From(t1).
-		Join(t2).
-		On(t1.C(propertytype.PropertiesColumn), t2.C(propertytype.FieldID))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = property.Table
+	step.To.Column = property.FieldID
+	step.Edge.Rel = sql.O2M
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.PropertiesTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.PropertiesColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocationType chains the current query on the location_type edge.
 func (ptq *PropertyTypeQuery) QueryLocationType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(locationtype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.LocationTypeColumn))
-	query.sql = builder.Select(t1.Columns(locationtype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(locationtype.FieldID), t2.C(propertytype.LocationTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = locationtype.Table
+	step.To.Column = locationtype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.LocationTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.LocationTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(equipmentporttype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.EquipmentPortTypeColumn))
-	query.sql = builder.Select(t1.Columns(equipmentporttype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmentporttype.FieldID), t2.C(propertytype.EquipmentPortTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = equipmentporttype.Table
+	step.To.Column = equipmentporttype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.EquipmentPortTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.EquipmentPortTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinkEquipmentPortType chains the current query on the link_equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryLinkEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(equipmentporttype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.LinkEquipmentPortTypeColumn))
-	query.sql = builder.Select(t1.Columns(equipmentporttype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmentporttype.FieldID), t2.C(propertytype.LinkEquipmentPortTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = equipmentporttype.Table
+	step.To.Column = equipmentporttype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.LinkEquipmentPortTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.LinkEquipmentPortTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(equipmenttype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.EquipmentTypeColumn))
-	query.sql = builder.Select(t1.Columns(equipmenttype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(equipmenttype.FieldID), t2.C(propertytype.EquipmentTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = equipmenttype.Table
+	step.To.Column = equipmenttype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.EquipmentTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.EquipmentTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryServiceType chains the current query on the service_type edge.
 func (ptq *PropertyTypeQuery) QueryServiceType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(servicetype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.ServiceTypeColumn))
-	query.sql = builder.Select(t1.Columns(servicetype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(servicetype.FieldID), t2.C(propertytype.ServiceTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = servicetype.Table
+	step.To.Column = servicetype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.ServiceTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.ServiceTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrderType chains the current query on the work_order_type edge.
 func (ptq *PropertyTypeQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(workordertype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.WorkOrderTypeColumn))
-	query.sql = builder.Select(t1.Columns(workordertype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(workordertype.FieldID), t2.C(propertytype.WorkOrderTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = workordertype.Table
+	step.To.Column = workordertype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.WorkOrderTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.WorkOrderTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (ptq *PropertyTypeQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: ptq.config}
-
-	builder := sql.Dialect(ptq.driver.Dialect())
-	t1 := builder.Table(projecttype.Table)
-	t2 := ptq.sqlQuery()
-	t2.Select(t2.C(propertytype.ProjectTypeColumn))
-	query.sql = builder.Select(t1.Columns(projecttype.Columns...)...).
-		From(t1).
-		Join(t2).
-		On(t1.C(projecttype.FieldID), t2.C(propertytype.ProjectTypeColumn))
+	step := &sql.Step{}
+	step.From.V = ptq.sqlQuery()
+	step.From.Table = propertytype.Table
+	step.From.Column = propertytype.FieldID
+	step.To.Table = projecttype.Table
+	step.To.Column = projecttype.FieldID
+	step.Edge.Rel = sql.M2O
+	step.Edge.Inverse = true
+	step.Edge.Table = propertytype.ProjectTypeTable
+	step.Edge.Columns = append(step.Edge.Columns, propertytype.ProjectTypeColumn)
+	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 

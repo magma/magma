@@ -72,11 +72,6 @@ static void *nas_intertask_interface(void *args_p)
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
       } break;
 
-      case NAS_NW_INITIATED_DETACH_UE_REQ: {
-        nas_proc_nw_initiated_detach_ue_request(
-          &NAS_NW_INITIATED_DETACH_UE_REQ(received_message_p));
-      } break;
-
       case NAS_CS_DOMAIN_LOCATION_UPDATE_ACC: {
         itti_nas_cs_domain_location_update_acc_t
           *itti_nas_location_update_acc_p = NULL;

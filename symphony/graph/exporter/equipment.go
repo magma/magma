@@ -24,7 +24,7 @@ const (
 	bom = "\uFEFF"
 )
 
-type filterInput struct {
+type equipmentFilterInput struct {
 	Name          models.EquipmentFilterType `json:"name"`
 	Operator      models.FilterOperator      `jsons:"operator"`
 	StringValue   string                     `json:"stringValue"`
@@ -78,7 +78,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		for i, e := range equips.Equipment {
 			equipIDs[i] = e.ID
 		}
-		propertyTypes, err = propertyTypesSlice(ctx, equipIDs, client)
+		propertyTypes, err = propertyTypesSlice(ctx, equipIDs, client, models.PropertyEntityEquipment)
 		if err != nil {
 			log.Error("cannot query property types", zap.Error(err))
 			return errors.Wrap(err, "cannot query property types")
@@ -115,7 +115,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 
 func paramToFilterInput(params string) ([]*models.EquipmentFilterInput, error) {
 	var returnType []*models.EquipmentFilterInput
-	var inputs []filterInput
+	var inputs []equipmentFilterInput
 	err := json.Unmarshal([]byte(params), &inputs)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 		return err
 	})
 	g.Go(func(ctx context.Context) (err error) {
-		properties, err = propertiesSlice(ctx, equipment, propertyTypes)
+		properties, err = propertiesSlice(ctx, equipment, propertyTypes, models.PropertyEntityEquipment)
 		return err
 	})
 	g.Go(func(ctx context.Context) (err error) {

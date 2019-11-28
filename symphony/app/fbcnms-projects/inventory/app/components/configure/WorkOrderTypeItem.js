@@ -55,6 +55,7 @@ class WorkOrderTypeItem extends React.Component<Props> {
               instanceNamePlural="work orders"
               onEdit={onEdit}
               onDelete={this.onDelete}
+              allowDelete={true}
             />
           </ExpansionPanelSummary>
           <ExpansionPanelDetails>

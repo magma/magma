@@ -165,7 +165,7 @@ def add_location(
                             the property type. Otherwise exception is raised
             lat (float): latitude
             long (float): longitude
-            external id: ID from external system
+            external id (str): ID from external system
 
         Returns: client.Location object
 
@@ -190,7 +190,8 @@ def add_location(
                         'Float Property': 1.23
                     },
                     -11.32,
-                    98.32,)
+                    98.32,
+                    None)
     """
 
     last_location = None

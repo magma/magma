@@ -19,7 +19,8 @@ folly::dynamic YangUtils::lookup(
   for (auto& elem : path) {
     if (not cur->isObject()) {
       LOG(ERROR) << "yang path lookup failed on elem '" << elem
-                 << "' as its parent was not an object";
+                 << "' as its parent was not an object ("
+                 << (cur->isNull() ? "null" : cur->asString()) << ")";
       return nullptr;
     }
     cur = cur->get_ptr(std::string(elem));
@@ -48,7 +49,8 @@ void YangUtils::set(
 
     if (not cur->isObject()) {
       LOG(ERROR) << "yang path set failed on elem '" << elem
-                 << "' as its parent was not an object";
+                 << "' as its parent was not an object ("
+                 << (cur->isNull() ? "null" : cur->asString()) << ")";
       return;
     }
     last = cur;

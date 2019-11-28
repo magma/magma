@@ -21,6 +21,15 @@ namespace devices {
 Device::Device(Application& application, const Id& id_, bool readonly_)
     : app(application), id(id_), readonly(readonly_) {}
 
+Device::~Device() {
+  auto oldHostname =
+      YangUtils::lookup(lastState, "ietf-system:system/hostname");
+  if (oldHostname != nullptr) {
+    app.getSyslogManager().removeIdentifier(oldHostname.asString(), id);
+    app.getSyslogManager().restartTdAgentBitAsync();
+  }
+}
+
 Id Device::getId() const {
   return id;
 }
@@ -39,21 +48,52 @@ folly::dynamic Device::lookup(const YangPath& path) const {
 
 void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
   Id idL = id;
-  ErrorHandler::thenError(
-      getState()->collect().thenValue([idL, &sharedUnifiedView](auto data) {
-        sharedUnifiedView.withULockPtr([&idL, &data](auto uUnifiedView) {
-          auto unifiedView = uUnifiedView.moveFromUpgradeToWrite();
 
-          // TODO this is an expensive hack... fix later. Prob. just store in
-          // dyn and have the magma service convert it.
-          folly::dynamic dyn =
-              unifiedView->find("devmand") != unifiedView->end()
-              ? folly::parseJson((*unifiedView)["devmand"])
-              : folly::dynamic::object;
-          dyn[idL] = data;
-          (*unifiedView)["devmand"] = folly::toJson(dyn);
-        });
-      }));
+  std::weak_ptr<Device> weak(shared_from_this());
+  ErrorHandler::thenError(
+      getState()
+          ->collect()
+          .thenValue([weak](auto data) {
+            if (auto shared = weak.lock()) {
+              auto newHostname =
+                  YangUtils::lookup(data, "ietf-system:system/hostname");
+              auto oldHostname = YangUtils::lookup(
+                  shared->lastState, "ietf-system:system/hostname");
+              auto& sm = shared->app.getSyslogManager();
+              if (newHostname == nullptr) {
+                if (oldHostname != nullptr) {
+                  sm.removeIdentifier(oldHostname.asString(), shared->id);
+                  sm.restartTdAgentBitAsync();
+                }
+              } else if (oldHostname == nullptr) {
+                sm.addIdentifier(newHostname.asString(), shared->id);
+                sm.restartTdAgentBitAsync();
+              } else if (oldHostname != newHostname) {
+                sm.removeIdentifier(oldHostname.asString(), shared->id);
+                sm.addIdentifier(newHostname.asString(), shared->id);
+                sm.restartTdAgentBitAsync();
+              }
+              shared->lastState = data;
+            } else {
+              // The device is gone and it is its responsiblity to clean up ids.
+            }
+            return data;
+          })
+          .thenValue([idL, &sharedUnifiedView](auto data) {
+            sharedUnifiedView.withULockPtr([&idL, &data](auto uUnifiedView) {
+              auto unifiedView = uUnifiedView.moveFromUpgradeToWrite();
+
+              // TODO this is an expensive hack... fix later. Prob. just store
+              // in dyn and have the magma service convert it.
+              folly::dynamic dyn =
+                  unifiedView->find("devmand") != unifiedView->end()
+                  ? folly::parseJson((*unifiedView)["devmand"])
+                  : folly::dynamic::object;
+              dyn[idL] = data;
+              (*unifiedView)["devmand"] = folly::toJson(dyn);
+              LOG(INFO) << "state for " << idL << " is " << folly::toJson(dyn);
+            });
+          }));
 }
 
 void Device::applyConfig(const std::string& config) {
