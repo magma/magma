@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0c94eaa6a373dc97f6b5f67dc4b9ded5
+ * @relayHash d4e72fe644e43b51c97ebca6e61510c7
  */
 
 /* eslint-disable */
@@ -64,6 +64,7 @@ fragment AddEditLocationTypeCard_editingLocationType on LocationType {
   mapType
   mapZoomLevel
   numberOfLocations
+  isSite
   propertyTypes {
     id
     name
@@ -109,7 +110,6 @@ fragment LocationTypeItem_locationType on LocationType {
     id
   }
   numberOfLocations
-  isSite
 }
 
 fragment PropertyTypeFormField_propertyType on PropertyType {
@@ -394,13 +394,6 @@ return {
                   {
                     "kind": "ScalarField",
                     "alias": null,
-                    "name": "isSite",
-                    "args": null,
-                    "storageKey": null
-                  },
-                  {
-                    "kind": "ScalarField",
-                    "alias": null,
                     "name": "mapType",
                     "args": null,
                     "storageKey": null
@@ -409,6 +402,13 @@ return {
                     "kind": "ScalarField",
                     "alias": null,
                     "name": "mapZoomLevel",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "isSite",
                     "args": null,
                     "storageKey": null
                   },
@@ -496,7 +496,7 @@ return {
     "operationKind": "query",
     "name": "LocationTypesQuery",
     "id": null,
-    "text": "query LocationTypesQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        ...LocationTypeItem_locationType\n        ...AddEditLocationTypeCard_editingLocationType\n        id\n        name\n        index\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n  isSite\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n",
+    "text": "query LocationTypesQuery {\n  locationTypes(first: 50) {\n    edges {\n      node {\n        ...LocationTypeItem_locationType\n        ...AddEditLocationTypeCard_editingLocationType\n        id\n        name\n        index\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n",
     "metadata": {
       "connection": [
         {

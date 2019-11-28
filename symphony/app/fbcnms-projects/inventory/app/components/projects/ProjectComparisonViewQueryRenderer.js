@@ -49,6 +49,9 @@ const useStyles = makeStyles(theme => ({
   projectsTable: {
     padding: '24px',
   },
+  buttonContent: {
+    paddingTop: '4px',
+  },
 }));
 
 type Props = {
@@ -109,8 +112,14 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
                     setResultsDisplayMode(id === 'table' ? 'table' : 'map');
                   }}
                   buttons={[
-                    {item: <ListAltIcon />, id: 'table'},
-                    {item: <MapIcon />, id: 'map'},
+                    {
+                      item: <ListAltIcon className={classes.buttonContent} />,
+                      id: 'table',
+                    },
+                    {
+                      item: <MapIcon className={classes.buttonContent} />,
+                      id: 'map',
+                    },
                   ]}
                 />
               </div>

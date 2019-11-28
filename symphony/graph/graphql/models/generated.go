@@ -75,6 +75,7 @@ type AddLocationTypeInput struct {
 	Name                     string                         `json:"name"`
 	MapType                  *string                        `json:"mapType"`
 	MapZoomLevel             *int                           `json:"mapZoomLevel"`
+	IsSite                   *bool                          `json:"isSite"`
 	Properties               []*PropertyTypeInput           `json:"properties"`
 	SurveyTemplateCategories []*SurveyTemplateCategoryInput `json:"surveyTemplateCategories"`
 }
@@ -206,6 +207,7 @@ type EditLocationTypeInput struct {
 	Name         string               `json:"name"`
 	MapType      *string              `json:"mapType"`
 	MapZoomLevel *int                 `json:"mapZoomLevel"`
+	IsSite       *bool                `json:"isSite"`
 	Properties   []*PropertyTypeInput `json:"properties"`
 }
 

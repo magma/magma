@@ -24,7 +24,6 @@ from .ip_allocator import DuplicatedIPAllocationError, IPAllocator, \
     IPBlockNotFoundError, IPNotInUseError, MappingNotFoundError, \
     NoAvailableIPError, OverlappedIPBlocksError
 
-
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
     addresses.
@@ -158,10 +157,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         resp = IPAddress()
         if request.version == AllocateIPRequest.IPV4:
             try:
-                subscriber_id = SIDUtils.to_str(request.sid)
-                ip = self._ipv4_allocator.alloc_ip_address(subscriber_id)
-                logging.info("Allocated IPv4 %s for sid %s"
-                             % (ip, subscriber_id))
+                composite_sid = SIDUtils.to_str(request.sid)
+                if request.apn:
+                    composite_sid = composite_sid + ":" + request.apn
+
+                ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
+                logging.info("Allocated IPv4 %s for sid %s for apn %s"
+                             % (ip, SIDUtils.to_str(request.sid), request.apn))
                 resp.version = IPAddress.IPV4
                 resp.address = ip.packed
             except NoAvailableIPError:
@@ -180,17 +182,19 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         if request.ip.version == IPAddress.IPV4:
             try:
                 ip = ipaddress.ip_address(request.ip.address)
-                subscriber_id = SIDUtils.to_str(request.sid)
+                composite_sid = SIDUtils.to_str(request.sid)
+                if request.apn:
+                    composite_sid = composite_sid + ":" + request.apn
                 self._ipv4_allocator.release_ip_address(
-                    subscriber_id, ip)
+                    composite_sid, ip)
                 logging.info("Released IPv4 %s for sid %s"
-                              % (ip, subscriber_id))
+                             % (ip, SIDUtils.to_str(request.sid)))
             except IPNotInUseError:
                 context.set_details('IP %s not in use' % ip)
                 context.set_code(grpc.StatusCode.NOT_FOUND)
             except MappingNotFoundError:
                 context.set_details('(SID, IP) map not found: (%s, %s)'
-                                    % (subscriber_id, ip))
+                                    % (SIDUtils.to_str(request.sid), ip))
                 context.set_code(grpc.StatusCode.NOT_FOUND)
         else:
             self._unimplemented_ip_version_error(context)
@@ -210,36 +214,48 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         resp.ip_blocks.extend(removed_block_msgs)
         return resp
 
-    def GetIPForSubscriber(self, sid, context):
-        sid_str = SIDUtils.to_str(sid)
-        ip = self._ipv4_allocator.get_ip_for_sid(sid_str)
+    def GetIPForSubscriber(self, request, context):
+        composite_sid = SIDUtils.to_str(request.sid)
+        if request.apn:
+            composite_sid = composite_sid + ":" + request.apn
+
+        ip = self._ipv4_allocator.get_ip_for_sid(composite_sid)
         if ip is None:
-            context.set_details('SID %s not found' % sid)
+            context.set_details('SID %s not found'
+                                % SIDUtils.to_str(request.sid))
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return IPAddress()
+
         version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
         return IPAddress(version=version, address=ip.packed)
 
     def GetSubscriberIDFromIP(self, ip_addr, context):
         sent_ip = ipaddress.ip_address(ip_addr.address)
         sid = self._ipv4_allocator.get_sid_for_ip(sent_ip)
+
         if sid is None:
             context.set_details('IP address %s not found' % str(sent_ip))
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return SubscriberID()
-        return SIDUtils.to_pb(sid)
+        else:
+            #handle composite key case
+            sid = sid.split(':')[0]
+            return SIDUtils.to_pb(sid)
 
     def GetSubscriberIPTable(self, void, context):
         """ Get the full subscriber table """
         logging.debug("Listing subscriber IP table")
         resp = SubscriberIPTable()
 
-        sid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
-        for subscriber_id, ip in sid_ip_pairs:
-            sid = SIDUtils.to_pb(subscriber_id)
+        csid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
+        for composite_sid, ip in csid_ip_pairs:
+            #handle composite sid to sid and apn mapping
+            sid_apn_tuple = composite_sid.split(':')
+            sid = SIDUtils.to_pb(sid_apn_tuple[0])
+            apn = sid_apn_tuple[1] if len(sid_apn_tuple) > 1 else None
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
-            resp.entries.add(sid=sid, ip=ip_msg)
+            resp.entries.add(sid=sid, ip=ip_msg, apn=apn)
 
         return resp
 

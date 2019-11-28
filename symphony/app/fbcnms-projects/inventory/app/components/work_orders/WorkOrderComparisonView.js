@@ -68,6 +68,9 @@ const useStyles = makeStyles(theme => ({
   searchBar: {
     flexGrow: 1,
   },
+  buttonContent: {
+    paddingTop: '4px',
+  },
 }));
 
 const WorkOrderComparisonView = () => {
@@ -169,8 +172,14 @@ const WorkOrderComparisonView = () => {
                   setResultsDisplayMode(id === 'table' ? 'table' : 'map');
                 }}
                 buttons={[
-                  {item: <ListAltIcon />, id: 'table'},
-                  {item: <MapIcon />, id: 'map'},
+                  {
+                    item: <ListAltIcon className={classes.buttonContent} />,
+                    id: 'table',
+                  },
+                  {
+                    item: <MapIcon className={classes.buttonContent} />,
+                    id: 'map',
+                  },
                 ]}
               />
             </div>

@@ -499,6 +499,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 		insert.Set(property.FieldStringVal, *value)
 		pr.StringVal = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(property.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

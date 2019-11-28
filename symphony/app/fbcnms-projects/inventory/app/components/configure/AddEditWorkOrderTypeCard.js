@@ -43,7 +43,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
   root: {
-    padding: '24px 16px',
+    padding: '24px',
     maxHeight: '100%',
     overflow: 'hidden',
     display: 'flex',
@@ -81,6 +81,9 @@ const styles = theme => ({
   cancelButton: {
     marginRight: '8px',
   },
+  panel: {
+    margin: '16px 0px',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -117,6 +120,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
             {
               id: 'wo_templates',
               name: 'Work Order Templates',
+              onClick: onClose,
             },
             this.props.editingWorkOrderType
               ? {
@@ -152,7 +156,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               onDescriptionChange={this.descriptionChanged}
             />
           </ExpandingPanel>
-          <ExpandingPanel title="Properties">
+          <ExpandingPanel title="Properties" className={classes.panel}>
             <PropertyTypeTable
               propertyTypes={propertyTypes}
               onPropertiesChanged={this._propertyChangedHandler}

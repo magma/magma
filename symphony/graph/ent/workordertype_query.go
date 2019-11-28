@@ -60,16 +60,11 @@ func (wotq *WorkOrderTypeQuery) Order(o ...Order) *WorkOrderTypeQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (wotq *WorkOrderTypeQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: wotq.config}
-	step := &sql.Step{}
-	step.From.V = wotq.sqlQuery()
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workordertype.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
+	)
 	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
@@ -77,16 +72,11 @@ func (wotq *WorkOrderTypeQuery) QueryWorkOrders() *WorkOrderQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (wotq *WorkOrderTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: wotq.config}
-	step := &sql.Step{}
-	step.From.V = wotq.sqlQuery()
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workordertype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, workordertype.PropertyTypesTable, workordertype.PropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
@@ -94,16 +84,11 @@ func (wotq *WorkOrderTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 // QueryDefinitions chains the current query on the definitions edge.
 func (wotq *WorkOrderTypeQuery) QueryDefinitions() *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: wotq.config}
-	step := &sql.Step{}
-	step.From.V = wotq.sqlQuery()
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = workorderdefinition.Table
-	step.To.Column = workorderdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workordertype.DefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.DefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
+		sql.To(workorderdefinition.Table, workorderdefinition.FieldID),
+		sql.Edge(sql.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
+	)
 	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }
@@ -111,16 +96,11 @@ func (wotq *WorkOrderTypeQuery) QueryDefinitions() *WorkOrderDefinitionQuery {
 // QueryCheckListDefinitions chains the current query on the check_list_definitions edge.
 func (wotq *WorkOrderTypeQuery) QueryCheckListDefinitions() *CheckListItemDefinitionQuery {
 	query := &CheckListItemDefinitionQuery{config: wotq.config}
-	step := &sql.Step{}
-	step.From.V = wotq.sqlQuery()
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = checklistitemdefinition.Table
-	step.To.Column = checklistitemdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workordertype.CheckListDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.CheckListDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, wotq.sqlQuery()),
+		sql.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
+		sql.Edge(sql.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+	)
 	query.sql = sql.SetNeighbors(wotq.driver.Dialect(), step)
 	return query
 }

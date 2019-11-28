@@ -282,6 +282,7 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 		insert.Set(service.FieldExternalID, *value)
 		s.ExternalID = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(service.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -58,16 +58,11 @@ func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (swfsq *SurveyWiFiScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: swfsq.config}
-	step := &sql.Step{}
-	step.From.V = swfsq.sqlQuery()
-	step.From.Table = surveywifiscan.Table
-	step.From.Column = surveywifiscan.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveywifiscan.SurveyQuestionTable
-	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.SurveyQuestionColumn)
+	step := sql.NewStep(
+		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
+	)
 	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (swfsq *SurveyWiFiScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 // QueryLocation chains the current query on the location edge.
 func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: swfsq.config}
-	step := &sql.Step{}
-	step.From.V = swfsq.sqlQuery()
-	step.From.Table = surveywifiscan.Table
-	step.From.Column = surveywifiscan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveywifiscan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }

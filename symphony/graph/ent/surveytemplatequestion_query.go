@@ -57,16 +57,11 @@ func (stqq *SurveyTemplateQuestionQuery) Order(o ...Order) *SurveyTemplateQuesti
 // QueryCategory chains the current query on the category edge.
 func (stqq *SurveyTemplateQuestionQuery) QueryCategory() *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: stqq.config}
-	step := &sql.Step{}
-	step.From.V = stqq.sqlQuery()
-	step.From.Table = surveytemplatequestion.Table
-	step.From.Column = surveytemplatequestion.FieldID
-	step.To.Table = surveytemplatecategory.Table
-	step.To.Column = surveytemplatecategory.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = surveytemplatequestion.CategoryTable
-	step.Edge.Columns = append(step.Edge.Columns, surveytemplatequestion.CategoryColumn)
+	step := sql.NewStep(
+		sql.From(surveytemplatequestion.Table, surveytemplatequestion.FieldID, stqq.sqlQuery()),
+		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sql.Edge(sql.M2O, true, surveytemplatequestion.CategoryTable, surveytemplatequestion.CategoryColumn),
+	)
 	query.sql = sql.SetNeighbors(stqq.driver.Dialect(), step)
 	return query
 }

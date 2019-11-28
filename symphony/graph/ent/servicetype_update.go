@@ -184,6 +184,7 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -202,8 +203,9 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(servicetype.Table).Where(sql.InInts(servicetype.FieldID, ids...))
+		updater = builder.Update(servicetype.Table)
 	)
+	updater = updater.Where(sql.InInts(servicetype.FieldID, ids...))
 	if value := stu.update_time; value != nil {
 		updater.Set(servicetype.FieldUpdateTime, *value)
 	}
@@ -474,6 +476,7 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -497,8 +500,9 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(servicetype.Table).Where(sql.InInts(servicetype.FieldID, ids...))
+		updater = builder.Update(servicetype.Table)
 	)
+	updater = updater.Where(sql.InInts(servicetype.FieldID, ids...))
 	if value := stuo.update_time; value != nil {
 		updater.Set(servicetype.FieldUpdateTime, *value)
 		st.UpdateTime = *value

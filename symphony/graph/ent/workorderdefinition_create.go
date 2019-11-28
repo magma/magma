@@ -163,6 +163,7 @@ func (wodc *WorkOrderDefinitionCreate) sqlSave(ctx context.Context) (*WorkOrderD
 		insert.Set(workorderdefinition.FieldIndex, *value)
 		wod.Index = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(workorderdefinition.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

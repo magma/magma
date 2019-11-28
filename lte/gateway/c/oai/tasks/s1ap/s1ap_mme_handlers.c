@@ -1000,7 +1000,9 @@ static int s1ap_mme_generate_ue_context_release_command(
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
-    default: AssertFatal(false, "Unknown cause for context release"); break;
+    default:
+      OAILOG_ERROR(LOG_S1AP, "Unknown cause for context release");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   s1ap_mme_set_cause(
     &ueContextReleaseCommandIEs_p->cause, cause_type, cause_value);

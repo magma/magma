@@ -35,6 +35,7 @@ const (
 	OCSServiceIdentifierEnv = "OCS_SERVICE_IDENTIFIER_OVERWRITE"
 	DisableDestHostEnv      = "DISABLE_DEST_HOST"
 	UseGyForAuthOnlyEnv     = "USE_GY_FOR_AUTH_ONLY"
+	GySupportedVendorIDsEnv = "GY_SUPPORTED_VENDOR_IDS"
 
 	GyInitMethodFlag         = "gy_init_method"
 	OCSApnOverwriteFlag      = "ocs_apn_overwrite"
@@ -117,12 +118,13 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 	if err != nil {
 		log.Printf("%s Managed Gy Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return &diameter.DiameterClientConfig{
-			Host:             diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, diameter.DiamHost),
-			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, diameter.DiamRealm),
-			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, diameter.DiamProductName),
-			AppID:            diam.CHARGING_CONTROL_APP_ID,
-			WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
-			RetryCount:       uint(retries),
+			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, diameter.DiamHost),
+			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, diameter.DiamRealm),
+			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, diameter.DiamProductName),
+			AppID:              diam.CHARGING_CONTROL_APP_ID,
+			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+			RetryCount:         uint(retries),
+			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
 		}
 	}
 	retries = configsPtr.GetGy().GetServer().GetRetryCount()
@@ -132,12 +134,13 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 	}
 	gyCfg := configsPtr.GetGy().GetServer()
 	return &diameter.DiameterClientConfig{
-		Host:             diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost()),
-		Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm()),
-		ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName()),
-		AppID:            diam.CHARGING_CONTROL_APP_ID,
-		WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
-		RetryCount:       uint(retries),
+		Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, gyCfg.GetHost()),
+		Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, gyCfg.GetRealm()),
+		ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, gyCfg.GetProductName()),
+		AppID:              diam.CHARGING_CONTROL_APP_ID,
+		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+		RetryCount:         uint(retries),
+		SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
 	}
 }
 

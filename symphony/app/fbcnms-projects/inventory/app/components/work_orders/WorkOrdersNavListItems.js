@@ -8,8 +8,8 @@
  * @format
  */
 import AssignmentIcon from '@material-ui/icons/Assignment';
-import FormatListNumberedIcon from '@material-ui/icons/FormatListNumbered';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
+import ProjectsIcon from '@fbcnms/ui/icons/ProjectsIcon';
 import React from 'react';
 import WorkIcon from '@material-ui/icons/Work';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -31,7 +31,7 @@ export const WorkOrdersNavListItems = () => {
       key={2}
       label="Projects"
       path={relativeUrl('/projects/search')}
-      icon={<FormatListNumberedIcon />}
+      icon={<ProjectsIcon />}
       onClick={() => ServerLogger.info(LogEvents.PROJECTS_SEARCH_NAV_CLICKED)}
     />,
     <NavListItem

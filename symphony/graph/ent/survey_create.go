@@ -214,6 +214,7 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 		insert.Set(survey.FieldCompletionTimestamp, *value)
 		s.CompletionTimestamp = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(survey.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

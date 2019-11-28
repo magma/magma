@@ -195,6 +195,7 @@ func (ptc *ProjectTypeCreate) sqlSave(ctx context.Context) (*ProjectType, error)
 		insert.Set(projecttype.FieldDescription, *value)
 		pt.Description = value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(projecttype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

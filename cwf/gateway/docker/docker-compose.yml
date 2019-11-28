@@ -58,6 +58,8 @@ services:
   directoryd:
     <<: *pyservice
     container_name: directoryd
+    depends_on:
+      - redis
     command: python3.5 -m magma.directoryd.main
 
   eap_aka:
@@ -106,6 +108,8 @@ services:
   policydb:
     <<: *ltepyservice
     container_name: policydb
+    depends_on:
+      - redis
     command: python3 -m magma.policydb.main
 
   redirectd:
@@ -146,9 +150,13 @@ services:
   sessiond:
     <<: *ltecservice
     container_name: sessiond
+    depends_on:
+      - directoryd
     command: /usr/local/bin/sessiond
 
   state:
     <<: *pyservice
     container_name: state
+    depends_on:
+      - redis
     command: python3.5 -m magma.state.main

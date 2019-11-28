@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {symphony_agent} from '@fbcnms/magma-api';
+import type {symphony_agent, symphony_device} from '@fbcnms/magma-api';
 
 export const RAW_AGENT: symphony_agent = {
   description: 'The agent running in the docker engine in the Boston lab',
@@ -170,4 +170,220 @@ export const RAW_AGENT: symphony_agent = {
     },
   },
   tier: 'default',
+};
+
+export const RAW_DEVICES: {[string]: symphony_device} = {
+  ens_switch_1: {
+    config: {
+      channels: {
+        cambium_channel: {
+          client_id: 'randomid',
+          client_ip: '10.0.0.1',
+          client_mac: '58:C1:7A:90:36:50',
+          client_secret: 'randomsecret',
+        },
+        frinx_channel: {
+          authorization: 'Basic auth',
+          device_type: 'ios',
+          device_version: '15.2',
+          frinx_port: 8181,
+          host: 'frinx',
+          password: 'frinx',
+          port: 23,
+          transport_type: 'telnet',
+          username: 'username',
+        },
+        other_channel: {},
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_config: '{}',
+      device_type: ['snmp'],
+      host: '2620:10d:c089:1:822a:a8ff:fe1c:d3c1',
+      platform: 'snmp',
+    },
+    id: 'ens_switch_1',
+    name: 'ens_switch_1',
+  },
+  localhost_snmpd: {
+    config: {
+      channels: {
+        cambium_channel: {
+          client_id: 'randomid',
+          client_ip: '10.0.0.1',
+          client_mac: '58:C1:7A:90:36:50',
+          client_secret: 'randomsecret',
+        },
+        frinx_channel: {
+          authorization: 'Basic auth',
+          device_type: 'ios',
+          device_version: '15.2',
+          frinx_port: 8181,
+          host: 'frinx',
+          password: 'frinx',
+          port: 23,
+          transport_type: 'telnet',
+          username: 'username',
+        },
+        other_channel: {},
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_config: '{}',
+      device_type: ['snmp'],
+      host: '127.0.0.1',
+      platform: 'snmp',
+    },
+    id: 'localhost_snmpd',
+    name: 'localhost_snmpd',
+  },
+  mikrotik: {
+    config: {
+      channels: {
+        other_channel: {
+          channel_props: {
+            password: '',
+            username: 'admin',
+          },
+        },
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_type: [],
+      host: '192.168.90.1',
+      platform: 'mikrotik',
+    },
+    id: 'mikrotik',
+    name: 'Mikrotik',
+  },
+  ping_fb_dns_from_lab: {
+    config: {
+      channels: {},
+      device_config: '{}',
+      device_type: [],
+      host: '192.168.96.18',
+      platform: 'ping',
+    },
+    id: 'ping_fb_dns_from_lab',
+    name: 'Ping FB DNS From Lab',
+  },
+  ping_fb_dns_ken_laptop: {
+    config: {
+      channels: {
+        cambium_channel: {
+          client_id: 'randomid',
+          client_ip: '10.0.0.1',
+          client_mac: '58:C1:7A:90:36:50',
+          client_secret: 'randomsecret',
+        },
+        frinx_channel: {
+          authorization: 'Basic auth',
+          device_type: 'ios',
+          device_version: '15.2',
+          frinx_port: 8181,
+          host: 'frinx',
+          password: 'frinx',
+          port: 23,
+          transport_type: 'telnet',
+          username: 'username',
+        },
+        other_channel: {},
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_config: '{}',
+      device_type: ['snmp'],
+      host: '192.168.96.18',
+      platform: 'ping',
+    },
+    id: 'ping_fb_dns_ken_laptop',
+    name: 'ping_fb_dns_ken_laptop',
+  },
+  ping_google_ipv6: {
+    config: {
+      channels: {},
+      device_config: '{}',
+      device_type: [],
+      host: '2607:f8b0:4004:814::200e',
+      platform: 'ping',
+    },
+    id: 'ping_google_ipv6',
+    name: 'Ping Google IPv6',
+  },
+  ping_google_ipv6_ken_laptop: {
+    config: {
+      channels: {
+        cambium_channel: {
+          client_id: 'randomid',
+          client_ip: '10.0.0.1',
+          client_mac: '58:C1:7A:90:36:50',
+          client_secret: 'randomsecret',
+        },
+        frinx_channel: {
+          authorization: 'Basic auth',
+          device_type: 'ios',
+          device_version: '15.2',
+          frinx_port: 8181,
+          host: 'frinx',
+          password: 'frinx',
+          port: 23,
+          transport_type: 'telnet',
+          username: 'username',
+        },
+        other_channel: {},
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_config: '{}',
+      device_type: ['snmp'],
+      host: '2607:f8b0:4004:803::200e',
+      platform: 'ping',
+    },
+    id: 'ping_google_ipv6_ken_laptop',
+    name: 'ping_google_ipv6_ken_laptop',
+  },
+  ubnt: {
+    config: {
+      channels: {
+        cambium_channel: {
+          client_id: 'randomid',
+          client_ip: '10.0.0.1',
+          client_mac: '58:C1:7A:90:36:50',
+          client_secret: 'randomsecret',
+        },
+        frinx_channel: {
+          authorization: 'Basic auth',
+          device_type: 'ios',
+          device_version: '15.2',
+          frinx_port: 8181,
+          host: 'frinx',
+          password: 'frinx',
+          port: 23,
+          transport_type: 'telnet',
+          username: 'username',
+        },
+        other_channel: {},
+        snmp_channel: {
+          community: 'public',
+          version: 'v1',
+        },
+      },
+      device_config: '{}',
+      device_type: ['snmp'],
+      host: '192.168.88.253',
+      platform: 'Ubnt',
+    },
+    id: 'ubnt',
+    name: 'ubnt',
+  },
 };

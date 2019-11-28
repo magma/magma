@@ -227,7 +227,9 @@ class ProjectDetails extends React.Component<Props, State> {
             onClick={() => this.props.history.push(this.props.match.url)}>
             Cancel
           </Button>
-          <Button onClick={() => this.saveProject()}>Save</Button>
+          <Button disabled={!project.name} onClick={() => this.saveProject()}>
+            Save
+          </Button>
         </div>
         <div className={classes.cards}>
           <Grid container spacing={2}>
