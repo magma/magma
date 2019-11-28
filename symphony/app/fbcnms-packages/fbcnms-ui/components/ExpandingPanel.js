@@ -66,6 +66,9 @@ type Props = {
   className?: string,
   detailsPaneClass?: string,
   rightContent?: React.Node,
+  defaultExpanded?: boolean,
+  expandedClassName?: string,
+  expansionPanelSummaryClassName?: string,
 };
 
 const ExpandingPanel = ({
@@ -74,22 +77,26 @@ const ExpandingPanel = ({
   children,
   title,
   rightContent,
+  defaultExpanded,
+  expandedClassName,
+  expansionPanelSummaryClassName,
 }: Props) => {
   const classes = useStyles();
-  const [isExpanded, setIsExpanded] = React.useState(true);
   return (
     <ExpansionPanel
-      className={classNames(className, classes.expansionPanel)}
-      defaultExpanded={true}
-      expanded={isExpanded}>
+      className={classNames(classes.expansionPanel, className)}
+      classes={{expanded: expandedClassName}}
+      defaultExpanded={defaultExpanded}>
       <ExpansionPanelSummary
-        className={classes.expansionPanelSummary}
+        className={classNames(
+          classes.expansionPanelSummary,
+          expansionPanelSummaryClassName,
+        )}
         classes={{
           expandIcon: classes.expandIcon,
           content: classes.summaryContent,
         }}
-        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}
-        IconButtonProps={{onClick: () => setIsExpanded(!isExpanded)}}>
+        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}>
         <Text className={classes.panelTitle}>{title}</Text>
         {rightContent}
       </ExpansionPanelSummary>
@@ -99,6 +106,10 @@ const ExpandingPanel = ({
       </ExpansionPanelDetails>
     </ExpansionPanel>
   );
+};
+
+ExpandingPanel.defaultProps = {
+  defaultExpanded: true,
 };
 
 export default ExpandingPanel;

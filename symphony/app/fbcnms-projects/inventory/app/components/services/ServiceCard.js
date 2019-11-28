@@ -11,14 +11,16 @@
 import type {ContextRouter} from 'react-router-dom';
 import type {WithStyles} from '@material-ui/core';
 
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
+import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import FormField from '@fbcnms/ui/components/FormField';
+import Grid from '@material-ui/core/Grid';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
-import ServiceDetails from './ServiceDetails';
 import ServiceHeader from './ServiceHeader';
 import ServiceLinksView from './ServiceLinksView';
 import ServiceNetworkMap from './ServiceNetworkMap';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
@@ -32,10 +34,13 @@ type Props = {
 
 const styles = _ => ({
   root: {
-    height: 'calc(100% - 80px)',
+    height: '100%',
+  },
+  sidePanel: {
     display: 'flex',
     flexDirection: 'column',
-    margin: '40px 32px',
+    height: '100%',
+    backgroundColor: symphony.palette.white,
   },
   contentRoot: {
     position: 'relative',
@@ -56,27 +61,55 @@ const styles = _ => ({
     width: 'auto',
   },
   detailsCard: {
-    display: 'flex',
-    flexWrap: 'wrap',
+    boxShadow: 'none',
+    padding: '32px 32px 12px 32px',
   },
   field: {
     width: '50%',
     marginBottom: '12px',
     paddingRight: '16px',
   },
+  expanded: {},
   panel: {
-    marginBottom: '16px',
-    marginTop: '16px',
+    '&$expanded': {
+      margin: '0px 0px',
+    },
+    boxShadow: 'none',
   },
   linksPanel: {
     width: '500px',
     marginRight: '16px',
   },
   topologyPanel: {
-    flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    height: '100%',
+    padding: '32px',
+  },
+  separator: {
+    borderBottom: `1px solid ${symphony.palette.separator}`,
+    margin: 0,
+  },
+  detailValue: {
+    color: symphony.palette.D500,
+    display: 'block',
+  },
+  detail: {
+    paddingBottom: '12px',
+  },
+  text: {
+    display: 'block',
   },
   topologyCard: {
-    display: 'flex',
+    flexGrow: 1,
+  },
+  titleText: {
+    lineHeight: '28px',
+  },
+  expansionPanel: {
+    '&&': {
+      padding: '0px 20px 0px 32px',
+    },
   },
 });
 
@@ -127,38 +160,78 @@ const ServiceCard = (props: Props) => {
       render={props => {
         const {service} = props;
         return (
-          <div className={classes.root}>
-            <ServiceHeader
-              service={service}
-              onBackClicked={navigateToMainPage}
-              onServiceRemoved={navigateToMainPage}
-            />
-            <ExpandingPanel title="Details" className={classes.panel}>
-              <div className={classes.detailsCard}>
-                <div className={classes.field}>
-                  <FormField label="Service ID" value={service.externalId} />
-                </div>
-                <div className={classes.field}>
-                  <FormField label="Customer" value={service.customer?.name} />
-                </div>
-              </div>
-            </ExpandingPanel>
-            <ExpandingPanel title="Properties" className={classes.panel}>
-              <ServiceDetails service={service} />
-            </ExpandingPanel>
-            <div className={classes.topologyCard}>
-              <div className={classes.linksPanel}>
-                <ExpandingPanel title="Links" className={classes.panel}>
-                  <ServiceLinksView links={service.links} />
-                </ExpandingPanel>
-              </div>
+          <Grid container className={classes.root}>
+            <Grid item xs={6} sm={8} lg={8} xl={9}>
               <div className={classes.topologyPanel}>
-                <ExpandingPanel title="Topology" className={classes.panel}>
+                <ServiceHeader
+                  service={service}
+                  onBackClicked={navigateToMainPage}
+                  onServiceRemoved={navigateToMainPage}
+                />
+                <Card className={classes.topologyCard}>
+                  <CardHeader className={classes.titleText}>
+                    Topology
+                  </CardHeader>
                   <ServiceNetworkMap serviceId={service.id} />
-                </ExpandingPanel>
+                </Card>
               </div>
-            </div>
-          </div>
+            </Grid>
+            <Grid
+              item
+              xs={6}
+              sm={4}
+              lg={4}
+              xl={3}
+              className={classes.sidePanel}>
+              <Card className={classes.detailsCard}>
+                <div className={classes.detail}>
+                  <Text variant="h6" className={classes.text}>
+                    {service.name}
+                  </Text>
+                  <Text
+                    variant="subtitle2"
+                    weight="regular"
+                    className={classes.detailValue}>
+                    {service.externalId}
+                  </Text>
+                </div>
+                <div className={classes.detail}>
+                  <Text variant="subtitle2" className={classes.text}>
+                    Service Type
+                  </Text>
+                  <Text
+                    variant="subtitle2"
+                    weight="regular"
+                    className={classes.detailValue}>
+                    {service.serviceType.name}
+                  </Text>
+                </div>
+                {service.customer && (
+                  <div className={classes.detail}>
+                    <Text variant="subtitle2" className={classes.text}>
+                      Client
+                    </Text>
+                    <Text
+                      variant="subtitle2"
+                      weight="regular"
+                      className={classes.detailValue}>
+                      {service.customer.name}
+                    </Text>
+                  </div>
+                )}
+              </Card>
+              <div className={classes.separator} />
+              <ExpandingPanel
+                title="Links"
+                defaultExpanded={false}
+                expandedClassName={classes.expanded}
+                className={classes.panel}
+                expansionPanelSummaryClassName={classes.expansionPanel}>
+                <ServiceLinksView links={service.links} />
+              </ExpandingPanel>
+              <div className={classes.separator} />
+            </Grid>
+          </Grid>
         );
       }}
     />
