@@ -261,6 +261,7 @@ func (ltc *LocationTypeCreate) sqlSave(ctx context.Context) (*LocationType, erro
 		insert.Set(locationtype.FieldIndex, *value)
 		lt.Index = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(locationtype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

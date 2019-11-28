@@ -151,6 +151,7 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -169,8 +170,9 @@ func (fprpu *FloorPlanReferencePointUpdate) sqlSave(ctx context.Context) (n int,
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(floorplanreferencepoint.Table).Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
+		updater = builder.Update(floorplanreferencepoint.Table)
 	)
+	updater = updater.Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
 	if value := fprpu.update_time; value != nil {
 		updater.Set(floorplanreferencepoint.FieldUpdateTime, *value)
 	}
@@ -337,6 +339,7 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -360,8 +363,9 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(floorplanreferencepoint.Table).Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
+		updater = builder.Update(floorplanreferencepoint.Table)
 	)
+	updater = updater.Where(sql.InInts(floorplanreferencepoint.FieldID, ids...))
 	if value := fprpuo.update_time; value != nil {
 		updater.Set(floorplanreferencepoint.FieldUpdateTime, *value)
 		fprp.UpdateTime = *value

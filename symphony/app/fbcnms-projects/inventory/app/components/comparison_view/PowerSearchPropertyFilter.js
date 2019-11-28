@@ -92,6 +92,7 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
             inputType="Property"
             property={propertyValue}
             onBlur={onInputBlurred}
+            autoFocus={true}
             onKeyDown={e => {
               if (e.keyCode === ENTER_KEY_CODE) {
                 onInputBlurred();

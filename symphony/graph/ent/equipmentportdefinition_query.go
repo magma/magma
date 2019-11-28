@@ -59,16 +59,11 @@ func (epdq *EquipmentPortDefinitionQuery) Order(o ...Order) *EquipmentPortDefini
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: epdq.config}
-	step := &sql.Step{}
-	step.From.V = epdq.sqlQuery()
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmentporttype.Table
-	step.To.Column = equipmentporttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentportdefinition.EquipmentPortTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.EquipmentPortTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sql.Edge(sql.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
+	)
 	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
@@ -76,16 +71,11 @@ func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentPortType() *EquipmentPor
 // QueryPorts chains the current query on the ports edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: epdq.config}
-	step := &sql.Step{}
-	step.From.V = epdq.sqlQuery()
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentportdefinition.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.PortsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
+	)
 	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
@@ -93,16 +83,11 @@ func (epdq *EquipmentPortDefinitionQuery) QueryPorts() *EquipmentPortQuery {
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := &sql.Step{}
-	step.From.V = epdq.sqlQuery()
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentportdefinition.EquipmentTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.EquipmentTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
+	)
 	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }

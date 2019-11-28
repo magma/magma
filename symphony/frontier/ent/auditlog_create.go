@@ -249,6 +249,7 @@ func (alc *AuditLogCreate) sqlSave(ctx context.Context) (*AuditLog, error) {
 		insert.Set(auditlog.FieldStatusCode, *value)
 		al.StatusCode = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(auditlog.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

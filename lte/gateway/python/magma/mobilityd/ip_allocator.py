@@ -305,8 +305,7 @@ class IPAllocator():
     def alloc_ip_address(self, sid):
         """ Allocate an IP address from the free list
 
-        Assumption: one IP per UE and one-to-one mappings between SID and IP.
-        At most one IP address can be allocated for a UE at any given time.
+        Assumption: one-to-one mappings between SID and IP.
 
         Args:
             sid (string): universal subscriber id

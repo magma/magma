@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 
 const CommentsLogEmptyState = () => {
   const classes = useStyles();
-  return <div className={classes.noCommentsEmptyState}>no comments yet!</div>;
+  return <div className={classes.noCommentsEmptyState}>No comments yet</div>;
 };
 
 export default CommentsLogEmptyState;

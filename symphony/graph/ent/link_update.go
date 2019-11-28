@@ -262,6 +262,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -280,8 +281,9 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(link.Table).Where(sql.InInts(link.FieldID, ids...))
+		updater = builder.Update(link.Table)
 	)
+	updater = updater.Where(sql.InInts(link.FieldID, ids...))
 	if value := lu.update_time; value != nil {
 		updater.Set(link.FieldUpdateTime, *value)
 	}
@@ -693,6 +695,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -716,8 +719,9 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(link.Table).Where(sql.InInts(link.FieldID, ids...))
+		updater = builder.Update(link.Table)
 	)
+	updater = updater.Where(sql.InInts(link.FieldID, ids...))
 	if value := luo.update_time; value != nil {
 		updater.Set(link.FieldUpdateTime, *value)
 		l.UpdateTime = *value

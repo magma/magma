@@ -58,16 +58,11 @@ func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: scsq.config}
-	step := &sql.Step{}
-	step.From.V = scsq.sqlQuery()
-	step.From.Table = surveycellscan.Table
-	step.From.Column = surveycellscan.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveycellscan.SurveyQuestionTable
-	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.SurveyQuestionColumn)
+	step := sql.NewStep(
+		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+	)
 	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 // QueryLocation chains the current query on the location edge.
 func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: scsq.config}
-	step := &sql.Step{}
-	step.From.V = scsq.sqlQuery()
-	step.From.Table = surveycellscan.Table
-	step.From.Column = surveycellscan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveycellscan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }

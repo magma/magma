@@ -170,6 +170,7 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -188,8 +189,9 @@ func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(floorplanscale.Table).Where(sql.InInts(floorplanscale.FieldID, ids...))
+		updater = builder.Update(floorplanscale.Table)
 	)
+	updater = updater.Where(sql.InInts(floorplanscale.FieldID, ids...))
 	if value := fpsu.update_time; value != nil {
 		updater.Set(floorplanscale.FieldUpdateTime, *value)
 	}
@@ -381,6 +383,7 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -404,8 +407,9 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(floorplanscale.Table).Where(sql.InInts(floorplanscale.FieldID, ids...))
+		updater = builder.Update(floorplanscale.Table)
 	)
+	updater = updater.Where(sql.InInts(floorplanscale.FieldID, ids...))
 	if value := fpsuo.update_time; value != nil {
 		updater.Set(floorplanscale.FieldUpdateTime, *value)
 		fps.UpdateTime = *value

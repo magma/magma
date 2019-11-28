@@ -176,7 +176,9 @@ class AddProjectCard extends React.Component<Props, State> {
             onClick={() => this.props.history.push(this.props.match.url)}>
             Cancel
           </Button>
-          <Button onClick={() => this._saveProject()}>Save</Button>
+          <Button disabled={!project.name} onClick={() => this._saveProject()}>
+            Save
+          </Button>
         </div>
         <div className={classes.contentRoot}>
           <div className={classes.cards}>

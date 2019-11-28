@@ -126,6 +126,7 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -144,8 +145,9 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentcategory.Table).Where(sql.InInts(equipmentcategory.FieldID, ids...))
+		updater = builder.Update(equipmentcategory.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentcategory.FieldID, ids...))
 	if value := ecu.update_time; value != nil {
 		updater.Set(equipmentcategory.FieldUpdateTime, *value)
 	}
@@ -310,6 +312,7 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -333,8 +336,9 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentcategory.Table).Where(sql.InInts(equipmentcategory.FieldID, ids...))
+		updater = builder.Update(equipmentcategory.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentcategory.FieldID, ids...))
 	if value := ecuo.update_time; value != nil {
 		updater.Set(equipmentcategory.FieldUpdateTime, *value)
 		ec.UpdateTime = *value

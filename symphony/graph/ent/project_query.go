@@ -60,16 +60,11 @@ func (pq *ProjectQuery) Order(o ...Order) *ProjectQuery {
 // QueryType chains the current query on the type edge.
 func (pq *ProjectQuery) QueryType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: pq.config}
-	step := &sql.Step{}
-	step.From.V = pq.sqlQuery()
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = projecttype.Table
-	step.To.Column = projecttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = project.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, project.TypeColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sql.To(projecttype.Table, projecttype.FieldID),
+		sql.Edge(sql.M2O, true, project.TypeTable, project.TypeColumn),
+	)
 	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
@@ -77,16 +72,11 @@ func (pq *ProjectQuery) QueryType() *ProjectTypeQuery {
 // QueryLocation chains the current query on the location edge.
 func (pq *ProjectQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := &sql.Step{}
-	step.From.V = pq.sqlQuery()
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = project.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, project.LocationColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, project.LocationTable, project.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
@@ -94,16 +84,11 @@ func (pq *ProjectQuery) QueryLocation() *LocationQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (pq *ProjectQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-	step := &sql.Step{}
-	step.From.V = pq.sqlQuery()
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = project.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, project.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
+	)
 	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
@@ -111,16 +96,11 @@ func (pq *ProjectQuery) QueryWorkOrders() *WorkOrderQuery {
 // QueryProperties chains the current query on the properties edge.
 func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: pq.config}
-	step := &sql.Step{}
-	step.From.V = pq.sqlQuery()
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = project.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, project.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }

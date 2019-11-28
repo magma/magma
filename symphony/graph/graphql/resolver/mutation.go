@@ -471,6 +471,7 @@ func (r mutationResolver) AddLocationType(
 		SetName(input.Name).
 		SetNillableMapType(input.MapType).
 		SetNillableMapZoomLevel(input.MapZoomLevel).
+		SetNillableSite(input.IsSite).
 		SetIndex(index).
 		AddPropertyTypes(props...).
 		AddSurveyTemplateCategories(categories...).
@@ -482,13 +483,6 @@ func (r mutationResolver) AddLocationType(
 		return nil, errors.Wrap(err, "creating location type")
 	}
 	return typ, nil
-}
-
-func (r mutationResolver) MarkLocationTypeIsSite(ctx context.Context, id string, isSite bool) (*ent.LocationType, error) {
-	return r.ClientFrom(ctx).
-		LocationType.UpdateOneID(id).
-		SetSite(isSite).
-		Save(ctx)
 }
 
 func (r mutationResolver) AddEquipmentPorts(ctx context.Context, et *ent.EquipmentType, e *ent.Equipment) ([]*ent.EquipmentPort, error) {
@@ -2031,6 +2025,7 @@ func (r mutationResolver) EditLocationType(
 		SetName(input.Name).
 		SetNillableMapType(input.MapType).
 		SetNillableMapZoomLevel(input.MapZoomLevel).
+		SetNillableSite(input.IsSite).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintFailure(err) {

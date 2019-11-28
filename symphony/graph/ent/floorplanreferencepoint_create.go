@@ -147,6 +147,7 @@ func (fprpc *FloorPlanReferencePointCreate) sqlSave(ctx context.Context) (*Floor
 		insert.Set(floorplanreferencepoint.FieldLongitude, *value)
 		fprp.Longitude = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(floorplanreferencepoint.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -114,6 +114,7 @@ class AddLocationTypeInput:
     surveyTemplateCategories: List[SurveyTemplateCategoryInput]
     mapType: Optional[str] = None
     mapZoomLevel: Optional[int] = None
+    isSite: Optional[bool] = None
 
 
 @dataclass_json

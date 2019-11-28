@@ -512,6 +512,7 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 		insert.Set(surveyquestion.FieldDateData, *value)
 		sq.DateData = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(surveyquestion.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -173,6 +173,7 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -191,8 +192,9 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentposition.Table).Where(sql.InInts(equipmentposition.FieldID, ids...))
+		updater = builder.Update(equipmentposition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentposition.FieldID, ids...))
 	if value := epu.update_time; value != nil {
 		updater.Set(equipmentposition.FieldUpdateTime, *value)
 	}
@@ -434,6 +436,7 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -457,8 +460,9 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentposition.Table).Where(sql.InInts(equipmentposition.FieldID, ids...))
+		updater = builder.Update(equipmentposition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentposition.FieldID, ids...))
 	if value := epuo.update_time; value != nil {
 		updater.Set(equipmentposition.FieldUpdateTime, *value)
 		ep.UpdateTime = *value

@@ -110,6 +110,8 @@ github.com/facebookincubator/ent v0.0.0-20191120181158-b34c95573953 h1:Sq0TomgQv
 github.com/facebookincubator/ent v0.0.0-20191120181158-b34c95573953/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/facebookincubator/ent v0.0.0-20191124133222-0fc310e6001e h1:2Cf/Yrxr+JhrYgXzjG37lU/e1//XF8DsI/0Y+Ye0VEY=
 github.com/facebookincubator/ent v0.0.0-20191124133222-0fc310e6001e/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
+github.com/facebookincubator/ent v0.0.0-20191127142044-5fe9fcdc1b58 h1:OJz5M+5uxCzixYl+mvLSO7AdufhUuEz0eMBPSAN3c08=
+github.com/facebookincubator/ent v0.0.0-20191127142044-5fe9fcdc1b58/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=

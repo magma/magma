@@ -130,6 +130,36 @@ function userMiddleware(options: Options): express.Router {
     res.redirect('/');
   });
 
+  // User Details
+  router.get(
+    '/list',
+    access(AccessRoles.USER),
+    async (req: FBCNMSRequest, res) => {
+      try {
+        let users;
+        if (req.organization) {
+          const organization = await req.organization();
+          users = await User.findAll({
+            where: {
+              organization: organization.name,
+            },
+          });
+        } else {
+          users = await User.findAll();
+        }
+        users = users.map(user => {
+          return {
+            id: user.id,
+            email: user.email,
+          };
+        });
+        res.status(200).send({users});
+      } catch (error) {
+        res.status(400).send({error: error.toString()});
+      }
+    },
+  );
+
   // User Routes
   router.get(
     '/async/',

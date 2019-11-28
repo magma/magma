@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 
@@ -150,8 +151,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 			}
 		}
 	}
-	if entity == models.PropertyEntityPort {
-		var portTypesWithPorts []ent.EquipmentPortType
+	if entity == models.PropertyEntityPort || entity == models.PropertyEntityLink {
+		var relevantPortTypes []ent.EquipmentPortType
 		portTypes, err := resolverutil.EquipmentPortTypes(ctx, c)
 		if err != nil {
 			return nil, err
@@ -159,19 +160,30 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range portTypes.Edges {
 			portType := typ.Node
-			if portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).ExistX(ctx) {
-				portTypesWithPorts = append(portTypesWithPorts, *portType)
+			if entity == models.PropertyEntityLink {
+				if portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).ExistX(ctx) {
+					relevantPortTypes = append(relevantPortTypes, *portType)
+				}
+			} else if entity == models.PropertyEntityPort {
+				if portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).ExistX(ctx) {
+					relevantPortTypes = append(relevantPortTypes, *portType)
+				}
 			}
 		}
-		for _, portType := range portTypesWithPorts {
-			pts, err := portType.QueryPropertyTypes().All(ctx)
-			if err != nil {
-				return nil, errors.Wrap(err, "querying property types")
+		for _, portType := range relevantPortTypes {
+			var pts []*ent.PropertyType
+			if entity == models.PropertyEntityPort {
+				pts, err = portType.QueryPropertyTypes().All(ctx)
+			} else if entity == models.PropertyEntityLink {
+				pts, err = portType.QueryLinkPropertyTypes().All(ctx)
 			}
-			for _, ptype := range pts {
-				if _, ok := alreadyAppended[ptype.Name]; !ok {
-					alreadyAppended[ptype.Name] = ""
-					propTypes = append(propTypes, ptype.Name)
+			if err != nil {
+				return nil, errors.Wrapf(err, "querying property types for %s", entity.String())
+			}
+			for _, pType := range pts {
+				if _, ok := alreadyAppended[pType.Name]; !ok {
+					alreadyAppended[pType.Name] = ""
+					propTypes = append(propTypes, pType.Name)
 				}
 			}
 		}

@@ -78,6 +78,7 @@ int pgw_handle_create_bearer_request(
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   struct in_addr inaddr;
   char *imsi = NULL;
+  char *apn = NULL;
   OAILOG_FUNC_IN(LOG_PGW_APP);
 
   OAILOG_DEBUG(
@@ -128,6 +129,11 @@ int pgw_handle_create_bearer_request(
       (char *)
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
 
+    apn =
+      (char *)
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+          .pdn_connection.apn_in_use;
+
     switch (sgi_create_endpoint_resp.paa.pdn_type) {
       case IPv4:
         // Use NAS by default if no preference is set.
@@ -151,7 +157,7 @@ int pgw_handle_create_bearer_request(
         // and using them here in conditional logic. We will also want to
         // implement different logic between the PDN types.
         if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
             increment_counter(
               "ue_pdn_connection",
               1,
@@ -162,7 +168,8 @@ int pgw_handle_create_bearer_request(
               "success");
             sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
             OAILOG_DEBUG(
-              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>\n", imsi);
+              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
+              imsi, apn);
             sgi_create_endpoint_resp.status = SGI_STATUS_OK;
           } else {
             increment_counter(
@@ -174,7 +181,8 @@ int pgw_handle_create_bearer_request(
               "result",
               "failure");
             OAILOG_ERROR(
-              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4\n");
+              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4 for "
+              "imsi <%s> and apn <%s>\n", imsi, apn);
             sgi_create_endpoint_resp.status =
               SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
           }
@@ -192,7 +200,7 @@ int pgw_handle_create_bearer_request(
         break;
 
       case IPv4_AND_v6:
-        if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
           increment_counter(
             "ue_pdn_connection",
             1,

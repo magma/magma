@@ -58,16 +58,11 @@ func (epdq *EquipmentPositionDefinitionQuery) Order(o ...Order) *EquipmentPositi
 // QueryPositions chains the current query on the positions edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: epdq.config}
-	step := &sql.Step{}
-	step.From.V = epdq.sqlQuery()
-	step.From.Table = equipmentpositiondefinition.Table
-	step.From.Column = equipmentpositiondefinition.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentpositiondefinition.PositionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentpositiondefinition.PositionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
+	)
 	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (epdq *EquipmentPositionDefinitionQuery) QueryPositions() *EquipmentPositio
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := &sql.Step{}
-	step.From.V = epdq.sqlQuery()
-	step.From.Table = equipmentpositiondefinition.Table
-	step.From.Column = equipmentpositiondefinition.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentpositiondefinition.EquipmentTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentpositiondefinition.EquipmentTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
+	)
 	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }

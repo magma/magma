@@ -12,15 +12,13 @@ import type {Location} from '../common/Location';
 
 import 'react-perfect-scrollbar/dist/css/styles.css';
 import * as React from 'react';
-import ExpandButtonContext from './context/ExpandButtonContext';
 import InventoryTreeNode from './InventoryTreeNode';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import RelayEnvironment from '../common/RelayEnvironment';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import classNames from 'classnames';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -89,18 +87,6 @@ const useStyles = makeStyles(theme => ({
     marginRight: '24px',
     width: '100%',
   },
-  collapsedTree: {
-    flexGrow: 0,
-    overflow: 'hidden',
-    width: 0,
-    flexBasis: 0,
-  },
-  expandedTree: {
-    overflow: 'auto',
-    width: '25%',
-    minWidth: '25%',
-    flexGrow: 0,
-  },
 }));
 
 const locationHierarchyQuery = graphql`
@@ -132,9 +118,6 @@ type Props = {
 const InventoryTreeView = (props: Props) => {
   const {tree, title, dummyRootTitle, selectedId, getHoverRightContent} = props;
   const classes = useStyles();
-  const {isExpanded, showExpandButton, hideExpandButton} = useContext(
-    ExpandButtonContext,
-  );
   const [locationHierarchy, setLocationHierarchy] = useState([]);
 
   useMemo(() => {
@@ -167,14 +150,7 @@ const InventoryTreeView = (props: Props) => {
   };
 
   return (
-    <div
-      className={classNames({
-        [classes.root]: true,
-        [classes.collapsedTree]: !isExpanded,
-        [classes.expandedTree]: isExpanded,
-      })}
-      onMouseEnter={showExpandButton}
-      onMouseLeave={hideExpandButton}>
+    <div className={classes.root}>
       <div className={classes.titleContainer}>
         <Text className={classes.title}>{title}</Text>
       </div>

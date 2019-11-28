@@ -1024,11 +1024,11 @@ func TestNearestSites(t *testing.T) {
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
+	isSite := true
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
-		Name: "location_type",
+		Name:   "location_type",
+		IsSite: &isSite,
 	})
-	require.NoError(t, err)
-	_, err = mr.MarkLocationTypeIsSite(ctx, locationType.ID, true)
 	require.NoError(t, err)
 
 	// Meir Park

@@ -34,10 +34,10 @@ function NestedRouteLink(props: Props, ref: React.Ref<any>) {
   const url = to.replace(/^\//, '');
   return (
     <Link
+      {...childProps}
       innerRef={ref}
       className={classes.link}
-      to={`${base}/${url}`}
-      {...childProps}>
+      to={`${base}/${url}`}>
       {children}
     </Link>
   );

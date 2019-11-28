@@ -60,16 +60,11 @@ func (fpq *FloorPlanQuery) Order(o ...Order) *FloorPlanQuery {
 // QueryLocation chains the current query on the location edge.
 func (fpq *FloorPlanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: fpq.config}
-	step := &sql.Step{}
-	step.From.V = fpq.sqlQuery()
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
@@ -77,16 +72,11 @@ func (fpq *FloorPlanQuery) QueryLocation() *LocationQuery {
 // QueryReferencePoint chains the current query on the reference_point edge.
 func (fpq *FloorPlanQuery) QueryReferencePoint() *FloorPlanReferencePointQuery {
 	query := &FloorPlanReferencePointQuery{config: fpq.config}
-	step := &sql.Step{}
-	step.From.V = fpq.sqlQuery()
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = floorplanreferencepoint.Table
-	step.To.Column = floorplanreferencepoint.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ReferencePointTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ReferencePointColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sql.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
+	)
 	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
@@ -94,16 +84,11 @@ func (fpq *FloorPlanQuery) QueryReferencePoint() *FloorPlanReferencePointQuery {
 // QueryScale chains the current query on the scale edge.
 func (fpq *FloorPlanQuery) QueryScale() *FloorPlanScaleQuery {
 	query := &FloorPlanScaleQuery{config: fpq.config}
-	step := &sql.Step{}
-	step.From.V = fpq.sqlQuery()
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = floorplanscale.Table
-	step.To.Column = floorplanscale.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ScaleTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ScaleColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sql.To(floorplanscale.Table, floorplanscale.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
+	)
 	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
@@ -111,16 +96,11 @@ func (fpq *FloorPlanQuery) QueryScale() *FloorPlanScaleQuery {
 // QueryImage chains the current query on the image edge.
 func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 	query := &FileQuery{config: fpq.config}
-	step := &sql.Step{}
-	step.From.V = fpq.sqlQuery()
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ImageTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ImageColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+	)
 	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }

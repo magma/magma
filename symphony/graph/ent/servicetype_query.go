@@ -58,16 +58,11 @@ func (stq *ServiceTypeQuery) Order(o ...Order) *ServiceTypeQuery {
 // QueryServices chains the current query on the services edge.
 func (stq *ServiceTypeQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: stq.config}
-	step := &sql.Step{}
-	step.From.V = stq.sqlQuery()
-	step.From.Table = servicetype.Table
-	step.From.Column = servicetype.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = servicetype.ServicesTable
-	step.Edge.Columns = append(step.Edge.Columns, servicetype.ServicesColumn)
+	step := sql.NewStep(
+		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+	)
 	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (stq *ServiceTypeQuery) QueryServices() *ServiceQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: stq.config}
-	step := &sql.Step{}
-	step.From.V = stq.sqlQuery()
-	step.From.Table = servicetype.Table
-	step.From.Column = servicetype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = servicetype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, servicetype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }

@@ -129,6 +129,7 @@ func (ecc *EquipmentCategoryCreate) sqlSave(ctx context.Context) (*EquipmentCate
 		insert.Set(equipmentcategory.FieldName, *value)
 		ec.Name = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmentcategory.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

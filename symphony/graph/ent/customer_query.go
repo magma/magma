@@ -57,16 +57,11 @@ func (cq *CustomerQuery) Order(o ...Order) *CustomerQuery {
 // QueryServices chains the current query on the services edge.
 func (cq *CustomerQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: cq.config}
-	step := &sql.Step{}
-	step.From.V = cq.sqlQuery()
-	step.From.Table = customer.Table
-	step.From.Column = customer.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = customer.ServicesTable
-	step.Edge.Columns = append(step.Edge.Columns, customer.ServicesPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(customer.Table, customer.FieldID, cq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(cq.driver.Dialect(), step)
 	return query
 }

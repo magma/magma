@@ -31,30 +31,32 @@ int main(int argc, char **argv)
   struct in_addr ipv4_addr2;
   struct in_addr ipv4_addr3;
 
+  char apn[10] = "oai.ipv4";
   {
     char str[INET_ADDRSTRLEN];
-
     printf("Allocating IP address...\n");
 
-    status = allocate_ipv4_address("0001", &ipv4_addr1);
+    status = allocate_ipv4_address("0001", apn, &ipv4_addr1);
     if (status) {
-      printf("allocate_ipv4_address error %d for sid %s\n", status, "0001");
+      printf("allocate_ipv4_address error %d for sid %s for apn %s\n",
+             status, "0001", apn);
       return -1;
     }
     tmp.s_addr = htonl(ipv4_addr1.s_addr);
     inet_ntop(AF_INET, &tmp, str, INET_ADDRSTRLEN);
     printf("IP allocated: %s\n", str);
 
-    status = allocate_ipv4_address("0002", &ipv4_addr2);
+    status = allocate_ipv4_address("0002", apn, &ipv4_addr2);
     if (status) {
-      printf("allocate_ipv4_address error %d for sid %s\n", status, "0002");
+      printf("allocate_ipv4_address error %d for sid %s for apn %s\n",
+              status, "0002", apn);
       return -1;
     }
     tmp.s_addr = htonl(ipv4_addr2.s_addr);
     inet_ntop(AF_INET, &tmp, str, INET_ADDRSTRLEN);
     printf("IP allocated: %s\n", str);
 
-    status = get_ipv4_address_for_subscriber("0002", &ipv4_addr3);
+    status = get_ipv4_address_for_subscriber("0002", apn, &ipv4_addr3);
     if (status) {
       printf(
         "get_ipv4_address_for_subscriber error %d for sid %s\n",
@@ -70,12 +72,12 @@ int main(int argc, char **argv)
   {
     printf("Releasing IP address...\n");
 
-    status = release_ipv4_address("0001", &ipv4_addr1);
+    status = release_ipv4_address("0001", apn, &ipv4_addr1);
     if (status) {
       printf("release_ipv4_address error %d for sid %s\n", status, "0001");
       return -1;
     }
-    status = release_ipv4_address("0002", &ipv4_addr2);
+    status = release_ipv4_address("0002", apn, &ipv4_addr2);
     if (status) {
       printf("release_ipv4_address error %d for sid %s\n", status, "0002");
       return -1;

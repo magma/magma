@@ -578,20 +578,6 @@ func (tr txResolver) MoveLocation(ctx context.Context, locationID string, parent
 	return result, nil
 }
 
-func (tr txResolver) MarkLocationTypeIsSite(ctx context.Context, id string, isSite bool) (*ent.LocationType, error) {
-	var result, zero *ent.LocationType
-	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
-		result, err = mr.MarkLocationTypeIsSite(ctx, id, isSite)
-		return
-	}); err != nil {
-		return zero, err
-	}
-	if result != nil {
-		result = result.Unwrap()
-	}
-	return result, nil
-}
-
 func (tr txResolver) EditLocationTypesIndex(ctx context.Context, locationTypesIndex []*models.LocationTypeIndex) ([]*ent.LocationType, error) {
 	var result, zero []*ent.LocationType
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {

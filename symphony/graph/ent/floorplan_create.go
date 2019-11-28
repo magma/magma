@@ -210,6 +210,7 @@ func (fpc *FloorPlanCreate) sqlSave(ctx context.Context) (*FloorPlan, error) {
 		insert.Set(floorplan.FieldName, *value)
 		fp.Name = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(floorplan.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

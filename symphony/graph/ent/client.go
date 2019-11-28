@@ -371,16 +371,11 @@ func (c *CheckListItemClient) GetX(ctx context.Context, id string) *CheckListIte
 func (c *CheckListItemClient) QueryWorkOrder(cli *CheckListItem) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := cli.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = checklistitem.Table
-	step.From.Column = checklistitem.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = checklistitem.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, checklistitem.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(checklistitem.Table, checklistitem.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+	)
 	query.sql = sql.Neighbors(cli.driver.Dialect(), step)
 
 	return query
@@ -454,16 +449,11 @@ func (c *CheckListItemDefinitionClient) GetX(ctx context.Context, id string) *Ch
 func (c *CheckListItemDefinitionClient) QueryWorkOrderType(clid *CheckListItemDefinition) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := clid.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = checklistitemdefinition.Table
-	step.From.Column = checklistitemdefinition.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = checklistitemdefinition.WorkOrderTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, checklistitemdefinition.WorkOrderTypeColumn)
+	step := sql.NewStep(
+		sql.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, id),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+	)
 	query.sql = sql.Neighbors(clid.driver.Dialect(), step)
 
 	return query
@@ -601,16 +591,11 @@ func (c *CustomerClient) GetX(ctx context.Context, id string) *Customer {
 func (c *CustomerClient) QueryServices(cu *Customer) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := cu.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = customer.Table
-	step.From.Column = customer.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = customer.ServicesTable
-	step.Edge.Columns = append(step.Edge.Columns, customer.ServicesPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(customer.Table, customer.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(cu.driver.Dialect(), step)
 
 	return query
@@ -684,16 +669,11 @@ func (c *EquipmentClient) GetX(ctx context.Context, id string) *Equipment {
 func (c *EquipmentClient) QueryType(e *Equipment) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.TypeColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, false, equipment.TypeTable, equipment.TypeColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -703,16 +683,11 @@ func (c *EquipmentClient) QueryType(e *Equipment) *EquipmentTypeQuery {
 func (c *EquipmentClient) QueryLocation(e *Equipment) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.LocationColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, true, equipment.LocationTable, equipment.LocationColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -722,16 +697,11 @@ func (c *EquipmentClient) QueryLocation(e *Equipment) *LocationQuery {
 func (c *EquipmentClient) QueryParentPosition(e *Equipment) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.ParentPositionTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.ParentPositionColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -741,16 +711,11 @@ func (c *EquipmentClient) QueryParentPosition(e *Equipment) *EquipmentPositionQu
 func (c *EquipmentClient) QueryPositions(e *Equipment) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PositionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PositionsColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -760,16 +725,11 @@ func (c *EquipmentClient) QueryPositions(e *Equipment) *EquipmentPositionQuery {
 func (c *EquipmentClient) QueryPorts(e *Equipment) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PortsColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PortsTable, equipment.PortsColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -779,16 +739,11 @@ func (c *EquipmentClient) QueryPorts(e *Equipment) *EquipmentPortQuery {
 func (c *EquipmentClient) QueryWorkOrder(e *Equipment) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -798,16 +753,11 @@ func (c *EquipmentClient) QueryWorkOrder(e *Equipment) *WorkOrderQuery {
 func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -817,16 +767,11 @@ func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.ServiceTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.ServicePrimaryKey...)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -836,16 +781,11 @@ func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
 func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := e.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.FilesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.FilesColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	)
 	query.sql = sql.Neighbors(e.driver.Dialect(), step)
 
 	return query
@@ -919,16 +859,11 @@ func (c *EquipmentCategoryClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentCategoryClient) QueryTypes(ec *EquipmentCategory) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := ec.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentcategory.Table
-	step.From.Column = equipmentcategory.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentcategory.TypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentcategory.TypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentcategory.Table, equipmentcategory.FieldID, id),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
+	)
 	query.sql = sql.Neighbors(ec.driver.Dialect(), step)
 
 	return query
@@ -1002,16 +937,11 @@ func (c *EquipmentPortClient) GetX(ctx context.Context, id string) *EquipmentPor
 func (c *EquipmentPortClient) QueryDefinition(ep *EquipmentPort) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.DefinitionTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.DefinitionColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, id),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.M2O, false, equipmentport.DefinitionTable, equipmentport.DefinitionColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1021,16 +951,11 @@ func (c *EquipmentPortClient) QueryDefinition(ep *EquipmentPort) *EquipmentPortD
 func (c *EquipmentPortClient) QueryParent(ep *EquipmentPort) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentport.ParentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.ParentColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2O, true, equipmentport.ParentTable, equipmentport.ParentColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1040,16 +965,11 @@ func (c *EquipmentPortClient) QueryParent(ep *EquipmentPort) *EquipmentQuery {
 func (c *EquipmentPortClient) QueryLink(ep *EquipmentPort) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.LinkTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.LinkColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, id),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.M2O, false, equipmentport.LinkTable, equipmentport.LinkColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1059,16 +979,11 @@ func (c *EquipmentPortClient) QueryLink(ep *EquipmentPort) *LinkQuery {
 func (c *EquipmentPortClient) QueryProperties(ep *EquipmentPort) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1142,16 +1057,11 @@ func (c *EquipmentPortDefinitionClient) GetX(ctx context.Context, id string) *Eq
 func (c *EquipmentPortDefinitionClient) QueryEquipmentPortType(epd *EquipmentPortDefinition) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := epd.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmentporttype.Table
-	step.To.Column = equipmentporttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentportdefinition.EquipmentPortTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.EquipmentPortTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sql.Edge(sql.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
+	)
 	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
 
 	return query
@@ -1161,16 +1071,11 @@ func (c *EquipmentPortDefinitionClient) QueryEquipmentPortType(epd *EquipmentPor
 func (c *EquipmentPortDefinitionClient) QueryPorts(epd *EquipmentPortDefinition) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := epd.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentportdefinition.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.PortsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
+	)
 	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
 
 	return query
@@ -1180,16 +1085,11 @@ func (c *EquipmentPortDefinitionClient) QueryPorts(epd *EquipmentPortDefinition)
 func (c *EquipmentPortDefinitionClient) QueryEquipmentType(epd *EquipmentPortDefinition) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := epd.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentportdefinition.Table
-	step.From.Column = equipmentportdefinition.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentportdefinition.EquipmentTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentportdefinition.EquipmentTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, id),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
+	)
 	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
 
 	return query
@@ -1263,16 +1163,11 @@ func (c *EquipmentPortTypeClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentPortTypeClient) QueryPropertyTypes(ept *EquipmentPortType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := ept.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentporttype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
 
 	return query
@@ -1282,16 +1177,11 @@ func (c *EquipmentPortTypeClient) QueryPropertyTypes(ept *EquipmentPortType) *Pr
 func (c *EquipmentPortTypeClient) QueryLinkPropertyTypes(ept *EquipmentPortType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := ept.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentporttype.LinkPropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.LinkPropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
 
 	return query
@@ -1301,16 +1191,11 @@ func (c *EquipmentPortTypeClient) QueryLinkPropertyTypes(ept *EquipmentPortType)
 func (c *EquipmentPortTypeClient) QueryPortDefinitions(ept *EquipmentPortType) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := ept.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentporttype.Table
-	step.From.Column = equipmentporttype.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentporttype.PortDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentporttype.PortDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, id),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
+	)
 	query.sql = sql.Neighbors(ept.driver.Dialect(), step)
 
 	return query
@@ -1384,16 +1269,11 @@ func (c *EquipmentPositionClient) GetX(ctx context.Context, id string) *Equipmen
 func (c *EquipmentPositionClient) QueryDefinition(ep *EquipmentPosition) *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentposition.Table
-	step.From.Column = equipmentposition.FieldID
-	step.To.Table = equipmentpositiondefinition.Table
-	step.To.Column = equipmentpositiondefinition.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentposition.DefinitionTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.DefinitionColumn)
+	step := sql.NewStep(
+		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sql.Edge(sql.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1403,16 +1283,11 @@ func (c *EquipmentPositionClient) QueryDefinition(ep *EquipmentPosition) *Equipm
 func (c *EquipmentPositionClient) QueryParent(ep *EquipmentPosition) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentposition.Table
-	step.From.Column = equipmentposition.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentposition.ParentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.ParentColumn)
+	step := sql.NewStep(
+		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1422,16 +1297,11 @@ func (c *EquipmentPositionClient) QueryParent(ep *EquipmentPosition) *EquipmentQ
 func (c *EquipmentPositionClient) QueryAttachment(ep *EquipmentPosition) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := ep.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentposition.Table
-	step.From.Column = equipmentposition.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentposition.AttachmentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentposition.AttachmentColumn)
+	step := sql.NewStep(
+		sql.From(equipmentposition.Table, equipmentposition.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
+	)
 	query.sql = sql.Neighbors(ep.driver.Dialect(), step)
 
 	return query
@@ -1505,16 +1375,11 @@ func (c *EquipmentPositionDefinitionClient) GetX(ctx context.Context, id string)
 func (c *EquipmentPositionDefinitionClient) QueryPositions(epd *EquipmentPositionDefinition) *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: c.config}
 	id := epd.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentpositiondefinition.Table
-	step.From.Column = equipmentpositiondefinition.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentpositiondefinition.PositionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentpositiondefinition.PositionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
+	)
 	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
 
 	return query
@@ -1524,16 +1389,11 @@ func (c *EquipmentPositionDefinitionClient) QueryPositions(epd *EquipmentPositio
 func (c *EquipmentPositionDefinitionClient) QueryEquipmentType(epd *EquipmentPositionDefinition) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := epd.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmentpositiondefinition.Table
-	step.From.Column = equipmentpositiondefinition.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentpositiondefinition.EquipmentTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentpositiondefinition.EquipmentTypeColumn)
+	step := sql.NewStep(
+		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, id),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
+	)
 	query.sql = sql.Neighbors(epd.driver.Dialect(), step)
 
 	return query
@@ -1607,16 +1467,11 @@ func (c *EquipmentTypeClient) GetX(ctx context.Context, id string) *EquipmentTyp
 func (c *EquipmentTypeClient) QueryPortDefinitions(et *EquipmentType) *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: c.config}
 	id := et.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PortDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PortDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
+	)
 	query.sql = sql.Neighbors(et.driver.Dialect(), step)
 
 	return query
@@ -1626,16 +1481,11 @@ func (c *EquipmentTypeClient) QueryPortDefinitions(et *EquipmentType) *Equipment
 func (c *EquipmentTypeClient) QueryPositionDefinitions(et *EquipmentType) *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: c.config}
 	id := et.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentpositiondefinition.Table
-	step.To.Column = equipmentpositiondefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PositionDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PositionDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
+	)
 	query.sql = sql.Neighbors(et.driver.Dialect(), step)
 
 	return query
@@ -1645,16 +1495,11 @@ func (c *EquipmentTypeClient) QueryPositionDefinitions(et *EquipmentType) *Equip
 func (c *EquipmentTypeClient) QueryPropertyTypes(et *EquipmentType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := et.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(et.driver.Dialect(), step)
 
 	return query
@@ -1664,16 +1509,11 @@ func (c *EquipmentTypeClient) QueryPropertyTypes(et *EquipmentType) *PropertyTyp
 func (c *EquipmentTypeClient) QueryEquipment(et *EquipmentType) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := et.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmenttype.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
+	)
 	query.sql = sql.Neighbors(et.driver.Dialect(), step)
 
 	return query
@@ -1683,16 +1523,11 @@ func (c *EquipmentTypeClient) QueryEquipment(et *EquipmentType) *EquipmentQuery 
 func (c *EquipmentTypeClient) QueryCategory(et *EquipmentType) *EquipmentCategoryQuery {
 	query := &EquipmentCategoryQuery{config: c.config}
 	id := et.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentcategory.Table
-	step.To.Column = equipmentcategory.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.CategoryTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.CategoryColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, id),
+		sql.To(equipmentcategory.Table, equipmentcategory.FieldID),
+		sql.Edge(sql.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+	)
 	query.sql = sql.Neighbors(et.driver.Dialect(), step)
 
 	return query
@@ -1830,16 +1665,11 @@ func (c *FloorPlanClient) GetX(ctx context.Context, id string) *FloorPlan {
 func (c *FloorPlanClient) QueryLocation(fp *FloorPlan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := fp.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
+	)
 	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
 
 	return query
@@ -1849,16 +1679,11 @@ func (c *FloorPlanClient) QueryLocation(fp *FloorPlan) *LocationQuery {
 func (c *FloorPlanClient) QueryReferencePoint(fp *FloorPlan) *FloorPlanReferencePointQuery {
 	query := &FloorPlanReferencePointQuery{config: c.config}
 	id := fp.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = floorplanreferencepoint.Table
-	step.To.Column = floorplanreferencepoint.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ReferencePointTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ReferencePointColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, id),
+		sql.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
+	)
 	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
 
 	return query
@@ -1868,16 +1693,11 @@ func (c *FloorPlanClient) QueryReferencePoint(fp *FloorPlan) *FloorPlanReference
 func (c *FloorPlanClient) QueryScale(fp *FloorPlan) *FloorPlanScaleQuery {
 	query := &FloorPlanScaleQuery{config: c.config}
 	id := fp.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = floorplanscale.Table
-	step.To.Column = floorplanscale.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ScaleTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ScaleColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, id),
+		sql.To(floorplanscale.Table, floorplanscale.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
+	)
 	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
 
 	return query
@@ -1887,16 +1707,11 @@ func (c *FloorPlanClient) QueryScale(fp *FloorPlan) *FloorPlanScaleQuery {
 func (c *FloorPlanClient) QueryImage(fp *FloorPlan) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := fp.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = floorplan.Table
-	step.From.Column = floorplan.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = floorplan.ImageTable
-	step.Edge.Columns = append(step.Edge.Columns, floorplan.ImageColumn)
+	step := sql.NewStep(
+		sql.From(floorplan.Table, floorplan.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+	)
 	query.sql = sql.Neighbors(fp.driver.Dialect(), step)
 
 	return query
@@ -2098,16 +1913,11 @@ func (c *LinkClient) GetX(ctx context.Context, id string) *Link {
 func (c *LinkClient) QueryPorts(l *Link) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = link.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, link.PortsColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, id),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, true, link.PortsTable, link.PortsColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2117,16 +1927,11 @@ func (c *LinkClient) QueryPorts(l *Link) *EquipmentPortQuery {
 func (c *LinkClient) QueryWorkOrder(l *Link) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = link.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, link.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2136,16 +1941,11 @@ func (c *LinkClient) QueryWorkOrder(l *Link) *WorkOrderQuery {
 func (c *LinkClient) QueryProperties(l *Link) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = link.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, link.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2155,16 +1955,11 @@ func (c *LinkClient) QueryProperties(l *Link) *PropertyQuery {
 func (c *LinkClient) QueryService(l *Link) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = link.ServiceTable
-	step.Edge.Columns = append(step.Edge.Columns, link.ServicePrimaryKey...)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2238,16 +2033,11 @@ func (c *LocationClient) GetX(ctx context.Context, id string) *Location {
 func (c *LocationClient) QueryType(l *Location) *LocationTypeQuery {
 	query := &LocationTypeQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = locationtype.Table
-	step.To.Column = locationtype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = location.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, location.TypeColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(locationtype.Table, locationtype.FieldID),
+		sql.Edge(sql.M2O, false, location.TypeTable, location.TypeColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2257,16 +2047,11 @@ func (c *LocationClient) QueryType(l *Location) *LocationTypeQuery {
 func (c *LocationClient) QueryParent(l *Location) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = location.ParentTable
-	step.Edge.Columns = append(step.Edge.Columns, location.ParentColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, true, location.ParentTable, location.ParentColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2276,16 +2061,11 @@ func (c *LocationClient) QueryParent(l *Location) *LocationQuery {
 func (c *LocationClient) QueryChildren(l *Location) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = location.ChildrenTable
-	step.Edge.Columns = append(step.Edge.Columns, location.ChildrenColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.O2M, false, location.ChildrenTable, location.ChildrenColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2295,16 +2075,11 @@ func (c *LocationClient) QueryChildren(l *Location) *LocationQuery {
 func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = location.FilesTable
-	step.Edge.Columns = append(step.Edge.Columns, location.FilesColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, location.FilesTable, location.FilesColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2314,16 +2089,11 @@ func (c *LocationClient) QueryFiles(l *Location) *FileQuery {
 func (c *LocationClient) QueryEquipment(l *Location) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = location.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, location.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2M, false, location.EquipmentTable, location.EquipmentColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2333,16 +2103,11 @@ func (c *LocationClient) QueryEquipment(l *Location) *EquipmentQuery {
 func (c *LocationClient) QueryProperties(l *Location) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = location.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, location.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, location.PropertiesTable, location.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2352,16 +2117,11 @@ func (c *LocationClient) QueryProperties(l *Location) *PropertyQuery {
 func (c *LocationClient) QuerySurvey(l *Location) *SurveyQuery {
 	query := &SurveyQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = survey.Table
-	step.To.Column = survey.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = location.SurveyTable
-	step.Edge.Columns = append(step.Edge.Columns, location.SurveyColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(survey.Table, survey.FieldID),
+		sql.Edge(sql.O2M, true, location.SurveyTable, location.SurveyColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2371,16 +2131,11 @@ func (c *LocationClient) QuerySurvey(l *Location) *SurveyQuery {
 func (c *LocationClient) QueryWifiScan(l *Location) *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = surveywifiscan.Table
-	step.To.Column = surveywifiscan.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = location.WifiScanTable
-	step.Edge.Columns = append(step.Edge.Columns, location.WifiScanColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sql.Edge(sql.O2M, true, location.WifiScanTable, location.WifiScanColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2390,16 +2145,11 @@ func (c *LocationClient) QueryWifiScan(l *Location) *SurveyWiFiScanQuery {
 func (c *LocationClient) QueryCellScan(l *Location) *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = surveycellscan.Table
-	step.To.Column = surveycellscan.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = location.CellScanTable
-	step.Edge.Columns = append(step.Edge.Columns, location.CellScanColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(surveycellscan.Table, surveycellscan.FieldID),
+		sql.Edge(sql.O2M, true, location.CellScanTable, location.CellScanColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2409,16 +2159,11 @@ func (c *LocationClient) QueryCellScan(l *Location) *SurveyCellScanQuery {
 func (c *LocationClient) QueryWorkOrders(l *Location) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := l.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = location.Table
-	step.From.Column = location.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = location.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, location.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
+	)
 	query.sql = sql.Neighbors(l.driver.Dialect(), step)
 
 	return query
@@ -2492,16 +2237,11 @@ func (c *LocationTypeClient) GetX(ctx context.Context, id string) *LocationType 
 func (c *LocationTypeClient) QueryLocations(lt *LocationType) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := lt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = locationtype.LocationsTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.LocationsColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
+	)
 	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
 
 	return query
@@ -2511,16 +2251,11 @@ func (c *LocationTypeClient) QueryLocations(lt *LocationType) *LocationQuery {
 func (c *LocationTypeClient) QueryPropertyTypes(lt *LocationType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := lt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = locationtype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
 
 	return query
@@ -2530,16 +2265,11 @@ func (c *LocationTypeClient) QueryPropertyTypes(lt *LocationType) *PropertyTypeQ
 func (c *LocationTypeClient) QuerySurveyTemplateCategories(lt *LocationType) *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: c.config}
 	id := lt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = locationtype.Table
-	step.From.Column = locationtype.FieldID
-	step.To.Table = surveytemplatecategory.Table
-	step.To.Column = surveytemplatecategory.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = locationtype.SurveyTemplateCategoriesTable
-	step.Edge.Columns = append(step.Edge.Columns, locationtype.SurveyTemplateCategoriesColumn)
+	step := sql.NewStep(
+		sql.From(locationtype.Table, locationtype.FieldID, id),
+		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sql.Edge(sql.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
+	)
 	query.sql = sql.Neighbors(lt.driver.Dialect(), step)
 
 	return query
@@ -2613,16 +2343,11 @@ func (c *ProjectClient) GetX(ctx context.Context, id string) *Project {
 func (c *ProjectClient) QueryType(pr *Project) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = projecttype.Table
-	step.To.Column = projecttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = project.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, project.TypeColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, id),
+		sql.To(projecttype.Table, projecttype.FieldID),
+		sql.Edge(sql.M2O, true, project.TypeTable, project.TypeColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2632,16 +2357,11 @@ func (c *ProjectClient) QueryType(pr *Project) *ProjectTypeQuery {
 func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = project.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, project.LocationColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, project.LocationTable, project.LocationColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2651,16 +2371,11 @@ func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 func (c *ProjectClient) QueryWorkOrders(pr *Project) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = project.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, project.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2670,16 +2385,11 @@ func (c *ProjectClient) QueryWorkOrders(pr *Project) *WorkOrderQuery {
 func (c *ProjectClient) QueryProperties(pr *Project) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = project.Table
-	step.From.Column = project.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = project.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, project.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(project.Table, project.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2753,16 +2463,11 @@ func (c *ProjectTypeClient) GetX(ctx context.Context, id string) *ProjectType {
 func (c *ProjectTypeClient) QueryProjects(pt *ProjectType) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = projecttype.Table
-	step.From.Column = projecttype.FieldID
-	step.To.Table = project.Table
-	step.To.Column = project.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = projecttype.ProjectsTable
-	step.Edge.Columns = append(step.Edge.Columns, projecttype.ProjectsColumn)
+	step := sql.NewStep(
+		sql.From(projecttype.Table, projecttype.FieldID, id),
+		sql.To(project.Table, project.FieldID),
+		sql.Edge(sql.O2M, false, projecttype.ProjectsTable, projecttype.ProjectsColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -2772,16 +2477,11 @@ func (c *ProjectTypeClient) QueryProjects(pt *ProjectType) *ProjectQuery {
 func (c *ProjectTypeClient) QueryProperties(pt *ProjectType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = projecttype.Table
-	step.From.Column = projecttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = projecttype.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, projecttype.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(projecttype.Table, projecttype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, projecttype.PropertiesTable, projecttype.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -2791,16 +2491,11 @@ func (c *ProjectTypeClient) QueryProperties(pt *ProjectType) *PropertyTypeQuery 
 func (c *ProjectTypeClient) QueryWorkOrders(pt *ProjectType) *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = projecttype.Table
-	step.From.Column = projecttype.FieldID
-	step.To.Table = workorderdefinition.Table
-	step.To.Column = workorderdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = projecttype.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, projecttype.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(projecttype.Table, projecttype.FieldID, id),
+		sql.To(workorderdefinition.Table, workorderdefinition.FieldID),
+		sql.Edge(sql.O2M, false, projecttype.WorkOrdersTable, projecttype.WorkOrdersColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -2874,16 +2569,11 @@ func (c *PropertyClient) GetX(ctx context.Context, id string) *Property {
 func (c *PropertyClient) QueryType(pr *Property) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = property.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, property.TypeColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.M2O, false, property.TypeTable, property.TypeColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2893,16 +2583,11 @@ func (c *PropertyClient) QueryType(pr *Property) *PropertyTypeQuery {
 func (c *PropertyClient) QueryLocation(pr *Property) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, property.LocationColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, true, property.LocationTable, property.LocationColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2912,16 +2597,11 @@ func (c *PropertyClient) QueryLocation(pr *Property) *LocationQuery {
 func (c *PropertyClient) QueryEquipment(pr *Property) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2O, true, property.EquipmentTable, property.EquipmentColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2931,16 +2611,11 @@ func (c *PropertyClient) QueryEquipment(pr *Property) *EquipmentQuery {
 func (c *PropertyClient) QueryService(pr *Property) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.ServiceTable
-	step.Edge.Columns = append(step.Edge.Columns, property.ServiceColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2O, true, property.ServiceTable, property.ServiceColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2950,16 +2625,11 @@ func (c *PropertyClient) QueryService(pr *Property) *ServiceQuery {
 func (c *PropertyClient) QueryEquipmentPort(pr *Property) *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.EquipmentPortTable
-	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentPortColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2969,16 +2639,11 @@ func (c *PropertyClient) QueryEquipmentPort(pr *Property) *EquipmentPortQuery {
 func (c *PropertyClient) QueryLink(pr *Property) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.LinkTable
-	step.Edge.Columns = append(step.Edge.Columns, property.LinkColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.M2O, true, property.LinkTable, property.LinkColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -2988,16 +2653,11 @@ func (c *PropertyClient) QueryLink(pr *Property) *LinkQuery {
 func (c *PropertyClient) QueryWorkOrder(pr *Property) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, property.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -3007,16 +2667,11 @@ func (c *PropertyClient) QueryWorkOrder(pr *Property) *WorkOrderQuery {
 func (c *PropertyClient) QueryProject(pr *Property) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = project.Table
-	step.To.Column = project.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = property.ProjectTable
-	step.Edge.Columns = append(step.Edge.Columns, property.ProjectColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(project.Table, project.FieldID),
+		sql.Edge(sql.M2O, true, property.ProjectTable, property.ProjectColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -3026,16 +2681,11 @@ func (c *PropertyClient) QueryProject(pr *Property) *ProjectQuery {
 func (c *PropertyClient) QueryEquipmentValue(pr *Property) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = property.EquipmentValueTable
-	step.Edge.Columns = append(step.Edge.Columns, property.EquipmentValueColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -3045,16 +2695,11 @@ func (c *PropertyClient) QueryEquipmentValue(pr *Property) *EquipmentQuery {
 func (c *PropertyClient) QueryLocationValue(pr *Property) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := pr.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = property.Table
-	step.From.Column = property.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = property.LocationValueTable
-	step.Edge.Columns = append(step.Edge.Columns, property.LocationValueColumn)
+	step := sql.NewStep(
+		sql.From(property.Table, property.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, property.LocationValueTable, property.LocationValueColumn),
+	)
 	query.sql = sql.Neighbors(pr.driver.Dialect(), step)
 
 	return query
@@ -3128,16 +2773,11 @@ func (c *PropertyTypeClient) GetX(ctx context.Context, id string) *PropertyType 
 func (c *PropertyTypeClient) QueryProperties(pt *PropertyType) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3147,16 +2787,11 @@ func (c *PropertyTypeClient) QueryProperties(pt *PropertyType) *PropertyQuery {
 func (c *PropertyTypeClient) QueryLocationType(pt *PropertyType) *LocationTypeQuery {
 	query := &LocationTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = locationtype.Table
-	step.To.Column = locationtype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.LocationTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.LocationTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(locationtype.Table, locationtype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3166,16 +2801,11 @@ func (c *PropertyTypeClient) QueryLocationType(pt *PropertyType) *LocationTypeQu
 func (c *PropertyTypeClient) QueryEquipmentPortType(pt *PropertyType) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = equipmentporttype.Table
-	step.To.Column = equipmentporttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.EquipmentPortTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.EquipmentPortTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3185,16 +2815,11 @@ func (c *PropertyTypeClient) QueryEquipmentPortType(pt *PropertyType) *Equipment
 func (c *PropertyTypeClient) QueryLinkEquipmentPortType(pt *PropertyType) *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = equipmentporttype.Table
-	step.To.Column = equipmentporttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.LinkEquipmentPortTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.LinkEquipmentPortTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3204,16 +2829,11 @@ func (c *PropertyTypeClient) QueryLinkEquipmentPortType(pt *PropertyType) *Equip
 func (c *PropertyTypeClient) QueryEquipmentType(pt *PropertyType) *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.EquipmentTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.EquipmentTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3223,16 +2843,11 @@ func (c *PropertyTypeClient) QueryEquipmentType(pt *PropertyType) *EquipmentType
 func (c *PropertyTypeClient) QueryServiceType(pt *PropertyType) *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = servicetype.Table
-	step.To.Column = servicetype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.ServiceTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.ServiceTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(servicetype.Table, servicetype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3242,16 +2857,11 @@ func (c *PropertyTypeClient) QueryServiceType(pt *PropertyType) *ServiceTypeQuer
 func (c *PropertyTypeClient) QueryWorkOrderType(pt *PropertyType) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.WorkOrderTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.WorkOrderTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3261,16 +2871,11 @@ func (c *PropertyTypeClient) QueryWorkOrderType(pt *PropertyType) *WorkOrderType
 func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := pt.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = propertytype.Table
-	step.From.Column = propertytype.FieldID
-	step.To.Table = projecttype.Table
-	step.To.Column = projecttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = propertytype.ProjectTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, propertytype.ProjectTypeColumn)
+	step := sql.NewStep(
+		sql.From(propertytype.Table, propertytype.FieldID, id),
+		sql.To(projecttype.Table, projecttype.FieldID),
+		sql.Edge(sql.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
+	)
 	query.sql = sql.Neighbors(pt.driver.Dialect(), step)
 
 	return query
@@ -3344,16 +2949,11 @@ func (c *ServiceClient) GetX(ctx context.Context, id string) *Service {
 func (c *ServiceClient) QueryType(s *Service) *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = servicetype.Table
-	step.To.Column = servicetype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = service.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, service.TypeColumn)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(servicetype.Table, servicetype.FieldID),
+		sql.Edge(sql.M2O, false, service.TypeTable, service.TypeColumn),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3363,16 +2963,11 @@ func (c *ServiceClient) QueryType(s *Service) *ServiceTypeQuery {
 func (c *ServiceClient) QueryDownstream(s *Service) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = service.DownstreamTable
-	step.Edge.Columns = append(step.Edge.Columns, service.DownstreamPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3382,16 +2977,11 @@ func (c *ServiceClient) QueryDownstream(s *Service) *ServiceQuery {
 func (c *ServiceClient) QueryUpstream(s *Service) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.UpstreamTable
-	step.Edge.Columns = append(step.Edge.Columns, service.UpstreamPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3401,16 +2991,11 @@ func (c *ServiceClient) QueryUpstream(s *Service) *ServiceQuery {
 func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, service.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, service.PropertiesTable, service.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3420,16 +3005,11 @@ func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.TerminationPointsTable
-	step.Edge.Columns = append(step.Edge.Columns, service.TerminationPointsPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3439,16 +3019,11 @@ func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
 func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.LinksTable
-	step.Edge.Columns = append(step.Edge.Columns, service.LinksPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3458,16 +3033,11 @@ func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 func (c *ServiceClient) QueryCustomer(s *Service) *CustomerQuery {
 	query := &CustomerQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = service.Table
-	step.From.Column = service.FieldID
-	step.To.Table = customer.Table
-	step.To.Column = customer.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = false
-	step.Edge.Table = service.CustomerTable
-	step.Edge.Columns = append(step.Edge.Columns, service.CustomerPrimaryKey...)
+	step := sql.NewStep(
+		sql.From(service.Table, service.FieldID, id),
+		sql.To(customer.Table, customer.FieldID),
+		sql.Edge(sql.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3541,16 +3111,11 @@ func (c *ServiceTypeClient) GetX(ctx context.Context, id string) *ServiceType {
 func (c *ServiceTypeClient) QueryServices(st *ServiceType) *ServiceQuery {
 	query := &ServiceQuery{config: c.config}
 	id := st.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = servicetype.Table
-	step.From.Column = servicetype.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = servicetype.ServicesTable
-	step.Edge.Columns = append(step.Edge.Columns, servicetype.ServicesColumn)
+	step := sql.NewStep(
+		sql.From(servicetype.Table, servicetype.FieldID, id),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+	)
 	query.sql = sql.Neighbors(st.driver.Dialect(), step)
 
 	return query
@@ -3560,16 +3125,11 @@ func (c *ServiceTypeClient) QueryServices(st *ServiceType) *ServiceQuery {
 func (c *ServiceTypeClient) QueryPropertyTypes(st *ServiceType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := st.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = servicetype.Table
-	step.From.Column = servicetype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = servicetype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, servicetype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(servicetype.Table, servicetype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(st.driver.Dialect(), step)
 
 	return query
@@ -3643,16 +3203,11 @@ func (c *SurveyClient) GetX(ctx context.Context, id string) *Survey {
 func (c *SurveyClient) QueryLocation(s *Survey) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = survey.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.LocationColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, survey.LocationTable, survey.LocationColumn),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3662,16 +3217,11 @@ func (c *SurveyClient) QueryLocation(s *Survey) *LocationQuery {
 func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = survey.SourceFileTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.SourceFileColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.M2O, false, survey.SourceFileTable, survey.SourceFileColumn),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3681,16 +3231,11 @@ func (c *SurveyClient) QuerySourceFile(s *Survey) *FileQuery {
 func (c *SurveyClient) QueryQuestions(s *Survey) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := s.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = survey.Table
-	step.From.Column = survey.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = survey.QuestionsTable
-	step.Edge.Columns = append(step.Edge.Columns, survey.QuestionsColumn)
+	step := sql.NewStep(
+		sql.From(survey.Table, survey.FieldID, id),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.O2M, true, survey.QuestionsTable, survey.QuestionsColumn),
+	)
 	query.sql = sql.Neighbors(s.driver.Dialect(), step)
 
 	return query
@@ -3764,16 +3309,11 @@ func (c *SurveyCellScanClient) GetX(ctx context.Context, id string) *SurveyCellS
 func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := scs.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveycellscan.Table
-	step.From.Column = surveycellscan.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveycellscan.SurveyQuestionTable
-	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.SurveyQuestionColumn)
+	step := sql.NewStep(
+		sql.From(surveycellscan.Table, surveycellscan.FieldID, id),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+	)
 	query.sql = sql.Neighbors(scs.driver.Dialect(), step)
 
 	return query
@@ -3783,16 +3323,11 @@ func (c *SurveyCellScanClient) QuerySurveyQuestion(scs *SurveyCellScan) *SurveyQ
 func (c *SurveyCellScanClient) QueryLocation(scs *SurveyCellScan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := scs.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveycellscan.Table
-	step.From.Column = surveycellscan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveycellscan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, surveycellscan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(surveycellscan.Table, surveycellscan.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+	)
 	query.sql = sql.Neighbors(scs.driver.Dialect(), step)
 
 	return query
@@ -3866,16 +3401,11 @@ func (c *SurveyQuestionClient) GetX(ctx context.Context, id string) *SurveyQuest
 func (c *SurveyQuestionClient) QuerySurvey(sq *SurveyQuestion) *SurveyQuery {
 	query := &SurveyQuery{config: c.config}
 	id := sq.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveyquestion.Table
-	step.From.Column = surveyquestion.FieldID
-	step.To.Table = survey.Table
-	step.To.Column = survey.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveyquestion.SurveyTable
-	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.SurveyColumn)
+	step := sql.NewStep(
+		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sql.To(survey.Table, survey.FieldID),
+		sql.Edge(sql.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
+	)
 	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
 
 	return query
@@ -3885,16 +3415,11 @@ func (c *SurveyQuestionClient) QuerySurvey(sq *SurveyQuestion) *SurveyQuery {
 func (c *SurveyQuestionClient) QueryWifiScan(sq *SurveyQuestion) *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: c.config}
 	id := sq.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveyquestion.Table
-	step.From.Column = surveyquestion.FieldID
-	step.To.Table = surveywifiscan.Table
-	step.To.Column = surveywifiscan.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = surveyquestion.WifiScanTable
-	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.WifiScanColumn)
+	step := sql.NewStep(
+		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sql.Edge(sql.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
+	)
 	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
 
 	return query
@@ -3904,16 +3429,11 @@ func (c *SurveyQuestionClient) QueryWifiScan(sq *SurveyQuestion) *SurveyWiFiScan
 func (c *SurveyQuestionClient) QueryCellScan(sq *SurveyQuestion) *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: c.config}
 	id := sq.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveyquestion.Table
-	step.From.Column = surveyquestion.FieldID
-	step.To.Table = surveycellscan.Table
-	step.To.Column = surveycellscan.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = surveyquestion.CellScanTable
-	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.CellScanColumn)
+	step := sql.NewStep(
+		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sql.To(surveycellscan.Table, surveycellscan.FieldID),
+		sql.Edge(sql.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
+	)
 	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
 
 	return query
@@ -3923,16 +3443,11 @@ func (c *SurveyQuestionClient) QueryCellScan(sq *SurveyQuestion) *SurveyCellScan
 func (c *SurveyQuestionClient) QueryPhotoData(sq *SurveyQuestion) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := sq.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveyquestion.Table
-	step.From.Column = surveyquestion.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = surveyquestion.PhotoDataTable
-	step.Edge.Columns = append(step.Edge.Columns, surveyquestion.PhotoDataColumn)
+	step := sql.NewStep(
+		sql.From(surveyquestion.Table, surveyquestion.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
+	)
 	query.sql = sql.Neighbors(sq.driver.Dialect(), step)
 
 	return query
@@ -4006,16 +3521,11 @@ func (c *SurveyTemplateCategoryClient) GetX(ctx context.Context, id string) *Sur
 func (c *SurveyTemplateCategoryClient) QuerySurveyTemplateQuestions(stc *SurveyTemplateCategory) *SurveyTemplateQuestionQuery {
 	query := &SurveyTemplateQuestionQuery{config: c.config}
 	id := stc.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveytemplatecategory.Table
-	step.From.Column = surveytemplatecategory.FieldID
-	step.To.Table = surveytemplatequestion.Table
-	step.To.Column = surveytemplatequestion.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = surveytemplatecategory.SurveyTemplateQuestionsTable
-	step.Edge.Columns = append(step.Edge.Columns, surveytemplatecategory.SurveyTemplateQuestionsColumn)
+	step := sql.NewStep(
+		sql.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, id),
+		sql.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
+		sql.Edge(sql.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+	)
 	query.sql = sql.Neighbors(stc.driver.Dialect(), step)
 
 	return query
@@ -4089,16 +3599,11 @@ func (c *SurveyTemplateQuestionClient) GetX(ctx context.Context, id string) *Sur
 func (c *SurveyTemplateQuestionClient) QueryCategory(stq *SurveyTemplateQuestion) *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: c.config}
 	id := stq.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveytemplatequestion.Table
-	step.From.Column = surveytemplatequestion.FieldID
-	step.To.Table = surveytemplatecategory.Table
-	step.To.Column = surveytemplatecategory.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = surveytemplatequestion.CategoryTable
-	step.Edge.Columns = append(step.Edge.Columns, surveytemplatequestion.CategoryColumn)
+	step := sql.NewStep(
+		sql.From(surveytemplatequestion.Table, surveytemplatequestion.FieldID, id),
+		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sql.Edge(sql.M2O, true, surveytemplatequestion.CategoryTable, surveytemplatequestion.CategoryColumn),
+	)
 	query.sql = sql.Neighbors(stq.driver.Dialect(), step)
 
 	return query
@@ -4172,16 +3677,11 @@ func (c *SurveyWiFiScanClient) GetX(ctx context.Context, id string) *SurveyWiFiS
 func (c *SurveyWiFiScanClient) QuerySurveyQuestion(swfs *SurveyWiFiScan) *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: c.config}
 	id := swfs.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveywifiscan.Table
-	step.From.Column = surveywifiscan.FieldID
-	step.To.Table = surveyquestion.Table
-	step.To.Column = surveyquestion.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveywifiscan.SurveyQuestionTable
-	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.SurveyQuestionColumn)
+	step := sql.NewStep(
+		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+		sql.To(surveyquestion.Table, surveyquestion.FieldID),
+		sql.Edge(sql.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
+	)
 	query.sql = sql.Neighbors(swfs.driver.Dialect(), step)
 
 	return query
@@ -4191,16 +3691,11 @@ func (c *SurveyWiFiScanClient) QuerySurveyQuestion(swfs *SurveyWiFiScan) *Survey
 func (c *SurveyWiFiScanClient) QueryLocation(swfs *SurveyWiFiScan) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := swfs.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = surveywifiscan.Table
-	step.From.Column = surveywifiscan.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = surveywifiscan.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, surveywifiscan.LocationColumn)
+	step := sql.NewStep(
+		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
+	)
 	query.sql = sql.Neighbors(swfs.driver.Dialect(), step)
 
 	return query
@@ -4274,16 +3769,11 @@ func (c *TechnicianClient) GetX(ctx context.Context, id string) *Technician {
 func (c *TechnicianClient) QueryWorkOrders(t *Technician) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := t.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = technician.Table
-	step.From.Column = technician.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = technician.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, technician.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(technician.Table, technician.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
+	)
 	query.sql = sql.Neighbors(t.driver.Dialect(), step)
 
 	return query
@@ -4357,16 +3847,11 @@ func (c *WorkOrderClient) GetX(ctx context.Context, id string) *WorkOrder {
 func (c *WorkOrderClient) QueryType(wo *WorkOrder) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.TypeColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, false, workorder.TypeTable, workorder.TypeColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4376,16 +3861,11 @@ func (c *WorkOrderClient) QueryType(wo *WorkOrder) *WorkOrderTypeQuery {
 func (c *WorkOrderClient) QueryEquipment(wo *WorkOrder) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4395,16 +3875,11 @@ func (c *WorkOrderClient) QueryEquipment(wo *WorkOrder) *EquipmentQuery {
 func (c *WorkOrderClient) QueryLinks(wo *WorkOrder) *LinkQuery {
 	query := &LinkQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.LinksTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.LinksColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.O2M, true, workorder.LinksTable, workorder.LinksColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4414,16 +3889,11 @@ func (c *WorkOrderClient) QueryLinks(wo *WorkOrder) *LinkQuery {
 func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 	query := &FileQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.FilesTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.FilesColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4433,16 +3903,11 @@ func (c *WorkOrderClient) QueryFiles(wo *WorkOrder) *FileQuery {
 func (c *WorkOrderClient) QueryLocation(wo *WorkOrder) *LocationQuery {
 	query := &LocationQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.LocationColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, workorder.LocationTable, workorder.LocationColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4452,16 +3917,11 @@ func (c *WorkOrderClient) QueryLocation(wo *WorkOrder) *LocationQuery {
 func (c *WorkOrderClient) QueryComments(wo *WorkOrder) *CommentQuery {
 	query := &CommentQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = comment.Table
-	step.To.Column = comment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.CommentsTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.CommentsColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(comment.Table, comment.FieldID),
+		sql.Edge(sql.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4471,16 +3931,11 @@ func (c *WorkOrderClient) QueryComments(wo *WorkOrder) *CommentQuery {
 func (c *WorkOrderClient) QueryProperties(wo *WorkOrder) *PropertyQuery {
 	query := &PropertyQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4490,16 +3945,11 @@ func (c *WorkOrderClient) QueryProperties(wo *WorkOrder) *PropertyQuery {
 func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery {
 	query := &CheckListItemQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = checklistitem.Table
-	step.To.Column = checklistitem.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.CheckListItemsTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.CheckListItemsColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(checklistitem.Table, checklistitem.FieldID),
+		sql.Edge(sql.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4509,16 +3959,11 @@ func (c *WorkOrderClient) QueryCheckListItems(wo *WorkOrder) *CheckListItemQuery
 func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
 	query := &TechnicianQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = technician.Table
-	step.To.Column = technician.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.TechnicianTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.TechnicianColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(technician.Table, technician.FieldID),
+		sql.Edge(sql.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4528,16 +3973,11 @@ func (c *WorkOrderClient) QueryTechnician(wo *WorkOrder) *TechnicianQuery {
 func (c *WorkOrderClient) QueryProject(wo *WorkOrder) *ProjectQuery {
 	query := &ProjectQuery{config: c.config}
 	id := wo.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = project.Table
-	step.To.Column = project.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.ProjectTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.ProjectColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, id),
+		sql.To(project.Table, project.FieldID),
+		sql.Edge(sql.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	)
 	query.sql = sql.Neighbors(wo.driver.Dialect(), step)
 
 	return query
@@ -4611,16 +4051,11 @@ func (c *WorkOrderDefinitionClient) GetX(ctx context.Context, id string) *WorkOr
 func (c *WorkOrderDefinitionClient) QueryType(wod *WorkOrderDefinition) *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: c.config}
 	id := wod.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorderdefinition.Table
-	step.From.Column = workorderdefinition.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorderdefinition.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.TypeColumn)
+	step := sql.NewStep(
+		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+	)
 	query.sql = sql.Neighbors(wod.driver.Dialect(), step)
 
 	return query
@@ -4630,16 +4065,11 @@ func (c *WorkOrderDefinitionClient) QueryType(wod *WorkOrderDefinition) *WorkOrd
 func (c *WorkOrderDefinitionClient) QueryProjectType(wod *WorkOrderDefinition) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
 	id := wod.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workorderdefinition.Table
-	step.From.Column = workorderdefinition.FieldID
-	step.To.Table = projecttype.Table
-	step.To.Column = projecttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = workorderdefinition.ProjectTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.ProjectTypeColumn)
+	step := sql.NewStep(
+		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, id),
+		sql.To(projecttype.Table, projecttype.FieldID),
+		sql.Edge(sql.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+	)
 	query.sql = sql.Neighbors(wod.driver.Dialect(), step)
 
 	return query
@@ -4713,16 +4143,11 @@ func (c *WorkOrderTypeClient) GetX(ctx context.Context, id string) *WorkOrderTyp
 func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
 	id := wot.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workordertype.WorkOrdersTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.WorkOrdersColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, id),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
+	)
 	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
 
 	return query
@@ -4732,16 +4157,11 @@ func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuer
 func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
 	id := wot.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workordertype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, id),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, workordertype.PropertyTypesTable, workordertype.PropertyTypesColumn),
+	)
 	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
 
 	return query
@@ -4751,16 +4171,11 @@ func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTy
 func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDefinitionQuery {
 	query := &WorkOrderDefinitionQuery{config: c.config}
 	id := wot.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = workorderdefinition.Table
-	step.To.Column = workorderdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workordertype.DefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.DefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, id),
+		sql.To(workorderdefinition.Table, workorderdefinition.FieldID),
+		sql.Edge(sql.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
+	)
 	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
 
 	return query
@@ -4770,16 +4185,11 @@ func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDef
 func (c *WorkOrderTypeClient) QueryCheckListDefinitions(wot *WorkOrderType) *CheckListItemDefinitionQuery {
 	query := &CheckListItemDefinitionQuery{config: c.config}
 	id := wot.id()
-	step := &sql.Step{}
-	step.From.V = id
-	step.From.Table = workordertype.Table
-	step.From.Column = workordertype.FieldID
-	step.To.Table = checklistitemdefinition.Table
-	step.To.Column = checklistitemdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workordertype.CheckListDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, workordertype.CheckListDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(workordertype.Table, workordertype.FieldID, id),
+		sql.To(checklistitemdefinition.Table, checklistitemdefinition.FieldID),
+		sql.Edge(sql.O2M, false, workordertype.CheckListDefinitionsTable, workordertype.CheckListDefinitionsColumn),
+	)
 	query.sql = sql.Neighbors(wot.driver.Dialect(), step)
 
 	return query
