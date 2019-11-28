@@ -27,7 +27,7 @@ type Service struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
-	ExternalID string `json:"external_id,omitempty"`
+	ExternalID *string `json:"external_id,omitempty"`
 }
 
 // FromRows scans the sql response data into Service.
@@ -53,7 +53,10 @@ func (s *Service) FromRows(rows *sql.Rows) error {
 	s.CreateTime = scans.CreateTime.Time
 	s.UpdateTime = scans.UpdateTime.Time
 	s.Name = scans.Name.String
-	s.ExternalID = scans.ExternalID.String
+	if scans.ExternalID.Valid {
+		s.ExternalID = new(string)
+		*s.ExternalID = scans.ExternalID.String
+	}
 	return nil
 }
 
@@ -121,8 +124,10 @@ func (s *Service) String() string {
 	builder.WriteString(s.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", name=")
 	builder.WriteString(s.Name)
-	builder.WriteString(", external_id=")
-	builder.WriteString(s.ExternalID)
+	if v := s.ExternalID; v != nil {
+		builder.WriteString(", external_id=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

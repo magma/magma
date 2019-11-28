@@ -21,6 +21,7 @@ func (Customer) Fields() []ent.Field {
 		field.String("name").NotEmpty(),
 		field.String("external_id").
 			Optional().
+			Nillable().
 			NotEmpty().
 			Unique(),
 	}
@@ -69,6 +70,7 @@ func (Service) Fields() []ent.Field {
 			NotEmpty(),
 		field.String("external_id").
 			Optional().
+			Nillable().
 			NotEmpty().
 			Unique(),
 	}
