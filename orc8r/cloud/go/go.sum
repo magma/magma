@@ -4,6 +4,7 @@ github.com/Azure/azure-sdk-for-go v0.0.0-20161028183111-bd73d950fa44/go.mod h1:9
 github.com/Azure/go-autorest v10.8.1+incompatible/go.mod h1:r+4oMnoxhatjLLJ6zxSWATqVooLgysK6ZNox3g/xq24=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
+github.com/DATA-DOG/go-sqlmock v1.3.3 h1:CWUqKXe0s8A2z6qCgkP4Kru7wC11YoAnoupUKFDnH08=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73 h1:+cRmVBz3H/U19fwW85uY+vS+EweAj7cPdhlP4b7vrE4=
 github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73/go.mod h1:yaPeOnPG5ZRwL9oKdTsO/prlkPbXWZlRVMQ/gGlzIuA=
@@ -69,14 +70,8 @@ github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/facebookgo/clock v0.0.0-20150410010913-600d898af40a/go.mod h1:7Ga40egUymuWXxAe151lTNnCv97MddSOVsjpPPkityA=
-github.com/facebookincubator/ent v0.0.0-20191124133222-0fc310e6001e h1:2Cf/Yrxr+JhrYgXzjG37lU/e1//XF8DsI/0Y+Ye0VEY=
-github.com/facebookincubator/ent v0.0.0-20191124133222-0fc310e6001e/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
-github.com/facebookincubator/ent v0.0.0-20191125152952-1bf83dd65faa h1:izXXSBpVuVnaf1u9kJTkvoCdBqVG2/CE79s9jId+Rds=
-github.com/facebookincubator/ent v0.0.0-20191125152952-1bf83dd65faa/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
-github.com/facebookincubator/ent v0.0.0-20191126114917-0b4f707bb96e h1:YdA7B3r2b2tZgIeKBM1Zvz4OTxHKUiNZ2QsUXg2RgJ4=
-github.com/facebookincubator/ent v0.0.0-20191126114917-0b4f707bb96e/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
-github.com/facebookincubator/ent v0.0.0-20191126134756-56335d6e12c4 h1:r+YHs1u5fQlkUhGV4/M1vGv0zXrUbUR1yzZZCvMC+9E=
-github.com/facebookincubator/ent v0.0.0-20191126134756-56335d6e12c4/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
+github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805 h1:Gqrw3IfjWQ1afKMX8OuKq3vTnjhccK0Apllv8qrLdfI=
+github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
@@ -267,8 +262,6 @@ github.com/mattn/go-isatty v0.0.4/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNx
 github.com/mattn/go-runewidth v0.0.3/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
-github.com/mattn/go-sqlite3 v1.10.0 h1:jbhqpg7tQe4SupckyijYiy0mJJ/pRyHvXf7JdWK860o=
-github.com/mattn/go-sqlite3 v1.10.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/mattn/go-sqlite3 v1.11.0 h1:LDdKkqtYlom37fkvqs8rMPFKAMe8+SgjbwZ6ex1/A/Q=
 github.com/mattn/go-sqlite3 v1.11.0/go.mod h1:FPy6KqzDD04eiIsT53CuJW3U88zkxoIYsOqkbpncsNc=
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=

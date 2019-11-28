@@ -10,7 +10,7 @@ require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/aws/aws-sdk-go v1.19.6
 	github.com/coreos/go-systemd v0.0.0-20181031085051-9002847aa142
-	github.com/facebookincubator/ent v0.0.0-20191126134756-56335d6e12c4
+	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
 	github.com/go-logfmt/logfmt v0.4.0 // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.18.0
@@ -61,5 +61,3 @@ require (
 	gopkg.in/yaml.v2 v2.2.2
 	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 )
-
-go 1.13
