@@ -561,6 +561,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 		insert.Set(propertytype.FieldEditable, *value)
 		pt.Editable = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(propertytype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

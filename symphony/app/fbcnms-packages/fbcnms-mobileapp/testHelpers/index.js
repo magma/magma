@@ -22,5 +22,5 @@ function MaterialTheme({children}: {children: React.Node}) {
 }
 
 export function TestWrapper({children, ...props}: {children: React.Node}) {
-  return <MaterialTheme children={children} {...props} />;
+  return <MaterialTheme {...props} children={children} />;
 }

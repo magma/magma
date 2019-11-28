@@ -36,7 +36,7 @@ class UserTypeahead extends React.Component<Props, State> {
   };
   componentDidMount() {
     axios
-      .get('/user/async/')
+      .get('/user/list/')
       .then(response => this.setState({users: response.data.users}));
   }
 

@@ -284,6 +284,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -302,8 +303,9 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(project.Table).Where(sql.InInts(project.FieldID, ids...))
+		updater = builder.Update(project.Table)
 	)
+	updater = updater.Where(sql.InInts(project.FieldID, ids...))
 	if value := pu.update_time; value != nil {
 		updater.Set(project.FieldUpdateTime, *value)
 	}
@@ -730,6 +732,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -753,8 +756,9 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(project.Table).Where(sql.InInts(project.FieldID, ids...))
+		updater = builder.Update(project.Table)
 	)
+	updater = updater.Where(sql.InInts(project.FieldID, ids...))
 	if value := puo.update_time; value != nil {
 		updater.Set(project.FieldUpdateTime, *value)
 		pr.UpdateTime = *value

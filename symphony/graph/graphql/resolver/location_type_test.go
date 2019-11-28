@@ -379,20 +379,17 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 
 	mapType := "map"
 	mapZoomLvl := 12
+	isSite := true
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name:         "example_type",
 		MapType:      &mapType,
 		MapZoomLevel: &mapZoomLvl,
+		IsSite:       &isSite,
 	})
 	require.NoError(t, err)
 
 	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
-	require.False(t, fetchedLocType.Site)
-
-	_, err = mr.MarkLocationTypeIsSite(ctx, locType.ID, true)
-	require.NoError(t, err)
-	fetchedLocType, _ = qr.LocationType(ctx, locType.ID)
 	require.True(t, fetchedLocType.Site)
 }
 

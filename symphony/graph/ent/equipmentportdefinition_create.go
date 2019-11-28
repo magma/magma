@@ -252,6 +252,7 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 		insert.Set(equipmentportdefinition.FieldVisibilityLabel, *value)
 		epd.VisibilityLabel = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmentportdefinition.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

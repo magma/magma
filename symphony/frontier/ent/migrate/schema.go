@@ -79,7 +79,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
-				Name:    "email_organization",
+				Name:    "user_email_organization",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[3], UsersColumns[6]},
 			},

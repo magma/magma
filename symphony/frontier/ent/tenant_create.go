@@ -229,6 +229,7 @@ func (tc *TenantCreate) sqlSave(ctx context.Context) (*Tenant, error) {
 		insert.Set(tenant.FieldSSOIssuer, *value)
 		t.SSOIssuer = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(tenant.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

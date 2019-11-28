@@ -58,16 +58,11 @@ func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuer
 // QueryType chains the current query on the type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: wodq.config}
-	step := &sql.Step{}
-	step.From.V = wodq.sqlQuery()
-	step.From.Table = workorderdefinition.Table
-	step.From.Column = workorderdefinition.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorderdefinition.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.TypeColumn)
+	step := sql.NewStep(
+		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+	)
 	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
@@ -75,16 +70,11 @@ func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 // QueryProjectType chains the current query on the project_type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: wodq.config}
-	step := &sql.Step{}
-	step.From.V = wodq.sqlQuery()
-	step.From.Table = workorderdefinition.Table
-	step.From.Column = workorderdefinition.FieldID
-	step.To.Table = projecttype.Table
-	step.To.Column = projecttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = workorderdefinition.ProjectTypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorderdefinition.ProjectTypeColumn)
+	step := sql.NewStep(
+		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sql.To(projecttype.Table, projecttype.FieldID),
+		sql.Edge(sql.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+	)
 	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }

@@ -195,8 +195,7 @@ int _handle_ula_failure(struct ue_mm_context_s* ue_context_p)
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
   emm_cn_ula_or_csrsp_fail_t cn_ula_fail = {0};
   if (ue_context_p->emm_context.esm_ctx.esm_proc_data) {
-    cn_ula_fail.pti =
-      ue_context_p->emm_context.esm_ctx.esm_proc_data->pti;
+    cn_ula_fail.pti = ue_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   } else {
     OAILOG_ERROR(
       LOG_MME_APP, " esm_proc_data is NULL, so failed to fetch pti \n");
@@ -433,19 +432,22 @@ int mme_app_handle_s6a_cancel_location_req(
       LOG_MME_APP,
       "Sending Detach Req to NAS module for (ue_id = " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-    if ((mme_app_handle_nw_initiated_detach_request(
-      ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH)) == RETURNerror) {
+    if (
+      (mme_app_handle_nw_initiated_detach_request(
+        ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH)) ==
+      RETURNerror) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to handle network initiated Detach Request in nas module for "
-        "ue-id: "MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
+        "ue-id: " MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_context_p);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     } else {
       // Send SGS explicit network initiated Detach Ind to SGS
       if (ue_context_p->sgs_context) {
-        mme_app_handle_sgs_detach_req(ue_context_p,
-          EMM_SGS_NW_INITIATED_EPS_DETACH);
+        mme_app_handle_sgs_detach_req(
+          ue_context_p, EMM_SGS_NW_INITIATED_EPS_DETACH);
       }
     }
   }
@@ -455,12 +457,12 @@ int mme_app_handle_s6a_cancel_location_req(
 
 int mme_app_send_s6a_cancel_location_ans(
   int cla_result,
-  const char *imsi,
+  const char* imsi,
   uint8_t imsi_length,
-  void *msg_cla_p)
+  void* msg_cla_p)
 {
-  MessageDef *message_p = NULL;
-  s6a_cancel_location_ans_t *s6a_cla_p = NULL;
+  MessageDef* message_p = NULL;
+  s6a_cancel_location_ans_t* s6a_cla_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -472,7 +474,7 @@ int mme_app_send_s6a_cancel_location_ans(
   }
 
   s6a_cla_p = &message_p->ittiMsg.s6a_cancel_location_ans;
-  memset((void *) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
+  memset((void*) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
 
   /* Using the IMSI details deom CLR */
   memcpy(s6a_cla_p->imsi, imsi, imsi_length);

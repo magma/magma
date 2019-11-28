@@ -657,6 +657,7 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -675,8 +676,9 @@ func (scsu *SurveyCellScanUpdate) sqlSave(ctx context.Context) (n int, err error
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveycellscan.Table).Where(sql.InInts(surveycellscan.FieldID, ids...))
+		updater = builder.Update(surveycellscan.Table)
 	)
+	updater = updater.Where(sql.InInts(surveycellscan.FieldID, ids...))
 	if value := scsu.update_time; value != nil {
 		updater.Set(surveycellscan.FieldUpdateTime, *value)
 	}
@@ -1506,6 +1508,7 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1529,8 +1532,9 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveycellscan.Table).Where(sql.InInts(surveycellscan.FieldID, ids...))
+		updater = builder.Update(surveycellscan.Table)
 	)
+	updater = updater.Where(sql.InInts(surveycellscan.FieldID, ids...))
 	if value := scsuo.update_time; value != nil {
 		updater.Set(surveycellscan.FieldUpdateTime, *value)
 		scs.UpdateTime = *value

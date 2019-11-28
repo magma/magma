@@ -15,6 +15,7 @@
 #include "LocalEnforcer.h"
 #include "SessionReporter.h"
 #include "MagmaService.h"
+#include "RestartHandler.h"
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
 #include "MConfigLoader.h"
@@ -103,6 +104,7 @@ int main(int argc, char *argv[])
 
   folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
+
   // prep rule manager and rule update loop
   auto rule_store = std::make_shared<magma::StaticRuleStore>();
   magma::PolicyLoader policy_loader;
@@ -119,6 +121,12 @@ int main(int argc, char *argv[])
   std::thread rule_manager_thread([&]() {
     MLOG(MINFO) << "Started pipelined response thread";
     pipelined_client->rpc_response_loop();
+  });
+
+  auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
+  std::thread directoryd_thread([&]() {
+    MLOG(MINFO) << "Started pipelined response thread";
+    directoryd_client->rpc_response_loop();
   });
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
@@ -165,19 +173,27 @@ int main(int argc, char *argv[])
     reporter->rpc_response_loop();
   });
 
-  auto monitor = magma::LocalEnforcer(
+  auto monitor = std::make_shared<magma::LocalEnforcer>(
     reporter,
     rule_store,
     pipelined_client,
+    directoryd_client,
     spgw_client,
     aaa_client,
     config["session_force_termination_timeout_ms"].as<long>());
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-    &monitor, reporter.get());
+    monitor, reporter.get(), directoryd_client);
   auto proxy_handler =
-    std::make_unique<magma::SessionProxyResponderHandlerImpl>(&monitor);
+    std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor);
+
+  auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
+    directoryd_client, monitor, reporter.get());
+  std::thread restart_handler_thread([&]() {
+    MLOG(MINFO) << "Started sessiond restart handler thread";
+    restart_handler->cleanup_previous_sessions();
+  });
 
   magma::LocalSessionManagerAsyncService local_service(
     server.GetNewCompletionQueue(), std::move(local_handler));
@@ -199,14 +215,16 @@ int main(int argc, char *argv[])
   });
 
   // Block on main monitor (to keep evb in this thread)
-  monitor.attachEventBase(evb);
-  monitor.start();
+  monitor->attachEventBase(evb);
+  monitor->start();
   server.Stop();
 
   reporter_thread.join();
   local_thread.join();
   proxy_thread.join();
   rule_manager_thread.join();
+  directoryd_thread.join();
+  restart_handler_thread.join();
   policy_loader_thread.join();
   optional_client_thread.join();
 

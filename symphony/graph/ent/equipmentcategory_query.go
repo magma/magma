@@ -57,16 +57,11 @@ func (ecq *EquipmentCategoryQuery) Order(o ...Order) *EquipmentCategoryQuery {
 // QueryTypes chains the current query on the types edge.
 func (ecq *EquipmentCategoryQuery) QueryTypes() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: ecq.config}
-	step := &sql.Step{}
-	step.From.V = ecq.sqlQuery()
-	step.From.Table = equipmentcategory.Table
-	step.From.Column = equipmentcategory.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentcategory.TypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentcategory.TypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentcategory.Table, equipmentcategory.FieldID, ecq.sqlQuery()),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
+	)
 	query.sql = sql.SetNeighbors(ecq.driver.Dialect(), step)
 	return query
 }

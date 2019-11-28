@@ -15,8 +15,6 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import StarBorderIcon from '@material-ui/icons/StarBorder';
-import StarIcon from '@material-ui/icons/Star';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
@@ -30,8 +28,6 @@ type Props = {
   name: string,
   onDelete: () => void,
   onEdit?: ?() => void,
-  onStar?: ?() => void,
-  isStarred?: boolean,
   allowDelete?: ?boolean,
 } & WithStyles<typeof styles>;
 
@@ -65,7 +61,11 @@ const styles = theme => ({
   actionButtons: {
     display: 'flex',
     flexDirection: 'row-reverse',
+    alignItems: 'center',
     flexGrow: 1,
+  },
+  checkbox: {
+    margin: '12px',
   },
 });
 
@@ -79,8 +79,6 @@ class ConfigureExpansionPanel extends React.Component<Props> {
       instanceNameSingular,
       name,
       onEdit,
-      onStar,
-      isStarred,
     } = this.props;
     return (
       <Grid
@@ -118,18 +116,6 @@ class ConfigureExpansionPanel extends React.Component<Props> {
               <IconButton onClick={onEdit} color="primary">
                 <EditIcon />
               </IconButton>
-            )}
-            {onStar && (
-              <Tooltip
-                title={
-                  isStarred
-                    ? 'Unmarks this location type as a Site'
-                    : 'Marks this location type as a Site'
-                }>
-                <IconButton onClick={onStar} color="primary">
-                  {isStarred ? <StarIcon /> : <StarBorderIcon />}
-                </IconButton>
-              </Tooltip>
             )}
           </div>
         </Grid>

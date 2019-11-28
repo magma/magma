@@ -66,16 +66,11 @@ func (woq *WorkOrderQuery) Order(o ...Order) *WorkOrderQuery {
 // QueryType chains the current query on the type edge.
 func (woq *WorkOrderQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = workordertype.Table
-	step.To.Column = workordertype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.TypeColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(workordertype.Table, workordertype.FieldID),
+		sql.Edge(sql.M2O, false, workorder.TypeTable, workorder.TypeColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -83,16 +78,11 @@ func (woq *WorkOrderQuery) QueryType() *WorkOrderTypeQuery {
 // QueryEquipment chains the current query on the equipment edge.
 func (woq *WorkOrderQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -100,16 +90,11 @@ func (woq *WorkOrderQuery) QueryEquipment() *EquipmentQuery {
 // QueryLinks chains the current query on the links edge.
 func (woq *WorkOrderQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.LinksTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.LinksColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.O2M, true, workorder.LinksTable, workorder.LinksColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -117,16 +102,11 @@ func (woq *WorkOrderQuery) QueryLinks() *LinkQuery {
 // QueryFiles chains the current query on the files edge.
 func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.FilesTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.FilesColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -134,16 +114,11 @@ func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 // QueryLocation chains the current query on the location edge.
 func (woq *WorkOrderQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.LocationColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, false, workorder.LocationTable, workorder.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -151,16 +126,11 @@ func (woq *WorkOrderQuery) QueryLocation() *LocationQuery {
 // QueryComments chains the current query on the comments edge.
 func (woq *WorkOrderQuery) QueryComments() *CommentQuery {
 	query := &CommentQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = comment.Table
-	step.To.Column = comment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.CommentsTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.CommentsColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(comment.Table, comment.FieldID),
+		sql.Edge(sql.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -168,16 +138,11 @@ func (woq *WorkOrderQuery) QueryComments() *CommentQuery {
 // QueryProperties chains the current query on the properties edge.
 func (woq *WorkOrderQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -185,16 +150,11 @@ func (woq *WorkOrderQuery) QueryProperties() *PropertyQuery {
 // QueryCheckListItems chains the current query on the check_list_items edge.
 func (woq *WorkOrderQuery) QueryCheckListItems() *CheckListItemQuery {
 	query := &CheckListItemQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = checklistitem.Table
-	step.To.Column = checklistitem.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.CheckListItemsTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.CheckListItemsColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(checklistitem.Table, checklistitem.FieldID),
+		sql.Edge(sql.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -202,16 +162,11 @@ func (woq *WorkOrderQuery) QueryCheckListItems() *CheckListItemQuery {
 // QueryTechnician chains the current query on the technician edge.
 func (woq *WorkOrderQuery) QueryTechnician() *TechnicianQuery {
 	query := &TechnicianQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = technician.Table
-	step.To.Column = technician.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = workorder.TechnicianTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.TechnicianColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(technician.Table, technician.FieldID),
+		sql.Edge(sql.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
@@ -219,16 +174,11 @@ func (woq *WorkOrderQuery) QueryTechnician() *TechnicianQuery {
 // QueryProject chains the current query on the project edge.
 func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: woq.config}
-	step := &sql.Step{}
-	step.From.V = woq.sqlQuery()
-	step.From.Table = workorder.Table
-	step.From.Column = workorder.FieldID
-	step.To.Table = project.Table
-	step.To.Column = project.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = workorder.ProjectTable
-	step.Edge.Columns = append(step.Edge.Columns, workorder.ProjectColumn)
+	step := sql.NewStep(
+		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sql.To(project.Table, project.FieldID),
+		sql.Edge(sql.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	)
 	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }

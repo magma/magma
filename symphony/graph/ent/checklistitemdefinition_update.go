@@ -199,6 +199,7 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -217,8 +218,9 @@ func (clidu *CheckListItemDefinitionUpdate) sqlSave(ctx context.Context) (n int,
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(checklistitemdefinition.Table).Where(sql.InInts(checklistitemdefinition.FieldID, ids...))
+		updater = builder.Update(checklistitemdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(checklistitemdefinition.FieldID, ids...))
 	if value := clidu.title; value != nil {
 		updater.Set(checklistitemdefinition.FieldTitle, *value)
 	}
@@ -456,6 +458,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -479,8 +482,9 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(checklistitemdefinition.Table).Where(sql.InInts(checklistitemdefinition.FieldID, ids...))
+		updater = builder.Update(checklistitemdefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(checklistitemdefinition.FieldID, ids...))
 	if value := cliduo.title; value != nil {
 		updater.Set(checklistitemdefinition.FieldTitle, *value)
 		clid.Title = *value

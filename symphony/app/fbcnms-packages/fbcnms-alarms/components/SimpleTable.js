@@ -352,7 +352,7 @@ export default function SimpleTable<T>(props: Props<T>) {
   }
 
   return (
-    <div className={classes.body} {...extraProps}>
+    <div {...extraProps} className={classes.body}>
       <Table>
         <TableHead>
           <TableRow>

@@ -212,6 +212,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -230,8 +231,9 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(file.Table).Where(sql.InInts(file.FieldID, ids...))
+		updater = builder.Update(file.Table)
 	)
+	updater = updater.Where(sql.InInts(file.FieldID, ids...))
 	if value := fu.update_time; value != nil {
 		updater.Set(file.FieldUpdateTime, *value)
 	}
@@ -474,6 +476,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -497,8 +500,9 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(file.Table).Where(sql.InInts(file.FieldID, ids...))
+		updater = builder.Update(file.Table)
 	)
+	updater = updater.Where(sql.InInts(file.FieldID, ids...))
 	if value := fuo.update_time; value != nil {
 		updater.Set(file.FieldUpdateTime, *value)
 		f.UpdateTime = *value

@@ -143,6 +143,7 @@ func (stcc *SurveyTemplateCategoryCreate) sqlSave(ctx context.Context) (*SurveyT
 		insert.Set(surveytemplatecategory.FieldCategoryDescription, *value)
 		stc.CategoryDescription = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(surveytemplatecategory.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

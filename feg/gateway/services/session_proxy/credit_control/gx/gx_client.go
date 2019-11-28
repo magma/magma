@@ -279,6 +279,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 	if request.RATType != credit_control.RAT_WLAN {
 		// Bearer-Usage - GENERAL(0)
 		m.NewAVP(avp.BearerUsage, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
+		m.NewAVP(avp.TGPPSelectionMode, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("0")) // IMEISV
 	}
 	if len(request.SpgwIPV4) > 0 {
 		m.NewAVP(avp.TGPPSGSNAddress, avp.Vbit, diameter.Vendor3GPP, datatype.IPv4(net.ParseIP(request.SpgwIPV4)))
@@ -288,7 +289,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 			diameter.Vendor3GPP, datatype.Address(net.ParseIP(request.SpgwIPV4)))
 
 	}
-	m.NewAVP(avp.TGPPSelectionMode, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("0")) // IMEISV
+
 	if len(request.Imei) > 0 {
 		m.NewAVP(avp.UserEquipmentInfo, 0, 0, &diam.GroupedAVP{
 			AVP: []*diam.AVP{

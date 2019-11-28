@@ -111,7 +111,6 @@ function DevicesAgents(props: Props) {
   const rows = agents.map(agent => (
     <TableRow key={agent.id}>
       <TableCell>
-        {status}
         <DeviceStatusCircle
           isGrey={agent.status == null}
           isActive={!!agent.up}

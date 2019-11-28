@@ -172,6 +172,7 @@ func (eptc *EquipmentPortTypeCreate) sqlSave(ctx context.Context) (*EquipmentPor
 		insert.Set(equipmentporttype.FieldName, *value)
 		ept.Name = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmentporttype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

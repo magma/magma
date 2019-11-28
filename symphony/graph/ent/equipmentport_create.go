@@ -188,6 +188,7 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 		insert.Set(equipmentport.FieldUpdateTime, *value)
 		ep.UpdateTime = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmentport.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

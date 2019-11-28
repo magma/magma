@@ -214,6 +214,7 @@ func (wotc *WorkOrderTypeCreate) sqlSave(ctx context.Context) (*WorkOrderType, e
 		insert.Set(workordertype.FieldDescription, *value)
 		wot.Description = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(workordertype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

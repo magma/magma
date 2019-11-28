@@ -151,10 +151,10 @@ def list_allocated_ips_handler(client, args):
 @grpc_wrapper
 def get_subscriber_ip_table_handler(client, args):
     table = client.GetSubscriberIPTable(Void())
-    print("SID\t\tIP")
+    print("SID\t\tIP\t\tAPN")
     for entry in table.entries:
         ip = ipaddress.ip_address(entry.ip.address)
-        print("%s\t%s" % (SIDUtils.to_str(entry.sid), ip))
+        print("%s\t%s\t%s" % (SIDUtils.to_str(entry.sid), ip, entry.apn))
 
 
 def main():

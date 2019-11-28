@@ -60,16 +60,11 @@ func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
 // QueryPorts chains the current query on the ports edge.
 func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: lq.config}
-	step := &sql.Step{}
-	step.From.V = lq.sqlQuery()
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = link.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, link.PortsColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, true, link.PortsTable, link.PortsColumn),
+	)
 	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
@@ -77,16 +72,11 @@ func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 // QueryWorkOrder chains the current query on the work_order edge.
 func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := &sql.Step{}
-	step.From.V = lq.sqlQuery()
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = link.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, link.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+	)
 	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
@@ -94,16 +84,11 @@ func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 // QueryProperties chains the current query on the properties edge.
 func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := &sql.Step{}
-	step.From.V = lq.sqlQuery()
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = link.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, link.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
@@ -111,16 +96,11 @@ func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 // QueryService chains the current query on the service edge.
 func (lq *LinkQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: lq.config}
-	step := &sql.Step{}
-	step.From.V = lq.sqlQuery()
-	step.From.Table = link.Table
-	step.From.Column = link.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = link.ServiceTable
-	step.Edge.Columns = append(step.Edge.Columns, link.ServicePrimaryKey...)
+	step := sql.NewStep(
+		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
