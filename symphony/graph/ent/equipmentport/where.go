@@ -328,8 +328,12 @@ func UpdateTimeLTE(v time.Time) predicate.EquipmentPort {
 func HasDefinition() predicate.EquipmentPort {
 	return predicate.EquipmentPort(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(DefinitionColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(DefinitionTable, FieldID),
+				sql.Edge(sql.M2O, false, DefinitionTable, DefinitionColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -353,8 +357,12 @@ func HasDefinitionWith(preds ...predicate.EquipmentPortDefinition) predicate.Equ
 func HasParent() predicate.EquipmentPort {
 	return predicate.EquipmentPort(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ParentColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ParentTable, FieldID),
+				sql.Edge(sql.M2O, true, ParentTable, ParentColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -378,8 +386,12 @@ func HasParentWith(preds ...predicate.Equipment) predicate.EquipmentPort {
 func HasLink() predicate.EquipmentPort {
 	return predicate.EquipmentPort(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LinkColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinkTable, FieldID),
+				sql.Edge(sql.M2O, false, LinkTable, LinkColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -403,16 +415,12 @@ func HasLinkWith(preds ...predicate.Link) predicate.EquipmentPort {
 func HasProperties() predicate.EquipmentPort {
 	return predicate.EquipmentPort(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

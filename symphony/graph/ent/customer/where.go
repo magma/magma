@@ -638,15 +638,12 @@ func ExternalIDContainsFold(v string) predicate.Customer {
 func HasServices() predicate.Customer {
 	return predicate.Customer(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ServicesPrimaryKey[1]).
-						From(builder.Table(ServicesTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServicesTable, FieldID),
+				sql.Edge(sql.M2M, true, ServicesTable, ServicesPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

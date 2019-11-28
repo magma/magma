@@ -867,8 +867,12 @@ func IndexLTE(v int) predicate.SurveyTemplateQuestion {
 func HasCategory() predicate.SurveyTemplateQuestion {
 	return predicate.SurveyTemplateQuestion(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(CategoryColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CategoryTable, FieldID),
+				sql.Edge(sql.M2O, true, CategoryTable, CategoryColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

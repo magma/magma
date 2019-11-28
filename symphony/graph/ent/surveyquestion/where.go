@@ -2720,8 +2720,12 @@ func DateDataNotNil() predicate.SurveyQuestion {
 func HasSurvey() predicate.SurveyQuestion {
 	return predicate.SurveyQuestion(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(SurveyColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SurveyTable, FieldID),
+				sql.Edge(sql.M2O, false, SurveyTable, SurveyColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2745,16 +2749,12 @@ func HasSurveyWith(preds ...predicate.Survey) predicate.SurveyQuestion {
 func HasWifiScan() predicate.SurveyQuestion {
 	return predicate.SurveyQuestion(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WifiScanColumn).
-						From(builder.Table(WifiScanTable)).
-						Where(sql.NotNull(WifiScanColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WifiScanTable, FieldID),
+				sql.Edge(sql.O2M, true, WifiScanTable, WifiScanColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2778,16 +2778,12 @@ func HasWifiScanWith(preds ...predicate.SurveyWiFiScan) predicate.SurveyQuestion
 func HasCellScan() predicate.SurveyQuestion {
 	return predicate.SurveyQuestion(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CellScanColumn).
-						From(builder.Table(CellScanTable)).
-						Where(sql.NotNull(CellScanColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CellScanTable, FieldID),
+				sql.Edge(sql.O2M, true, CellScanTable, CellScanColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2811,16 +2807,12 @@ func HasCellScanWith(preds ...predicate.SurveyCellScan) predicate.SurveyQuestion
 func HasPhotoData() predicate.SurveyQuestion {
 	return predicate.SurveyQuestion(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PhotoDataColumn).
-						From(builder.Table(PhotoDataTable)).
-						Where(sql.NotNull(PhotoDataColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PhotoDataTable, FieldID),
+				sql.Edge(sql.O2M, false, PhotoDataTable, PhotoDataColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

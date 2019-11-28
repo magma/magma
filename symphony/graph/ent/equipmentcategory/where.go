@@ -474,16 +474,12 @@ func NameContainsFold(v string) predicate.EquipmentCategory {
 func HasTypes() predicate.EquipmentCategory {
 	return predicate.EquipmentCategory(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(TypesColumn).
-						From(builder.Table(TypesTable)).
-						Where(sql.NotNull(TypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypesTable, FieldID),
+				sql.Edge(sql.O2M, true, TypesTable, TypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

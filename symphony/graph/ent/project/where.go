@@ -802,8 +802,12 @@ func CreatorContainsFold(v string) predicate.Project {
 func HasType() predicate.Project {
 	return predicate.Project(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, true, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -827,8 +831,12 @@ func HasTypeWith(preds ...predicate.ProjectType) predicate.Project {
 func HasLocation() predicate.Project {
 	return predicate.Project(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -852,16 +860,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.Project {
 func HasWorkOrders() predicate.Project {
 	return predicate.Project(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WorkOrdersColumn).
-						From(builder.Table(WorkOrdersTable)).
-						Where(sql.NotNull(WorkOrdersColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrdersTable, FieldID),
+				sql.Edge(sql.O2M, false, WorkOrdersTable, WorkOrdersColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -885,16 +889,12 @@ func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.Project {
 func HasProperties() predicate.Project {
 	return predicate.Project(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
