@@ -236,8 +236,8 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
       //Inform to NAS module to trigger N/W initiated imsi detach request towards UE
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Send SGS intiated Detach request to NAS module for (ue_id = "
-        MME_UE_S1AP_ID_FMT ")\n"
+        "Send SGS intiated Detach request to NAS module for ue_id = "
+        MME_UE_S1AP_ID_FMT "\n"
         "csfb service type = CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI\n",
         ue_context_p->mme_ue_s1ap_id);
 
@@ -2659,8 +2659,9 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
   /* If delete_default_bearer is set and this is the only active PDN,
   *  Send Detach Request to UE
   */
-  if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
-       (ue_context_p->nb_active_pdn_contexts == 1)) {
+  if (
+    (nw_init_bearer_deactv_req_p->delete_default_bearer) &&
+    (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO(
       LOG_MME_APP,
       "Send MME initiated Detach Req to NAS module for EBI %u"
@@ -2730,7 +2731,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
         num_bearers_deleted,
         pdn_context->s_gw_teid_s11_s4,
         REQUEST_ACCEPTED);
-     }
+    }
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
