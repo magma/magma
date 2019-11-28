@@ -65,8 +65,17 @@ Additional prerequisites for developers can be found in the developer's guide.</
 <li><a href="https://www.virtualbox.org/">VirtualBox</a></li>
 <li><a href="https://vagrantup.com">Vagrant</a></li>
 </ol>
-<p>Replace <code>brew</code> with your OS-appropriate package manager as necessary:</p>
-<pre><code class="hljs css language-bash">brew install python3
+<p>Replace <code>brew</code> with your OS-appropriate package manager as necessary, or see
+the <a href="https://github.com/pyenv/pyenv#installation">pyenv installation instructions</a>.</p>
+<pre><code class="hljs css language-bash">brew install pyenv
+
+<span class="hljs-comment"># Replace .zshrc with your appropriate shell RC file</span>
+<span class="hljs-comment"># IMPORTANT: Use .bash_profile, not .bashrc for bash</span>
+<span class="hljs-built_in">echo</span> -e <span class="hljs-string">'if command -v pyenv 1&gt;/dev/null 2&gt;&amp;1; then\n  eval "$(pyenv init -)"\nfi'</span> &gt;&gt; ~/.zshrc
+<span class="hljs-built_in">exec</span> <span class="hljs-variable">$SHELL</span>
+pyenv install 3.7.3
+pyenv global 3.7.3
+
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 </code></pre>
@@ -81,9 +90,9 @@ host.</p>
 <p>First, follow the previous section on developer tools. Then, install some
 additional prerequisite tools (replace <code>brew</code> with your OS-appropriate package
 manager as necessary):</p>
-<pre><code class="hljs css language-console"><span class="hljs-meta">$</span><span class="bash"> brew install aws-iam-authenticator kubernetes-cli kubernetes-helm python3 terraform</span>
-<span class="hljs-meta">$</span><span class="bash"> pip3 install awscli</span>
-<span class="hljs-meta">$</span><span class="bash"> aws configure</span>
+<pre><code class="hljs css language-bash">brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
+pip3 install awscli
+aws configure
 </code></pre>
 <p>Provide the access key ID and secret key for an administrator user in AWS
 (don't use the root user) when prompted by <code>aws configure</code>. Skip this step if
