@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 64fbe2874f19a78c998b8a98fdf9bdc9
+ * @relayHash 34448a600b4e96ed67b9d7b352bdfc0e
  */
 
 /* eslint-disable */
@@ -47,7 +47,8 @@ export type AddServiceMutationVariables = {|
 |};
 export type AddServiceMutationResponse = {|
   +addService: ?{|
-    +$fragmentRefs: ServicesView_service$ref
+    +id: string,
+    +$fragmentRefs: ServicesView_service$ref,
   |}
 |};
 export type AddServiceMutation = {|
@@ -62,8 +63,8 @@ mutation AddServiceMutation(
   $data: ServiceCreateData!
 ) {
   addService(data: $data) {
-    ...ServicesView_service
     id
+    ...ServicesView_service
   }
 }
 
@@ -297,6 +298,7 @@ return {
         "concreteType": "Service",
         "plural": false,
         "selections": [
+          (v2/*: any*/),
           {
             "kind": "FragmentSpread",
             "name": "ServicesView_service",
@@ -443,11 +445,11 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceMutation",
     "id": null,
-    "text": "mutation AddServiceMutation(\n  $data: ServiceCreateData!\n) {\n  addService(data: $data) {\n    ...ServicesView_service\n    id\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
+    "text": "mutation AddServiceMutation(\n  $data: ServiceCreateData!\n) {\n  addService(data: $data) {\n    id\n    ...ServicesView_service\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'efec068ac90fd31bd96931f67e0b45df';
+(node/*: any*/).hash = 'c1851bc1051259086d7d6c1a0a517c42';
 module.exports = node;

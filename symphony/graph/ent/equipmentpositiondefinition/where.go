@@ -757,16 +757,12 @@ func VisibilityLabelContainsFold(v string) predicate.EquipmentPositionDefinition
 func HasPositions() predicate.EquipmentPositionDefinition {
 	return predicate.EquipmentPositionDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PositionsColumn).
-						From(builder.Table(PositionsTable)).
-						Where(sql.NotNull(PositionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PositionsTable, FieldID),
+				sql.Edge(sql.O2M, true, PositionsTable, PositionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -790,8 +786,12 @@ func HasPositionsWith(preds ...predicate.EquipmentPosition) predicate.EquipmentP
 func HasEquipmentType() predicate.EquipmentPositionDefinition {
 	return predicate.EquipmentPositionDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentTypeTable, EquipmentTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

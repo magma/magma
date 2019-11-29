@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 740cf7e0c17b71c9324cb7383077bb0a
+ * @relayHash 21dba487699895757cb3d19c41c2bbb1
  */
 
 /* eslint-disable */
@@ -15,74 +15,55 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type DynamicPropertiesGrid_properties$ref = any;
-type DynamicPropertiesGrid_propertyTypes$ref = any;
-type PropertyFormField_property$ref = any;
-type PropertyTypeFormField_propertyType$ref = any;
-type ServiceLinksView_links$ref = any;
-export type ServiceCardQueryVariables = {|
-  serviceId: string
+type ServiceCard_service$ref = any;
+export type ServiceEditData = {|
+  id: string,
+  name: string,
+  externalId?: ?string,
+  customerId?: ?string,
+  upstreamServiceIds: $ReadOnlyArray<string>,
+  properties?: ?$ReadOnlyArray<?PropertyInput>,
+  terminationPointIds: $ReadOnlyArray<string>,
+  linkIds: $ReadOnlyArray<string>,
 |};
-export type ServiceCardQueryResponse = {|
-  +service: ?{|
-    +id: string,
-    +name: string,
-    +externalId: ?string,
-    +customer: ?{|
-      +name: string
-    |},
-    +serviceType: {|
-      +id: string,
-      +name: string,
-      +propertyTypes: $ReadOnlyArray<?{|
-        +$fragmentRefs: PropertyTypeFormField_propertyType$ref & DynamicPropertiesGrid_propertyTypes$ref
-      |}>,
-    |},
-    +properties: $ReadOnlyArray<?{|
-      +$fragmentRefs: PropertyFormField_property$ref & DynamicPropertiesGrid_properties$ref
-    |}>,
-    +links: $ReadOnlyArray<?{|
-      +$fragmentRefs: ServiceLinksView_links$ref
-    |}>,
+export type PropertyInput = {|
+  id?: ?string,
+  propertyTypeID: string,
+  stringValue?: ?string,
+  intValue?: ?number,
+  booleanValue?: ?boolean,
+  floatValue?: ?number,
+  latitudeValue?: ?number,
+  longitudeValue?: ?number,
+  rangeFromValue?: ?number,
+  rangeToValue?: ?number,
+  equipmentIDValue?: ?string,
+  locationIDValue?: ?string,
+  isEditable?: ?boolean,
+  isInstanceProperty?: ?boolean,
+|};
+export type EditServiceMutationVariables = {|
+  data: ServiceEditData
+|};
+export type EditServiceMutationResponse = {|
+  +editService: ?{|
+    +$fragmentRefs: ServiceCard_service$ref
   |}
 |};
-export type ServiceCardQuery = {|
-  variables: ServiceCardQueryVariables,
-  response: ServiceCardQueryResponse,
+export type EditServiceMutation = {|
+  variables: EditServiceMutationVariables,
+  response: EditServiceMutationResponse,
 |};
 */
 
 
 /*
-query ServiceCardQuery(
-  $serviceId: ID!
+mutation EditServiceMutation(
+  $data: ServiceEditData!
 ) {
-  service(id: $serviceId) {
+  editService(data: $data) {
+    ...ServiceCard_service
     id
-    name
-    externalId
-    customer {
-      name
-      id
-    }
-    serviceType {
-      id
-      name
-      propertyTypes {
-        ...PropertyTypeFormField_propertyType
-        ...DynamicPropertiesGrid_propertyTypes
-        id
-      }
-    }
-    properties {
-      ...PropertyFormField_property
-      ...DynamicPropertiesGrid_properties
-      id
-    }
-    links {
-      ...ServiceLinksView_links
-      id
-    }
   }
 }
 
@@ -155,6 +136,56 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   isInstanceProperty
 }
 
+fragment ServiceCard_service on Service {
+  id
+  name
+  externalId
+  customer {
+    name
+    id
+  }
+  serviceType {
+    id
+    name
+    propertyTypes {
+      ...PropertyTypeFormField_propertyType
+      ...DynamicPropertiesGrid_propertyTypes
+      id
+    }
+  }
+  properties {
+    ...PropertyFormField_property
+    ...DynamicPropertiesGrid_properties
+    id
+  }
+  links {
+    id
+    ...ServiceLinksView_links
+  }
+  terminationPoints {
+    ...ServiceEquipmentTopology_terminationPoints
+    id
+  }
+  topology {
+    ...ServiceEquipmentTopology_topology
+  }
+}
+
+fragment ServiceEquipmentTopology_terminationPoints on Equipment {
+  id
+}
+
+fragment ServiceEquipmentTopology_topology on NetworkTopology {
+  nodes {
+    id
+    name
+  }
+  links {
+    source
+    target
+  }
+}
+
 fragment ServiceLinksView_links on Link {
   id
   ports {
@@ -175,16 +206,16 @@ const node/*: ConcreteRequest*/ = (function(){
 var v0 = [
   {
     "kind": "LocalArgument",
-    "name": "serviceId",
-    "type": "ID!",
+    "name": "data",
+    "type": "ServiceEditData!",
     "defaultValue": null
   }
 ],
 v1 = [
   {
     "kind": "Variable",
-    "name": "id",
-    "variableName": "serviceId"
+    "name": "data",
+    "variableName": "data"
   }
 ],
 v2 = {
@@ -204,95 +235,88 @@ v3 = {
 v4 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "externalId",
+  "name": "type",
   "args": null,
   "storageKey": null
 },
 v5 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
+  "name": "index",
   "args": null,
   "storageKey": null
 },
 v6 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "index",
+  "name": "stringValue",
   "args": null,
   "storageKey": null
 },
 v7 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "stringValue",
+  "name": "intValue",
   "args": null,
   "storageKey": null
 },
 v8 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "intValue",
+  "name": "booleanValue",
   "args": null,
   "storageKey": null
 },
 v9 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "booleanValue",
+  "name": "floatValue",
   "args": null,
   "storageKey": null
 },
 v10 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "floatValue",
+  "name": "latitudeValue",
   "args": null,
   "storageKey": null
 },
 v11 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "latitudeValue",
+  "name": "longitudeValue",
   "args": null,
   "storageKey": null
 },
 v12 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "longitudeValue",
+  "name": "rangeFromValue",
   "args": null,
   "storageKey": null
 },
 v13 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeFromValue",
+  "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
 v14 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeToValue",
+  "name": "isEditable",
   "args": null,
   "storageKey": null
 },
 v15 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "isEditable",
-  "args": null,
-  "storageKey": null
-},
-v16 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
 },
-v17 = [
+v16 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ];
@@ -300,105 +324,24 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "ServiceCardQuery",
-    "type": "Query",
+    "name": "EditServiceMutation",
+    "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "service",
+        "name": "editService",
         "storageKey": null,
         "args": (v1/*: any*/),
         "concreteType": "Service",
         "plural": false,
         "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
-          (v4/*: any*/),
           {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "customer",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Customer",
-            "plural": false,
-            "selections": [
-              (v3/*: any*/)
-            ]
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "serviceType",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "ServiceType",
-            "plural": false,
-            "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/),
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "propertyTypes",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "PropertyType",
-                "plural": true,
-                "selections": [
-                  {
-                    "kind": "FragmentSpread",
-                    "name": "PropertyTypeFormField_propertyType",
-                    "args": null
-                  },
-                  {
-                    "kind": "FragmentSpread",
-                    "name": "DynamicPropertiesGrid_propertyTypes",
-                    "args": null
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "properties",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Property",
-            "plural": true,
-            "selections": [
-              {
-                "kind": "FragmentSpread",
-                "name": "PropertyFormField_property",
-                "args": null
-              },
-              {
-                "kind": "FragmentSpread",
-                "name": "DynamicPropertiesGrid_properties",
-                "args": null
-              }
-            ]
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "links",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Link",
-            "plural": true,
-            "selections": [
-              {
-                "kind": "FragmentSpread",
-                "name": "ServiceLinksView_links",
-                "args": null
-              }
-            ]
+            "kind": "FragmentSpread",
+            "name": "ServiceCard_service",
+            "args": null
           }
         ]
       }
@@ -406,13 +349,13 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "ServiceCardQuery",
+    "name": "EditServiceMutation",
     "argumentDefinitions": (v0/*: any*/),
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "service",
+        "name": "editService",
         "storageKey": null,
         "args": (v1/*: any*/),
         "concreteType": "Service",
@@ -420,7 +363,13 @@ return {
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
-          (v4/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "externalId",
+            "args": null,
+            "storageKey": null
+          },
           {
             "kind": "LinkedField",
             "alias": null,
@@ -456,6 +405,7 @@ return {
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
+                  (v4/*: any*/),
                   (v5/*: any*/),
                   (v6/*: any*/),
                   (v7/*: any*/),
@@ -466,8 +416,7 @@ return {
                   (v12/*: any*/),
                   (v13/*: any*/),
                   (v14/*: any*/),
-                  (v15/*: any*/),
-                  (v16/*: any*/)
+                  (v15/*: any*/)
                 ]
               }
             ]
@@ -493,21 +442,21 @@ return {
                 "selections": [
                   (v2/*: any*/),
                   (v3/*: any*/),
-                  (v5/*: any*/),
+                  (v4/*: any*/),
+                  (v14/*: any*/),
                   (v15/*: any*/),
-                  (v16/*: any*/),
-                  (v7/*: any*/),
-                  (v6/*: any*/)
+                  (v6/*: any*/),
+                  (v5/*: any*/)
                 ]
               },
+              (v6/*: any*/),
               (v7/*: any*/),
+              (v9/*: any*/),
               (v8/*: any*/),
               (v10/*: any*/),
-              (v9/*: any*/),
               (v11/*: any*/),
               (v12/*: any*/),
               (v13/*: any*/),
-              (v14/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
@@ -516,7 +465,7 @@ return {
                 "args": null,
                 "concreteType": "Equipment",
                 "plural": false,
-                "selections": (v17/*: any*/)
+                "selections": (v16/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -526,7 +475,7 @@ return {
                 "args": null,
                 "concreteType": "Location",
                 "plural": false,
-                "selections": (v17/*: any*/)
+                "selections": (v16/*: any*/)
               }
             ]
           },
@@ -557,7 +506,7 @@ return {
                     "args": null,
                     "concreteType": "Equipment",
                     "plural": false,
-                    "selections": (v17/*: any*/)
+                    "selections": (v16/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -567,9 +516,67 @@ return {
                     "args": null,
                     "concreteType": "EquipmentPortDefinition",
                     "plural": false,
-                    "selections": (v17/*: any*/)
+                    "selections": (v16/*: any*/)
                   },
                   (v2/*: any*/)
+                ]
+              }
+            ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "terminationPoints",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Equipment",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/)
+            ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "topology",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "NetworkTopology",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "nodes",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Equipment",
+                "plural": true,
+                "selections": (v16/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "links",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "TopologyLink",
+                "plural": true,
+                "selections": [
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "source",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "target",
+                    "args": null,
+                    "storageKey": null
+                  }
                 ]
               }
             ]
@@ -579,14 +586,14 @@ return {
     ]
   },
   "params": {
-    "operationKind": "query",
-    "name": "ServiceCardQuery",
+    "operationKind": "mutation",
+    "name": "EditServiceMutation",
     "id": null,
-    "text": "query ServiceCardQuery(\n  $serviceId: ID!\n) {\n  service(id: $serviceId) {\n    id\n    name\n    externalId\n    customer {\n      name\n      id\n    }\n    serviceType {\n      id\n      name\n      propertyTypes {\n        ...PropertyTypeFormField_propertyType\n        ...DynamicPropertiesGrid_propertyTypes\n        id\n      }\n    }\n    properties {\n      ...PropertyFormField_property\n      ...DynamicPropertiesGrid_properties\n      id\n    }\n    links {\n      ...ServiceLinksView_links\n      id\n    }\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n",
+    "text": "mutation EditServiceMutation(\n  $data: ServiceEditData!\n) {\n  editService(data: $data) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '64c4b2f21cccc5bda11dbcd60ec96a99';
+(node/*: any*/).hash = '0d262e10a1451069e21df0155a3ac18d';
 module.exports = node;

@@ -48,9 +48,9 @@ const styles = theme => ({
     marginBottom: '21px',
     paddingBottom: '0px',
   },
-  input: {
+  nameInput: {
     display: 'inline-flex',
-    margin: '5px 0',
+    marginBottom: '16px',
     width: '305px',
   },
   section: {
@@ -137,7 +137,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                     <TextInput
                       name="name"
                       variant="outlined"
-                      className={classes.input}
+                      className={classes.nameInput}
                       value={editingLocationType.name}
                       onChange={this.nameChanged}
                       ref={this._nameInputRef}

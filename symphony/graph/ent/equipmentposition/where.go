@@ -328,8 +328,12 @@ func UpdateTimeLTE(v time.Time) predicate.EquipmentPosition {
 func HasDefinition() predicate.EquipmentPosition {
 	return predicate.EquipmentPosition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(DefinitionColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(DefinitionTable, FieldID),
+				sql.Edge(sql.M2O, false, DefinitionTable, DefinitionColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -353,8 +357,12 @@ func HasDefinitionWith(preds ...predicate.EquipmentPositionDefinition) predicate
 func HasParent() predicate.EquipmentPosition {
 	return predicate.EquipmentPosition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ParentColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ParentTable, FieldID),
+				sql.Edge(sql.M2O, true, ParentTable, ParentColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -378,16 +386,12 @@ func HasParentWith(preds ...predicate.Equipment) predicate.EquipmentPosition {
 func HasAttachment() predicate.EquipmentPosition {
 	return predicate.EquipmentPosition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(AttachmentColumn).
-						From(builder.Table(AttachmentTable)).
-						Where(sql.NotNull(AttachmentColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(AttachmentTable, FieldID),
+				sql.Edge(sql.O2O, false, AttachmentTable, AttachmentColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

@@ -212,8 +212,8 @@ func getProperties(ctx context.Context, line []string, index int) map[string]str
 		idx := ic.propNameToIndex[propKey]
 		if idx != 0 {
 			val = line[idx]
+			propKeyValue[propKey] = val
 		}
-		propKeyValue[propKey] = val
 	}
 	return propKeyValue
 }

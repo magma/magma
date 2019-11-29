@@ -9,6 +9,7 @@
  */
 
 import type {BreadcrumbData} from './Breadcrumb';
+import type {TextVariant} from '../theme/symphony';
 
 import Breadcrumb from './Breadcrumb';
 import List from '@material-ui/core/List';
@@ -67,10 +68,11 @@ type Props = {
   breadcrumbs: Array<BreadcrumbData>,
   className?: string,
   size?: 'default' | 'small' | 'large',
+  variant?: TextVariant,
 };
 
 const Breadcrumbs = (props: Props) => {
-  const {breadcrumbs, size, className} = props;
+  const {breadcrumbs, size, className, variant} = props;
   const classes = useStyles();
 
   const [isBreadcrumbsMenuOpen, toggleBreadcrumbsMenuOpen] = useState(false);
@@ -88,8 +90,6 @@ const Breadcrumbs = (props: Props) => {
     collapsedBreadcrumbs.length + (hasCollapsedBreadcrumbs ? 1 : 0),
   );
 
-  const textClass = size === 'small' ? classes.smallText : classes.largeText;
-
   return (
     <div className={classNames(classes.breadcrumbs, className)}>
       {startBreadcrumbs.map(b => (
@@ -99,19 +99,25 @@ const Breadcrumbs = (props: Props) => {
           isLastBreadcrumb={false}
           size={size}
           onClick={b.onClick}
+          variant={variant}
         />
       ))}
       {hasCollapsedBreadcrumbs && (
         <div className={classes.moreIcon}>
           <Text
-            className={classNames([classes.moreIconButton, textClass])}
+            variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
+            className={classes.moreIconButton}
             onClick={e => {
               toggleBreadcrumbsMenuOpen(true);
               setAnchorEl(e.currentTarget);
             }}>
             {'...'}
           </Text>
-          <Text className={classNames([classes.slash, textClass])}>{'/'}</Text>
+          <Text
+            variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
+            className={classes.slash}>
+            {'/'}
+          </Text>
         </div>
       )}
       {endBreadcrumbs.map((b, i) => (
@@ -120,6 +126,7 @@ const Breadcrumbs = (props: Props) => {
           data={b}
           isLastBreadcrumb={i === endBreadcrumbs.length - 1}
           size={size}
+          variant={variant}
         />
       ))}
       <Popover

@@ -11,6 +11,7 @@
 import type {Service} from '../../common/Service';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import Button from '@fbcnms/ui/components/design-system/Button';
 import React from 'react';
 import ServiceDeleteButton from './ServiceDeleteButton';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -20,7 +21,7 @@ const useStyles = makeStyles(_ => ({
   nameHeader: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'start',
     marginBottom: '24px',
   },
   breadcrumbs: {
@@ -34,7 +35,7 @@ const useStyles = makeStyles(_ => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: '8px',
+    marginRight: '12px',
   },
 }));
 
@@ -65,13 +66,12 @@ const ServiceHeader = (props: Props) => {
           size="large"
         />
       </div>
-      <div className={classes.deleteButton}>
-        <ServiceDeleteButton
-          className={classes.deleteButton}
-          service={service}
-          onServiceRemoved={onServiceRemoved}
-        />
-      </div>
+      <ServiceDeleteButton
+        className={classes.deleteButton}
+        service={service}
+        onServiceRemoved={onServiceRemoved}
+      />
+      <Button onClick={onBackClicked}>Done</Button>
     </div>
   );
 };

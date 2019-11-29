@@ -474,8 +474,12 @@ func NameContainsFold(v string) predicate.FloorPlan {
 func HasLocation() predicate.FloorPlan {
 	return predicate.FloorPlan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -499,8 +503,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.FloorPlan {
 func HasReferencePoint() predicate.FloorPlan {
 	return predicate.FloorPlan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ReferencePointColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ReferencePointTable, FieldID),
+				sql.Edge(sql.M2O, false, ReferencePointTable, ReferencePointColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -524,8 +532,12 @@ func HasReferencePointWith(preds ...predicate.FloorPlanReferencePoint) predicate
 func HasScale() predicate.FloorPlan {
 	return predicate.FloorPlan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ScaleColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ScaleTable, FieldID),
+				sql.Edge(sql.M2O, false, ScaleTable, ScaleColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -549,8 +561,12 @@ func HasScaleWith(preds ...predicate.FloorPlanScale) predicate.FloorPlan {
 func HasImage() predicate.FloorPlan {
 	return predicate.FloorPlan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ImageColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ImageTable, FieldID),
+				sql.Edge(sql.M2O, false, ImageTable, ImageColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

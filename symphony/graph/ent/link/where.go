@@ -492,16 +492,12 @@ func FutureStateContainsFold(v string) predicate.Link {
 func HasPorts() predicate.Link {
 	return predicate.Link(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PortsColumn).
-						From(builder.Table(PortsTable)).
-						Where(sql.NotNull(PortsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PortsTable, FieldID),
+				sql.Edge(sql.O2M, true, PortsTable, PortsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -525,8 +521,12 @@ func HasPortsWith(preds ...predicate.EquipmentPort) predicate.Link {
 func HasWorkOrder() predicate.Link {
 	return predicate.Link(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(WorkOrderColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrderTable, FieldID),
+				sql.Edge(sql.M2O, false, WorkOrderTable, WorkOrderColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -550,16 +550,12 @@ func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.Link {
 func HasProperties() predicate.Link {
 	return predicate.Link(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -583,15 +579,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Link {
 func HasService() predicate.Link {
 	return predicate.Link(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ServicePrimaryKey[1]).
-						From(builder.Table(ServiceTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServiceTable, FieldID),
+				sql.Edge(sql.M2M, true, ServiceTable, ServicePrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

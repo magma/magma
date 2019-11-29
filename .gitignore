@@ -15,8 +15,9 @@ Session.vim
 __pycache__/
 *.py[cod]
 # Virtual environments
-.env
+.env/
 .coverage
+.python-version
 
 # C extensions
 *.so

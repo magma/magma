@@ -9,6 +9,7 @@
  */
 
 import type {Equipment} from '../../common/Equipment';
+import type {TextVariant} from '@fbcnms/ui/theme/symphony';
 import type {WithStyles} from '@material-ui/core';
 
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
@@ -51,6 +52,8 @@ type Props = {
   onEquipmentClicked: (equipmentId: string) => void,
   size?: 'default' | 'small' | 'large',
   showSelfEquipment: boolean,
+  textClassName?: string,
+  variant?: TextVariant,
 } & WithStyles<typeof styles>;
 
 const EquipmentBreadcrumbs = (props: Props) => {
@@ -61,6 +64,7 @@ const EquipmentBreadcrumbs = (props: Props) => {
     onParentLocationClicked,
     size,
     showSelfEquipment,
+    variant,
   } = props;
 
   const positionSubText = pos => (
@@ -114,7 +118,9 @@ const EquipmentBreadcrumbs = (props: Props) => {
         ]
       : []),
   ];
-  return <Breadcrumbs breadcrumbs={breadcrumbs} size={size} />;
+  return (
+    <Breadcrumbs breadcrumbs={breadcrumbs} size={size} variant={variant} />
+  );
 };
 
 EquipmentBreadcrumbs.defaultProps = {
