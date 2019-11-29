@@ -8,9 +8,12 @@
  * @format
  */
 
+import type {PowerSearchEquipmentResultsTable_equipment} from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql.js';
+
 import AppContext from '@fbcnms/ui/context/AppContext';
 import EquipmentComparisonViewQueryRenderer from './EquipmentComparisonViewQueryRenderer';
 import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
+import PowerSearchEquipmentResultsTable from './PowerSearchEquipmentResultsTable';
 import React, {useContext} from 'react';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -36,20 +39,35 @@ const EquipmentComparisonView = () => {
   const equipmentExportEnabled = useContext(AppContext).isFeatureEnabled(
     'equipment_export',
   );
+  const EquipmentTable = (props: {
+    equipment: PowerSearchEquipmentResultsTable_equipment,
+  }) => {
+    return (
+      <div className={classes.searchResults}>
+        <PowerSearchEquipmentResultsTable
+          equipment={props.equipment}
+          onEquipmentSelected={equipment => {
+            ServerLogger.info(
+              LogEvents.EQUIPMENT_COMPARISON_VIEW_EQUIPMENT_CLICKED,
+            );
+            history.replace(`inventory?equipment=${equipment.id}`);
+          }}
+          onWorkOrderSelected={workOrderId =>
+            history.replace(`inventory?workorder=${workOrderId}`)
+          }
+        />
+      </div>
+    );
+  };
   return (
     <InventoryErrorBoundary>
       <div className={classes.root}>
         <div className={classes.searchResults}>
           <EquipmentComparisonViewQueryRenderer
             limit={QUERY_LIMIT}
-            showExport={equipmentExportEnabled}
-            onEquipmentSelected={equipment => {
-              ServerLogger.info(
-                LogEvents.EQUIPMENT_COMPARISON_VIEW_EQUIPMENT_CLICKED,
-              );
-              history.replace(`inventory?equipment=${equipment.id}`);
-            }}
-          />
+            showExport={equipmentExportEnabled}>
+            {props => <EquipmentTable {...props} />}
+          </EquipmentComparisonViewQueryRenderer>
         </div>
       </div>
     </InventoryErrorBoundary>

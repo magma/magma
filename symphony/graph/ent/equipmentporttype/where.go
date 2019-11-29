@@ -474,16 +474,12 @@ func NameContainsFold(v string) predicate.EquipmentPortType {
 func HasPropertyTypes() predicate.EquipmentPortType {
 	return predicate.EquipmentPortType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertyTypesColumn).
-						From(builder.Table(PropertyTypesTable)).
-						Where(sql.NotNull(PropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertyTypesTable, PropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -507,16 +503,12 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.EquipmentPo
 func HasLinkPropertyTypes() predicate.EquipmentPortType {
 	return predicate.EquipmentPortType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(LinkPropertyTypesColumn).
-						From(builder.Table(LinkPropertyTypesTable)).
-						Where(sql.NotNull(LinkPropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinkPropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, LinkPropertyTypesTable, LinkPropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -540,16 +532,12 @@ func HasLinkPropertyTypesWith(preds ...predicate.PropertyType) predicate.Equipme
 func HasPortDefinitions() predicate.EquipmentPortType {
 	return predicate.EquipmentPortType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PortDefinitionsColumn).
-						From(builder.Table(PortDefinitionsTable)).
-						Where(sql.NotNull(PortDefinitionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PortDefinitionsTable, FieldID),
+				sql.Edge(sql.O2M, true, PortDefinitionsTable, PortDefinitionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

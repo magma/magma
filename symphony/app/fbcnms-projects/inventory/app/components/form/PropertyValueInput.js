@@ -108,6 +108,7 @@ class PropertyValueInput extends React.Component<Props> {
             margin={margin}
             property={property}
             onChange={onChange}
+            autoFocus={true}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />

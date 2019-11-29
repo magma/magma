@@ -1579,8 +1579,12 @@ func IndexNotNil() predicate.WorkOrder {
 func HasType() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1604,16 +1608,12 @@ func HasTypeWith(preds ...predicate.WorkOrderType) predicate.WorkOrder {
 func HasEquipment() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(EquipmentColumn).
-						From(builder.Table(EquipmentTable)).
-						Where(sql.NotNull(EquipmentColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTable, FieldID),
+				sql.Edge(sql.O2M, true, EquipmentTable, EquipmentColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1637,16 +1637,12 @@ func HasEquipmentWith(preds ...predicate.Equipment) predicate.WorkOrder {
 func HasLinks() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(LinksColumn).
-						From(builder.Table(LinksTable)).
-						Where(sql.NotNull(LinksColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinksTable, FieldID),
+				sql.Edge(sql.O2M, true, LinksTable, LinksColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1670,16 +1666,12 @@ func HasLinksWith(preds ...predicate.Link) predicate.WorkOrder {
 func HasFiles() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(FilesColumn).
-						From(builder.Table(FilesTable)).
-						Where(sql.NotNull(FilesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(FilesTable, FieldID),
+				sql.Edge(sql.O2M, false, FilesTable, FilesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1703,8 +1695,12 @@ func HasFilesWith(preds ...predicate.File) predicate.WorkOrder {
 func HasLocation() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1728,16 +1724,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.WorkOrder {
 func HasComments() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CommentsColumn).
-						From(builder.Table(CommentsTable)).
-						Where(sql.NotNull(CommentsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CommentsTable, FieldID),
+				sql.Edge(sql.O2M, false, CommentsTable, CommentsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1761,16 +1753,12 @@ func HasCommentsWith(preds ...predicate.Comment) predicate.WorkOrder {
 func HasProperties() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1794,16 +1782,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.WorkOrder {
 func HasCheckListItems() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CheckListItemsColumn).
-						From(builder.Table(CheckListItemsTable)).
-						Where(sql.NotNull(CheckListItemsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CheckListItemsTable, FieldID),
+				sql.Edge(sql.O2M, false, CheckListItemsTable, CheckListItemsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1827,8 +1811,12 @@ func HasCheckListItemsWith(preds ...predicate.CheckListItem) predicate.WorkOrder
 func HasTechnician() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TechnicianColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TechnicianTable, FieldID),
+				sql.Edge(sql.M2O, false, TechnicianTable, TechnicianColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1852,8 +1840,12 @@ func HasTechnicianWith(preds ...predicate.Technician) predicate.WorkOrder {
 func HasProject() predicate.WorkOrder {
 	return predicate.WorkOrder(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ProjectColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ProjectTable, FieldID),
+				sql.Edge(sql.M2O, true, ProjectTable, ProjectColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

@@ -26,12 +26,15 @@ import type {WorkOrderType} from '../../common/WorkOrder';
 import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
+import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
@@ -84,6 +87,16 @@ const styles = theme => ({
   panel: {
     margin: '16px 0px',
   },
+  deleteButton: {
+    cursor: 'pointer',
+    color: symphony.palette.D400,
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: '8px',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -135,6 +148,9 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           size="large"
         />
         <div className={classes.buttons}>
+          <div className={classes.deleteButton}>
+            <DeleteOutlineIcon onClick={this.onDelete} />
+          </div>
           <Button
             className={classes.cancelButton}
             skin="regular"
@@ -290,6 +306,39 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       ConnectionHandler.insertEdgeBefore(types, edge);
     };
     AddWorkOrderTypeMutation(variables, callbacks, updater);
+  };
+
+  onDelete = () => {
+    const {editingWorkOrderType, confirm, onClose} = this.props;
+    if (!editingWorkOrderType) {
+      return;
+    }
+
+    confirm(
+      `Are you sure you want to delete "${editingWorkOrderType.name}"?`,
+    ).then(confirm => {
+      if (!confirm) {
+        return;
+      }
+      RemoveWorkOrderTypeMutation(
+        {id: editingWorkOrderType.id},
+        {
+          onCompleted: onClose,
+          onError: (error: any) => {
+            this.props.alert(`Error: ${error.source?.errors[0]?.message}`);
+          },
+        },
+        store => {
+          const rootQuery = store.getRoot();
+          const workOrderTypes = ConnectionHandler.getConnection(
+            rootQuery,
+            'Configure_workOrderTypes',
+          );
+          ConnectionHandler.deleteNode(workOrderTypes, editingWorkOrderType.id);
+          store.delete(editingWorkOrderType.id);
+        },
+      );
+    });
   };
 
   fieldChangedHandler = (field: 'name' | 'description') => value =>

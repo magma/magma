@@ -97,11 +97,7 @@ func (r mutationResolver) AddProperty(
 	if err != nil {
 		return nil, err
 	}
-	isEmpty, err := r.isEmptyProp(propType, input)
-	if err != nil {
-		return nil, err
-	}
-	if !propType.IsInstanceProperty || isEmpty {
+	if !propType.IsInstanceProperty {
 		return nil, nil
 	}
 	query := client.Property.Create()

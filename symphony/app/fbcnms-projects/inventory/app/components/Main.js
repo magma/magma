@@ -24,12 +24,14 @@ import LocationsMap from './map/LocationsMap';
 import MagmaMain from '@fbcnms/magmalte/app/components/Main';
 import MainNavListItems from './MainNavListItems';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
+import RelayEnvironment from '../common/RelayEnvironment.js';
 import ServiceComparisonView from './services/ServiceComparisonView';
 import Settings from './Settings';
 import WorkOrdersMain from './work_orders/WorkOrdersMain';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {setLoggerUser} from '../common/LoggingUtils';
@@ -114,7 +116,9 @@ function Main() {
             isExpanded,
             isExpandButtonShown,
           }}>
-          <Index />
+          <RelayEnvironmentProvider environment={RelayEnvironment}>
+            <Index />
+          </RelayEnvironmentProvider>
         </ExpandButtonContext.Provider>
       </AppContextProvider>
     </ApplicationMain>

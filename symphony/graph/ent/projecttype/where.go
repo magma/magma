@@ -638,16 +638,12 @@ func DescriptionContainsFold(v string) predicate.ProjectType {
 func HasProjects() predicate.ProjectType {
 	return predicate.ProjectType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ProjectsColumn).
-						From(builder.Table(ProjectsTable)).
-						Where(sql.NotNull(ProjectsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ProjectsTable, FieldID),
+				sql.Edge(sql.O2M, false, ProjectsTable, ProjectsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -671,16 +667,12 @@ func HasProjectsWith(preds ...predicate.Project) predicate.ProjectType {
 func HasProperties() predicate.ProjectType {
 	return predicate.ProjectType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -704,16 +696,12 @@ func HasPropertiesWith(preds ...predicate.PropertyType) predicate.ProjectType {
 func HasWorkOrders() predicate.ProjectType {
 	return predicate.ProjectType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WorkOrdersColumn).
-						From(builder.Table(WorkOrdersTable)).
-						Where(sql.NotNull(WorkOrdersColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrdersTable, FieldID),
+				sql.Edge(sql.O2M, false, WorkOrdersTable, WorkOrdersColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

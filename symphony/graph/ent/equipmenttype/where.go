@@ -474,16 +474,12 @@ func NameContainsFold(v string) predicate.EquipmentType {
 func HasPortDefinitions() predicate.EquipmentType {
 	return predicate.EquipmentType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PortDefinitionsColumn).
-						From(builder.Table(PortDefinitionsTable)).
-						Where(sql.NotNull(PortDefinitionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PortDefinitionsTable, FieldID),
+				sql.Edge(sql.O2M, false, PortDefinitionsTable, PortDefinitionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -507,16 +503,12 @@ func HasPortDefinitionsWith(preds ...predicate.EquipmentPortDefinition) predicat
 func HasPositionDefinitions() predicate.EquipmentType {
 	return predicate.EquipmentType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PositionDefinitionsColumn).
-						From(builder.Table(PositionDefinitionsTable)).
-						Where(sql.NotNull(PositionDefinitionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PositionDefinitionsTable, FieldID),
+				sql.Edge(sql.O2M, false, PositionDefinitionsTable, PositionDefinitionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -540,16 +532,12 @@ func HasPositionDefinitionsWith(preds ...predicate.EquipmentPositionDefinition) 
 func HasPropertyTypes() predicate.EquipmentType {
 	return predicate.EquipmentType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertyTypesColumn).
-						From(builder.Table(PropertyTypesTable)).
-						Where(sql.NotNull(PropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertyTypesTable, PropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -573,16 +561,12 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.EquipmentTy
 func HasEquipment() predicate.EquipmentType {
 	return predicate.EquipmentType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(EquipmentColumn).
-						From(builder.Table(EquipmentTable)).
-						Where(sql.NotNull(EquipmentColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTable, FieldID),
+				sql.Edge(sql.O2M, true, EquipmentTable, EquipmentColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -606,8 +590,12 @@ func HasEquipmentWith(preds ...predicate.Equipment) predicate.EquipmentType {
 func HasCategory() predicate.EquipmentType {
 	return predicate.EquipmentType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(CategoryColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CategoryTable, FieldID),
+				sql.Edge(sql.M2O, false, CategoryTable, CategoryColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

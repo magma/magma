@@ -802,8 +802,12 @@ func DeviceIDContainsFold(v string) predicate.Equipment {
 func HasType() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -827,8 +831,12 @@ func HasTypeWith(preds ...predicate.EquipmentType) predicate.Equipment {
 func HasLocation() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, true, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -852,8 +860,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.Equipment {
 func HasParentPosition() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ParentPositionColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ParentPositionTable, FieldID),
+				sql.Edge(sql.O2O, true, ParentPositionTable, ParentPositionColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -877,16 +889,12 @@ func HasParentPositionWith(preds ...predicate.EquipmentPosition) predicate.Equip
 func HasPositions() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PositionsColumn).
-						From(builder.Table(PositionsTable)).
-						Where(sql.NotNull(PositionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PositionsTable, FieldID),
+				sql.Edge(sql.O2M, false, PositionsTable, PositionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -910,16 +918,12 @@ func HasPositionsWith(preds ...predicate.EquipmentPosition) predicate.Equipment 
 func HasPorts() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PortsColumn).
-						From(builder.Table(PortsTable)).
-						Where(sql.NotNull(PortsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PortsTable, FieldID),
+				sql.Edge(sql.O2M, false, PortsTable, PortsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -943,8 +947,12 @@ func HasPortsWith(preds ...predicate.EquipmentPort) predicate.Equipment {
 func HasWorkOrder() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(WorkOrderColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrderTable, FieldID),
+				sql.Edge(sql.M2O, false, WorkOrderTable, WorkOrderColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -968,16 +976,12 @@ func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.Equipment {
 func HasProperties() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1001,15 +1005,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Equipment {
 func HasService() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ServicePrimaryKey[1]).
-						From(builder.Table(ServiceTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServiceTable, FieldID),
+				sql.Edge(sql.M2M, true, ServiceTable, ServicePrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1040,16 +1041,12 @@ func HasServiceWith(preds ...predicate.Service) predicate.Equipment {
 func HasFiles() predicate.Equipment {
 	return predicate.Equipment(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(FilesColumn).
-						From(builder.Table(FilesTable)).
-						Where(sql.NotNull(FilesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(FilesTable, FieldID),
+				sql.Edge(sql.O2M, false, FilesTable, FilesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

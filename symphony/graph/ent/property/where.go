@@ -1251,8 +1251,12 @@ func StringValContainsFold(v string) predicate.Property {
 func HasType() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1276,8 +1280,12 @@ func HasTypeWith(preds ...predicate.PropertyType) predicate.Property {
 func HasLocation() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, true, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1301,8 +1309,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.Property {
 func HasEquipment() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentTable, EquipmentColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1326,8 +1338,12 @@ func HasEquipmentWith(preds ...predicate.Equipment) predicate.Property {
 func HasService() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ServiceColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServiceTable, FieldID),
+				sql.Edge(sql.M2O, true, ServiceTable, ServiceColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1351,8 +1367,12 @@ func HasServiceWith(preds ...predicate.Service) predicate.Property {
 func HasEquipmentPort() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentPortColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentPortTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentPortTable, EquipmentPortColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1376,8 +1396,12 @@ func HasEquipmentPortWith(preds ...predicate.EquipmentPort) predicate.Property {
 func HasLink() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LinkColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinkTable, FieldID),
+				sql.Edge(sql.M2O, true, LinkTable, LinkColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1401,8 +1425,12 @@ func HasLinkWith(preds ...predicate.Link) predicate.Property {
 func HasWorkOrder() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(WorkOrderColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrderTable, FieldID),
+				sql.Edge(sql.M2O, true, WorkOrderTable, WorkOrderColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1426,8 +1454,12 @@ func HasWorkOrderWith(preds ...predicate.WorkOrder) predicate.Property {
 func HasProject() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ProjectColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ProjectTable, FieldID),
+				sql.Edge(sql.M2O, true, ProjectTable, ProjectColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1451,8 +1483,12 @@ func HasProjectWith(preds ...predicate.Project) predicate.Property {
 func HasEquipmentValue() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentValueColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentValueTable, FieldID),
+				sql.Edge(sql.M2O, false, EquipmentValueTable, EquipmentValueColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1476,8 +1512,12 @@ func HasEquipmentValueWith(preds ...predicate.Equipment) predicate.Property {
 func HasLocationValue() predicate.Property {
 	return predicate.Property(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationValueColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationValueTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationValueTable, LocationValueColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

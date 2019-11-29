@@ -75,8 +75,8 @@ export const access = (level: AccessRoleLevel) => {
       return;
     }
 
-    logger.debug(
-      'Client has no permission to view route: [%s], redirecting to /',
+    logger.info(
+      'Client has no permission to view route: [%s]',
       req.originalUrl,
     );
 

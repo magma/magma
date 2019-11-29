@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f8ca352fca032ea8a7bf98a7029e1115
+ * @relayHash b80e14c86ca5416963df654fc6f90495
  */
 
 /* eslint-disable */
@@ -16,6 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchEquipmentResultsTable_equipment$ref = any;
+type PowerSearchLinkFirstEquipmentResultsTable_equipment$ref = any;
 export type EquipmentFilterType = "EQUIPMENT_TYPE" | "EQUIP_INST_NAME" | "LOCATION_INST" | "PROPERTY" | "%future added value";
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
@@ -51,7 +52,7 @@ export type EquipmentComparisonViewQueryRendererSearchQueryVariables = {|
 export type EquipmentComparisonViewQueryRendererSearchQueryResponse = {|
   +equipmentSearch: {|
     +equipment: $ReadOnlyArray<?{|
-      +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref
+      +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref & PowerSearchLinkFirstEquipmentResultsTable_equipment$ref
     |}>,
     +count: number,
   |}
@@ -71,6 +72,7 @@ query EquipmentComparisonViewQueryRendererSearchQuery(
   equipmentSearch(limit: $limit, filters: $filters) {
     equipment {
       ...PowerSearchEquipmentResultsTable_equipment
+      ...PowerSearchLinkFirstEquipmentResultsTable_equipment
       id
     }
     count
@@ -121,6 +123,17 @@ fragment PowerSearchEquipmentResultsTable_equipment on Equipment {
   workOrder {
     id
     status
+  }
+  ...EquipmentBreadcrumbs_equipment
+}
+
+fragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {
+  id
+  name
+  futureState
+  equipmentType {
+    id
+    name
   }
   ...EquipmentBreadcrumbs_equipment
 }
@@ -217,6 +230,11 @@ return {
               {
                 "kind": "FragmentSpread",
                 "name": "PowerSearchEquipmentResultsTable_equipment",
+                "args": null
+              },
+              {
+                "kind": "FragmentSpread",
+                "name": "PowerSearchLinkFirstEquipmentResultsTable_equipment",
                 "args": null
               }
             ]
@@ -361,11 +379,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: $limit, filters: $filters) {\n    equipment {\n      ...PowerSearchEquipmentResultsTable_equipment\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
+    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: $limit, filters: $filters) {\n    equipment {\n      ...PowerSearchEquipmentResultsTable_equipment\n      ...PowerSearchLinkFirstEquipmentResultsTable_equipment\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n\nfragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b8faac4a60c36647f649d3c00b945045';
+(node/*: any*/).hash = '0e1ee3f2c1d64ed0562254b12927776f';
 module.exports = node;

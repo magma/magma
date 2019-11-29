@@ -739,8 +739,12 @@ func CompletionTimestampLTE(v time.Time) predicate.Survey {
 func HasLocation() predicate.Survey {
 	return predicate.Survey(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -764,8 +768,12 @@ func HasLocationWith(preds ...predicate.Location) predicate.Survey {
 func HasSourceFile() predicate.Survey {
 	return predicate.Survey(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(SourceFileColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SourceFileTable, FieldID),
+				sql.Edge(sql.M2O, false, SourceFileTable, SourceFileColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -789,16 +797,12 @@ func HasSourceFileWith(preds ...predicate.File) predicate.Survey {
 func HasQuestions() predicate.Survey {
 	return predicate.Survey(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(QuestionsColumn).
-						From(builder.Table(QuestionsTable)).
-						Where(sql.NotNull(QuestionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(QuestionsTable, FieldID),
+				sql.Edge(sql.O2M, true, QuestionsTable, QuestionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

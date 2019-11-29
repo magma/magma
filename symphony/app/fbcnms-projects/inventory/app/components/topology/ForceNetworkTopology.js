@@ -87,6 +87,21 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 
   componentDidMount() {
+    this.calculateGraph();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.networkTopology === prevProps.networkTopology &&
+      (this.props.rootIds === prevProps.rootIds ||
+        (this.props.rootIds.length == 0 && prevProps.rootIds.length == 0))
+    ) {
+      return;
+    }
+    this.calculateGraph();
+  }
+
+  calculateGraph() {
     const {classes, networkTopology, rootIds} = this.props;
 
     const container = nullthrows(this._topologyContainer?.current);
@@ -100,6 +115,10 @@ class ForceNetworkTopology extends React.Component<Props, State> {
       source: l.source,
       target: l.target,
     }));
+
+    d3.select(nullthrows(this._topologyContainer).current)
+      .selectAll('svg')
+      .remove();
 
     // Create SVG
     const g = d3
@@ -200,7 +219,9 @@ class ForceNetworkTopology extends React.Component<Props, State> {
 
     simulation.on('end', () => {
       positionNodes();
-      this.setState({loading: false});
+      if (this.state.loading) {
+        this.setState({loading: false});
+      }
     });
   }
 

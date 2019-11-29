@@ -81,7 +81,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 		Properties:    []*models.PropertyInput{},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, s1.ExternalID, externalID1)
+	assert.Equal(t, *s1.ExternalID, externalID1)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Kent building, room 202",
@@ -98,7 +98,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 		Properties:    []*models.PropertyInput{},
 	})
 	require.NoError(t, err)
-	assert.Equal(t, s2.ExternalID, externalID2)
+	assert.Equal(t, *s2.ExternalID, externalID2)
 }
 
 func TestAddServiceWithCustomer(t *testing.T) {
@@ -132,7 +132,7 @@ func TestAddServiceWithCustomer(t *testing.T) {
 	customer = fetchedService.QueryCustomer().OnlyX(ctx)
 
 	assert.Equal(t, customer.Name, "Donald")
-	assert.Equal(t, customer.ExternalID, customerID)
+	assert.Equal(t, *customer.ExternalID, customerID)
 }
 
 func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
@@ -353,7 +353,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	})
 	require.NoError(t, err)
 	fetchedService, _ := qr.Service(ctx, service.ID)
-	require.Equal(t, "", fetchedService.ExternalID)
+	require.Nil(t, fetchedService.ExternalID)
 
 	externalID1 := "externalID1"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
@@ -363,7 +363,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	})
 	require.NoError(t, err)
 	fetchedService, _ = qr.Service(ctx, service.ID)
-	require.Equal(t, externalID1, fetchedService.ExternalID)
+	require.Equal(t, externalID1, *fetchedService.ExternalID)
 
 	externalID2 := "externalID2"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
@@ -373,7 +373,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	})
 	require.NoError(t, err)
 	fetchedService, _ = qr.Service(ctx, service.ID)
-	require.Equal(t, externalID2, fetchedService.ExternalID)
+	require.Equal(t, externalID2, *fetchedService.ExternalID)
 }
 
 func TestEditServiceWithCustomer(t *testing.T) {

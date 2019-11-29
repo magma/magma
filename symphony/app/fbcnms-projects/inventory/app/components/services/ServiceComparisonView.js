@@ -22,7 +22,7 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import ServiceCard from './ServiceCard';
+import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
@@ -145,13 +145,6 @@ const ServiceComparisonView = () => {
     .concat(servicePropertiesFilterConfigs)
     .concat(locationTypesFilterConfigs);
 
-  const navigateToAddService = (selectedServiceTypeId: ?string) => {
-    history.push(
-      match.url +
-        (selectedServiceTypeId ? `?serviceType=${selectedServiceTypeId}` : ''),
-    );
-  };
-
   const navigateToService = (selectedServiceId: ?string) => {
     history.push(
       match.url + (selectedServiceId ? `?service=${selectedServiceId}` : ''),
@@ -177,7 +170,7 @@ const ServiceComparisonView = () => {
   if (selectedServiceCardId != null) {
     return (
       <InventoryErrorBoundary>
-        <ServiceCard serviceId={selectedServiceCardId} />
+        <ServiceCardQueryRenderer serviceId={selectedServiceCardId} />
       </InventoryErrorBoundary>
     );
   }
@@ -228,8 +221,8 @@ const ServiceComparisonView = () => {
           key={`new_service_${dialogKey}`}
           open={dialogOpen}
           onClose={hideDialog}
-          onServiceTypeSelected={typeId => {
-            navigateToAddService(typeId);
+          onServiceCreated={serviceId => {
+            navigateToService(serviceId);
             setDialogOpen(false);
           }}
         />

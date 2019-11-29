@@ -30,7 +30,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	store := blobstore.NewSQLBlobStorageFactory(device.DBTableName, db, sqorc.GetSqlBuilder())
+	store := blobstore.NewEntStorage(device.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Failed to initialize device database: %s", err)

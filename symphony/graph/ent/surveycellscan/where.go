@@ -3212,8 +3212,12 @@ func LongitudeNotNil() predicate.SurveyCellScan {
 func HasSurveyQuestion() predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(SurveyQuestionColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SurveyQuestionTable, FieldID),
+				sql.Edge(sql.M2O, false, SurveyQuestionTable, SurveyQuestionColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -3237,8 +3241,12 @@ func HasSurveyQuestionWith(preds ...predicate.SurveyQuestion) predicate.SurveyCe
 func HasLocation() predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTable, FieldID),
+				sql.Edge(sql.M2O, false, LocationTable, LocationColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

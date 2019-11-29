@@ -19,6 +19,7 @@ import type {MutationCallbacks} from './MutationCallbacks.js';
 const mutation = graphql`
   mutation AddServiceMutation($data: ServiceCreateData!) {
     addService(data: $data) {
+      id
       ...ServicesView_service
     }
   }

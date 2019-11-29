@@ -103,32 +103,23 @@ matrix:
         - make -C $MAGMA_ROOT/lte/gateway/python test_all
 
     - stage: Tests
-      language: go
       name: Verifying generated files are in-sync
+      language: python
       os: linux
       dist: xenial
-      go:
-        - 1.11.x
+      python:
+        - "3.7"
+      services:
+        - docker
       env:
-        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
-
-      before_install:
-        - ./travis/golang_before_install.sh
-      before_script:
-        - sudo mkdir -p /etc/magma/configs
-        - ./travis/link_cloud_configs.sh
+        - MAGMA_ROOT=${TRAVIS_BUILD_DIR}
+        - MAGMA_MODULES_FILE=${TRAVIS_BUILD_DIR}/travis/modules.yml
+      install:
+        - pip3 install PyYAML
       script:
-        - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
-        - cd ${MAGMA_ROOT}/feg/gateway
-        - travis_retry travis_wait go mod download
-
-        # Clear temp files (e.g. travis_retry/travis_wait logs)
-        - cd ${MAGMA_ROOT}
-        - git clean -fd
-
-        - make -C ${MAGMA_ROOT}/orc8r/cloud gen
-        - make -C ${MAGMA_ROOT}/feg/gateway gen
-        - cd ${MAGMA_ROOT}
+        - cd ${MAGMA_ROOT}/orc8r/cloud/docker
+        - python3 build.py -g
+        - cd ${TRAVIS_BUILD_DIR}
         - git add .
         - git status
         # This command will exit 1 if there are any changes to the git clone

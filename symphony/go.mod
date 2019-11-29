@@ -17,7 +17,7 @@ require (
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/facebookincubator/ent v0.0.0-20191127142044-5fe9fcdc1b58
+	github.com/facebookincubator/ent v0.0.0-20191128111655-f98dbbc440cb
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
@@ -52,7 +52,7 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191105231009-c1f44814a5cd // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191107010934-f79515f33823 // indirect
+	golang.org/x/tools v0.0.0-20191118222007-07fc4c7f2b98 // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.25.0
