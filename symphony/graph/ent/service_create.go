@@ -280,7 +280,7 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 	}
 	if value := sc.external_id; value != nil {
 		insert.Set(service.FieldExternalID, *value)
-		s.ExternalID = value
+		s.ExternalID = *value
 	}
 
 	id, err := insertLastID(ctx, tx, insert.Returning(service.FieldID))
