@@ -1124,11 +1124,10 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 	}
 	if value := suo.external_id; value != nil {
 		updater.Set(service.FieldExternalID, *value)
-		s.ExternalID = *value
+		s.ExternalID = value
 	}
 	if suo.clearexternal_id {
-		var value string
-		s.ExternalID = value
+		s.ExternalID = nil
 		updater.SetNull(service.FieldExternalID)
 	}
 	if !updater.Empty() {

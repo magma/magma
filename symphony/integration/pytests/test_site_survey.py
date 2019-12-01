@@ -22,7 +22,6 @@ class TestSiteSurvey(BaseTest):
             self.client.delete_location_type_with_locations(location_type)
 
     def test_site_survey_created(self):
-        self.skipTest("See T58397197")
         location = self.client.add_location(
             [("City Center", "Lima Downtown")], {}, 10, 20
         )

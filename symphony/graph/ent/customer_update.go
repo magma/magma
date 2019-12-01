@@ -414,11 +414,10 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 	}
 	if value := cuo.external_id; value != nil {
 		updater.Set(customer.FieldExternalID, *value)
-		c.ExternalID = *value
+		c.ExternalID = value
 	}
 	if cuo.clearexternal_id {
-		var value string
-		c.ExternalID = value
+		c.ExternalID = nil
 		updater.SetNull(customer.FieldExternalID)
 	}
 	if !updater.Empty() {

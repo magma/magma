@@ -153,7 +153,7 @@ func (cc *CustomerCreate) sqlSave(ctx context.Context) (*Customer, error) {
 	}
 	if value := cc.external_id; value != nil {
 		insert.Set(customer.FieldExternalID, *value)
-		c.ExternalID = *value
+		c.ExternalID = value
 	}
 
 	id, err := insertLastID(ctx, tx, insert.Returning(customer.FieldID))

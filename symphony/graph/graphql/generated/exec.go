@@ -9415,10 +9415,10 @@ func (ec *executionContext) _Customer_externalId(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CustomerConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *models.CustomerConnection) (ret graphql.Marshaler) {
@@ -21470,10 +21470,10 @@ func (ec *executionContext) _Service_externalId(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Service_customer(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
