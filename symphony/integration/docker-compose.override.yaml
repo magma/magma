@@ -26,15 +26,6 @@ services:
       - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/scripts:/app/fbcnms-projects/inventory/scripts:delegated
       - ${XPLAT_FBC_DIR}/fbcnms-projects/magmalte/app:/app/fbcnms-projects/magmalte/app:delegated
 
-  jaeger:
-    image: jaegertracing/all-in-one
-    ports:
-      - 16686:16686
-    networks:
-      - public
-      - private
-    restart: on-failure
-
   store:
     environment:
       S3_ENDPOINT: localhost:9000

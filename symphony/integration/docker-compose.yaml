@@ -169,6 +169,15 @@ services:
     command: -c 'mkdir -p /data/store.blobs && /usr/bin/minio server /data'
     restart: on-failure
 
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - 16686:16686
+    networks:
+      - public
+      - private
+    restart: on-failure
+
 networks:
   public:
   private:
