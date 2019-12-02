@@ -1,0 +1,21 @@
+{
+  "description": "Test Symphony Agent",
+  "device": {
+    "hardware_id": "faceb00c-face-b00c-face-facefaceb00c",
+    "key": {
+      "key_type": "ECHO"
+    }
+  },
+  "id": "test_agent",
+  "magmad": {
+    "autoupgrade_enabled": false,
+    "autoupgrade_poll_interval": 300,
+    "checkin_interval": 15,
+    "checkin_timeout": 10,
+    "dynamic_services": [],
+    "feature_flags": {}
+  },
+  "managed_devices": [],
+  "name": "Test Agent",
+  "tier": "default"
+}

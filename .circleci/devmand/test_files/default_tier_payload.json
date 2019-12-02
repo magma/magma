@@ -1,0 +1,12 @@
+{
+  "gateways": [],
+  "id": "default",
+  "images": [
+    {
+      "name": "string",
+      "order": 0
+    }
+  ],
+  "name": "Default Tier",
+  "version": "0.3.14-123456789-deadbeef"
+}

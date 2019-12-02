@@ -1,0 +1,20 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+version: '3.7'
+services:
+  symphony-agent:
+    network_mode: "host"
+    volumes:
+      - $PWD/../../../.cache/test_certs/rootCA.pem:/var/opt/magma/certs/rootCA.pem:ro
+      - $PWD/../../../.circleci/devmand/test_files/hosts:/etc/hosts:ro
+      - $PWD/../../../.circleci/devmand/test_files/control_proxy.yml:/etc/magma/control_proxy.yml
+    environment:
+      - DEVICE_CONFIG_FILE=/var/opt/magma/configs/gateway.mconfig
+      - SNOWFLAKE=faceb00c-face-b00c-face-facefaceb00c
+      - CLOUD_ADDRESS=controller.magma.test
+      - BOOTSTRAP_CLOUD_ADDRESS=bootstrapper-controller.magma.test

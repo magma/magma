@@ -30,12 +30,62 @@ orbs:
                 done
                 echo "No changes in [$paths]"
                 circleci step halt
+      docker_repo_login:
+        parameters:
+          docker_repo:
+            description: The base url of the docker repository to pull from
+            type: string
+          user:
+            description: The username to use to log in to the repo
+            type: env_var_name
+            default: ARTIFACTORY_USER
+          api_key:
+            description: The api key to use to log in to the repo
+            type: env_var_name
+            default: ARTIFACTORY_API_KEY
+        steps:
+          - run:
+              name: Log in to Artifactory
+              command: |
+                docker login -u ${<< parameters.user >>} -p ${<< parameters.api_key >>} << parameters.docker_repo >>
+      pull_or_build_then_push:
+        parameters:
+          docker_repo:
+            description: The base url of the docker repository to pull from
+            type: string
+          image_name:
+            description: The image name to pull
+            type: string
+          tag:
+            description: The desired tag
+            type: string
+          build_cmd:
+            description: The command to run if image is not yet pushed
+            type: string
+        steps:
+          - run:
+              name: Pull << parameters.image_name >> or, if unavailable, build it then push it
+              command: |
+                export FULL_NAME=<< parameters.docker_repo >>/<< parameters.image_name >>:<< parameters.tag >>
+                echo "Checking to see if image exists locally."
+                if [[ `docker images -q "${FULL_NAME}"` != "" ]]; then
+                  echo "Found image ${FULL_NAME} locally."
+                  exit 0
+                fi
+                echo "Couldn't find locally, attempting to pull from remote repo."
+                if [[ `docker pull "${FULL_NAME}"` ]]; then
+                  echo "Pulled << parameters.image_name >> from << parameters.docker_repo >>."
+                  exit 0
+                fi
+                echo "Couldn't find image in remote repo, building using build_cmd."
+                << parameters.build_cmd >>
+                docker tag << parameters.image_name >> "${FULL_NAME}"
+                docker push "${FULL_NAME}"
 
 jobs:
   docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
-
     steps:
       - checkout
       - run:
@@ -53,6 +103,67 @@ jobs:
             echo "machine github.com login docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
+
+  symphony_check_bootstrap:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - run:
+          name: Prepare environment
+          command: |
+            sudo apt-get update -y
+            sudo apt-get install -y realpath
+            pyenv global 3.7.0
+            python -m pip install pyyaml
+      - run:
+          name: Testing the agent<->orc8r bootstrap process
+          command: |
+            export MAGMA_ROOT=$PWD
+            cd "${MAGMA_ROOT}"/.circleci/common/test_scripts
+            bash ./create_test_certs.sh
+      - build/docker_repo_login:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
+      - build/pull_or_build_then_push:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
+          image_name: orc8r_controller
+          tag: "${CIRCLE_PR_NUMBER}-${CIRCLE_BUILD_NUM}"
+          build_cmd: export MAGMA_ROOT=$PWD && export MAGMA_MODULES_FILE=${MAGMA_ROOT}/.circleci/common/test_files/modules.yml && cd "${MAGMA_ROOT}"/orc8r/cloud/docker && python build.py
+      - build/pull_or_build_then_push:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
+          image_name: orc8r_proxy
+          tag: "${CIRCLE_PR_NUMBER}-${CIRCLE_BUILD_NUM}"
+          build_cmd: export MAGMA_ROOT=$PWD && export MAGMA_MODULES_FILE=${MAGMA_ROOT}/.circleci/common/test_files/modules.yml && cd "${MAGMA_ROOT}"/orc8r/cloud/docker && python build.py
+      - build/pull_or_build_then_push:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
+          image_name: symphony-agent
+          tag: "${CIRCLE_PR_NUMBER}-${CIRCLE_BUILD_NUM}"
+          build_cmd: export MAGMA_ROOT=$PWD && cd $MAGMA_ROOT/devmand/gateway/docker && ./scripts/build
+      - run:
+          name: tag and push and everything else
+          command: |
+            export MAGMA_ROOT=$PWD
+            export TAG="${CIRCLE_PR_NUMBER}-${CIRCLE_BUILD_NUM}"
+            export ART_URL=facebookconnectivity-southpoll-dev-docker.jfrog.io
+
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            docker tag orc8r_controller:latest ${ART_URL}/orc8r_controller:${TAG}
+            docker tag orc8r_proxy:latest ${ART_URL}/orc8r_proxy:${TAG}
+            docker-compose up -d
+
+            docker exec $(docker ps -qf name=controller) envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-admin -cert admin_operator admin_operator
+            docker exec $(docker ps -qf name=controller) ls /
+            for certfile in admin_operator.pem admin_operator.key.pem
+            do
+                docker cp $(docker ps -qf name=controller):/${certfile} ${MAGMA_ROOT}/.cache/test_certs/${certfile}
+            done
+
+            cd $MAGMA_ROOT/devmand/gateway/docker
+            docker tag ${ART_URL}/symphony-agent:latest ${ART_URL}/symphony-agent:${TAG}
+            docker-compose -f docker-compose.yml -f $MAGMA_ROOT/.circleci/devmand/test_files/docker-compose.orc8r-test.yml up -d
+            cd $MAGMA_ROOT/.circleci/devmand/test_scripts
+            bash test_bootstrap.sh
 
   southpoll_lint:
     docker:
@@ -79,20 +190,19 @@ jobs:
 
   southpoll_test:
     machine:
-      image: circleci/classic:latest
-      docker_layer_caching: false
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
           paths: "devmand"
+      - build/docker_repo_login:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
       - run:
           name: Testing the Devmand Image
           command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
             sudo apt-get update -y
             sudo apt-get install -y realpath
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
             cd ./devmand/gateway/docker
             ./scripts/build_cached_firstparty
             ./scripts/build
@@ -100,19 +210,19 @@ jobs:
 
   southpoll_publish_dev:
     machine:
-      docker_layer_caching: false
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
           paths: "devmand"
+      - build/docker_repo_login:
+          docker_repo: facebookconnectivity-southpoll-dev-docker.jfrog.io
       - run:
           name: Publishing all southpoll images to southpoll-dev
           command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
             sudo apt-get update -y
             sudo apt-get install -y realpath
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
             cd ./devmand/gateway/docker
             ./scripts/build_cached_firstparty
             ./scripts/build
@@ -120,20 +230,19 @@ jobs:
 
   southpoll_publish_prod:
     machine:
-      docker_layer_caching: false
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
     steps:
       - checkout
       - build/determinator:
           paths: "devmand"
+      - build/docker_repo_login:
+          docker_repo: facebookconnectivity-southpoll-prod-docker.jfrog.io
       - run:
           name: Publishing all southpoll images to southpoll-prod
           command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
             sudo apt-get update -y
             sudo apt-get install -y realpath
-            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
             cd ./devmand/gateway/docker
             ./scripts/build_cached_firstparty
             ./scripts/build
@@ -186,6 +295,10 @@ workflows:
     jobs:
       - docusaurus_build_and_deploy:
           <<: *only_master
+
+  symphony_agent_cloud_integration:
+    jobs:
+      - symphony_check_bootstrap
 
   southpoll_test_and_publish:
     jobs:

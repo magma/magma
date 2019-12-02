@@ -10,7 +10,7 @@ bi_start=$(date +%s)
   cd "$dir"
 
   docker_registry=${SYMPHONY_DOCKER_REGISTRY:="facebookconnectivity-southpoll-dev-docker.jfrog.io"}
-  tag="${docker_registry}/${pkg}"
+  tag="${pkg}"
 
   [[ -f "${pkg}/deps" ]]    && deps=$(cat ${pkg}/deps)         || deps=""
   [[ -f "${pkg}/url" ]]     && url="$(cat ${pkg}/url)"         || url="."
