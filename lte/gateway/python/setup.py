@@ -20,7 +20,6 @@ setup(
     name='lte',
     version=VERSION,
     packages=[
-        'magma.captive_portal',
         'magma.enodebd',
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
