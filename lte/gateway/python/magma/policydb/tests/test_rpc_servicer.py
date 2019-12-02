@@ -8,10 +8,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
-from unittest import TestCase, mock
-from typing import Any, Dict
+from typing import Any, Dict, List
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest
+from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
+from orc8r.protos.common_pb2 import NetworkID
 from magma.policydb.rpc_servicer import SessionRpcServicer
 
 
@@ -45,25 +46,25 @@ USR = '''
   }'''
 
 
-class MockPolicyRuleDict:
+class MockSubscriberDBStub:
     def __init__(self):
-        self._index = 0
         pass
 
-    def __iter__(self):
-        self._index = 0
-        return self
+    def ListSubscribers(self) -> List[str]:
+        return ["IMSI001010000000001", "IMSI001010000000002"]
 
-    def __next__(self):
-        if self._index == 0:
-            return 'redirect'
-        raise StopIteration
+    def GetSubscriberData(self, _: NetworkID) -> SubscriberData:
+        return SubscriberData(
+            lte=LTESubscription(
+                assigned_policies=["redirect"],
+            )
+        )
 
 
 class SessionRpcServicerTest(unittest.TestCase):
-    @mock.patch("magma.policydb.rpc_servicer.PolicyRuleDict", MockPolicyRuleDict)
     def setUp(self):
-        self.servicer = SessionRpcServicer(self._get_config())
+        self.servicer = SessionRpcServicer(self._get_config(),
+                                           MockSubscriberDBStub())
 
     def _get_config(self) -> Dict[str, Any]:
         return {

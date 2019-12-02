@@ -6,6 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+
+import grpc
 import logging
 from typing import Any, Dict, List
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
@@ -15,7 +17,8 @@ from lte.protos.session_manager_pb2 import CreateSessionRequest, \
 from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
     add_CentralSessionControllerServicer_to_server
-from magma.policydb.rule_store import PolicyRuleDict
+from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from orc8r.protos.common_pb2 import NetworkID
 
 
 class SessionRpcServicer(CentralSessionControllerServicer):
@@ -27,9 +30,10 @@ class SessionRpcServicer(CentralSessionControllerServicer):
     feature.
     """
 
-    def __init__(self, service_config):
+    def __init__(self, service_config, subscriberdb_stub: SubscriberDBStub):
         self._config = service_config
-        self._rules = PolicyRuleDict()
+        self._network_id = NetworkID(id="_")
+        self._subscriberdb_stub = subscriberdb_stub
 
     @property
     def config(self) -> Dict[str, Any]:
@@ -63,11 +67,11 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         Handles create session request from MME by installing the necessary
         flows in pipelined's enforcement app.
         """
-        logging.info('Creating a session for subscriber ID: %s',
-                     request.subscriber.id)
+        imsi = request.subscriber.id
+        logging.info('Creating a session for subscriber ID: %s', imsi)
         return CreateSessionResponse(
             credits=[],
-            static_rules=self._get_static_rules(),
+            static_rules=self._get_rules_for_imsi(imsi),
             dynamic_rules=[],
         )
 
@@ -102,13 +106,6 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             sid=request.sid,
             session_id=request.session_id,
         )
-
-    def _get_static_rules(self) -> List[StaticRuleInstall]:
-        """ Return a static rule for redirection to captive portal """
-        if self.redirect_rule_name is not None and\
-                self.redirect_rule_name in self._rules:
-            return [StaticRuleInstall(rule_id=self.redirect_rule_name)]
-        return []
 
     def _get_credit_update_response(
         self,
@@ -148,3 +145,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 volume=50 * 1024 * 1024 * 1024,  # 50 GiB
             ),
         )
+
+    def _is_subscriber(self, imsi: str) -> bool:
+        subscribers = self._subscriberdb_stub.ListSubscribers(self._network_id)
+        return imsi in subscribers.sids
+
+    def _get_rules_for_imsi(self, imsi: str) -> List[str]:
+        try:
+            info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
+            return [StaticRuleInstall(rule_id=rule_id)
+                    for rule_id in info.lte.assigned_policies]
+        except grpc.RpcError:
+            logging.error('Unable to find data for subscriber %s', imsi)
+            return []
