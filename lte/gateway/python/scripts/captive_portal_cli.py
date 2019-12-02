@@ -74,7 +74,7 @@ def main():
         exit(1)
 
     # Execute the subcommand function
-    args.func(args, CentralSessionControllerStub, 'captive_portal')
+    args.func(args, CentralSessionControllerStub, 'policydb')
 
 
 if __name__ == "__main__":
