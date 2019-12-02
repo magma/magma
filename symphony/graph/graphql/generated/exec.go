@@ -6440,8 +6440,9 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment
+  equipment(id: ID!): Equipment @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   equipmentType(id: ID!): EquipmentType
+    @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   equipmentPosition(id: ID!): EquipmentPosition
   equipmentPositionDefinition(id: ID!): EquipmentPositionDefinition
   equipmentPortTypes(
