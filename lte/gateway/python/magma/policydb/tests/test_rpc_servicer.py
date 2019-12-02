@@ -12,7 +12,7 @@ from unittest import TestCase, mock
 from typing import Any, Dict
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest
-from magma.captive_portal.rpc_servicer import SessionRpcServicer
+from magma.policydb.rpc_servicer import SessionRpcServicer
 
 
 CSR_STATIC_RULES = '[rule_id: "redirect"]'
@@ -61,7 +61,7 @@ class MockPolicyRuleDict:
 
 
 class SessionRpcServicerTest(unittest.TestCase):
-    @mock.patch("magma.captive_portal.rpc_servicer.PolicyRuleDict", MockPolicyRuleDict)
+    @mock.patch("magma.policydb.rpc_servicer.PolicyRuleDict", MockPolicyRuleDict)
     def setUp(self):
         self.servicer = SessionRpcServicer(self._get_config())
 

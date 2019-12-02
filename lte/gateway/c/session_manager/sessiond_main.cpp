@@ -60,9 +60,9 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   } else {
-    MLOG(MINFO) << "Using local captive_portal controller";
+    MLOG(MINFO) << "Using local policydb controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "captive_portal", magma::ServiceRegistrySingleton::LOCAL);
+      "policydb", magma::ServiceRegistrySingleton::LOCAL);
   }
 }
 
