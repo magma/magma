@@ -9,6 +9,7 @@
  */
 
 import * as React from 'react';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
@@ -222,7 +223,7 @@ function ThresholdExpressionEditor(props: {
           />
         </Grid>
       </Grid>
-      <Grid item>
+      <Grid item xs={12}>
         {props.expression.filters.length > 0 ? (
           <FormLabel>For metrics matching:</FormLabel>
         ) : (
@@ -245,7 +246,7 @@ function MetricFilters(props: {
 }) {
   const classes = useStyles();
   return (
-    <Grid container>
+    <Grid container xs={12}>
       {props.expression.filters.map((filter, idx) => (
         <Grid item xs={12}>
           <MetricFilter
@@ -292,37 +293,58 @@ function MetricFilter(props: {
   selectedValue: string,
 }) {
   return (
-    <>
-      <FilterSelector
-        values={getFilteredListOfLabelNames([
-          ...new Set(...props.metricSeries.map(Object.keys)),
-        ])}
-        defaultVal="Label"
-        onChange={({target}) => {
-          const filters = props.expression.filters;
-          filters[props.filterIdx].name = target.value;
-          props.onChange({...props.expression, filters: filters});
-        }}
-        selectedValue={props.selectedLabel}
-      />
-      <FilterSelector
-        values={[
-          ...new Set(props.metricSeries.map(item => item[props.selectedLabel])),
-        ]}
-        disabled={props.selectedLabel == ''}
-        defaultVal="Value"
-        onChange={({target}) => {
-          const filters = props.expression.filters;
-          filters[props.filterIdx].value = target.value;
-          props.onChange({...props.expression, filters: filters});
-        }}
-        updateExpression={props.onChange}
-        selectedValue={props.selectedValue}
-      />
-      <IconButton onClick={() => props.onRemove(props.filterIdx)}>
-        <RemoveCircleIcon />
-      </IconButton>
-    </>
+    <Grid container xs={12} spacing={1} alignItems="center">
+      <Grid item>
+        <FilterSelector
+          values={getFilteredListOfLabelNames([
+            ...new Set(...props.metricSeries.map(Object.keys)),
+          ])}
+          defaultVal="Label"
+          onChange={({target}) => {
+            const filtersCopy = [...props.expression.filters];
+            filtersCopy[props.filterIdx] = {name: target.value, value: ''};
+            props.onChange({...props.expression, filters: filtersCopy});
+          }}
+          selectedValue={props.selectedLabel}
+        />
+      </Grid>
+      <Grid item xs={3}>
+        <FilterAutocomplete
+          values={
+            props.selectedLabel
+              ? [
+                  ...new Set(
+                    props.metricSeries.map(item => item[props.selectedLabel]),
+                  ),
+                ]
+              : []
+          }
+          disabled={props.selectedLabel == ''}
+          defaultVal="Value"
+          onChange={(event, value) => {
+            // TODO: This is here because we have to pass the onChange function
+            // to both the Autocomplete element and the TextInput element
+            // T57876329
+            if (!value) {
+              value = event.target.value;
+            }
+            const filtersCopy = [...props.expression.filters];
+            filtersCopy[props.filterIdx] = {
+              name: filtersCopy[props.filterIdx].name,
+              value: value || '',
+            };
+            props.onChange({...props.expression, filters: filtersCopy});
+          }}
+          updateExpression={props.onChange}
+          selectedValue={props.selectedValue}
+        />
+      </Grid>
+      <Grid item>
+        <IconButton onClick={() => props.onRemove(props.filterIdx)}>
+          <RemoveCircleIcon />
+        </IconButton>
+      </Grid>
+    </Grid>
   );
 }
 
@@ -381,6 +403,38 @@ function FilterSelector(props: {
       </MenuItem>
       {menuItems}
     </Select>
+  );
+}
+
+function FilterAutocomplete(props: {
+  values: Array<string>,
+  defaultVal: string,
+  onChange: (event: SyntheticInputEvent<HTMLElement>) => void,
+  selectedValue: string,
+  disabled?: boolean,
+}) {
+  return (
+    <Autocomplete
+      freeSolo
+      options={props.values}
+      onChange={props.onChange}
+      value={props.selectedValue}
+      renderInput={({inputProps, ...params}) => (
+        <TextField
+          {...params}
+          inputProps={{
+            ...inputProps,
+            autoComplete: 'off',
+            onChange: props.onChange,
+          }}
+          disabled={props.values.length === 0}
+          label={props.defaultVal}
+          margin="normal"
+          variant="filled"
+          fullWidth
+        />
+      )}
+    />
   );
 }
 
