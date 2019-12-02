@@ -138,11 +138,12 @@ func (srv *CentralSessionController) CreateSession(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
+
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
 		DynamicRules:  dynamicRules,
-		UsageMonitors: getUsageMonitorsFromCCA(imsi, sessionID, gxCCAInit),
+		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit),
 	}, nil
 }
 

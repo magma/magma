@@ -136,14 +136,18 @@ func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.Poli
 	return policyRules
 }
 
-func getUsageMonitorsFromCCA(imsi string, sessionID string, gxCCA *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
-	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCA.UsageMonitors))
-	for _, monitor := range gxCCA.UsageMonitors {
+func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
+	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
+	// If there is a message wide revalidation time, apply it to every Usage Monitor
+	triggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
+	for _, monitor := range gxCCAInit.UsageMonitors {
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
-			Credit:    gx.GetUsageMonitorCreditFromAVP(monitor),
-			SessionId: sessionID,
-			Sid:       addSidPrefix(imsi),
-			Success:   true,
+			Credit:           gx.GetUsageMonitorCreditFromAVP(monitor),
+			SessionId:        sessionID,
+			Sid:              addSidPrefix(imsi),
+			Success:          true,
+			EventTriggers:    triggers,
+			RevalidationTime: revalidationTime,
 		})
 	}
 	return monitors
