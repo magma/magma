@@ -8,32 +8,55 @@
  * @format
  */
 
+import * as notistack from 'notistack';
 import React from 'react';
-import renderer from 'react-test-renderer';
-import {SnackbarProvider} from 'notistack';
 
+import {renderHook} from '@testing-library/react-hooks';
 import {useSnackbar} from '../../hooks';
 
 jest.mock('@material-ui/core/Slide', () => () => <div />);
+jest.mock('notistack');
 
 it('renders without crashing', () => {
-  const tree = renderer.create(
-    <SnackbarProvider
-      maxSnack={3}
-      autoHideDuration={10000}
-      anchorOrigin={{
-        vertical: 'bottom',
-        horizontal: 'right',
-      }}>
-      <Test />
-    </SnackbarProvider>,
+  const mockEnqueueSnackbar = jest.fn().mockReturnValue('key');
+  const mockCloseSnackbar = jest.fn();
+  jest.spyOn(notistack, 'useSnackbar').mockImplementation(() => ({
+    enqueueSnackbar: mockEnqueueSnackbar,
+    closeSnackbar: mockCloseSnackbar,
+  }));
+
+  const {rerender, waitForNextUpdate} = renderHook(
+    message => useSnackbar(message, {variant: 'error'}, true),
+    {initialProps: 'test1'},
   );
 
-  // needed to trigger `useEffect()` hook
-  tree.update();
+  expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(1);
+  expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
+
+  rerender('test2');
+  waitForNextUpdate();
+  expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(2);
+  expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
 });
 
-const Test = () => {
-  useSnackbar('Error', {variant: 'error'}, true);
-  return <div />;
-};
+it('dismisses previous', () => {
+  const mockEnqueueSnackbar = jest.fn().mockReturnValue('key');
+  const mockCloseSnackbar = jest.fn();
+  jest.spyOn(notistack, 'useSnackbar').mockImplementation(() => ({
+    enqueueSnackbar: mockEnqueueSnackbar,
+    closeSnackbar: mockCloseSnackbar,
+  }));
+
+  const {rerender, waitForNextUpdate} = renderHook(
+    message => useSnackbar(message, {variant: 'error'}, true, true),
+    {initialProps: 'test1'},
+  );
+
+  expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(1);
+  expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
+
+  rerender('test2');
+  waitForNextUpdate();
+  expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(2);
+  expect(mockCloseSnackbar).toHaveBeenCalledTimes(1);
+});
