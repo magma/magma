@@ -36,20 +36,20 @@ type TestResolver struct {
 	client *ent.Client
 }
 
-func newTestResolver(t *testing.T) (*TestResolver, error) {
+func newTestResolver(t *testing.T, opts ...ResolveOption) (*TestResolver, error) {
 	db, name, err := testdb.Open()
 	require.NoError(t, err)
 	db.SetMaxOpenConns(1)
-	return newResolver(t, sql.OpenDB(name, db))
+	return newResolver(t, sql.OpenDB(name, db), opts...)
 }
 
-func newResolver(t *testing.T, drv dialect.Driver) (*TestResolver, error) {
+func newResolver(t *testing.T, drv dialect.Driver, opts ...ResolveOption) (*TestResolver, error) {
 	if *debug {
 		drv = dialect.Debug(drv)
 	}
 	client := ent.NewClient(ent.Driver(drv))
 	require.NoError(t, client.Schema.Create(context.Background(), schema.WithGlobalUniqueID(true)))
-	r, err := New(logtest.NewTestLogger(t))
+	r, err := New(logtest.NewTestLogger(t), opts...)
 	if err != nil {
 		return nil, err
 	}

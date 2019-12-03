@@ -425,11 +425,10 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
 
   _deviceIDChangedHandler = (deviceID: string) => {
     this.setState(prevState => {
-      const editingEquipment = nullthrows(prevState.editingEquipment);
       return {
         error: '',
         editingEquipment: update(prevState.editingEquipment, {
-          device: {...editingEquipment.device, id: deviceID},
+          device: {id: {$set: deviceID}},
         }),
       };
     });

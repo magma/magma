@@ -73,6 +73,7 @@ services:
     env_file: *env_files
     networks:
       - private
+      - public
     depends_on:
       - migrate
       - mysql

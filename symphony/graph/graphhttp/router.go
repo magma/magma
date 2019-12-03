@@ -39,7 +39,7 @@ func newRouter(tenancy viewer.Tenancy, logger log.Logger) (*mux.Router, error) {
 		Handler(http.StripPrefix("/export", exportHandler)).
 		Name("export")
 
-	handler, err := graphql.NewHandler(logger)
+	handler, err := graphql.NewHandler(logger, nil)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating graphql handler")
 	}

@@ -6,6 +6,11 @@ package resolver
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/facebookincubator/symphony/graph/ent/file"
 
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -101,7 +106,7 @@ func (equipmentTypeResolver) NumberOfEquipment(ctx context.Context, obj *ent.Equ
 	return obj.QueryEquipment().Count(ctx)
 }
 
-type equipmentResolver struct{}
+type equipmentResolver struct{ resolver }
 
 func (equipmentResolver) ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error) {
 	l, err := obj.QueryLocation().Only(ctx)
@@ -188,10 +193,48 @@ func (r equipmentResolver) LocationHierarchy(ctx context.Context, eq *ent.Equipm
 	return locs, nil
 }
 
-func (equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
-	var device models.Device
-	device.ID = eq.DeviceID
-	return &device, nil
+func uriFromDeviceID(deviceID string, hostname string) string {
+	slices := strings.Split(deviceID, ".")
+	return "https://" + hostname + "/magma/v1/networks/" + slices[1] + "/gateways/" + slices[0] + "/status"
+}
+
+func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
+	var dev models.Device
+
+	if eq.DeviceID == "" {
+		return nil, nil
+	}
+
+	if r.orc8r.Client == nil {
+		return nil, errors.New("orc8r client was not provided")
+	}
+
+	uri := uriFromDeviceID(eq.DeviceID, r.orc8r.Hostname)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := r.resolver.orc8r.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	var jsonResult struct {
+		CheckinTime int64 `json:"checkin_time"`
+	}
+	err = json.NewDecoder(resp.Body).Decode(&jsonResult)
+	if err != nil {
+		return nil, err
+	}
+
+	if jsonResult.CheckinTime != 0 {
+		up := jsonResult.CheckinTime > time.Now().Add(3*time.Minute).Unix()
+		dev.Up = &up
+	}
+
+	return &dev, nil
 }
 
 func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
