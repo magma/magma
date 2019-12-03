@@ -26,10 +26,19 @@ folly::Future<folly::dynamic> State::collect() {
   return folly::collect(std::move(requests))
       .thenValue([s = shared_from_this()](auto reqs) {
         s->setErrors();
-        s->setStatus(true);
         for (auto& f : s->finals) {
           f();
         }
+
+        s->state.withRLock([&s](auto& unlockedState) {
+          auto status = YangUtils::lookup(
+              unlockedState, "fbc-symphony-device:system/status");
+          if (status != nullptr and status.isString()) {
+            s->setGauge("device.status", status.asString() == "UP" ? 1 : 0);
+          } else {
+            s->setGauge("device.status", 0);
+          }
+        });
 
         auto averageRequestDuration = getAverageRequestDuration(reqs).count();
         s->setGauge("device.request.duration.avg", averageRequestDuration);
@@ -131,7 +140,6 @@ void State::setStatus(bool systemIsUp) {
         this->getFbcPlatformDevice("system", unlockedState);
     system["status"] = systemIsUp ? "UP" : "DOWN";
   });
-  setGauge("device.status", systemIsUp ? 1 : 0);
 }
 
 void State::setErrors() {
