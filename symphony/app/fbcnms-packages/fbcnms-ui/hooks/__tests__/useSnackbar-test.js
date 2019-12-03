@@ -25,7 +25,7 @@ it('renders without crashing', () => {
     closeSnackbar: mockCloseSnackbar,
   }));
 
-  const {rerender, waitForNextUpdate} = renderHook(
+  const {rerender} = renderHook(
     message => useSnackbar(message, {variant: 'error'}, true),
     {initialProps: 'test1'},
   );
@@ -34,7 +34,6 @@ it('renders without crashing', () => {
   expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
 
   rerender('test2');
-  waitForNextUpdate();
   expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(2);
   expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
 });
@@ -47,7 +46,7 @@ it('dismisses previous', () => {
     closeSnackbar: mockCloseSnackbar,
   }));
 
-  const {rerender, waitForNextUpdate} = renderHook(
+  const {rerender} = renderHook(
     message => useSnackbar(message, {variant: 'error'}, true, true),
     {initialProps: 'test1'},
   );
@@ -56,7 +55,7 @@ it('dismisses previous', () => {
   expect(mockCloseSnackbar).toHaveBeenCalledTimes(0);
 
   rerender('test2');
-  waitForNextUpdate();
+
   expect(mockEnqueueSnackbar).toHaveBeenCalledTimes(2);
   expect(mockCloseSnackbar).toHaveBeenCalledTimes(1);
 });
