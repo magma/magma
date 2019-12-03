@@ -205,17 +205,17 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 		return nil, nil
 	}
 
-	if r.orc8r.Client == nil {
+	if r.orc8rClient == nil {
 		return nil, errors.New("orc8r client was not provided")
 	}
 
-	uri := uriFromDeviceID(eq.DeviceID, r.orc8r.Hostname)
+	uri := uriFromDeviceID(eq.DeviceID, r.orc8rClient.Hostname)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := r.resolver.orc8r.Client.Do(req)
+	resp, err := r.resolver.orc8rClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

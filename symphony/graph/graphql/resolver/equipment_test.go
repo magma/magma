@@ -15,6 +15,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/cloud/orc8r"
+
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
 
@@ -162,7 +164,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	uri, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 
-	config := Orc8r{Hostname: uri.Host, Client: c}
+	config := &orc8r.Client{Hostname: uri.Host, Client: c}
 	r, err := newTestResolver(t, WithOrc8r(config))
 	require.NoError(t, err)
 	defer r.drv.Close()

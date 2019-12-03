@@ -6,7 +6,6 @@ package graphql
 
 import (
 	"context"
-	"crypto/tls"
 	"net/http"
 	"os"
 	"time"
@@ -32,27 +31,9 @@ import (
 func init() { gqlprometheus.Register() }
 
 // NewHandler creates a graphql http handler.
-func NewHandler(logger log.Logger, config *orc8r.Config) (http.Handler, error) {
+func NewHandler(logger log.Logger, orc8r *orc8r.Client) (http.Handler, error) {
 	var opts []resolver.ResolveOption
-	if config != nil {
-		cert, err := tls.LoadX509KeyPair(config.Cert, config.PrivateKey)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed reading cert files")
-		}
-
-		client := &http.Client{
-			Transport: &http.Transport{
-				TLSClientConfig: &tls.Config{
-					Certificates: []tls.Certificate{cert},
-				},
-			},
-		}
-		optsConfig := resolver.Orc8r{
-			Hostname: config.Hostname,
-			Client:   client,
-		}
-		opts = append(opts, resolver.WithOrc8r(optsConfig))
-	}
+	opts = append(opts, resolver.WithOrc8r(orc8r))
 	rsv, err := resolver.New(logger, opts...)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating resolver")

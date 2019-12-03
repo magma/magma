@@ -5,6 +5,10 @@
 version: "3.7"
 
 services:
+  graph:
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
+
   platform-server:
     command: yarn run start:dev
     volumes:
