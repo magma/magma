@@ -188,12 +188,12 @@ int main(int argc, char *argv[])
   auto proxy_handler =
     std::make_unique<magma::SessionProxyResponderHandlerImpl>(monitor);
 
-  auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
+  /*auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
     directoryd_client, monitor, reporter.get());
   std::thread restart_handler_thread([&]() {
     MLOG(MINFO) << "Started sessiond restart handler thread";
     restart_handler->cleanup_previous_sessions();
-  });
+  });*/
 
   magma::LocalSessionManagerAsyncService local_service(
     server.GetNewCompletionQueue(), std::move(local_handler));
@@ -224,7 +224,7 @@ int main(int argc, char *argv[])
   proxy_thread.join();
   rule_manager_thread.join();
   directoryd_thread.join();
-  restart_handler_thread.join();
+  //restart_handler_thread.join();
   policy_loader_thread.join();
   optional_client_thread.join();
 
