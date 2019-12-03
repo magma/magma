@@ -260,13 +260,13 @@ func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMon
 		monitor.GrantedServiceUnit.OutputOctets == nil) {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: monitor.MonitoringKey,
+			MonitoringKey: []byte(monitor.MonitoringKey),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	} else {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: monitor.MonitoringKey,
+			MonitoringKey: []byte(monitor.MonitoringKey),
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}

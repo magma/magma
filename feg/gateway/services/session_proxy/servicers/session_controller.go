@@ -166,7 +166,7 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
-	usageMonitors := getUsageMonitorsFromCCA(imsi, pReq.SessionId, gxCCAInit)
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, pReq.SessionId, gxCCAInit)
 	return &protos.CreateSessionResponse{
 		StaticRules:   staticRules,
 		DynamicRules:  dynamicRules,
