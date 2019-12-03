@@ -53,9 +53,6 @@ void S1apStateManager::init(
   max_ues_ = max_ues;
   max_enbs_ = max_enbs;
   create_state();
-  if (init_db_connection(LOCALHOST) != RETURNok) {
-    OAILOG_ERROR(LOG_S1AP, "Failed to initiate db connection");
-  }
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_S1AP, "Failed to read state from redis");
   }

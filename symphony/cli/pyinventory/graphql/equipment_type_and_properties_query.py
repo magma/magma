@@ -29,20 +29,22 @@ DATETIME_FIELD = field(
 class EquipmentTypeAndPropertiesQuery:
     __QUERY__ = """
     query EquipmentTypeAndPropertiesQuery($id: ID!) {
-  equipment(id: $id) {
-    equipmentType {
-      name
-    }
-    properties {
-      propertyType {
-        id
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        name
       }
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
+      properties {
+        propertyType {
+          id
+        }
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+      }
     }
   }
 }
@@ -54,7 +56,7 @@ class EquipmentTypeAndPropertiesQuery:
     class EquipmentTypeAndPropertiesQueryData:
         @dataclass_json
         @dataclass
-        class Equipment:
+        class Node:
             @dataclass_json
             @dataclass
             class EquipmentType:
@@ -79,7 +81,7 @@ class EquipmentTypeAndPropertiesQuery:
             equipmentType: EquipmentType
             properties: List[Property]
 
-        equipment: Optional[Equipment] = None
+        equipment: Optional[Node] = None
 
     data: Optional[EquipmentTypeAndPropertiesQueryData] = None
     errors: Any = None

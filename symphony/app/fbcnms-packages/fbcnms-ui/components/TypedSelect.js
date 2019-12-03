@@ -8,9 +8,9 @@
  * @format
  */
 
+import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import MenuItem from '@material-ui/core/MenuItem';
 
 type Props<T: string | number> = {
   value: T,

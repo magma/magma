@@ -78,7 +78,7 @@ class Client(object):
         result = self._get_result(document, *args, **kwargs)
         if result.errors:
             raise OperationException(
-                str(result.errors[0]), result.extensions["trace_id"])
+                str(result.errors[0]), result.extensions.get("trace_id", ""))
 
         return result.data
 

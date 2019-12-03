@@ -6,7 +6,17 @@
 package resolver
 
 import (
+	"context"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strconv"
 	"testing"
+	"time"
+
+	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/handler"
 
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -14,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -135,6 +146,93 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 	assert.Equal(t, typ.Name, "bar_prop")
 	assert.Equal(t, typ.Type, "string")
 	assert.Equal(t, fetchedProperties[0].StringVal, val)
+}
+
+func TestOrc8rStatusEquipment(t *testing.T) {
+	time := time.Now().Add(30 * time.Minute).Unix()
+	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, `{"checkin_time": `+strconv.Itoa(int(time))+`}`)
+		assert.NoError(t, err)
+	})
+
+	srv := httptest.NewTLSServer(h)
+	defer srv.Close()
+	c := srv.Client()
+
+	uri, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+
+	config := Orc8r{Hostname: uri.Host, Client: c}
+	r, err := newTestResolver(t, WithOrc8r(config))
+	require.NoError(t, err)
+	defer r.drv.Close()
+
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+
+	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+	})
+	require.NoError(t, err)
+
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "location_name_1",
+		Type: locationType.ID,
+	})
+	require.NoError(t, err)
+
+	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name:      "equipment_type_name_1",
+		Positions: []*models.EquipmentPositionInput{},
+	})
+	require.NoError(t, err)
+
+	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "equipment_name_1",
+		Type:     equipmentType.ID,
+		Location: &location.ID,
+	})
+	require.NoError(t, err)
+
+	deviceID := "deviceID.networkID"
+	equipment, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
+		ID:       equipment.ID,
+		Name:     "equipment_name_1",
+		DeviceID: &deviceID,
+	})
+	require.NoError(t, err)
+
+	graphHandler := handler.GraphQL(
+		generated.NewExecutableSchema(
+			generated.Config{
+				Resolvers: r,
+			},
+		),
+		handler.RequestMiddleware(
+			func(ctx2 context.Context, next func(context.Context) []byte) []byte {
+				return next(ctx)
+			},
+		),
+	)
+
+	var rsp struct {
+		Equipment struct {
+			Device struct {
+				Up bool
+			}
+		}
+	}
+
+	query := `query { equipment(id: "` + equipment.ID + `") { device {up} } }`
+	err = client.New(graphHandler).Post(query, &rsp)
+	require.NoError(t, err)
+	assert.True(t, rsp.Equipment.Device.Up)
+
+	time = 500
+	err = client.New(graphHandler).Post(query, &rsp)
+	require.NoError(t, err)
+
+	assert.False(t, rsp.Equipment.Device.Up)
 }
 
 func TestAddEquipmentWithoutLocation(t *testing.T) {

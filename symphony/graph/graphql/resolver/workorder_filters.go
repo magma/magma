@@ -49,8 +49,8 @@ func (r *queryResolver) handleWorkOrderFilter(q *ent.WorkOrderQuery, filter *mod
 }
 
 func nameFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.Operator == models.FilterOperatorIs && filter.StringValue != nil {
-		return q.Where(workorder.NameEQ(*filter.StringValue)), nil
+	if filter.Operator == models.FilterOperatorContains && filter.StringValue != nil {
+		return q.Where(workorder.NameContainsFold(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

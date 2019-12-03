@@ -41,12 +41,12 @@ class SubscriberID;
 }  // namespace lte
 }  // namespace magma
 
-#define CAPTIVE_PORTAL_SERVICE "captive_portal"
+#define POLICYDB_SERVICE "policydb"
 #define MAGMAD_SERVICE "magmad"
 
 using grpc::Status;
 
-static bool captive_portal_enabled()
+static bool local_pcrf_enabled()
 {
   magma::mconfig::MagmaD mconfig;
   magma::MConfigLoader loader;
@@ -56,8 +56,8 @@ static bool captive_portal_enabled()
   }
   for (int i = 0; i < mconfig.dynamic_services_size(); ++i) {
     const auto &service_name = mconfig.dynamic_services(i);
-    if (service_name == CAPTIVE_PORTAL_SERVICE) {
-      std::cout << "[DEBUG] Captive portal enabled." << std::endl;
+    if (service_name == POLICYDB_SERVICE) {
+      std::cout << "[DEBUG] Local PCRF enabled." << std::endl;
       return true;
     }
   }
@@ -76,9 +76,9 @@ PCEFClient::PCEFClient()
 {
   // Create channel
   std::shared_ptr<Channel> channel;
-  if (captive_portal_enabled()) {
+  if (local_pcrf_enabled()) {
     channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      CAPTIVE_PORTAL_SERVICE, ServiceRegistrySingleton::LOCAL);
+      POLICYDB_SERVICE, ServiceRegistrySingleton::LOCAL);
   } else {
     channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "sessiond", ServiceRegistrySingleton::LOCAL);

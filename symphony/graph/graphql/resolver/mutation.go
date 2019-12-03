@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
@@ -34,6 +32,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"

@@ -34,7 +34,7 @@ def get_all_links_and_port_names_of_equipment(
 
 def _find_port_info(
     client: GraphqlClient, equipment: Equipment, port_name: str
-) -> EquipmentPortsQuery.EquipmentPortsQueryData.Equipment.EquipmentPort:
+) -> EquipmentPortsQuery.EquipmentPortsQueryData.Node.EquipmentPort:
     ports = EquipmentPortsQuery.execute(client, id=equipment.id).equipment.ports
 
     ports = [port for port in ports if port.definition.name == port_name]

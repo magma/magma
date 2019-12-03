@@ -23,6 +23,16 @@ class TestX2HandOverPingPong(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_x2_handoverPingPong(self):
+        """ Multi Enb Multi UE attach detach """
+
+        # column is a enb parameter, row is a number of enb
+        """            Cell Id,   Tac, EnbType, PLMN Id """
+        enb_list = list([[1,       1,     1,    "001010"],
+                         [2,       2,     1,    "001010"]])
+
+        self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
+
+        time.sleep(2)
         """ Attach to Src eNB, HO to TeNB  """
         """ HO back to Src enb"""
         self._s1ap_wrapper.configUEDevice(1)

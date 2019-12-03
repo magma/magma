@@ -29,14 +29,16 @@ DATETIME_FIELD = field(
 class EquipmentPortsQuery:
     __QUERY__ = """
     query EquipmentPortsQuery($id: ID!) {
-  equipment(id: $id) {
-    ports {
-      definition {
-        id
-        name
-      }
-      link {
-        id
+  equipment: node(id: $id) {
+    ... on Equipment {
+      ports {
+        definition {
+          id
+          name
+        }
+        link {
+          id
+        }
       }
     }
   }
@@ -49,7 +51,7 @@ class EquipmentPortsQuery:
     class EquipmentPortsQueryData:
         @dataclass_json
         @dataclass
-        class Equipment:
+        class Node:
             @dataclass_json
             @dataclass
             class EquipmentPort:
@@ -69,7 +71,7 @@ class EquipmentPortsQuery:
 
             ports: List[EquipmentPort]
 
-        equipment: Optional[Equipment] = None
+        equipment: Optional[Node] = None
 
     data: Optional[EquipmentPortsQueryData] = None
     errors: Any = None

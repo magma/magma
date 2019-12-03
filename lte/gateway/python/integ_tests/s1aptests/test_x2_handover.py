@@ -23,6 +23,16 @@ class TestX2HandOver(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_x2_handover(self):
+        """ Multi Enb Multi UE attach detach """
+
+        # column is an enb parameter, row is a number of enb
+        """            Cell Id,   Tac, EnbType, PLMN Id """
+        enb_list = list([[1,       1,     1,    "001010"],
+                         [2,       2,     1,    "001010"]])
+
+        self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
+
+        time.sleep(2)
         """ Attach to Src eNB.HO to TeNB  """
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req

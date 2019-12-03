@@ -69,60 +69,62 @@ graphql`
 
 const equipmentsPropertiesCardQuery = graphql`
   query EquipmentPropertiesCardQuery($equipmentId: ID!) {
-    equipment(id: $equipmentId) {
-      id
-      name
-      ...EquipmentPortsTable_equipment
-      equipmentType {
+    equipment: node(id: $equipmentId) {
+      ... on Equipment {
         id
         name
-        propertyTypes {
-          ...PropertyTypeFormField_propertyType
-          ...DynamicPropertiesGrid_propertyTypes
-        }
-        positionDefinitions {
+        ...EquipmentPortsTable_equipment
+        equipmentType {
           id
-          ...PositionDefinitionsTable_positionDefinitions
-        }
-        portDefinitions {
-          id
-        }
-      }
-      ...EquipmentBreadcrumbs_equipment
-      parentLocation {
-        id
-        name
-      }
-      parentPosition {
-        parentEquipment {
-          parentLocation {
+          name
+          propertyTypes {
+            ...PropertyTypeFormField_propertyType
+            ...DynamicPropertiesGrid_propertyTypes
+          }
+          positionDefinitions {
+            id
+            ...PositionDefinitionsTable_positionDefinitions
+          }
+          portDefinitions {
             id
           }
         }
-      }
-      ...EquipmentPositionsGrid_equipment
-      positions {
-        parentEquipment {
-          id
-        }
-      }
-      properties {
-        ...PropertyFormField_property
-        ...DynamicPropertiesGrid_properties
-      }
-      services {
-        id
-        name
-        externalId
-        customer {
-          name
-        }
-        serviceType {
+        ...EquipmentBreadcrumbs_equipment
+        parentLocation {
           id
           name
         }
+        parentPosition {
+          parentEquipment {
+            parentLocation {
+              id
+            }
+          }
+        }
+        ...EquipmentPositionsGrid_equipment
+        positions {
+          parentEquipment {
+            id
+          }
+        }
+        properties {
+          ...PropertyFormField_property
+          ...DynamicPropertiesGrid_properties
+        }
+        services {
+          id
+          name
+          externalId
+          customer {
+            name
+          }
+          serviceType {
+            id
+            name
+          }
+        }
+        ...EquipmentDocumentsCard_equipment
       }
-      ...EquipmentDocumentsCard_equipment
     }
   }
 `;
