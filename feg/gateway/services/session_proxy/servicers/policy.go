@@ -174,7 +174,7 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 
 func getGxUsageReportFromUsageUpdate(update *protos.UsageMonitorUpdate) *gx.UsageReport {
 	return &gx.UsageReport{
-		MonitoringKey: update.MonitoringKey,
+		MonitoringKey: string(update.MonitoringKey),
 		Level:         gx.MonitoringLevel(update.Level),
 		InputOctets:   update.BytesTx,
 		OutputOctets:  update.BytesRx, // receive == output
@@ -296,7 +296,7 @@ func addMissingGxResponses(
 			SessionId: ccr.SessionID,
 			Sid:       addSidPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
-				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
+				MonitoringKey: []byte(ccr.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
 			},
 		})
@@ -325,7 +325,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		res.Credit =
 			&protos.UsageMonitoringCredit{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: request.UsageReports[0].MonitoringKey,
+				MonitoringKey: []byte(request.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
 		res.Credit = gx.GetUsageMonitorCreditFromAVP(answer.UsageMonitors[0])

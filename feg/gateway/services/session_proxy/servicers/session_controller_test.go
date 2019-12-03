@@ -601,9 +601,9 @@ func TestGxUsageMonitoring(t *testing.T) {
 		assert.Equal(t, IMSI1, update.Sid)
 		assert.Equal(t, protos.UsageMonitoringCredit_CONTINUE, update.Credit.Action)
 		assert.Equal(t, uint64(2048), update.Credit.GrantedUnits.Total.Volume)
-		if update.Credit.MonitoringKey == "mkey" {
+		if string(update.Credit.MonitoringKey) == "mkey" {
 			assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
-		} else if update.Credit.MonitoringKey == "mkey2" {
+		} else if string(update.Credit.MonitoringKey) == "mkey2" {
 			assert.Equal(t, protos.MonitoringLevel_PCC_RULE_LEVEL, update.Credit.Level)
 		} else {
 			assert.True(t, false)
@@ -861,7 +861,7 @@ func createUsageMonitoringRequest(
 		Update: &protos.UsageMonitorUpdate{
 			BytesTx:       1024,
 			BytesRx:       2048,
-			MonitoringKey: monitoringKey,
+			MonitoringKey: []byte(monitoringKey),
 			Level:         monitoringLevel,
 		},
 		SessionId:     fmt.Sprintf("%s-1234", sid),
