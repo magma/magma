@@ -2305,6 +2305,11 @@ static int _emm_as_establish_cnf(
   int bytes =
     _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
 
+  // Free any allocated data
+  if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
+   bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
+  }
+
   if (bytes > 0) {
     as_msg->err_code = AS_SUCCESS;
     ret_val = AS_NAS_ESTABLISH_CNF;

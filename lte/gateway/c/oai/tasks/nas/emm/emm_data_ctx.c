@@ -32,6 +32,7 @@
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "mme_app_ue_context.h"
 #include "NasSecurityAlgorithms.h"
 #include "conversions.h"
@@ -53,6 +54,7 @@
 #include "nas_procedures.h"
 #include "nas_timer.h"
 #include "nas/securityDef.h"
+#include "esm_proc.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t *const ctxt)
@@ -653,7 +655,10 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
     return;
   }
   nas_delete_all_emm_procedures(ctxt);
-  free(ctxt->esm_ctx.esm_proc_data);
+  if (ctxt->esm_ctx.esm_proc_data) {
+    bdestroy_wrapper(&ctxt->esm_ctx.esm_proc_data->apn);
+    free(ctxt->esm_ctx.esm_proc_data);
+  }
   if (ctxt->esm_msg) {
     bdestroy(ctxt->esm_msg);
   }

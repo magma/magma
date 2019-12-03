@@ -563,6 +563,7 @@ int emm_recv_detach_request(
     rc = emm_proc_detach_request(ue_id, params);
     *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
   }
+  free_emm_detach_request_ies(&params);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

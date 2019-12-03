@@ -475,7 +475,6 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
 
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

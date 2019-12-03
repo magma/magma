@@ -49,11 +49,6 @@ MESSAGE_DEF(
   itti_nas_auth_param_req_t,
   nas_auth_param_req)
 MESSAGE_DEF(
-  NAS_IMPLICIT_DETACH_UE_IND,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_implicit_detach_ue_ind_t,
-  nas_implicit_detach_ue_ind)
-MESSAGE_DEF(
   NAS_EXTENDED_SERVICE_REQ,
   MESSAGE_PRIORITY_MED,
   itti_nas_extended_service_req_t,

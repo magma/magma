@@ -54,6 +54,7 @@
 #include "mme_app_defs.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
+#include "nas_proc.h"
 #include "common_defs.h"
 #include "esm_ebr.h"
 #include "timer.h"
@@ -316,6 +317,7 @@ void mme_app_free_pdn_connection(pdn_context_t **const pdn_connection)
 {
   bdestroy_wrapper(&(*pdn_connection)->apn_in_use);
   bdestroy_wrapper(&(*pdn_connection)->apn_oi_replacement);
+  bdestroy_wrapper(&(*pdn_connection)->apn_subscribed);
   free_wrapper((void **) pdn_connection);
 }
 
@@ -2296,7 +2298,6 @@ static void _mme_app_handle_s1ap_ue_context_release(
 {
   struct ue_mm_context_s *ue_mm_context = NULL;
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
-  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
@@ -2403,12 +2404,12 @@ static void _mme_app_handle_s1ap_ue_context_release(
 
   if (ue_mm_context->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-    DevAssert(message_p != NULL);
-    message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-      ue_mm_context->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "UE context release request received while UE is in Deregistered state "
+      "Perform implicit detach for ue-id" MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
+    nas_proc_implicit_detach_ue_ind(ue_mm_context->mme_ue_s1ap_id);
   } else {
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
@@ -2432,8 +2433,8 @@ static void _mme_app_handle_s1ap_ue_context_release(
         }
       }
     }
+    unlock_ue_contexts(ue_mm_context);
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
