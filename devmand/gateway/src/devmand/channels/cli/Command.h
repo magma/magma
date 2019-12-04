@@ -7,7 +7,9 @@
 
 #pragma once
 
+#include <boost/algorithm/string/replace.hpp>
 #include <folly/futures/Future.h>
+#include <atomic>
 #include <iostream>
 
 using std::string;
@@ -19,33 +21,64 @@ namespace cli {
 /*
  * Command struct encapsulating a string to be executed on a device.
  */
-struct Command {
+static std::atomic<int> commandCounter;
+
+class Command {
+ protected:
+  explicit Command(std::string _command, int idx, bool skipCache);
+  string command;
+  int idx;
+  bool skipCache_;
+
  public:
   Command() = delete;
-  static Command makeReadCommand(const std::string& cmd);
-
- private:
-  explicit Command(std::string _command);
-
- public:
   bool isMultiCommand();
   vector<Command> splitMultiCommand();
 
-  std::string toString() const {
+  string raw() const {
     return command;
   }
 
+  bool skipCache() const {
+    return skipCache_;
+  }
+
+  int getIdx() const {
+    return idx;
+  }
+
   friend std::ostream& operator<<(std::ostream& _stream, Command const& c) {
-    _stream << c.toString();
+    auto rawCmd = c.raw();
+    boost::replace_all(rawCmd, "\n", "\\n");
+    boost::replace_all(rawCmd, "\r", "\\r");
+    boost::replace_all(rawCmd, "\t", "\\t");
+    _stream << rawCmd;
     return _stream;
   }
+};
 
-  Command operator=(Command other) {
-    return Command(other.toString());
-  }
+class WriteCommand : public Command {
+ public:
+  static WriteCommand create(const std::string& cmd, bool skipCache = false);
+  static WriteCommand create(const Command& cmd);
+
+  WriteCommand(const WriteCommand& wc);
+  WriteCommand& operator=(const WriteCommand& other);
 
  private:
-  const string command;
+  WriteCommand(const string& command, int idx, bool skipCache);
+};
+
+class ReadCommand : public Command {
+ public:
+  static ReadCommand create(const std::string& cmd, bool skipCache = false);
+  static ReadCommand create(const Command& cmd);
+
+  ReadCommand& operator=(const ReadCommand& other);
+  ReadCommand(const ReadCommand& rc);
+
+ private:
+  ReadCommand(const string& command, int idx, bool skipCache);
 };
 
 } // namespace cli

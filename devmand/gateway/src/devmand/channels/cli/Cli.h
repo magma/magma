@@ -32,9 +32,10 @@ class Cli {
   Cli& operator=(Cli&&) = delete;
 
  public:
-  virtual folly::Future<std::string> executeAndRead(const Command& cmd) = 0;
+  virtual folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) = 0;
 
-  virtual folly::Future<std::string> execute(const Command& cmd) = 0;
+  virtual folly::SemiFuture<std::string> executeWrite(
+      const WriteCommand cmd) = 0;
 };
 
 } // namespace cli

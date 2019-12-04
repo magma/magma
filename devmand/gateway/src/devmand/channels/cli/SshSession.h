@@ -44,7 +44,8 @@ class SshSession {
       const string& ip,
       int port,
       const string& username,
-      const string& password);
+      const string& password,
+      const long timeout);
   void close();
   bool isOpen();
   void write(const string& command);

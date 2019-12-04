@@ -8,7 +8,7 @@
 #include <ErrorHandler.h>
 #include <devmand/channels/cli/SshSession.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
+#include <folly/executors/IOExecutor.h>
 #include <folly/futures/Future.h>
 #include <chrono>
 #include <condition_variable>
@@ -25,27 +25,57 @@ using devmand::channels::cli::sshsession::SshSession;
 using devmand::channels::cli::sshsession::SshSessionAsync;
 using std::lock_guard;
 using std::unique_lock;
+using namespace std::chrono_literals;
 
 SshSessionAsync::SshSessionAsync(
     string _id,
-    shared_ptr<IOThreadPoolExecutor> _executor)
-    : executor(_executor), session(_id), reading(false) {}
+    shared_ptr<folly::Executor> _executor)
+    : id(_id),
+      executor(_executor),
+      serialExecutor(SerialExecutor::create(
+          folly::Executor::getKeepAliveToken(_executor.get()))),
+      session(_id),
+      reading(false),
+      callbackFinished(false),
+      matchingExpectedOutput(false) {}
+
+static const int EVENT_FINISH = 9999;
 
 SshSessionAsync::~SshSessionAsync() {
-  if (this->sessionEvent != nullptr &&
-      event_get_base(this->sessionEvent) != nullptr) {
-    event_free(this->sessionEvent);
+  MLOG(MDEBUG) << "~SshSessionAsync started";
+
+  // Let the NIO callback finish by injecting artificial event and waiting for
+  // callback to finish
+  if (sessionEvent != nullptr && event_get_base(sessionEvent) != nullptr) {
+    event_active(this->sessionEvent, EVENT_FINISH, -1);
+    while (!callbackFinished) {
+      std::this_thread::sleep_for(100ms);
+    }
   }
+
   this->session.close();
 
   while (reading.load()) {
-    // waiting for any pending read to run out
+    // waiting for last read run out
   }
+
+  failCurrentRead(
+      runtime_error("Session is closed"), this->readingState.promise);
+
+  MLOG(MDEBUG) << "~SshSessionAsync finished";
+}
+
+void SshSessionAsync::unregisterEvent() {
+  if (sessionEvent != nullptr && event_get_base(sessionEvent) != nullptr) {
+    MLOG(MDEBUG) << "SshSessionAsync unregisterEvent";
+    event_free(sessionEvent);
+  }
+  callbackFinished = true;
 }
 
 Future<string> SshSessionAsync::read(int timeoutMillis) {
-  return via(executor.get(), [this, timeoutMillis] {
-    return session.read(timeoutMillis);
+  return via(serialExecutor.get(), [dis = shared_from_this(), timeoutMillis] {
+    return dis->session.read(timeoutMillis);
   });
 }
 
@@ -53,20 +83,35 @@ Future<Unit> SshSessionAsync::openShell(
     const string& ip,
     int port,
     const string& username,
-    const string& password) {
-  return via(executor.get(), [this, ip, port, username, password] {
-    session.openShell(ip, port, username, password);
-  });
+    const string& password,
+    const long sshConnectionTimeout) {
+  return via(
+      serialExecutor.get(),
+      [dis = shared_from_this(),
+       ip,
+       port,
+       username,
+       password,
+       sshConnectionTimeout] {
+        dis->session.openShell(
+            ip, port, username, password, sshConnectionTimeout);
+      });
 }
 
 Future<Unit> SshSessionAsync::write(const string& command) {
-  return via(executor.get(), [this, command] { session.write(command); });
+  return via(serialExecutor.get(), [dis = shared_from_this(), command] {
+    dis->session.write(command);
+  });
 }
 
 Future<string> SshSessionAsync::readUntilOutput(const string& lastOutput) {
-  return via(executor.get(), [this, lastOutput] {
-    return this->readUntilOutputBlocking(lastOutput);
-  });
+  this->readingState.currentLastOutput = lastOutput;
+  this->readingState.promise = std::make_shared<Promise<string>>();
+  this->readingState.outputSoFar = "";
+  matchingExpectedOutput.store(true);
+  processDataInBuffer(); // we could have had something already waiting in the
+                         // queue
+  return this->readingState.promise->getFuture();
 }
 
 void SshSessionAsync::setEvent(event* event) {
@@ -75,58 +120,78 @@ void SshSessionAsync::setEvent(event* event) {
 
 void readCallback(evutil_socket_t fd, short what, void* ptr) {
   (void)fd;
-  (void)what;
-  ((SshSessionAsync*)ptr)->readToBuffer();
+  if (what == EVENT_FINISH) {
+    ((SshSessionAsync*)ptr)->unregisterEvent();
+    return;
+  }
+  ((SshSessionAsync*)ptr)->readSshDataToBuffer();
+  ((SshSessionAsync*)ptr)->processDataInBuffer();
 }
 
 socket_t SshSessionAsync::getSshFd() {
   return this->session.getSshFd();
 }
 
-void SshSessionAsync::readToBuffer() {
-  {
-    std::lock_guard<mutex> guard(mutex1);
-    ErrorHandler::executeWithCatch([this]() {
-      const string& output = this->session.read();
-      if (!output.empty()) {
-        readQueue.push(output);
-      }
-    });
-  }
-  condition.notify_one();
+void SshSessionAsync::readSshDataToBuffer() {
+  ErrorHandler::executeWithCatch([dis = shared_from_this()]() {
+    const string& output = dis->session.read();
+    if (!output.empty()) {
+      dis->readQueue.push(output);
+    }
+  });
 }
 
-using namespace std::chrono_literals;
-
-string SshSessionAsync::readUntilOutputBlocking(string lastOutput) {
+void SshSessionAsync::matchExpectedOutput() {
+  if (not matchingExpectedOutput) { // we are not allowed to match unless
+                                    // readUntilOutput is called because we
+                                    // don't know against what to match
+    return;
+  }
   reading.store(true);
-  string result;
-  while (this->session.isOpen()) {
-    unique_lock<mutex> lck(mutex1);
-    bool satisfied = condition.wait_for(
-        lck, 1000ms, [this] { return this->readQueue.read_available() != 0; });
 
-    if (!satisfied) {
-      continue;
-    }
+  // If we are expecting empty string as output, we can complete right away
+  // Why ? because keepalive is empty string
+  if (this->readingState.currentLastOutput.empty()) {
+    matchingExpectedOutput.store(false);
+    this->readingState.promise->setValue("");
+  }
 
+  while (this->readQueue.read_available() != 0) {
     string output;
-    if (!readQueue.pop(output) ||
-        output.empty()) { // sometimes we get the string "" or " " back, we can
-                          // ignore that ...
-      continue;
-    }
-
-    result.append(output);
-    std::size_t found = result.find(lastOutput);
+    readQueue.pop(output);
+    this->readingState.outputSoFar.append(output);
+    std::size_t found = this->readingState.outputSoFar.find(
+        this->readingState.currentLastOutput);
     if (found != std::string::npos) {
-      // TODO check for any additional output after lastOutput
-      reading.store(false);
-      return result.substr(0, found);
+      string final = this->readingState.outputSoFar.substr(0, found);
+
+      // Check for any outstanding output
+      size_t consumedLength =
+          final.length() + this->readingState.currentLastOutput.length();
+      if (consumedLength < this->readingState.outputSoFar.length()) {
+        MLOG(MWARNING) << "[" << id << "] "
+                       << "Unexpected output from device: ("
+                       << this->readingState.outputSoFar.substr(consumedLength)
+                       << "). This output will be lost";
+      }
+      matchingExpectedOutput.store(false);
+      this->readingState.promise->setValue(final);
     }
   }
   reading.store(false);
-  throw std::runtime_error("Session is closed");
+}
+
+void SshSessionAsync::processDataInBuffer() {
+  via(serialExecutor.get(),
+      [dis = shared_from_this()] { dis->matchExpectedOutput(); });
+}
+
+void SshSessionAsync::failCurrentRead(
+    runtime_error e,
+    shared_ptr<Promise<string>> ptr) {
+  if (ptr != nullptr and !ptr->isFulfilled()) {
+    ptr->setException(folly::make_exception_wrapper<runtime_error>(e));
+  }
 }
 
 } // namespace sshsession

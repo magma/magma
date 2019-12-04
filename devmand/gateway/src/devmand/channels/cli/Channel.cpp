@@ -18,20 +18,20 @@ Channel::Channel(
 
 Channel::~Channel() {}
 
-folly::Future<std::string> Channel::executeAndRead(const Command& cmd) {
+folly::SemiFuture<std::string> Channel::executeRead(const ReadCommand cmd) {
   MLOG(MDEBUG) << "[" << id << "] "
                << "Executing command and reading: "
                << "\"" << cmd << "\"";
 
-  return cli->executeAndRead(cmd);
+  return cli->executeRead(cmd);
 }
 
-folly::Future<std::string> Channel::execute(const Command& cmd) {
+folly::SemiFuture<std::string> Channel::executeWrite(const WriteCommand cmd) {
   MLOG(MDEBUG) << "[" << id << "]"
                << "Executing command"
                << "\"" << cmd << "\"";
 
-  return cli->execute(cmd);
+  return cli->executeWrite(cmd);
 }
 
 } // namespace cli

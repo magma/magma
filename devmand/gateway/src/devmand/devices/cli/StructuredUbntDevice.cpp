@@ -44,6 +44,17 @@ using OperState = Ifc::State::OperStatus;
 
 using VlanMode = openconfig::openconfig_vlan_types::VlanModeType;
 
+using OpenconfigInterfaces = openconfig::openconfig_interfaces::Interfaces;
+using OpenconfigInterface = OpenconfigInterfaces::Interface;
+using OpenconfigConfig = OpenconfigInterface::Config;
+using folly::dynamic;
+
+static WriteCommand createInterfaceCommand(string name, bool enabled) {
+  string shutdownCmd = enabled ? "no shutdown" : "shutdown";
+  return WriteCommand::create(
+      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend");
+}
+
 static const auto shutdown = regex("shutdown");
 static const auto description = regex(R"(description '?(.+?)'?)");
 static const auto mtu = regex(R"(mtu (.+))");
@@ -54,9 +65,9 @@ static void parseConfig(
     Channel& channel,
     const string& ifcId,
     shared_ptr<Ifc::Config>& cfg) {
-  const Command cmd =
-      Command::makeReadCommand("show running-config interface " + ifcId);
-  string output = channel.executeAndRead(cmd).get();
+  const ReadCommand cmd =
+      ReadCommand::create("show running-config interface " + ifcId);
+  string output = channel.executeRead(cmd).get();
 
   cfg->name = ifcId;
   parseLeaf(output, mtu, cfg->mtu, 1, toUI16);
@@ -125,9 +136,9 @@ static void parseState(
     const string& ifcId,
     shared_ptr<Ifc::State>& state,
     const shared_ptr<Ifc::Config>& cfg) {
-  const Command cmdState =
-      Command::makeReadCommand("show interfaces description");
-  string stateOut = channel.executeAndRead(cmdState).get();
+  const ReadCommand cmdState =
+      ReadCommand::create("show interfaces description");
+  string stateOut = channel.executeRead(cmdState).get();
   const auto regexIfcState = regex(ifcId + R"(\s+(\S+)\s+(\S+)\s*(.*))");
 
   state->name = cfg->name.get();
@@ -154,9 +165,9 @@ static void parseState(
   });
 
   if (cfg->type.get() == ietf::iana_if_type::EthernetCsmacd().to_string()) {
-    const Command cmdStateEth =
-        Command::makeReadCommand("show interface ethernet " + ifcId);
-    string outputStateEth = channel.executeAndRead(cmdStateEth).get();
+    const ReadCommand cmdStateEth =
+        ReadCommand::create("show interface ethernet " + ifcId);
+    string outputStateEth = channel.executeRead(cmdStateEth).get();
     parseLeaf(outputStateEth, mtuState, state->mtu, 1, toUI16);
     parseEthernetCounters(outputStateEth, state->counters);
   }
@@ -172,9 +183,9 @@ static void parseEthernet(
     Channel& channel,
     const string& ifcId,
     shared_ptr<Ifc::Ethernet>& eth) {
-  const Command cmd =
-      Command::makeReadCommand("show running-config interface " + ifcId);
-  string output = channel.executeAndRead(cmd).get();
+  const ReadCommand cmd =
+      ReadCommand::create("show running-config interface " + ifcId);
+  string output = channel.executeRead(cmd).get();
 
   parseValue(output, vlanModeRegx, 1, [&eth](auto str) {
     if (str == "trunk") {
@@ -212,8 +223,8 @@ static shared_ptr<Ifc> parseInterface(Channel& channel, const string& ifcId) {
 static const auto ifcIdRegex = regex(R"(^(\S+)\s+(\S+)\s+(\S+)\s*(.*))");
 
 static shared_ptr<Ifcs> parseIfcs(Channel& channel) {
-  auto cmd = Command::makeReadCommand("show interfaces description");
-  string output = channel.executeAndRead(cmd).get();
+  auto cmd = ReadCommand::create("show interfaces description");
+  string output = channel.executeRead(cmd).get();
 
   auto interfaces = make_shared<Ifcs>();
   for (auto& ifcId : parseKeys<string>(output, ifcIdRegex, 1, 4)) {
@@ -248,11 +259,11 @@ static shared_ptr<Ni> parseDefaultNetwork(Channel& channel) {
   auto defaultNi = make_shared<Ni>();
   defaultNi->name = "default";
 
-  auto cmd = Command::makeReadCommand(
-      "show running-config | section \"vlan database\"");
-  string output = channel.executeAndRead(cmd).get();
-  auto cmdState = Command::makeReadCommand("show vlan");
-  string outputState = channel.executeAndRead(cmdState).get();
+  auto cmd =
+      ReadCommand::create("show running-config | section \"vlan database\"");
+  string output = channel.executeRead(cmd).get();
+  auto cmdState = ReadCommand::create("show vlan");
+  string outputState = channel.executeRead(cmdState).get();
 
   auto vlanLineOpt = extractValue(output, vlanLineRegx, 1);
   if (vlanLineOpt) {
@@ -277,13 +288,20 @@ static shared_ptr<Nis> parseNetworks(Channel& channel) {
   return nis;
 }
 
-unique_ptr<devices::Device> StructuredUbntDevice::createDevice(
+std::unique_ptr<devices::Device> StructuredUbntDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
-  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig);
+  return createDeviceWithEngine(app, deviceConfig, app.getCliEngine());
+}
+
+unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
+    Application& app,
+    const cartography::DeviceConfig& deviceConfig,
+    Engine& engine) {
+  IoConfigurationBuilder ioConfigurationBuilder(deviceConfig, engine);
   auto cmdCache = ReadCachingCli::createCache();
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
-      deviceConfig.id, ioConfigurationBuilder.getIo(cmdCache));
+      deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
   return unique_ptr<StructuredUbntDevice>(
       new StructuredUbntDevice(app, deviceConfig.id, channel, cmdCache));
@@ -295,6 +313,30 @@ StructuredUbntDevice::StructuredUbntDevice(
     const shared_ptr<Channel> _channel,
     const shared_ptr<CliCache> _cmdCache)
     : Device(application, id_, true), channel(_channel), cmdCache(_cmdCache) {}
+
+void StructuredUbntDevice::setConfig(const dynamic& config) {
+  const string& json = folly::toJson(config);
+  auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
+  const shared_ptr<OpenconfigInterfaces>& ydkModel =
+      make_shared<OpenconfigInterfaces>();
+  const shared_ptr<Entity> decodedIfcEntity = bundle.decode(json, ydkModel);
+  MLOG(MDEBUG) << decodedIfcEntity->get_segment_path();
+
+  for (shared_ptr<Entity> entity : ydkModel->interface.entities()) {
+    shared_ptr<OpenconfigInterface> iface =
+        std::static_pointer_cast<OpenconfigInterface>(entity);
+    shared_ptr<OpenconfigConfig> openConfig = iface->config;
+    if (openConfig->type.get() !=
+        ietf::iana_if_type::EthernetCsmacd().to_string()) {
+      continue;
+    }
+    string enabled =
+        openConfig->enabled.get(); // TODO YLeaf does not support bool
+    string name = openConfig->name;
+    channel->executeWrite(createInterfaceCommand(name, enabled == "true"));
+    return;
+  }
+}
 
 shared_ptr<State> StructuredUbntDevice::getState() {
   MLOG(MINFO) << "[" << id << "] "
