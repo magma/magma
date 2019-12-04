@@ -66,7 +66,8 @@ Engine::Engine()
           std::make_shared<folly::NamedThreadFactory>("commonCli"))),
       kaCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
-          std::make_shared<folly::NamedThreadFactory>("kaCli"))) {
+          std::make_shared<folly::NamedThreadFactory>("kaCli"))),
+      mreg(make_shared<ModelRegistry>()) {
   // TODO use singleton when folly is initialized
   Engine::initSsh();
   Engine::initLogging();
@@ -91,6 +92,10 @@ shared_ptr<folly::Executor> Engine::getExecutor(
     return sshCliExecutor;
   }
   return commonExecutor;
+}
+
+shared_ptr<ModelRegistry> Engine::getModelRegistry() const {
+  return mreg;
 }
 
 } // namespace cli

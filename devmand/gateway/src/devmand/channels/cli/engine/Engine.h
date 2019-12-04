@@ -10,6 +10,7 @@
 #define LOG_WITH_GLOG
 
 #include <devmand/channels/Engine.h>
+#include <devmand/devices/cli/ModelRegistry.h>
 #include <folly/Executor.h>
 #include <folly/futures/ThreadWheelTimekeeper.h>
 #include <magma_logging.h>
@@ -20,6 +21,7 @@ namespace channels {
 namespace cli {
 
 using namespace std;
+using devmand::devices::cli::ModelRegistry;
 
 static atomic<bool> loggingInitialized(false);
 static atomic<bool> sshInitialized(false);
@@ -57,9 +59,13 @@ class Engine : public channels::Engine {
     kaCli,
     plaintextCliDevice
   };
-
+private:
+    shared_ptr<ModelRegistry> mreg;
+public:
   shared_ptr<folly::Executor> getExecutor(
       executorRequestType requestType) const;
+
+  shared_ptr<ModelRegistry> getModelRegistry() const;
 };
 
 } // namespace cli
