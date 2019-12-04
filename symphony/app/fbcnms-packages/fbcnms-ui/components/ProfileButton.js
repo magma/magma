@@ -76,7 +76,7 @@ type Props = {
 const ProfileButton = (props: Props) => {
   const {user} = props;
   const {email} = user;
-  const {relativeUrl, history} = useRouter();
+  const {history} = useRouter();
   const classes = useStyles();
   const [isProfileMenuOpen, toggleProfileMenu] = useState(false);
   const showDocs = useContext(AppContext).isFeatureEnabled('documents_site');
@@ -96,7 +96,7 @@ const ProfileButton = (props: Props) => {
               onClick={() => {
                 GeneralLogger.info(Events.SETTINGS_CLICKED);
                 toggleProfileMenu(false);
-                history.push(relativeUrl('/settings'));
+                history.push('/inventory/settings');
               }}
               component="a">
               <Text className={classes.profileItemText}>Settings</Text>
