@@ -14,6 +14,7 @@ import * as React from 'react';
 import PowerSearchFilter from './PowerSearchFilter';
 import PropertyValueInput from '../form/PropertyValueInput';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {POWER_SEARCH_OPERATOR_ID} from './PowerSearchOperatorComponent';
 import {getPropertyValue} from '../../common/Property';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
@@ -91,7 +92,12 @@ const PowerSearchPropertyFilter = (props: FilterProps) => {
             label={null}
             inputType="Property"
             property={propertyValue}
-            onBlur={onInputBlurred}
+            onBlur={e => {
+              if (e.relatedTarget.id === POWER_SEARCH_OPERATOR_ID) {
+                return;
+              }
+              onInputBlurred();
+            }}
             autoFocus={true}
             onKeyDown={e => {
               if (e.keyCode === ENTER_KEY_CODE) {
