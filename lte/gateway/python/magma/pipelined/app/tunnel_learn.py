@@ -37,7 +37,21 @@ class TunnelLearnController(MagmaController):
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
+        self.delete_all_flows(datapath)
         self._install_default_tunnel_classify_flows(self._datapath)
+
+    def cleanup_on_disconnect(self, datapath):
+        """
+        Cleanup flows on datapath disconnect event.
+
+        Args:
+            datapath: ryu datapath struct
+        """
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self.tunnel_learn_scratch)
 
     def _install_default_tunnel_classify_flows(self, dp):
         """
