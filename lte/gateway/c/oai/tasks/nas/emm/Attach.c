@@ -447,7 +447,6 @@ int emm_proc_attach_request(
             "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
             ue_id);
           mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
-          unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
@@ -502,7 +501,6 @@ int emm_proc_attach_request(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(
             "duplicate_attach_request", 1, 1, "action", "ignored");
-          unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }

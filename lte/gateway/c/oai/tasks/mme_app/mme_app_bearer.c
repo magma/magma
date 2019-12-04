@@ -233,7 +233,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     } else if (
       ue_context_p->sgs_context->csfb_service_type ==
       CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
-      //Inform to NAS module to trigger N/W initiated imsi detach request towards UE
+      //Inform NAS module to trigger N/W initiated imsi detach request towards UE
       OAILOG_DEBUG(
         LOG_MME_APP,
         "Send SGS intiated Detach request to NAS module for ue_id = "

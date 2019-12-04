@@ -117,8 +117,6 @@ void free_esm_context_content(esm_context_t *esm_ctx)
     nas_stop_T3489(esm_ctx);
     if (esm_ctx->esm_proc_data) {
       bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
-        OAILOG_ERROR(
-          LOG_NAS_EMM, "    Rashmi Rashmi free  esm_proc_data \n");
       free(esm_ctx->esm_proc_data);
     }
   }

@@ -594,7 +594,6 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     rc = emm_sap_send(&emm_sap);
   }
   mme_app_handle_detach_req(ue_id);
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

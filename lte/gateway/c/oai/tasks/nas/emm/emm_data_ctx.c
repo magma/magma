@@ -216,8 +216,7 @@ inline void emm_ctx_set_valid_imsi(
 #endif
   mme_api_notify_imsi(
     (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id,
-    imsi64,
-    imsi->length);
+    imsi64);
 }
 
 //------------------------------------------------------------------------------
@@ -655,10 +654,7 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
     return;
   }
   nas_delete_all_emm_procedures(ctxt);
-  if (ctxt->esm_ctx.esm_proc_data) {
-    bdestroy_wrapper(&ctxt->esm_ctx.esm_proc_data->apn);
-    free(ctxt->esm_ctx.esm_proc_data);
-  }
+  free_esm_context_content(&ctxt->esm_ctx);
   if (ctxt->esm_msg) {
     bdestroy(ctxt->esm_msg);
   }

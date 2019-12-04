@@ -432,6 +432,7 @@ int emm_proc_detach_request(
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     rc = emm_sap_send(&emm_sap);
+    emm_context_unlock(emm_ctx);
     // Release emm and esm context
     _clear_emm_ctxt(emm_ctx);
     // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
@@ -501,10 +502,10 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
     _clear_emm_ctxt(emm_ctx);
     // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
     mme_app_handle_detach_req(ue_id);
+  } else {
+    emm_ctx->is_imsi_only_detach = false;
+    emm_context_unlock(emm_ctx);
   }
-  emm_ctx->is_imsi_only_detach = false;
-
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 

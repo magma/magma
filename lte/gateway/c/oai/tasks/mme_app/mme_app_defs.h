@@ -312,8 +312,6 @@ void mme_app_handle_path_switch_req_ack(
 
 void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
-#define MME_APP_PAGING_ID_IMSI 0X00
-#define MME_APP_PAGING_ID_TMSI 0X01
 
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)

@@ -926,7 +926,6 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
           msg->ue_id);
         //Clean up S1AP and MME UE Context
         mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
-        unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
 
