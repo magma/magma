@@ -6,40 +6,46 @@ package orc8r
 
 import (
 	"crypto/tls"
+	"fmt"
 	"net/http"
 
-	"github.com/pkg/errors"
+	"go.opencensus.io/plugin/ochttp"
 )
 
+// Config configures orc8r http client.
 type Config struct {
-	Hostname   string `env:"API_HOSTNAME" long:"api-hostname" description:"the api host for orchestrator"`
-	Cert       string `env:"API_CERT" long:"api-cert" description:"the cert for connecting to orchestrator api"`
-	PrivateKey string `env:"API_PRIVATE_KEY" long:"api-private-key" description:"the private key for connecting to orchestrator api"`
+	Host string `env:"HOST" long:"host" description:"orchestrator hostname"`
+	Cert string `env:"CERT" long:"cert" description:"orchestrator certificate"`
+	PKey string `env:"PKEY" long:"pkey" description:"orchestrator private key"`
 }
 
-type Client struct {
-	*http.Client
-	Hostname string
-}
-
-func (config Config) Build() (*Client, error) {
-	cert, err := tls.LoadX509KeyPair(config.Cert, config.PrivateKey)
+// NewClient returns an http client to use for orc8r communication.
+func NewClient(cfg Config) (*http.Client, error) {
+	cert, err := tls.LoadX509KeyPair(cfg.Cert, cfg.PKey)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to load orc8r certificates")
+		return nil, fmt.Errorf("cannot load certificates: %w", err)
 	}
-
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-			},
+	var transport http.RoundTripper = &http.Transport{
+		TLSClientConfig: &tls.Config{
+			Certificates: []tls.Certificate{cert},
 		},
 	}
+	transport = &ochttp.Transport{Base: transport}
+	transport = Transport{Base: transport, Host: cfg.Host}
+	return &http.Client{Transport: transport}, nil
+}
 
-	client := Client{
-		Hostname: config.Hostname,
-		Client:   httpClient,
-	}
+// Transport sends http requests to orc8r host.
+type Transport struct {
+	Base http.RoundTripper
+	Host string
+}
 
-	return &client, nil
+// RoundTrip implements http.RoundTripper interface.
+func (t Transport) RoundTrip(r *http.Request) (*http.Response, error) {
+	req := *r
+	req.Header = r.Header.Clone()
+	req.URL.Host = t.Host
+	req.URL.Scheme = "https"
+	return t.Base.RoundTrip(r)
 }
