@@ -553,6 +553,9 @@ bool LocalEnforcer::init_session_credit(
     }
   }
   for (const auto &monitor : response.usage_monitors()) {
+    if (revalidation_required(monitor.event_triggers())) {
+      schedule_revalidation(monitor.revalidation_time());
+    }
     session_state->get_monitor_pool().receive_credit(monitor);
   }
   session_map_[imsi] = std::unique_ptr<SessionState>(session_state);
