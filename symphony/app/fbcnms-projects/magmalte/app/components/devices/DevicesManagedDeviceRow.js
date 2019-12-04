@@ -103,9 +103,7 @@ export default function DevicesManagedDeviceRow(props: Props) {
       />
       <TableRow className={classes.tableRow}>
         <TableCell className={classes.subrowCell}>{props.deviceID}</TableCell>
-        <TableCell>
-          <DevicesState device={device} />
-        </TableCell>
+        <TableCell>{device && <DevicesState device={device} />}</TableCell>
         <TableCell>{managingAgentText}</TableCell>
 
         <TableCell className={classes.actionsCell}>
