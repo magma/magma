@@ -20,6 +20,8 @@ type Tx struct {
 	AuditLog *AuditLogClient
 	// Tenant is the client for interacting with the Tenant builders.
 	Tenant *TenantClient
+	// Token is the client for interacting with the Token builders.
+	Token *TokenClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -41,6 +43,7 @@ func (tx *Tx) Client() *Client {
 		Schema:   migrate.NewSchema(tx.driver),
 		AuditLog: NewAuditLogClient(tx.config),
 		Tenant:   NewTenantClient(tx.config),
+		Token:    NewTokenClient(tx.config),
 		User:     NewUserClient(tx.config),
 	}
 }

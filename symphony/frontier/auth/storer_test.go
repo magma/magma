@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/cloud/log/logtest"
-	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
 	"github.com/stretchr/testify/suite"
 	"github.com/volatiletech/authboss"
@@ -18,7 +17,6 @@ import (
 type storerTestSuite struct {
 	suite.Suite
 	ctx    context.Context
-	client *ent.Client
 	storer *UserStorer
 }
 
@@ -35,12 +33,11 @@ func (s *storerTestSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	s.ctx = context.WithValue(ctx, tenantCtxKey{}, tenant)
-	s.client = client
-	s.storer = NewUserStorer(client.User, logtest.NewTestLogger(s.T()))
+	s.storer = NewUserStorer(client, logtest.NewTestLogger(s.T()))
 }
 
 func (s *storerTestSuite) TearDownSuite() {
-	err := s.client.Close()
+	err := s.storer.Close()
 	s.Assert().NoError(err)
 }
 
@@ -70,15 +67,13 @@ func (s *storerTestSuite) TestLoadUser() {
 }
 
 func (s *storerTestSuite) TestSaveUser() {
-	client := s.client.User
 	email := "updater@example.com"
 	password := "password"
 
-	for _, assertion := range []func(error, ...interface{}){s.Require().NoError, s.Require().Error} {
-		u := s.storer.New(s.ctx)
-		user, ok := u.(authboss.AuthableUser)
-		s.Require().True(ok)
-
+	for _, assertion := range []func(error, ...interface{}){
+		s.Require().NoError, s.Require().Error,
+	} {
+		user := s.storer.New(s.ctx).(authboss.AuthableUser)
 		user.PutPID(email)
 		user.PutPassword(password)
 		err := s.storer.Create(s.ctx, user)
@@ -98,18 +93,43 @@ func (s *storerTestSuite) TestSaveUser() {
 	})
 	s.Run("Duplicate", func() {
 		email := "root@example.com"
-		_, err := client.Create().
-			SetEmail("root@example.com").
-			SetPassword("root").
-			SetTenant(CurrentTenant(s.ctx).Name).
-			SetNetworks([]string{}).
-			Save(s.ctx)
+		du := s.storer.New(s.ctx).(*User)
+		du.PutPID(email)
+		du.PutPassword("root")
+		err := s.storer.Create(s.ctx, du)
 		s.Require().NoError(err)
 
 		u.PutPID(email)
 		err = s.storer.Save(s.ctx, u)
 		s.Assert().EqualError(err, authboss.ErrUserFound.Error())
 	})
+}
+
+func (s *storerTestSuite) TestRememberTokens() {
+	pid := "rememberer@example.com"
+	user := s.storer.New(s.ctx).(authboss.AuthableUser)
+	user.PutPID(pid)
+	user.PutPassword(pid)
+	err := s.storer.Create(s.ctx, user)
+	s.Require().NoError(err)
+
+	tokens := []string{"foo", "bar", "baz"}
+	for _, token := range append(tokens, "foo") {
+		err := s.storer.AddRememberToken(s.ctx, pid, token)
+		s.Require().NoError(err)
+	}
+
+	err = s.storer.UseRememberToken(s.ctx, pid, "foo")
+	s.Require().NoError(err)
+	err = s.storer.UseRememberToken(s.ctx, pid, "foo")
+	s.Require().EqualError(err, authboss.ErrTokenNotFound.Error())
+
+	err = s.storer.DelRememberTokens(s.ctx, pid)
+	s.Require().NoError(err)
+	for i := range tokens {
+		err := s.storer.UseRememberToken(s.ctx, pid, tokens[i])
+		s.Assert().EqualError(err, authboss.ErrTokenNotFound.Error())
+	}
 }
 
 func TestStorerTestSuite(t *testing.T) {
