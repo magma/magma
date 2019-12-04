@@ -16,7 +16,6 @@
 #include <devmand/channels/cli/ReadCachingCli.h>
 #include <devmand/channels/cli/ReconnectingCli.h>
 #include <devmand/channels/cli/SshSession.h>
-#include <devmand/channels/cli/SshSessionAsync.h>
 #include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/channels/cli/TimeoutTrackingCli.h>
 #include <folly/Singleton.h>
@@ -29,7 +28,7 @@ using devmand::channels::cli::IoConfigurationBuilder;
 using devmand::channels::cli::SshSocketReader;
 using devmand::channels::cli::sshsession::readCallback;
 using devmand::channels::cli::sshsession::SshSession;
-using devmand::channels::cli::sshsession::SshSessionAsync;
+
 using folly::EvictingCacheMap;
 
 IoConfigurationBuilder::IoConfigurationBuilder(
@@ -123,6 +122,35 @@ shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
   return kaCli;
 }
 
+Future<shared_ptr<Cli>> IoConfigurationBuilder::configurePromptAwareCli(
+    shared_ptr<PromptAwareCli> cli,
+    shared_ptr<SshSessionAsync> session,
+    shared_ptr<ConnectionParameters> params,
+    shared_ptr<Executor> executor) {
+  MLOG(MDEBUG) << "[" << params->id << "] "
+               << "Initializing cli";
+  // initialize CLI
+  return cli->initializeCli(params->password)
+      .via(executor.get())
+      .thenValue([cli, params](auto) {
+        // resolve prompt needs to happen
+        MLOG(MDEBUG) << "[" << params->id << "] "
+                     << "Resolving prompt";
+        return cli->resolvePrompt();
+      })
+      .via(executor.get())
+      .thenValue([cli, params, session](auto) {
+        MLOG(MDEBUG) << "[" << params->id << "] "
+                     << "Creating async data reader";
+        event* sessionEvent = SshSocketReader::getInstance().addSshReader(
+            readCallback, session->getSshFd(), session.get());
+        session->setEvent(sessionEvent);
+        MLOG(MDEBUG) << "[" << params->id << "] "
+                     << "SSH layer configured";
+        return makeFuture(cli);
+      });
+}
+
 Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
     shared_ptr<ConnectionParameters> params) {
   MLOG(MDEBUG) << "Creating CLI ssh device for " << params->id << " ("
@@ -135,46 +163,25 @@ Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
 
   MLOG(MDEBUG) << "[" << params->id << "] "
                << "Opening shell";
-  // TODO: do this using future chaining
-  session
+
+  return session
       ->openShell(
           params->ip,
           params->port,
           params->username,
           params->password,
           params->sshConnectionTimeout)
-      .get();
+      .thenValue([params, session](auto) {
+        MLOG(MDEBUG) << "[" << params->id << "] "
+                     << "Setting flavour";
+        shared_ptr<CliFlavour> cl = params->flavour;
 
-  MLOG(MDEBUG) << "[" << params->id << "] "
-               << "Setting flavour";
-  shared_ptr<CliFlavour> cl = params->flavour;
-
-  // create CLI
-  shared_ptr<PromptAwareCli> cli =
-      PromptAwareCli::make(params->id, session, cl, params->paExecutor);
-  MLOG(MDEBUG) << "[" << params->id << "] "
-               << "Initializing cli";
-  // initialize CLI
-  // TODO: do this using future chaining:
-  //  via(executor.get())
-  //      .thenValue([params, cli, session](...) -> SemiFuture<shared_ptr<Cli>>
-  //      {
-
-  cli->initializeCli(params->password).get();
-  // resolve prompt needs to happen
-  MLOG(MDEBUG) << "[" << params->id << "] "
-               << "Resolving prompt";
-  // TODO: do this using future chaining
-  cli->resolvePrompt().get();
-
-  MLOG(MDEBUG) << "[" << params->id << "] "
-               << "Creating async data reader";
-  event* sessionEvent = SshSocketReader::getInstance().addSshReader(
-      readCallback, session->getSshFd(), session.get());
-  session->setEvent(sessionEvent);
-  MLOG(MDEBUG) << "[" << params->id << "] "
-               << "SSH layer configured";
-  return makeFuture(cli);
+        // create CLI
+        shared_ptr<PromptAwareCli> cli =
+            PromptAwareCli::make(params->id, session, cl, params->paExecutor);
+        return configurePromptAwareCli(
+            cli, session, params, params->paExecutor);
+      });
 }
 
 shared_ptr<IoConfigurationBuilder::ConnectionParameters>

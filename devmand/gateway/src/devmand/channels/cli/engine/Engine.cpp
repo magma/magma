@@ -66,7 +66,6 @@ Engine::Engine()
           5,
           std::make_shared<folly::NamedThreadFactory>("kaCli"))) {
   // TODO use singleton when folly is initialized
-  // TODO switch to IOThreadPool for common pool once blocking issues are solved
   Engine::initSsh();
   Engine::initLogging();
   MLOG(MERROR) << "Cli engine started";

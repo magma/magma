@@ -10,7 +10,9 @@
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/CliFlavour.h>
+#include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
+#include <devmand/channels/cli/SshSessionAsync.h>
 #include <devmand/channels/cli/engine/Engine.h>
 #include <folly/Executor.h>
 
@@ -19,6 +21,7 @@ namespace devmand::channels::cli {
 using devmand::cartography::DeviceConfig;
 using devmand::channels::cli::Cli;
 using devmand::channels::cli::CliFlavour;
+using devmand::channels::cli::sshsession::SshSessionAsync;
 using namespace std;
 
 using folly::Executor;
@@ -98,5 +101,11 @@ class IoConfigurationBuilder {
       const std::map<std::string, std::string>& plaintextCliKv,
       const string& key,
       const string& defaultValue);
+
+  static Future<shared_ptr<Cli>> configurePromptAwareCli(
+      shared_ptr<PromptAwareCli> cli,
+      shared_ptr<SshSessionAsync> session,
+      shared_ptr<ConnectionParameters> params,
+      shared_ptr<Executor> executor);
 };
 } // namespace devmand::channels::cli
