@@ -40,6 +40,7 @@ const styles = theme => ({
     overflowY: 'hidden',
   },
   typesList: {
+    flexGrow: 1,
     padding: '24px',
   },
   content: {
