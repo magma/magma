@@ -258,8 +258,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           add_session_to_directory_record(imsi, sid);
         }
       } else {
-        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
-                     << imsi << ": " << status.error_message();
+        MLOG(MERROR) << "Failed to initialize session in SessionProxy "
+                     << "for IMSI " << imsi << ": " << status.error_message();
       }
       LocalCreateSessionResponse resp;
       resp.set_session_id(response.session_id());

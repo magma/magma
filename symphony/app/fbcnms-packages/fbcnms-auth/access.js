@@ -77,7 +77,7 @@ export const access = (level: AccessRoleLevel) => {
 
     logger.info(
       'Client has no permission to view route: [%s]',
-      req.originalUrl,
+      req.hostname + req.originalUrl,
     );
 
     // if there is a logged in user, we shouldn't redirect to login page

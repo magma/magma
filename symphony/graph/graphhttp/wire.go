@@ -11,6 +11,7 @@ import (
 
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/cloud/oc"
+	"github.com/facebookincubator/symphony/cloud/orc8r"
 	"github.com/facebookincubator/symphony/cloud/server"
 	"github.com/facebookincubator/symphony/cloud/server/xserver"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -25,6 +26,7 @@ type Config struct {
 	Tenancy *viewer.MySQLTenancy
 	Logger  log.Logger
 	Census  oc.Options
+	Orc8r   orc8r.Config
 }
 
 // NewServer creates a server from config.
@@ -33,7 +35,8 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 		xserver.ServiceSet,
 		xserver.DefaultViews,
 		newHealthChecker,
-		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census"),
+		newOrc8rClient,
+		wire.FieldsOf(new(Config), "Tenancy", "Logger", "Census", "Orc8r"),
 		newRouter,
 		wire.Bind(new(http.Handler), new(*mux.Router)),
 		wire.Bind(new(viewer.Tenancy), new(*viewer.MySQLTenancy)),
@@ -43,4 +46,9 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 
 func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
+}
+
+func newOrc8rClient(config orc8r.Config) *orc8r.Client {
+	client, _ := config.Build()
+	return client
 }

@@ -7,6 +7,8 @@ package graphhttp
 import (
 	"net/http"
 
+	"github.com/facebookincubator/symphony/cloud/orc8r"
+
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/exporter"
 	"github.com/facebookincubator/symphony/graph/graphql"
@@ -17,7 +19,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func newRouter(tenancy viewer.Tenancy, logger log.Logger) (*mux.Router, error) {
+func newRouter(tenancy viewer.Tenancy, logger log.Logger, orc8r *orc8r.Client) (*mux.Router, error) {
 	router := mux.NewRouter()
 	router.Use(func(h http.Handler) http.Handler {
 		return viewer.TenancyHandler(h, tenancy)
@@ -39,7 +41,7 @@ func newRouter(tenancy viewer.Tenancy, logger log.Logger) (*mux.Router, error) {
 		Handler(http.StripPrefix("/export", exportHandler)).
 		Name("export")
 
-	handler, err := graphql.NewHandler(logger, nil)
+	handler, err := graphql.NewHandler(logger, orc8r)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating graphql handler")
 	}
