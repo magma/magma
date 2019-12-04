@@ -6,8 +6,11 @@ package auth
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"hash/fnv"
+	"io"
 
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
@@ -107,6 +110,13 @@ func (s *UserStorer) Close() error {
 	return s.client.Close()
 }
 
+// hashToken hashes a token to a string.
+func hashToken(token string) string {
+	hash := fnv.New64()
+	_, _ = io.WriteString(hash, token)
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
 // AddRememberToken adds remember token to user.
 func (s *UserStorer) AddRememberToken(ctx context.Context, pid, value string) error {
 	logger := s.logger.For(ctx).
@@ -116,6 +126,7 @@ func (s *UserStorer) AddRememberToken(ctx context.Context, pid, value string) er
 		logger.Error("cannot load user", zap.Error(err))
 		return fmt.Errorf("cannot load user: %w", err)
 	}
+	logger = logger.With(zap.String("token", hashToken(value)))
 	switch _, err := s.client.Token.
 		Create().
 		SetUser(u).
@@ -155,8 +166,10 @@ func (s *UserStorer) DelRememberTokens(ctx context.Context, pid string) error {
 
 // UseRememberToken clears a single remember token of user.
 func (s *UserStorer) UseRememberToken(ctx context.Context, pid, value string) error {
-	logger := s.logger.For(ctx).
-		With(zap.String("user", pid))
+	logger := s.logger.For(ctx).With(
+		zap.String("user", pid),
+		zap.String("token", hashToken(value)),
+	)
 	switch cnt, err := s.client.Token.
 		Delete().
 		Where(
@@ -180,6 +193,7 @@ func (s *UserStorer) UseRememberToken(ctx context.Context, pid, value string) er
 
 // check if user storer implements necessary interfaces.
 var (
+	_ authboss.ServerStorer            = (*UserStorer)(nil)
 	_ authboss.CreatingServerStorer    = (*UserStorer)(nil)
 	_ authboss.RememberingServerStorer = (*UserStorer)(nil)
 )

@@ -57,8 +57,11 @@ func (u *User) save(ctx context.Context) error {
 	return err
 }
 
-// check if user implements necessary interface.
-var _ authboss.AuthableUser = (*User)(nil)
+// check if user implements necessary interfaces.
+var (
+	_ authboss.User         = (*User)(nil)
+	_ authboss.AuthableUser = (*User)(nil)
+)
 
 // userCreator implements userMutator for creation.
 type userCreator struct{ *ent.UserCreate }
