@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
@@ -28,6 +29,7 @@ type UserCreate struct {
 	tenant     *string
 	networks   *[]string
 	tabs       *[]string
+	tokens     map[int]struct{}
 }
 
 // SetCreatedAt sets the created_at field.
@@ -110,6 +112,26 @@ func (uc *UserCreate) SetTabs(s []string) *UserCreate {
 	return uc
 }
 
+// AddTokenIDs adds the tokens edge to Token by ids.
+func (uc *UserCreate) AddTokenIDs(ids ...int) *UserCreate {
+	if uc.tokens == nil {
+		uc.tokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uc.tokens[ids[i]] = struct{}{}
+	}
+	return uc
+}
+
+// AddTokens adds the tokens edges to Token.
+func (uc *UserCreate) AddTokens(t ...*Token) *UserCreate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uc.AddTokenIDs(ids...)
+}
+
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	if uc.created_at == nil {
@@ -160,6 +182,7 @@ func (uc *UserCreate) SaveX(ctx context.Context) *User {
 
 func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 	var (
+		res     sql.Result
 		builder = sql.Dialect(uc.driver.Dialect())
 		u       = &User{config: uc.config}
 	)
@@ -214,6 +237,26 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		return nil, rollback(tx, err)
 	}
 	u.ID = int(id)
+	if len(uc.tokens) > 0 {
+		p := sql.P()
+		for eid := range uc.tokens {
+			p.Or().EQ(token.FieldID, eid)
+		}
+		query, args := builder.Update(user.TokensTable).
+			Set(user.TokensColumn, id).
+			Where(sql.And(p, sql.IsNull(user.TokensColumn))).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+		affected, err := res.RowsAffected()
+		if err != nil {
+			return nil, rollback(tx, err)
+		}
+		if int(affected) < len(uc.tokens) {
+			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uc.tokens))})
+		}
+	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

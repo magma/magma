@@ -106,7 +106,7 @@ const ExpandingPanel = ({
         }}
         expandIcon={<ExpandMoreIcon className={classes.expandButton} />}>
         <Text className={classes.panelTitle}>{title}</Text>
-        {rightContent}
+        <div onClick={event => event.stopPropagation()}>{rightContent}</div>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails
         className={classNames(detailsPaneClass, classes.panelDetails)}>

@@ -96,6 +96,13 @@ const useStyles = makeStyles({
   },
 });
 
+export type FocusEvent<T> = {
+  target: T,
+  relatedTarget: HTMLElement,
+};
+
+type FocusEventFn<T: HTMLElement> = (FocusEvent<T>) => void;
+
 type Props = {
   /** Input type. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types */
   type?: string,
@@ -110,7 +117,7 @@ type Props = {
   suffix?: React.Node,
   onChange?: (e: SyntheticInputEvent<HTMLInputElement>) => void,
   onFocus?: () => void,
-  onBlur?: () => void,
+  onBlur?: FocusEventFn<HTMLInputElement>,
   onEnterPressed?: (e: KeyboardEvent) => void,
 };
 
@@ -150,10 +157,13 @@ function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
     onFocus && onFocus();
   }, [onFocus]);
 
-  const onInputBlurred = useCallback(() => {
-    setHasFocus(false);
-    onBlur && onBlur();
-  }, [onBlur]);
+  const onInputBlurred = useCallback(
+    (e: FocusEvent<HTMLInputElement>) => {
+      setHasFocus(false);
+      onBlur && onBlur(e);
+    },
+    [onBlur],
+  );
 
   const onInputChanged = useCallback(
     (e: SyntheticInputEvent<HTMLInputElement>) => {

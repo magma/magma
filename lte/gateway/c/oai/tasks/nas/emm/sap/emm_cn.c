@@ -473,6 +473,7 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
     rc = emm_proc_sgs_detach_request(ue_id, EMM_SGS_NW_INITIATED_EPS_DETACH);
   }
 
+  emm_context_unlock(emm_ctx_p);
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
