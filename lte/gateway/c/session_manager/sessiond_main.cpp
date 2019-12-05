@@ -24,6 +24,7 @@
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
+#define POLICYDB_SERVICE "policydb"
 #define SESSIOND_VERSION "1.0"
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
 #define MAX_USAGE_REPORTING_THRESHOLD 1.1
@@ -52,17 +53,32 @@ static magma::mconfig::SessionD load_mconfig()
   return mconfig;
 }
 
-static const std::shared_ptr<grpc::Channel> get_controller_channel(
-  const magma::mconfig::SessionD &mconfig)
+static const std::shared_ptr<grpc::Channel> get_local_controller(
+  const YAML::Node &config)
 {
-  if (mconfig.relay_enabled()) {
+ auto port = config["local_session_proxy_port"].as<std::string>();
+ auto addr = "127.0.0.1:" + port;
+ MLOG(MINFO) << "Using local address " << addr << " for controller";
+ return grpc::CreateCustomChannel(
+   addr, grpc::InsecureChannelCredentials(), grpc::ChannelArguments {});
+}
+
+static const std::shared_ptr<grpc::Channel> get_controller_channel(
+  const YAML::Node &config, const bool relay_enabled)
+{
+  if (relay_enabled) {
     MLOG(MINFO) << "Using proxied sessiond controller";
+    if (config["use_local_session_proxy"].IsDefined() &&
+      config["use_local_session_proxy"].as<bool>()) {
+      // Use a locally running SessionProxy. (Used for testing)
+      return get_local_controller(config);
+    }
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
   } else {
-    MLOG(MINFO) << "Using local policydb controller";
+    MLOG(MINFO) << "Using policydb controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "policydb", magma::ServiceRegistrySingleton::LOCAL);
+      POLICYDB_SERVICE, magma::ServiceRegistrySingleton::LOCAL);
   }
 }
 
@@ -166,8 +182,10 @@ int main(int argc, char *argv[])
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
    config["terminate_service_when_quota_exhausted"].as<bool>();
 
+  auto controller_channel = get_controller_channel(config,
+    mconfig.relay_enabled());
   auto reporter = std::make_shared<magma::SessionReporterImpl>(
-    evb, get_controller_channel(mconfig));
+    evb, controller_channel);
   std::thread reporter_thread([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();
