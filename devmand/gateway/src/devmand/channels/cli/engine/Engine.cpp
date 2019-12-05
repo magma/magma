@@ -53,7 +53,7 @@ void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
   }
 }
 
-static uint CPU_CORES = std::max(uint(2), std::thread::hardware_concurrency());
+static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
 
 Engine::Engine()
     : channels::Engine("Cli"),
