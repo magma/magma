@@ -221,12 +221,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.CCRequestType, avp.Mbit, 0, datatype.Enumerated(request.Type))
 	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(ServiceContextIDDefault))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
-	m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(credit_control.EndUserIMSI)),
-			diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(request.IMSI)),
-		},
-	})
+
 	// Always add MSISDN (TASA requirement) if it's provided by AGW
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
@@ -236,6 +231,13 @@ func (gyClient *GyClient) createCreditControlMessage(
 			},
 		})
 	}
+
+	m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(credit_control.EndUserIMSI)),
+			diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(request.IMSI)),
+		},
+	})
 
 	if len(request.Imei) > 0 {
 		m.NewAVP(avp.UserEquipmentInfo, 0, 0, &diam.GroupedAVP{
