@@ -58,6 +58,10 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
 
+  sessiond:
+    volumes:
+      - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
+
   swx_proxy:
     <<: *feggoservice
     container_name: swx_proxy
@@ -92,7 +96,7 @@ services:
     <<: *pyservice
     container_name: redis
     volumes:
-      - /var/opt/magma/redis.conf:/var/opt/magma/redis.conf
+      - ../integ_tests/redis.conf:/var/opt/magma/redis.conf
     command: >
       /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
