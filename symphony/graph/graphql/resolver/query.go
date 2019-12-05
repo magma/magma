@@ -136,22 +136,6 @@ func (r queryResolver) EquipmentTypes(
 	return resolverutil.EquipmentTypes(ctx, r.ClientFrom(ctx))
 }
 
-func (r queryResolver) EquipmentPosition(ctx context.Context, id string) (*ent.EquipmentPosition, error) {
-	ep, err := r.ClientFrom(ctx).EquipmentPosition.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position: id=%q", id)
-	}
-	return ep, nil
-}
-
-func (r queryResolver) EquipmentPositionDefinition(ctx context.Context, id string) (*ent.EquipmentPositionDefinition, error) {
-	epd, err := r.ClientFrom(ctx).EquipmentPositionDefinition.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position definition: id=%q", id)
-	}
-	return epd, nil
-}
-
 func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.EquipmentPortType, error) {
 	e, err := r.ClientFrom(ctx).EquipmentPortType.Get(ctx, id)
 	if err != nil && !ent.IsNotFound(err) {

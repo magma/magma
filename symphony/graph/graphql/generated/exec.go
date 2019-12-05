@@ -521,8 +521,6 @@ type ComplexityRoot struct {
 		Equipment                           func(childComplexity int, id string) int
 		EquipmentPortDefinitions            func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
 		EquipmentPortTypes                  func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		EquipmentPosition                   func(childComplexity int, id string) int
-		EquipmentPositionDefinition         func(childComplexity int, id string) int
 		EquipmentSearch                     func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
 		EquipmentType                       func(childComplexity int, id string) int
 		EquipmentTypes                      func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
@@ -977,8 +975,6 @@ type QueryResolver interface {
 	Locations(ctx context.Context, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.LocationConnection, error)
 	Equipment(ctx context.Context, id string) (*ent.Equipment, error)
 	EquipmentType(ctx context.Context, id string) (*ent.EquipmentType, error)
-	EquipmentPosition(ctx context.Context, id string) (*ent.EquipmentPosition, error)
-	EquipmentPositionDefinition(ctx context.Context, id string) (*ent.EquipmentPositionDefinition, error)
 	EquipmentPortTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentPortTypeConnection, error)
 	EquipmentPortDefinitions(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentPortDefinitionConnection, error)
 	EquipmentTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentTypeConnection, error)
@@ -3457,30 +3453,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.EquipmentPortTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
-
-	case "Query.equipmentPosition":
-		if e.complexity.Query.EquipmentPosition == nil {
-			break
-		}
-
-		args, err := ec.field_Query_equipmentPosition_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.EquipmentPosition(childComplexity, args["id"].(string)), true
-
-	case "Query.equipmentPositionDefinition":
-		if e.complexity.Query.EquipmentPositionDefinition == nil {
-			break
-		}
-
-		args, err := ec.field_Query_equipmentPositionDefinition_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.EquipmentPositionDefinition(childComplexity, args["id"].(string)), true
 
 	case "Query.equipmentSearch":
 		if e.complexity.Query.EquipmentSearch == nil {
@@ -6443,8 +6415,6 @@ type Query {
   equipment(id: ID!): Equipment @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   equipmentType(id: ID!): EquipmentType
     @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
-  equipmentPosition(id: ID!): EquipmentPosition
-  equipmentPositionDefinition(id: ID!): EquipmentPositionDefinition
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -7827,34 +7797,6 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 		}
 	}
 	args["last"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_equipmentPositionDefinition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_equipmentPosition_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
 	return args, nil
 }
 
@@ -19649,88 +19591,6 @@ func (ec *executionContext) _Query_equipmentType(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_equipmentPosition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_equipmentPosition_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPosition(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.EquipmentPosition)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPosition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_equipmentPositionDefinition(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_equipmentPositionDefinition_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPositionDefinition(rctx, args["id"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*ent.EquipmentPositionDefinition)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPositionDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPositionDefinition(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_equipmentPortTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -33924,28 +33784,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_equipmentType(ctx, field)
-				return res
-			})
-		case "equipmentPosition":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_equipmentPosition(ctx, field)
-				return res
-			})
-		case "equipmentPositionDefinition":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_equipmentPositionDefinition(ctx, field)
 				return res
 			})
 		case "equipmentPortTypes":
