@@ -5,12 +5,14 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
+#include <devmand/channels/cli/CliTimekeeperWrapper.h>
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/KeepaliveCli.h>
 #include <magma_logging.h>
 
 namespace devmand::channels::cli {
 
+using devmand::channels::cli::CliTimekeeperWrapper;
 using devmand::channels::cli::Command;
 using namespace std;
 using namespace folly;
@@ -19,7 +21,7 @@ shared_ptr<KeepaliveCli> KeepaliveCli::make(
     string id,
     shared_ptr<Cli> cli,
     shared_ptr<Executor> parentExecutor,
-    shared_ptr<Timekeeper> timekeeper,
+    shared_ptr<CliThreadWheelTimekeeper> timekeeper,
     chrono::milliseconds heartbeatInterval,
     string keepAliveCommand,
     chrono::milliseconds backoffAfterKeepaliveTimeout) {
@@ -27,7 +29,7 @@ shared_ptr<KeepaliveCli> KeepaliveCli::make(
       id,
       cli,
       parentExecutor,
-      timekeeper,
+      std::make_shared<CliTimekeeperWrapper>(timekeeper),
       heartbeatInterval,
       move(keepAliveCommand),
       backoffAfterKeepaliveTimeout);
@@ -39,7 +41,7 @@ KeepaliveCli::KeepaliveCli(
     string _id,
     shared_ptr<Cli> _cli,
     shared_ptr<Executor> _parentExecutor,
-    shared_ptr<Timekeeper> _timekeeper,
+    shared_ptr<CliTimekeeperWrapper> _timekeeper,
     chrono::milliseconds _heartbeatInterval,
     string _keepAliveCommand,
     chrono::milliseconds _backoffAfterKeepaliveTimeout)
@@ -69,6 +71,11 @@ SemiFuture<Unit> KeepaliveCli::destroy() {
                << "destroy: started";
   // call underlying destroy()
   SemiFuture<Unit> innerDestroy = sharedCli->destroy();
+
+  if (auto tk = keepaliveParameters->timekeeper.lock()) {
+    tk->cancelAll();
+  }
+
   // TODO cancel timekeeper futures
 
   MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
@@ -157,7 +164,7 @@ SemiFuture<std::string> KeepaliveCli::executeWrite(const WriteCommand cmd) {
 KeepaliveCli::KeepaliveParameters::KeepaliveParameters(
     const string& _id,
     weak_ptr<Cli> _cli,
-    weak_ptr<folly::Timekeeper> _timekeeper,
+    weak_ptr<CliTimekeeperWrapper> _timekeeper,
     weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
         _serialExecutorKeepAlive,
     const string& _keepAliveCommand,

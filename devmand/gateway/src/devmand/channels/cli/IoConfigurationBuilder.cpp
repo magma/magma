@@ -198,7 +198,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     chrono::seconds cmdTimeout,
     chrono::seconds reconnectingQuietPeriod,
     long sshConnectionTimeout,
-    shared_ptr<Timekeeper> timekeeper,
+    shared_ptr<CliThreadWheelTimekeeper> timekeeper,
     shared_ptr<Executor> sshExecutor,
     shared_ptr<Executor> paExecutor,
     shared_ptr<Executor> rcExecutor,

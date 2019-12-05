@@ -125,7 +125,11 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TimeoutTrackingCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/KeepaliveCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReconnectingCli.cpp
-        )
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h)
 
 target_link_libraries(devman_channel_cli
   devman)

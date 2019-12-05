@@ -9,6 +9,8 @@
 
 #include <boost/thread/mutex.hpp>
 #include <devmand/channels/cli/Cli.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
+#include <devmand/channels/cli/CliTimekeeperWrapper.h>
 #include <devmand/channels/cli/Command.h>
 #include <folly/Executor.h>
 #include <folly/executors/SerialExecutor.h>
@@ -31,7 +33,7 @@ class ReconnectingCli : public Cli {
       string id,
       shared_ptr<Executor> executor,
       function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-      shared_ptr<Timekeeper> timekeeper,
+      shared_ptr<CliThreadWheelTimekeeper> timekeeper,
       chrono::milliseconds quietPeriod);
 
   SemiFuture<Unit> destroy() override;
@@ -46,13 +48,13 @@ class ReconnectingCli : public Cli {
       string id,
       shared_ptr<Executor> executor,
       function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-      shared_ptr<Timekeeper> timekeeper,
+      shared_ptr<CliTimekeeperWrapper> timekeeper,
       chrono::milliseconds quietPeriod);
 
  private:
   struct ReconnectParameters {
     string id;
-    shared_ptr<Timekeeper> timekeeper;
+    shared_ptr<CliTimekeeperWrapper> timekeeper;
     shared_ptr<folly::Executor> executor;
     function<SemiFuture<shared_ptr<Cli>>()> createCliStack;
     mutex cliMutex;

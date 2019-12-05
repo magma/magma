@@ -19,17 +19,21 @@ shared_ptr<ReconnectingCli> ReconnectingCli::make(
     string id,
     shared_ptr<Executor> executor,
     function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-    shared_ptr<Timekeeper> timekeeper,
+    shared_ptr<CliThreadWheelTimekeeper> timekeeper,
     chrono::milliseconds quietPeriod) {
   return std::make_shared<ReconnectingCli>(
-      id, executor, move(createCliStack), move(timekeeper), move(quietPeriod));
+      id,
+      executor,
+      move(createCliStack),
+      std::make_shared<CliTimekeeperWrapper>(timekeeper),
+      move(quietPeriod));
 }
 
 ReconnectingCli::ReconnectingCli(
     string id,
     shared_ptr<Executor> executor,
     function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-    shared_ptr<Timekeeper> timekeeper,
+    shared_ptr<CliTimekeeperWrapper> timekeeper,
     chrono::milliseconds quietPeriod) {
   reconnectParameters = shared_ptr<ReconnectParameters>(
       new ReconnectParameters{id,
@@ -52,12 +56,15 @@ Future<Unit> ReconnectingCli::setReconnecting(
   if (params->isReconnecting.compare_exchange_strong(f, true)) {
     return makeFuture(unit);
   }
+  if (params->shutdown) {
+    params->timekeeper->cancelAll();
+  }
   return via(params->executor.get())
       .thenValue([params](auto) {
         MLOG(MDEBUG) << "[" << params->id << "] "
                      << "setReconnecting: sleeping";
       })
-      .delayed(1s, params->timekeeper.get())
+      .delayed(1s, params->timekeeper->getTimekeeper().get())
       .thenValue(
           [params](auto) -> Future<Unit> { return setReconnecting(params); });
 }
@@ -172,7 +179,18 @@ void ReconnectingCli::triggerReconnect(shared_ptr<ReconnectParameters> params) {
                        << e.what();
 
           return futures::sleep(params->quietPeriod, params->timekeeper.get())
+
               .via(params->executor.get())
+              .thenError(
+                  [params](const exception_wrapper& exception) -> Future<Unit> {
+                    if (exception
+                            .is_compatible_with<folly::FutureNoTimekeeper>()) {
+                      return unit;
+                    }
+                    MLOG(MERROR) << "[" << params->id << "] "
+                                 << "error during sleep " << exception.what();
+                    return unit;
+                  })
               .thenValue([params](Unit) -> Future<Unit> {
                 MLOG(MDEBUG)
                     << "[" << params->id << "] "

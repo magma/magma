@@ -10,6 +10,7 @@
 #define LOG_WITH_GLOG
 
 #include <devmand/channels/Engine.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
 #include <devmand/devices/cli/ModelRegistry.h>
 #include <folly/Executor.h>
 #include <folly/futures/ThreadWheelTimekeeper.h>
@@ -21,6 +22,7 @@ namespace channels {
 namespace cli {
 
 using namespace std;
+using devmand::channels::cli::CliThreadWheelTimekeeper;
 using devmand::devices::cli::ModelRegistry;
 
 static atomic<bool> loggingInitialized(false);
@@ -42,12 +44,12 @@ class Engine : public channels::Engine {
   static void initSsh();
   static void closeSsh();
 
-  shared_ptr<folly::ThreadWheelTimekeeper> timekeeper;
+  shared_ptr<CliThreadWheelTimekeeper> timekeeper;
   shared_ptr<folly::Executor> sshCliExecutor;
   shared_ptr<folly::Executor> commonExecutor;
   shared_ptr<folly::Executor> kaCliExecutor;
 
-  shared_ptr<folly::ThreadWheelTimekeeper> getTimekeeper();
+  shared_ptr<CliThreadWheelTimekeeper> getTimekeeper();
 
   enum executorRequestType {
     sshCli,

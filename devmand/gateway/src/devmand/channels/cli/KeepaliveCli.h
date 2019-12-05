@@ -8,6 +8,8 @@
 #pragma once
 
 #include <devmand/channels/cli/Cli.h>
+#include <devmand/channels/cli/CliThreadWheelTimekeeper.h>
+#include <devmand/channels/cli/CliTimekeeperWrapper.h>
 #include <folly/Executor.h>
 #include <folly/executors/SerialExecutor.h>
 #include <folly/futures/Future.h>
@@ -28,7 +30,7 @@ class KeepaliveCli : public Cli {
       string id,
       shared_ptr<Cli> _cli,
       shared_ptr<folly::Executor> parentExecutor,
-      shared_ptr<folly::Timekeeper> _timekeeper,
+      shared_ptr<CliThreadWheelTimekeeper> _timekeeper,
       chrono::milliseconds heartbeatInterval = defaultKeepaliveInterval,
       string keepAliveCommand = "",
       chrono::milliseconds backoffAfterKeepaliveTimeout = chrono::seconds(5));
@@ -39,7 +41,7 @@ class KeepaliveCli : public Cli {
       string id,
       shared_ptr<Cli> _cli,
       shared_ptr<folly::Executor> parentExecutor,
-      shared_ptr<folly::Timekeeper> _timekeeper,
+      shared_ptr<CliTimekeeperWrapper> _timekeeper,
       chrono::milliseconds heartbeatInterval,
       string keepAliveCommand,
       chrono::milliseconds backoffAfterKeepaliveTimeout);
@@ -52,14 +54,14 @@ class KeepaliveCli : public Cli {
 
  private:
   shared_ptr<Cli> sharedCli; // underlying cli layer
-  shared_ptr<folly::Timekeeper> sharedTimekeeper;
+  shared_ptr<CliTimekeeperWrapper> sharedTimekeeper;
   shared_ptr<folly::Executor> parentExecutor;
   shared_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
       sharedSerialExecutorKeepAlive;
   struct KeepaliveParameters {
     string id;
     weak_ptr<Cli> cli;
-    weak_ptr<folly::Timekeeper> timekeeper;
+    weak_ptr<CliTimekeeperWrapper> timekeeper;
     weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
         serialExecutorKeepAlive;
     string keepAliveCommand;
@@ -69,7 +71,7 @@ class KeepaliveCli : public Cli {
     KeepaliveParameters(
         const string& _id,
         weak_ptr<Cli> _cli,
-        weak_ptr<folly::Timekeeper> _timekeeper,
+        weak_ptr<CliTimekeeperWrapper> _timekeeper,
         weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
             _serialExecutorKeepAlive,
         const string& _keepAliveCommand,
