@@ -8,135 +8,152 @@
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
 
 using devmand::channels::cli::CliInitializer;
 using devmand::channels::cli::Command;
 using devmand::channels::cli::PromptAwareCli;
 using devmand::channels::cli::PromptResolver;
 using std::string;
+using namespace folly;
 
 namespace devmand {
 namespace channels {
 namespace cli {
 
 SemiFuture<Unit> PromptAwareCli::resolvePrompt() {
-  return promptAwareParameters->cliFlavour->resolver
+  return sharedCliFlavour->resolver
       ->resolvePrompt(
-          promptAwareParameters->session,
-          promptAwareParameters->cliFlavour->newline,
-          promptAwareParameters->timekeeper)
+          sharedSession, sharedCliFlavour->newline, sharedTimekeeper)
       .thenValue([params = promptAwareParameters](string _prompt) {
+        boost::mutex::scoped_lock scoped_lock(params->promptMutex);
         params->prompt = _prompt;
       });
 }
 
 SemiFuture<Unit> PromptAwareCli::initializeCli(const string secret) {
-  return promptAwareParameters->cliFlavour->initializer->initialize(
-      promptAwareParameters->session, secret);
+  return sharedCliFlavour->initializer->initialize(sharedSession, secret);
 }
 
-folly::SemiFuture<std::string> PromptAwareCli::executeRead(
-    const ReadCommand cmd) {
+SemiFuture<std::string> PromptAwareCli::executeRead(const ReadCommand cmd) {
   const string& command = cmd.raw();
 
-  return promptAwareParameters->session->write(command)
+  return sharedSession->write(command)
       .semi()
-      .via(promptAwareParameters->executor.get())
+      .via(sharedExecutor.get())
       .thenValue([params = promptAwareParameters, command, cmd](...) {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
-                     << ") written command";
-        SemiFuture<string> result =
-            params->session->readUntilOutput(command).semi();
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
-                     << ") obtained future readUntilOutput";
-        return move(result);
+        if (auto _session = params->session.lock()) {
+          MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                       << ") written command";
+          SemiFuture<string> result = _session->readUntilOutput(command).semi();
+          MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                       << ") obtained future readUntilOutput";
+          return move(result);
+        } else {
+          return makeSemiFuture<std::string>(
+              DisconnectedException("SSH session expired"));
+        }
       })
-      .semi()
-      .via(promptAwareParameters->executor.get())
       .thenValue([params = promptAwareParameters, cmd](const string& output) {
-        return params->session->write(params->cliFlavour->newline)
-            .semi()
-            .via(params->executor.get())
-            .thenValue([params, output, cmd](...) {
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
-                           << ") written newline";
-              return output;
-            })
-            .semi();
+        if (auto _session = params->session.lock()) {
+          if (auto _cliFlavour = params->cliFlavour.lock()) {
+            if (auto _executor = params->executor.lock()) {
+              return _session->write(_cliFlavour->newline)
+                  .via(_executor.get())
+                  .thenValue([params, output, cmd](...) {
+                    MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                                 << ") written newline";
+                    return output;
+                  });
+            }
+          }
+        }
+        return makeFuture<std::string>(
+            DisconnectedException("SSH session expired"));
       })
-      .semi()
-      .via(promptAwareParameters->executor.get())
       .thenValue([params = promptAwareParameters, cmd](const string& output) {
-        return params->session->readUntilOutput(params->prompt)
-            .semi()
-            .via(params->executor.get())
-            .thenValue(
-                [id = params->id, output, cmd](const string& readUntilOutput) {
+        if (auto _session = params->session.lock()) {
+          if (auto _executor = params->executor.lock()) {
+            return _session->readUntilOutput(params->prompt)
+                .via(_executor.get())
+                .thenValue([id = params->id, output, cmd](
+                               const string& readUntilOutput) {
                   // this might never run, do not capture params
                   MLOG(MDEBUG) << "[" << id << "] (" << cmd
                                << ") readUntilOutput - read result";
                   return output + readUntilOutput;
                 })
-            .semi();
+                .semi();
+          }
+        }
+        return makeSemiFuture<std::string>(
+            DisconnectedException("SSH session expired"));
       })
       .semi();
 }
 
 PromptAwareCli::PromptAwareCli(
-    string id,
+    string _id,
     shared_ptr<SessionAsync> _session,
     shared_ptr<CliFlavour> _cliFlavour,
     shared_ptr<Executor> _executor,
-    shared_ptr<Timekeeper> _timekeeper) {
+    shared_ptr<Timekeeper> _timekeeper)
+    : id(_id),
+      sharedSession(_session),
+      sharedCliFlavour(_cliFlavour),
+      sharedExecutor(_executor),
+      sharedTimekeeper(_timekeeper) {
   promptAwareParameters = std::make_shared<PromptAwareParameters>(
-      id, _session, _cliFlavour, _executor, _timekeeper);
+      _id, _session, _cliFlavour, _executor, _timekeeper);
+}
+
+SemiFuture<Unit> PromptAwareCli::destroy() {
+  string _id = id;
+  // TODO cancel timekeeper futures
+  return sharedSession->destroy();
 }
 
 PromptAwareCli::~PromptAwareCli() {
-  string id = promptAwareParameters->id;
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~PromptAwareCli started";
-  while (promptAwareParameters.use_count() > 1) {
-    MLOG(MDEBUG) << "[" << id << "] "
-                 << "~PromptAwareCli sleeping";
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
-
-  // Closing session explicitly to finish executing future and disconnect before
-  // releasing the rest of state
-  promptAwareParameters->session = nullptr;
-  promptAwareParameters = nullptr;
+               << "~PromptAwareCli: started";
+  destroy().get();
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~PromptAwareCli done";
+               << "~PromptAwareCli: done";
 }
 
-folly::SemiFuture<std::string> PromptAwareCli::executeWrite(
-    const WriteCommand cmd) {
+SemiFuture<std::string> PromptAwareCli::executeWrite(const WriteCommand cmd) {
   const string& command = cmd.raw();
-  return promptAwareParameters->session->write(command)
-      .semi()
-      .via(promptAwareParameters->executor.get())
+  return sharedSession->write(command)
+      .via(sharedExecutor.get())
       .thenValue([params = promptAwareParameters, command, cmd](...) {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
-                     << ") written command";
-        SemiFuture<string> result =
-            params->session->readUntilOutput(command).semi();
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
-                     << ") obtained future readUntilOutput";
-        return move(result);
+        if (auto _session = params->session.lock()) {
+          MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                       << ") written command";
+          SemiFuture<string> result = _session->readUntilOutput(command).semi();
+          MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                       << ") obtained future readUntilOutput";
+          return move(result);
+        } else {
+          throw DisconnectedException("SSH session expired");
+        }
       })
-      .thenValue([params = promptAwareParameters, command, cmd](
-                     const string& output) {
-        return params->session->write(params->cliFlavour->newline)
-            .semi()
-            .via(params->executor.get())
-            .thenValue([id = params->id, output, command, cmd](...) {
-              MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") written newline";
-              return output + command;
-            })
-            .semi();
-      })
+      .thenValue(
+          [params = promptAwareParameters, command, cmd](const string& output) {
+            if (auto _session = params->session.lock()) {
+              if (auto _executor = params->executor.lock()) {
+                if (auto _cliFlavour = params->cliFlavour.lock()) {
+                  return _session->write(_cliFlavour->newline)
+                      .via(_executor.get())
+                      .thenValue([id = params->id, output, command, cmd](...) {
+                        MLOG(MDEBUG)
+                            << "[" << id << "] (" << cmd << ") written newline";
+                        return output + command;
+                      })
+                      .semi();
+                }
+              }
+            }
+            throw DisconnectedException("SSH session expired");
+          })
       .semi();
 }
 

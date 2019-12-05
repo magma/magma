@@ -157,8 +157,8 @@ Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
                << params->ip << ":" << params->port << ")";
 
   // create session
-  std::shared_ptr<SshSessionAsync> session =
-      std::make_shared<SshSessionAsync>(params->id, params->sshExecutor);
+  std::shared_ptr<SshSessionAsync> session = std::make_shared<SshSessionAsync>(
+      params->id, params->sshExecutor, params->timekeeper);
   // open SSH connection
 
   MLOG(MDEBUG) << "[" << params->id << "] "
@@ -172,6 +172,8 @@ Future<shared_ptr<Cli>> IoConfigurationBuilder::createPromptAwareCli(
           params->password,
           params->sshConnectionTimeout)
       .thenValue([params, session](auto) {
+        MLOG(MDEBUG) << "[" << params->id << "] "
+                     << "Creating shell";
         // create CLI
         shared_ptr<PromptAwareCli> cli = PromptAwareCli::make(
             params->id,

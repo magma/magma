@@ -34,6 +34,8 @@ class ReconnectingCli : public Cli {
       shared_ptr<Timekeeper> timekeeper,
       chrono::milliseconds quietPeriod);
 
+  SemiFuture<Unit> destroy() override;
+
   ~ReconnectingCli() override;
 
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override;
@@ -50,23 +52,14 @@ class ReconnectingCli : public Cli {
  private:
   struct ReconnectParameters {
     string id;
-
-    atomic<bool> isReconnecting; // TODO: merge with maybeCli
-
-    atomic<bool> shutdown;
-
-    shared_ptr<Executor> executor;
-
-    function<SemiFuture<shared_ptr<Cli>>()> createCliStack;
-
-    mutex cliMutex;
-
-    // guarded by mutex
-    shared_ptr<Cli> maybeCli;
-
-    std::chrono::milliseconds quietPeriod;
-
     shared_ptr<Timekeeper> timekeeper;
+    shared_ptr<folly::Executor> executor;
+    function<SemiFuture<shared_ptr<Cli>>()> createCliStack;
+    mutex cliMutex;
+    shared_ptr<Cli> maybeCli;
+    std::chrono::milliseconds quietPeriod;
+    atomic<bool> isReconnecting; // TODO: merge with maybeCli
+    atomic<bool> shutdown;
   };
 
   shared_ptr<ReconnectParameters> reconnectParameters;
@@ -77,6 +70,8 @@ class ReconnectingCli : public Cli {
       const Command cmd);
 
   static void triggerReconnect(shared_ptr<ReconnectParameters> params);
+
+  static Future<Unit> setReconnecting(shared_ptr<ReconnectParameters> params);
 };
 } // namespace cli
 } // namespace channels

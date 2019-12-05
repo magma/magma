@@ -33,6 +33,8 @@ class KeepaliveCli : public Cli {
       string keepAliveCommand = "",
       chrono::milliseconds backoffAfterKeepaliveTimeout = chrono::seconds(5));
 
+  folly::SemiFuture<folly::Unit> destroy() override;
+
   KeepaliveCli(
       string id,
       shared_ptr<Cli> _cli,
@@ -49,28 +51,30 @@ class KeepaliveCli : public Cli {
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
  private:
+  shared_ptr<Cli> sharedCli; // underlying cli layer
+  shared_ptr<folly::Timekeeper> sharedTimekeeper;
+  shared_ptr<folly::Executor> parentExecutor;
+  shared_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+      sharedSerialExecutorKeepAlive;
   struct KeepaliveParameters {
     string id;
-    shared_ptr<Cli> cli; // underlying cli layer
-    shared_ptr<folly::Timekeeper> timekeeper;
-    shared_ptr<folly::Executor> parentExecutor;
-    folly::Executor::KeepAlive<folly::SerialExecutor> serialExecutorKeepAlive;
+    weak_ptr<Cli> cli;
+    weak_ptr<folly::Timekeeper> timekeeper;
+    weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+        serialExecutorKeepAlive;
     string keepAliveCommand;
     chrono::milliseconds heartbeatInterval;
     chrono::milliseconds backoffAfterKeepaliveTimeout;
-    atomic<bool> shutdown;
 
     KeepaliveParameters(
         const string& _id,
-        const shared_ptr<Cli>& _cli,
-        const shared_ptr<folly::Timekeeper>& _timekeeper,
-        const shared_ptr<folly::Executor>& _parentExecutor,
-        const folly::Executor::KeepAlive<folly::SerialExecutor>&
+        weak_ptr<Cli> _cli,
+        weak_ptr<folly::Timekeeper> _timekeeper,
+        weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
             _serialExecutorKeepAlive,
         const string& _keepAliveCommand,
         const chrono::milliseconds& _heartbeatInterval,
-        const chrono::milliseconds& _backoffAfterKeepaliveTimeout,
-        const bool _shutdown);
+        const chrono::milliseconds& _backoffAfterKeepaliveTimeout);
 
     KeepaliveParameters(KeepaliveParameters&&) = default;
   };

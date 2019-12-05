@@ -38,6 +38,10 @@ class StructuredUbntDeviceTest : public testing::Test {
 
 class UbntFakeCli : public Cli {
  public:
+  SemiFuture<folly::Unit> destroy() override {
+    return folly::makeSemiFuture(folly::unit);
+  }
+
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     (void)cmd;
     if (cmd.raw() == "show interfaces description") {

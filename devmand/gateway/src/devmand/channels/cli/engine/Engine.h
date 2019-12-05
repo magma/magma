@@ -59,9 +59,11 @@ class Engine : public channels::Engine {
     kaCli,
     plaintextCliDevice
   };
-private:
-    shared_ptr<ModelRegistry> mreg;
-public:
+
+ private:
+  shared_ptr<ModelRegistry> mreg;
+
+ public:
   shared_ptr<folly::Executor> getExecutor(
       executorRequestType requestType) const;
 

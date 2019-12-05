@@ -30,31 +30,36 @@ TimeoutTrackingCli::TimeoutTrackingCli(
     shared_ptr<Cli> _cli,
     shared_ptr<folly::Timekeeper> _timekeeper,
     shared_ptr<folly::Executor> _executor,
-    std::chrono::milliseconds _timeoutInterval) {
-  timeoutTrackingParameters = std::make_shared<TimeoutTrackingParameters>(
-      _id, _cli, _timekeeper, _executor, _timeoutInterval, false);
+    std::chrono::milliseconds _timeoutInterval)
+    : id(_id),
+      sharedCli(_cli),
+      sharedTimekeeper(_timekeeper),
+      sharedExecutor(_executor),
+      timeoutInterval(_timeoutInterval) {}
+
+SemiFuture<Unit> TimeoutTrackingCli::destroy() {
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "destroy: started";
+  // call underlying destroy()
+  SemiFuture<Unit> innerDestroy = sharedCli->destroy();
+
+  // TODO cancel timekeeper futures
+
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "destroy: done";
+  return innerDestroy;
 }
 
 TimeoutTrackingCli::~TimeoutTrackingCli() {
-  string id = timeoutTrackingParameters->id;
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~TTCli started";
-  timeoutTrackingParameters->shutdown = true;
-  while (timeoutTrackingParameters.use_count() >
-         1) { // TODO cancel currently running future
-    MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] "
-                 << "~TTCli sleeping";
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
-
+               << "~TTCli: started";
+  destroy().get();
+  sharedExecutor = nullptr;
+  sharedCli = nullptr;
+  sharedTimekeeper = nullptr; // clean timekeeper as last to keep tests from
+                              // failing on "No timekeeper available"
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~TTCli nulling timeoutTrackingParameters.cli";
-  timeoutTrackingParameters->cli = nullptr;
-  MLOG(MDEBUG) << "[" << id << "] "
-               << "~TTCli nulling timeoutTrackingParameters";
-  timeoutTrackingParameters = nullptr;
-  MLOG(MDEBUG) << "[" << id << "] "
-               << "~TTCli done";
+               << "~TTCli: done";
 }
 
 folly::SemiFuture<std::string> TimeoutTrackingCli::executeRead(
@@ -62,9 +67,7 @@ folly::SemiFuture<std::string> TimeoutTrackingCli::executeRead(
   return executeSomething(
              cmd,
              "TTCli.executeRead",
-             [params = timeoutTrackingParameters, cmd]() {
-               return params->cli->executeRead(cmd);
-             })
+             [cmd](shared_ptr<Cli> cli) { return cli->executeRead(cmd); })
       .semi();
 }
 
@@ -73,56 +76,36 @@ folly::SemiFuture<std::string> TimeoutTrackingCli::executeWrite(
   return executeSomething(
              cmd,
              "TTCli.executeWrite",
-             [params = timeoutTrackingParameters, cmd]() {
-               return params->cli->executeWrite(cmd);
-             })
+             [cmd](shared_ptr<Cli> cli) { return cli->executeWrite(cmd); })
       .semi();
 }
 
 Future<string> TimeoutTrackingCli::executeSomething(
     const Command& cmd,
     const string&& loggingPrefix,
-    const function<SemiFuture<string>()>& innerFunc) {
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd << ") "
-               << loggingPrefix << "('" << cmd << "') called";
-  if (timeoutTrackingParameters->shutdown) {
-    return Future<string>(runtime_error("TTCli Shutting down"));
-  }
+    const function<SemiFuture<string>(shared_ptr<Cli> cli)>& innerFunc) {
+  MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") " << loggingPrefix << "('"
+               << cmd << "') called";
+
   SemiFuture<string> inner =
-      innerFunc(); // we expect that this method does not block
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd << ") "
+      innerFunc(sharedCli); // we expect that this method does not block
+  MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") "
                << "Obtained future from underlying cli";
   return move(inner)
-      .via(timeoutTrackingParameters->executor.get())
+      .via(sharedExecutor.get())
       .onTimeout(
-          timeoutTrackingParameters->timeoutInterval,
-          [params = timeoutTrackingParameters, cmd](...) -> Future<string> {
-            // NOTE: timeoutTrackingParameters must be captured mainly for
-            // executor
-            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
+          timeoutInterval,
+          [_id = id, cmd](...) -> Future<string> {
+            MLOG(MDEBUG) << "[" << _id << "] (" << cmd << ") "
                          << "timing out";
             throw CommandTimeoutException();
           },
-          timeoutTrackingParameters->timekeeper.get())
-      .thenValue(
-          [params = timeoutTrackingParameters, cmd](string result) -> string {
-            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
-                         << "succeeded";
-            return result;
-          });
+          sharedTimekeeper.get())
+      .thenValue([_id = id, cmd](string result) -> string {
+        MLOG(MDEBUG) << "[" << _id << "] (" << cmd << ") "
+                     << "succeeded";
+        return result;
+      });
 }
 
-TimeoutTrackingCli::TimeoutTrackingParameters::TimeoutTrackingParameters(
-    const string& _id,
-    const shared_ptr<Cli>& _cli,
-    const shared_ptr<folly::Timekeeper>& _timekeeper,
-    const shared_ptr<folly::Executor>& _executor,
-    const chrono::milliseconds& _timeoutInterval,
-    const bool _shutdown)
-    : id(_id),
-      cli(_cli),
-      timekeeper(_timekeeper),
-      executor(_executor),
-      timeoutInterval(_timeoutInterval),
-      shutdown(ATOMIC_VAR_INIT(_shutdown)) {}
 } // namespace devmand::channels::cli

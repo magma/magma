@@ -30,9 +30,11 @@ class Channel : public channels::Channel, public devmand::channels::cli::Cli {
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override;
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
+  folly::SemiFuture<folly::Unit> destroy() override;
+
  private:
   string id;
-  const std::shared_ptr<devmand::channels::cli::Cli> cli;
+  std::shared_ptr<devmand::channels::cli::Cli> cli;
 };
 
 } // namespace cli

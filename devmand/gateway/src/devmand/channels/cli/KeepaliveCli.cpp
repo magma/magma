@@ -18,8 +18,8 @@ using namespace folly;
 shared_ptr<KeepaliveCli> KeepaliveCli::make(
     string id,
     shared_ptr<Cli> cli,
-    shared_ptr<folly::Executor> parentExecutor,
-    shared_ptr<folly::Timekeeper> timekeeper,
+    shared_ptr<Executor> parentExecutor,
+    shared_ptr<Timekeeper> timekeeper,
     chrono::milliseconds heartbeatInterval,
     string keepAliveCommand,
     chrono::milliseconds backoffAfterKeepaliveTimeout) {
@@ -42,118 +42,132 @@ KeepaliveCli::KeepaliveCli(
     shared_ptr<Timekeeper> _timekeeper,
     chrono::milliseconds _heartbeatInterval,
     string _keepAliveCommand,
-    chrono::milliseconds _backoffAfterKeepaliveTimeout) {
+    chrono::milliseconds _backoffAfterKeepaliveTimeout)
+    : sharedCli(_cli),
+      sharedTimekeeper(_timekeeper),
+      parentExecutor(_parentExecutor),
+      sharedSerialExecutorKeepAlive(
+          make_shared<Executor::KeepAlive<SerialExecutor>>(
+              SerialExecutor::create(
+                  Executor::getKeepAliveToken(_parentExecutor.get())))) {
   keepaliveParameters = std::make_shared<KeepaliveParameters>(
       /* id */ _id,
       /* cli */ _cli,
       /* timekeeper */ _timekeeper,
-      /* parentExecutor */ _parentExecutor,
-      /* serialExecutorKeepAlive */
-      SerialExecutor::create(
-          Executor::getKeepAliveToken(_parentExecutor.get())),
+      /* serialExecutorKeepAlive */ sharedSerialExecutorKeepAlive,
       /* keepAliveCommand */ move(_keepAliveCommand),
       /* heartbeatInterval */ _heartbeatInterval,
-      /* backoffAfterKeepaliveTimeout */ _backoffAfterKeepaliveTimeout,
-      /* shutdown */ false);
+      /* backoffAfterKeepaliveTimeout */ _backoffAfterKeepaliveTimeout);
 
   MLOG(MDEBUG) << "[" << _id << "] "
                << "initialized";
   triggerSendKeepAliveCommand(keepaliveParameters);
 }
 
+SemiFuture<Unit> KeepaliveCli::destroy() {
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
+               << "destroy: started";
+  // call underlying destroy()
+  SemiFuture<Unit> innerDestroy = sharedCli->destroy();
+  // TODO cancel timekeeper futures
+
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
+               << "destroy: done";
+  return innerDestroy;
+}
+
 KeepaliveCli::~KeepaliveCli() {
-  string id = keepaliveParameters->id;
-  keepaliveParameters->shutdown = true;
-  MLOG(MDEBUG) << "[" << id << "] "
-               << "~KeepaliveCli started";
-  while (keepaliveParameters.use_count() >
-         1) { // TODO cancel currently running future
-    MLOG(MDEBUG) << "[" << id << "] "
-                 << "~KeepaliveCli sleeping";
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-  }
-  keepaliveParameters = nullptr;
-  MLOG(MDEBUG) << "[" << id << "] "
-               << "~KeepaliveCli done";
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
+               << "~KeepaliveCli: started";
+  destroy().get();
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
+               << "~KeepaliveCli: started";
 }
 
 void KeepaliveCli::triggerSendKeepAliveCommand(
     shared_ptr<KeepaliveParameters> keepaliveParameters) {
-  if (keepaliveParameters->shutdown) {
-    MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] "
-                 << "triggerSendKeepAliveCommand shutting down";
-    return;
+  if (shared_ptr<Executor::KeepAlive<SerialExecutor>> serialExecutor =
+          keepaliveParameters->serialExecutorKeepAlive.lock()) {
+    ReadCommand cmd =
+        ReadCommand::create(keepaliveParameters->keepAliveCommand, true);
+    MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
+                 << "triggerSendKeepAliveCommand created new command";
+
+    via(serialExecutor->get())
+        .thenValue(
+            [params = keepaliveParameters, cmd](auto) -> SemiFuture<string> {
+              if (shared_ptr<Cli> cli = params->cli.lock()) {
+                MLOG(MDEBUG)
+                    << "[" << params->id << "] (" << cmd << ") "
+                    << "triggerSendKeepAliveCommand executing keepalive command";
+                return cli->executeRead(cmd);
+              }
+              throw CliException("Object destroyed");
+            })
+        .thenValue(
+            [params = keepaliveParameters, cmd](auto) -> SemiFuture<Unit> {
+              if (shared_ptr<Timekeeper> timekeeper =
+                      params->timekeeper.lock()) {
+                MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
+                             << "Creating sleep future";
+                return futures::sleep(
+                    params->heartbeatInterval, timekeeper.get());
+              }
+              throw CliException("Object destroyed");
+            })
+        .thenValue([keepaliveParameters, cmd](auto) -> Unit {
+          MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
+                       << "Woke up after sleep";
+          triggerSendKeepAliveCommand(keepaliveParameters);
+          return Unit{};
+        })
+        .thenError([params = keepaliveParameters,
+                    cmd](const exception_wrapper& e) {
+          MLOG(MINFO) << "[" << params->id << "] (" << cmd << ") "
+                      << "Got error running keepalive, backing off "
+                      << e.what();
+          if (shared_ptr<Timekeeper> timekeeper = params->timekeeper.lock()) {
+            if (shared_ptr<Executor::KeepAlive<SerialExecutor>>
+                    serialExecutor2 = params->serialExecutorKeepAlive.lock()) {
+              // destructor
+              return futures::sleep(
+                         params->backoffAfterKeepaliveTimeout, timekeeper.get())
+                  .via(serialExecutor2->get())
+                  .thenValue([params, cmd](auto) -> Unit {
+                    MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
+                                 << "Woke up after backing off";
+                    triggerSendKeepAliveCommand(params);
+                    return Unit{};
+                  });
+            }
+          }
+          throw CliException("Object destroyed");
+        });
   }
-  ReadCommand cmd =
-      ReadCommand::create(keepaliveParameters->keepAliveCommand, true);
-  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
-               << "triggerSendKeepAliveCommand created new command";
-
-  via(keepaliveParameters->serialExecutorKeepAlive)
-      .thenValue([params = keepaliveParameters, cmd](auto) {
-        MLOG(MDEBUG)
-            << "[" << params->id << "] (" << cmd << ") "
-            << "triggerSendKeepAliveCommand executing keepalive command";
-
-        return params->cli->executeRead(cmd);
-      })
-      .thenValue([params = keepaliveParameters, cmd](auto) -> SemiFuture<Unit> {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
-                     << "Creating sleep future";
-        return futures::sleep(
-            params->heartbeatInterval, params->timekeeper.get());
-      })
-      .thenValue([keepaliveParameters, cmd](auto) -> Unit {
-        MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
-                     << "Woke up after sleep";
-        triggerSendKeepAliveCommand(keepaliveParameters);
-        return Unit{};
-      })
-      .thenError([params = keepaliveParameters,
-                  cmd](const exception_wrapper& e) {
-        MLOG(MINFO) << "[" << params->id << "] (" << cmd << ") "
-                    << "Got error running keepalive, backing off " << e.what();
-
-        return futures::sleep(
-                   params->backoffAfterKeepaliveTimeout,
-                   params->timekeeper.get())
-            .via(params->serialExecutorKeepAlive)
-            .thenValue([params, cmd](auto) -> Unit {
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
-                           << "Woke up after backing off";
-              triggerSendKeepAliveCommand(params);
-              return Unit{};
-            });
-      });
 }
 
-folly::SemiFuture<std::string> KeepaliveCli::executeRead(
-    const ReadCommand cmd) {
-  return keepaliveParameters->cli->executeRead(cmd);
+SemiFuture<std::string> KeepaliveCli::executeRead(const ReadCommand cmd) {
+  return sharedCli->executeRead(cmd);
 }
 
-folly::SemiFuture<std::string> KeepaliveCli::executeWrite(
-    const WriteCommand cmd) {
-  return keepaliveParameters->cli->executeWrite(cmd);
+SemiFuture<std::string> KeepaliveCli::executeWrite(const WriteCommand cmd) {
+  return sharedCli->executeWrite(cmd);
 }
 
 KeepaliveCli::KeepaliveParameters::KeepaliveParameters(
     const string& _id,
-    const shared_ptr<Cli>& _cli,
-    const shared_ptr<folly::Timekeeper>& _timekeeper,
-    const shared_ptr<folly::Executor>& _parentExecutor,
-    const Executor::KeepAlive<folly::SerialExecutor>& _serialExecutorKeepAlive,
+    weak_ptr<Cli> _cli,
+    weak_ptr<folly::Timekeeper> _timekeeper,
+    weak_ptr<folly::Executor::KeepAlive<folly::SerialExecutor>>
+        _serialExecutorKeepAlive,
     const string& _keepAliveCommand,
     const chrono::milliseconds& _heartbeatInterval,
-    const chrono::milliseconds& _backoffAfterKeepaliveTimeout,
-    const bool _shutdown)
+    const chrono::milliseconds& _backoffAfterKeepaliveTimeout)
     : id(_id),
       cli(_cli),
       timekeeper(_timekeeper),
-      parentExecutor(_parentExecutor),
       serialExecutorKeepAlive(_serialExecutorKeepAlive),
       keepAliveCommand(_keepAliveCommand),
       heartbeatInterval(_heartbeatInterval),
-      backoffAfterKeepaliveTimeout(_backoffAfterKeepaliveTimeout),
-      shutdown(ATOMIC_VAR_INIT(_shutdown)) {}
+      backoffAfterKeepaliveTimeout(_backoffAfterKeepaliveTimeout) {}
 } // namespace devmand::channels::cli

@@ -15,6 +15,7 @@ namespace devmand::channels::cli {
 
 using folly::EvictingCacheMap;
 using folly::Future;
+using folly::SemiFuture;
 using folly::Synchronized;
 using std::shared_ptr;
 using std::string;
@@ -33,6 +34,8 @@ class ReadCachingCli : public Cli {
       const shared_ptr<Cli>& _cli,
       const shared_ptr<CliCache>& _cache,
       const shared_ptr<folly::Executor> executor);
+
+  SemiFuture<folly::Unit> destroy() override;
 
   ~ReadCachingCli() override;
 

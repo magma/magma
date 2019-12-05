@@ -58,17 +58,18 @@ static uint CPU_CORES = std::max(uint(4), std::thread::hardware_concurrency());
 Engine::Engine()
     : channels::Engine("Cli"),
       timekeeper(make_shared<folly::ThreadWheelTimekeeper>()),
-      sshCliExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
+      sshCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("sshCli"))),
-      commonExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
+      commonExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("commonCli"))),
       kaCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
           CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("kaCli"))),
       mreg(make_shared<ModelRegistry>()) {
-  // TODO use singleton when folly is initialized
+  // TODO use singleton instead of new ThreadWheelTimekeeper when folly is
+  // initialized
   Engine::initSsh();
   Engine::initLogging();
   MLOG(MINFO) << "Cli engine started with concurrency set to " << CPU_CORES;

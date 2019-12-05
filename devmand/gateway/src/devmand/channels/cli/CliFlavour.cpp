@@ -45,7 +45,7 @@ Future<string> DefaultPromptResolver::resolvePrompt(
     shared_ptr<SessionAsync> session,
     const string& newline,
     shared_ptr<Timekeeper> timekeeper) {
-  return session->read(-1).thenValue([=](...) {
+  return session->read().thenValue([=](...) {
     return resolvePrompt(session, newline, delayDelta, timekeeper);
   });
 }
@@ -73,7 +73,7 @@ Future<Optional<string>> DefaultPromptResolver::resolvePromptAsync(
     shared_ptr<Timekeeper> timekeeper) {
   return session->write(newline + newline)
       .delayed(delay, timekeeper.get())
-      .thenValue([session](...) { return session->read(-1); })
+      .thenValue([session](...) { return session->read(); })
       .thenValue([=](string output) {
         regex regxp("\\" + newline);
         vector<string> split(
@@ -118,10 +118,10 @@ shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
     return make_shared<CliFlavour>(
         make_unique<DefaultPromptResolver>(),
         make_unique<UbiquitiInitializer>());
+  } else {
+    return make_shared<CliFlavour>(
+        make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
   }
-
-  return make_shared<CliFlavour>(
-      make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
 }
 
 } // namespace cli
