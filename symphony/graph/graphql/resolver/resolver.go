@@ -178,6 +178,10 @@ func (resolver) CheckListItemDefinition() generated.CheckListItemDefinitionResol
 	return checkListItemDefinitionResolver{}
 }
 
+func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
+	return actionsTriggerResolver{}
+}
+
 // ResolveOption allows for managing resolver configuration using functional options.
 type ResolveOption func(*resolver)
 

@@ -43,6 +43,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ActionsTrigger() ActionsTriggerResolver
 	CheckListItem() CheckListItemResolver
 	CheckListItemDefinition() CheckListItemDefinitionResolver
 	CustomerConnection() CustomerConnectionResolver
@@ -84,6 +85,38 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	ActionsAction struct {
+		ActionID    func(childComplexity int) int
+		DataType    func(childComplexity int) int
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+	}
+
+	ActionsFilter struct {
+		Description        func(childComplexity int) int
+		FilterID           func(childComplexity int) int
+		SupportedOperators func(childComplexity int) int
+	}
+
+	ActionsOperator struct {
+		DataInput   func(childComplexity int) int
+		Description func(childComplexity int) int
+		OperatorID  func(childComplexity int) int
+	}
+
+	ActionsTrigger struct {
+		Description      func(childComplexity int) int
+		ID               func(childComplexity int) int
+		SupportedActions func(childComplexity int) int
+		SupportedFilters func(childComplexity int) int
+		TriggerID        func(childComplexity int) int
+	}
+
+	ActionsTriggersSearchResult struct {
+		Count   func(childComplexity int) int
+		Results func(childComplexity int) int
+	}
+
 	CheckListItem struct {
 		Checked    func(childComplexity int) int
 		EnumValues func(childComplexity int) int
@@ -515,6 +548,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		ActionsTriggers                     func(childComplexity int) int
 		Customer                            func(childComplexity int, id string) int
 		CustomerSearch                      func(childComplexity int, limit *int) int
 		Customers                           func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
@@ -790,6 +824,10 @@ type ComplexityRoot struct {
 	}
 }
 
+type ActionsTriggerResolver interface {
+	SupportedActions(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsAction, error)
+	SupportedFilters(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsFilter, error)
+}
 type CheckListItemResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItem) (models.CheckListItemType, error)
 }
@@ -1005,6 +1043,7 @@ type QueryResolver interface {
 	Project(ctx context.Context, id string) (*ent.Project, error)
 	Customer(ctx context.Context, id string) (*ent.Customer, error)
 	Customers(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.CustomerConnection, error)
+	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
 }
 type ServiceResolver interface {
 	Customer(ctx context.Context, obj *ent.Service) (*ent.Customer, error)
@@ -1089,6 +1128,125 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "ActionsAction.actionID":
+		if e.complexity.ActionsAction.ActionID == nil {
+			break
+		}
+
+		return e.complexity.ActionsAction.ActionID(childComplexity), true
+
+	case "ActionsAction.dataType":
+		if e.complexity.ActionsAction.DataType == nil {
+			break
+		}
+
+		return e.complexity.ActionsAction.DataType(childComplexity), true
+
+	case "ActionsAction.description":
+		if e.complexity.ActionsAction.Description == nil {
+			break
+		}
+
+		return e.complexity.ActionsAction.Description(childComplexity), true
+
+	case "ActionsAction.id":
+		if e.complexity.ActionsAction.ID == nil {
+			break
+		}
+
+		return e.complexity.ActionsAction.ID(childComplexity), true
+
+	case "ActionsFilter.description":
+		if e.complexity.ActionsFilter.Description == nil {
+			break
+		}
+
+		return e.complexity.ActionsFilter.Description(childComplexity), true
+
+	case "ActionsFilter.filterID":
+		if e.complexity.ActionsFilter.FilterID == nil {
+			break
+		}
+
+		return e.complexity.ActionsFilter.FilterID(childComplexity), true
+
+	case "ActionsFilter.supportedOperators":
+		if e.complexity.ActionsFilter.SupportedOperators == nil {
+			break
+		}
+
+		return e.complexity.ActionsFilter.SupportedOperators(childComplexity), true
+
+	case "ActionsOperator.dataInput":
+		if e.complexity.ActionsOperator.DataInput == nil {
+			break
+		}
+
+		return e.complexity.ActionsOperator.DataInput(childComplexity), true
+
+	case "ActionsOperator.description":
+		if e.complexity.ActionsOperator.Description == nil {
+			break
+		}
+
+		return e.complexity.ActionsOperator.Description(childComplexity), true
+
+	case "ActionsOperator.operatorID":
+		if e.complexity.ActionsOperator.OperatorID == nil {
+			break
+		}
+
+		return e.complexity.ActionsOperator.OperatorID(childComplexity), true
+
+	case "ActionsTrigger.description":
+		if e.complexity.ActionsTrigger.Description == nil {
+			break
+		}
+
+		return e.complexity.ActionsTrigger.Description(childComplexity), true
+
+	case "ActionsTrigger.id":
+		if e.complexity.ActionsTrigger.ID == nil {
+			break
+		}
+
+		return e.complexity.ActionsTrigger.ID(childComplexity), true
+
+	case "ActionsTrigger.supportedActions":
+		if e.complexity.ActionsTrigger.SupportedActions == nil {
+			break
+		}
+
+		return e.complexity.ActionsTrigger.SupportedActions(childComplexity), true
+
+	case "ActionsTrigger.supportedFilters":
+		if e.complexity.ActionsTrigger.SupportedFilters == nil {
+			break
+		}
+
+		return e.complexity.ActionsTrigger.SupportedFilters(childComplexity), true
+
+	case "ActionsTrigger.triggerID":
+		if e.complexity.ActionsTrigger.TriggerID == nil {
+			break
+		}
+
+		return e.complexity.ActionsTrigger.TriggerID(childComplexity), true
+
+	case "ActionsTriggersSearchResult.count":
+		if e.complexity.ActionsTriggersSearchResult.Count == nil {
+			break
+		}
+
+		return e.complexity.ActionsTriggersSearchResult.Count(childComplexity), true
+
+	case "ActionsTriggersSearchResult.results":
+		if e.complexity.ActionsTriggersSearchResult.Results == nil {
+			break
+		}
+
+		return e.complexity.ActionsTriggersSearchResult.Results(childComplexity), true
 
 	case "CheckListItem.checked":
 		if e.complexity.CheckListItem.Checked == nil {
@@ -3381,6 +3539,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PythonPackage.WhlFileKey(childComplexity), true
+
+	case "Query.actionsTriggers":
+		if e.complexity.Query.ActionsTriggers == nil {
+			break
+		}
+
+		return e.complexity.Query.ActionsTriggers(childComplexity), true
 
 	case "Query.customer":
 		if e.complexity.Query.Customer == nil {
@@ -6391,6 +6556,63 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
+# You will also need to update cloud/actions/core/id
+enum ActionID {
+  magma_reboot_node
+}
+
+# You will also need to update cloud/actions/core/id
+enum TriggerID {
+  magma_alert
+}
+
+# ActionsTrigger defines a trigger itself, along with what actions and filters
+# can be used
+type ActionsTrigger {
+  id: ID! # Same as triggerID, but used for Node
+  triggerID: TriggerID!
+  description: String!
+  supportedActions: [ActionsAction]! @goField(forceResolver: true)
+  supportedFilters: [ActionsFilter]! @goField(forceResolver: true)
+}
+
+# ActionsOperator defines how to filter a trigger.
+type ActionsOperator {
+  # Ex. "is", "isNot"
+  operatorID: String!
+  # Name displayed to the user. Ex: "is", "is not"
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataInput: String!
+}
+
+# ActionsAction defines an action that can be executed
+# Ex. "Reboot a magma device"
+type ActionsAction {
+  id: ID! # Same as actionID, but used for Node
+  actionID: ActionID!
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataType: String!
+}
+
+# ActionsFilter is a definition for how you can filter a trigger.
+# Ex: "The alerts network id [is, is not]"
+type ActionsFilter {
+  # unique identifier for the filter
+  filterID: String!
+  # Ex. "the alerts network id"
+  description: String!
+  # a list of operators the filter supports.
+  # Ex. "is", "is not"
+  supportedOperators: [ActionsOperator]!
+}
+
+type ActionsTriggersSearchResult {
+  results: [ActionsTrigger]!
+  count: Int!
+}
+
 type Query {
   me: Viewer
   node(id: ID!): Node
@@ -6517,6 +6739,7 @@ type Query {
     before: Cursor
     last: Int
   ): CustomerConnection
+  actionsTriggers: ActionsTriggersSearchResult
 }
 
 type Mutation {
@@ -8613,6 +8836,635 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _ActionsAction_id(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsAction",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsAction_actionID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsAction",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ActionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.ActionID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsAction_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsAction",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsAction_dataType(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsAction",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DataType, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FilterID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsFilter_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsFilter_supportedOperators(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsFilter",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SupportedOperators, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ActionsOperator)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNActionsOperator2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsOperator_operatorID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsOperator",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OperatorID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsOperator_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsOperator",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsOperator",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DataInput, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTrigger_id(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTrigger",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTrigger_triggerID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTrigger",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TriggerID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.TriggerID)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTrigger_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTrigger",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTrigger_supportedActions(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTrigger",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ActionsTrigger().SupportedActions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ActionsAction)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNActionsAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTrigger_supportedFilters(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTrigger",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ActionsTrigger().SupportedFilters(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ActionsFilter)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTriggersSearchResult_results(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTriggersSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTriggersSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Results, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ActionsTrigger)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNActionsTrigger2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTrigger(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ActionsTriggersSearchResult_count(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTriggersSearchResult) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "ActionsTriggersSearchResult",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
 
 func (ec *executionContext) _CheckListItem_id(ctx context.Context, field graphql.CollectedField, obj *ent.CheckListItem) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
@@ -20867,6 +21719,40 @@ func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.
 	return ec.marshalOCustomerConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_actionsTriggers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ActionsTriggers(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ActionsTriggersSearchResult)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOActionsTriggersSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTriggersSearchResult(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -30878,6 +31764,219 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 
 // region    **************************** object.gotpl ****************************
 
+var actionsActionImplementors = []string{"ActionsAction"}
+
+func (ec *executionContext) _ActionsAction(ctx context.Context, sel ast.SelectionSet, obj *models.ActionsAction) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, actionsActionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionsAction")
+		case "id":
+			out.Values[i] = ec._ActionsAction_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "actionID":
+			out.Values[i] = ec._ActionsAction_actionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._ActionsAction_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dataType":
+			out.Values[i] = ec._ActionsAction_dataType(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var actionsFilterImplementors = []string{"ActionsFilter"}
+
+func (ec *executionContext) _ActionsFilter(ctx context.Context, sel ast.SelectionSet, obj *models.ActionsFilter) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, actionsFilterImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionsFilter")
+		case "filterID":
+			out.Values[i] = ec._ActionsFilter_filterID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._ActionsFilter_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "supportedOperators":
+			out.Values[i] = ec._ActionsFilter_supportedOperators(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var actionsOperatorImplementors = []string{"ActionsOperator"}
+
+func (ec *executionContext) _ActionsOperator(ctx context.Context, sel ast.SelectionSet, obj *models.ActionsOperator) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, actionsOperatorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionsOperator")
+		case "operatorID":
+			out.Values[i] = ec._ActionsOperator_operatorID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "description":
+			out.Values[i] = ec._ActionsOperator_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "dataInput":
+			out.Values[i] = ec._ActionsOperator_dataInput(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var actionsTriggerImplementors = []string{"ActionsTrigger"}
+
+func (ec *executionContext) _ActionsTrigger(ctx context.Context, sel ast.SelectionSet, obj *models.ActionsTrigger) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, actionsTriggerImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionsTrigger")
+		case "id":
+			out.Values[i] = ec._ActionsTrigger_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "triggerID":
+			out.Values[i] = ec._ActionsTrigger_triggerID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._ActionsTrigger_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "supportedActions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ActionsTrigger_supportedActions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "supportedFilters":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ActionsTrigger_supportedFilters(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var actionsTriggersSearchResultImplementors = []string{"ActionsTriggersSearchResult"}
+
+func (ec *executionContext) _ActionsTriggersSearchResult(ctx context.Context, sel ast.SelectionSet, obj *models.ActionsTriggersSearchResult) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, actionsTriggersSearchResultImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ActionsTriggersSearchResult")
+		case "results":
+			out.Values[i] = ec._ActionsTriggersSearchResult_results(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._ActionsTriggersSearchResult_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var checkListItemImplementors = []string{"CheckListItem"}
 
 func (ec *executionContext) _CheckListItem(ctx context.Context, sel ast.SelectionSet, obj *ent.CheckListItem) graphql.Marshaler {
@@ -34167,6 +35266,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_customers(ctx, field)
 				return res
 			})
+		case "actionsTriggers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_actionsTriggers(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -35971,6 +37081,163 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, v interface{}) (models.ActionID, error) {
+	var res models.ActionID
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, sel ast.SelectionSet, v models.ActionID) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNActionsAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsAction) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOActionsAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOActionsFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNActionsOperator2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsOperator) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOActionsOperator2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNActionsTrigger2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTrigger(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsTrigger) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOActionsTrigger2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTrigger(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNAddCustomerInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddCustomerInput(ctx context.Context, v interface{}) (models.AddCustomerInput, error) {
 	return ec.unmarshalInputAddCustomerInput(ctx, v)
 }
@@ -37682,7 +38949,7 @@ func (ec *executionContext) marshalNProperty2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalOProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -38357,6 +39624,15 @@ func (ec *executionContext) marshalNTopologyLink2ᚖgithubᚗcomᚋfacebookincub
 	return ec._TopologyLink(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, v interface{}) (models.TriggerID, error) {
+	var res models.TriggerID
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v models.TriggerID) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNWorkOrder2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrder) graphql.Marshaler {
 	return ec._WorkOrder(ctx, sel, &v)
 }
@@ -38422,7 +39698,7 @@ func (ec *executionContext) marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -38805,6 +40081,61 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalOActionsAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v models.ActionsAction) graphql.Marshaler {
+	return ec._ActionsAction(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOActionsAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v *models.ActionsAction) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ActionsAction(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOActionsFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v models.ActionsFilter) graphql.Marshaler {
+	return ec._ActionsFilter(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOActionsFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v *models.ActionsFilter) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ActionsFilter(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOActionsOperator2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx context.Context, sel ast.SelectionSet, v models.ActionsOperator) graphql.Marshaler {
+	return ec._ActionsOperator(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOActionsOperator2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx context.Context, sel ast.SelectionSet, v *models.ActionsOperator) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ActionsOperator(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOActionsTrigger2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTrigger(ctx context.Context, sel ast.SelectionSet, v models.ActionsTrigger) graphql.Marshaler {
+	return ec._ActionsTrigger(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOActionsTrigger2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTrigger(ctx context.Context, sel ast.SelectionSet, v *models.ActionsTrigger) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ActionsTrigger(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOActionsTriggersSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTriggersSearchResult(ctx context.Context, sel ast.SelectionSet, v models.ActionsTriggersSearchResult) graphql.Marshaler {
+	return ec._ActionsTriggersSearchResult(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOActionsTriggersSearchResult2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsTriggersSearchResult(ctx context.Context, sel ast.SelectionSet, v *models.ActionsTriggersSearchResult) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ActionsTriggersSearchResult(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
@@ -40303,7 +41634,7 @@ func (ec *executionContext) marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalOSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

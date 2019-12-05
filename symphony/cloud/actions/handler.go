@@ -15,17 +15,25 @@ import (
 	"go.uber.org/zap"
 )
 
-// Handler adds actions framework registry to incoming requests.
-func Handler(next http.Handler, logger log.Logger) http.Handler {
+// MainRegistry is a registry that contains all actions and triggers
+func MainRegistry() executor.Registry {
 
 	registry := executor.NewRegistry()
 
 	registry.MustRegisterAction(magmarebootnode.New())
 	registry.MustRegisterTrigger(magmaalert.New())
 
+	return registry
+}
+
+// Handler adds actions framework registry to incoming requests.
+func Handler(next http.Handler, logger log.Logger) http.Handler {
+
 	dataLoader := executor.BasicDataLoader{
 		Rules: []core.Rule{},
 	}
+
+	registry := MainRegistry()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

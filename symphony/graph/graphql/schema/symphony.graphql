@@ -1407,6 +1407,63 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
+# You will also need to update cloud/actions/core/id
+enum ActionID {
+  magma_reboot_node
+}
+
+# You will also need to update cloud/actions/core/id
+enum TriggerID {
+  magma_alert
+}
+
+# ActionsTrigger defines a trigger itself, along with what actions and filters
+# can be used
+type ActionsTrigger {
+  id: ID! # Same as triggerID, but used for Node
+  triggerID: TriggerID!
+  description: String!
+  supportedActions: [ActionsAction]! @goField(forceResolver: true)
+  supportedFilters: [ActionsFilter]! @goField(forceResolver: true)
+}
+
+# ActionsOperator defines how to filter a trigger.
+type ActionsOperator {
+  # Ex. "is", "isNot"
+  operatorID: String!
+  # Name displayed to the user. Ex: "is", "is not"
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataInput: String!
+}
+
+# ActionsAction defines an action that can be executed
+# Ex. "Reboot a magma device"
+type ActionsAction {
+  id: ID! # Same as actionID, but used for Node
+  actionID: ActionID!
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataType: String!
+}
+
+# ActionsFilter is a definition for how you can filter a trigger.
+# Ex: "The alerts network id [is, is not]"
+type ActionsFilter {
+  # unique identifier for the filter
+  filterID: String!
+  # Ex. "the alerts network id"
+  description: String!
+  # a list of operators the filter supports.
+  # Ex. "is", "is not"
+  supportedOperators: [ActionsOperator]!
+}
+
+type ActionsTriggersSearchResult {
+  results: [ActionsTrigger]!
+  count: Int!
+}
+
 type Query {
   me: Viewer
   node(id: ID!): Node
@@ -1533,6 +1590,7 @@ type Query {
     before: Cursor
     last: Int
   ): CustomerConnection
+  actionsTriggers: ActionsTriggersSearchResult
 }
 
 type Mutation {
