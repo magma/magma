@@ -10,8 +10,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/orc8r"
-
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -31,9 +29,9 @@ import (
 func init() { gqlprometheus.Register() }
 
 // NewHandler creates a graphql http handler.
-func NewHandler(logger log.Logger, orc8r *orc8r.Client) (http.Handler, error) {
+func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, error) {
 	var opts []resolver.ResolveOption
-	opts = append(opts, resolver.WithOrc8r(orc8r))
+	opts = append(opts, resolver.WithOrc8rClient(orc8rClient))
 	rsv, err := resolver.New(logger, opts...)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating resolver")

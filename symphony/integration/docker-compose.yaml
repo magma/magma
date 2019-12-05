@@ -5,10 +5,6 @@
 version: "3.7"
 
 services:
-  graph:
-    volumes:
-      - ${HOME}/magma_certs:/magma_certs:ro
-
   frontier:
     build:
       context: ${FBCODE_FBC_DIR}/symphony
@@ -74,13 +70,15 @@ services:
     environment:
       GQL_DEBUG: 1
       MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true&interpolateParams=true
-      ORC8R_API_HOSTNAME: ${ORC8R_API_HOSTNAME:-api-staging.magma.etagecom.io}
-      ORC8R_API_CERT: /magma_certs/${ORC8R_API_CERT:-}api_cert
-      ORC8R_API_PRIVATE_KEY: /magma_certs/${ORC8R_API_PRIVATE_KEY:-}api_key
+      ORC8R_HOST: ${ORC8R_API_HOSTNAME:-api-staging.magma.etagecom.io}
+      ORC8R_CERT: /magma_certs/${ORC8R_API_CERT:-}api_cert
+      ORC8R_PKEY: /magma_certs/${ORC8R_API_PRIVATE_KEY:-}api_key
     env_file: *env_files
     networks:
       - private
       - public
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
     depends_on:
       - migrate
       - mysql

@@ -54,7 +54,6 @@
 #include "nas_procedures.h"
 #include "nas_timer.h"
 #include "nas/securityDef.h"
-#include "esm_proc.h"
 
 //------------------------------------------------------------------------------
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t *const ctxt)

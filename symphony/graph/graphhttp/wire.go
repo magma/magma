@@ -48,7 +48,7 @@ func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newOrc8rClient(config orc8r.Config) *orc8r.Client {
-	client, _ := config.Build()
+func newOrc8rClient(config orc8r.Config) *http.Client {
+	client, _ := orc8r.NewClient(config)
 	return client
 }

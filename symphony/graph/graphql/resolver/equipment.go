@@ -7,6 +7,7 @@ package resolver
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -193,47 +194,41 @@ func (r equipmentResolver) LocationHierarchy(ctx context.Context, eq *ent.Equipm
 	return locs, nil
 }
 
-func uriFromDeviceID(deviceID string, hostname string) string {
-	slices := strings.Split(deviceID, ".")
-	return "https://" + hostname + "/magma/v1/networks/" + slices[1] + "/gateways/" + slices[0] + "/status"
-}
-
 func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
-	var dev models.Device
-
 	if eq.DeviceID == "" {
 		return nil, nil
 	}
-
 	if r.orc8rClient == nil {
-		return nil, errors.New("orc8r client was not provided")
+		return nil, errors.New("unsupported orc8r field")
+	}
+	parts := strings.Split(eq.DeviceID, ".")
+	if len(parts) < 2 {
+		return nil, errors.New("invalid equipment device id")
 	}
 
-	uri := uriFromDeviceID(eq.DeviceID, r.orc8rClient.Hostname)
+	uri := fmt.Sprintf("/magma/v1/networks/%s/gateways/%s/status", parts[1], parts[0])
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create http request: %w", err)
 	}
-
-	resp, err := r.resolver.orc8rClient.Do(req)
+	rsp, err := r.orc8rClient.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("preforming orc8r status request: %w", err)
 	}
+	defer rsp.Body.Close()
 
-	defer resp.Body.Close()
-	var jsonResult struct {
+	var result struct {
 		CheckinTime int64 `json:"checkin_time"`
 	}
-	err = json.NewDecoder(resp.Body).Decode(&jsonResult)
-	if err != nil {
-		return nil, err
+	if err := json.NewDecoder(rsp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decoding orc8r response: %w", err)
 	}
 
-	if jsonResult.CheckinTime != 0 {
-		up := jsonResult.CheckinTime > time.Now().Add(3*time.Minute).Unix()
+	var dev models.Device
+	if result.CheckinTime != 0 {
+		up := result.CheckinTime > time.Now().Add(3*time.Minute).Unix()
 		dev.Up = &up
 	}
-
 	return &dev, nil
 }
 

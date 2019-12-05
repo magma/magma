@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst, ineffassign
 package resolver
 
 import (
@@ -15,11 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/orc8r"
-
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
-
+	"github.com/facebookincubator/symphony/cloud/orc8r"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -29,7 +26,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -151,21 +147,22 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 }
 
 func TestOrc8rStatusEquipment(t *testing.T) {
-	time := time.Now().Add(30 * time.Minute).Unix()
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := io.WriteString(w, `{"checkin_time": `+strconv.Itoa(int(time))+`}`)
+	ts := time.Now().Add(time.Hour / 2).Unix()
+	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := io.WriteString(w, `{"checkin_time": `+strconv.FormatInt(ts, 10)+`}`)
 		assert.NoError(t, err)
-	})
-
-	srv := httptest.NewTLSServer(h)
+	}))
 	defer srv.Close()
-	c := srv.Client()
 
 	uri, err := url.Parse(srv.URL)
 	require.NoError(t, err)
 
-	config := &orc8r.Client{Hostname: uri.Host, Client: c}
-	r, err := newTestResolver(t, WithOrc8r(config))
+	orc8rClient := srv.Client()
+	orc8rClient.Transport = orc8r.Transport{
+		Base: orc8rClient.Transport,
+		Host: uri.Host,
+	}
+	r, err := newTestResolver(t, WithOrc8rClient(orc8rClient))
 	require.NoError(t, err)
 	defer r.drv.Close()
 
@@ -230,7 +227,7 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, rsp.Equipment.Device.Up)
 
-	time = 500
+	ts = 500
 	err = client.New(graphHandler).Post(query, &rsp)
 	require.NoError(t, err)
 

@@ -9,81 +9,62 @@
  */
 import type {FullDevice} from './DevicesUtils';
 
+import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import React from 'react';
 
-import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-
 type Props = {
-  device: ?FullDevice,
+  device: FullDevice,
 };
 
-type InterfaceStateModel = {
-  // TODO: complete device interface model
-  interface?: ?Array<{
-    'oper-status'?: string,
+// TODO: complete device interface model
+type InterfaceType = {
+  'oper-status'?: string,
+  name?: string,
+
+  state: {
+    ifindex?: number,
     name?: string,
+    'oper-status'?: string,
+  },
 
-    state: {
-      ifindex?: number,
-      name?: string,
-      'oper-status'?: string,
-    },
+  config: {
+    enabled: boolean,
+  },
 
-    subinterfaces?: {
-      subinterface: Array<{
-        'openconfig-if-ip:ipv4': {
-          addresses: {
-            address: Array<{ip: string}>,
-          },
+  subinterfaces?: {
+    subinterface: Array<{
+      'openconfig-if-ip:ipv4': {
+        addresses: {
+          address: Array<{ip: string}>,
         },
-      }>,
-    },
-  }>,
+      },
+    }>,
+  },
 };
 
-function GenInterfaces(
-  interfaceState: ?InterfaceStateModel,
-): Array<React$Element<'div'>> {
-  // if no interface state, then display nothing (different from empty list)
-  if (!interfaceState) {
-    return [];
-  }
+function Interface({iface}: {iface: InterfaceType}) {
+  const ip =
+    iface?.subinterfaces?.subinterface?.[0]?.['openconfig-if-ip:ipv4']
+      ?.addresses?.address?.[0]?.ip || '';
 
-  const info = [];
-  if (!(interfaceState.interface?.length == 0)) {
-    info.push(
-      ...(interfaceState.interface || []).map((iface, i) => {
-        const ip =
-          iface?.subinterfaces?.subinterface?.[0]?.['openconfig-if-ip:ipv4']
-            ?.addresses?.address?.[0]?.ip || '';
-        const key = `interfaces_${i}`;
-        return (
-          <div key={key}>
-            <DeviceStatusCircle
-              isGrey={false}
-              isActive={(iface.state || iface)['oper-status'] === 'UP'}
-            />
-            {iface.name || iface.state?.name || ''}
-            {ip && <> ({ip})</>}
-          </div>
-        );
-      }),
-    );
-  }
-
-  if (info.length == 0) {
-    info.push(<div key="interfaces_none">No interfaces reported</div>);
-  }
-
-  return info;
+  return (
+    <div>
+      <DeviceStatusCircle
+        isGrey={false}
+        isActive={(iface.state || iface)['oper-status'] === 'UP'}
+      />
+      {iface.name || iface.state?.name || ''}
+      {ip && ` (${ip})`}
+    </div>
+  );
 }
 
-type latenciesStateModel = {
+type LatenciesStateModel = {
   latency?: Array<{type: string, src: string, dst: string, rtt: number}>,
 };
 
-function GenLatencies(
-  state: ?latenciesStateModel,
+function renderLatencies(
+  state: ?LatenciesStateModel,
 ): Array<React$Element<'div'>> {
   // if no state, then display nothing (different from empty list)
   if (!state) {
@@ -112,23 +93,29 @@ function GenLatencies(
   return info;
 }
 
-export default function DevicesState(
-  props: Props,
-): Array<React$Element<'div'>> {
+export default function DevicesState(props: Props) {
   const {device} = props;
+  const interfaces: ?Array<InterfaceType> =
+    device?.status?.['openconfig-interfaces:interfaces']?.interface;
+  const latencies: ?LatenciesStateModel =
+    device?.status?.['fbc-symphony-device:system']?.['latencies'];
 
-  const info = [];
-
-  info.push(
-    ...GenInterfaces(device?.status?.['openconfig-interfaces:interfaces']),
-    ...GenLatencies(
-      device?.status?.['fbc-symphony-device:system']?.['latencies'],
-    ),
-  );
-
-  if (info.length == 0) {
-    info.push(<div key="nostate">&lt;No state reported&gt;</div>);
+  if (!interfaces && !latencies) {
+    return <div>{'<No state reported>'}</div>;
   }
 
-  return info;
+  const interfaceRows = (interfaces || []).map((iface, i) => (
+    <Interface key={i} iface={iface} />
+  ));
+
+  if (interfaceRows.length === 0) {
+    interfaceRows.push(<div key="interfaces_none">No interfaces reported</div>);
+  }
+
+  return (
+    <>
+      {interfaceRows}
+      {renderLatencies(latencies)}
+    </>
+  );
 }
