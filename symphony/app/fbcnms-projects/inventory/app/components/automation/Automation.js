@@ -17,19 +17,26 @@ import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import ComputerIcon from '@material-ui/icons/Computer';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
+import RelayEnvironment from '../../common/RelayEnvironment';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 
+import {Suspense, useContext} from 'react';
 import {getProjectLinks} from '@fbcnms/magmalte/app/common/projects';
 import {makeStyles} from '@material-ui/styles';
 import {shouldShowSettings} from '@fbcnms/magmalte/app/components/Settings';
-import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_theme => ({
   root: {
     display: 'flex',
+  },
+  progress: {
+    marginTop: 32,
+    textAlign: 'center',
   },
 }));
 
@@ -73,7 +80,14 @@ function Automation() {
         })}
       />
       <AppContent>
-        <NavRoutes />
+        <Suspense
+          fallback={
+            <div className={classes.progress}>
+              <CircularProgress className={classes.progress} size={64} />
+            </div>
+          }>
+          <NavRoutes />
+        </Suspense>
       </AppContent>
     </div>
   );
@@ -83,7 +97,9 @@ export default () => {
   return (
     <ApplicationMain>
       <AppContextProvider>
-        <Automation />
+        <RelayEnvironmentProvider environment={RelayEnvironment}>
+          <Automation />
+        </RelayEnvironmentProvider>
       </AppContextProvider>
     </ApplicationMain>
   );

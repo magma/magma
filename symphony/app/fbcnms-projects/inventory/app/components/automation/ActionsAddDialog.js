@@ -8,8 +8,13 @@
  * @format
  */
 
-import type {RuleAction, RuleTriggerFilter, TriggerID} from './types';
+import type {
+  ActionsAddDialog_triggerData,
+  ActionsAddDialog_triggerData$key,
+} from './__generated__/ActionsAddDialog_triggerData.graphql';
+import type {RuleAction, RuleFilter} from './types';
 
+import ActionRow from './ActionRow';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -19,7 +24,7 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import TriggerFilterRow from './TriggerFilterRow';
 
-import ActionRow from './ActionRow';
+import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -32,33 +37,35 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-type Props = {
-  triggerID: TriggerID,
+type Props = {|
+  trigger: ActionsAddDialog_triggerData$key,
   onClose: () => void,
   onSave: () => void,
-};
+|};
+
+const query = graphql`
+  fragment ActionsAddDialog_triggerData on ActionsTrigger {
+    triggerID
+    description
+    ...ActionRow_data
+    ...TriggerFilterRow_data
+  }
+`;
 
 export default function ActionsAddDialog(props: Props) {
   const classes = useStyles();
+  const data: ActionsAddDialog_triggerData = useFragment<ActionsAddDialog_triggerData>(
+    query,
+    props.trigger,
+  );
 
-  const [filters, setFilters] = useState<RuleTriggerFilter[]>([
-    {
-      triggerFilterID: 'alert_gatewayid',
-      operatorID: 'containsAny',
-      data: '',
-    },
-  ]);
+  const [filters, setFilters] = useState<RuleFilter[]>([]);
 
-  const [actions, setActions] = useState<RuleAction[]>([
-    {
-      actionID: 'magma_reboot_gateway',
-      data: null,
-    },
-  ]);
+  const [actions, setActions] = useState<RuleAction[]>([]);
 
   const onSave = () => {
     const payload = {
-      triggerID: props.triggerID,
+      triggerID: data.triggerID,
       filters,
       actions,
     };
@@ -80,31 +87,45 @@ export default function ActionsAddDialog(props: Props) {
 
   return (
     <Dialog open={true} onClose={() => props.onClose()} maxWidth="lg">
-      <DialogTitle>Reboot a device when an alert is fired</DialogTitle>
+      <DialogTitle>Create new Action</DialogTitle>
       <DialogContent>
         <Grid container spacing={1}>
           <Grid item xs={3} className={classes.control}>
             Whenever
           </Grid>
           <Grid item xs={9}>
-            we receive an alert
+            {data.description}
           </Grid>
           {filters.map((filter, i) => (
             <TriggerFilterRow
               key={i}
-              triggerID={props.triggerID}
-              filter={filter}
+              trigger={data}
+              ruleFilter={filter}
               onChange={newFilter => onChangeFilter(newFilter, i)}
             />
           ))}
+          {filters.length === 0 ? (
+            <TriggerFilterRow
+              trigger={data}
+              ruleFilter={null}
+              onChange={newFilter => onChangeFilter(newFilter, 0)}
+            />
+          ) : null}
           {actions.map((action, i) => (
             <ActionRow
               key={i}
-              action={action}
-              triggerID={props.triggerID}
+              trigger={data}
+              ruleAction={action}
               onChange={newAction => onChangeAction(newAction, i)}
             />
           ))}
+          {actions.length === 0 ? (
+            <ActionRow
+              trigger={data}
+              ruleAction={null}
+              onChange={newAction => onChangeAction(newAction, 0)}
+            />
+          ) : null}
         </Grid>
       </DialogContent>
       <DialogActions>
