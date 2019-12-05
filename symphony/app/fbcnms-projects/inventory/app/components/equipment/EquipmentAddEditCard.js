@@ -73,27 +73,48 @@ const styles = theme => ({
 
 const equipmentAddEditCardQuery = graphql`
   query EquipmentAddEditCardQuery($equipmentId: ID!) {
-    equipment(id: $equipmentId) {
-      id
-      name
-      parentLocation {
-        id
-      }
-      parentPosition {
-        id
-      }
-      device {
-        id
-      }
-      equipmentType {
+    equipment: node(id: $equipmentId) {
+      ... on Equipment {
         id
         name
-        propertyTypes {
+        parentLocation {
+          id
+        }
+        parentPosition {
+          id
+        }
+        device {
+          id
+        }
+        equipmentType {
           id
           name
-          index
-          isInstanceProperty
-          type
+          propertyTypes {
+            id
+            name
+            index
+            isInstanceProperty
+            type
+            stringValue
+            intValue
+            floatValue
+            booleanValue
+            latitudeValue
+            longitudeValue
+            rangeFromValue
+            rangeToValue
+          }
+        }
+        properties {
+          propertyType {
+            id
+            name
+            index
+            isInstanceProperty
+            type
+            stringValue
+          }
+          id
           stringValue
           intValue
           floatValue
@@ -102,33 +123,14 @@ const equipmentAddEditCardQuery = graphql`
           longitudeValue
           rangeFromValue
           rangeToValue
-        }
-      }
-      properties {
-        propertyType {
-          id
-          name
-          index
-          isInstanceProperty
-          type
-          stringValue
-        }
-        id
-        stringValue
-        intValue
-        floatValue
-        booleanValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
+          equipmentValue {
+            id
+            name
+          }
+          locationValue {
+            id
+            name
+          }
         }
       }
     }
@@ -137,24 +139,26 @@ const equipmentAddEditCardQuery = graphql`
 
 const equipmentAddEditCardQuery__equipmentTypeQuery = graphql`
   query EquipmentAddEditCardQuery__equipmentTypeQuery($equipmentTypeId: ID!) {
-    equipmentType(id: $equipmentTypeId) {
-      id
-      name
-      propertyTypes {
+    equipmentType: node(id: $equipmentTypeId) {
+      ... on EquipmentType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isInstanceProperty
+        }
       }
     }
   }
@@ -421,11 +425,10 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
 
   _deviceIDChangedHandler = (deviceID: string) => {
     this.setState(prevState => {
-      const editingEquipment = nullthrows(prevState.editingEquipment);
       return {
         error: '',
         editingEquipment: update(prevState.editingEquipment, {
-          device: {...editingEquipment.device, id: deviceID},
+          device: {id: {$set: deviceID}},
         }),
       };
     });

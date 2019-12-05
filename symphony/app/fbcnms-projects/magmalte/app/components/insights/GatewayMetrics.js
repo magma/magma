@@ -43,8 +43,8 @@ export default function(props: {configs: MetricGraphConfig[]}) {
       render={() => (
         <Metrics
           configs={props.configs}
-          onSelectorChange={({target}) => {
-            history.push(relativeUrl(`/${target.value}`));
+          onSelectorChange={(e, value) => {
+            history.push(relativeUrl(`/${value}`));
           }}
           selectors={gatewayNames}
           defaultSelector={defaultGateway}

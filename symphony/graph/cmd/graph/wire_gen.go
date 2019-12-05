@@ -39,10 +39,12 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 		return nil, nil, err
 	}
 	options := flags.Census
+	orc8rConfig := flags.Orc8r
 	graphhttpConfig := graphhttp.Config{
 		Tenancy: mySQLTenancy,
 		Logger:  logger,
 		Census:  options,
+		Orc8r:   orc8rConfig,
 	}
 	server, cleanup2, err := graphhttp.NewServer(graphhttpConfig)
 	if err != nil {

@@ -16,7 +16,16 @@ module.exports.overrides = [
   {
     files: ['*'],
     rules: {
-      'prettier/prettier': [2, 'fb', '@format'],
+      'prettier/prettier': [
+        2,
+        {
+          singleQuote: true,
+          trailingComma: 'all',
+          bracketSpacing: false,
+          jsxBracketSameLine: true,
+          parser: 'flow',
+        },
+      ],
     },
   },
   {

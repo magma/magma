@@ -36,6 +36,9 @@ const useStyles = makeStyles({
   primaryColor: {
     color: symphony.palette.primary,
   },
+  grayColor: {
+    color: symphony.palette.D400,
+  },
   errorColor: {
     color: symphony.palette.R600,
   },
@@ -71,7 +74,7 @@ type Props = {
     | 'overline',
   className?: string,
   weight?: 'inherit' | 'light' | 'regular' | 'medium' | 'bold',
-  color?: 'light' | 'regular' | 'primary' | 'error',
+  color?: 'light' | 'regular' | 'primary' | 'error' | 'gray',
 };
 
 const Text = (props: Props) => {

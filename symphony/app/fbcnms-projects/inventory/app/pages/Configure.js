@@ -94,8 +94,16 @@ export default function Configure() {
         }}
         indicatorColor="primary"
         textColor="primary">
-        <Tab classes={{root: classes.tabContainer}} label="Equipment" />
-        <Tab classes={{root: classes.tabContainer}} label="Locations" />
+        <Tab
+          data-testid="configure-equipment-tab"
+          classes={{root: classes.tabContainer}}
+          label="Equipment"
+        />
+        <Tab
+          data-testid="configure-locations-tab"
+          classes={{root: classes.tabContainer}}
+          label="Locations"
+        />
         <Tab classes={{root: classes.tabContainer}} label="Ports" />
         {servicesEnabled && (
           <Tab classes={{root: classes.tabContainer}} label="Services" />

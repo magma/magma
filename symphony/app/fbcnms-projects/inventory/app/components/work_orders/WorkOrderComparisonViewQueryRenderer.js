@@ -13,10 +13,14 @@ import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrdersMap from './WorkOrdersMap';
 import WorkOrdersView from './WorkOrdersView';
+import classNames from 'classnames';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
+  root: {
+    flexGrow: 1,
+  },
   noResultsRoot: {
     display: 'flex',
     flexDirection: 'column',
@@ -32,12 +36,10 @@ const useStyles = makeStyles(theme => ({
     marginBottom: '6px',
     fontSize: '36px',
   },
-  workOrdersTable: {
-    margin: '24px',
-  },
 }));
 
 type Props = {
+  className?: string,
   onWorkOrderSelected: (workOrderId: string) => void,
   limit?: number,
   filters: Array<any>,
@@ -65,6 +67,7 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
     onWorkOrderSelected,
     workOrderKey,
     resultsDisplayMode,
+    className,
   } = props;
 
   return (
@@ -94,17 +97,16 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
           );
         }
         return (
-          <>
+          <div className={classNames(classes.root, className)}>
             {resultsDisplayMode === 'map' ? (
               <WorkOrdersMap workOrders={workOrderSearch} />
             ) : (
               <WorkOrdersView
-                className={classes.workOrdersTable}
                 workOrder={workOrderSearch}
                 onWorkOrderSelected={onWorkOrderSelected}
               />
             )}
-          </>
+          </div>
         );
       }}
     />
