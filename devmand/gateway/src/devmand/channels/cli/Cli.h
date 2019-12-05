@@ -38,6 +38,26 @@ class Cli {
       const WriteCommand cmd) = 0;
 };
 
+class CliException : public std::runtime_error {
+ public:
+  CliException(string msg) : std::runtime_error(msg) {}
+};
+
+class DisconnectedException : public CliException {
+ public:
+  DisconnectedException(string msg = "Not connected") : CliException(msg) {}
+};
+
+class CommandExecutionException : public CliException {
+ public:
+  CommandExecutionException(string msg = "Command execution failed") : CliException(msg) {}
+};
+
+class CommandTimeoutException : public CommandExecutionException {
+ public:
+  CommandTimeoutException(string msg = "Command execution timed out") : CommandExecutionException(msg) {}
+};
+
 } // namespace cli
 } // namespace channels
 } // namespace devmand

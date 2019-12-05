@@ -33,6 +33,7 @@ class SshSession {
   int verbosity;
 
   bool checkSuccess(int return_code, int OK_RETURN_CODE);
+  template <typename E>
   void terminate();
 
  public:

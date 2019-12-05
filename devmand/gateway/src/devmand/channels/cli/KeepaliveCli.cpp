@@ -86,8 +86,7 @@ void KeepaliveCli::triggerSendKeepAliveCommand(
   }
   ReadCommand cmd =
       ReadCommand::create(keepaliveParameters->keepAliveCommand, true);
-  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd
-               << ") "
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
                << "triggerSendKeepAliveCommand created new command";
 
   via(keepaliveParameters->serialExecutorKeepAlive)
@@ -105,33 +104,27 @@ void KeepaliveCli::triggerSendKeepAliveCommand(
             params->heartbeatInterval, params->timekeeper.get());
       })
       .thenValue([keepaliveParameters, cmd](auto) -> Unit {
-        MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd
-                     << ") "
+        MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd << ") "
                      << "Woke up after sleep";
         triggerSendKeepAliveCommand(keepaliveParameters);
         return Unit{};
       })
-      .thenError(
-          folly::tag_t<std::exception>{},
-          [params = keepaliveParameters,
-           cmd](std::exception const& e) -> Future<Unit> {
-            MLOG(MINFO)
-                << "[" << params->id << "] (" << cmd << ") "
-                << "Got error running keepalive, backing off "
-                << e.what(); // FIXME: real exception is not propagated here
+      .thenError([params = keepaliveParameters,
+                  cmd](const exception_wrapper& e) {
+        MLOG(MINFO) << "[" << params->id << "] (" << cmd << ") "
+                    << "Got error running keepalive, backing off " << e.what();
 
-            return futures::sleep(
-                       params->backoffAfterKeepaliveTimeout,
-                       params->timekeeper.get())
-                .via(params->serialExecutorKeepAlive)
-                .thenValue([params, cmd](auto) -> Unit {
-                  MLOG(MDEBUG)
-                      << "[" << params->id << "] (" << cmd << ") "
-                      << "Woke up after backing off";
-                  triggerSendKeepAliveCommand(params);
-                  return Unit{};
-                });
-          });
+        return futures::sleep(
+                   params->backoffAfterKeepaliveTimeout,
+                   params->timekeeper.get())
+            .via(params->serialExecutorKeepAlive)
+            .thenValue([params, cmd](auto) -> Unit {
+              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
+                           << "Woke up after backing off";
+              triggerSendKeepAliveCommand(params);
+              return Unit{};
+            });
+      });
 }
 
 folly::SemiFuture<std::string> KeepaliveCli::executeRead(

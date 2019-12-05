@@ -74,26 +74,28 @@ std::shared_ptr<State> PlaintextCliDevice::getState() {
   cmdCache->wlock()->clear();
   auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
 
-  state->addRequest(channel->executeRead(stateCommand)
-                        .via(executor.get())
-                        .thenValue([state, cmd = stateCommand](std::string v) {
-                          state->setStatus(true);
-                          state->update([&v, &cmd](auto& lockedState) {
-                            lockedState[cmd.raw()] = v;
-                          });
-                        })
-                        .thenError(
-                            folly::tag_t<std::exception>{},
-                            [state, id = this->id](std::exception const& e) {
-                              MLOG(MWARNING)
-                                  << "[" << id << "] "
-                                  << "Retrieving state failed: " << e.what();
-                              // FIXME catching exception type instead strcmp ?
-                              if (strcmp(e.what(), "Not connected") == 0) {
-                                state->setStatus(false);
-                              }
-                              state->addError(e.what());
-                            }));
+  state->addRequest(
+      channel->executeRead(stateCommand)
+          .via(executor.get())
+          .thenValue([state, cmd = stateCommand](std::string v) {
+            state->setStatus(true);
+            state->update(
+                [&v, &cmd](auto& lockedState) { lockedState[cmd.raw()] = v; });
+          })
+          .thenError(
+              folly::tag_t<DisconnectedException>{},
+              [state,
+               id = this->id](DisconnectedException const& e) -> Future<Unit> {
+                state->setStatus(false);
+                throw e;
+              })
+          .thenError(
+              folly::tag_t<std::exception>{},
+              [state, id = this->id](std::exception const& e) {
+                MLOG(MWARNING) << "[" << id << "] "
+                               << "Retrieving state failed: " << e.what();
+                state->addError(e.what());
+              }));
 
   return state;
 }

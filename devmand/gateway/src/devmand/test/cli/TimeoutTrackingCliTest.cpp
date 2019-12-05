@@ -79,7 +79,8 @@ TEST_F(TimeoutCliTest, cleanDestructOnTimeout) {
   // Destruct cli
   testedCli.reset();
 
-  EXPECT_THROW(move(future).via(testExec.get()).get(10s), FutureTimeout);
+  EXPECT_THROW(
+      move(future).via(testExec.get()).get(10s), CommandTimeoutException);
 }
 
 TEST_F(TimeoutCliTest, cleanDestructOnError) {

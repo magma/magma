@@ -108,16 +108,8 @@ TEST_F(ReconnectingSshTest, commandTimeout) {
   string sleepCommand = "sleep ";
   sleepCommand.append(to_string(cmdTimeout + 1));
   EXPECT_THROW(
-      {
-        try {
-          cli->executeRead(ReadCommand::create(sleepCommand, true))
-              .get(); // timeout exception
-        } catch (const exception& e) {
-          EXPECT_STREQ("Timed out", e.what());
-          throw;
-        }
-      },
-      exception);
+      { cli->executeRead(ReadCommand::create(sleepCommand, true)).get(); },
+      CommandTimeoutException);
 
   ssh->close();
   ssh = startSshServer();

@@ -103,7 +103,7 @@ Future<string> TimeoutTrackingCli::executeSomething(
             // executor
             MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
                          << "timing out";
-            throw FutureTimeout();
+            throw CommandTimeoutException();
           },
           timeoutTrackingParameters->timekeeper.get())
       .thenValue(

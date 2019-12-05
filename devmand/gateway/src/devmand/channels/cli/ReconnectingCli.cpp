@@ -93,27 +93,23 @@ void ReconnectingCli::triggerReconnect(shared_ptr<ReconnectParameters> params) {
               });
         }) // TODO: Add onTimeout here to handle establish session timeouts?
 
-        .thenError(
-            folly::tag_t<std::exception>{},
-            [params](std::exception const& e) -> Future<Unit> {
-              // quiet period
-              MLOG(MDEBUG)
-                  << "[" << params->id << "] "
-                  << "triggerReconnect started quiet period, got error : "
-                  << e.what();
+        .thenError([params](const exception_wrapper& e) -> Future<Unit> {
+          // quiet period
+          MLOG(MDEBUG) << "[" << params->id << "] "
+                       << "triggerReconnect started quiet period, got error : "
+                       << e.what();
 
-              return futures::sleep(
-                         params->quietPeriod, params->timekeeper.get())
-                  .via(params->executor.get())
-                  .thenValue([params](Unit) -> Future<Unit> {
-                    MLOG(MDEBUG)
-                        << "[" << params->id << "] "
-                        << "triggerReconnect reconnecting after quiet period";
-                    params->isReconnecting = false;
-                    triggerReconnect(params);
-                    return makeFuture();
-                  });
-            });
+          return futures::sleep(params->quietPeriod, params->timekeeper.get())
+              .via(params->executor.get())
+              .thenValue([params](Unit) -> Future<Unit> {
+                MLOG(MDEBUG)
+                    << "[" << params->id << "] "
+                    << "triggerReconnect reconnecting after quiet period";
+                params->isReconnecting = false;
+                triggerReconnect(params);
+                return makeFuture();
+              });
+        });
   } else {
     MLOG(MDEBUG) << "[" << params->id << "] "
                  << "Already reconnecting";
@@ -143,37 +139,42 @@ SemiFuture<string> ReconnectingCli::executeSomething(
     const function<SemiFuture<string>(shared_ptr<Cli>)>& innerFunc,
     const Command cmd) {
   shared_ptr<Cli> cliOrNull = nullptr;
+
   if (reconnectParameters->isReconnecting) {
-    return makeFuture<string>(runtime_error("Not connected"));
+    return makeFuture<string>(DisconnectedException());
   }
+
   { // TODO: trylock and throw on already locked. This means reconnect is in
     // progress
     boost::mutex::scoped_lock scoped_lock(reconnectParameters->cliMutex);
     cliOrNull = reconnectParameters->maybeCli;
   }
-  if (cliOrNull != nullptr) {
-    return innerFunc(cliOrNull)
-        .via(reconnectParameters->executor.get())
-        .thenError( // TODO: only reconnect on timeout exception
-            folly::tag_t<std::exception>{},
-            [params = reconnectParameters, loggingPrefix, cmd](
-                exception const& e) -> Future<string> {
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
-                           << loggingPrefix
-                           << " failed with error : " << e.what();
 
-              // Using "this" raw pointer, however we have the
-              // shared_ptr<params> to protect against destructor call
-              triggerReconnect(params);
-              auto cpException = runtime_error(e.what());
-              // TODO: exception type is not preserved,
-              // queueEntry.promise->setException(e) results in std::exception
-              throw cpException;
-            })
-        .semi();
-  } else {
-    return makeFuture<string>(runtime_error("Not connected"));
+  if (cliOrNull == nullptr) {
+    return makeFuture<string>(DisconnectedException());
   }
+
+  return innerFunc(cliOrNull)
+      .via(reconnectParameters->executor.get())
+      .thenTry([params = reconnectParameters, loggingPrefix, cmd](
+                   const Try<string>& t) {
+        // Reconnect in case of any CommandExecutionException
+        // e.g. write failed, read failed, command timeout
+        // using thenTry to preserve ex type
+        if (t.hasException() &&
+            t.exception().is_compatible_with<CommandExecutionException>()) {
+          MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
+                       << loggingPrefix
+                       << " failed due to: " << t.exception().what();
+
+          // Using "this" raw pointer, however we have the
+          // shared_ptr<params> to protect against destructor call
+          triggerReconnect(params);
+        }
+        return t;
+      })
+
+      .semi();
 }
 
 } // namespace cli
