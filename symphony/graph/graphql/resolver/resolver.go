@@ -178,6 +178,18 @@ func (resolver) CheckListItemDefinition() generated.CheckListItemDefinitionResol
 	return checkListItemDefinitionResolver{}
 }
 
+func (resolver) ActionsRule() generated.ActionsRuleResolver {
+	return actionsRuleResolver{}
+}
+
+func (resolver) ActionsRuleAction() generated.ActionsRuleActionResolver {
+	return actionsRuleActionResolver{}
+}
+
+func (resolver) ActionsRuleFilter() generated.ActionsRuleFilterResolver {
+	return actionsRuleFilterResolver{}
+}
+
 func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
 	return actionsTriggerResolver{}
 }

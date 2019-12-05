@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0d5de4de31f5e60c741fd7339d77866d
+ * @relayHash 0667c173fe8a5767e352b0d2d848da64
  */
 
 /* eslint-disable */
@@ -54,7 +54,6 @@ fragment ActionRow_data on ActionsTrigger {
     actionID
     dataType
     description
-    id
   }
 }
 
@@ -105,13 +104,6 @@ v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "count",
-  "args": null,
-  "storageKey": null
-},
-v3 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "id",
   "args": null,
   "storageKey": null
 };
@@ -204,8 +196,7 @@ return {
                     "args": null,
                     "storageKey": null
                   },
-                  (v1/*: any*/),
-                  (v3/*: any*/)
+                  (v1/*: any*/)
                 ]
               },
               {
@@ -253,7 +244,13 @@ return {
                   }
                 ]
               },
-              (v3/*: any*/)
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "id",
+                "args": null,
+                "storageKey": null
+              }
             ]
           },
           (v2/*: any*/)
@@ -265,7 +262,7 @@ return {
     "operationKind": "query",
     "name": "Actions_ActionsQuery",
     "id": null,
-    "text": "query Actions_ActionsQuery {\n  actionsTriggers {\n    results {\n      triggerID\n      description\n      ...ActionsAddDialog_triggerData\n      id\n    }\n    count\n  }\n}\n\nfragment ActionRow_data on ActionsTrigger {\n  triggerID\n  supportedActions {\n    actionID\n    dataType\n    description\n    id\n  }\n}\n\nfragment ActionsAddDialog_triggerData on ActionsTrigger {\n  triggerID\n  description\n  ...ActionRow_data\n  ...TriggerFilterRow_data\n}\n\nfragment TriggerFilterOperator_data on ActionsFilter {\n  supportedOperators {\n    operatorID\n    description\n    dataInput\n  }\n}\n\nfragment TriggerFilterRow_data on ActionsTrigger {\n  triggerID\n  supportedFilters {\n    filterID\n    description\n    supportedOperators {\n      operatorID\n    }\n    ...TriggerFilterOperator_data\n  }\n}\n",
+    "text": "query Actions_ActionsQuery {\n  actionsTriggers {\n    results {\n      triggerID\n      description\n      ...ActionsAddDialog_triggerData\n      id\n    }\n    count\n  }\n}\n\nfragment ActionRow_data on ActionsTrigger {\n  triggerID\n  supportedActions {\n    actionID\n    dataType\n    description\n  }\n}\n\nfragment ActionsAddDialog_triggerData on ActionsTrigger {\n  triggerID\n  description\n  ...ActionRow_data\n  ...TriggerFilterRow_data\n}\n\nfragment TriggerFilterOperator_data on ActionsFilter {\n  supportedOperators {\n    operatorID\n    description\n    dataInput\n  }\n}\n\nfragment TriggerFilterRow_data on ActionsTrigger {\n  triggerID\n  supportedFilters {\n    filterID\n    description\n    supportedOperators {\n      operatorID\n    }\n    ...TriggerFilterOperator_data\n  }\n}\n",
     "metadata": {}
   }
 };

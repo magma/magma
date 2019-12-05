@@ -378,6 +378,12 @@ func (r queryResolver) Customers(
 	return &models.CustomerConnection{Edges: edges}, nil
 }
 
+func (r queryResolver) ActionsRules(
+	ctx context.Context,
+) (*models.ActionsRulesSearchResult, error) {
+	return nil, errors.New("stub")
+}
+
 func (r queryResolver) ActionsTriggers(
 	ctx context.Context,
 ) (*models.ActionsTriggersSearchResult, error) {

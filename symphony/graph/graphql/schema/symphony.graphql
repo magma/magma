@@ -1440,7 +1440,6 @@ type ActionsOperator {
 # ActionsAction defines an action that can be executed
 # Ex. "Reboot a magma device"
 type ActionsAction {
-  id: ID! # Same as actionID, but used for Node
   actionID: ActionID!
   description: String!
   # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
@@ -1461,6 +1460,46 @@ type ActionsFilter {
 
 type ActionsTriggersSearchResult {
   results: [ActionsTrigger]!
+  count: Int!
+}
+
+# ActionsRuleAction is a user-configured data about an action to execute, along
+# with data for executing that action
+type ActionsRuleAction
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction"
+  ) {
+  action: ActionsAction! @goField(forceResolver: true)
+  actionID: ActionID!
+  data: String!
+}
+
+# ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
+type ActionsRuleFilter
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter"
+  ) {
+  filterID: String
+  operatorID: String
+  operator: ActionsOperator! @goField(forceResolver: true)
+  # Serialized JSON of the metadata to filter
+  # (contextual to the operator)
+  data: String!
+}
+
+# ActionsRule is a user-configured rule tieing a trigger, filtering it, and
+# executing 1 or more actions
+type ActionsRule implements Node {
+  id: ID!
+  name: String!
+  trigger: ActionsTrigger! @goField(forceResolver: true)
+  triggerID: TriggerID!
+  ruleActions: [ActionsRuleAction]!
+  ruleFilters: [ActionsRuleFilter]!
+}
+
+type ActionsRulesSearchResult {
+  results: [ActionsRule]!
   count: Int!
 }
 
@@ -1590,6 +1629,7 @@ type Query {
     before: Cursor
     last: Int
   ): CustomerConnection
+  actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
 }
 

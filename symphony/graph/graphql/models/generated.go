@@ -16,7 +16,6 @@ import (
 )
 
 type ActionsAction struct {
-	ID          string   `json:"id"`
 	ActionID    ActionID `json:"actionID"`
 	Description string   `json:"description"`
 	DataType    string   `json:"dataType"`
@@ -32,6 +31,11 @@ type ActionsOperator struct {
 	OperatorID  string `json:"operatorID"`
 	Description string `json:"description"`
 	DataInput   string `json:"dataInput"`
+}
+
+type ActionsRulesSearchResult struct {
+	Results []*ent.ActionsRule `json:"results"`
+	Count   int                `json:"count"`
 }
 
 type ActionsTrigger struct {
