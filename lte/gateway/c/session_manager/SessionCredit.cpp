@@ -31,13 +31,27 @@ SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
   reporting_(false),
   reauth_state_(REAUTH_NOT_NEEDED),
   service_state_(start_state),
+  unlimited_quota_(false),
+  buckets_ {}
+{
+}
+
+SessionCredit::SessionCredit(
+  CreditType credit_type,
+  ServiceState start_state,
+  bool unlimited_quota):
+  credit_type_(credit_type),
+  reporting_(false),
+  reauth_state_(REAUTH_NOT_NEEDED),
+  service_state_(start_state),
+  unlimited_quota_(unlimited_quota),
   buckets_ {}
 {
 }
 
 // by default, enable service
 SessionCredit::SessionCredit(CreditType credit_type):
-  SessionCredit(credit_type, SERVICE_ENABLED)
+  SessionCredit(credit_type, SERVICE_ENABLED, false)
 {
 }
 
@@ -195,8 +209,7 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return credit_type_ == CreditType::CHARGING &&
-    SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
+  return credit_type_ == CreditType::CHARGING && !unlimited_quota_ &&
     ((no_more_grant() && quota_exhausted()) ||
       quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));
 }

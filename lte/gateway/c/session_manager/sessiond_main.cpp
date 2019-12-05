@@ -163,8 +163,6 @@ int main(int argc, char *argv[])
   magma::SessionCredit::USAGE_REPORTING_THRESHOLD = reporting_threshold;
   magma::SessionCredit::EXTRA_QUOTA_MARGIN =
     config["extra_quota_margin"].as<uint64_t>();
-  magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
-   config["terminate_service_when_quota_exhausted"].as<bool>();
 
   auto reporter = std::make_shared<magma::SessionReporterImpl>(
     evb, get_controller_channel(mconfig));
