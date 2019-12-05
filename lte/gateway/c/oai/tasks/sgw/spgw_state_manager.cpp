@@ -48,9 +48,6 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config)
   persist_state_enabled = persist_state;
   config_ = config;
   create_state();
-  if (init_db_connection(LOCALHOST) != RETURNok) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Failed to initiate db connection");
-  }
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from redis");
   }

@@ -154,8 +154,7 @@ int mme_api_get_esm_config(mme_api_esm_config_t *config);
 
 int mme_api_notify_imsi(
   const mme_ue_s1ap_id_t id,
-  const imsi64_t imsi64,
-  uint8_t imsi_len);
+  const imsi64_t imsi64);
 
 int mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid, guti_t *const guti);
 

@@ -5,6 +5,10 @@
 version: "3.7"
 
 services:
+  graph:
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
+
   platform-server:
     command: yarn run start:dev
     volumes:
@@ -25,15 +29,6 @@ services:
       - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/app:/app/fbcnms-projects/inventory/app:delegated
       - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/scripts:/app/fbcnms-projects/inventory/scripts:delegated
       - ${XPLAT_FBC_DIR}/fbcnms-projects/magmalte/app:/app/fbcnms-projects/magmalte/app:delegated
-
-  jaeger:
-    image: jaegertracing/all-in-one
-    ports:
-      - 16686:16686
-    networks:
-      - public
-      - private
-    restart: on-failure
 
   store:
     environment:

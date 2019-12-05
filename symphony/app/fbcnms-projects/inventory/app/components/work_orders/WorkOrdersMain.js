@@ -43,7 +43,7 @@ function WorkOrdersMain() {
       <AppSideBar
         mainItems={<WorkOrdersNavListItems />}
         projects={getProjectLinks(tabs, user)}
-        showSettings={false}
+        showSettings={true}
         user={nullthrows(user)}
       />
       <AppContent>

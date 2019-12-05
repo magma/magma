@@ -134,9 +134,6 @@ void _detach_t3422_handler(void *args)
     if (data) {
       // free timer argument
       free_wrapper((void **) &data);
-      emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
-      DevAssert(emm_ctx);
-      //emm_ctx->t3422_arg = NULL;
     }
     if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
@@ -432,13 +429,13 @@ int emm_proc_detach_request(
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     rc = emm_sap_send(&emm_sap);
+    emm_context_unlock(emm_ctx);
     // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
     mme_app_handle_detach_req(ue_id);
+  } else {
+    emm_context_unlock(emm_ctx);
   }
-  // Release emm and esm context
-  _clear_emm_ctxt(emm_ctx);
 
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
@@ -496,14 +493,13 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     emm_sap_send(&emm_sap);
+    emm_context_unlock(emm_ctx);
     // Notify MME APP to trigger Session release towards SGW and S1 signaling release towards S1AP.
     mme_app_handle_detach_req(ue_id);
-    // Release emm and esm context
-    _clear_emm_ctxt(emm_ctx);
+  } else {
+    emm_ctx->is_imsi_only_detach = false;
+    emm_context_unlock(emm_ctx);
   }
-  emm_ctx->is_imsi_only_detach = false;
-
-  emm_context_unlock(emm_ctx);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 

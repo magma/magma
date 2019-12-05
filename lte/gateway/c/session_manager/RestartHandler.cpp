@@ -16,7 +16,7 @@ namespace magma {
 namespace sessiond {
 
 const uint RestartHandler::max_cleanup_retries_ = 3;
-const uint RestartHandler::directoryd_rpc_interval_s_ = 10;
+const uint RestartHandler::rpc_retry_interval_s_ = 5;
 
 RestartHandler::RestartHandler(
   std::shared_ptr<AsyncDirectorydClient> directoryd_client,
@@ -28,18 +28,17 @@ RestartHandler::RestartHandler(
 {
 }
 
-void RestartHandler::cleanup_previous_sessions() {
+void RestartHandler::cleanup_previous_sessions()
+{
   uint rpc_try = 0;
   bool finished = false;
   while (!finished && rpc_try < max_cleanup_retries_) {
-    std::promise<bool> p;
-    std::future<bool> f = p.get_future();
+    std::promise<bool> directoryd_res;
+    std::future<bool> directoryd_future = directoryd_res.get_future();
     auto res = directoryd_client_->get_all_directoryd_records(
-      [this, &p] (
-       Status status, AllDirectoryRecords response) {
+      [this, &directoryd_res](Status status, AllDirectoryRecords response) {
         if (!status.ok()) {
-          MLOG(MERROR) << "DirectoryD call to fetch all records failed...";
-          p.set_value(false);
+          directoryd_res.set_value(false);
           return;
         }
         auto records = response.records();
@@ -50,27 +49,45 @@ void RestartHandler::cleanup_previous_sessions() {
           }
           auto session_id = session_iter->second;
           sessions_to_terminate_.insert({record.id(), session_id});
-          uint current_try = 0;
-          while (!sessions_to_terminate_.empty() &&
-            current_try < max_cleanup_retries_) {
-              for (const auto& iter: sessions_to_terminate_) {
-                terminate_previous_session(iter.first, iter.second);
-              }
-              current_try++;
-          }
-          if (sessions_to_terminate_.empty()) {
-            MLOG(MINFO) << "Successfully terminated all old sessions";
-          } else {
-            MLOG(MERROR) << "Terminating old sessions failed";
-          }
-          p.set_value(true);
         }
+        directoryd_res.set_value(true);
       });
-    f.wait();
-    finished = f.get();
+    finished = directoryd_future.get();
     rpc_try++;
-    std::this_thread::sleep_for(std::chrono::seconds(
-     directoryd_rpc_interval_s_));
+    directoryd_res = std::promise<bool>();
+    if (!finished) {
+      std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
+    }
+  }
+  if (!finished) {
+    MLOG(MERROR) << "DirectoryD call to fetch all records failed after "
+                 << max_cleanup_retries_
+                 << " retries. Not cleaning up previous sessions";
+    return;
+  }
+  uint termination_try = 0;
+  while (!sessions_to_terminate_.empty() &&
+         termination_try < max_cleanup_retries_) {
+    std::vector<std::future<void>> termination_futures;
+    for (const auto& iter : sessions_to_terminate_) {
+      termination_futures.push_back(std::async(
+        std::launch::async,
+        &magma::sessiond::RestartHandler::terminate_previous_session,
+        this,
+        iter.first,
+        iter.second));
+    }
+    termination_try++;
+    for (auto&& fut : termination_futures) {
+      fut.get();
+    }
+    termination_futures.clear();
+    std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
+  }
+  if (sessions_to_terminate_.empty()) {
+    MLOG(MINFO) << "Successfully terminated all old sessions";
+  } else {
+    MLOG(MERROR) << "Terminating old sessions failed";
   }
 }
 
@@ -81,36 +98,48 @@ void RestartHandler::terminate_previous_session(
   SessionTerminateRequest term_req;
   term_req.set_sid(sid);
   term_req.set_session_id(session_id);
-  (*reporter_).report_terminate_session(
-    term_req,
-    [this, sid, session_id] (Status status, SessionTerminateResponse response) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "CCR-T cleanup for subscriber " << sid
-          << ", session id: " << session_id << " failed";
-        return;
-      }
-      // Don't delete subscriber from directoryD if IMSI is known
-      if (enforcer_->is_imsi_duplicate(response.sid())) {
-        MLOG(MINFO) << "Not cleaning up previous session after restart "
-          << "for subscriber " << response.sid() << ", session id: "
-          << response.session_id() << ": subscriber session exists.";
-        return;
-      }
-      DeleteRecordRequest del_request;
-      del_request.set_id(response.sid());
-      directoryd_client_->delete_directoryd_record(
-        del_request,
-        [this, &del_request, sid] (Status status, Void) {
-          if (!status.ok()) {
-            MLOG(MERROR) << "DirectoryD DeleteRecord failed to remove "
-            << "subscriber " << sid << " from DirectoryD";
-            return;
-          }
-          sessions_to_terminate_.erase(del_request.id());
-          MLOG(MDEBUG) << "Successfully terminated previous session for "
-            << "subscriber " << sid;
-        });
-    });
+  std::promise<bool> termination_res;
+  std::future<bool> termination_future = termination_res.get_future();
+  (*reporter_)
+    .report_terminate_session(
+      term_req,
+      [this, &termination_res, sid, session_id](
+        Status status, SessionTerminateResponse response) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "CCR-T cleanup for subscriber " << sid
+                       << ", session id: " << session_id << " failed";
+          termination_res.set_value(false);
+          return;
+        }
+        // Don't delete subscriber from directoryD if IMSI is known
+        if (enforcer_->is_imsi_duplicate(response.sid())) {
+          MLOG(MINFO) << "Not cleaning up previous session after restart "
+                      << "for subscriber " << response.sid()
+                      << ", session id: " << response.session_id()
+                      << ": subscriber session exists.";
+          termination_res.set_value(true);
+          return;
+        }
+        DeleteRecordRequest del_request;
+        del_request.set_id(response.sid());
+        directoryd_client_->delete_directoryd_record(
+          del_request,
+          [this, &del_request, &termination_res, sid](Status status, Void) {
+            if (!status.ok()) {
+              MLOG(MERROR) << "DirectoryD DeleteRecord failed to remove "
+                           << "subscriber " << sid << " from DirectoryD";
+              termination_res.set_value(false);
+              return;
+            }
+            MLOG(MDEBUG) << "Successfully terminated previous session for "
+                         << "subscriber " << sid;
+            termination_res.set_value(true);
+          });
+      });
+  bool should_erase = termination_future.get();
+  if (should_erase) {
+    sessions_to_terminate_.erase(sid);
+  }
 }
 } // namespace sessiond
 } // namespace magma

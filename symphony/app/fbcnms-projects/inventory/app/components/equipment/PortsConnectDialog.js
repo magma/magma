@@ -98,25 +98,27 @@ const steps = ['Select Equipment', 'Select Port', 'Link Properties', 'Confirm'];
 
 const portsConnectDialogQuery = graphql`
   query PortsConnectDialogQuery($equipmentId: ID!) {
-    equipment(id: $equipmentId) {
-      id
-      name
-      equipmentType {
+    equipment: node(id: $equipmentId) {
+      ... on Equipment {
         id
         name
-        portDefinitions {
+        equipmentType {
           id
           name
-          visibleLabel
-          type
-          bandwidth
+          portDefinitions {
+            id
+            name
+            visibleLabel
+            type
+            bandwidth
+          }
         }
-      }
-      positions {
-        ...EquipmentPortsTable_position @relay(mask: false)
-      }
-      ports {
-        ...EquipmentPortsTable_port @relay(mask: false)
+        positions {
+          ...EquipmentPortsTable_position @relay(mask: false)
+        }
+        ports {
+          ...EquipmentPortsTable_port @relay(mask: false)
+        }
       }
     }
   }

@@ -68,7 +68,7 @@ func TenantHandler(handler http.Handler, loader TenantLoader) http.Handler {
 			ctx = context.WithValue(ctx, tenantCtxKey{}, t)
 			ctx = log.NewFieldsContext(ctx, zap.String("tenant", name))
 			trace.FromContext(ctx).AddAttributes(
-				trace.StringAttribute("viewer.tenant", name),
+				trace.StringAttribute("tenant", name),
 			)
 			handler.ServeHTTP(w, r.WithContext(ctx))
 		case *ent.ErrNotFound:

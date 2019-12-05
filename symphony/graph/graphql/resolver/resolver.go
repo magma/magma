@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -14,8 +15,9 @@ import (
 )
 
 type resolver struct {
-	log    log.Logger
-	withTx bool
+	log         log.Logger
+	withTx      bool
+	orc8rClient *http.Client
 }
 
 // User information of the graphql request initiator
@@ -44,8 +46,8 @@ func (r resolver) User(ctx context.Context) User {
 	return User{viewer.FromContext(ctx).User}
 }
 
-func (resolver) Equipment() generated.EquipmentResolver {
-	return equipmentResolver{}
+func (r resolver) Equipment() generated.EquipmentResolver {
+	return equipmentResolver{r}
 }
 
 func (resolver) EquipmentPort() generated.EquipmentPortResolver {
@@ -183,5 +185,12 @@ type ResolveOption func(*resolver)
 func WithTransaction(b bool) ResolveOption {
 	return func(r *resolver) {
 		r.withTx = b
+	}
+}
+
+// WithOrc8rClient is used to provide orchestrator http client.
+func WithOrc8rClient(client *http.Client) ResolveOption {
+	return func(r *resolver) {
+		r.orc8rClient = client
 	}
 }

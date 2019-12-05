@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {FocusEvent} from '@fbcnms/ui/components/design-system/Input/TextInput';
+
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import InputAffix from '@fbcnms/ui/components/design-system/Input/InputAffix';
 import React from 'react';
@@ -25,7 +27,7 @@ type Props = {
   className: string,
   required: boolean,
   disabled: boolean,
-  onBlur: () => ?void,
+  onBlur: (e: FocusEvent<HTMLInputElement>) => ?void,
   onRangeToChange: (event: SyntheticInputEvent<>) => void,
   onRangeFromChange: (event: SyntheticInputEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
@@ -71,7 +73,7 @@ const RangePropertyValueInput = (props: Props) => {
           margin={margin}
           onKeyDown={e => {
             if (e.keyCode === ENTER_KEY_CODE) {
-              props.onBlur();
+              props.onBlur(e);
             }
           }}
           value={parseFloat(rangeFrom)}
@@ -90,7 +92,7 @@ const RangePropertyValueInput = (props: Props) => {
           margin={margin}
           onKeyDown={e => {
             if (e.keyCode === ENTER_KEY_CODE) {
-              props.onBlur();
+              props.onBlur(e);
             }
           }}
           type="number"

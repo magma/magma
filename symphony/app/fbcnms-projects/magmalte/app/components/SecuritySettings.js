@@ -60,7 +60,9 @@ class SecuritySettings extends React.Component<Props, State> {
 
     return (
       <div className={classes.formContainer}>
-        <Text variant="h5">Change Password</Text>
+        <Text data-testid="change-password-title" variant="h5">
+          Change Password
+        </Text>
         {this.state.error ? (
           <FormLabel error>{this.state.error}</FormLabel>
         ) : null}

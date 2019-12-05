@@ -18,9 +18,10 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
-
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
+	"go.uber.org/zap"
+	"golang.org/x/xerrors"
 )
 
 type workOrderDefinitionResolver struct{}
@@ -379,25 +380,34 @@ func (r mutationResolver) EditWorkOrderType(
 }
 
 func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id string) (string, error) {
-	client := r.ClientFrom(ctx)
-	wot, err := client.WorkOrderType.Get(ctx, id)
-	if err != nil {
-		return id, errors.Wrapf(err, "work order type does not exist: id=%q", id)
-	}
-	exist, err := wot.QueryWorkOrders().Exist(ctx)
-	if err != nil {
-		return id, errors.Wrapf(err, "querying work orders for type: id=%q", id)
-	}
-	if exist {
-		return id, errors.Errorf("cannot delete work order type with existing work orders: id=%q", id)
+	client, logger := r.ClientFrom(ctx), r.log.For(ctx).With(zap.String("id", id))
+	switch count, err := client.WorkOrderType.Query().
+		Where(workordertype.ID(id)).
+		QueryWorkOrders().
+		Count(ctx); {
+	case err != nil:
+		logger.Error("cannot query work order count of type", zap.Error(err))
+		return "", xerrors.Errorf("querying work orders for type: %w", err)
+	case count > 0:
+		logger.Warn("work order type has existing work orders", zap.Int("count", count))
+		return "", gqlerror.Errorf("cannot delete work order type with %d existing work orders", count)
 	}
 	if _, err := client.PropertyType.Delete().
 		Where(propertytype.HasWorkOrderTypeWith(workordertype.ID(id))).
 		Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting property type: id=%q", id)
+		logger.Error("cannot delete properties of work order type", zap.Error(err))
+		return "", xerrors.Errorf("deleting work order property types: %w", err)
 	}
-	if err := client.WorkOrderType.DeleteOne(wot).Exec(ctx); err != nil {
-		return id, errors.Wrapf(err, "deleting work order type: id=%q", id)
+	switch err := client.WorkOrderType.DeleteOneID(id).Exec(ctx); err.(type) {
+	case nil:
+		logger.Info("deleted work order type")
+		return id, nil
+	case *ent.ErrNotFound:
+		err := gqlerror.Errorf("work order type not found")
+		logger.Error(err.Message)
+		return "", err
+	default:
+		logger.Error("cannot delete work order type", zap.Error(err))
+		return "", xerrors.Errorf("deleting work order type: %w", err)
 	}
-	return id, nil
 }

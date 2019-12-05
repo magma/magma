@@ -12,6 +12,7 @@ import type {symphony_agent} from '@fbcnms/magma-api';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DevicesEditManagedDeviceDialog from './DevicesEditManagedDeviceDialog';
 import DevicesManagedDeviceRow from './DevicesManagedDeviceRow';
+import DevicesMetricsDialog from './DevicesMetricsDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -177,6 +178,12 @@ export default function DevicesStatusTable() {
             onSave={() => history.push(relativeUrl(''))} // TODO update devices
             onCancel={() => history.push(relativeUrl(''))}
           />
+        )}
+      />
+      <Route
+        path={relativePath('/metrics/:deviceID')}
+        render={() => (
+          <DevicesMetricsDialog onClose={() => history.push(relativeUrl(''))} />
         )}
       />
     </>

@@ -41,7 +41,15 @@ type (
 	Creator interface {
 		Create(context.Context, ...schema.MigrateOption) error
 	}
+
+	// CreatorFunc is a function adapter implementing Creator interface.
+	CreatorFunc func(context.Context, ...schema.MigrateOption) error
 )
+
+// Create invokes f(ctx, opts...).
+func (f CreatorFunc) Create(ctx context.Context, opts ...schema.MigrateOption) error {
+	return f(ctx, opts...)
+}
 
 // NewMigrator create schema based migrator from config.
 func NewMigrator(cfg MigratorConfig) *Migrator {

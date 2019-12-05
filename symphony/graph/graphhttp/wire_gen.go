@@ -12,10 +12,12 @@ package graphhttp
 import (
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/cloud/oc"
+	"github.com/facebookincubator/symphony/cloud/orc8r"
 	"github.com/facebookincubator/symphony/cloud/server"
 	"github.com/facebookincubator/symphony/cloud/server/xserver"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"gocloud.dev/server/health"
+	"net/http"
 )
 
 // Injectors from wire.go:
@@ -23,7 +25,9 @@ import (
 func NewServer(cfg Config) (*server.Server, func(), error) {
 	mySQLTenancy := cfg.Tenancy
 	logger := cfg.Logger
-	router, err := newRouter(mySQLTenancy, logger)
+	config := cfg.Orc8r
+	client := newOrc8rClient(config)
+	router, err := newRouter(mySQLTenancy, logger, client)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -73,8 +77,14 @@ type Config struct {
 	Tenancy *viewer.MySQLTenancy
 	Logger  log.Logger
 	Census  oc.Options
+	Orc8r   orc8r.Config
 }
 
 func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
+}
+
+func newOrc8rClient(config orc8r.Config) *http.Client {
+	client, _ := orc8r.NewClient(config)
+	return client
 }

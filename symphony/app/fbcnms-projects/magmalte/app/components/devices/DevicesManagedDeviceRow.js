@@ -18,6 +18,7 @@ import IconButton from '@material-ui/core/IconButton';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 import TableCell from '@material-ui/core/TableCell';
 import TableRow from '@material-ui/core/TableRow';
 
@@ -102,12 +103,15 @@ export default function DevicesManagedDeviceRow(props: Props) {
       />
       <TableRow className={classes.tableRow}>
         <TableCell className={classes.subrowCell}>{props.deviceID}</TableCell>
-        <TableCell>
-          <DevicesState device={device} />
-        </TableCell>
+        <TableCell>{device && <DevicesState device={device} />}</TableCell>
         <TableCell>{managingAgentText}</TableCell>
 
         <TableCell className={classes.actionsCell}>
+          <NestedRouteLink to={`/metrics/${props.deviceID}`}>
+            <IconButton className={classes.iconButton}>
+              <ShowChartIcon />
+            </IconButton>
+          </NestedRouteLink>
           {props.enableDeviceEditing && (
             <NestedRouteLink to={`/edit_device/${props.deviceID}`}>
               <IconButton className={classes.iconButton}>

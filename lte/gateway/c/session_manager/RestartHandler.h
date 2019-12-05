@@ -8,6 +8,8 @@
  */
 #pragma once
 
+#include <future>
+
 #include "SessionReporter.h"
 #include "DirectorydClient.h"
 #include "LocalEnforcer.h"
@@ -30,19 +32,18 @@ class RestartHandler {
    */
   void cleanup_previous_sessions();
 
-private:
+ private:
   void terminate_previous_session(
     const std::string& sid,
     const std::string& session_id);
 
  private:
-   std::shared_ptr<LocalEnforcer> enforcer_;
-   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
-   SessionReporter* reporter_;
-   std::unordered_map<std::string, std::string> sessions_to_terminate_;
-   static const uint max_cleanup_retries_;
-   static const uint directoryd_rpc_interval_s_;
-
+  std::shared_ptr<LocalEnforcer> enforcer_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  SessionReporter* reporter_;
+  std::unordered_map<std::string, std::string> sessions_to_terminate_;
+  static const uint max_cleanup_retries_;
+  static const uint rpc_retry_interval_s_;
 };
 } // namespace sessiond
 } // namespace magma

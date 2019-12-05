@@ -873,6 +873,35 @@ func TabsNotNil() predicate.User {
 	)
 }
 
+// HasTokens applies the HasEdge predicate on the "tokens" edge.
+func HasTokens() predicate.User {
+	return predicate.User(
+		func(s *sql.Selector) {
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TokensTable, FieldID),
+				sql.Edge(sql.O2M, false, TokensTable, TokensColumn),
+			)
+			sql.HasNeighbors(s, step)
+		},
+	)
+}
+
+// HasTokensWith applies the HasEdge predicate on the "tokens" edge with a given conditions (other predicates).
+func HasTokensWith(preds ...predicate.Token) predicate.User {
+	return predicate.User(
+		func(s *sql.Selector) {
+			builder := sql.Dialect(s.Dialect())
+			t1 := s.Table()
+			t2 := builder.Select(TokensColumn).From(builder.Table(TokensTable))
+			for _, p := range preds {
+				p(t2)
+			}
+			s.Where(sql.In(t1.C(FieldID), t2))
+		},
+	)
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(

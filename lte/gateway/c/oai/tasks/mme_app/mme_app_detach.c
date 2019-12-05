@@ -168,6 +168,7 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
         mme_remove_ue_context(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
       } else {
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+        unlock_ue_contexts(ue_context_p);
       }
     }
   } else {
@@ -178,8 +179,8 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
           ue_context_p, ue_context_p->pdn_contexts[i]->default_ebi, i);
       }
     }
+    unlock_ue_contexts(ue_context_p);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

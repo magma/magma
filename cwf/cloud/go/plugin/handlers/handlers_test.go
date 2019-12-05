@@ -507,7 +507,7 @@ func TestCwfGateways(t *testing.T) {
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 400,
-		ExpectedError:  "Found duplicate peer 2.2.2.2",
+		ExpectedError:  "Found duplicate peer 2.2.2.2:444",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -515,6 +515,7 @@ func TestCwfGateways(t *testing.T) {
 	payloadConf := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
 			{IP: "2.2.2.2", Key: swag.Uint32(321)},
+			{IP: "2.2.2.2", Key: swag.Uint32(123)},
 		},
 	}
 	tc = tests.Test{

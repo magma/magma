@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
+	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
 
 	"github.com/facebookincubator/ent/dialect"
@@ -30,6 +31,8 @@ type Client struct {
 	AuditLog *AuditLogClient
 	// Tenant is the client for interacting with the Tenant builders.
 	Tenant *TenantClient
+	// Token is the client for interacting with the Token builders.
+	Token *TokenClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 }
@@ -43,6 +46,7 @@ func NewClient(opts ...Option) *Client {
 		Schema:   migrate.NewSchema(c.driver),
 		AuditLog: NewAuditLogClient(c),
 		Tenant:   NewTenantClient(c),
+		Token:    NewTokenClient(c),
 		User:     NewUserClient(c),
 	}
 }
@@ -78,6 +82,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		config:   cfg,
 		AuditLog: NewAuditLogClient(cfg),
 		Tenant:   NewTenantClient(cfg),
+		Token:    NewTokenClient(cfg),
 		User:     NewUserClient(cfg),
 	}, nil
 }
@@ -99,6 +104,7 @@ func (c *Client) Debug() *Client {
 		Schema:   migrate.NewSchema(cfg.driver),
 		AuditLog: NewAuditLogClient(cfg),
 		Tenant:   NewTenantClient(cfg),
+		Token:    NewTokenClient(cfg),
 		User:     NewUserClient(cfg),
 	}
 }
@@ -236,6 +242,84 @@ func (c *TenantClient) GetX(ctx context.Context, id int) *Tenant {
 	return t
 }
 
+// TokenClient is a client for the Token schema.
+type TokenClient struct {
+	config
+}
+
+// NewTokenClient returns a client for the Token from the given config.
+func NewTokenClient(c config) *TokenClient {
+	return &TokenClient{config: c}
+}
+
+// Create returns a create builder for Token.
+func (c *TokenClient) Create() *TokenCreate {
+	return &TokenCreate{config: c.config}
+}
+
+// Update returns an update builder for Token.
+func (c *TokenClient) Update() *TokenUpdate {
+	return &TokenUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TokenClient) UpdateOne(t *Token) *TokenUpdateOne {
+	return c.UpdateOneID(t.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TokenClient) UpdateOneID(id int) *TokenUpdateOne {
+	return &TokenUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for Token.
+func (c *TokenClient) Delete() *TokenDelete {
+	return &TokenDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *TokenClient) DeleteOne(t *Token) *TokenDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *TokenClient) DeleteOneID(id int) *TokenDeleteOne {
+	return &TokenDeleteOne{c.Delete().Where(token.ID(id))}
+}
+
+// Create returns a query builder for Token.
+func (c *TokenClient) Query() *TokenQuery {
+	return &TokenQuery{config: c.config}
+}
+
+// Get returns a Token entity by its id.
+func (c *TokenClient) Get(ctx context.Context, id int) (*Token, error) {
+	return c.Query().Where(token.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TokenClient) GetX(ctx context.Context, id int) *Token {
+	t, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return t
+}
+
+// QueryUser queries the user edge of a Token.
+func (c *TokenClient) QueryUser(t *Token) *UserQuery {
+	query := &UserQuery{config: c.config}
+	id := t.ID
+	step := sql.NewStep(
+		sql.From(token.Table, token.FieldID, id),
+		sql.To(user.Table, user.FieldID),
+		sql.Edge(sql.M2O, true, token.UserTable, token.UserColumn),
+	)
+	query.sql = sql.Neighbors(t.driver.Dialect(), step)
+
+	return query
+}
+
 // UserClient is a client for the User schema.
 type UserClient struct {
 	config
@@ -298,4 +382,18 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 		panic(err)
 	}
 	return u
+}
+
+// QueryTokens queries the tokens edge of a User.
+func (c *UserClient) QueryTokens(u *User) *TokenQuery {
+	query := &TokenQuery{config: c.config}
+	id := u.ID
+	step := sql.NewStep(
+		sql.From(user.Table, user.FieldID, id),
+		sql.To(token.Table, token.FieldID),
+		sql.Edge(sql.O2M, false, user.TokensTable, user.TokensColumn),
+	)
+	query.sql = sql.Neighbors(u.driver.Dialect(), step)
+
+	return query
 }

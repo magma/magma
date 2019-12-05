@@ -126,7 +126,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		UsageMonitoringCredits: []*protos.UsageMonitoringCredit{
 			{
 				Action:        protos.UsageMonitoringCredit_CONTINUE,
-				MonitoringKey: monitoringKey,
+				MonitoringKey: []byte(monitoringKey),
 				GrantedUnits: &protos.GrantedUnits{
 					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
 					Tx:    &protos.CreditUnit{IsValid: false},
@@ -136,7 +136,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			},
 			{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: monitoringKey2,
+				MonitoringKey: []byte(monitoringKey2),
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
 		},

@@ -814,7 +814,7 @@ static int _sgsap_handle_paging_request_without_lai(
 {
   int rc = RETURNok;
   s1ap_cn_domain_t cn_domain = CN_DOMAIN_CS;
-  uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
+  uint8_t paging_id = NAS_PAGING_ID_IMSI;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (!ue_context_p) {
@@ -845,7 +845,7 @@ static int _sgsap_handle_paging_request_without_lai(
     if (ue_context_p->ppf) {
       /* if Paging request received without LAI for MT SMS, always page with S-TMSI */
       if (sgsap_paging_req_pP->service_indicator == SGSAP_SMS_INDICATOR) {
-        paging_id = MME_APP_PAGING_ID_TMSI;
+        paging_id = NAS_PAGING_ID_TMSI;
         cn_domain = CN_DOMAIN_PS;
       }
       /* if Paging request received without LAI for CS call, always page with IMSI */

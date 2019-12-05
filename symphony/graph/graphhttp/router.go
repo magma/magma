@@ -17,7 +17,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func newRouter(tenancy viewer.Tenancy, logger log.Logger) (*mux.Router, error) {
+func newRouter(tenancy viewer.Tenancy, logger log.Logger, orc8rClient *http.Client) (*mux.Router, error) {
 	router := mux.NewRouter()
 	router.Use(func(h http.Handler) http.Handler {
 		return viewer.TenancyHandler(h, tenancy)
@@ -39,7 +39,7 @@ func newRouter(tenancy viewer.Tenancy, logger log.Logger) (*mux.Router, error) {
 		Handler(http.StripPrefix("/export", exportHandler)).
 		Name("export")
 
-	handler, err := graphql.NewHandler(logger)
+	handler, err := graphql.NewHandler(logger, orc8rClient)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating graphql handler")
 	}

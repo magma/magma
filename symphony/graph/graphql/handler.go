@@ -29,8 +29,10 @@ import (
 func init() { gqlprometheus.Register() }
 
 // NewHandler creates a graphql http handler.
-func NewHandler(logger log.Logger) (http.Handler, error) {
-	rsv, err := resolver.New(logger)
+func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, error) {
+	var opts []resolver.ResolveOption
+	opts = append(opts, resolver.WithOrc8rClient(orc8rClient))
+	rsv, err := resolver.New(logger, opts...)
 	if err != nil {
 		return nil, errors.WithMessage(err, "creating resolver")
 	}
