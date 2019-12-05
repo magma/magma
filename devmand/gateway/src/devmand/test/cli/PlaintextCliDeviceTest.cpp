@@ -93,9 +93,7 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevicesError) {
   const shared_ptr<State>& ptr = plaintextDevice->getState();
   auto state = ptr->collect().get();
 
-  // FIXME State class overrides status set from device to always say UP
-  //  EXPECT_EQ(state["fbc-symphony-device:system"]["status"], "DOWN");
-  EXPECT_EQ(state["fbc-symphony-device:errors"][0], "Not connected");
+  EXPECT_EQ(state["fbc-symphony-device:system"]["status"], "DOWN");
 }
 
 TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
@@ -103,10 +101,11 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
       app, getConfig("9999"), *cliEngine);
 
   int i = 0;
+  string status = "";
   string output = "";
   do {
     if (i > 0) {
-      this_thread::sleep_for(chrono::seconds(1));
+      this_thread::sleep_for(1s);
     }
 
     i++;
@@ -118,9 +117,9 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
     auto duration =
         chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
     MLOG(MDEBUG) << "Retrieving state took: " << duration << " mu.";
+    MLOG(MDEBUG) << folly::toJson(stateResult);
 
-    // FIXME instead of checking if there is output, check status once properly
-    // reported by State class
+    status = stateResult["fbc-symphony-device:system"]["status"].asString();
     output = stateResult.getDefault("echo 123", "").asString();
 
     if (i > 20) {
@@ -128,7 +127,7 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
           << "Unable to execute command, probably not connected, last state: "
           << folly::toJson(stateResult);
     }
-  } while (output == "");
+  } while (status == "DOWN");
 
   EXPECT_EQ(string("123"), boost::algorithm::trim_copy(output));
 }
