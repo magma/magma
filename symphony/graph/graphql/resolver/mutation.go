@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/cloud/actions"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
@@ -24,6 +26,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
@@ -2484,7 +2487,7 @@ func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCusto
 		SetNillableExternalID(input.ExternalID).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating costumer")
+		return nil, errors.Wrap(err, "creating custumer")
 	}
 	return t, nil
 }
@@ -2494,4 +2497,48 @@ func (r mutationResolver) RemoveCustomer(ctx context.Context, id string) (string
 		return "", errors.Wrap(err, "removing customer")
 	}
 	return id, nil
+}
+
+func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
+	ac := actions.FromContext(ctx)
+
+	triggerID := core.TriggerID(input.TriggerID)
+	_, err := ac.TriggerForID(triggerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating trigger")
+	}
+
+	ruleActions := make([]*schema.ActionsRuleAction, 0, len(input.RuleActions))
+	for _, ruleAction := range input.RuleActions {
+		_, err = ac.ActionForID(core.ActionID(ruleAction.ActionID))
+		if err != nil {
+			return nil, errors.Wrap(err, "validating action")
+		}
+
+		ruleActions = append(ruleActions, &schema.ActionsRuleAction{
+			ActionID: core.ActionID(ruleAction.ActionID),
+			Data:     ruleAction.Data,
+		})
+	}
+
+	ruleFilters := make([]*schema.ActionsRuleFilter, 0, len(input.RuleFilters))
+	for _, ruleFilter := range input.RuleFilters {
+		ruleFilters = append(ruleFilters, &schema.ActionsRuleFilter{
+			FilterID:   ruleFilter.FilterID,
+			OperatorID: ruleFilter.OperatorID,
+			Data:       ruleFilter.Data,
+		})
+	}
+
+	actionsRule, err := r.ClientFrom(ctx).
+		ActionsRule.Create().
+		SetName(input.Name).
+		SetTriggerID(input.TriggerID).
+		SetRuleActions(ruleActions).
+		SetRuleFilters(ruleFilters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating actionsrule")
+	}
+	return actionsRule, nil
 }

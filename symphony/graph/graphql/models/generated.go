@@ -33,6 +33,17 @@ type ActionsOperator struct {
 	DataInput   string `json:"dataInput"`
 }
 
+type ActionsRuleActionInput struct {
+	ActionID ActionID `json:"actionID"`
+	Data     string   `json:"data"`
+}
+
+type ActionsRuleFilterInput struct {
+	FilterID   string `json:"filterID"`
+	OperatorID string `json:"operatorID"`
+	Data       string `json:"data"`
+}
+
 type ActionsRulesSearchResult struct {
 	Results []*ent.ActionsRule `json:"results"`
 	Count   int                `json:"count"`
@@ -49,6 +60,13 @@ type ActionsTrigger struct {
 type ActionsTriggersSearchResult struct {
 	Results []*ActionsTrigger `json:"results"`
 	Count   int               `json:"count"`
+}
+
+type AddActionsRuleInput struct {
+	Name        string                    `json:"name"`
+	TriggerID   string                    `json:"triggerID"`
+	RuleActions []*ActionsRuleActionInput `json:"ruleActions"`
+	RuleFilters []*ActionsRuleFilterInput `json:"ruleFilters"`
 }
 
 type AddCustomerInput struct {

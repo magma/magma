@@ -1503,6 +1503,24 @@ type ActionsRulesSearchResult {
   count: Int!
 }
 
+input ActionsRuleActionInput {
+  actionID: ActionID!
+  data: String!
+}
+
+input ActionsRuleFilterInput {
+  filterID: String!
+  operatorID: String!
+  data: String!
+}
+
+input AddActionsRuleInput {
+  name: String!
+  triggerID: String!
+  ruleActions: [ActionsRuleActionInput]!
+  ruleFilters: [ActionsRuleFilterInput]!
+}
+
 type Query {
   me: Viewer
   node(id: ID!): Node
@@ -1790,4 +1808,5 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule
 }
