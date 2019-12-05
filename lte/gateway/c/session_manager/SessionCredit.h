@@ -84,6 +84,11 @@ class SessionCredit {
 
   SessionCredit(CreditType credit_type, ServiceState start_state);
 
+  SessionCredit(
+    CreditType credit_type,
+    ServiceState start_state,
+    bool unlimited_quota);
+
   /**
    * add_used_credit increments USED_TX and USED_RX
    * as being recently updated
@@ -186,6 +191,7 @@ class SessionCredit {
  private:
   bool reporting_;
   bool is_final_;
+  bool unlimited_quota_;
   FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
