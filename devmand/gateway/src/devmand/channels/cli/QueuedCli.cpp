@@ -49,7 +49,7 @@ QueuedCli::~QueuedCli() {
   {
     QueueEntry queueEntry;
     while (queuedParameters->queue.try_dequeue(queueEntry)) {
-      MLOG(MDEBUG) << "[" << id << "] (" << queueEntry.command.getIdx() << ") "
+      MLOG(MDEBUG) << "[" << id << "] (" << queueEntry.command << ") "
                    << "~QCli: fulfilling promise with exception";
       queueEntry.promise->setException(runtime_error("QCli: Shutting down"));
     }
@@ -65,21 +65,40 @@ QueuedCli::~QueuedCli() {
                << "~QCli done";
 }
 
-folly::SemiFuture<string> QueuedCli::executeRead(const ReadCommand cmd) {
+SemiFuture<string> QueuedCli::executeRead(const ReadCommand cmd) {
   boost::recursive_mutex::scoped_lock scoped_lock(queuedParameters->mutex);
+  MLOG(MDEBUG) << "[" << queuedParameters->id << "] "
+               << "Invoking read command: \"" << cmd << "\"";
   return executeSomething(
-      cmd, "QCli.executeRead", [params = queuedParameters, cmd]() {
-        return params->cli->executeRead(cmd);
-      });
+             cmd,
+             "QCli.executeRead",
+             [params = queuedParameters, cmd]() {
+               return params->cli->executeRead(cmd);
+             })
+      .via(queuedParameters->serialExecutorKeepAlive)
+      .thenTry([params = queuedParameters, cmd](const Try<string>&& t) {
+        // Logging callback
+        if (t.hasException()) {
+          MLOG(MWARNING) << "[" << params->id << "] "
+                         << "Read command: \"" << cmd << "\""
+                         << " Failed with: " << t.exception().what();
+        } else {
+          MLOG(MINFO) << "[" << params->id << "] "
+                      << "Read command: \"" << cmd << "\""
+                      << " Invoked successfully with output: \""
+                      << Command::escape(t.value()) << "\"";
+        }
+        return t;
+      })
+      .semi();
 }
 
-folly::SemiFuture<string> QueuedCli::executeWrite(const WriteCommand cmd) {
+SemiFuture<string> QueuedCli::executeWrite(const WriteCommand cmd) {
   boost::recursive_mutex::scoped_lock scoped_lock(queuedParameters->mutex);
+  MLOG(MDEBUG) << "[" << queuedParameters->id << "] "
+               << "Invoking write command: \"" << cmd << "\"";
   Command command = cmd;
   if (!command.isMultiCommand()) {
-    MLOG(MWARNING) << "[" << queuedParameters->id << "] "
-                   << "Called executeWrite with a single command " << cmd
-                   << ", executeRead() should have been used";
     // Single line config command, execute with read
     return executeRead(ReadCommand::create(cmd));
   }
@@ -108,6 +127,20 @@ folly::SemiFuture<string> QueuedCli::executeWrite(const WriteCommand cmd) {
              commmandsFutures.end(),
              string(""),
              [](string s1, string s2) { return s1 + s2; })
+      .thenTry([params = queuedParameters, cmd](const Try<string>&& t) {
+        // Logging callback
+        if (t.hasException()) {
+          MLOG(MWARNING) << "[" << params->id << "] "
+                         << "Write command: \"" << cmd << "\""
+                         << " Failed with: " << t.exception().what();
+        } else {
+          MLOG(MINFO) << "[" << params->id << "] "
+                      << "Write command: \"" << cmd << "\""
+                      << " Invoked successfully with output: \""
+                      << Command::escape(t.value()) << "\"";
+        }
+        return t;
+      })
       .semi();
 }
 
@@ -117,9 +150,8 @@ SemiFuture<string> QueuedCli::executeSomething(
     function<SemiFuture<string>()> innerFunc) {
   shared_ptr<Promise<string>> promise = make_shared<Promise<string>>();
   QueueEntry queueEntry = QueueEntry{move(innerFunc), promise, cmd, prefix};
-  MLOG(MDEBUG) << "[" << queuedParameters->id << "] ("
-               << queueEntry.command.getIdx() << ") " << prefix
-               << " adding to queue ('" << cmd << "')";
+  MLOG(MDEBUG) << "[" << queuedParameters->id << "] (" << queueEntry.command
+               << ") " << prefix << " adding to queue ('" << cmd << "')";
 
   queuedParameters->queue.enqueue(move(queueEntry));
   if (!queuedParameters->isProcessing) {
@@ -152,16 +184,16 @@ void QueuedCli::triggerDequeue(shared_ptr<QueuedParameters> queuedParameters) {
     }
 
     if (params->shutdown) {
-      MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command.getIdx()
-                   << ") " << queueEntry.loggingPrefix << " Shutting down";
+      MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command << ") "
+                   << queueEntry.loggingPrefix << " Shutting down";
       queueEntry.promise->setException(runtime_error("QCli: Shutting down"));
       return;
     }
 
     params->isProcessing = true;
     SemiFuture<string> cliFuture = queueEntry.obtainFutureFromCli();
-    MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command.getIdx()
-                 << ") " << queueEntry.loggingPrefix
+    MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command << ") "
+                 << queueEntry.loggingPrefix
                  << " dequeued and cli future obtained";
 
     move(cliFuture)
@@ -184,8 +216,8 @@ void QueuedCli::onDequeueSuccess(
     const shared_ptr<QueuedParameters>& params,
     const QueuedCli::QueueEntry& queueEntry,
     const string& result) {
-  MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command.getIdx()
-               << ") " << queueEntry.loggingPrefix << " succeeded";
+  MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command << ") "
+               << queueEntry.loggingPrefix << " succeeded";
   params->isProcessing = false;
   queueEntry.promise->setValue(result);
   triggerDequeue(params);
@@ -195,9 +227,9 @@ void QueuedCli::onDequeueError(
     const shared_ptr<QueuedParameters>& params,
     const QueuedCli::QueueEntry& queueEntry,
     const exception_wrapper& e) {
-  MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command.getIdx()
-               << ") " << queueEntry.loggingPrefix
-               << " failed  with exception '" << e.what() << "'";
+  MLOG(MDEBUG) << "[" << params->id << "] (" << queueEntry.command << ") "
+               << queueEntry.loggingPrefix << " failed with exception '"
+               << e.what() << "'";
   if (!params->shutdown) {
     params->isProcessing = false;
   }

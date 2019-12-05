@@ -92,6 +92,7 @@ void ReconnectingCli::triggerReconnect(shared_ptr<ReconnectParameters> params) {
                 return unit;
               });
         }) // TODO: Add onTimeout here to handle establish session timeouts?
+
         .thenError(
             folly::tag_t<std::exception>{},
             [params](std::exception const& e) -> Future<Unit> {
@@ -153,20 +154,11 @@ SemiFuture<string> ReconnectingCli::executeSomething(
   if (cliOrNull != nullptr) {
     return innerFunc(cliOrNull)
         .via(reconnectParameters->executor.get())
-        .thenValue(
-            [params = reconnectParameters, loggingPrefix, cmd](
-                string result) -> string {
-              // TODO: move this to deeper layer
-              // auto dis = shared_from_this();
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx() << ") "
-                           << loggingPrefix << " succeeded";
-              return result;
-            })
         .thenError( // TODO: only reconnect on timeout exception
             folly::tag_t<std::exception>{},
             [params = reconnectParameters, loggingPrefix, cmd](
                 exception const& e) -> Future<string> {
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx() << ") "
+              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
                            << loggingPrefix
                            << " failed with error : " << e.what();
 

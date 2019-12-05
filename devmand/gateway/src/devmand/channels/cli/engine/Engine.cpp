@@ -53,22 +53,24 @@ void Engine::initLogging(uint32_t verbosity, bool callInitMlog) {
   }
 }
 
+static uint CPU_CORES = std::max(uint(2), std::thread::hardware_concurrency());
+
 Engine::Engine()
     : channels::Engine("Cli"),
       timekeeper(make_shared<folly::ThreadWheelTimekeeper>()),
       sshCliExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
-          5,
+          CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("sshCli"))),
       commonExecutor(std::make_shared<folly::IOThreadPoolExecutor>(
-          5,
+          CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("commonCli"))),
       kaCliExecutor(std::make_shared<folly::CPUThreadPoolExecutor>(
-          5,
+          CPU_CORES,
           std::make_shared<folly::NamedThreadFactory>("kaCli"))) {
   // TODO use singleton when folly is initialized
   Engine::initSsh();
   Engine::initLogging();
-  MLOG(MERROR) << "Cli engine started";
+  MLOG(MINFO) << "Cli engine started with concurrency set to " << CPU_CORES;
 }
 
 Engine::~Engine() {

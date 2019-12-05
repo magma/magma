@@ -188,11 +188,11 @@ class CustomErr : public runtime_error {
 class CustomErrCli : public Cli {
  public:
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
-    return folly::Future<string>(CustomErr(cmd.raw()));
+    return folly::Future<string>(CustomErr(Command::escape(cmd.raw())));
   }
 
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
-    return folly::Future<string>(CustomErr(cmd.raw()));
+    return folly::Future<string>(CustomErr(Command::escape(cmd.raw())));
   }
 };
 
@@ -209,7 +209,7 @@ TEST_F(QueuedCliTest, preserveExType) {
   } catch (const CustomErr& e) {
     // Proper ex type caught
   } catch (const exception& e) {
-    FAIL() << "Wrong exception thrown";
+    FAIL() << "Wrong exception thrown " << e.what();
   }
 
   MLOG(MDEBUG) << "Waiting for test executor to finish";

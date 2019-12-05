@@ -39,7 +39,7 @@ class PlaintextCliDeviceTest : public ::testing::Test {
   unique_ptr<channels::cli::Engine> cliEngine;
 
   void SetUp() override {
-    devmand::test::utils::log::initLog();
+    devmand::test::utils::log::initLog(MDEBUG);
     cliEngine = make_unique<channels::cli::Engine>();
     ssh = startSshServer();
   }

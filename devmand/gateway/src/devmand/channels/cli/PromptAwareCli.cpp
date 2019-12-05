@@ -43,11 +43,11 @@ folly::SemiFuture<std::string> PromptAwareCli::executeRead(
       .semi()
       .via(promptAwareParameters->executor.get())
       .thenValue([params = promptAwareParameters, command, cmd](...) {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx()
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
                      << ") written command";
         SemiFuture<string> result =
             params->session->readUntilOutput(command).semi();
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx()
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
                      << ") obtained future readUntilOutput";
         return move(result);
       })
@@ -58,7 +58,7 @@ folly::SemiFuture<std::string> PromptAwareCli::executeRead(
             .semi()
             .via(params->executor.get())
             .thenValue([params, output, cmd](...) {
-              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx()
+              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
                            << ") written newline";
               return output;
             })
@@ -73,7 +73,7 @@ folly::SemiFuture<std::string> PromptAwareCli::executeRead(
             .thenValue(
                 [id = params->id, output, cmd](const string& readUntilOutput) {
                   // this might never run, do not capture params
-                  MLOG(MDEBUG) << "[" << id << "] (" << cmd.getIdx()
+                  MLOG(MDEBUG) << "[" << id << "] (" << cmd
                                << ") readUntilOutput - read result";
                   return output + readUntilOutput;
                 })
@@ -116,11 +116,11 @@ folly::SemiFuture<std::string> PromptAwareCli::executeWrite(
       .semi()
       .via(promptAwareParameters->executor.get())
       .thenValue([params = promptAwareParameters, command, cmd](...) {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx()
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
                      << ") written command";
         SemiFuture<string> result =
             params->session->readUntilOutput(command).semi();
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx()
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
                      << ") obtained future readUntilOutput";
         return move(result);
       })
@@ -130,7 +130,7 @@ folly::SemiFuture<std::string> PromptAwareCli::executeWrite(
                 .semi()
                 .via(params->executor.get())
                 .thenValue([id = params->id, output, command, cmd](...) {
-                  MLOG(MDEBUG) << "[" << id << "] (" << cmd.getIdx()
+                  MLOG(MDEBUG) << "[" << id << "] (" << cmd
                                << ") written newline";
                   return output + command;
                 })

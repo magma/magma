@@ -84,14 +84,14 @@ Future<string> TimeoutTrackingCli::executeSomething(
     const Command& cmd,
     const string&& loggingPrefix,
     const function<SemiFuture<string>()>& innerFunc) {
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd.getIdx()
+  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd
                << ") " << loggingPrefix << "('" << cmd << "') called";
   if (timeoutTrackingParameters->shutdown) {
     return Future<string>(runtime_error("TTCli Shutting down"));
   }
   SemiFuture<string> inner =
       innerFunc(); // we expect that this method does not block
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd.getIdx()
+  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd
                << ") "
                << "Obtained future from underlying cli";
   return move(inner)
@@ -101,14 +101,14 @@ Future<string> TimeoutTrackingCli::executeSomething(
           [params = timeoutTrackingParameters, cmd](...) -> Future<string> {
             // NOTE: timeoutTrackingParameters must be captured mainly for
             // executor
-            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx() << ") "
+            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
                          << "timing out";
             throw FutureTimeout();
           },
           timeoutTrackingParameters->timekeeper.get())
       .thenValue(
           [params = timeoutTrackingParameters, cmd](string result) -> string {
-            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx() << ") "
+            MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
                          << "succeeded";
             return result;
           });

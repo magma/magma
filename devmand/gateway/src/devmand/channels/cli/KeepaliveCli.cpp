@@ -86,26 +86,26 @@ void KeepaliveCli::triggerSendKeepAliveCommand(
   }
   ReadCommand cmd =
       ReadCommand::create(keepaliveParameters->keepAliveCommand, true);
-  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd.getIdx()
+  MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd
                << ") "
                << "triggerSendKeepAliveCommand created new command";
 
   via(keepaliveParameters->serialExecutorKeepAlive)
       .thenValue([params = keepaliveParameters, cmd](auto) {
         MLOG(MDEBUG)
-            << "[" << params->id << "] (" << cmd.getIdx() << ") "
+            << "[" << params->id << "] (" << cmd << ") "
             << "triggerSendKeepAliveCommand executing keepalive command";
 
         return params->cli->executeRead(cmd);
       })
       .thenValue([params = keepaliveParameters, cmd](auto) -> SemiFuture<Unit> {
-        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd.getIdx() << ") "
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd << ") "
                      << "Creating sleep future";
         return futures::sleep(
             params->heartbeatInterval, params->timekeeper.get());
       })
       .thenValue([keepaliveParameters, cmd](auto) -> Unit {
-        MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd.getIdx()
+        MLOG(MDEBUG) << "[" << keepaliveParameters->id << "] (" << cmd
                      << ") "
                      << "Woke up after sleep";
         triggerSendKeepAliveCommand(keepaliveParameters);
@@ -116,7 +116,7 @@ void KeepaliveCli::triggerSendKeepAliveCommand(
           [params = keepaliveParameters,
            cmd](std::exception const& e) -> Future<Unit> {
             MLOG(MINFO)
-                << "[" << params->id << "] (" << cmd.getIdx() << ") "
+                << "[" << params->id << "] (" << cmd << ") "
                 << "Got error running keepalive, backing off "
                 << e.what(); // FIXME: real exception is not propagated here
 
@@ -126,7 +126,7 @@ void KeepaliveCli::triggerSendKeepAliveCommand(
                 .via(params->serialExecutorKeepAlive)
                 .thenValue([params, cmd](auto) -> Unit {
                   MLOG(MDEBUG)
-                      << "[" << params->id << "] (" << cmd.getIdx() << ") "
+                      << "[" << params->id << "] (" << cmd << ") "
                       << "Woke up after backing off";
                   triggerSendKeepAliveCommand(params);
                   return Unit{};

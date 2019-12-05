@@ -43,16 +43,15 @@ class Command {
     return skipCache_;
   }
 
-  int getIdx() const {
-    return idx;
+  static string escape(string cmd) {
+    boost::replace_all(cmd, "\n", "\\n");
+    boost::replace_all(cmd, "\r", "\\r");
+    boost::replace_all(cmd, "\t", "\\t");
+    return cmd;
   }
 
   friend std::ostream& operator<<(std::ostream& _stream, Command const& c) {
-    auto rawCmd = c.raw();
-    boost::replace_all(rawCmd, "\n", "\\n");
-    boost::replace_all(rawCmd, "\r", "\\r");
-    boost::replace_all(rawCmd, "\t", "\\t");
-    _stream << rawCmd;
+    _stream << "[" << c.idx << "] " << Command::escape(c.raw());
     return _stream;
   }
 };
