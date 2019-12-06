@@ -124,18 +124,17 @@ folly::SemiFuture<std::string> PromptAwareCli::executeWrite(
                      << ") obtained future readUntilOutput";
         return move(result);
       })
-      .thenValue(
-          [params = promptAwareParameters, command, cmd](const string& output) {
-            return params->session->write(params->cliFlavour->newline)
-                .semi()
-                .via(params->executor.get())
-                .thenValue([id = params->id, output, command, cmd](...) {
-                  MLOG(MDEBUG) << "[" << id << "] (" << cmd
-                               << ") written newline";
-                  return output + command;
-                })
-                .semi();
-          })
+      .thenValue([params = promptAwareParameters, command, cmd](
+                     const string& output) {
+        return params->session->write(params->cliFlavour->newline)
+            .semi()
+            .via(params->executor.get())
+            .thenValue([id = params->id, output, command, cmd](...) {
+              MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") written newline";
+              return output + command;
+            })
+            .semi();
+      })
       .semi();
 }
 

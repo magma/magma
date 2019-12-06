@@ -97,7 +97,8 @@ bool SshSession::checkSuccess(int return_code, int OK_RETURN_CODE) {
   if (return_code == OK_RETURN_CODE) {
     return true;
   }
-  terminate<CliException>(); // TODO is this an appropriate reaction to every problem??
+  terminate<CliException>(); // TODO is this an appropriate reaction to every
+                             // problem??
   return false;
 }
 

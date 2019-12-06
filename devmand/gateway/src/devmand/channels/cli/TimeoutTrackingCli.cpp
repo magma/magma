@@ -84,15 +84,14 @@ Future<string> TimeoutTrackingCli::executeSomething(
     const Command& cmd,
     const string&& loggingPrefix,
     const function<SemiFuture<string>()>& innerFunc) {
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd
-               << ") " << loggingPrefix << "('" << cmd << "') called";
+  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd << ") "
+               << loggingPrefix << "('" << cmd << "') called";
   if (timeoutTrackingParameters->shutdown) {
     return Future<string>(runtime_error("TTCli Shutting down"));
   }
   SemiFuture<string> inner =
       innerFunc(); // we expect that this method does not block
-  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd
-               << ") "
+  MLOG(MDEBUG) << "[" << timeoutTrackingParameters->id << "] (" << cmd << ") "
                << "Obtained future from underlying cli";
   return move(inner)
       .via(timeoutTrackingParameters->executor.get())

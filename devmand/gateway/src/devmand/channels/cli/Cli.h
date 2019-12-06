@@ -50,12 +50,14 @@ class DisconnectedException : public CliException {
 
 class CommandExecutionException : public CliException {
  public:
-  CommandExecutionException(string msg = "Command execution failed") : CliException(msg) {}
+  CommandExecutionException(string msg = "Command execution failed")
+      : CliException(msg) {}
 };
 
 class CommandTimeoutException : public CommandExecutionException {
  public:
-  CommandTimeoutException(string msg = "Command execution timed out") : CommandExecutionException(msg) {}
+  CommandTimeoutException(string msg = "Command execution timed out")
+      : CommandExecutionException(msg) {}
 };
 
 } // namespace cli
