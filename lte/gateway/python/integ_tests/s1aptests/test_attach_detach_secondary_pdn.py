@@ -52,18 +52,12 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
         # Send Activate default EPS bearer context accept
         print("************************* Sending Activate default EPS bearer "
               "context accept for UE id ", ue_id)
-        act_def_bearer_acc = s1ap_types.UeActDefEpsBearCtxtAcc_t()
-        act_def_bearer_acc.ue_Id = ue_id
-        act_def_bearer_acc.bearerId = act_def_bearer_req.m.pdnInfo.epsBearerId
-        self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_ACCEPT,
-                act_def_bearer_acc)
 
         time.sleep(5)
         # Send PDN Disconnect
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
         pdn_disconnect_req.ue_Id = ue_id
-        pdn_disconnect_req.bearerId = act_def_bearer_req.m.pdnInfo.epsBearerId
+        pdn_disconnect_req.epsBearerId = act_def_bearer_req.m.pdnInfo.epsBearerId
         self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
                                               UE_PDN_DISCONNECT_REQ,
                                               pdn_disconnect_req)

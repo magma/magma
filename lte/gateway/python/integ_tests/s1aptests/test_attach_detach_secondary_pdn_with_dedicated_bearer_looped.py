@@ -12,12 +12,13 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
-
+from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._spgw_util = SpgwUtil()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -57,23 +58,16 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                     value)
                 act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-                # Send Activate default EPS bearer context accept
                 print("********************** Sending Activate default EPS "
                       "bearer context accept for UE id ", ue_id)
-                act_def_bearer_acc = s1ap_types.UeActDefEpsBearCtxtAcc_t()
-                act_def_bearer_acc.ue_Id = ue_id
-                act_def_bearer_acc.bearerId = act_def_bearer_req.m.pdnInfo.\
-                    epsBearerId
-                self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_ACCEPT,
-                    act_def_bearer_acc)
 
                 # Add dedicated bearer to 2nd PDN
                 print("********************** Adding dedicated bearer to IMSI",
                       ''.join([str(i) for i in req.imsi]))
                 self._spgw_util.create_bearer(
                     'IMSI' + ''.join([str(i) for i in req.imsi]),
-                    act_def_bearer_acc.bearerId)
+                    act_def_bearer_req.m.pdnInfo.\
+                    epsBearerId)
 
                 response = self._s1ap_wrapper.s1_util.get_response()
                 self.assertTrue(
@@ -87,7 +81,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                 # Send PDN Disconnect
                 pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
                 pdn_disconnect_req.ue_Id = ue_id
-                pdn_disconnect_req.bearerId = act_def_bearer_req.m.pdnInfo.\
+                pdn_disconnect_req.epsBearerId = act_def_bearer_req.m.pdnInfo.\
                     epsBearerId
                 self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
                                                       UE_PDN_DISCONNECT_REQ,
@@ -104,6 +98,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                                                   UeDeActvBearCtxtReq_t)
                 self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                     req.ue_id, deactv_bearer_req.bearerId)
+                time.sleep(5)
 
             print("******************** Running UE detach (switch-off) for ",
                   "UE id ", ue_id)
