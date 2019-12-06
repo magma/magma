@@ -112,10 +112,21 @@ int nas_itti_erab_rel_cmd(
           pdn_context_p->esm_data.n_bearers;
         NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel =
           calloc(NAS_ERAB_REL_CMD(message_p).n_bearers, sizeof(ebi_t));
-        for (uint8_t itr = 0; itr < pdn_context_p->esm_data.n_bearers; itr++) {
+        if (!NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel) {
+          OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "Cannot allocate memory in nas_itti_erab_rel_cmd for ue_id"
+            MME_UE_S1AP_ID_FMT "\n", ue_id);
+          OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+        }
+        uint8_t rel_index = 0;
+        for (uint8_t itr = 0; itr < BEARERS_PER_UE; itr++) {
           int idx = ue_mm_context_p->pdn_contexts[cid]->bearer_contexts[itr];
-          NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel[itr] =
-            ue_mm_context_p->bearer_contexts[idx]->ebi;
+          if (ue_mm_context_p->bearer_contexts[idx]){
+            NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel[rel_index] =
+              ue_mm_context_p->bearer_contexts[idx]->ebi;
+            rel_index ++;
+          }
         }
       }
       unlock_ue_contexts(ue_mm_context_p);

@@ -868,7 +868,8 @@ static int _esm_sap_recv(
        * Process PDN disconnect request message received from the UE
        */
         esm_cause = esm_recv_pdn_disconnect_request(
-          emm_context, pti, ebi, &esm_msg.pdn_disconnect_request, &ebi);
+          emm_context, pti, ebi, &esm_msg.pdn_disconnect_request,
+          &esm_msg.pdn_disconnect_request.linkedepsbeareridentity);
        OAILOG_DEBUG(
          LOG_NAS_ESM,
          "ESM-SAP   - ESM Message type = PDN_DISCONNECT_REQUEST(0x%x)"
@@ -900,7 +901,7 @@ static int _esm_sap_recv(
           if (mme_config.eps_network_feature_support
                 .ims_voice_over_ps_session_in_s1) {
             emm_context->esm_ctx.is_pdn_disconnect = true;
-            OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
+            OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
           }
           /*
          * Return deactivate EPS bearer context request message

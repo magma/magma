@@ -126,6 +126,7 @@ static const char *_emm_cn_primitive_str[] = {
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL",
   "EMMCN_MM_INFORMATION_REQUEST",
   "EMMCN_DEACTIVATE_BEARER_REQ",
+  "EMMCN_PDN_DISCONNECT_RES",
 };
 
 //------------------------------------------------------------------------------

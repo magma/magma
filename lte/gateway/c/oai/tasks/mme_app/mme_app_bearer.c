@@ -770,11 +770,6 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
       delete_sess_resp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  hashtable_uint64_ts_remove(
-    mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
-    (const hash_key_t) ue_context_p->mme_teid_s11);
-  ue_context_p->mme_teid_s11 = 0;
-
   if (delete_sess_resp_pP->cause.cause_value != REQUEST_ACCEPTED) {
     OAILOG_WARNING(
       LOG_MME_APP,
@@ -801,6 +796,11 @@ void mme_app_handle_delete_session_rsp(mme_app_desc_t *mme_app_desc_p,
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+
+  hashtable_uint64_ts_remove(
+    mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
+    (const hash_key_t) ue_context_p->mme_teid_s11);
+  ue_context_p->mme_teid_s11 = 0;
 
   /*
    * If UE is already in idle state, skip asking eNB to release UE context and just clean up locally.

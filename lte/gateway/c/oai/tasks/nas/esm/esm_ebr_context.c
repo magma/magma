@@ -392,6 +392,10 @@ ebi_t esm_ebr_context_release(
       for (i = 1; pdn->n_bearers > 0; i++) {
         int idx = ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i];
         if ((idx >= 0) && (idx < BEARERS_PER_UE)) {
+          if (ue_mm_context->bearer_contexts[idx]->ebi ==
+            ue_mm_context->pdn_contexts[*pid]->default_ebi) {
+            continue;
+          }
           OAILOG_WARNING(
             LOG_NAS_ESM,
             "ESM-PROC  - Release EPS bearer context "
