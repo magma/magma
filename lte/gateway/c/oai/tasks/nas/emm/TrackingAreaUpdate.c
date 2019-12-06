@@ -937,7 +937,7 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t **const ies)
  ***************************************************************************/
 int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
 {
-  emm_context_t *emm_ctx = NULL;
+  emm_context_t* emm_ctx = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -952,7 +952,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   emm_proc_common_clear_args(ue_id);
 
   /*
-   * Get the UE context
+   * Get the EMM context
    */
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
@@ -961,20 +961,20 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
      * Upon receiving an TAU COMPLETE message, the MME shall stop timer T3450
      * Timer is stopped within nas_delete_tau_procedure()
      */
-    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_ctx);
+    nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_ctx);
     if (tau_proc) {
       OAILOG_INFO(
         LOG_NAS_EMM,
         "EMM-PROC  - Stop timer T3450 (%ld)\n",
         tau_proc->T3450.id);
-      if(emm_ctx->csfbparams.newTmsiAllocated == true) {
+      if (emm_ctx->csfbparams.newTmsiAllocated == true) {
         nas_delete_tau_procedure(emm_ctx);
       }
     }
     /*If Active flag is not set, initiate UE context release */
     if (!emm_ctx->csfbparams.tau_active_flag) {
-      ue_context_p = PARENT_STRUCT(emm_ctx,
-                                   struct ue_mm_context_s, emm_context);
+      ue_context_p =
+        PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
       ue_context_p->ue_context_rel_cause = S1AP_NAS_NORMAL_RELEASE;
       // Notify S1AP to send UE Context Release Command to eNB.
       mme_app_itti_ue_context_release(
@@ -984,7 +984,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   } else {
     OAILOG_ERROR(
       LOG_NAS_EMM,
-      "ERROR* Received Invalid UE Id in TAU Complete "MME_UE_S1AP_ID_FMT")\n",
+      "ERROR* Received Invalid UE Id in TAU Complete " MME_UE_S1AP_ID_FMT ")\n",
       ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

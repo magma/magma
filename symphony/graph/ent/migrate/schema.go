@@ -18,6 +18,23 @@ import (
 )
 
 var (
+	// ActionsRulesColumns holds the columns for the "actions_rules" table.
+	ActionsRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "trigger_id", Type: field.TypeString},
+		{Name: "rule_filters", Type: field.TypeJSON},
+		{Name: "rule_actions", Type: field.TypeJSON},
+	}
+	// ActionsRulesTable holds the schema information for the "actions_rules" table.
+	ActionsRulesTable = &schema.Table{
+		Name:        "actions_rules",
+		Columns:     ActionsRulesColumns,
+		PrimaryKey:  []*schema.Column{ActionsRulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// CheckListItemsColumns holds the columns for the "check_list_items" table.
 	CheckListItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1324,6 +1341,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ActionsRulesTable,
 		CheckListItemsTable,
 		CheckListItemDefinitionsTable,
 		CommentsTable,

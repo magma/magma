@@ -16,7 +16,7 @@ type Executor struct {
 	Context context.Context
 	Registry
 	DataLoader
-	onError func(error)
+	OnError func(error)
 }
 
 // Execute runs all workflows for the specified object/trigger
@@ -29,14 +29,14 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 		trigger, err := exc.Registry.TriggerForID(triggerID)
 		if err != nil {
 			// TODO: Should we bail here, or just log an error and continue
-			exc.onError(errors.Errorf("could not find trigger: %s", triggerID))
+			exc.OnError(errors.Errorf("could not find trigger: %s", triggerID))
 			continue
 		}
 
 		for _, rule := range exc.DataLoader.QueryRules(triggerID) {
 			shouldExecute, err := trigger.Evaluate(rule)
 			if err != nil {
-				exc.onError(errors.Errorf("evaluating rule %s: %v", rule.ID, err))
+				exc.OnError(errors.Errorf("evaluating rule %s: %v", rule.ID, err))
 				continue
 			}
 			if !shouldExecute {
@@ -45,7 +45,7 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 			for _, actionID := range rule.ActionIDs {
 				err := exc.executeAction(rule, actionID, inputPayload)
 				if err != nil {
-					exc.onError(errors.Errorf("executing action %s: %v", actionID, err))
+					exc.OnError(errors.Errorf("executing action %s: %v", actionID, err))
 				}
 			}
 		}

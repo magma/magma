@@ -16,6 +16,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -80,6 +81,65 @@ type Edge struct {
 	Type string   `json:"type,omitempty"` // edge type.
 	Name string   `json:"name,omitempty"` // edge name.
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ar.ID,
+		Type:   "ActionsRule",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ar.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.TriggerID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "TriggerID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.RuleFilters); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "[]*schema.ActionsRuleFilter",
+		Name:  "RuleFilters",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.RuleActions); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]*schema.ActionsRuleAction",
+		Name:  "RuleActions",
+		Value: string(buf),
+	}
+	return node, nil
 }
 
 func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
@@ -3646,6 +3706,12 @@ func (c *Client) Noder(ctx context.Context, id string) (Noder, error) {
 
 func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error) {
 	switch tbl {
+	case actionsrule.Table:
+		n, err := c.ActionsRule.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case checklistitem.Table:
 		n, err := c.CheckListItem.Get(ctx, id)
 		if err != nil {
