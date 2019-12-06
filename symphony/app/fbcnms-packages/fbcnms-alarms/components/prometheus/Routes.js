@@ -8,12 +8,12 @@
  * @format
  */
 
-import AlertActionDialog from '../AlertActionDialog';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import SimpleTable from '../SimpleTable';
+import SimpleTable, {toLabels} from '../SimpleTable';
+import TableActionDialog from '../TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -37,10 +37,8 @@ type Props = {
 export default function Routes(props: Props) {
   const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentAlert, setCurrentAlert] = useState<Object>({});
-  const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
-    null,
-  );
+  const [currentRow, setCurrentRow] = useState<{}>({});
+  const [showDialog, setShowDialog] = useState<?'view'>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
@@ -49,7 +47,7 @@ export default function Routes(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const onDialogAction = args => {
-    setShowAlertActionDialog(args);
+    setShowDialog(args);
     setMenuAnchorEl(null);
   };
 
@@ -76,12 +74,20 @@ export default function Routes(props: Props) {
         tableData={routesList}
         onActionsClick={(alert, target) => {
           setMenuAnchorEl(target);
-          setCurrentAlert(alert);
+          setCurrentRow(alert);
         }}
         columnStruct={[
-          {title: 'name', path: ['receiver']},
-          {title: 'group by', path: ['group_by']},
-          {title: 'match', path: ['match']},
+          {title: 'name', getValue: row => row.receiver},
+          {
+            title: 'group by',
+            getValue: row => row.group_by || [],
+            render: 'list',
+          },
+          {
+            title: 'match',
+            getValue: row => (row.match ? toLabels(row.match) : {}),
+            render: 'labels',
+          },
         ]}
       />
       {isLoading && routesList.length === 0 && (
@@ -96,11 +102,11 @@ export default function Routes(props: Props) {
         onClose={() => setMenuAnchorEl(null)}>
         <MenuItem onClick={() => onDialogAction('view')}>View</MenuItem>
       </Menu>
-      <AlertActionDialog
-        open={showAlertActionDialog != null}
+      <TableActionDialog
+        open={showDialog != null}
         onClose={() => onDialogAction(null)}
         title={'View Alert'}
-        alertConfig={currentAlert || {}}
+        row={currentRow || {}}
         showCopyButton={true}
         showDeleteButton={false}
       />

@@ -16,7 +16,8 @@ import {MemoryRouter} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import type {ApiUtil} from '../../AlarmsApi';
+import {apiMock, mockApiUtil} from '../../test/testHelpers';
+import type {GenericRule} from '../RuleInterface';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -34,17 +35,9 @@ jest
   .spyOn(require('@fbcnms/ui/hooks/useRouter'), 'default')
   .mockReturnValue({match: {params: {networkId: 'test'}}});
 
-/**
- * I don't understand how to properly type this mock so using any for now.
- * The consuming code is all strongly typed, this shouldn't be much of an issue.
- */
-// eslint-disable-next-line flowtype/no-weak-types
-const useMagmaAPIMock = jest.fn<any, any>(() => ({
-  isLoading: false,
-  response: [],
-  error: null,
-}));
-const apiMock = jest.fn();
+const useLoadRulesMock = jest
+  .spyOn(require('../hooks'), 'useLoadRules')
+  .mockImplementation(jest.fn(() => ({rules: [], isLoading: false})));
 
 // TextField select is difficult to test so replace it with an Input
 jest.mock('@material-ui/core/TextField', () => {
@@ -74,14 +67,13 @@ function Wrapper(props: {route?: string, children: React.Node}) {
 }
 
 const commonProps = {
-  apiUrls: mockApiUrls(),
   apiUtil: mockApiUtil(),
+  ruleMap: {},
 };
 
 test('renders rules returned by api', () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: mockRules(),
-    error: null,
+  useLoadRulesMock.mockReturnValueOnce({
+    rules: [mockRule()],
     isLoading: false,
   });
   const {getByText} = render(
@@ -94,9 +86,8 @@ test('renders rules returned by api', () => {
 });
 
 test('clicking the add alert icon displays the AddEditAlert view', () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: mockRules(),
-    error: null,
+  useLoadRulesMock.mockReturnValueOnce({
+    rules: [mockRule()],
     isLoading: false,
   });
   const {queryByTestId, getByTestId} = render(
@@ -113,9 +104,8 @@ test('clicking the add alert icon displays the AddEditAlert view', () => {
 });
 
 test('clicking close button when AddEditAlert is open closes the panel', () => {
-  useMagmaAPIMock.mockReturnValueOnce({
-    response: [],
-    error: null,
+  useLoadRulesMock.mockReturnValueOnce({
+    rules: [],
     isLoading: false,
   });
   const {queryByTestId, getByTestId, getByText} = render(
@@ -135,9 +125,33 @@ test('clicking close button when AddEditAlert is open closes the panel', () => {
   expect(queryByTestId('add-edit-alert')).not.toBeInTheDocument();
 });
 
-test.todo(
-  'clicking the "edit" button in the table menu opens AddEditAlert for that alert',
-);
+test('clicking the "edit" button in the table menu opens AddEditAlert for that alert', async () => {
+  useLoadRulesMock.mockReturnValueOnce({
+    rules: [
+      mockRule({
+        rawRule: {
+          alert: 'test',
+        },
+      }),
+    ],
+    isLoading: false,
+  });
+  const {getByText, getByLabelText} = render(
+    <Wrapper>
+      <AlertRules {...commonProps} />
+    </Wrapper>,
+  );
+
+  // open the table row menu
+  act(() => {
+    fireEvent.click(getByLabelText(/action menu/i));
+  });
+  // click the edit buton
+  act(() => {
+    fireEvent.click(getByText(/edit/i));
+  });
+  expect(getByLabelText(/rule name/i).value).toBe('test');
+});
 
 /**
  * Test AlertRules' integration with AddEditAlert. It passes in a specific
@@ -145,9 +159,8 @@ test.todo(
  */
 describe('AddEditAlert > Prometheus Editor', () => {
   test('Filling the form and clicking Add will post to the endpoint', async () => {
-    useMagmaAPIMock.mockReturnValueOnce({
-      response: mockRules(),
-      error: null,
+    useLoadRulesMock.mockReturnValueOnce({
+      rules: [mockRule()],
       isLoading: false,
     });
     const {getByText, getByTestId, getByLabelText} = render(
@@ -187,7 +200,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
     await act(async () => {
       fireEvent.click(getByText(/add/i));
     });
-    expect(apiMock).toHaveBeenLastCalledWith({
+    expect(apiMock.mock.calls.slice(-2)[0][0]).toMatchObject({
       networkId: 'test',
       rule: {
         alert: '<<ALERTNAME>>',
@@ -196,9 +209,6 @@ describe('AddEditAlert > Prometheus Editor', () => {
         },
         for: '1m',
         expr: 'vector(1)',
-        annotations: {
-          description: '',
-        },
       },
     });
   });
@@ -232,47 +242,15 @@ describe('AddEditAlert > Prometheus Editor', () => {
   });
 });
 
-function mockRules() {
-  return [
-    {
-      alert: '<<test>>',
-      annotations: {description: ''},
-      labels: {},
-      expr: 'up == 0',
-      for: '1m',
-    },
-  ];
-}
-
-function mockApiUrls() {
+function mockRule(merge?: $Shape<GenericRule<{}>>) {
   return {
-    viewFiringAlerts: () => '/viewFiringAlerts',
-    alertConfig: () => '/alertConfig',
-    updateAlertConfig: () => '/updateAlertConfig',
-    bulkAlertConfig: () => '/bulkAlertConfig',
-    receiverConfig: () => '/receiverConfig',
-    // get count of matching metrics,
-    viewMatchingAlerts: () => '/viewMatchingAlerts',
-    receiverUpdate: () => '/receiverUpdate',
-    routeConfig: () => '/routeConfig',
-    viewSilences: () => '/viewSilences',
-    viewRoutes: () => '/viewRoutes',
-    viewReceivers: () => '/viewReceivers',
-  };
-}
-
-function mockApiUtil(): ApiUtil {
-  return {
-    useAlarmsApi: useMagmaAPIMock,
-    viewFiringAlerts: apiMock,
-    viewMatchingAlerts: apiMock,
-    createAlertRule: apiMock,
-    editAlertRule: apiMock,
-    getAlertRules: apiMock,
-    deleteAlertRule: apiMock,
-    getSuppressions: apiMock,
-    getReceivers: apiMock,
-    getRoutes: apiMock,
-    getMetricSeries: apiMock,
+    name: '<<test>>',
+    severity: 'info',
+    description: '<<test description>>',
+    expression: 'up == 0',
+    period: '1m',
+    ruleType: 'prometheus',
+    rawRule: {},
+    ...(merge || {}),
   };
 }

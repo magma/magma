@@ -82,7 +82,7 @@ export type SlackConfirmField = {
 /**
  * Prometheus alert rule configuration
  */
-export type AlertConfig = {
+export type AlertConfig = {|
   alert: string,
   expr: string,
   annotations?: {[string]: string},
@@ -90,7 +90,7 @@ export type AlertConfig = {
   labels?: {[string]: string},
   rawData?: AlertConfig,
   _isCustomAlertRule?: boolean,
-};
+|};
 
 export type AlertRoutingTree = {
   receiver: string,
