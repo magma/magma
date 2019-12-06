@@ -313,6 +313,11 @@ void mme_app_handle_path_switch_req_ack(
 void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
 
+void mme_app_update_paging_tai_list(
+  paging_tai_list_t* p_tai_list,
+  partial_tai_list_t* tai_list,
+  uint8_t num_of_tac);
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \

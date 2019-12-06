@@ -357,13 +357,11 @@ func TestRemoveEquipment(t *testing.T) {
 	_, err = mr.RemoveEquipment(ctx, equipment.ID, nil)
 	require.NoError(t, err)
 
-	eq, err := qr.Equipment(ctx, equipment.ID)
-	require.Nil(t, eq, "not found should return a nil")
-	require.Nil(t, err, "not found should not return an error")
-
-	ps, err := qr.EquipmentPosition(ctx, pid)
-	require.Nil(t, ps, "not found should return a nil")
-	require.Nil(t, err, "not found should not return an error")
+	for _, id := range []string{equipment.ID, pid} {
+		n, err := qr.Node(ctx, id)
+		assert.Nil(t, n)
+		assert.NoError(t, err)
+	}
 }
 
 func TestAttachEquipmentToPosition(t *testing.T) {

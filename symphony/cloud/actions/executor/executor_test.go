@@ -67,7 +67,7 @@ func TestExecutor(t *testing.T) {
 		DataLoader: BasicDataLoader{
 			Rules: []core.Rule{testRule},
 		},
-		onError: func(err error) {
+		OnError: func(err error) {
 			assert.Fail(t, "error in test when shouldnt be", err)
 		},
 	}
@@ -98,7 +98,7 @@ func TestExecutorUnregisteredTrigger(t *testing.T) {
 		DataLoader: BasicDataLoader{
 			Rules: []core.Rule{},
 		},
-		onError: mockErrorHandler.LogError,
+		OnError: mockErrorHandler.LogError,
 	}
 
 	triggers := map[core.TriggerID]map[string]interface{}{

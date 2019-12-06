@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent/migrate"
 
+	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -58,6 +59,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// ActionsRule is the client for interacting with the ActionsRule builders.
+	ActionsRule *ActionsRuleClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -140,6 +143,7 @@ func NewClient(opts ...Option) *Client {
 	return &Client{
 		config:                      c,
 		Schema:                      migrate.NewSchema(c.driver),
+		ActionsRule:                 NewActionsRuleClient(c),
 		CheckListItem:               NewCheckListItemClient(c),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(c),
 		Comment:                     NewCommentClient(c),
@@ -207,6 +211,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := config{driver: tx, log: c.log, debug: c.debug}
 	return &Tx{
 		config:                      cfg,
+		ActionsRule:                 NewActionsRuleClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),
@@ -248,7 +253,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		CheckListItem.
+//		ActionsRule.
 //		Query().
 //		Count(ctx)
 //
@@ -260,6 +265,7 @@ func (c *Client) Debug() *Client {
 	return &Client{
 		config:                      cfg,
 		Schema:                      migrate.NewSchema(cfg.driver),
+		ActionsRule:                 NewActionsRuleClient(cfg),
 		CheckListItem:               NewCheckListItemClient(cfg),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(cfg),
 		Comment:                     NewCommentClient(cfg),
@@ -301,6 +307,70 @@ func (c *Client) Debug() *Client {
 // Close closes the database connection and prevents new queries from starting.
 func (c *Client) Close() error {
 	return c.driver.Close()
+}
+
+// ActionsRuleClient is a client for the ActionsRule schema.
+type ActionsRuleClient struct {
+	config
+}
+
+// NewActionsRuleClient returns a client for the ActionsRule from the given config.
+func NewActionsRuleClient(c config) *ActionsRuleClient {
+	return &ActionsRuleClient{config: c}
+}
+
+// Create returns a create builder for ActionsRule.
+func (c *ActionsRuleClient) Create() *ActionsRuleCreate {
+	return &ActionsRuleCreate{config: c.config}
+}
+
+// Update returns an update builder for ActionsRule.
+func (c *ActionsRuleClient) Update() *ActionsRuleUpdate {
+	return &ActionsRuleUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ActionsRuleClient) UpdateOne(ar *ActionsRule) *ActionsRuleUpdateOne {
+	return c.UpdateOneID(ar.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ActionsRuleClient) UpdateOneID(id string) *ActionsRuleUpdateOne {
+	return &ActionsRuleUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ActionsRule.
+func (c *ActionsRuleClient) Delete() *ActionsRuleDelete {
+	return &ActionsRuleDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ActionsRuleClient) DeleteOne(ar *ActionsRule) *ActionsRuleDeleteOne {
+	return c.DeleteOneID(ar.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ActionsRuleClient) DeleteOneID(id string) *ActionsRuleDeleteOne {
+	return &ActionsRuleDeleteOne{c.Delete().Where(actionsrule.ID(id))}
+}
+
+// Create returns a query builder for ActionsRule.
+func (c *ActionsRuleClient) Query() *ActionsRuleQuery {
+	return &ActionsRuleQuery{config: c.config}
+}
+
+// Get returns a ActionsRule entity by its id.
+func (c *ActionsRuleClient) Get(ctx context.Context, id string) (*ActionsRule, error) {
+	return c.Query().Where(actionsrule.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ActionsRuleClient) GetX(ctx context.Context, id string) *ActionsRule {
+	ar, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return ar
 }
 
 // CheckListItemClient is a client for the CheckListItem schema.

@@ -8,22 +8,22 @@
  * @format
  */
 
+import type {RuleFilter} from './types';
 import type {
-  OperatorID,
-  RuleTriggerFilter,
-  TriggerFilterID,
-  TriggerID,
-} from './types';
-
-import {getFiltersForTrigger, getOperatorDisplayName} from './constants';
+  TriggerFilterRow_data,
+  TriggerFilterRow_data$key,
+} from './__generated__/TriggerFilterRow_data.graphql';
 
 import ActionsAutoComplete from './ActionsAutoComplete';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import TriggerFilterOperator from './TriggerFilterOperator';
 
+import nullthrows from '@fbcnms/util/nullthrows';
 import {find} from 'lodash';
+import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
@@ -41,23 +41,51 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-type TriggerFilterProps = {
-  triggerID: TriggerID,
-  filter: RuleTriggerFilter,
-  onChange: RuleTriggerFilter => void,
-};
+const query = graphql`
+  fragment TriggerFilterRow_data on ActionsTrigger {
+    triggerID
+    supportedFilters {
+      filterID
+      description
+      supportedOperators {
+        operatorID
+      }
+      ...TriggerFilterOperator_data
+    }
+  }
+`;
+
+type TriggerFilterProps = {|
+  trigger: TriggerFilterRow_data$key,
+  ruleFilter: ?RuleFilter,
+  onChange: RuleFilter => void,
+|};
 
 export default function TriggerFilterRow(props: TriggerFilterProps) {
+  const {trigger, ruleFilter, onChange} = props;
   const classes = useStyles();
-  const {filter} = props;
 
-  const validFilters = getFiltersForTrigger(props.triggerID);
+  const data: TriggerFilterRow_data = useFragment<TriggerFilterRow_data>(
+    query,
+    trigger,
+  );
+  const supportedFilters = data.supportedFilters;
+  const defaultFilter = data.supportedFilters[0];
+  const defaultOperator = defaultFilter?.supportedOperators[0];
+
+  const defaultRuleFilter: RuleFilter = {
+    filterID: defaultFilter?.filterID || '',
+    data: [],
+    operatorID: defaultOperator?.operatorID || '',
+  };
+
+  const thisRuleFilter = ruleFilter || defaultRuleFilter;
 
   const selectedFilter =
-    find(validFilters, f => f.id === filter.triggerFilterID) || validFilters[0];
-
-  const selectedOperatorID = filter.operatorID || selectedFilter.operatorIDs[0];
-  const validOperators = selectedFilter.operatorIDs;
+    find(
+      supportedFilters,
+      filter => filter?.filterID === ruleFilter?.filterID,
+    ) || nullthrows(supportedFilters[0]);
 
   return (
     <>
@@ -67,47 +95,35 @@ export default function TriggerFilterRow(props: TriggerFilterProps) {
       <Grid item xs={9}>
         <span>
           <Select
-            value={filter.triggerFilterID}
+            value={thisRuleFilter.filterID}
             onChange={({target}) =>
-              props.onChange({
-                ...filter,
-                /* string is guaranteed as TriggerFilterID */
-                /* eslint-disable-next-line flowtype/no-weak-types */
-                triggerFilterID: ((target.value: any): TriggerFilterID),
+              onChange({
+                ...thisRuleFilter,
+                filterID: target.value,
               })
             }>
-            {validFilters.map((filter, i) => (
-              <MenuItem key={i} value={filter.id}>
-                {filter.name}
+            {supportedFilters.map((filter, i) => (
+              <MenuItem key={i} value={filter?.filterID}>
+                {filter?.description}
               </MenuItem>
             ))}
           </Select>
         </span>
         <span className={classes.spacing}>
-          <Select
-            value={selectedOperatorID}
-            onChange={({target}) => {
-              props.onChange({
-                ...filter,
-                /* eslint-disable-next-line flowtype/no-weak-types */
-                operatorID: ((target.value: any): OperatorID),
-              });
-            }}>
-            {validOperators.map((operatorID, i) => (
-              <MenuItem key={i} value={operatorID}>
-                {getOperatorDisplayName(operatorID)}
-              </MenuItem>
-            ))}
-          </Select>
+          <TriggerFilterOperator
+            selectedOperatorID={thisRuleFilter.operatorID || ''}
+            filter={selectedFilter}
+            onChange={operatorID => onChange({...thisRuleFilter, operatorID})}
+          />
         </span>
         <span>
           <div className={classes.autoCompleteContainer}>
             <ActionsAutoComplete
-              value={filter.data}
+              value={thisRuleFilter.data}
               options={['test_network1', 'test_gateway1']}
               onChange={(evt, newValue) => {
-                props.onChange({
-                  ...filter,
+                onChange({
+                  ...thisRuleFilter,
                   data: newValue,
                 });
               }}

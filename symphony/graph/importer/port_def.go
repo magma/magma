@@ -10,7 +10,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 
 	"go.uber.org/zap"
@@ -57,7 +59,31 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 				log.Info("skipping dynamic port config", zap.String("equipment", equipmentTypeName))
 				continue
 			}
-			portType := line[portTypeIndex]
+			var portType string
+			if portTypeIndex != -1 {
+				portType = line[portTypeIndex]
+			}
+
+			var potyTypeObj *ent.EquipmentPortType
+			potyTypeObj, err = m.ClientFrom(ctx).EquipmentPortType.Query().
+				Where(equipmentporttype.Name(portType)).
+				Only(ctx)
+			if err != nil && !ent.IsNotFound(err) {
+				log.Info("cant fetch port Type", zap.String("portType", portType))
+				continue
+			}
+			if potyTypeObj == nil {
+				potyTypeObj, err = m.ClientFrom(ctx).
+					EquipmentPortType.
+					Create().
+					SetName(portType).
+					Save(ctx)
+				if err != nil {
+					log.Info("cant create port Type", zap.String("portType", portType), zap.Error(err))
+					continue
+				}
+			}
+
 			equipTypeID := equipmentTypeNameToID[equipmentTypeName]
 			if equipTypeID == "" {
 				log.Warn("cannot find equipment of port - creating new",
@@ -77,6 +103,7 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 					Create().
 					SetName(name).
 					SetType(portType).
+					SetEquipmentPortType(potyTypeObj).
 					SetVisibilityLabel(line[portLabelIndex]).
 					SetBandwidth(line[portBWIndex]).
 					SetEquipmentTypeID(equipTypeID).
