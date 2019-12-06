@@ -9,8 +9,22 @@
  */
 import type {FullDevice} from './DevicesUtils';
 
+import CheckBoxIcon from '@material-ui/icons/CheckBox';
+import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
+import Checkbox from '@material-ui/core/Checkbox';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
-import React from 'react';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import React, {useState} from 'react';
+
+import {findIndex} from 'lodash';
+import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
+
+const useStyles = makeStyles(() => ({
+  checkbox: {
+    padding: '4px',
+  },
+}));
 
 type Props = {
   device: FullDevice,
@@ -42,10 +56,55 @@ type InterfaceType = {
   },
 };
 
-function Interface({iface}: {iface: InterfaceType}) {
+function Interface({
+  iface,
+  device,
+  isLoading,
+  setIsLoading,
+}: {
+  iface: InterfaceType,
+  device: FullDevice,
+  isLoading: boolean,
+  setIsLoading: boolean => void,
+}) {
+  const classes = useStyles();
+  const {networkId} = useRouter().match.params;
+
   const ip =
     iface?.subinterfaces?.subinterface?.[0]?.['openconfig-if-ip:ipv4']
       ?.addresses?.address?.[0]?.ip || '';
+
+  const onChange = async event => {
+    setIsLoading(true);
+    event.persist();
+    const newDevice = await MagmaV1API.getSymphonyByNetworkIdDevicesByDeviceId({
+      networkId,
+      deviceId: device.id,
+    });
+
+    const managedDevices = JSON.parse(newDevice.config?.device_config || '{}');
+    const index = findIndex(
+      managedDevices['openconfig-interfaces:interfaces'].interface,
+      i => iface.name === i.name,
+    );
+    managedDevices['openconfig-interfaces:interfaces'].interface[
+      index
+    ].config.enabled = event.target.checked;
+
+    MagmaV1API.putSymphonyByNetworkIdDevicesByDeviceId({
+      networkId,
+      deviceId: device.id,
+      symphonyDevice: {
+        ...newDevice,
+        config: {
+          ...newDevice.config,
+          device_config: JSON.stringify(managedDevices),
+        },
+      },
+    });
+
+    setIsLoading(false);
+  };
 
   return (
     <div>
@@ -55,6 +114,15 @@ function Interface({iface}: {iface: InterfaceType}) {
       />
       {iface.name || iface.state?.name || ''}
       {ip && ` (${ip})`}
+      <Checkbox
+        disabled={isLoading}
+        className={classes.checkbox}
+        defaultChecked={iface?.config?.enabled}
+        onChange={onChange}
+        color="primary"
+        icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+        checkedIcon={<CheckBoxIcon fontSize="small" />}
+      />
     </div>
   );
 }
@@ -94,6 +162,8 @@ function renderLatencies(
 }
 
 export default function DevicesState(props: Props) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const {device} = props;
   const interfaces: ?Array<InterfaceType> =
     device?.status?.['openconfig-interfaces:interfaces']?.interface;
@@ -105,7 +175,13 @@ export default function DevicesState(props: Props) {
   }
 
   const interfaceRows = (interfaces || []).map((iface, i) => (
-    <Interface key={i} iface={iface} />
+    <Interface
+      key={i}
+      iface={iface}
+      device={device}
+      isLoading={isLoading}
+      setIsLoading={setIsLoading}
+    />
   ));
 
   if (interfaceRows.length === 0) {

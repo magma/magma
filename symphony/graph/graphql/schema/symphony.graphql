@@ -1407,6 +1407,120 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
+# You will also need to update cloud/actions/core/id
+enum ActionID {
+  magma_reboot_node
+}
+
+# You will also need to update cloud/actions/core/id
+enum TriggerID {
+  magma_alert
+}
+
+# ActionsTrigger defines a trigger itself, along with what actions and filters
+# can be used
+type ActionsTrigger {
+  id: ID! # Same as triggerID, but used for Node
+  triggerID: TriggerID!
+  description: String!
+  supportedActions: [ActionsAction]! @goField(forceResolver: true)
+  supportedFilters: [ActionsFilter]! @goField(forceResolver: true)
+}
+
+# ActionsOperator defines how to filter a trigger.
+type ActionsOperator {
+  # Ex. "is", "isNot"
+  operatorID: String!
+  # Name displayed to the user. Ex: "is", "is not"
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataInput: String!
+}
+
+# ActionsAction defines an action that can be executed
+# Ex. "Reboot a magma device"
+type ActionsAction {
+  actionID: ActionID!
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataType: String!
+}
+
+# ActionsFilter is a definition for how you can filter a trigger.
+# Ex: "The alerts network id [is, is not]"
+type ActionsFilter {
+  # unique identifier for the filter
+  filterID: String!
+  # Ex. "the alerts network id"
+  description: String!
+  # a list of operators the filter supports.
+  # Ex. "is", "is not"
+  supportedOperators: [ActionsOperator]!
+}
+
+type ActionsTriggersSearchResult {
+  results: [ActionsTrigger]!
+  count: Int!
+}
+
+# ActionsRuleAction is a user-configured data about an action to execute, along
+# with data for executing that action
+type ActionsRuleAction
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction"
+  ) {
+  action: ActionsAction! @goField(forceResolver: true)
+  actionID: ActionID!
+  data: String!
+}
+
+# ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
+type ActionsRuleFilter
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter"
+  ) {
+  filterID: String
+  operatorID: String
+  operator: ActionsOperator! @goField(forceResolver: true)
+  # Serialized JSON of the metadata to filter
+  # (contextual to the operator)
+  data: String!
+}
+
+# ActionsRule is a user-configured rule tieing a trigger, filtering it, and
+# executing 1 or more actions
+type ActionsRule implements Node {
+  id: ID!
+  name: String!
+  trigger: ActionsTrigger! @goField(forceResolver: true)
+  triggerID: TriggerID!
+  ruleActions: [ActionsRuleAction]!
+  ruleFilters: [ActionsRuleFilter]!
+}
+
+type ActionsRulesSearchResult {
+  results: [ActionsRule]!
+  count: Int!
+}
+
+input ActionsRuleActionInput {
+  actionID: ActionID!
+  data: String!
+}
+
+input ActionsRuleFilterInput {
+  filterID: String!
+  operatorID: String!
+  data: String!
+}
+
+input AddActionsRuleInput {
+  name: String!
+  triggerID: String!
+  ruleActions: [ActionsRuleActionInput]!
+  ruleFilters: [ActionsRuleFilterInput]!
+}
+
 type Query {
   me: Viewer
   node(id: ID!): Node
@@ -1431,8 +1545,6 @@ type Query {
   equipment(id: ID!): Equipment @deprecated(reason: "Use `node` instead")
   equipmentType(id: ID!): EquipmentType
     @deprecated(reason: "Use `node` instead")
-  equipmentPosition(id: ID!): EquipmentPosition
-  equipmentPositionDefinition(id: ID!): EquipmentPositionDefinition
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -1535,6 +1647,8 @@ type Query {
     before: Cursor
     last: Int
   ): CustomerConnection
+  actionsRules: ActionsRulesSearchResult
+  actionsTriggers: ActionsTriggersSearchResult
 }
 
 type Mutation {
@@ -1694,4 +1808,5 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule
 }

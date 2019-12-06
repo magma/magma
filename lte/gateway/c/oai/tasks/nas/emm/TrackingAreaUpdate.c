@@ -952,7 +952,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   emm_proc_common_clear_args(ue_id);
 
   /*
-   * Get the UE context
+   * Get the EMM context
    */
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 

@@ -9,8 +9,6 @@
 
 log_level: INFO
 rule_update_inteval_sec: 1
-use_proxied_controller: false
-local_controller_port: 9999
 
 # Session manager will report the usage when the usage is greater than
 # usage_reporting_threshold * available quota since last update

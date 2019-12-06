@@ -10,6 +10,9 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 )
 
+// ActionsRule is the predicate function for actionsrule builders.
+type ActionsRule func(*sql.Selector)
+
 // CheckListItem is the predicate function for checklistitem builders.
 type CheckListItem func(*sql.Selector)
 
