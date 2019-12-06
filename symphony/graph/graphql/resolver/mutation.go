@@ -2053,6 +2053,7 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 ) ([]*ent.SurveyTemplateCategory, error) {
 	var (
 		categories = make([]*ent.SurveyTemplateCategory, len(surveyTemplateCategories))
+		keepIDs    = make(map[string]bool)
 		added      []*ent.SurveyTemplateCategory
 		err        error
 	)
@@ -2064,19 +2065,40 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 			}
 			categories[i] = category[0]
 			added = append(added, category[0])
-		} else if categories[i], err = r.updateSurveyTemplateCategory(ctx, input); err != nil {
-			return nil, err
+		} else {
+			keepIDs[*input.ID] = true
+			if categories[i], err = r.updateSurveyTemplateCategory(ctx, input); err != nil {
+				return nil, err
+			}
 		}
 	}
-	if added != nil {
-		if err := r.ClientFrom(ctx).
-			LocationType.
-			UpdateOneID(id).
-			AddSurveyTemplateCategories(added...).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "updating location type: id=%q", id)
+
+	lt, err := r.ClientFrom(ctx).LocationType.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch location type: id=%q", id)
+	}
+
+	existingCategories, err := r.ClientFrom(ctx).LocationType.QuerySurveyTemplateCategories(lt).All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template categories for location type: id=%q", id)
+	}
+
+	deleteIDs := []string{}
+	for _, existingCategory := range existingCategories {
+		if _, ok := keepIDs[existingCategory.ID]; !ok {
+			deleteIDs = append(deleteIDs, existingCategory.ID)
 		}
 	}
+
+	if err := r.ClientFrom(ctx).
+		LocationType.
+		UpdateOneID(id).
+		AddSurveyTemplateCategories(added...).
+		RemoveSurveyTemplateCategoryIDs(deleteIDs...).
+		Exec(ctx); err != nil {
+		return nil, errors.Wrapf(err, "failed to update survey categories for location type")
+	}
+
 	return categories, nil
 }
 
@@ -2337,6 +2359,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 
 func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, input *models.SurveyTemplateCategoryInput) (*ent.SurveyTemplateCategory, error) {
 	updater := r.ClientFrom(ctx).SurveyTemplateCategory.UpdateOneID(*input.ID)
+	keepIDs := make(map[string]bool)
 	for _, questionInput := range input.SurveyTemplateQuestions {
 		if questionInput.ID == nil {
 			question, err := r.AddSurveyTemplateQuestions(ctx, questionInput)
@@ -2344,11 +2367,33 @@ func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, inpu
 				return nil, err
 			}
 			updater.AddSurveyTemplateQuestions(question...)
-		} else if err := r.updateSurveyTemplateQuestion(ctx, questionInput); err != nil {
-			return nil, err
+		} else {
+			if err := r.updateSurveyTemplateQuestion(ctx, questionInput); err != nil {
+				return nil, err
+			}
+			keepIDs[*questionInput.ID] = true
 		}
 	}
-	category, err := updater.
+
+	category, err := r.ClientFrom(ctx).SurveyTemplateCategory.Get(ctx, *input.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template category: id=%q", *input.ID)
+	}
+
+	existingQuestions, err := category.QuerySurveyTemplateQuestions().All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template questions for category: id=%q", *input.ID)
+	}
+
+	deleteIDs := []string{}
+	for _, existingQuestion := range existingQuestions {
+		if _, ok := keepIDs[existingQuestion.ID]; !ok {
+			deleteIDs = append(deleteIDs, existingQuestion.ID)
+		}
+	}
+
+	category, err = updater.
+		RemoveSurveyTemplateQuestionIDs(deleteIDs...).
 		SetCategoryTitle(input.CategoryTitle).
 		SetCategoryDescription(input.CategoryDescription).
 		Save(ctx)
