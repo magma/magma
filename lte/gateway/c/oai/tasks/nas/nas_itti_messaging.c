@@ -162,43 +162,6 @@ void nas_itti_dedicated_eps_bearer_reject(
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 
-//------------------------------------------------------------------------------
-void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p;
-
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_DETACH_REQ);
-
-  NAS_DETACH_REQ(message_p).ue_id = ue_idP;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
-//------------------------------------------------------------------------------
-void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p;
-
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Send SGS Detach Request to MME for ue_id = %u\n",
-    ue_idP);
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_SGS_DETACH_REQ);
-  memset(
-    &message_p->ittiMsg.nas_sgs_detach_req,
-    0,
-    sizeof(itti_nas_sgs_detach_req_t));
-
-  NAS_SGS_DETACH_REQ(message_p).ue_id = ue_idP;
-  NAS_SGS_DETACH_REQ(message_p).detach_type = detach_type;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
 //***************************************************************************
 void s6a_auth_info_rsp_timer_expiry_handler(void *args)
 {

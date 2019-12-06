@@ -925,8 +925,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
           "UE.ue_id=" MME_UE_S1AP_ID_FMT " \n",
           msg->ue_id);
         //Clean up S1AP and MME UE Context
-        nas_itti_detach_req(msg->ue_id);
         unlock_ue_contexts(ue_mm_context);
+        mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
 
@@ -1441,8 +1441,7 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_NAS_RELEASE_REQ:
-        nas_itti_detach_req(as_msg.msg.nas_release_req
-                              .ue_id); //, as_msg.msg.nas_release_req.cause);
+        mme_app_handle_detach_req(as_msg.msg.nas_release_req.ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         break;
 
@@ -2305,6 +2304,11 @@ static int _emm_as_establish_cnf(
    */
   int bytes =
     _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+
+  // Free any allocated data
+  if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
+   bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
+  }
 
   if (bytes > 0) {
     as_msg->err_code = AS_SUCCESS;

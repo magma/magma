@@ -27,6 +27,7 @@
 #include "emm_data.h"
 #include "nas_timer.h"
 #include "esm_data.h"
+#include "esm_proc.h"
 #include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_defs.h"
@@ -114,6 +115,10 @@ void free_esm_context_content(esm_context_t *esm_ctx)
 {
   if (esm_ctx) {
     nas_stop_T3489(esm_ctx);
+    if (esm_ctx->esm_proc_data) {
+      bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
+      free(esm_ctx->esm_proc_data);
+    }
   }
 }
 

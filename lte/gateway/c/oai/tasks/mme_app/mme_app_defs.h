@@ -39,6 +39,7 @@
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
+#include "emm_proc.h"
 
 int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
   const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP);
@@ -60,11 +61,10 @@ int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
 
-void mme_app_handle_detach_req(mme_app_desc_t *mme_app_desc_p,
-    const itti_nas_detach_req_t *const detach_req_p);
+void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id);
 
-void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
-  const itti_nas_sgs_detach_req_t *const sgs_detach_req_p);
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+  emm_proc_sgs_detach_type_t detach_type);
 
 int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
   const const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p);
@@ -200,7 +200,7 @@ int mme_app_send_sgsap_service_request(
   uint8_t service_indicator,
   struct ue_mm_context_s *ue_context_p);
 
-int mme_app_send_nas_detach_request(
+int mme_app_handle_nw_initiated_detach_request(
   mme_ue_s1ap_id_t ue_id,
   uint8_t detach_type);
 

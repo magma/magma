@@ -157,6 +157,9 @@ typedef struct emm_cn_smc_fail_s {
 
 typedef struct emm_cn_nw_initiated_detach_ue_s {
   uint32_t ue_id;
+#define HSS_INITIATED_EPS_DETACH 0x00
+#define SGS_INITIATED_IMSI_DETACH 0x01
+#define MME_INITIATED_EPS_DETACH 0x02
   uint8_t detach_type;
 } emm_cn_nw_initiated_detach_ue_t;
 
