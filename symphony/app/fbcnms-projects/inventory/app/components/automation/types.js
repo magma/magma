@@ -13,28 +13,14 @@ export type FilterData = string | string[];
 export type ActionData = string | string[] | null;
 
 // A user-configured TriggerFilter when creating a Rule
-export type RuleTriggerFilter = {|
-  triggerFilterID: TriggerFilterID,
-  operatorID: OperatorID,
+export type RuleFilter = {|
+  filterID: string,
+  operatorID: string,
   data: FilterData,
 |};
 
 // A user-configured action when creating a Rule
 export type RuleAction = {|
-  actionID: ActionID,
+  actionID: string,
   data: ActionData,
 |};
-
-// Set of valid triggers that can occur
-export type TriggerID = 'magma_alert';
-
-// Set of valid actions that can be executed
-export type ActionID = 'magma_reboot_gateway' | 'magma_silence_alert';
-
-// ID of any supported operator
-export type OperatorID = 'containsAny' | 'containsAll';
-
-export type TriggerFilterID =
-  | 'alert_gatewayid'
-  | 'alert_networkid'
-  | 'alert_name';

@@ -25,6 +25,9 @@
 #define TRACKING_AREA_IDENTITY_MINIMUM_LENGTH 6
 #define TRACKING_AREA_IDENTITY_MAXIMUM_LENGTH 6
 
+// currently maximum num of TAIs is 16, but it can be upto 256
+#define TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS 16
+
 #define INVALID_TAC_0000                                                       \
   (uint16_t) 0x0000 /*!< \brief  The following are reserved hexadecimal values of the TAC: 0000, and FFFE.   */
 #define INVALID_TAC_FFFE                                                       \
@@ -44,6 +47,11 @@ typedef struct tai_s {
   uint8_t mnc_digit1 : 4;
   tac_t tac;
 } tai_t;
+
+typedef struct paging_tai_list_s {
+  uint8_t numoftac;
+  tai_t tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
+} paging_tai_list_t;
 
 /* Checks Mobile Country Code equality */
 #define MCCS_ARE_EQUAL(n1, n2)                                                 \

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst
 package resolver
 
 import (
@@ -250,13 +249,7 @@ func TestRemoveEquipmentType(t *testing.T) {
 	assert.Nil(t, deletedEquipmentType)
 
 	propertyTypes := equipmentType.QueryPropertyTypes().AllX(ctx)
-	require.Len(t, propertyTypes, 0)
-
-	for _, positionDefinition := range equipmentType.QueryPositionDefinitions().AllX(ctx) {
-		fetchedPositionDefinition, err := qr.EquipmentPositionDefinition(ctx, positionDefinition.ID)
-		require.Error(t, err)
-		assert.Nil(t, fetchedPositionDefinition)
-	}
+	assert.Empty(t, propertyTypes)
 }
 
 func TestEditEquipmentType(t *testing.T) {

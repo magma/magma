@@ -20,6 +20,35 @@ import (
 //
 var dsn string
 
+func ExampleActionsRule() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the actionsrule's edges.
+
+	// create actionsrule vertex with its edges.
+	ar := client.ActionsRule.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetName("string").
+		SetTriggerID("string").
+		SetRuleFilters(nil).
+		SetRuleActions(nil).
+		SaveX(ctx)
+	log.Println("actionsrule created:", ar)
+
+	// query edges.
+
+	// Output:
+}
 func ExampleCheckListItem() {
 	if dsn == "" {
 		return

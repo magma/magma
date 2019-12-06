@@ -129,9 +129,7 @@ def _set_cwag_configs():
     with cd(CWAG_INTEG_ROOT):
         sudo('mkdir -p /var/opt/magma')
         sudo('mkdir -p /var/opt/magma/configs')
-        sudo('cp gateway.mconfig /var/opt/magma/configs')
-        sudo('cp sessiond.yml /var/opt/magma/configs')
-        sudo('cp redis.conf /var/opt/magma')
+        sudo('cp gateway.mconfig /var/opt/magma/configs/')
 
 
 def _set_cwag_networking(mac):

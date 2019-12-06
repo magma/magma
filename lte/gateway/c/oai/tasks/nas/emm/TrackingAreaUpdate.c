@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -69,7 +69,7 @@
 
 /* TODO Commented some function declarations below since these were called from the code that got removed from TAU request
  * handling function. Reason this code was removed: This portion of code was incomplete and was related to handling of
- * some optional IEs /scenarios that were not relevant for the TAU periodic update handling and might have resulted in 
+ * some optional IEs /scenarios that were not relevant for the TAU periodic update handling and might have resulted in
  * unexpected behaviour/instability.
  * At present support for TAU is limited to handling of periodic TAU request only  mandatory IEs .
  * Other aspects of TAU are TODOs for future.
@@ -389,7 +389,7 @@ int emm_proc_tracking_area_update_reject(
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-/* TODO - Compiled out this function to remove compiler warnings since we don't expect TAU Complete from UE as we dont support implicit 
+/* TODO - Compiled out this function to remove compiler warnings since we don't expect TAU Complete from UE as we dont support implicit
  * GUTI re-allocation during TAU procedure.
  */
 #if 0
@@ -952,7 +952,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   emm_proc_common_clear_args(ue_id);
 
   /*
-   * Get the UE context
+   * Get the EMM context
    */
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
@@ -967,7 +967,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
         LOG_NAS_EMM,
         "EMM-PROC  - Stop timer T3450 (%ld)\n",
         tau_proc->T3450.id);
-      if (emm_ctx->csfbparams.newTmsiAllocated == true) {
+      if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);
       }
     }
@@ -984,8 +984,10 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   } else {
     OAILOG_ERROR(
       LOG_NAS_EMM,
-      "ERROR* Received Invalid UE Id in TAU Complete " MME_UE_S1AP_ID_FMT ")\n",
+      "Failed to find emm contexet for ue_id received in TAU "
+      "Complete" MME_UE_S1AP_ID_FMT "\n",
       ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
