@@ -10,11 +10,12 @@
 
 import type {Link} from '../../common/Equipment';
 
+import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
+import EquipmentIcon from '@fbcnms/ui/icons/EquipmentIcon';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
-import RadioButtonUncheckedIcon from '@material-ui/icons/RadioButtonUnchecked';
 import React, {useState} from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
@@ -32,6 +33,12 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       backgroundColor: symphony.palette.B50,
       '& $moreButton': {
+        display: 'block',
+      },
+      '& $icon': {
+        display: 'none',
+      },
+      '& $activeIcon': {
         display: 'block',
       },
     },
@@ -62,17 +69,14 @@ const useStyles = makeStyles(theme => ({
       backgroundColor: 'transparent',
     },
   },
-  icon: {
-    marginRight: '12px',
-  },
   emptyIcon: {
-    width: '20px',
+    width: '24px',
     marginRight: '12px',
   },
   componentName: {
     display: 'block',
     textOverflow: 'ellipsis',
-    width: 'calc(50% - 68px)',
+    width: 'calc(50% - 72px)',
     overflow: 'hidden',
   },
   portName: {
@@ -81,6 +85,14 @@ const useStyles = makeStyles(theme => ({
   emptySeparator: {
     margin: '0px 24px',
     width: '24px',
+  },
+  icon: {
+    display: 'block',
+    marginRight: '12px',
+  },
+  activeIcon: {
+    display: 'none',
+    marginRight: '12px',
   },
 }));
 
@@ -92,12 +104,14 @@ const ServiceLinkDetails = (props: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.line}>
-        <RadioButtonUncheckedIcon className={classes.icon} />
+        <EquipmentIcon className={classes.icon} />
+        <ActiveEquipmentIcon className={classes.activeIcon} />
         <Text variant="subtitle2" className={classes.componentName}>
           {link.ports[0].parentEquipment.name}
         </Text>
         <div className={classes.separator} />
-        <RadioButtonUncheckedIcon className={classes.icon} />
+        <EquipmentIcon className={classes.icon} />
+        <ActiveEquipmentIcon className={classes.activeIcon} />
         <Text variant="subtitle2" className={classes.componentName}>
           {link.ports[1].parentEquipment.name}
         </Text>
