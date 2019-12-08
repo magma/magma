@@ -106,6 +106,8 @@ export const LogEvents = {
   DELETE_SERVICE_BUTTON_CLICKED: 'delete_service_button_clicked',
   VIEW_EQUIPMENT_SERVICE_BUTTON_CLICKED:
     'view_equipment_service_button_clicked',
+  ADD_EQUIPMENT_LINK_BUTTON_CLICKED: 'add_equipment_link_button_clicked',
+  DELETE_SERVICE_LINK_BUTTON_CLICKED: 'delete_service_link_button_clicked',
 };
 
 export const ServerLogger = ServerLog('inventory');

@@ -109,7 +109,7 @@ const ExpandingPanel = ({
         <div onClick={event => event.stopPropagation()}>{rightContent}</div>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails
-        className={classNames(detailsPaneClass, classes.panelDetails)}>
+        className={classNames(classes.panelDetails, detailsPaneClass)}>
         {children}
       </ExpansionPanelDetails>
     </ExpansionPanel>
