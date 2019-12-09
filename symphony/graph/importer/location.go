@@ -47,6 +47,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 		m.populateIndexToLocationTypeMap(ctx, firstLine, true)
 		latIndx := findIndex(firstLine, "latitude")
 		longIndx := findIndex(firstLine, "longitude")
+		externalIDIndex := findIndexForSimilar(firstLine, "external id")
 		indexToLocationTypeID := getImportContext(ctx).indexToLocationTypeID
 		i := 0
 		for {
@@ -79,6 +80,9 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 						break
 					}
 					var propertyInput []*models.PropertyInput
+					var externalID string
+					lat, long := 0.0, 0.0
+
 					locationTypeID := indexToLocationTypeID[index]
 					if index == lastPopulatedLocationIdx {
 						propertyMap := getProperties(ctx, line, index)
@@ -96,6 +100,21 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 							}
 							propertyInput = append(propertyInput, inp)
 						}
+						if externalIDIndex != -1 {
+							externalID = line[externalIDIndex]
+						}
+						if latIndx != -1 && longIndx != -1 {
+							lat, err = strconv.ParseFloat(line[latIndx], 64)
+							if err != nil {
+								log.Warn("no or wrong latitude", zap.Error(err))
+								lat = 0.0
+							}
+							long, err = strconv.ParseFloat(line[longIndx], 64)
+							if err != nil {
+								log.Warn("no or wrong longitude", zap.Error(err))
+								long = 0.0
+							}
+						}
 					}
 					q := client.LocationType.Query().
 						QueryLocations().
@@ -104,22 +123,9 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 						q = q.Where(location.HasParentWith(location.ID(*parentID)))
 					}
 					id, _ := q.FirstID(ctx)
-					lat, long := 0.0, 0.0
-					if latIndx != -1 && longIndx != -1 {
-						lat, err = strconv.ParseFloat(line[latIndx], 64)
-						if err != nil {
-							log.Warn("no or wrong latitude", zap.Error(err))
-							lat = 0.0
-						}
-						long, err = strconv.ParseFloat(line[longIndx], 64)
-						if err != nil {
-							log.Warn("no or wrong longitude", zap.Error(err))
-							long = 0.0
-						}
-					}
 					if id == "" {
 						ltyp := client.LocationType.Query().Where(locationtype.ID(locationTypeID)).OnlyX(ctx)
-						l, _ := m.getOrCreateLocation(ctx, name, lat, long, ltyp, parentID, propertyInput)
+						l, _ := m.getOrCreateLocation(ctx, name, lat, long, ltyp, parentID, propertyInput, &externalID)
 						id = l.ID
 					} else if index == lastPopulatedLocationIdx && (lat != 0 || long != 0 || len(propertyInput) > 0) {
 						for _, inp := range propertyInput {
@@ -135,7 +141,7 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 						_, err := m.r.Mutation().EditLocation(ctx, models.EditLocationInput{
-							ID: id, Name: name, Latitude: lat, Longitude: long, Properties: propertyInput,
+							ID: id, Name: name, Latitude: lat, Longitude: long, Properties: propertyInput, ExternalID: &externalID,
 						})
 						if err != nil {
 							log.Warn("couldn't edit existing location", zap.Error(err))
@@ -194,7 +200,11 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 						long = 0
 					}
 				}
-				m.getOrCreateLocation(ctx, locName, lat, long, locTyp, &parent.ID, propertyInput)
+				var externalID string
+				if externalIDIndex != -1 {
+					externalID = line[externalIDIndex]
+				}
+				m.getOrCreateLocation(ctx, locName, lat, long, locTyp, &parent.ID, propertyInput, &externalID)
 			}
 		}
 	}

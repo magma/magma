@@ -167,10 +167,10 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 						log.Error("panic recovering for line", zap.Any("cause", v), zap.String("stack", string(debug.Stack())), zap.Int("row", row))
 					}
 				}()
-				city, _ := m.getOrCreateLocation(ctx, cityName, 0.0, 0.0, cityLocationType, nil, nil)
-				siteCity, _ := m.getOrCreateLocation(ctx, "Sites", 0.0, 0.0, typeLocationType, &city.ID, nil)
-				customersCity, _ := m.getOrCreateLocation(ctx, "Buildings", 0.0, 0.0, typeLocationType, &city.ID, nil)
-				manholesCity, _ := m.getOrCreateLocation(ctx, "Manholes", 0.0, 0.0, typeLocationType, &city.ID, nil)
+				city, _ := m.getOrCreateLocation(ctx, cityName, 0.0, 0.0, cityLocationType, nil, nil, nil)
+				siteCity, _ := m.getOrCreateLocation(ctx, "Sites", 0.0, 0.0, typeLocationType, &city.ID, nil, nil)
+				customersCity, _ := m.getOrCreateLocation(ctx, "Buildings", 0.0, 0.0, typeLocationType, &city.ID, nil, nil)
+				manholesCity, _ := m.getOrCreateLocation(ctx, "Manholes", 0.0, 0.0, typeLocationType, &city.ID, nil, nil)
 
 				var props []*models.PropertyInput
 				if siteNum != "" {
@@ -180,7 +180,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 						StringValue:    &siteNum,
 					})
 				}
-				site, _ := m.getOrCreateLocation(ctx, siteName, 0.0, 0.0, siteLocationType, &siteCity.ID, props)
+				site, _ := m.getOrCreateLocation(ctx, siteName, 0.0, 0.0, siteLocationType, &siteCity.ID, props, nil)
 				if siteNum != "" && site.ExternalID != siteNum {
 					site = client.Location.UpdateOne(site).SetExternalID(siteNum).SaveX(ctx)
 				}
@@ -255,7 +255,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 				if len(manholeName) == 0 {
 					return
 				}
-				manhole, _ := m.getOrCreateLocation(ctx, manholeName, 0, 0, manholeLocationType, &manholesCity.ID, nil)
+				manhole, _ := m.getOrCreateLocation(ctx, manholeName, 0, 0, manholeLocationType, &manholesCity.ID, nil, nil)
 				splitterName := "MSP" + line[21]
 				if len(splitterName) == 0 {
 					log.Warn("bad splitter name", zap.Int("row", row), zap.String("splitterName", splitterName))
@@ -300,7 +300,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 					}
 
 					bldgName := *bldgAddress
-					bldg, _ := m.getOrCreateLocation(ctx, bldgName, 0, 0, bldgLocationType, &customersCity.ID, propertyInput)
+					bldg, _ := m.getOrCreateLocation(ctx, bldgName, 0, 0, bldgLocationType, &customersCity.ID, propertyInput, nil)
 					if bldgNum != nil && bldg.ExternalID != *bldgNum {
 						if _, err := strconv.Atoi(*bldgNum); err == nil {
 							bldg = client.Location.UpdateOne(bldg).SetExternalID(*bldgNum).SaveX(ctx)

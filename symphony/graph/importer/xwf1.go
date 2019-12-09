@@ -143,8 +143,8 @@ func (m *importer) ProcessXwf1CSV(w http.ResponseWriter, r *http.Request) {
 				//panic("error")
 				continue
 			}
-			areaLoc, _ := m.getOrCreateLocation(ctx, areaVal, 0.0, 0.0, areaLocationType, nil, nil)
-			addressLoc, _ := m.getOrCreateLocation(ctx, addressVal, 0.0, 0.0, addressLocationType, &areaLoc.ID, nil)
+			areaLoc, _ := m.getOrCreateLocation(ctx, areaVal, 0.0, 0.0, areaLocationType, nil, nil, nil)
+			addressLoc, _ := m.getOrCreateLocation(ctx, addressVal, 0.0, 0.0, addressLocationType, &areaLoc.ID, nil, nil)
 
 			accessPoint := props[0].QueryEquipment().OnlyX(ctx)
 			hotspot := accessPoint.QueryLocation().OnlyX(ctx)
@@ -158,7 +158,7 @@ func (m *importer) ProcessXwf1CSV(w http.ResponseWriter, r *http.Request) {
 					PropertyTypeID: m.getLocPropTypeID(ctx, "Address", siteLocationType.ID),
 					StringValue:    &siteAddress,
 				},
-			})
+			}, nil)
 			if hotspot.QueryChildren().CountX(ctx) <= 1 || len(meshesVal) > 0 {
 				if hotspot.QueryParent().OnlyXID(ctx) != addressLoc.ID {
 					qh := m.ClientFrom(ctx).Location.UpdateOne(hotspot)
