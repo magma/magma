@@ -69,7 +69,6 @@ class SyncRPCClientTests(unittest.TestCase):
     def test_retry_connect_sleep(self):
         self._sync_rpc_client._current_delay = 0
         for i in range(5):
-            self._sync_rpc_client._set_connect_time()
             self._sync_rpc_client._retry_connect_sleep()
             if i == 4:
                 self.assertEqual(self._sync_rpc_client.RETRY_MAX_DELAY_SECS,
