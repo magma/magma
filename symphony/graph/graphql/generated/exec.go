@@ -375,6 +375,7 @@ type ComplexityRoot struct {
 		Equipments        func(childComplexity int) int
 		ExternalID        func(childComplexity int) int
 		Files             func(childComplexity int) int
+		FloorPlans        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Images            func(childComplexity int) int
 		Latitude          func(childComplexity int) int
@@ -957,6 +958,7 @@ type LocationResolver interface {
 	WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error)
 	CellData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyCellScan, error)
 	DistanceKm(ctx context.Context, obj *ent.Location, latitude float64, longitude float64) (float64, error)
+	FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error)
 }
 type LocationTypeResolver interface {
 	IsSite(ctx context.Context, obj *ent.LocationType) (bool, error)
@@ -2356,6 +2358,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.Files(childComplexity), true
+
+	case "Location.floorPlans":
+		if e.complexity.Location.FloorPlans == nil {
+			break
+		}
+
+		return e.complexity.Location.FloorPlans(childComplexity), true
 
 	case "Location.id":
 		if e.complexity.Location.ID == nil {
@@ -5405,6 +5414,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {
@@ -15715,6 +15725,43 @@ func (ec *executionContext) _Location_distanceKm(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_floorPlans(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Location",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Location().FloorPlans(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.FloorPlan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.LocationConnection) (ret graphql.Marshaler) {
@@ -35067,6 +35114,20 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		case "floorPlans":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_floorPlans(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39703,6 +39764,43 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v []*ent.FloorPlan) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNFloorPlanReferencePoint2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlanReferencePoint(ctx context.Context, sel ast.SelectionSet, v ent.FloorPlanReferencePoint) graphql.Marshaler {

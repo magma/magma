@@ -80,6 +80,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {

@@ -1430,7 +1430,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		ID:     l.ID,
 		Type:   "Location",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 10),
+		Edges:  make([]*Edge, 11),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(l.CreateTime); err != nil {
@@ -1599,6 +1599,17 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrders",
+	}
+	ids, err = l.QueryFloorPlans().
+		Select(floorplan.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[10] = &Edge{
+		IDs:  ids,
+		Type: "FloorPlan",
+		Name: "FloorPlans",
 	}
 	return node, nil
 }
