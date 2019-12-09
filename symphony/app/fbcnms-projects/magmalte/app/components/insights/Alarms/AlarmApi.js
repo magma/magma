@@ -89,9 +89,16 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
     });
   },
   // Routes
-  getRoutes: () => {
-    console.warn('not implemented');
-    return Promise.resolve([]);
+  getRouteTree: async ({networkId}) => {
+    return await MagmaV1API.getNetworksByNetworkIdPrometheusAlertReceiverRoute({
+      networkId: nullthrows(networkId),
+    });
+  },
+  editRouteTree: async ({networkId, route}) => {
+    await MagmaV1API.postNetworksByNetworkIdPrometheusAlertReceiverRoute({
+      networkId: nullthrows(networkId),
+      route: route,
+    });
   },
   // Metric Series
   getMetricSeries: async ({networkId}) => {
