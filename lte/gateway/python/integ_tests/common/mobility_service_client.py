@@ -302,30 +302,3 @@ class MobilityServiceGrpc(MobilityServiceClient):
 #        print("Gateway healthy after restart")
 #        assert(self._cloud_equal_gateway_ips())
 #
-
-class MobilityServiceOAI(MobilityServiceClient):
-    """
-    OAI doesn't use mobilityd, so this just returns nothing for all functions
-    so that s1aptester is still compatible.
-    """
-
-    def __init__(self):
-        return
-
-    def add_ip_block(self, block):
-        return
-
-    def list_added_blocks(self):
-        return []
-
-    def remove_ip_blocks(self, blocks):
-        return
-
-    def get_subscriber_ip_table(self):
-        return
-
-    def remove_all_ip_blocks(self):
-        return
-
-    def wait_for_changes(self):
-        return

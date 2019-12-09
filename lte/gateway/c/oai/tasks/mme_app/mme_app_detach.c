@@ -189,10 +189,10 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id)
  ** Name:    mme_app_handle_nw_initiated_detach_request                     **
  ** Description   Handles n/w initiated detach procedure                    **
  ** Inputs:  ue_id       : ue identity                                      **
- **          detach_type : Network initiated detach type                              **
+ **          detach_type : Network initiated detach type                    **
  ** Outputs:                                                                **
  **          Return:    RETURNok, RETURNerror                               **
- **
+ **                                                                         **
 ******************************************************************************/
 int mme_app_handle_nw_initiated_detach_request(
   mme_ue_s1ap_id_t ue_id,

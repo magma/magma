@@ -32,7 +32,6 @@ import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
 import React, {useCallback, useEffect, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
 import SectionedCard from '@fbcnms/ui/components/SectionedCard';
-import ServiceLinksTable from './ServiceLinksTable';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
@@ -278,14 +277,6 @@ const AddServiceCard = (props: Props) => {
     }
   };
 
-  const onDeleteLink = (link: Link) => {
-    setService(
-      update(service, {
-        links: {$set: (service?.links || []).filter(l => l != link)},
-      }),
-    );
-  };
-
   const {classes} = props;
   if (!service) {
     return (
@@ -377,12 +368,6 @@ const AddServiceCard = (props: Props) => {
               />
             </SectionedCard>
           ) : null}
-          <SectionedCard>
-            <ServiceLinksTable
-              links={service.links}
-              onDeleteLink={onDeleteLink}
-            />
-          </SectionedCard>
         </div>
       </div>
       <div className={classes.footer}>

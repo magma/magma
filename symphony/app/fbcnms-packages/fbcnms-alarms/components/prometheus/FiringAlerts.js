@@ -8,20 +8,20 @@
  * @format
  */
 
-import type {FiringAlarm, Labels} from '../AlarmAPIType';
-
-import AlertActionDialog from '../AlertActionDialog';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import SimpleTable, {SEVERITY} from '../SimpleTable';
+import SimpleTable, {toLabels} from '../SimpleTable';
+import TableActionDialog from '../TableActionDialog';
+import {SEVERITY} from '../Severity';
 import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 import type {ApiUtil} from '../AlarmsApi';
+import type {FiringAlarm, Labels} from '../AlarmAPIType';
 
 const useStyles = makeStyles({
   loading: {
@@ -34,27 +34,20 @@ const useStyles = makeStyles({
 
 type Props = {
   apiUtil: ApiUtil,
-  filterLabels?: (labels: Labels, rule: FiringAlarm) => Labels,
+  filterLabels?: (labels: Labels, alert: FiringAlarm) => Labels,
 };
 
 export default function FiringAlerts(props: Props) {
   const {apiUtil, filterLabels} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [_currentAlert, setCurrentAlert] = useState<Object>({});
-  const [_showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
-    null,
-  );
+  const [currentAlert, setCurrentAlert] = useState<?FiringAlarm>(null);
+  const [showDialog, setShowDialog] = useState(false);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const onDialogAction = args => {
-    setShowAlertActionDialog(args);
-    setMenuAnchorEl(null);
-  };
 
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.viewFiringAlerts,
@@ -71,36 +64,34 @@ export default function FiringAlerts(props: Props) {
     );
   }
 
-  const alertData = response
+  const alertData: Array<FiringAlarm> = response
     ? response.map(alert => {
         let labels = alert.labels;
         if (labels && filterLabels) {
           labels = filterLabels(labels, alert);
         }
         return {
-          name: alert.labels?.alertname,
-          labels: labels ?? {},
-          annotations: alert.annotations ?? {},
-          rawData: alert,
+          ...alert,
+          labels,
         };
       })
     : [];
 
-  // can we take the columnStruct and use it to edit existing + add new?
-  // we have order and path to let us reconstruct the message,
-  //    need to hide structs (state)
   return (
     <>
       <SimpleTable
         columnStruct={[
           {
             title: 'name',
+            getValue: x => x.labels?.alertname,
             renderFunc: (data, classes) => {
               const entity = data.labels.entity || data.labels.nodeMac || null;
               const desc = data.annotations.description;
               return (
                 <>
-                  <div className={classes.titleCell}>{data.name}</div>
+                  <div className={classes.titleCell}>
+                    {data.labels?.alertname}
+                  </div>
                   {entity && (
                     <div className={classes.secondaryCell}>{entity}</div>
                   )}
@@ -109,15 +100,21 @@ export default function FiringAlerts(props: Props) {
               );
             },
           },
-          {title: 'severity', path: ['labels', 'severity'], render: 'severity'},
+          {
+            title: 'severity',
+            getValue: x => x.labels?.severity,
+            render: 'severity',
+          },
           {
             title: 'labels',
-            path: ['labels'],
+            getValue: x => toLabels(x.labels),
+            render: 'labels',
             hideFields: ['alertname', 'severity', 'team'],
           },
           {
             title: 'annotations',
-            path: ['annotations'],
+            getValue: x => toLabels(x.annotations),
+            render: 'labels',
             hideFields: ['description'],
           },
         ]}
@@ -145,13 +142,13 @@ export default function FiringAlerts(props: Props) {
         keepMounted
         open={Boolean(menuAnchorEl)}
         onClose={() => setMenuAnchorEl(null)}>
-        <MenuItem onClick={() => onDialogAction('view')}>View</MenuItem>
+        <MenuItem onClick={() => setShowDialog(true)}>View</MenuItem>
       </Menu>
-      <AlertActionDialog
-        open={_showAlertActionDialog != null}
-        onClose={() => onDialogAction(null)}
+      <TableActionDialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
         title={'View Alert'}
-        alertConfig={_currentAlert?.rawData || {}}
+        row={currentAlert}
       />
     </>
   );

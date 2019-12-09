@@ -8,19 +8,17 @@
  * @format
  */
 
-import type {AlertReceiver} from '../AlarmAPIType';
-
-import AlertActionDialog from '../AlertActionDialog';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import SimpleTable from '../SimpleTable';
-
+import SimpleTable, {toLabels} from '../SimpleTable';
+import TableActionDialog from '../TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
+import type {AlertReceiver} from '../AlarmAPIType';
 import type {ApiUtil} from '../AlarmsApi';
 
 const useStyles = makeStyles({
@@ -39,10 +37,8 @@ type Props = {
 export default function Receivers(props: Props) {
   const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentAlert, setCurrentAlert] = useState<Object>({});
-  const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
-    null,
-  );
+  const [currentRow, setCurrentRow] = useState<{}>({});
+  const [showDialog, setShowDialog] = useState<?'view'>(null);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
@@ -51,7 +47,7 @@ export default function Receivers(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const onDialogAction = args => {
-    setShowAlertActionDialog(args);
+    setShowDialog(args);
     setMenuAnchorEl(null);
   };
   const receiverImportantLabels = (receiver: AlertReceiver) => {
@@ -85,20 +81,26 @@ export default function Receivers(props: Props) {
       labels: receiverImportantLabels(receiver),
     };
   });
-  // show alarms table
-  // many structures to support, slack, pagerduty. show a name + most important info as labels?
+  /**
+   * many structures to support, slack, pagerduty.
+   * show a name + most important info as labels?
+   */
   return (
     <>
       <SimpleTable
         tableData={receiversData}
         onActionsClick={(alert, target) => {
           setMenuAnchorEl(target);
-          setCurrentAlert(alert);
+          setCurrentRow(alert);
         }}
         columnStruct={[
-          {title: 'name', path: ['name']},
-          {title: 'type', path: ['type'], render: 'chip'},
-          {title: 'labels', path: ['labels']},
+          {title: 'name', getValue: row => row.name},
+          {title: 'type', getValue: row => row.type, render: 'chip'},
+          {
+            title: 'labels',
+            getValue: row => (row.labels ? toLabels(row.labels) : {}),
+            render: 'labels',
+          },
         ]}
       />
       {isLoading && receiversData.length === 0 && (
@@ -113,11 +115,11 @@ export default function Receivers(props: Props) {
         onClose={() => setMenuAnchorEl(null)}>
         <MenuItem onClick={() => onDialogAction('view')}>View</MenuItem>
       </Menu>
-      <AlertActionDialog
-        open={showAlertActionDialog != null}
+      <TableActionDialog
+        open={showDialog != null}
         onClose={() => onDialogAction(null)}
         title={'View Alert'}
-        alertConfig={currentAlert || {}}
+        row={currentRow || {}}
         showCopyButton={true}
         showDeleteButton={false}
       />
