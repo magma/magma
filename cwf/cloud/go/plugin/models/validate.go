@@ -38,7 +38,7 @@ func (m *GatewayCwfConfigs) ValidateModel() error {
 	for _, peer := range m.AllowedGrePeers {
 		for _, key := range set[string(peer.IP)] {
 			if swag.Uint32Value(peer.Key) == key {
-				return errors.New(fmt.Sprintf("Found duplicate peer %s:%d", string(peer.IP), key))
+				return errors.New(fmt.Sprintf("Found duplicate peer %s with key %d", string(peer.IP), key))
 			}
 		}
 		set[string(peer.IP)] = append(set[string(peer.IP)], swag.Uint32Value(peer.Key))
