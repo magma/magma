@@ -25,3 +25,10 @@ func (s *swxProxy) sendDiameterMsg(msg *diam.Message, retryCount uint) error {
 	}
 	return err
 }
+
+func (s *swxProxy) IsHlrClient(imsi string) bool {
+	if s != nil {
+		return s.config.IsHlrClient(imsi)
+	}
+	return false
+}

@@ -9,9 +9,9 @@
  */
 
 import Grid from '@material-ui/core/Grid';
+import LinkedDeviceInput from './LinkedDeviceInput';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
@@ -45,10 +45,8 @@ export default function LinkedDeviceAddEditSection(props: Props) {
       </div>
       <Grid container spacing={2}>
         <Grid key={'device-id'} item xs={12} sm={12} lg={6} xl={4}>
-          <TextField
-            name="device-id"
+          <LinkedDeviceInput
             label="Device ID"
-            variant="outlined"
             value={deviceID}
             onChange={event =>
               onChange(event.target.value + '.' + (networkID ?? ''))
@@ -56,10 +54,8 @@ export default function LinkedDeviceAddEditSection(props: Props) {
           />
         </Grid>
         <Grid key={'network-id'} item xs={12} sm={12} lg={6} xl={4}>
-          <TextField
-            name="network-id"
+          <LinkedDeviceInput
             label="Network ID"
-            variant="outlined"
             value={networkID ?? ''}
             onChange={event => onChange(deviceID + '.' + event.target.value)}
           />

@@ -7,8 +7,6 @@
  * @flow
  * @format
  */
-import type {AlertConfig} from './AlarmAPIType';
-
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import ClipboardLink from '@fbcnms/ui/components/ClipboardLink';
@@ -17,7 +15,6 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import {makeStyles} from '@material-ui/styles';
-import type {RuleViewerProps} from './RuleInterface';
 
 const useStyles = makeStyles({
   paper: {
@@ -29,34 +26,34 @@ const useStyles = makeStyles({
   },
 });
 
-type Props<TRuleUnion> = {
+type Props<TRow> = {
   open: boolean,
   onClose: () => void,
   title: string,
   additionalContent?: React.Node,
-  rule: TRuleUnion,
+  row: TRow,
   showCopyButton?: boolean,
   showDeleteButton?: boolean,
   onDelete?: () => Promise<void>,
-  RuleViewer: React.ComponentType<RuleViewerProps<TRuleUnion>>,
+  RowViewer: React.ComponentType<{row: TRow}>,
 };
 
-export default function AlertActionDialog<TRuleUnion>(
-  props: Props<TRuleUnion>,
-) {
+export default function TableActionDialog<TRow>(props: Props<TRow>) {
   const {
     open,
     onClose,
     title,
     additionalContent,
-    rule,
+    row,
     showCopyButton,
     showDeleteButton,
     onDelete,
-    RuleViewer,
+    RowViewer,
   } = props;
   const classes = useStyles();
-
+  if (!row) {
+    return null;
+  }
   return (
     <Dialog
       PaperProps={{classes: {root: classes.paper}}}
@@ -64,7 +61,7 @@ export default function AlertActionDialog<TRuleUnion>(
       onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <RuleViewer rule={rule} />
+        <RowViewer row={row} />
         {additionalContent}
       </DialogContent>
       <DialogActions>
@@ -75,7 +72,7 @@ export default function AlertActionDialog<TRuleUnion>(
           <ClipboardLink>
             {({copyString}) => (
               <Button
-                onClick={() => copyString(JSON.stringify(rule) || '')}
+                onClick={() => copyString(JSON.stringify(row) || '')}
                 color="primary"
                 variant="contained">
                 Copy
@@ -93,8 +90,8 @@ export default function AlertActionDialog<TRuleUnion>(
   );
 }
 
-AlertActionDialog.defaultProps = {
-  RuleViewer: SimpleJsonViewer,
+TableActionDialog.defaultProps = {
+  RowViewer: SimpleJsonViewer,
 };
 
 const useJsonStyles = makeStyles({
@@ -104,7 +101,7 @@ const useJsonStyles = makeStyles({
   },
 });
 
-function SimpleJsonViewer({rule}: {rule: AlertConfig}) {
+function SimpleJsonViewer<TRow>({row}: {row: TRow}) {
   const classes = useJsonStyles();
-  return <pre className={classes.pre}>{JSON.stringify(rule, null, 2)}</pre>;
+  return <pre className={classes.pre}>{JSON.stringify(row, null, 2)}</pre>;
 }

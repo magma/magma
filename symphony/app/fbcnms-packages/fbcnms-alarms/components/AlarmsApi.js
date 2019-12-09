@@ -16,9 +16,11 @@ import type {
   FiringAlarm,
   PrometheusLabelset,
 } from './AlarmAPIType';
+import type {CancelToken} from 'axios';
 
 export type ApiRequest = {
   networkId?: string,
+  cancelToken?: CancelToken,
 };
 
 export type ApiUtil = {|

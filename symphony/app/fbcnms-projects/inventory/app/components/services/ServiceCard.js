@@ -19,10 +19,8 @@ import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WithStyles} from '@material-ui/core';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
-import AddLinkToServiceDialog from './AddLinkToServiceDialog';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
-import Dialog from '@material-ui/core/Dialog';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import Grid from '@material-ui/core/Grid';
@@ -30,6 +28,7 @@ import IconButton from '@material-ui/core/IconButton';
 import React, {useState} from 'react';
 import ServiceEquipmentTopology from './ServiceEquipmentTopology';
 import ServiceHeader from './ServiceHeader';
+import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -123,7 +122,9 @@ const styles = _ => ({
     },
   },
   addLink: {
-    marginRight: '8px',
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
   },
   dialog: {
     width: '80%',
@@ -131,11 +132,15 @@ const styles = _ => ({
     height: '90%',
     maxHeight: '800px',
   },
+  detailsPanel: {
+    padding: '0px',
+  },
 });
 
 const ServiceCard = (props: Props) => {
   const {classes, service, history, match} = props;
-  const [showAddLinkDialog, setShowAddLinkDialog] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
 
   const onAddLink = (link: Link) => {
@@ -149,6 +154,27 @@ const ServiceCard = (props: Props) => {
         properties: [],
         terminationPointIds: [],
         linkIds: [...service.links.map(l => l.id), link.id],
+      },
+    };
+    const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+      onCompleted: () => {
+        setLinksExpanded(true);
+      },
+    };
+    EditServiceMutation(variables, callbacks);
+  };
+
+  const onDeleteLink = (link: Link) => {
+    const variables: EditServiceMutationVariables = {
+      data: {
+        id: service.id,
+        name: service.name,
+        externalId: service.externalId,
+        customerId: service.customer?.id,
+        upstreamServiceIds: [],
+        properties: [],
+        terminationPointIds: [],
+        linkIds: service.links.filter(l => l.id != link.id).map(l => l.id),
       },
     };
     const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
@@ -223,40 +249,36 @@ const ServiceCard = (props: Props) => {
         </Card>
         <div className={classes.separator} />
         <ExpandingPanel
-          title="Links"
+          title="Links & Subservices"
           defaultExpanded={false}
           expandedClassName={classes.expanded}
           className={classes.panel}
           expansionPanelSummaryClassName={classes.expansionPanel}
+          detailsPaneClass={classes.detailsPanel}
           expanded={linksExpanded}
           onChange={expanded => setLinksExpanded(expanded)}
           rightContent={
             <IconButton
               className={classes.addLink}
-              onClick={() => setShowAddLinkDialog(true)}>
+              onClick={event => {
+                setAnchorEl(event.currentTarget);
+                setShowAddMenu(true);
+              }}>
               <AddCircleOutlineIcon />
             </IconButton>
           }>
-          <ServiceLinksView links={service.links} />
+          <ServiceLinksView links={service.links} onDeleteLink={onDeleteLink} />
         </ExpandingPanel>
         <div className={classes.separator} />
       </Grid>
-      {showAddLinkDialog ? (
-        <Dialog
-          open={true}
-          onClose={() => setShowAddLinkDialog(false)}
-          maxWidth={false}
-          fullWidth={true}
-          classes={{paperFullWidth: classes.dialog}}>
-          <AddLinkToServiceDialog
-            service={service}
-            onClose={() => setShowAddLinkDialog(false)}
-            onAddLink={link => {
-              onAddLink(link);
-              setShowAddLinkDialog(false);
-            }}
-          />
-        </Dialog>
+      {showAddMenu ? (
+        <ServiceLinksSubservicesMenu
+          key={`${service.id}-menu`}
+          service={service}
+          anchorEl={anchorEl}
+          onClose={() => setAnchorEl(null)}
+          onAddLink={onAddLink}
+        />
       ) : null}
     </Grid>
   );
