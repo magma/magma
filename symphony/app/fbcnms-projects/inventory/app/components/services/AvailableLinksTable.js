@@ -13,17 +13,17 @@ import type {WithStyles} from '@material-ui/core';
 
 import AvailableLinksTable_links from './__generated__/AvailableLinksTable_links.graphql';
 import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
-import LinkComponent from '@fbcnms/ui/components/Link';
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
+import symphony from '@fbcnms/ui/theme/symphony';
+import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
+
+import 'react-virtualized/styles.css';
 
 const styles = theme => ({
   noResultsRoot: {
@@ -40,11 +40,39 @@ const styles = theme => ({
     textTransform: 'capitalize',
     maxWidth: '50px',
   },
+  checked: {
+    backgroundColor: symphony.palette.B50,
+  },
+  row: {
+    '&:hover': {
+      backgroundColor: symphony.palette.B50,
+    },
+    '&:focus': {
+      outline: 'none',
+    },
+  },
+  table: {
+    outline: 'none',
+  },
+  cell: {
+    padding: '14px 16px',
+  },
+  header: {
+    borderBottom: '2px solid #f0f0f0',
+    margin: '0px',
+  },
+  column: {
+    '&&': {
+      margin: '0px',
+      textTransform: 'none',
+    },
+  },
 });
 
 type Props = {
   equipment: Equipment,
   links: AvailableLinksTable_links,
+  selectedLink: ?Link,
   onLinkSelected: (link: Link) => void,
 } & WithStyles<typeof styles>;
 
@@ -87,7 +115,52 @@ const showLinksByOrder = (
 };
 
 const AvailableLinksTable = (props: Props) => {
-  const {equipment, links, onLinkSelected, classes} = props;
+  const {equipment, links, selectedLink, onLinkSelected, classes} = props;
+  const {history} = useRouter();
+
+  const headerRenderer = ({label}) => {
+    return (
+      <div className={classes.cell}>
+        <Text variant="subtitle2">{label}</Text>
+      </div>
+    );
+  };
+
+  const cellRenderer = ({dataKey, _, cellData}) => {
+    let content = null;
+
+    if (dataKey.startsWith('equipment_')) {
+      content = (
+        <EquipmentBreadcrumbs
+          equipment={cellData}
+          size="small"
+          variant="body2"
+          onParentLocationClicked={locationId =>
+            history.push(
+              `inventory/` + (locationId ? `?location=${locationId}` : ''),
+            )
+          }
+          onEquipmentClicked={equipmentId =>
+            history.push(
+              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
+            )
+          }
+        />
+      );
+    } else {
+      content = (
+        <Text variant={dataKey === 'port_b' ? 'subtitle2' : 'body2'}>
+          {cellData}
+        </Text>
+      );
+    }
+    return <div className={classes.cell}>{content}</div>;
+  };
+
+  const onRowClicked = ({_event, _index, rowData}) => {
+    onLinkSelected(rowData);
+  };
+
   const linksByOrder = showLinksByOrder(equipment, links);
   if (linksByOrder.length === 0) {
     return (
@@ -101,42 +174,75 @@ const AvailableLinksTable = (props: Props) => {
   }
 
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          <TableCell>Equipment A (Selected)</TableCell>
-          <TableCell>Port A</TableCell>
-          <TableCell>Equipment B</TableCell>
-          <TableCell>Port B</TableCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {linksByOrder.map(link => {
-          return (
-            <TableRow key={`link_${link.id}`}>
-              <TableCell>
-                <EquipmentBreadcrumbs
-                  equipment={link.srcPort.parentEquipment}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>
-                <LinkComponent onClick={() => onLinkSelected(link)}>
-                  {link.srcPort.definition.name}
-                </LinkComponent>
-              </TableCell>
-              <TableCell>
-                <EquipmentBreadcrumbs
-                  equipment={link.dstPort.parentEquipment}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell>{link.dstPort.definition.name}</TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <AutoSizer>
+      {({height, width}) => (
+        <Table
+          className={classes.table}
+          height={height}
+          width={width}
+          headerHeight={50}
+          rowHeight={50}
+          rowCount={linksByOrder.length}
+          rowGetter={({index}) => linksByOrder[index]}
+          gridClassName={classes.table}
+          rowClassName={({index}) =>
+            classNames({
+              [classes.header]: index === -1,
+              [classes.row]: index !== -1,
+              [classes.checked]:
+                selectedLink &&
+                index !== -1 &&
+                links[index].id === selectedLink.id,
+            })
+          }
+          onRowClick={onRowClicked}>
+          <Column
+            label="Equipment A (Selected)"
+            dataKey="equipment_a"
+            width={250}
+            flexGrow={1}
+            cellDataGetter={({rowData}) => rowData.srcPort.parentEquipment}
+            headerRenderer={headerRenderer}
+            cellRenderer={cellRenderer}
+            headerClassName={classes.column}
+            className={classes.column}
+          />
+          <Column
+            label="Port A"
+            dataKey="port_a"
+            width={250}
+            flexGrow={1}
+            cellDataGetter={({rowData}) => rowData.srcPort.definition.name}
+            headerRenderer={headerRenderer}
+            cellRenderer={cellRenderer}
+            headerClassName={classes.column}
+            className={classes.column}
+          />
+          <Column
+            label="Equipment B (Selected)"
+            dataKey="equipment_b"
+            width={250}
+            flexGrow={1}
+            cellDataGetter={({rowData}) => rowData.dstPort.parentEquipment}
+            headerRenderer={headerRenderer}
+            cellRenderer={cellRenderer}
+            headerClassName={classes.column}
+            className={classes.column}
+          />
+          <Column
+            label="Port B"
+            dataKey="port_b"
+            width={250}
+            flexGrow={1}
+            cellDataGetter={({rowData}) => rowData.dstPort.definition.name}
+            headerRenderer={headerRenderer}
+            cellRenderer={cellRenderer}
+            headerClassName={classes.column}
+            className={classes.column}
+          />
+        </Table>
+      )}
+    </AutoSizer>
   );
 };
 
