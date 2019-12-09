@@ -87,28 +87,35 @@ class FileUpload extends React.Component<Props> {
     }
 
     const file = files[0];
-    const signingResponse = await axios.get('/store/put', {
-      params: {
-        contentType: file.type,
-      },
-    });
-
-    const {onProgress} = this.props;
-    const config = {
-      headers: {
-        'Content-Type': file.type,
-      },
-      onUploadProgress: function(progressEvent) {
-        const percentCompleted = Math.round(
-          (progressEvent.loaded * 100) / progressEvent.total,
-        );
-        onProgress && onProgress(percentCompleted);
-      },
-    };
-    await axios.put(signingResponse.data.URL, file, config);
-
-    this.props.onFileUploaded(file, signingResponse.data.key);
+    uploadFile(file, this.props.onFileUploaded, this.props.onProgress);
   };
+}
+
+export async function uploadFile(
+  file: File,
+  onUpload: (File, string) => void,
+  onProgress?: number => void,
+) {
+  const signingResponse = await axios.get('/store/put', {
+    params: {
+      contentType: file.type,
+    },
+  });
+
+  const config = {
+    headers: {
+      'Content-Type': file.type,
+    },
+    onUploadProgress: function(progressEvent) {
+      const percentCompleted = Math.round(
+        (progressEvent.loaded * 100) / progressEvent.total,
+      );
+      onProgress && onProgress(percentCompleted);
+    },
+  };
+  await axios.put(signingResponse.data.URL, file, config);
+
+  onUpload(file, signingResponse.data.key);
 }
 
 export default FileUpload;
