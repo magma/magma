@@ -1181,6 +1181,21 @@ type Survey implements Node {
   surveyResponses: [SurveyQuestion]!
 }
 
+input AddFloorPlanInput {
+  name: String!
+  locationID: ID!
+  image: AddImageInput!
+  referenceX: Int!
+  referenceY: Int!
+  latitude: Float!
+  longitude: Float!
+  referencePoint1X: Int!
+  referencePoint1Y: Int!
+  referencePoint2X: Int!
+  referencePoint2Y: Int!
+  scaleInMeters: Float!
+}
+
 type FloorPlan implements Node {
   id: ID!
   name: String!
@@ -1809,4 +1824,5 @@ type Mutation {
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
 }
