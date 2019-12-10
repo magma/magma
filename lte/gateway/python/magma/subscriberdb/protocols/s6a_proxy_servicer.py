@@ -109,6 +109,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
+        # TODO - Add APN config through CLI
+        # ims apn
         apn_ims = ula.apn.add()
         apn_ims.context_id = 1
         apn_ims.service_selection = 'ims'
@@ -121,6 +123,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn_ims.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn_ims.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
+        # internet apn
         apn_internet = ula.apn.add()
         apn_internet.context_id = 2
         apn_internet.service_selection = 'internet'

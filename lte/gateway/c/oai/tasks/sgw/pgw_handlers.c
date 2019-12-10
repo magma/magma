@@ -330,18 +330,18 @@ static void get_imsi_plmn_from_session_req(
   const itti_s11_create_session_request_t *saved_req,
   struct pcef_create_session_data *data)
 {
-  data->mcc_mnc[0] = saved_req->imsi.digit[0];
-  data->mcc_mnc[1] = saved_req->imsi.digit[1];
-  data->mcc_mnc[2] = saved_req->imsi.digit[2];
-  data->mcc_mnc[3] = saved_req->imsi.digit[3];
-  data->mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
+  data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];
+  data->imsi_mcc_mnc[2] = saved_req->imsi.digit[2];
+  data->imsi_mcc_mnc[3] = saved_req->imsi.digit[3];
+  data->imsi_mcc_mnc[4] = saved_req->imsi.digit[4];
   data->imsi_mcc_mnc_len = 5;
   if ((saved_req->imsi.digit[5] & 0xf) != 0xf) {
-    data->mcc_mnc[5] = saved_req->imsi.digit[5];
-    data->mcc_mnc[6] = '\0';
+    data->imsi_mcc_mnc[5] = saved_req->imsi.digit[5];
+    data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
-    data->mcc_mnc[5] = '\0';
+    data->imsi_mcc_mnc[5] = '\0';
   }
 }
 

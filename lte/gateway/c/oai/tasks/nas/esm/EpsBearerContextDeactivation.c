@@ -317,7 +317,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     ebi);
   /*
    * Stop T3495 timer if running
-   */ // TODO remove this
+   */
   rc = esm_ebr_stop_timer(emm_context_p, ebi);
 
   if (rc != RETURNerror) {
