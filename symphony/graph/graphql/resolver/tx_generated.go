@@ -778,3 +778,17 @@ func (tr txResolver) AddActionsRule(ctx context.Context, input models.AddActions
 	}
 	return result, nil
 }
+
+func (tr txResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
+	var result, zero *ent.FloorPlan
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddFloorPlan(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}

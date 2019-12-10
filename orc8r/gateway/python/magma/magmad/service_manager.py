@@ -7,11 +7,14 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from enum import Enum
-import subprocess
 import asyncio
-import logging
 import json
+import logging
+import subprocess
+from enum import Enum
+from typing import List, Tuple
+
+from magma.magmad.service_poller import ServicePoller
 
 
 class ServiceState(Enum):
@@ -43,9 +46,14 @@ class ServiceManager(object):
     _services = []
     _registered_dynamic_services = []
 
-    def __init__(self, services, init_system, service_poller,
-                 registered_dynamic_services=None,
-                 dynamic_services=None):
+    def __init__(
+            self,
+            services: List[str],
+            init_system,
+            service_poller: ServicePoller,
+            registered_dynamic_services: List[str] = None,
+            dynamic_services: List[str] = None,
+    ):
         if registered_dynamic_services is None:
             registered_dynamic_services = []
         if dynamic_services is None:
@@ -98,13 +106,13 @@ class ServiceManager(object):
             *[self._service_control[s].restart_process() for s in services]
         )
 
-    async def update_dynamic_services(self, dynamic_services):
+    async def update_dynamic_services(self, dynamic_services: List[str]):
         """
         Start/Stop dynamic services, after running this the only dynamic
         services left running are the ones passed in (dynamic_services).
         """
         start, stop = self._parse_dynamic_services(dynamic_services)
-
+        self._service_poller.update_dynamic_services(start, stop)
         self._services = [s for s in self._services + start if s not in stop]
 
         await asyncio.gather(
@@ -112,7 +120,10 @@ class ServiceManager(object):
             *[self._service_control[s].start_process() for s in start]
         )
 
-    def _parse_dynamic_services(self, dynamic_services):
+    def _parse_dynamic_services(
+            self,
+            dynamic_services: List[str],
+    ) -> Tuple[List[str], List[str]]:
         """
         Figure out what dynamic services to stop/start
 
@@ -128,7 +139,7 @@ class ServiceManager(object):
                 start.append(s)
             elif s in self._services and s not in clean_dynamic_services:
                 stop.append(s)
-        return (start, stop)
+        return start, stop
 
     def _clean_dynamic_services(self, dynamic_services):
         """ Check for invalid service names, remove them from list """

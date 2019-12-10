@@ -67,11 +67,14 @@
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-/* TODO Commented some function declarations below since these were called from the code that got removed from TAU request
- * handling function. Reason this code was removed: This portion of code was incomplete and was related to handling of
- * some optional IEs /scenarios that were not relevant for the TAU periodic update handling and might have resulted in
+/* TODO Commented some function declarations below since these were called
+ * from the code that got removed from TAU request handling function.
+ * Reason this code was removed: This portion of code was incomplete and was
+ * related to handling of some optional IEs /scenarios that were not relevant
+ * for the TAU periodic update handling and might have resulted in
  * unexpected behaviour/instability.
- * At present support for TAU is limited to handling of periodic TAU request only  mandatory IEs .
+ * At present support for TAU is limited to handling of periodic TAU request
+ * only  mandatory IEs .
  * Other aspects of TAU are TODOs for future.
  */
 
@@ -389,7 +392,8 @@ int emm_proc_tracking_area_update_reject(
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-/* TODO - Compiled out this function to remove compiler warnings since we don't expect TAU Complete from UE as we dont support implicit
+/* TODO - Compiled out this function to remove compiler warnings since we
+ * don't expect TAU Complete from UE as we dont support implicit
  * GUTI re-allocation during TAU procedure.
  */
 #if 0

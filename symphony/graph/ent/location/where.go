@@ -1171,6 +1171,35 @@ func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.Location {
 	)
 }
 
+// HasFloorPlans applies the HasEdge predicate on the "floor_plans" edge.
+func HasFloorPlans() predicate.Location {
+	return predicate.Location(
+		func(s *sql.Selector) {
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(FloorPlansTable, FieldID),
+				sql.Edge(sql.O2M, true, FloorPlansTable, FloorPlansColumn),
+			)
+			sql.HasNeighbors(s, step)
+		},
+	)
+}
+
+// HasFloorPlansWith applies the HasEdge predicate on the "floor_plans" edge with a given conditions (other predicates).
+func HasFloorPlansWith(preds ...predicate.FloorPlan) predicate.Location {
+	return predicate.Location(
+		func(s *sql.Selector) {
+			builder := sql.Dialect(s.Dialect())
+			t1 := s.Table()
+			t2 := builder.Select(FloorPlansColumn).From(builder.Table(FloorPlansTable))
+			for _, p := range preds {
+				p(t2)
+			}
+			s.Where(sql.In(t1.C(FieldID), t2))
+		},
+	)
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Location) predicate.Location {
 	return predicate.Location(

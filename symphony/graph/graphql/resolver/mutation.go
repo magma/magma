@@ -2587,3 +2587,45 @@ func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddAc
 	}
 	return actionsRule, nil
 }
+
+func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
+	img, err := r.createImage(ctx, input.Image)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create image")
+	}
+
+	client := r.ClientFrom(ctx)
+	referencePoint, err := client.FloorPlanReferencePoint.Create().
+		SetX(input.ReferenceX).
+		SetY(input.ReferenceY).
+		SetLatitude(input.Latitude).
+		SetLongitude(input.Longitude).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create reference point")
+	}
+
+	scale, err := client.FloorPlanScale.Create().
+		SetReferencePoint1X(input.ReferencePoint1x).
+		SetReferencePoint1Y(input.ReferencePoint1y).
+		SetReferencePoint2X(input.ReferencePoint2x).
+		SetReferencePoint2Y(input.ReferencePoint2y).
+		SetScaleInMeters(input.ScaleInMeters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create scale")
+	}
+
+	floorPlan, err := client.FloorPlan.Create().
+		SetName(input.Name).
+		SetLocationID(input.LocationID).
+		SetImage(img).
+		SetReferencePoint(referencePoint).
+		SetScale(scale).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create floor plan")
+	}
+
+	return floorPlan, nil
+}

@@ -12,6 +12,7 @@ import * as React from 'react';
 import IconButton from '@material-ui/core/IconButton';
 import KeyboardArrowRightIcon from '@material-ui/icons/KeyboardArrowRight';
 import Slide from '@material-ui/core/Slide';
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
@@ -46,23 +47,30 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   top: number,
+  width: number,
   isShown: boolean,
   children: any,
   onClose: () => void,
+  className?: string,
+  backButton?: (props: {onClose: () => void}) => React.Node,
 };
 
 const SideBar = (props: Props) => {
-  const {top, isShown, children, onClose} = props;
+  const {top, isShown, children, onClose, className, width, backButton} = props;
   const classes = useStyles();
 
   return (
     <Slide direction="left" in={isShown} mountOnEnter unmountOnExit>
       <div
-        className={classes.root}
-        style={{top: top, height: `calc(100vh - ${top}px)`}}>
-        <IconButton className={classes.closeButton} onClick={onClose}>
-          <KeyboardArrowRightIcon className={classes.icon} fontSize="small" />
-        </IconButton>
+        className={classNames(classes.root, className)}
+        style={{top: top, height: `calc(100vh - ${top}px)`, width}}>
+        {backButton ? (
+          backButton(props)
+        ) : (
+          <IconButton className={classes.closeButton} onClick={onClose}>
+            <KeyboardArrowRightIcon className={classes.icon} fontSize="small" />
+          </IconButton>
+        )}
         {children}
       </div>
     </Slide>
@@ -71,6 +79,7 @@ const SideBar = (props: Props) => {
 
 SideBar.defaultProps = {
   top: 0,
+  width: 200,
 };
 
 export default SideBar;

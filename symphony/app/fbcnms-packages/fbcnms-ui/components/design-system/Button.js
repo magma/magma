@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {TRefFor} from './types/TRefFor.flow';
+
 import * as React from 'react';
 import Text from './Text';
 import classNames from 'classnames';
@@ -154,13 +156,20 @@ type Props = {
   className?: string,
   children: React.Node,
   onClick?: void | (() => void | Promise<void>),
-  skin: 'primary' | 'regular' | 'red' | 'gray',
-  variant: 'contained' | 'text',
-  disabled: boolean,
+  skin?: 'primary' | 'regular' | 'red' | 'gray',
+  variant?: 'contained' | 'text',
+  disabled?: boolean,
 };
 
-const Button = (props: Props) => {
-  const {className, children, skin, disabled, variant, onClick} = props;
+const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
+  const {
+    className,
+    children,
+    skin = 'primary',
+    disabled = false,
+    variant = 'contained',
+    onClick,
+  } = props;
   const classes = useStyles();
   const textifiedChildren = Array.isArray(children) ? (
     children.map(c =>
@@ -191,16 +200,11 @@ const Button = (props: Props) => {
       )}
       type="button"
       disabled={disabled}
-      onClick={onClick}>
+      onClick={onClick}
+      ref={forwardedRef}>
       {textifiedChildren}
     </button>
   );
 };
 
-Button.defaultProps = {
-  skin: 'primary',
-  disabled: false,
-  variant: 'contained',
-};
-
-export default Button;
+export default React.forwardRef<Props, HTMLButtonElement>(Button);

@@ -213,7 +213,7 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 	}
 	rsp, err := r.orc8rClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("preforming orc8r status request: %w", err)
+		return nil, fmt.Errorf("performing orc8r status request: %w", err)
 	}
 	defer rsp.Body.Close()
 
@@ -224,7 +224,7 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 		return nil, fmt.Errorf("decoding orc8r response: %w", err)
 	}
 
-	var dev models.Device
+	dev := models.Device{ID: eq.DeviceID}
 	if result.CheckinTime != 0 {
 		up := result.CheckinTime > time.Now().Add(3*time.Minute).Unix()
 		dev.Up = &up

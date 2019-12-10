@@ -258,7 +258,7 @@ func (m *importer) verifyOrCreateLocationHierarchy(ctx context.Context, l Import
 		if err != nil {
 			return nil, errors.Wrapf(err, "missing location type: id=%q", typID)
 		}
-		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil)
+		loc, _ = m.getOrCreateLocation(ctx, locName, 0.0, 0.0, typ, currParentID, nil, nil)
 		currParentID = &loc.ID
 	}
 	if loc == nil {

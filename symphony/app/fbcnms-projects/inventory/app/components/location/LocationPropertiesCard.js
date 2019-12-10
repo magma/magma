@@ -308,7 +308,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   <LocationCoverageMapTab location={location} />
                 ) : null}
                 {this.state.selectedTab === 'floor_plans' && (
-                  <LocationFloorPlansTab />
+                  <LocationFloorPlansTab locationId={location.id} />
                 )}
               </div>
             </div>

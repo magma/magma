@@ -54,7 +54,8 @@ def main():
         enabled_dynamic_services = service.mconfig.dynamic_services
 
     # Poll the services' Service303 interface
-    service_poller = ServicePoller(service.loop, service.config)
+    service_poller = ServicePoller(service.loop, service.config,
+                                   enabled_dynamic_services)
     service_poller.start()
 
     service_manager = ServiceManager(services, init_system, service_poller,

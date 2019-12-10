@@ -42,24 +42,6 @@ const styles = theme => ({
     marginRight: '8px',
     fontWeight: 500,
   },
-  connectorActive: {
-    '& $connectorLine': {
-      borderColor: theme.palette.secondary.main,
-    },
-  },
-  connectorCompleted: {
-    '& $connectorLine': {
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  connectorDisabled: {
-    '& $connectorLine': {
-      borderColor: theme.palette.grey[100],
-    },
-  },
-  connectorLine: {
-    transition: theme.transitions.create('border-color'),
-  },
   root: {
     minWidth: '80vh',
     paddingTop: '0px',
@@ -129,18 +111,15 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   }
 
   handleElementSelected = equipment => {
-    this.setState(state => ({
+    this.setState({
       activeEquipement: equipment,
-      activeStep: state.activeStep + 1,
-    }));
+    });
   };
 
   handleLinkSelected = (link: Link) => {
-    const {onAddLink} = this.props;
-    this.setState(_ => ({
+    this.setState({
       activeLink: link,
-    }));
-    onAddLink(nullthrows(link));
+    });
   };
 
   getStepContent = () => {
@@ -153,6 +132,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           <PowerSearchLinkFirstEquipmentResultsTable
             equipment={props.equipment}
             onEquipmentSelected={this.handleElementSelected}
+            selectedEquipment={this.state.activeEquipement}
           />
         </div>
       );
@@ -195,6 +175,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
                 <AvailableLinksTable
                   equipment={nullthrows(this.state.activeEquipement)}
                   links={links}
+                  selectedLink={this.state.activeLink}
                   onLinkSelected={this.handleLinkSelected}
                 />
               );
@@ -235,9 +216,21 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           <Text className={classes.title} variant="h6">
             Add link to {service.name}
           </Text>
-          <Text className={classes.subtitle} variant="subtitle2" color="light">
-            Select the equipment associated with the link.
-          </Text>
+          {lastStep ? (
+            <Text
+              className={classes.subtitle}
+              variant="subtitle2"
+              color="light">
+              Select the link you want to add to this service.
+            </Text>
+          ) : (
+            <Text
+              className={classes.subtitle}
+              variant="subtitle2"
+              color="light">
+              Select the equipment associated with the link.
+            </Text>
+          )}
         </DialogTitle>
         <DialogContent div className={classes.root}>
           <div className={classes.content}>{this.getStepContent()}</div>
@@ -262,7 +255,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           )}
           {lastStep && (
             <Button
-              disabled={activeStep < steps.length - 1}
+              disabled={activeLink === null}
               color="primary"
               onClick={() => onAddLink(nullthrows(activeLink))}>
               Add

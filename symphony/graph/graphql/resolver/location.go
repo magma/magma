@@ -73,6 +73,10 @@ func (locationResolver) LocationType(ctx context.Context, obj *ent.Location) (*e
 	return obj.QueryType().Only(ctx)
 }
 
+func (r locationResolver) FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error) {
+	return obj.QueryFloorPlans().All(ctx)
+}
+
 func (locationResolver) ParentLocation(ctx context.Context, obj *ent.Location) (*ent.Location, error) {
 	parent, err := obj.QueryParent().Only(ctx)
 	if ent.IsNotFound(err) {

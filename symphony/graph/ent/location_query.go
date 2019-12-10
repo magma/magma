@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -176,6 +177,18 @@ func (lq *LocationQuery) QueryWorkOrders() *WorkOrderQuery {
 		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
 		sql.To(workorder.Table, workorder.FieldID),
 		sql.Edge(sql.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
+	)
+	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	return query
+}
+
+// QueryFloorPlans chains the current query on the floor_plans edge.
+func (lq *LocationQuery) QueryFloorPlans() *FloorPlanQuery {
+	query := &FloorPlanQuery{config: lq.config}
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sql.To(floorplan.Table, floorplan.FieldID),
+		sql.Edge(sql.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
 	)
 	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
 	return query

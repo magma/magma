@@ -48,7 +48,7 @@ installation process to get an IP using DHCP.
 ```bash
 su
 wget https://raw.githubusercontent.com/facebookincubator/magma/master/lte/gateway/deploy/agw_install.sh
-sh agw_prepare.sh
+sh agw_install.sh
 ```
 
 The machine will reboot but It's not finished yet, the script is still running in the background.
