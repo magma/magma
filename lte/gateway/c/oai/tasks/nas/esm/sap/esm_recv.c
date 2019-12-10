@@ -384,6 +384,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     // Update pdn connection id
     emm_context->esm_ctx.esm_proc_data->pdn_cid = pdn_cid;
 
+    // Update qci
+    esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
     rc = esm_proc_pdn_connectivity_request(
       emm_context,
       pti,
@@ -489,8 +491,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   emm_context_t *emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_disconnect_request_msg *msg,
-  ebi_t *linked_ebi)
+  const pdn_disconnect_request_msg *msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
@@ -541,10 +542,13 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
-  int pid = esm_proc_pdn_disconnect_request(emm_context, pti, &esm_cause);
 
-  if (pid != RETURNerror) {
+  pdn_cid_t pid =
+    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
+      ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]
+      ->pdn_cx_id;
 
+  if (pid < MAX_APN_PER_UE) {
     /* If VoLTE is enabled, send ITTI message to MME APP
      * MME APP will trigger Delete session towards SGW
      * to release the session
@@ -557,26 +561,27 @@ esm_cause_t esm_recv_pdn_disconnect_request(
         "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
         ue_id,
         pid,
-        ebi);
-      nas_itti_pdn_disconnect_req(ue_id, pid, *linked_ebi);
+        msg->linkedepsbeareridentity);
+      nas_itti_pdn_disconnect_req(ue_id, pid, msg->linkedepsbeareridentity);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
     }
 
-    /*
-     * Get the identity of the default EPS bearer context assigned to
-     * * * * the PDN connection to disconnect from
-     */
-    *linked_ebi = msg->linkedepsbeareridentity;
     /*
      * Release the associated default EPS bearer context
      */
     int bid = 0;
     int rc = esm_proc_eps_bearer_context_deactivate(
-      emm_context, false, *linked_ebi, &pid, &bid, &esm_cause);
+      emm_context, false, msg->linkedepsbeareridentity, &pid, &bid, &esm_cause);
 
     if (rc != RETURNerror) {
       esm_cause = ESM_CAUSE_SUCCESS;
     }
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-PROC  - No PDN connection found (lbi=%u)\n",
+      msg->linkedepsbeareridentity);
+    esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
   }
 
   /*

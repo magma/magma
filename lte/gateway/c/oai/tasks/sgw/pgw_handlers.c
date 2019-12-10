@@ -308,36 +308,40 @@ static int get_imeisv_from_session_req(
 }
 
 static void get_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *mcc_mnc)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
-  mcc_mnc[0] = saved_req->serving_network.mcc[0];
-  mcc_mnc[1] = saved_req->serving_network.mcc[1];
-  mcc_mnc[2] = saved_req->serving_network.mcc[2];
-  mcc_mnc[3] = saved_req->serving_network.mnc[0];
-  mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc[0] = saved_req->serving_network.mcc[0];
+  data->mcc_mnc[1] = saved_req->serving_network.mcc[1];
+  data->mcc_mnc[2] = saved_req->serving_network.mcc[2];
+  data->mcc_mnc[3] = saved_req->serving_network.mnc[0];
+  data->mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc_len = 5;
   if (saved_req->serving_network.mnc[2] != 0xff) {
-    mcc_mnc[5] = saved_req->serving_network.mnc[2];
-    mcc_mnc[6] = '\0';
+    data->mcc_mnc[5] = saved_req->serving_network.mnc[2];
+    data->mcc_mnc[6] = '\0';
+    data->mcc_mnc_len += 1;
   } else {
-    mcc_mnc[5] = '\0';
+    data->mcc_mnc[5] = '\0';
   }
 }
 
 static void get_imsi_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *mcc_mnc)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
-  mcc_mnc[0] = saved_req->imsi.digit[0];
-  mcc_mnc[1] = saved_req->imsi.digit[1];
-  mcc_mnc[2] = saved_req->imsi.digit[2];
-  mcc_mnc[3] = saved_req->imsi.digit[3];
-  mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
+  data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];
+  data->imsi_mcc_mnc[2] = saved_req->imsi.digit[2];
+  data->imsi_mcc_mnc[3] = saved_req->imsi.digit[3];
+  data->imsi_mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc_len = 5;
   if ((saved_req->imsi.digit[5] & 0xf) != 0xf) {
-    mcc_mnc[5] = saved_req->imsi.digit[5];
-    mcc_mnc[6] = '\0';
+    data->imsi_mcc_mnc[5] = saved_req->imsi.digit[5];
+    data->imsi_mcc_mnc[6] = '\0';
+    data->imsi_mcc_mnc_len += 1;
   } else {
-    mcc_mnc[5] = '\0';
+    data->imsi_mcc_mnc[5] = '\0';
   }
 }
 
@@ -407,8 +411,8 @@ static void get_session_req_data(
 
   data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
   data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
-  get_plmn_from_session_req(saved_req, data->mcc_mnc);
-  get_imsi_plmn_from_session_req(saved_req, data->imsi_mcc_mnc);
+  get_plmn_from_session_req(saved_req, data);
+  get_imsi_plmn_from_session_req(saved_req, data);
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
 
