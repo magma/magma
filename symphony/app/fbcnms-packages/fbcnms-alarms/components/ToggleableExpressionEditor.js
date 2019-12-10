@@ -350,7 +350,7 @@ function MetricFilter(props: {
 
 function ToggleSwitch(props: {
   toggleOn: boolean,
-  onChange: (event: any) => void,
+  onChange: (event: SyntheticInputEvent<HTMLInputElement>) => void,
 }) {
   const classes = useStyles();
   return (

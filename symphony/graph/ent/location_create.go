@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
@@ -44,6 +45,7 @@ type LocationCreate struct {
 	wifi_scan          map[string]struct{}
 	cell_scan          map[string]struct{}
 	work_orders        map[string]struct{}
+	floor_plans        map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -330,6 +332,26 @@ func (lc *LocationCreate) AddWorkOrders(w ...*WorkOrder) *LocationCreate {
 		ids[i] = w[i].ID
 	}
 	return lc.AddWorkOrderIDs(ids...)
+}
+
+// AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
+func (lc *LocationCreate) AddFloorPlanIDs(ids ...string) *LocationCreate {
+	if lc.floor_plans == nil {
+		lc.floor_plans = make(map[string]struct{})
+	}
+	for i := range ids {
+		lc.floor_plans[ids[i]] = struct{}{}
+	}
+	return lc
+}
+
+// AddFloorPlans adds the floor_plans edges to FloorPlan.
+func (lc *LocationCreate) AddFloorPlans(f ...*FloorPlan) *LocationCreate {
+	ids := make([]string, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return lc.AddFloorPlanIDs(ids...)
 }
 
 // Save creates the Location in the database.
@@ -652,6 +674,30 @@ func (lc *LocationCreate) sqlSave(ctx context.Context) (*Location, error) {
 		}
 		if int(affected) < len(lc.work_orders) {
 			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(lc.work_orders))})
+		}
+	}
+	if len(lc.floor_plans) > 0 {
+		p := sql.P()
+		for eid := range lc.floor_plans {
+			eid, err := strconv.Atoi(eid)
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			p.Or().EQ(floorplan.FieldID, eid)
+		}
+		query, args := builder.Update(location.FloorPlansTable).
+			Set(location.FloorPlansColumn, id).
+			Where(sql.And(p, sql.IsNull(location.FloorPlansColumn))).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+		affected, err := res.RowsAffected()
+		if err != nil {
+			return nil, rollback(tx, err)
+		}
+		if int(affected) < len(lc.floor_plans) {
+			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(lc.floor_plans))})
 		}
 	}
 	if err := tx.Commit(); err != nil {

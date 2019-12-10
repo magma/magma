@@ -428,7 +428,7 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
       return {
         error: '',
         editingEquipment: update(prevState.editingEquipment, {
-          device: {id: {$set: deviceID}},
+          device: {$set: {id: deviceID}},
         }),
       };
     });

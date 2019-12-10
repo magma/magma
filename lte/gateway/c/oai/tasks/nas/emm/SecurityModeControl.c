@@ -79,6 +79,7 @@
 #include "nas_procedures.h"
 #include "nas/securityDef.h"
 #include "security_types.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -583,8 +584,8 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
   }
-  nas_itti_detach_req(ue_id);
   unlock_ue_contexts(ue_mm_context);
+  mme_app_handle_detach_req(ue_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

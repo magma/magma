@@ -103,10 +103,10 @@ func (m *importer) ProcessRuralLocationsCSV(w http.ResponseWriter, r *http.Reque
 			parsedLat, _ := strconv.ParseFloat(latVal, 64)
 			parsedLong, _ := strconv.ParseFloat(longVal, 64)
 
-			Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil)
-			Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil)
-			Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil)
-			CentroPoblado, _ := m.getOrCreateLocation(ctx, NombreCentroPobladoVal, 0.0, 0.0, CentroPobladoLocationType, &Distrito.ID, nil)
+			Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil, nil)
+			Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil, nil)
+			Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil, nil)
+			CentroPoblado, _ := m.getOrCreateLocation(ctx, NombreCentroPobladoVal, 0.0, 0.0, CentroPobladoLocationType, &Distrito.ID, nil, nil)
 
 			estPropertyInput := []*models.PropertyInput{
 				{
@@ -119,7 +119,7 @@ func (m *importer) ProcessRuralLocationsCSV(w http.ResponseWriter, r *http.Reque
 					IsInstanceProperty: &instance,
 				},
 			}
-			l, wasNew := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &CentroPoblado.ID, estPropertyInput)
+			l, wasNew := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &CentroPoblado.ID, estPropertyInput, &CodigoUnicoEStacionVal)
 			if wasNew {
 				oldLocations, err := EstacionLocationType.QueryLocations().Where(location.HasPropertiesWith(property.HasTypeWith(propertytype.Name("Codigo Unico Estacion")), property.StringVal(CodigoUnicoEStacionVal)), location.IDNEQ(l.ID)).All(ctx)
 

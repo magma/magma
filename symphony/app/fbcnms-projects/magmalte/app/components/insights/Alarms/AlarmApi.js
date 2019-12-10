@@ -35,29 +35,22 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
   },
   // Alert Rules
   createAlertRule: async ({networkId, rule}) => {
-    const rules = await MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig(
-      {
-        networkId: nullthrows(networkId),
-        alertConfig: rule,
-      },
-    );
-    return rules;
+    await MagmaV1API.postNetworksByNetworkIdPrometheusAlertConfig({
+      networkId: nullthrows(networkId),
+      alertConfig: rule,
+    });
   },
   editAlertRule: async ({networkId, rule}) => {
-    const rules = await MagmaV1API.putNetworksByNetworkIdPrometheusAlertConfigByAlertName(
-      {
-        networkId: nullthrows(networkId),
-        alertName: rule.alert,
-        alertConfig: rule,
-      },
-    );
-    return rules;
+    await MagmaV1API.putNetworksByNetworkIdPrometheusAlertConfigByAlertName({
+      networkId: nullthrows(networkId),
+      alertName: rule.alert,
+      alertConfig: rule,
+    });
   },
   getAlertRules: async ({networkId}) => {
-    const rules = await MagmaV1API.getNetworksByNetworkIdPrometheusAlertConfig({
+    return await MagmaV1API.getNetworksByNetworkIdPrometheusAlertConfig({
       networkId: nullthrows(networkId),
     });
-    return rules;
   },
   deleteAlertRule: async ({ruleName, networkId}) => {
     await MagmaV1API.deleteNetworksByNetworkIdPrometheusAlertConfig({
@@ -65,18 +58,49 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
       alertName: ruleName,
     });
   },
+  // Suppressions
   getSuppressions: () => {
     console.warn('not implemented');
     return Promise.resolve([]);
   },
-  getReceivers: () => {
-    console.warn('not implemented');
-    return Promise.resolve([]);
+  // Receivers
+  createReceiver: async ({networkId, receiver}) => {
+    await MagmaV1API.postNetworksByNetworkIdPrometheusAlertReceiver({
+      networkId: nullthrows(networkId),
+      receiverConfig: receiver,
+    });
   },
-  getRoutes: () => {
-    console.warn('not implemented');
-    return Promise.resolve([]);
+  editReceiver: async ({networkId, receiver}) => {
+    await MagmaV1API.putNetworksByNetworkIdPrometheusAlertReceiverByReceiver({
+      networkId: nullthrows(networkId),
+      receiver: receiver.name,
+      receiverConfig: receiver,
+    });
   },
+  getReceivers: async ({networkId}) => {
+    return await MagmaV1API.getNetworksByNetworkIdPrometheusAlertReceiver({
+      networkId: nullthrows(networkId),
+    });
+  },
+  deleteReceiver: async ({networkId, receiverName}) => {
+    await MagmaV1API.deleteNetworksByNetworkIdPrometheusAlertReceiver({
+      networkId: nullthrows(networkId),
+      receiver: receiverName,
+    });
+  },
+  // Routes
+  getRouteTree: async ({networkId}) => {
+    return await MagmaV1API.getNetworksByNetworkIdPrometheusAlertReceiverRoute({
+      networkId: nullthrows(networkId),
+    });
+  },
+  editRouteTree: async ({networkId, route}) => {
+    await MagmaV1API.postNetworksByNetworkIdPrometheusAlertReceiverRoute({
+      networkId: nullthrows(networkId),
+      route: route,
+    });
+  },
+  // Metric Series
   getMetricSeries: async ({networkId}) => {
     const series = await MagmaV1API.getNetworksByNetworkIdPrometheusSeries({
       networkId: nullthrows(networkId),

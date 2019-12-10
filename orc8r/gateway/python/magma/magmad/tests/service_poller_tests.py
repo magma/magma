@@ -34,7 +34,7 @@ class ServicePollerTests(unittest.TestCase):
         }
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
-        self._service_poller = ServicePoller(self._loop, config)
+        self._service_poller = ServicePoller(self._loop, config, [])
 
     @unittest.mock.patch('%s.Service303Stub' % SP)
     def test_poll(self, service303_mock):

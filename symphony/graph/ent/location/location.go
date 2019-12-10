@@ -99,6 +99,13 @@ const (
 	WorkOrdersInverseTable = "work_orders"
 	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
 	WorkOrdersColumn = "location_id"
+	// FloorPlansTable is the table the holds the floor_plans relation/edge.
+	FloorPlansTable = "floor_plans"
+	// FloorPlansInverseTable is the table name for the FloorPlan entity.
+	// It exists in this package in order to avoid circular dependency with the "floorplan" package.
+	FloorPlansInverseTable = "floor_plans"
+	// FloorPlansColumn is the table column denoting the floor_plans relation/edge.
+	FloorPlansColumn = "location_id"
 )
 
 // Columns holds all SQL columns are location fields.

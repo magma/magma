@@ -233,14 +233,15 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     } else if (
       ue_context_p->sgs_context->csfb_service_type ==
       CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI) {
-      //Send itti detach request message to NAS to trigger N/W initiated imsi detach request towards UE
+      // Inform NAS module to send network initiated IMSI detach request to UE
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Sending itti detach request to NAS-MME (ue_id = " MME_UE_S1AP_ID_FMT ")\n"
+        "Send SGS intiated Detach request to NAS module for ue_id = "
+        MME_UE_S1AP_ID_FMT "\n"
         "csfb service type = CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI\n",
         ue_context_p->mme_ue_s1ap_id);
 
-      mme_app_send_nas_detach_request(
+      mme_app_handle_nw_initiated_detach_request(
         ue_context_p->mme_ue_s1ap_id, SGS_INITIATED_IMSI_DETACH);
       ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
       unlock_ue_contexts(ue_context_p);
@@ -1546,19 +1547,14 @@ void mme_app_handle_implicit_detach_timer_expiry(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(ue_context_p != NULL);
-  MessageDef *message_p = NULL;
   OAILOG_INFO(
     LOG_MME_APP,
-    "Expired- Implicit Detach timer for UE id  %d \n",
+    "Implicit Detach timer expired for UE id" MME_UE_S1AP_ID_FMT "\n",
     ue_context_p->mme_ue_s1ap_id);
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   // Initiate Implicit Detach for the UE
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-  DevAssert(message_p != NULL);
-  message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-    ue_context_p->mme_ue_s1ap_id;
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -1568,7 +1564,6 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(ue_context_p != NULL);
-  MessageDef *message_p = NULL;
   OAILOG_INFO(
     LOG_MME_APP,
     "Expired- Initial context setup rsp timer for UE id  %d \n",
@@ -1582,12 +1577,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD;
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-    DevAssert(message_p != NULL);
-    message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-      ue_context_p->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
     increment_counter(
       "ue_attach",
       1,
@@ -1621,10 +1611,9 @@ void mme_app_handle_initial_context_setup_failure(
     *const initial_ctxt_setup_failure_pP)
 {
   struct ue_mm_context_s *ue_context_p = NULL;
-  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_DEBUG(
+  OAILOG_INFO(
     LOG_MME_APP, "Received MME_APP_INITIAL_CONTEXT_SETUP_FAILURE from S1AP\n");
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
     &mme_app_desc_p->mme_ue_contexts,
@@ -1659,12 +1648,7 @@ void mme_app_handle_initial_context_setup_failure(
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-    DevAssert(message_p != NULL);
-    message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-      ue_context_p->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    nas_proc_implicit_detach_ue_ind(ue_context_p->mme_ue_s1ap_id);
     increment_counter(
       "ue_attach",
       1,
@@ -2681,15 +2665,17 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
   /* If delete_default_bearer is set and this is the only active PDN,
   *  Send Detach Request to UE
   */
-  if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
-       (ue_context_p->nb_active_pdn_contexts == 1)) {
+  if (
+    (nw_init_bearer_deactv_req_p->delete_default_bearer) &&
+    (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO(
       LOG_MME_APP,
-      "Send detach to NAS for EBI %d as delete_default_bearer = true\n",
+      "Send MME initiated Detach Req to NAS module for EBI %u"
+      " as delete_default_bearer is true\n",
       nw_init_bearer_deactv_req_p->ebi[0]);
-    //Send Deatch Request to NAS
+    //Inform MME initiated Deatch Request to NAS module
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
-      mme_app_send_nas_detach_request(
+      mme_app_handle_nw_initiated_detach_request(
         ue_context_p->mme_ue_s1ap_id, MME_INITIATED_EPS_DETACH);
     } else {
       //If UE is in IDLE state send Paging Req
@@ -2751,7 +2737,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_t *mme_app_desc_p,
         num_bearers_deleted,
         pdn_context->s_gw_teid_s11_s4,
         REQUEST_ACCEPTED);
-     }
+    }
   }
   unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);

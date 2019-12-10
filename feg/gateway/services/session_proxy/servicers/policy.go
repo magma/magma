@@ -311,12 +311,16 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		srv.dbClient,
 		answer.RuleInstallAVP,
 	)
+	rulesToRemove := gx.ParseRuleRemoveAVPs(
+		srv.dbClient,
+		answer.RuleRemoveAVP,
+	)
 	res := &protos.UsageMonitoringUpdateResponse{
 		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
 		SessionId:             request.SessionID,
 		Sid:                   addSidPrefix(request.IMSI),
 		ResultCode:            answer.ResultCode,
-		RulesToRemove:         srv.getRulesToRemoveFromAVP(answer.RuleRemoveAVP),
+		RulesToRemove:         rulesToRemove,
 		StaticRulesToInstall:  staticRules,
 		DynamicRulesToInstall: dynamicRules,
 	}
@@ -336,15 +340,4 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		answer.RevalidationTime,
 	)
 	return res
-}
-
-func (srv *CentralSessionController) getRulesToRemoveFromAVP(rulesToRemoveAVP []*gx.RuleRemoveAVP) []string {
-	var ruleNames []string
-	for _, rule := range rulesToRemoveAVP {
-		ruleNames = append(ruleNames, rule.RuleNames...)
-		if len(rule.RuleBaseNames) > 0 {
-			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
-		}
-	}
-	return ruleNames
 }

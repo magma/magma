@@ -123,7 +123,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*ltemconfig.PipelineD_AllowedGrePeer, error) {
 	ues := make([]*ltemconfig.PipelineD_AllowedGrePeer, 0, len(allowedGrePeers))
 	for _, entry := range allowedGrePeers {
-		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP.String(), Key: swag.Uint32Value(entry.Key)})
+		ues = append(ues, &ltemconfig.PipelineD_AllowedGrePeer{Ip: entry.IP, Key: swag.Uint32Value(entry.Key)})
 	}
 	return ues, nil
 }

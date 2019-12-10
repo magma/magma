@@ -77,10 +77,16 @@ void itti_free_msg_content(MessageDef* const message_p)
       // DO nothing
       break;
 
-    case MME_APP_CONNECTION_ESTABLISHMENT_CNF:
-      bdestroy_wrapper(
-          &message_p->ittiMsg.mme_app_connection_establishment_cnf.nas_pdu[0]);
+    case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
+      itti_mme_app_connection_establishment_cnf_t mme_app_est_cnf = {0};
+      mme_app_est_cnf =
+      message_p->ittiMsg.mme_app_connection_establishment_cnf;
+      bdestroy_wrapper(&mme_app_est_cnf.nas_pdu[0]);
+      for (uint8_t index = 0; index < mme_app_est_cnf.no_of_e_rabs; index++) {
+        bdestroy_wrapper(&(mme_app_est_cnf.transport_layer_address[index]));
+      }
       break;
+    }
 
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: break;
 
@@ -96,8 +102,6 @@ void itti_free_msg_content(MessageDef* const message_p)
       break;
 
     case NAS_AUTHENTICATION_PARAM_REQ:
-    case NAS_DETACH_REQ:
-      // DO nothing
       break;
 
     case S11_CREATE_SESSION_REQUEST: {

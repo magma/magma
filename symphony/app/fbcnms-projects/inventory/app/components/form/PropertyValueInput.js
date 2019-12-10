@@ -105,12 +105,12 @@ class PropertyValueInput extends React.Component<Props> {
         return inputType == 'Property' ? (
           <EnumPropertySelectValueInput
             label={label}
-            className={className}
+            className={classNames(classes.input, className)}
             inputClassName={classNames(classes.selectMenu, inputClassName)}
             margin={margin}
             property={property}
             onChange={onChange}
-            autoFocus={true}
+            autoFocus={autoFocus}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />
