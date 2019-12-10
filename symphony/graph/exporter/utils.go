@@ -196,7 +196,8 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 	var typs []*ent.PropertyType
 	var props []*ent.Property
 
-	if entityType == models.PropertyEntityEquipment {
+	switch entityType {
+	case models.PropertyEntityEquipment:
 		entity := instance.(*ent.Equipment)
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
@@ -204,7 +205,8 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			return nil, errors.Wrapf(err, "can't query property types for equipment %s (id=%s)", entity.Name, entity.ID)
 		}
 		props = entity.QueryProperties().AllX(ctx)
-	} else {
+
+	case models.PropertyEntityPort:
 		entity := instance.(*ent.EquipmentPort)
 		var err error
 		typs, err = entity.QueryDefinition().QueryEquipmentPortType().QueryPropertyTypes().All(ctx)
@@ -212,10 +214,28 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
 		}
 		props = entity.QueryProperties().AllX(ctx)
+	case models.PropertyEntityLink:
+		entity := instance.(*ent.Link)
+		ports, err := entity.QueryPorts().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying link for ports (id=%s)", entity.ID)
+		}
+		for _, port := range ports {
+			var err error
+			portTypeLinkProperties, err := port.QueryDefinition().QueryEquipmentPortType().QueryLinkPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
+			}
+			typs = append(typs, portTypeLinkProperties...)
+		}
+		props = entity.QueryProperties().AllX(ctx)
 	}
 
 	for _, typ := range typs {
 		idx := index(propertyTypes, typ.Name)
+		if idx == -1 {
+			continue
+		}
 		val, err := propertyValue(ctx, typ.Type, typ)
 		if err != nil {
 			return nil, err
@@ -227,7 +247,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		propTypeName := p.QueryType().OnlyX(ctx).Name
 		idx := index(propertyTypes, propTypeName)
 		if idx == -1 {
-			return nil, errors.Errorf("Property type does not exist : %s", propTypeName)
+			return nil, errors.Errorf("Property type does not exist in header: %s", propTypeName)
 		}
 		typ := p.QueryType().OnlyX(ctx).Type
 		val, err := propertyValue(ctx, typ, p)
