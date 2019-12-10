@@ -10,9 +10,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 import grpc
 import logging
 from typing import Any, Dict, List
+from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
+    FlowMatch
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
-    UpdateSessionResponse, StaticRuleInstall, \
+    UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
     ChargingCredit, GrantedUnits, CreditUnit, CreditUpdateResponse
 from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
@@ -69,11 +71,12 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         """
         imsi = request.subscriber.id
         logging.info('Creating a session for subscriber ID: %s', imsi)
-        return CreateSessionResponse(
+        resp = CreateSessionResponse(
             credits=[],
             static_rules=self._get_rules_for_imsi(imsi),
-            dynamic_rules=[],
+            dynamic_rules=self._get_default_dynamic_rules(imsi),
         )
+        return resp
 
     def UpdateSession(
         self,
@@ -106,6 +109,65 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             sid=request.sid,
             session_id=request.session_id,
         )
+
+    def _get_default_dynamic_rules(
+        self,
+        sid: str,
+    ) -> List[DynamicRuleInstall]:
+        """
+        Get a list of dynamic rules to install for whitelisting.
+        These rules will whitelist traffic to/from the captive portal server.
+        """
+        dynamic_rules = []
+        # Build the rule id to be globally unique
+        rule_id_info = {'sid': sid}
+        rule_id = "whitelist_sid-{sid}".format(**rule_id_info)
+        rule = DynamicRuleInstall(
+            policy_rule=self._get_allow_all_policy_rule(rule_id),
+        )
+        dynamic_rules.append(rule)
+        return dynamic_rules
+
+    def _get_allow_all_policy_rule(
+        self,
+        policy_id: str,
+    ) -> PolicyRule:
+        """
+        This builds a PolicyRule used as a default to allow traffic
+        for an attached subscriber.
+        """
+        return PolicyRule(
+            # Don't set the rating group
+            # Don't set the monitoring key
+            # Don't set the hard timeout
+            id=policy_id,
+            priority=2,
+            flow_list=self._get_allow_all_flows(),
+            tracking_type=PolicyRule.TrackingType.Value("NO_TRACKING"),
+        )
+
+    def _get_allow_all_flows(self) -> List[FlowDescription]:
+        """
+        Returns:
+            Two flows, for outgoing and incoming traffic
+        """
+        return [
+            # Set flow match for ll packets
+            # Don't set the app_name field
+            FlowDescription(  # uplink flow
+                match=FlowMatch(),
+                action=FlowDescription.Action.Value("PERMIT"),
+            ),
+        ]
+
+    def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
+        try:
+            info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
+            return [StaticRuleInstall(rule_id=rule_id)
+                    for rule_id in info.lte.assigned_policies]
+        except grpc.RpcError:
+            logging.error('Unable to find data for subscriber %s', imsi)
+            return []
 
     def _get_credit_update_response(
         self,
@@ -150,7 +212,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         subscribers = self._subscriberdb_stub.ListSubscribers(self._network_id)
         return imsi in subscribers.sids
 
-    def _get_rules_for_imsi(self, imsi: str) -> List[str]:
+    def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
         try:
             info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
             return [StaticRuleInstall(rule_id=rule_id)
