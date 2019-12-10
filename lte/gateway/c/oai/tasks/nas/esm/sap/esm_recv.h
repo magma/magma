@@ -107,8 +107,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   emm_context_t *emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_disconnect_request_msg *msg,
-  ebi_t *linked_ebi);
+  const pdn_disconnect_request_msg *msg);
 
 esm_cause_t esm_recv_information_response(
   emm_context_t *emm_context,

@@ -308,8 +308,8 @@ static int get_imeisv_from_session_req(
 }
 
 static void get_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  struct pcef_create_session_data *data)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
   data->mcc_mnc[0] = saved_req->serving_network.mcc[0];
   data->mcc_mnc[1] = saved_req->serving_network.mcc[1];
@@ -327,8 +327,8 @@ static void get_plmn_from_session_req(
 }
 
 static void get_imsi_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  struct pcef_create_session_data *data)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
   data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
   data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];

@@ -358,11 +358,11 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
         PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
       // Free PDN context
       if (ue_mm_context->pdn_contexts[pid]) {
-        free_wrapper((void **) &ue_mm_context->pdn_contexts[pid]);
+        free_wrapper((void**) &ue_mm_context->pdn_contexts[pid]);
       }
       // Free bearer context entry
       if (ue_mm_context->bearer_contexts[bid]) {
-        free_wrapper((void **) &ue_mm_context->bearer_contexts[bid]);
+        free_wrapper((void**) &ue_mm_context->bearer_contexts[bid]);
       }
     }
   } else {
@@ -384,10 +384,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   if (!emm_context_p->esm_ctx.is_pdn_disconnect) {
     // Send deactivate_eps_bearer_context to MME APP
     nas_itti_deactivate_eps_bearer_context(
-      ue_id,
-      ebi,
-      delete_default_bearer,
-      s_gw_teid_s11_s4);
+      ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
   }
 
   // Reset is_pdn_disconnect flag
@@ -507,7 +504,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
          */
         _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
       }
-     /* In case of PDN disconnect, no need to inform MME/SPGW as the session
+      /* In case of PDN disconnect, no need to inform MME/SPGW as the session
       * would have been already released
       */
       if (!ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {

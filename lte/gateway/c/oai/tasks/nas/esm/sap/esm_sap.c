@@ -868,15 +868,14 @@ static int _esm_sap_recv(
        * Process PDN disconnect request message received from the UE
        */
         esm_cause = esm_recv_pdn_disconnect_request(
-          emm_context, pti, ebi, &esm_msg.pdn_disconnect_request,
-          &esm_msg.pdn_disconnect_request.linkedepsbeareridentity);
-       OAILOG_DEBUG(
-         LOG_NAS_ESM,
-         "ESM-SAP   - ESM Message type = PDN_DISCONNECT_REQUEST(0x%x)"
-         "(ESM Cause = %d) for (ue_id = %u)\n",
-         esm_msg.header.message_type,
-         esm_cause,
-         ue_id);
+          emm_context, pti, ebi, &esm_msg.pdn_disconnect_request);
+        OAILOG_DEBUG(
+          LOG_NAS_ESM,
+          "ESM-SAP   - ESM Message type = PDN_DISCONNECT_REQUEST(0x%x)"
+          "(ESM Cause = %d) for (ue_id = " MME_UE_S1AP_ID_FMT " )\n",
+          esm_msg.header.message_type,
+          esm_cause,
+          ue_id);
 
         if (esm_cause != ESM_CAUSE_SUCCESS) {
           /*
