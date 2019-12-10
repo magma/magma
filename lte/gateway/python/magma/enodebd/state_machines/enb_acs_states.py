@@ -863,6 +863,15 @@ class EndSessionState(EnodebAcsState):
         self.acs = acs
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        No message is expected after enodebd sends the eNodeB
+        an empty HTTP response.
+
+        If a device sends an empty HTTP request, we can just
+        ignore it and send another empty response.
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(True, None)
         return AcsReadMsgResult(False, None)
 
     def get_msg(self) -> AcsMsgAndTransition:
