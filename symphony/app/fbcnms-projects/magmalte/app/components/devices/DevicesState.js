@@ -24,6 +24,10 @@ const useStyles = makeStyles(() => ({
   checkbox: {
     padding: '4px',
   },
+  italicUnderline: {
+    textDecoration: 'underline',
+    fontStyle: 'italic',
+  },
 }));
 
 type Props = {
@@ -56,13 +60,19 @@ type InterfaceType = {
   },
 };
 
+function interfaceOperStatusIsUp(iface: InterfaceType) {
+  return (iface.state || iface)['oper-status'] === 'UP';
+}
+
 function Interface({
   iface,
+  ifaceIsUp,
   device,
   isLoading,
   setIsLoading,
 }: {
   iface: InterfaceType,
+  ifaceIsUp: boolean,
   device: FullDevice,
   isLoading: boolean,
   setIsLoading: boolean => void,
@@ -108,10 +118,7 @@ function Interface({
 
   return (
     <div>
-      <DeviceStatusCircle
-        isGrey={false}
-        isActive={(iface.state || iface)['oper-status'] === 'UP'}
-      />
+      <DeviceStatusCircle isGrey={false} isActive={ifaceIsUp} />
       {iface.name || iface.state?.name || ''}
       {ip && ` (${ip})`}
       <Checkbox
@@ -161,6 +168,32 @@ function renderLatencies(
   return info;
 }
 
+function ShowInterfacesList({
+  interfaces,
+  countUp,
+  countDown,
+}: {
+  interfaces: Array<React$Node>,
+  countUp: number,
+  countDown: number,
+}) {
+  const [showsInterfaces, setShowsInterfaces] = useState(false);
+  const classes = useStyles();
+  return (
+    <>
+      <div>
+        {countUp} interfaces up, {countDown} down&nbsp;&ndash;&nbsp;
+        <span
+          className={classes.italicUnderline}
+          onClick={() => setShowsInterfaces(!showsInterfaces)}>
+          {showsInterfaces ? 'Hide List' : 'Show List'}
+        </span>
+      </div>
+      {showsInterfaces && <div key="HiddenInterfaces">{interfaces}</div>}
+    </>
+  );
+}
+
 export default function DevicesState(props: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -174,24 +207,43 @@ export default function DevicesState(props: Props) {
     return <div>{'<No state reported>'}</div>;
   }
 
-  const interfaceRows = (interfaces || []).map((iface, i) => (
-    <Interface
-      key={i}
-      iface={iface}
-      device={device}
-      isLoading={isLoading}
-      setIsLoading={setIsLoading}
-    />
-  ));
+  let upInterfaceCount = 0;
+  let downInterfaceCount = 0;
+  const interfaceRows = (interfaces || []).map((iface, i) => {
+    const interfaceUp = interfaceOperStatusIsUp(iface);
+    if (interfaceUp) {
+      upInterfaceCount += 1;
+    } else {
+      downInterfaceCount += 1;
+    }
+    return (
+      <Interface
+        key={i}
+        iface={iface}
+        ifaceIsUp={interfaceUp}
+        device={device}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+      />
+    );
+  });
 
+  let interfacesDiv;
   if (interfaceRows.length === 0) {
-    interfaceRows.push(<div key="interfaces_none">No interfaces reported</div>);
+    interfacesDiv = <div>No interfaces reported</div>;
+  } else {
+    interfacesDiv = (
+      <ShowInterfacesList
+        interfaces={interfaceRows}
+        countUp={upInterfaceCount}
+        countDown={downInterfaceCount}
+      />
+    );
   }
-
   return (
     <>
-      {interfaceRows}
       {renderLatencies(latencies)}
+      {interfacesDiv}
     </>
   );
 }
