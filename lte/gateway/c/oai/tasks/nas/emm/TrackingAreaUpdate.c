@@ -975,7 +975,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
         nas_delete_tau_procedure(emm_ctx);
       }
     }
-    /*If Active flag is not set, initiate UE context release */
+    // If Active flag is not set, initiate UE context release
     if (!emm_ctx->csfbparams.tau_active_flag) {
       ue_context_p =
         PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
