@@ -8,18 +8,13 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
-#include <devmand/channels/cli/PromptAwareCli.h>
-#include <devmand/channels/cli/QueuedCli.h>
+#include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/channels/cli/SshSessionAsync.h>
-#include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <folly/Singleton.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
 #include <folly/futures/Future.h>
 #include <gtest/gtest.h>
-#include <libssh/callbacks.h>
 #include <libssh/libssh.h>
-#include <magma_logging.h>
 #include <chrono>
 #include <ctime>
 #include <thread>
@@ -31,27 +26,20 @@ namespace cli {
 using namespace devmand::channels::cli;
 using namespace std;
 using namespace folly;
-using devmand::channels::cli::sshsession::readCallback;
-using devmand::channels::cli::sshsession::SshSession;
-using devmand::channels::cli::sshsession::SshSessionAsync;
-using folly::IOThreadPoolExecutor;
 
 class CliScaleTest : public ::testing::Test {
  protected:
+  unique_ptr<channels::cli::Engine> cliEngine;
+
   void SetUp() override {
-    devmand::test::utils::log::initLog();
+    devmand::test::utils::log::initLog(MWARNING);
+    cliEngine = make_unique<channels::cli::Engine>();
   }
 };
 
-static const shared_ptr<IOThreadPoolExecutor> executor =
-    std::make_shared<IOThreadPoolExecutor>(8);
-static const shared_ptr<IOThreadPoolExecutor> testExecutor =
-    std::make_shared<IOThreadPoolExecutor>(20);
-
-const static int DEVICES = 10;
+const static int DEVICES = 20;
 const static int START_PORT = 10000;
 const static int REQUESTS = 10;
-
 /*
  * Run cli-testtool manually:
  *
@@ -77,47 +65,52 @@ const static int REQUESTS = 10;
  */
 
 TEST_F(CliScaleTest, DISABLED_scale) {
-  ssh_threads_set_callbacks(ssh_threads_get_pthread());
-  ssh_init();
-
-  function<shared_ptr<QueuedCli>(int)> connect = [](int port) {
-    const std::shared_ptr<SshSessionAsync>& session =
-        std::make_shared<SshSessionAsync>(to_string(port), executor);
-
-    session->openShell("172.8.0.100", port, "cisco", "cisco").get();
-
-    shared_ptr<CliFlavour> cl = CliFlavour::create("ubiquiti");
-
-    const shared_ptr<PromptAwareCli>& cli =
-        std::make_shared<PromptAwareCli>(session, cl);
-
-    cli->initializeCli();
-    cli->resolvePrompt();
-    event* sessionEvent = SshSocketReader::getInstance().addSshReader(
-        readCallback, session->getSshFd(), session.get());
-    MLOG(MWARNING) << "Connecting device at port" << port
-                   << " at FD: " << session->getSshFd();
-    session->setEvent(sessionEvent);
-    return std::make_shared<QueuedCli>(to_string(port), cli, executor);
+  function<shared_ptr<Cli>(int)> connect = [this](int port) {
+    IoConfigurationBuilder ioConfigurationBuilder(
+        IoConfigurationBuilder::makeConnectionParameters(
+            to_string(port),
+            "172.8.0.1",
+            "cisco",
+            "cisco",
+            "ubiquiti",
+            port,
+            10s,
+            60s,
+            10s,
+            30,
+            cliEngine->getTimekeeper(),
+            cliEngine->getExecutor(Engine::executorRequestType::sshCli),
+            cliEngine->getExecutor(Engine::executorRequestType::paCli),
+            cliEngine->getExecutor(Engine::executorRequestType::rcCli),
+            cliEngine->getExecutor(Engine::executorRequestType::ttCli),
+            cliEngine->getExecutor(Engine::executorRequestType::qCli),
+            cliEngine->getExecutor(Engine::executorRequestType::rCli),
+            cliEngine->getExecutor(Engine::executorRequestType::kaCli)));
+    return ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
   };
-  const Command& cmd = Command::makeReadCommand("show running-config");
+  const ReadCommand& cmd = ReadCommand::create("show running-config");
 
   {
-    std::chrono::steady_clock::time_point begin =
-        std::chrono::steady_clock::now();
-    vector<Future<shared_ptr<QueuedCli>>> connects;
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+    vector<Future<shared_ptr<Cli>>> connects;
     for (int cPort = START_PORT; cPort < DEVICES + START_PORT;
          cPort = cPort + 1) {
       MLOG(MWARNING) << "Connecting device at port: " << cPort;
-      Future<shared_ptr<QueuedCli>> future =
-          via(testExecutor.get(),
-              [&connects, connect, cPort]() { return connect(cPort); });
-      connects.push_back(std::move(future));
+      connects.emplace_back(connect(cPort));
     }
 
-    vector<shared_ptr<QueuedCli>> clis;
+    vector<shared_ptr<Cli>> clis;
     for (uint i = 0; i < connects.size(); i++) {
-      clis.push_back(std::move(connects.at(i)).get());
+      clis.push_back(move(connects.at(i)).get());
+
+      // Wait till connected. Is there a better way ?
+      while (clis.at(clis.size() - 1)
+                 ->executeRead(ReadCommand::create("", true))
+                 .getTry()
+                 .hasException()) {
+        this_thread::sleep_for(100ms);
+      }
+
       MLOG(MWARNING) << "Connected device at port: " << START_PORT + i;
     }
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
@@ -126,29 +119,33 @@ TEST_F(CliScaleTest, DISABLED_scale) {
     MLOG(MWARNING)
         << "Connected devices time: "
         << chrono::duration_cast<chrono::seconds>(end - begin).count();
+
     this_thread::sleep_for(chrono::seconds(10));
 
-    vector<Future<string>> requests;
+    begin = chrono::steady_clock::now();
+    vector<SemiFuture<string>> requests;
     for (uint device = 0; device < connects.size(); device++) {
       for (int req = 0; req < REQUESTS; req++) {
         MLOG(MWARNING) << "Invoking device: " << START_PORT + device
                        << " request: " << req;
-        requests.push_back(move(clis[device]->executeAndRead(cmd)));
+        requests.push_back(move(clis[device]->executeRead(cmd)));
       }
     }
 
     vector<string> responses;
     for (uint i = 0; i < requests.size(); i++) {
-      responses.push_back(std::move(requests.at(i)).get());
+      responses.push_back(move(requests.at(i)).get());
     }
+    end = chrono::steady_clock::now();
 
     MLOG(MWARNING) << "Response count: " << responses.size();
+    MLOG(MWARNING)
+        << "Request execution time: "
+        << chrono::duration_cast<chrono::seconds>(end - begin).count();
+    exit(1);
   }
-
-  MLOG(MWARNING) << "Now everything should be closed";
-  ssh_finalize();
+  MLOG(MWARNING) << "Closed";
 }
-
 } // namespace cli
 } // namespace test
 } // namespace devmand

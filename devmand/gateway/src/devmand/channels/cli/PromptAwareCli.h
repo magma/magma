@@ -18,33 +18,42 @@ namespace cli {
 
 using devmand::channels::cli::CliInitializer;
 using devmand::channels::cli::PromptResolver;
-using devmand::channels::cli::sshsession::SshSessionAsync;
+using devmand::channels::cli::sshsession::SessionAsync;
+using folly::Executor;
+using folly::SemiFuture;
+using folly::Unit;
 using std::shared_ptr;
 using std::string;
 
 class PromptAwareCli : public Cli {
  private:
-  shared_ptr<SshSessionAsync> session;
-  shared_ptr<CliFlavour> cliFlavour;
-
- public:
+  struct PromptAwareParameters {
+    string id;
+    shared_ptr<SessionAsync> session;
+    shared_ptr<CliFlavour> cliFlavour;
+    shared_ptr<Executor> executor;
+    string prompt;
+  };
+  shared_ptr<PromptAwareParameters> promptAwareParameters;
   PromptAwareCli(
-      shared_ptr<SshSessionAsync> session,
-      shared_ptr<CliFlavour> cliFlavour);
-
-  string prompt;
+      string id,
+      shared_ptr<SessionAsync> session,
+      shared_ptr<CliFlavour> cliFlavour,
+      shared_ptr<Executor> executor);
 
  public:
-  void init(
-      const string hostname,
-      const int port,
-      const string username,
-      const string password);
-  void resolvePrompt();
-  void initializeCli();
-  folly::Future<std::string> executeAndRead(const Command& cmd);
+  static shared_ptr<PromptAwareCli> make(
+      string id,
+      shared_ptr<SessionAsync> session,
+      shared_ptr<CliFlavour> cliFlavour,
+      shared_ptr<Executor> executor);
 
-  folly::Future<std::string> execute(const Command& cmd);
+  ~PromptAwareCli();
+
+  SemiFuture<Unit> resolvePrompt();
+  SemiFuture<Unit> initializeCli(const string secret);
+  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd);
+  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd);
 };
 
 } // namespace cli

@@ -20,56 +20,133 @@ namespace devmand {
 namespace channels {
 namespace cli {
 
-void PromptAwareCli::resolvePrompt() {
-  this->prompt =
-      cliFlavour->resolver->resolvePrompt(session, cliFlavour->newline);
-}
-
-void PromptAwareCli::initializeCli() {
-  cliFlavour->initializer->initialize(session);
-}
-
-folly::Future<string> PromptAwareCli::executeAndRead(const Command& cmd) {
-  const string& command = cmd.toString();
-
-  return session->write(command)
-      .thenValue([=](...) { return session->readUntilOutput(command); })
-      .thenValue([=](const string& output) {
-        auto returnOutputParameter = [output](...) { return output; };
-        return session->write(cliFlavour->newline)
-            .thenValue(returnOutputParameter);
-      })
-      .thenValue([=](const string& output) {
-        auto concatOutputParameter = [output](const string& readUntilOutput) {
-          return output + readUntilOutput;
-        };
-        return session->readUntilOutput(prompt).thenValue(
-            concatOutputParameter);
+SemiFuture<Unit> PromptAwareCli::resolvePrompt() {
+  return promptAwareParameters->cliFlavour->resolver
+      ->resolvePrompt(
+          promptAwareParameters->session,
+          promptAwareParameters->cliFlavour->newline)
+      .thenValue([params = promptAwareParameters](string _prompt) {
+        params->prompt = _prompt;
       });
+}
+
+SemiFuture<Unit> PromptAwareCli::initializeCli(const string secret) {
+  return promptAwareParameters->cliFlavour->initializer->initialize(
+      promptAwareParameters->session, secret);
+}
+
+folly::SemiFuture<std::string> PromptAwareCli::executeRead(
+    const ReadCommand cmd) {
+  const string& command = cmd.raw();
+
+  return promptAwareParameters->session->write(command)
+      .semi()
+      .via(promptAwareParameters->executor.get())
+      .thenValue([params = promptAwareParameters, command, cmd](...) {
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                     << ") written command";
+        SemiFuture<string> result =
+            params->session->readUntilOutput(command).semi();
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                     << ") obtained future readUntilOutput";
+        return move(result);
+      })
+      .semi()
+      .via(promptAwareParameters->executor.get())
+      .thenValue([params = promptAwareParameters, cmd](const string& output) {
+        return params->session->write(params->cliFlavour->newline)
+            .semi()
+            .via(params->executor.get())
+            .thenValue([params, output, cmd](...) {
+              MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                           << ") written newline";
+              return output;
+            })
+            .semi();
+      })
+      .semi()
+      .via(promptAwareParameters->executor.get())
+      .thenValue([params = promptAwareParameters, cmd](const string& output) {
+        return params->session->readUntilOutput(params->prompt)
+            .semi()
+            .via(params->executor.get())
+            .thenValue(
+                [id = params->id, output, cmd](const string& readUntilOutput) {
+                  // this might never run, do not capture params
+                  MLOG(MDEBUG) << "[" << id << "] (" << cmd
+                               << ") readUntilOutput - read result";
+                  return output + readUntilOutput;
+                })
+            .semi();
+      })
+      .semi();
 }
 
 PromptAwareCli::PromptAwareCli(
-    shared_ptr<SshSessionAsync> _session,
-    shared_ptr<CliFlavour> _cliFlavour)
-    : session(_session), cliFlavour(_cliFlavour) {}
-
-void PromptAwareCli::init( // TODO remove
-    const string hostname,
-    const int port,
-    const string username,
-    const string password) {
-  session->openShell(hostname, port, username, password).get();
+    string id,
+    shared_ptr<SessionAsync> _session,
+    shared_ptr<CliFlavour> _cliFlavour,
+    shared_ptr<Executor> _executor) {
+  promptAwareParameters = shared_ptr<PromptAwareParameters>(
+      new PromptAwareParameters{id, _session, _cliFlavour, _executor, {}});
 }
 
-folly::Future<std::string> PromptAwareCli::execute(const Command& cmd) {
-  const string& command = cmd.toString();
-  return session->write(command)
-      .thenValue([=](...) { return session->readUntilOutput(command); })
-      .thenValue([=](const string& output) {
-        return session->write(cliFlavour->newline)
-            .thenValue([output, command](...) { return output + command; });
-      });
+PromptAwareCli::~PromptAwareCli() {
+  string id = promptAwareParameters->id;
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~PromptAwareCli started";
+  while (promptAwareParameters.use_count() > 1) {
+    MLOG(MDEBUG) << "[" << id << "] "
+                 << "~PromptAwareCli sleeping";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+  }
+
+  // Closing session explicitly to finish executing future and disconnect before
+  // releasing the rest of state
+  promptAwareParameters->session = nullptr;
+  promptAwareParameters = nullptr;
+  MLOG(MDEBUG) << "[" << id << "] "
+               << "~PromptAwareCli done";
 }
+
+folly::SemiFuture<std::string> PromptAwareCli::executeWrite(
+    const WriteCommand cmd) {
+  const string& command = cmd.raw();
+  return promptAwareParameters->session->write(command)
+      .semi()
+      .via(promptAwareParameters->executor.get())
+      .thenValue([params = promptAwareParameters, command, cmd](...) {
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                     << ") written command";
+        SemiFuture<string> result =
+            params->session->readUntilOutput(command).semi();
+        MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
+                     << ") obtained future readUntilOutput";
+        return move(result);
+      })
+      .thenValue([params = promptAwareParameters, command, cmd](
+                     const string& output) {
+        return params->session->write(params->cliFlavour->newline)
+            .semi()
+            .via(params->executor.get())
+            .thenValue([id = params->id, output, command, cmd](...) {
+              MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") written newline";
+              return output + command;
+            })
+            .semi();
+      })
+      .semi();
+}
+
+shared_ptr<PromptAwareCli> PromptAwareCli::make(
+    string id,
+    shared_ptr<SessionAsync> session,
+    shared_ptr<CliFlavour> cliFlavour,
+    shared_ptr<Executor> executor) {
+  return shared_ptr<PromptAwareCli>(
+      new PromptAwareCli(id, session, cliFlavour, executor));
+}
+
 } // namespace cli
 } // namespace channels
 } // namespace devmand

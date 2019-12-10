@@ -34,7 +34,8 @@ PingDevice::PingDevice(
     const Id& id_,
     bool readonly_,
     const folly::IPAddress& ip_)
-    : Device(application, id_, readonly_), channel(application.getPingEngine(ip_), ip_) {}
+    : Device(application, id_, readonly_),
+      channel(application.getPingEngine(ip_), ip_) {}
 
 std::shared_ptr<State> PingDevice::getState() {
   auto state = State::make(app, getId());

@@ -96,6 +96,7 @@ class Application : public MetricSink {
   channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine(IPVersion ipv = IPVersion::v4);
   channels::ping::Engine& getPingEngine(folly::IPAddress ip);
+  channels::cli::Engine& getCliEngine();
 
   syslog::Manager& getSyslogManager();
 
