@@ -15,10 +15,12 @@ import LocationLink from '../location/LocationLink';
 import React, {useMemo, useState} from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import classNames from 'classnames';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {formatMultiSelectValue} from '@fbcnms/ui/utils/displayUtils';
 import {statusValues} from '../../common/WorkOrder';
-import {withRouter} from 'react-router-dom';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 type Props = {
   workOrder: WorkOrdersView_workOrder,
@@ -30,6 +32,7 @@ const WorkOrdersView = (props: Props) => {
   const {className, workOrder, onWorkOrderSelected} = props;
   const [sortDirection, setSortDirection] = useState('desc');
   const [sortColumn, setSortColumn] = useState('name');
+  const {history} = useRouter();
 
   const sortedWorkOrders = useMemo(
     () =>
@@ -80,6 +83,22 @@ const WorkOrdersView = (props: Props) => {
             render: row => row.workOrderType?.name ?? '',
           },
           {
+            key: 'project',
+            title: 'Project',
+            render: row =>
+              row.project ? (
+                <Button
+                  variant="text"
+                  onClick={() =>
+                    history.push(
+                      InventoryAPIUrls.project(nullthrows(row.project).id),
+                    )
+                  }>
+                  {row.project?.name ?? ''}
+                </Button>
+              ) : null,
+          },
+          {
             key: 'owner',
             title: 'Owner',
             render: row => row.ownerName ?? '',
@@ -122,27 +141,29 @@ const WorkOrdersView = (props: Props) => {
   );
 };
 
-export default withRouter(
-  createFragmentContainer(WorkOrdersView, {
-    workOrder: graphql`
-      fragment WorkOrdersView_workOrder on WorkOrder @relay(plural: true) {
+export default createFragmentContainer(WorkOrdersView, {
+  workOrder: graphql`
+    fragment WorkOrdersView_workOrder on WorkOrder @relay(plural: true) {
+      id
+      name
+      description
+      ownerName
+      creationDate
+      installDate
+      status
+      assignee
+      location {
         id
         name
-        description
-        ownerName
-        creationDate
-        installDate
-        status
-        assignee
-        location {
-          id
-          name
-        }
-        workOrderType {
-          id
-          name
-        }
       }
-    `,
-  }),
-);
+      workOrderType {
+        id
+        name
+      }
+      project {
+        id
+        name
+      }
+    }
+  `,
+});

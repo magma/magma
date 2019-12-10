@@ -80,6 +80,8 @@ const Breadcrumb = (props: Props) => {
     <div key={id} className={classes.root}>
       <div className={classes.upperSection}>
         <Tooltip
+          arrow
+          interactive
           placement="top"
           title={
             typeof subtext === 'string' ? (
