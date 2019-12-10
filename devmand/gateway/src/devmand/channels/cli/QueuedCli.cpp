@@ -19,23 +19,19 @@ shared_ptr<QueuedCli> QueuedCli::make(
     string id,
     shared_ptr<Cli> cli,
     shared_ptr<Executor> parentExecutor) {
-  return shared_ptr<QueuedCli>(new QueuedCli(id, cli, parentExecutor));
+  return std::make_shared<QueuedCli>(id, cli, parentExecutor);
 }
 
 QueuedCli::QueuedCli(
     string _id,
     shared_ptr<Cli> _cli,
     shared_ptr<Executor> _parentExecutor) {
-  queuedParameters = shared_ptr<QueuedParameters>(new QueuedParameters{
+  queuedParameters = std::make_shared<QueuedParameters>(
       _id,
       _cli,
       _parentExecutor,
       SerialExecutor::create(
-          Executor::getKeepAliveToken(_parentExecutor.get())),
-      {},
-      {false},
-      {false},
-      {}});
+          Executor::getKeepAliveToken(_parentExecutor.get())));
 }
 
 QueuedCli::~QueuedCli() {
@@ -237,6 +233,15 @@ void QueuedCli::onDequeueError(
   triggerDequeue(params);
 }
 
+QueuedCli::QueuedParameters::QueuedParameters(
+    const string& _id,
+    const shared_ptr<Cli>& _cli,
+    const shared_ptr<Executor>& _parentExecutor,
+    const Executor::KeepAlive<SerialExecutor>& _serialExecutorKeepAlive)
+    : id(_id),
+      cli(_cli),
+      parentExecutor(_parentExecutor),
+      serialExecutorKeepAlive(_serialExecutorKeepAlive) {}
 } // namespace cli
 } // namespace channels
 } // namespace devmand

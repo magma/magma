@@ -24,7 +24,8 @@ SemiFuture<Unit> PromptAwareCli::resolvePrompt() {
   return promptAwareParameters->cliFlavour->resolver
       ->resolvePrompt(
           promptAwareParameters->session,
-          promptAwareParameters->cliFlavour->newline)
+          promptAwareParameters->cliFlavour->newline,
+          promptAwareParameters->timekeeper)
       .thenValue([params = promptAwareParameters](string _prompt) {
         params->prompt = _prompt;
       });
@@ -86,9 +87,10 @@ PromptAwareCli::PromptAwareCli(
     string id,
     shared_ptr<SessionAsync> _session,
     shared_ptr<CliFlavour> _cliFlavour,
-    shared_ptr<Executor> _executor) {
-  promptAwareParameters = shared_ptr<PromptAwareParameters>(
-      new PromptAwareParameters{id, _session, _cliFlavour, _executor, {}});
+    shared_ptr<Executor> _executor,
+    shared_ptr<Timekeeper> _timekeeper) {
+  promptAwareParameters = std::make_shared<PromptAwareParameters>(
+      id, _session, _cliFlavour, _executor, _timekeeper);
 }
 
 PromptAwareCli::~PromptAwareCli() {
@@ -142,11 +144,23 @@ shared_ptr<PromptAwareCli> PromptAwareCli::make(
     string id,
     shared_ptr<SessionAsync> session,
     shared_ptr<CliFlavour> cliFlavour,
-    shared_ptr<Executor> executor) {
-  return shared_ptr<PromptAwareCli>(
-      new PromptAwareCli(id, session, cliFlavour, executor));
+    shared_ptr<Executor> executor,
+    shared_ptr<Timekeeper> timekeeper) {
+  return std::make_shared<PromptAwareCli>(
+      id, session, cliFlavour, executor, timekeeper);
 }
 
+PromptAwareCli::PromptAwareParameters::PromptAwareParameters(
+    const string& _id,
+    const shared_ptr<SessionAsync>& _session,
+    const shared_ptr<CliFlavour>& _cliFlavour,
+    const shared_ptr<Executor>& _executor,
+    const shared_ptr<Timekeeper>& _timekeeper)
+    : id(_id),
+      session(_session),
+      cliFlavour(_cliFlavour),
+      executor(_executor),
+      timekeeper(_timekeeper) {}
 } // namespace cli
 } // namespace channels
 } // namespace devmand

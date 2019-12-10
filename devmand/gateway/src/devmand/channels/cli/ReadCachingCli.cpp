@@ -68,7 +68,5 @@ devmand::channels::cli::ReadCachingCli::~ReadCachingCli() {
 }
 
 shared_ptr<CliCache> devmand::channels::cli::ReadCachingCli::createCache() {
-  return shared_ptr<CliCache>(
-      new Synchronized<EvictingCacheMap<string, string>>(
-          EvictingCacheMap<string, string>(200, 10)));
+  return std::make_shared<CliCache>(EvictingCacheMap<string, string>(200, 10));
 }

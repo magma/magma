@@ -21,8 +21,8 @@ shared_ptr<TimeoutTrackingCli> TimeoutTrackingCli::make(
     shared_ptr<folly::Timekeeper> timekeeper,
     shared_ptr<folly::Executor> executor,
     std::chrono::milliseconds timeoutInterval) {
-  return shared_ptr<TimeoutTrackingCli>(
-      new TimeoutTrackingCli(id, cli, timekeeper, executor, timeoutInterval));
+  return std::make_shared<TimeoutTrackingCli>(
+      id, cli, timekeeper, executor, timeoutInterval);
 }
 
 TimeoutTrackingCli::TimeoutTrackingCli(
@@ -31,9 +31,8 @@ TimeoutTrackingCli::TimeoutTrackingCli(
     shared_ptr<folly::Timekeeper> _timekeeper,
     shared_ptr<folly::Executor> _executor,
     std::chrono::milliseconds _timeoutInterval) {
-  timeoutTrackingParameters =
-      shared_ptr<TimeoutTrackingParameters>(new TimeoutTrackingParameters{
-          _id, _cli, _timekeeper, _executor, _timeoutInterval, {false}});
+  timeoutTrackingParameters = std::make_shared<TimeoutTrackingParameters>(
+      _id, _cli, _timekeeper, _executor, _timeoutInterval, false);
 }
 
 TimeoutTrackingCli::~TimeoutTrackingCli() {
@@ -113,4 +112,17 @@ Future<string> TimeoutTrackingCli::executeSomething(
           });
 }
 
+TimeoutTrackingCli::TimeoutTrackingParameters::TimeoutTrackingParameters(
+    const string& _id,
+    const shared_ptr<Cli>& _cli,
+    const shared_ptr<folly::Timekeeper>& _timekeeper,
+    const shared_ptr<folly::Executor>& _executor,
+    const chrono::milliseconds& _timeoutInterval,
+    const bool _shutdown)
+    : id(_id),
+      cli(_cli),
+      timekeeper(_timekeeper),
+      executor(_executor),
+      timeoutInterval(_timeoutInterval),
+      shutdown(ATOMIC_VAR_INIT(_shutdown)) {}
 } // namespace devmand::channels::cli

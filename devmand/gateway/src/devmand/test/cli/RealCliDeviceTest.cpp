@@ -15,6 +15,7 @@
 #include <devmand/devices/Datastore.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
+#include <devmand/test/TestUtils.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
 #include <devmand/test/cli/utils/Ssh.h>
@@ -46,7 +47,6 @@ class RealCliDeviceTest : public ::testing::Test {
 };
 
 TEST_F(RealCliDeviceTest, DISABLED_ubiquiti) {
-  int i = 0;
   string output = "";
   Application app;
   cartography::DeviceConfig deviceConfig;
@@ -64,21 +64,19 @@ TEST_F(RealCliDeviceTest, DISABLED_ubiquiti) {
 
   std::unique_ptr<devices::Device> dev =
       PlaintextCliDevice::createDeviceWithEngine(app, deviceConfig, *cliEngine);
-  do {
-    if (i > 0) {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
 
-    i++;
+  EXPECT_BECOMES_TRUE(
+      dev->getOperationalDatastore()
+          ->collect()
+          .get()["fbc-symphony-device:system"]["status"]
+          .asString() != "DOWN");
 
-    std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
-    const folly::dynamic& stateResult = state->collect().get();
-
-    output = stateResult.getDefault(kvPairs.at("stateCommand"), "").asString();
-    if (i > 20) {
-      FAIL() << "Unable to execute command, probably not connected";
-    }
-  } while (output.empty());
+  std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
+  const folly::dynamic& stateResult = state->collect().get();
+  MLOG(MDEBUG) << "stateResult: "
+               << stateResult.getDefault("fbc-symphony-device:system", nullptr)
+                      .getDefault("status");
+  output = stateResult.getDefault(kvPairs.at("stateCommand"), "").asString();
   EXPECT_EQ("No ACLs are configured", boost::algorithm::trim_copy(output));
 }
 

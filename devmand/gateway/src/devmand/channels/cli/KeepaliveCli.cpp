@@ -23,15 +23,15 @@ shared_ptr<KeepaliveCli> KeepaliveCli::make(
     chrono::milliseconds heartbeatInterval,
     string keepAliveCommand,
     chrono::milliseconds backoffAfterKeepaliveTimeout) {
-  const shared_ptr<KeepaliveCli>& result =
-      shared_ptr<KeepaliveCli>(new KeepaliveCli(
-          id,
-          cli,
-          parentExecutor,
-          timekeeper,
-          heartbeatInterval,
-          move(keepAliveCommand),
-          backoffAfterKeepaliveTimeout));
+  const shared_ptr<KeepaliveCli>& result = std::make_shared<KeepaliveCli>(
+      id,
+      cli,
+      parentExecutor,
+      timekeeper,
+      heartbeatInterval,
+      move(keepAliveCommand),
+      backoffAfterKeepaliveTimeout);
+
   return result;
 }
 
@@ -43,7 +43,7 @@ KeepaliveCli::KeepaliveCli(
     chrono::milliseconds _heartbeatInterval,
     string _keepAliveCommand,
     chrono::milliseconds _backoffAfterKeepaliveTimeout) {
-  keepaliveParameters = shared_ptr<KeepaliveParameters>(new KeepaliveParameters{
+  keepaliveParameters = std::make_shared<KeepaliveParameters>(
       /* id */ _id,
       /* cli */ _cli,
       /* timekeeper */ _timekeeper,
@@ -54,7 +54,7 @@ KeepaliveCli::KeepaliveCli(
       /* keepAliveCommand */ move(_keepAliveCommand),
       /* heartbeatInterval */ _heartbeatInterval,
       /* backoffAfterKeepaliveTimeout */ _backoffAfterKeepaliveTimeout,
-      /* shutdown */ {false}});
+      /* shutdown */ false);
 
   MLOG(MDEBUG) << "[" << _id << "] "
                << "initialized";
@@ -137,4 +137,23 @@ folly::SemiFuture<std::string> KeepaliveCli::executeWrite(
   return keepaliveParameters->cli->executeWrite(cmd);
 }
 
+KeepaliveCli::KeepaliveParameters::KeepaliveParameters(
+    const string& _id,
+    const shared_ptr<Cli>& _cli,
+    const shared_ptr<folly::Timekeeper>& _timekeeper,
+    const shared_ptr<folly::Executor>& _parentExecutor,
+    const Executor::KeepAlive<folly::SerialExecutor>& _serialExecutorKeepAlive,
+    const string& _keepAliveCommand,
+    const chrono::milliseconds& _heartbeatInterval,
+    const chrono::milliseconds& _backoffAfterKeepaliveTimeout,
+    const bool _shutdown)
+    : id(_id),
+      cli(_cli),
+      timekeeper(_timekeeper),
+      parentExecutor(_parentExecutor),
+      serialExecutorKeepAlive(_serialExecutorKeepAlive),
+      keepAliveCommand(_keepAliveCommand),
+      heartbeatInterval(_heartbeatInterval),
+      backoffAfterKeepaliveTimeout(_backoffAfterKeepaliveTimeout),
+      shutdown(ATOMIC_VAR_INIT(_shutdown)) {}
 } // namespace devmand::channels::cli

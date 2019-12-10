@@ -47,18 +47,19 @@ class QueuedCli : public Cli {
     UnboundedQueue<QueueEntry, false, true, false>
         queue; // TODO: investigate priority queue for keepalive commands
 
-    atomic<bool> isProcessing;
+    atomic<bool> isProcessing = ATOMIC_VAR_INIT(false);
 
-    atomic<bool> shutdown;
+    atomic<bool> shutdown = ATOMIC_VAR_INIT(false);
 
     recursive_mutex mutex;
+
+    QueuedParameters(
+        const string& id,
+        const shared_ptr<Cli>& cli,
+        const shared_ptr<Executor>& parentExecutor,
+        const Executor::KeepAlive<SerialExecutor>& serialExecutorKeepAlive);
   };
   shared_ptr<QueuedParameters> queuedParameters;
-
-  QueuedCli(
-      string id,
-      shared_ptr<Cli> cli,
-      shared_ptr<Executor> parentExecutor);
 
   SemiFuture<string> executeSomething(
       const Command& cmd,
@@ -76,6 +77,11 @@ class QueuedCli : public Cli {
       const exception_wrapper& e);
 
  public:
+  QueuedCli(
+      string id,
+      shared_ptr<Cli> cli,
+      shared_ptr<Executor> parentExecutor);
+
   static std::shared_ptr<QueuedCli>
   make(string id, shared_ptr<Cli> cli, shared_ptr<Executor> parentExecutor);
 

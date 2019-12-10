@@ -86,7 +86,8 @@ static shared_ptr<PromptAwareCli> getCli(
       "test",
       make_shared<MockSession>(testExec),
       CliFlavour::create(""),
-      std::make_shared<folly::CPUThreadPoolExecutor>(1));
+      std::make_shared<folly::CPUThreadPoolExecutor>(1),
+      make_shared<ThreadWheelTimekeeper>());
 }
 
 TEST_F(PromptAwareCliTest, cleanDestructOnSuccess) {

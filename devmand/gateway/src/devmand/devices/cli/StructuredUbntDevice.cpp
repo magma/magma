@@ -299,8 +299,8 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
-  return unique_ptr<StructuredUbntDevice>(new StructuredUbntDevice(
-      app, deviceConfig.id, deviceConfig.readonly, channel, engine.getModelRegistry(), cmdCache));
+  return std::make_unique<StructuredUbntDevice>(
+      app, deviceConfig.id, deviceConfig.readonly, channel, engine.getModelRegistry(), cmdCache);
 }
 
 StructuredUbntDevice::StructuredUbntDevice(

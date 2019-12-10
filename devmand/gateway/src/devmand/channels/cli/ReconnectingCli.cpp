@@ -21,8 +21,8 @@ shared_ptr<ReconnectingCli> ReconnectingCli::make(
     function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
     shared_ptr<Timekeeper> timekeeper,
     chrono::milliseconds quietPeriod) {
-  return shared_ptr<ReconnectingCli>(new ReconnectingCli(
-      id, executor, move(createCliStack), move(timekeeper), move(quietPeriod)));
+  return std::make_shared<ReconnectingCli>(
+      id, executor, move(createCliStack), move(timekeeper), move(quietPeriod));
 }
 
 ReconnectingCli::ReconnectingCli(

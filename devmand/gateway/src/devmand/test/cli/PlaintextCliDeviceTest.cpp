@@ -12,6 +12,7 @@
 #include <devmand/Application.h>
 #include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
+#include <devmand/test/TestUtils.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
 #include <devmand/test/cli/utils/Ssh.h>
@@ -100,34 +101,25 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
   unique_ptr<Device> dev = PlaintextCliDevice::createDeviceWithEngine(
       app, getConfig("9999"), *cliEngine);
 
-  int i = 0;
   string status = "";
   string output = "";
-  do {
-    if (i > 0) {
-      this_thread::sleep_for(1s);
-    }
 
-    i++;
+  EXPECT_BECOMES_TRUE(
+      dev->getOperationalDatastore()
+          ->collect()
+          .get()["fbc-symphony-device:system"]["status"]
+          .asString() != "DOWN");
 
-    std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
-    auto t1 = chrono::high_resolution_clock::now();
-    const folly::dynamic& stateResult = state->collect().get();
-    auto t2 = chrono::high_resolution_clock::now();
-    auto duration =
-        chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
-    MLOG(MDEBUG) << "Retrieving state took: " << duration << " mu.";
-    MLOG(MDEBUG) << folly::toJson(stateResult);
+  std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
+  auto t1 = chrono::high_resolution_clock::now();
+  const folly::dynamic& stateResult = state->collect().get();
+  auto t2 = chrono::high_resolution_clock::now();
+  auto duration = chrono::duration_cast<chrono::microseconds>(t2 - t1).count();
+  MLOG(MDEBUG) << "Retrieving state took: " << duration << " mu.";
+  MLOG(MDEBUG) << folly::toJson(stateResult);
 
-    status = stateResult["fbc-symphony-device:system"]["status"].asString();
-    output = stateResult.getDefault("echo 123", "").asString();
-
-    if (i > 20) {
-      FAIL()
-          << "Unable to execute command, probably not connected, last state: "
-          << folly::toJson(stateResult);
-    }
-  } while (status == "DOWN");
+  status = stateResult["fbc-symphony-device:system"]["status"].asString();
+  output = stateResult.getDefault("echo 123", "").asString();
 
   EXPECT_EQ(string("123"), boost::algorithm::trim_copy(output));
 }

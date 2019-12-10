@@ -40,6 +40,13 @@ class ReconnectingCli : public Cli {
 
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
+  ReconnectingCli(
+      string id,
+      shared_ptr<Executor> executor,
+      function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
+      shared_ptr<Timekeeper> timekeeper,
+      chrono::milliseconds quietPeriod);
+
  private:
   struct ReconnectParameters {
     string id;
@@ -63,13 +70,6 @@ class ReconnectingCli : public Cli {
   };
 
   shared_ptr<ReconnectParameters> reconnectParameters;
-
-  ReconnectingCli(
-      string id,
-      shared_ptr<Executor> executor,
-      function<SemiFuture<shared_ptr<Cli>>()>&& createCliStack,
-      shared_ptr<Timekeeper> timekeeper,
-      chrono::milliseconds quietPeriod);
 
   SemiFuture<string> executeSomething(
       const string&& loggingPrefix,

@@ -41,6 +41,13 @@ class TimeoutTrackingCli : public Cli {
 
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 
+  TimeoutTrackingCli(
+      string id,
+      shared_ptr<Cli> _cli,
+      shared_ptr<folly::Timekeeper> _timekeeper,
+      shared_ptr<folly::Executor> _executor,
+      std::chrono::milliseconds _timeoutInterval);
+
  private:
   struct TimeoutTrackingParameters {
     string id;
@@ -49,15 +56,16 @@ class TimeoutTrackingCli : public Cli {
     shared_ptr<folly::Executor> executor;
     const std::chrono::milliseconds timeoutInterval;
     atomic<bool> shutdown;
+
+    TimeoutTrackingParameters(
+        const string& id,
+        const shared_ptr<Cli>& cli,
+        const shared_ptr<folly::Timekeeper>& timekeeper,
+        const shared_ptr<folly::Executor>& executor,
+        const chrono::milliseconds& timeoutInterval,
+        const bool shutdown);
   };
   shared_ptr<TimeoutTrackingParameters> timeoutTrackingParameters;
-
-  TimeoutTrackingCli(
-      string id,
-      shared_ptr<Cli> _cli,
-      shared_ptr<folly::Timekeeper> _timekeeper,
-      shared_ptr<folly::Executor> _executor,
-      std::chrono::milliseconds _timeoutInterval);
 
   Future<string> executeSomething(
       const Command& cmd,
