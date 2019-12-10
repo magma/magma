@@ -14,6 +14,7 @@ import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useMenuContext} from './MenuContext';
 
 const useStyles = makeStyles({
   root: {
@@ -58,10 +59,16 @@ const SelectMenu = <TValue>({
   selectedValue,
 }: Props<TValue>) => {
   const classes = useStyles();
+  const {onClose} = useMenuContext();
   return (
     <div className={classNames(classes.root, className)}>
       {options.map(option => (
-        <div className={classes.option} onClick={() => onChange(option.value)}>
+        <div
+          className={classes.option}
+          onClick={() => {
+            onChange(option.value);
+            onClose();
+          }}>
           {typeof option.label === 'string' ? (
             <Text className={classes.label} variant="body2">
               {option.label}
