@@ -26,6 +26,7 @@ type linksFilterInput struct {
 	StringValue   string                   `json:"stringValue"`
 	IDSet         []string                 `json:"idSet"`
 	PropertyValue models.PropertyTypeInput `json:"propertyValue"`
+	MaxDepth      *int                     `json:"maxDepth"`
 }
 
 type linksRower struct {
@@ -152,6 +153,9 @@ func paramToLinkFilterInput(params string) ([]*models.LinkFilterInput, error) {
 		StringVal := f.StringValue
 		propVal := f.PropertyValue
 		maxDepth := 5
+		if f.MaxDepth != nil {
+			maxDepth = *f.MaxDepth
+		}
 		inp := models.LinkFilterInput{
 			FilterType:    models.LinkFilterType(upperName),
 			Operator:      models.FilterOperator(upperOp),
