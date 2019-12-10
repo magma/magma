@@ -1611,8 +1611,7 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 		SetNillableExternalID(data.ExternalID).
 		SetTypeID(data.ServiceTypeID).
 		AddUpstreamIDs(data.UpstreamServiceIds...).
-		AddTerminationPointIDs(data.TerminationPointIds...).
-		AddLinkIDs(data.LinkIds...)
+		AddTerminationPointIDs(data.TerminationPointIds...)
 
 	if data.CustomerID != nil {
 		query.AddCustomerIDs(*data.CustomerID)
@@ -1641,9 +1640,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	oldLinkIds := s.QueryLinks().IDsX(ctx)
-	addedLinkIds, deletedLinkIds := resolverutil.GetDifferenceBetweenSlices(oldLinkIds, data.LinkIds)
-
 	oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
 	addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
 		oldTerminationPointIds, data.TerminationPointIds)
@@ -1662,8 +1658,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		UpdateOne(s).
 		SetName(data.Name).
 		SetNillableExternalID(data.ExternalID).
-		RemoveLinkIDs(deletedLinkIds...).
-		AddLinkIDs(addedLinkIds...).
 		RemoveTerminationPointIDs(deletedTerminationPointIds...).
 		AddTerminationPointIDs(addedTerminationPointIds...).
 		RemoveCustomerIDs(deletedCustomerIds...).
@@ -1709,6 +1703,38 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 			}
 		}
 	}
+	return s, nil
+}
+
+func (r mutationResolver) AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		AddLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q add link: id=%q", id, linkID)
+	}
+
+	return s, nil
+}
+
+func (r mutationResolver) RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		RemoveLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q remove link: id=%q", id, linkID)
+	}
+
 	return s, nil
 }
 

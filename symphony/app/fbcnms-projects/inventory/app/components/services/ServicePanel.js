@@ -9,26 +9,30 @@
  */
 
 import type {
-  EditServiceMutationResponse,
-  EditServiceMutationVariables,
-} from '../../mutations/__generated__/EditServiceMutation.graphql';
+  AddServiceLinkMutationResponse,
+  AddServiceLinkMutationVariables,
+} from '../../mutations/__generated__/AddServiceLinkMutation.graphql';
 import type {Link} from '../../common/Equipment';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {
+  RemoveServiceLinkMutationResponse,
+  RemoveServiceLinkMutationVariables,
+} from '../../mutations/__generated__/RemoveServiceLinkMutation.graphql';
 import type {Service} from '../../common/Service';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
-import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import IconButton from '@material-ui/core/IconButton';
 import React, {useState} from 'react';
+import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
-import {toPropertyInput} from '../../common/Property';
 
 type Props = {
   service: Service,
@@ -106,45 +110,29 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const [linksExpanded, setLinksExpanded] = useState(false);
 
   const onAddLink = (link: Link) => {
-    const variables: EditServiceMutationVariables = {
-      data: {
-        id: service.id,
-        name: service.name,
-        externalId: service.externalId,
-        customerId: service.customer?.id,
-        upstreamServiceIds: [],
-        properties: toPropertyInput(service.properties),
-        terminationPointIds: [],
-        linkIds: [...service.links.map(l => l.id), link.id],
-      },
+    const variables: AddServiceLinkMutationVariables = {
+      id: service.id,
+      linkId: link.id,
     };
-    const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+    const callbacks: MutationCallbacks<AddServiceLinkMutationResponse> = {
       onCompleted: () => {
         setLinksExpanded(true);
       },
     };
-    EditServiceMutation(variables, callbacks);
+    AddServiceLinkMutation(variables, callbacks);
   };
 
   const onDeleteLink = (link: Link) => {
-    const variables: EditServiceMutationVariables = {
-      data: {
-        id: service.id,
-        name: service.name,
-        externalId: service.externalId,
-        customerId: service.customer?.id,
-        upstreamServiceIds: [],
-        properties: toPropertyInput(service.properties),
-        terminationPointIds: [],
-        linkIds: service.links.filter(l => l.id != link.id).map(l => l.id),
-      },
+    const variables: RemoveServiceLinkMutationVariables = {
+      id: service.id,
+      linkId: link.id,
     };
-    const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+    const callbacks: MutationCallbacks<RemoveServiceLinkMutationResponse> = {
       onCompleted: () => {
         setLinksExpanded(true);
       },
     };
-    EditServiceMutation(variables, callbacks);
+    RemoveServiceLinkMutation(variables, callbacks);
   };
 
   return (

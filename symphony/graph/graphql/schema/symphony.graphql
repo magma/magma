@@ -1150,7 +1150,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -1161,7 +1160,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -1699,6 +1697,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type

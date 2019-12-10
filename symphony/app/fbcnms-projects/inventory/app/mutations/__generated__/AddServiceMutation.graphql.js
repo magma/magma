@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 34448a600b4e96ed67b9d7b352bdfc0e
+ * @relayHash 2dbb1441fe9e479324e60e2b8e22e694
  */
 
 /* eslint-disable */
@@ -24,7 +24,6 @@ export type ServiceCreateData = {|
   upstreamServiceIds: $ReadOnlyArray<string>,
   properties?: ?$ReadOnlyArray<?PropertyInput>,
   terminationPointIds: $ReadOnlyArray<string>,
-  linkIds: $ReadOnlyArray<string>,
 |};
 export type PropertyInput = {|
   id?: ?string,

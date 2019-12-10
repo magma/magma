@@ -444,6 +444,7 @@ type ComplexityRoot struct {
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
+		AddServiceLink                           func(childComplexity int, id string, linkID string) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
 		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID string) int
@@ -484,6 +485,7 @@ type ComplexityRoot struct {
 		RemoveLocation                           func(childComplexity int, id string) int
 		RemoveLocationType                       func(childComplexity int, id string) int
 		RemoveService                            func(childComplexity int, id string) int
+		RemoveServiceLink                        func(childComplexity int, id string, linkID string) int
 		RemoveServiceType                        func(childComplexity int, id string) int
 		RemoveSiteSurvey                         func(childComplexity int, id string) int
 		RemoveWorkOrder                          func(childComplexity int, id string) int
@@ -990,6 +992,8 @@ type MutationResolver interface {
 	RemoveLink(ctx context.Context, id string, workOrderID *string) (*ent.Link, error)
 	AddService(ctx context.Context, data models.ServiceCreateData) (*ent.Service, error)
 	EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error)
+	AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
+	RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
 	AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error)
 	EditServiceType(ctx context.Context, data models.ServiceTypeEditData) (*ent.ServiceType, error)
 	RemoveEquipmentFromPosition(ctx context.Context, positionID string, workOrderID *string) (*ent.EquipmentPosition, error)
@@ -2770,6 +2774,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddService(childComplexity, args["data"].(models.ServiceCreateData)), true
 
+	case "Mutation.addServiceLink":
+		if e.complexity.Mutation.AddServiceLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addServiceLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
+
 	case "Mutation.addServiceType":
 		if e.complexity.Mutation.AddServiceType == nil {
 			break
@@ -3249,6 +3265,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveService(childComplexity, args["id"].(string)), true
+
+	case "Mutation.removeServiceLink":
+		if e.complexity.Mutation.RemoveServiceLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeServiceLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
 
 	case "Mutation.removeServiceType":
 		if e.complexity.Mutation.RemoveServiceType == nil {
@@ -6484,7 +6512,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -6495,7 +6522,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -7033,6 +7059,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -7435,6 +7463,28 @@ func (ec *executionContext) field_Mutation_addLocation_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["linkId"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["linkId"] = arg1
 	return args, nil
 }
 
@@ -8083,6 +8133,28 @@ func (ec *executionContext) field_Mutation_removeLocation_args(ctx context.Conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["linkId"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["linkId"] = arg1
 	return args, nil
 }
 
@@ -17340,6 +17412,88 @@ func (ec *executionContext) _Mutation_editService(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().EditService(rctx, args["data"].(models.ServiceEditData))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addServiceLink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddServiceLink(rctx, args["id"].(string), args["linkId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeServiceLink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveServiceLink(rctx, args["id"].(string), args["linkId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31926,12 +32080,6 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "linkIds":
-			var err error
-			it.LinkIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -31983,12 +32131,6 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 		case "terminationPointIds":
 			var err error
 			it.TerminationPointIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "linkIds":
-			var err error
-			it.LinkIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -35455,6 +35597,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addService(ctx, field)
 		case "editService":
 			out.Values[i] = ec._Mutation_editService(ctx, field)
+		case "addServiceLink":
+			out.Values[i] = ec._Mutation_addServiceLink(ctx, field)
+		case "removeServiceLink":
+			out.Values[i] = ec._Mutation_removeServiceLink(ctx, field)
 		case "addServiceType":
 			out.Values[i] = ec._Mutation_addServiceType(ctx, field)
 		case "editServiceType":

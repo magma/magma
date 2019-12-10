@@ -521,17 +521,21 @@ func TestSearchLinksByService(t *testing.T) {
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2a",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{data.l1},
 		TerminationPointIds: []string{},
 	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s1.ID, data.l1)
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2b",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{data.l1, data.l2},
 		TerminationPointIds: []string{},
 	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s2.ID, data.l1)
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s2.ID, data.l2)
 	require.NoError(t, err)
 
 	limit := 100

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d9d84264f07988ba3777d2b2413ef587
+ * @relayHash 44ac4182ef038520258b0d1c989769e2
  */
 
 /* eslint-disable */
@@ -16,51 +16,28 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type ServiceCard_service$ref = any;
-export type ServiceEditData = {|
+export type RemoveServiceLinkMutationVariables = {|
   id: string,
-  name: string,
-  externalId?: ?string,
-  customerId?: ?string,
-  upstreamServiceIds: $ReadOnlyArray<string>,
-  properties?: ?$ReadOnlyArray<?PropertyInput>,
-  terminationPointIds: $ReadOnlyArray<string>,
+  linkId: string,
 |};
-export type PropertyInput = {|
-  id?: ?string,
-  propertyTypeID: string,
-  stringValue?: ?string,
-  intValue?: ?number,
-  booleanValue?: ?boolean,
-  floatValue?: ?number,
-  latitudeValue?: ?number,
-  longitudeValue?: ?number,
-  rangeFromValue?: ?number,
-  rangeToValue?: ?number,
-  equipmentIDValue?: ?string,
-  locationIDValue?: ?string,
-  isEditable?: ?boolean,
-  isInstanceProperty?: ?boolean,
-|};
-export type EditServiceMutationVariables = {|
-  data: ServiceEditData
-|};
-export type EditServiceMutationResponse = {|
-  +editService: ?{|
+export type RemoveServiceLinkMutationResponse = {|
+  +removeServiceLink: ?{|
     +$fragmentRefs: ServiceCard_service$ref
   |}
 |};
-export type EditServiceMutation = {|
-  variables: EditServiceMutationVariables,
-  response: EditServiceMutationResponse,
+export type RemoveServiceLinkMutation = {|
+  variables: RemoveServiceLinkMutationVariables,
+  response: RemoveServiceLinkMutationResponse,
 |};
 */
 
 
 /*
-mutation EditServiceMutation(
-  $data: ServiceEditData!
+mutation RemoveServiceLinkMutation(
+  $id: ID!
+  $linkId: ID!
 ) {
-  editService(data: $data) {
+  removeServiceLink(id: $id, linkId: $linkId) {
     ...ServiceCard_service
     id
   }
@@ -178,16 +155,27 @@ const node/*: ConcreteRequest*/ = (function(){
 var v0 = [
   {
     "kind": "LocalArgument",
-    "name": "data",
-    "type": "ServiceEditData!",
+    "name": "id",
+    "type": "ID!",
+    "defaultValue": null
+  },
+  {
+    "kind": "LocalArgument",
+    "name": "linkId",
+    "type": "ID!",
     "defaultValue": null
   }
 ],
 v1 = [
   {
     "kind": "Variable",
-    "name": "data",
-    "variableName": "data"
+    "name": "id",
+    "variableName": "id"
+  },
+  {
+    "kind": "Variable",
+    "name": "linkId",
+    "variableName": "linkId"
   }
 ],
 v2 = {
@@ -282,7 +270,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "EditServiceMutation",
+    "name": "RemoveServiceLinkMutation",
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
@@ -290,7 +278,7 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "editService",
+        "name": "removeServiceLink",
         "storageKey": null,
         "args": (v1/*: any*/),
         "concreteType": "Service",
@@ -307,13 +295,13 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "EditServiceMutation",
+    "name": "RemoveServiceLinkMutation",
     "argumentDefinitions": (v0/*: any*/),
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "editService",
+        "name": "removeServiceLink",
         "storageKey": null,
         "args": (v1/*: any*/),
         "concreteType": "Service",
@@ -555,13 +543,13 @@ return {
   },
   "params": {
     "operationKind": "mutation",
-    "name": "EditServiceMutation",
+    "name": "RemoveServiceLinkMutation",
     "id": null,
-    "text": "mutation EditServiceMutation(\n  $data: ServiceEditData!\n) {\n  editService(data: $data) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  serviceType {\n    name\n    id\n  }\n  ...ServiceDetailsPanel_service\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n",
+    "text": "mutation RemoveServiceLinkMutation(\n  $id: ID!\n  $linkId: ID!\n) {\n  removeServiceLink(id: $id, linkId: $linkId) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  serviceType {\n    name\n    id\n  }\n  ...ServiceDetailsPanel_service\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '0d262e10a1451069e21df0155a3ac18d';
+(node/*: any*/).hash = '78ff6dbd88739e84dc5b8cfdff47db32';
 module.exports = node;

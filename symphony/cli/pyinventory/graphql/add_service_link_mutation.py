@@ -26,40 +26,10 @@ DATETIME_FIELD = field(
 
 @dataclass_json
 @dataclass
-class ServiceCreateData:
-    @dataclass_json
-    @dataclass
-    class PropertyInput:
-        propertyTypeID: str
-        id: Optional[str] = None
-        stringValue: Optional[str] = None
-        intValue: Optional[int] = None
-        booleanValue: Optional[bool] = None
-        floatValue: Optional[float] = None
-        latitudeValue: Optional[float] = None
-        longitudeValue: Optional[float] = None
-        rangeFromValue: Optional[float] = None
-        rangeToValue: Optional[float] = None
-        equipmentIDValue: Optional[str] = None
-        locationIDValue: Optional[str] = None
-        isEditable: Optional[bool] = None
-        isInstanceProperty: Optional[bool] = None
-
-    name: str
-    serviceTypeId: str
-    upstreamServiceIds: List[str]
-    terminationPointIds: List[str]
-    externalId: Optional[str] = None
-    customerId: Optional[str] = None
-    properties: Optional[List[PropertyInput]] = None
-
-
-@dataclass_json
-@dataclass
-class AddServiceMutation:
+class AddServiceLinkMutation:
     __QUERY__ = """
-    mutation AddServiceMutation($data: ServiceCreateData!) {
-  addService(data: $data) {
+    mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
+  addServiceLink(id: $id, linkId: $linkId) {
     id
     name
     externalId
@@ -82,7 +52,7 @@ class AddServiceMutation:
 
     @dataclass_json
     @dataclass
-    class AddServiceMutationData:
+    class AddServiceLinkMutationData:
         @dataclass_json
         @dataclass
         class Service:
@@ -111,15 +81,15 @@ class AddServiceMutation:
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        addService: Optional[Service] = None
+        addServiceLink: Optional[Service] = None
 
-    data: Optional[AddServiceMutationData] = None
+    data: Optional[AddServiceLinkMutationData] = None
     errors: Any = None
 
     @classmethod
     # fmt: off
-    def execute(cls, client, data: ServiceCreateData):
+    def execute(cls, client, id: str, linkId: str):
         # fmt: off
-        variables = {"data": data}
+        variables = {"id": id, "linkId": linkId}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data
