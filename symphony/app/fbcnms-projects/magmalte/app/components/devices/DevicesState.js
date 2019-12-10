@@ -83,10 +83,22 @@ function Interface({
     });
 
     const managedDevices = JSON.parse(newDevice.config?.device_config || '{}');
-    const index = findIndex(
+    let index = findIndex(
       managedDevices['openconfig-interfaces:interfaces'].interface,
       i => iface.name === i.name,
     );
+
+    if (index === -1) {
+      const newIface = {
+        name: iface.name,
+        config: JSON.parse(JSON.stringify(iface.config)),
+      };
+      managedDevices['openconfig-interfaces:interfaces'].interface.push(
+        newIface,
+      );
+      index =
+        managedDevices['openconfig-interfaces:interfaces'].interface.length - 1;
+    }
     managedDevices['openconfig-interfaces:interfaces'].interface[
       index
     ].config.enabled = event.target.checked;
