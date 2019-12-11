@@ -170,7 +170,7 @@ func (r mutationResolver) EditWorkOrder(
 	if err != nil {
 		return nil, errors.Wrap(err, "querying work order")
 	}
-	mutation := r.ClientFrom(ctx).WorkOrder.
+	mutation := client.WorkOrder.
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
@@ -266,7 +266,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(clInput.StringValue).
 			Save(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "creating check list definition")
+			return nil, errors.Wrap(err, "creating check list item")
 		}
 		return cli, nil
 	} else {
@@ -280,7 +280,7 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(clInput.StringValue).
 			Save(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "updating check list definition")
+			return nil, errors.Wrap(err, "updating check list item")
 		}
 		return cli, nil
 	}
@@ -327,11 +327,7 @@ func (r mutationResolver) EditWorkOrderType(
 	ctx context.Context, input models.EditWorkOrderTypeInput,
 ) (*ent.WorkOrderType, error) {
 	client := r.ClientFrom(ctx)
-	wot, err := client.WorkOrderType.
-		UpdateOneID(input.ID).
-		SetName(input.Name).
-		SetNillableDescription(input.Description).
-		Save(ctx)
+	wot, err := client.WorkOrderType.Get(ctx, input.ID)
 	if err != nil {
 		if ent.IsNotFound(err) {
 			return nil, gqlerror.Errorf("A work order template with id=%q does not exist", input.ID)
@@ -351,32 +347,59 @@ func (r mutationResolver) EditWorkOrderType(
 			return nil, err
 		}
 	}
-	cl := client.CheckListItemDefinition
+
+	mutation := client.WorkOrderType.
+		UpdateOneID(input.ID).
+		SetName(input.Name).
+		SetNillableDescription(input.Description)
+
+	currentCL := wot.QueryCheckListDefinitions().IDsX(ctx)
+	ids := make([]string, 0, len(input.CheckList))
 	for _, clInput := range input.CheckList {
-		if clInput.ID == nil {
-			if _, err = cl.Create().
-				SetTitle(clInput.Title).
-				SetType(clInput.Type.String()).
-				SetNillableIndex(clInput.Index).
-				SetNillableEnumValues(clInput.EnumValues).
-				SetNillableHelpText(clInput.HelpText).
-				SetWorkOrderTypeID(input.ID).
-				Save(ctx); err != nil {
-				return nil, errors.Wrap(err, "creating check list definition")
-			}
-		} else {
-			if _, err = cl.UpdateOneID(*clInput.ID).
-				SetTitle(clInput.Title).
-				SetType(clInput.Type.String()).
-				SetNillableIndex(clInput.Index).
-				SetNillableEnumValues(clInput.EnumValues).
-				SetNillableHelpText(clInput.HelpText).
-				Save(ctx); err != nil {
-				return nil, errors.Wrap(err, "updating check list definition")
-			}
+		cli, err := r.createOrUpdateCheckListDefinition(ctx, clInput, input.ID)
+		if err != nil {
+			return nil, err
 		}
+		ids = append(ids, cli.ID)
 	}
-	return wot, nil
+	_, deletedCLIds := resolverutil.GetDifferenceBetweenSlices(currentCL, ids)
+	mutation.RemoveCheckListDefinitionIDs(deletedCLIds...)
+	return mutation.Save(ctx)
+}
+
+func (r mutationResolver) createOrUpdateCheckListDefinition(
+	ctx context.Context,
+	clInput *models.CheckListDefinitionInput,
+	wotID string) (*ent.CheckListItemDefinition, error) {
+
+	client := r.ClientFrom(ctx)
+	cl := client.CheckListItemDefinition
+	if clInput.ID == nil {
+		cli, err := cl.Create().
+			SetTitle(clInput.Title).
+			SetType(clInput.Type.String()).
+			SetNillableIndex(clInput.Index).
+			SetNillableEnumValues(clInput.EnumValues).
+			SetNillableHelpText(clInput.HelpText).
+			SetWorkOrderTypeID(wotID).
+			Save(ctx)
+		if err != nil {
+			return nil, errors.Wrap(err, "creating check list definition")
+		}
+		return cli, nil
+	}
+
+	cli, err := cl.UpdateOneID(*clInput.ID).
+		SetTitle(clInput.Title).
+		SetType(clInput.Type.String()).
+		SetNillableIndex(clInput.Index).
+		SetNillableEnumValues(clInput.EnumValues).
+		SetNillableHelpText(clInput.HelpText).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "updating check list definition")
+	}
+	return cli, nil
 }
 
 func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id string) (string, error) {
