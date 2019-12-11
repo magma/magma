@@ -282,3 +282,19 @@ func (m *PolicyRule) ValidateModel() error {
 	}
 	return nil
 }
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *RatingGroup) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *MutableRatingGroup) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

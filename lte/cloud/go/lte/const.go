@@ -23,4 +23,6 @@ const (
 
 	BaseNameEntityType   = "base_name"
 	PolicyRuleEntityType = "policy"
+
+	RatingGroupEntityType = "rating_group"
 )
