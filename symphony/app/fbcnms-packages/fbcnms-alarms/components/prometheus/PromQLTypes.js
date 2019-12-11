@@ -8,74 +8,119 @@
  * @format
  */
 
-export type BinaryComparator = '==' | '!=' | '>' | '<' | '<=' | '>=';
-export type BinaryArithmetic = '+' | '-' | '*' | '/' | '%' | '^';
-export type BinaryLogical = 'and' | 'or' | 'unless';
+export type BinaryComparator = $Keys<typeof BINARY_COMPARATORS_MAP>;
+export const BINARY_COMPARATORS_MAP = {
+  '==': '==',
+  '!=': '!=',
+  '>': '>',
+  '<': '<',
+  '<=': '<=',
+  '>=': '>=',
+};
+const BINARY_COMPARATORS = Object.keys(BINARY_COMPARATORS_MAP);
 
+export type BinaryArithmetic = $Keys<typeof BINARY_ARITHMETIC_OPS_MAP>;
+export const BINARY_ARITHMETIC_OPS_MAP = {
+  '+': '+',
+  '-': '-',
+  '*': '*',
+  '/': '/',
+  '%': '%',
+  '^': '^',
+};
+const BINARY_ARITHMETIC_OPS = Object.keys(BINARY_ARITHMETIC_OPS_MAP);
+
+export type BinaryLogical = $Keys<typeof BINARY_LOGIC_OPS_MAP>;
+export const BINARY_LOGIC_OPS_MAP = {and: 'and', or: 'or', unless: 'unless'};
+const BINARY_LOGIC_OPS = Object.keys(BINARY_LOGIC_OPS_MAP);
+
+export const BINARY_OPERATORS = [
+  ...BINARY_COMPARATORS,
+  ...BINARY_ARITHMETIC_OPS,
+  ...BINARY_LOGIC_OPS,
+];
 export type BinaryOperator =
   | BinaryComparator
   | BinaryArithmetic
   | BinaryLogical;
 
-export type AggregationOperator =
-  | 'sum'
-  | 'min'
-  | 'max'
-  | 'avg'
-  | 'stddev'
-  | 'stdvar'
-  | 'count'
-  | 'quantile'
-  | 'bottomk'
-  | 'topk'
-  | 'sum_over_time'
-  | 'min_over_time'
-  | 'max_over_time'
-  | 'avg_over_time'
-  | 'stddev_over_time'
-  | 'stdvar_over_time'
-  | 'count_over_time'
-  | 'quantile_over_time'
-  | 'count_values';
-
 export type LabelOperator = '=' | '!=' | '=~' | '!~';
+export const LABEL_OPERATORS = ['=', '!=', '=~', '!~'];
 
-export type FunctionName =
-  | 'abs'
-  | 'absent'
-  | 'ceil'
-  | 'changes'
-  | 'clamp_max'
-  | 'clamp_min'
-  | 'day_of_month'
-  | 'day_of_week'
-  | 'days_in_month'
-  | 'delta'
-  | 'deriv'
-  | 'exp'
-  | 'floor'
-  | 'histogram_quantile'
-  | 'holt_winters'
-  | 'hour'
-  | 'idelta'
-  | 'increase'
-  | 'irate'
-  | 'label_join'
-  | 'label_replace'
-  | 'ln'
-  | 'log2'
-  | 'log10'
-  | 'minute'
-  | 'month'
-  | 'predict_linear'
-  | 'rate'
-  | 'resets'
-  | 'round'
-  | 'scalar'
-  | 'sort'
-  | 'sort_desc'
-  | 'sqrt'
-  | 'time'
-  | 'timestamp'
-  | 'vector'
-  | 'year';
+export type AggregationOperator = $Keys<typeof AGGREGATION_OPERATORS_MAP>;
+const AGGREGATION_OPERATORS_MAP = {
+  sum: 'sum',
+  min: 'min',
+  max: 'max',
+  avg: 'avg',
+  stddev: 'stddev',
+  stdvar: 'stdvar',
+  count: 'count',
+  quantile: 'quantile',
+  bottomk: 'bottomk',
+  topk: 'topk',
+  sum_over_time: 'sum_over_time',
+  min_over_time: 'min_over_time',
+  max_over_time: 'max_over_time',
+  avg_over_time: 'avg_over_time',
+  stddev_over_time: 'stddev_over_time',
+  stdvar_over_time: 'stdvar_over_time',
+  count_over_time: 'count_over_time',
+  quantile_over_time: 'quantile_over_time',
+  count_over_time: 'count_values',
+};
+export const AGGREGATION_OPERATORS: Array<string> = Object.keys(
+  AGGREGATION_OPERATORS_MAP,
+);
+
+export type FunctionName = $Keys<typeof FUNCTION_NAMES_MAP>;
+const FUNCTION_NAMES_MAP = {
+  abs: 'abs',
+  absent: 'absent',
+  ceil: 'ceil',
+  changes: 'changes',
+  clamp_max: 'clamp_max',
+  clamp_min: 'clamp_min',
+  day_of_month: 'day_of_month',
+  day_of_week: 'day_of_week',
+  days_in_month: 'days_in_month',
+  delta: 'deriv',
+  exp: 'exp',
+  floor: 'floor',
+  histogram_quantile: 'histogram_quantile',
+  holt_winters: 'holt_winters',
+  hour: 'hour',
+  idelta: 'idelta',
+  increase: 'increase',
+  irate: 'irate',
+  label_join: 'label_join',
+  label_replace: 'label_replace',
+  ln: 'ln',
+  log2: 'log2',
+  log10: 'log10',
+  minute: 'minute',
+  month: 'month',
+  predict_linear: 'predict_linear',
+  rate: 'rate',
+  resets: 'resets',
+  round: 'round',
+  scalar: 'scalar',
+  sort: 'sort',
+  sort_desc: 'sort_desc',
+  sqrt: 'sqrt',
+  time: 'time',
+  timestamp: 'timestamp',
+  vector: 'vector',
+  year: 'year',
+};
+export const FUNCTION_NAMES: Array<string> = Object.keys(FUNCTION_NAMES_MAP);
+
+export type ClauseOperator = $Keys<typeof CLAUSE_OPS>;
+const CLAUSE_OPS_MAP = {
+  by: 'by',
+  on: 'on',
+  unless: 'unless',
+  without: 'without',
+  ignoring: 'ignoring',
+};
+export const CLAUSE_OPS: Array<string> = Object.keys(CLAUSE_OPS_MAP);
