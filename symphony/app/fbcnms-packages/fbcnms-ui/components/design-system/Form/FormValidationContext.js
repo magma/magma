@@ -11,6 +11,7 @@
 import * as React from 'react';
 import * as imm from 'immutable';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import fbt from 'fbt';
 import {useCallback, useMemo, useState} from 'react';
 
 type Range = {
@@ -113,7 +114,11 @@ export function FormValidationContextProvider(props: Props) {
   const checkRequired = useCallback(
     validationInfo =>
       !!validationInfo.required && isEmptyLikeValue(validationInfo.value)
-        ? `${validationInfo.fieldDisplayName} cannot be empty`
+        ? `${fbt(
+            fbt.param('field name', validationInfo.fieldDisplayName) +
+              ' cannot be empty',
+            'Required field notation',
+          )}`
         : null,
     [isEmptyLikeValue],
   );
