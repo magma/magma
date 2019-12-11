@@ -535,3 +535,38 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.TrackingType = cfg.TrackingType
 	return m
 }
+
+func (m *RatingGroup) ToEntity() configurator.NetworkEntity {
+	ret := configurator.NetworkEntity{
+		Type:   lte.RatingGroupEntityType,
+		Key:    fmt.Sprint(uint32(m.ID)),
+		Config: m,
+	}
+	return ret
+}
+
+func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
+	ratingGroupID, err := swag.ConvertUint32(ent.Key)
+	if err != nil {
+		return nil, err
+	}
+	m.ID = RatingGroupID(ratingGroupID)
+	m = ent.Config.(*RatingGroup)
+	return m, nil
+}
+
+func (m *MutableRatingGroup) ToEntityUpdateCriteria(id uint32) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      lte.RatingGroupEntityType,
+		Key:       fmt.Sprint(id),
+		NewConfig: m.ToRatingGroup(id),
+	}
+	return ret
+}
+
+func (m *MutableRatingGroup) ToRatingGroup(id uint32) *RatingGroup {
+	ratingGroup := &RatingGroup{}
+	ratingGroup.ID = RatingGroupID(id)
+	ratingGroup.LimitType = m.LimitType
+	return ratingGroup
+}
