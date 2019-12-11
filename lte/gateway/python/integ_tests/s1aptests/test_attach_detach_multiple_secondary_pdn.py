@@ -15,7 +15,6 @@ import s1ap_wrapper
 
 
 class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -26,18 +25,22 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         """ Attach a single UE + add 2 PDN Connections + disconnect """
         num_pdns = 2
         bearer_ids = []
-        apn = ['ims', 'internet']
+        apn = ["ims", "internet"]
         self._s1ap_wrapper.configUEDevice(1)
 
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("*********************** Running End to End attach for UE id ",
-              ue_id)
+        print(
+            "*********************** Running End to End attach for UE id ",
+            ue_id,
+        )
         # Attach
         self._s1ap_wrapper.s1_util.attach(
-            ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -49,18 +52,26 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value)
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-            print("********************** Sending Activate default EPS bearer "
-                  "context accept for UE id ", ue_id)
+            print(
+                "********************** Sending Activate default EPS bearer "
+                "context accept for UE id ",
+                ue_id,
+            )
             act_def_bearer_acc = s1ap_types.UeActDefEpsBearCtxtAcc_t()
             act_def_bearer_acc.ue_Id = ue_id
-            act_def_bearer_acc.bearerId = act_def_bearer_req.m.pdnInfo.\
-                epsBearerId
+            act_def_bearer_acc.bearerId = (
+                act_def_bearer_req.m.pdnInfo.epsBearerId
+            )
             bearer_ids.append(act_def_bearer_acc.bearerId)
-            print("********************** Added default bearer with "
-                  "bearer id", act_def_bearer_acc.bearerId)
+            print(
+                "********************** Added default bearer with "
+                "bearer id",
+                act_def_bearer_acc.bearerId,
+            )
 
         time.sleep(5)
         for i in range(num_pdns):
@@ -68,28 +79,38 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
             pdn_disconnect_req.ue_Id = ue_id
             pdn_disconnect_req.epsBearerId = bearer_ids[i]
-            print("******************* Sending PDN Disconnect bearer id\n"
-                    ,pdn_disconnect_req.epsBearerId)
-            self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                                  UE_PDN_DISCONNECT_REQ,
-                                                  pdn_disconnect_req)
+            print(
+                "******************* Sending PDN Disconnect bearer id\n",
+                pdn_disconnect_req.epsBearerId,
+            )
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+            )
 
             # Receive UE_DEACTIVATE_BER_REQ
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.
-                            value)
+            self.assertTrue(
+                response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            )
 
-            print("******************* Received deactivate eps bearer context"
-                    " request")
+            print(
+                "******************* Received deactivate eps bearer context"
+                " request"
+            )
             # Send DeactDedicatedBearerAccept
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                ue_id, bearer_ids[i])
+                ue_id, bearer_ids[i]
+            )
 
-        print("******************* Running UE detach (switch-off) for ",
-              "UE id ", ue_id)
+        print(
+            "******************* Running UE detach (switch-off) for ",
+            "UE id ",
+            ue_id,
+        )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+        )
 
 
 if __name__ == "__main__":

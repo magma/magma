@@ -15,7 +15,6 @@ import s1ap_wrapper
 
 
 class TestSecondaryPdnNoDisconnect(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -29,36 +28,48 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for UE id ",
-              ue_id)
+        print(
+            "************************* Running End to End attach for UE id ",
+            ue_id,
+        )
         # Attach
         self._s1ap_wrapper.s1_util.attach(
-            ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         # Send PDN Connectivity Request
-        apn = 'ims'
+        apn = "ims"
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+        )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-        print("************************* Sending Activate default EPS bearer "
-              "context accept for UE id ", ue_id)
+        print(
+            "************************* Sending Activate default EPS bearer "
+            "context accept for UE id ",
+            ue_id,
+        )
 
         time.sleep(2)
         # Do not send PDN Disconnect, send detach
-        print("************************* Running UE detach (switch-off) for ",
-              "UE id ", ue_id)
+        print(
+            "************************* Running UE detach (switch-off) for ",
+            "UE id ",
+            ue_id,
+        )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+        )
 
 
 if __name__ == "__main__":

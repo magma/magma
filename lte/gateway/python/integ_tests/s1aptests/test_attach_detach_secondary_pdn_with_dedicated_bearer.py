@@ -14,8 +14,8 @@ import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
-class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
 
+class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
@@ -32,88 +32,118 @@ class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id
-            print("********************* Running End to End attach for UE id ",
-                  ue_id)
+            print(
+                "********************* Running End to End attach for UE id ",
+                ue_id,
+            )
             # Attach
             self._s1ap_wrapper.s1_util.attach(
-                ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                ue_id,
+                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
             # Add dedicated bearer for default bearer 5
-            print("********************** Adding dedicated bearer to IMSI",
-                  ''.join([str(i) for i in req.imsi]))
+            print(
+                "********************** Adding dedicated bearer to IMSI",
+                "".join([str(i) for i in req.imsi]),
+            )
             self._spgw_util.create_bearer(
-                'IMSI' + ''.join([str(i) for i in req.imsi]), 5)
+                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+            )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
+                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t)
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId)
+                req.ue_id, act_ded_ber_ctxt_req.bearerId
+            )
 
             time.sleep(5)
             # Send PDN Connectivity Request
-            apn = 'ims'
+            apn = "ims"
             self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn)
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value)
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-            print("********************** Sending Activate default EPS bearer "
-                  "context accept for UE id ", ue_id)
+            print(
+                "********************** Sending Activate default EPS bearer "
+                "context accept for UE id ",
+                ue_id,
+            )
 
             # Add dedicated bearer to 2nd PDN
-            print("********************** Adding dedicated bearer to IMSI",
-                  ''.join([str(i) for i in req.imsi]))
+            print(
+                "********************** Adding dedicated bearer to IMSI",
+                "".join([str(i) for i in req.imsi]),
+            )
             self._spgw_util.create_bearer(
-                'IMSI' + ''.join([str(i) for i in req.imsi]),
-                act_def_bearer_req.m.pdnInfo.epsBearerId)
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                act_def_bearer_req.m.pdnInfo.epsBearerId,
+            )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value)
+                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t)
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId)
+                req.ue_id, act_ded_ber_ctxt_req.bearerId
+            )
 
             time.sleep(5)
             # Send PDN Disconnect
             pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
             pdn_disconnect_req.ue_Id = ue_id
-            pdn_disconnect_req.epsBearerId = act_def_bearer_req.m.pdnInfo.\
-                epsBearerId
-            self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
-                                                  UE_PDN_DISCONNECT_REQ,
-                                                  pdn_disconnect_req)
+            pdn_disconnect_req.epsBearerId = (
+                act_def_bearer_req.m.pdnInfo.epsBearerId
+            )
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+            )
 
             # Receive UE_DEACTIVATE_BER_REQ
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.
-                            value)
+            self.assertTrue(
+                response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            )
 
-            print("******************* Received deactivate eps bearer context"
-                    " request")
+            print(
+                "******************* Received deactivate eps bearer context"
+                " request"
+            )
             # Send DeactDedicatedBearerAccept
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId)
+                req.ue_id, deactv_bearer_req.bearerId
+            )
 
-            print("******************** Running UE detach (switch-off) for ",
-                  "UE id ", ue_id)
+            print(
+                "******************** Running UE detach (switch-off) for ",
+                "UE id ",
+                ue_id,
+            )
 
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
-                False)
+                ue_id,
+                s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+                False,
+            )
 
 
 if __name__ == "__main__":

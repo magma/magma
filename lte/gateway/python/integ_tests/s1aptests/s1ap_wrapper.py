@@ -355,9 +355,9 @@ class TestWrapper(object):
         req.pdnType_pr.pdn_type = 1
         req.pdnAPN_pr.pres = 1
         req.pdnAPN_pr.len = len(apn)
-        req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(*[ctypes.c_ubyte(ord(c))
-                                                         for c in apn[:100]])
-        self.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
+        req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
+            *[ctypes.c_ubyte(ord(c)) for c in apn[:100]]
+        )
+        self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 
         print("************* Sending Standalone PDN Connectivity Request\n")
