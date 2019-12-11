@@ -375,3 +375,38 @@ class StateReplicatorTests(TestCase):
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
+    def test_deleted_replicated_state(self, get_grpc_mock):
+        async def test():
+            get_grpc_mock.return_value = self.channel
+            self.nid_client.clear()
+            self.idlist_client.clear()
+            self.log_client.clear()
+            self.foo_client.clear()
+
+            key = 'id1'
+            self.nid_client[key] = NetworkID(id='foo')
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertEqual(1, len(req.states))
+
+            # Ensure in-memory map updates properly
+            await self.state_replicator._send_to_state_service(req)
+            self.assertEqual(1, len(self.state_replicator._state_versions))
+            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
+            self.assertEqual(1,
+                             self.state_replicator._state_versions[mem_key1])
+
+            # Now delete state and ensure in-memory map gets updated properly
+            del self.nid_client[key]
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertIsNone(req)
+
+            await self.state_replicator._cleanup_deleted_keys()
+            self.assertFalse(key in self.state_replicator._state_versions)
+
+        # Cancel the replicator's loop so there are no other activities
+        self.state_replicator._periodic_task.cancel()
+        self.loop.run_until_complete(test())
