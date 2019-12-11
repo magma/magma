@@ -150,9 +150,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 context.set_details("Record for ID %s was not found." %
                                     request.id)
                 return
-            # TODO: Set record to be garbage collected rather than deleting
-            # directly
-            del self._redis_dict[request.id]
+            self._redis_dict.mark_as_garbage(request.id)
 
     def GetDirectoryField(self, request, context):
         """ Get the directory record field for an ID and key

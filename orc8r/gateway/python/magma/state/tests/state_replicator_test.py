@@ -24,6 +24,7 @@ from magma.common.redis.serializers import get_proto_deserializer, \
     RedisSerde
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.state.keys import make_mem_key
+from magma.state.garbage_collector import GarbageCollector
 from magma.state.state_replicator import StateReplicator
 from magma.common.redis.mocks.mock_redis import MockRedis
 from orc8r.protos.state_pb2_grpc import StateServiceStub
@@ -149,8 +150,11 @@ class StateReplicatorTests(TestCase):
             max_client_reuse=60,
         )
 
+        garbage_collector = GarbageCollector(service, grpc_client_manager)
+
         self.state_replicator = StateReplicator(
             service=service,
+            garbage_collector=garbage_collector,
             grpc_client_manager=grpc_client_manager,
         )
         self.state_replicator.start()

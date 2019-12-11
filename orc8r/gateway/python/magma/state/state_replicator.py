@@ -16,6 +16,7 @@ import grpc
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service import MagmaService
 from magma.common.sdwatchdog import SDWatchdogTask
+from magma.state.garbage_collector import GarbageCollector
 from magma.state.keys import make_mem_key, make_scoped_device_id
 from magma.state.redis_dicts import get_json_redis_dicts, \
     get_proto_redis_dicts, PROTO_FORMAT
@@ -28,8 +29,7 @@ from google.protobuf.json_format import MessageToDict
 # TODO: Make DEFAULT_SYNC_INTERVAL an mconfig parameter
 DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
-MINIMUM_SYNC_INTERVAL = 30
-
+GARBAGE_COLLECTION_ITERATION_INTERVAL = 2
 
 class StateReplicator(SDWatchdogTask):
     """
@@ -38,9 +38,12 @@ class StateReplicator(SDWatchdogTask):
     """
     def __init__(self,
                  service: MagmaService,
+                 garbage_collector: GarbageCollector,
                  grpc_client_manager: GRPCClientManager):
         super().__init__(DEFAULT_SYNC_INTERVAL, service.loop)
         self._service = service
+        # Garbage collector to propagate deletions back to Orchestrator
+        self._garbage_collector = garbage_collector
         # In memory mapping of states to version
         self._state_versions = {}
         # Set of keys from current replication iteration - used to track
@@ -57,6 +60,10 @@ class StateReplicator(SDWatchdogTask):
         # Replication cannot proceed until this flag is True
         self._has_resync_completed = False
 
+        # Track replication iteration to track when to trigger garbage
+        # collection
+        self._replication_iteration = 0
+
     async def _run(self):
         if not self._has_resync_completed:
             try:
@@ -69,6 +76,12 @@ class StateReplicator(SDWatchdogTask):
         if request is not None:
             await self._send_to_state_service(request)
         await self._cleanup_deleted_keys()
+
+        self._replication_iteration += 1
+        if self._replication_iteration >= \
+                GARBAGE_COLLECTION_ITERATION_INTERVAL:
+            await self._garbage_collector.run_garbage_collection()
+            self._replication_iteration = 0
 
     async def _resync(self):
         states_to_sync = []
