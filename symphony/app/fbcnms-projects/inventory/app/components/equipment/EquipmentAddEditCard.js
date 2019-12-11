@@ -26,24 +26,24 @@ import type {WithStyles} from '@material-ui/core';
 
 import AddEquipmentMutation from '../../mutations/AddEquipmentMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import EditEquipmentMutation from '../../mutations/EditEquipmentMutation';
-import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormLabel from '@material-ui/core/FormLabel';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import LinkedDeviceAddEditSection from '../form/LinkedDeviceAddEditSection';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
 import React from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -95,6 +95,7 @@ const equipmentAddEditCardQuery = graphql`
             index
             isInstanceProperty
             type
+            isMandatory
             stringValue
             intValue
             floatValue
@@ -113,6 +114,7 @@ const equipmentAddEditCardQuery = graphql`
             isInstanceProperty
             type
             stringValue
+            isMandatory
           }
           id
           stringValue
@@ -157,6 +159,7 @@ const equipmentAddEditCardQuery__equipmentTypeQuery = graphql`
           rangeFromValue
           rangeToValue
           isEditable
+          isMandatory
           isInstanceProperty
         }
       }
@@ -212,52 +215,42 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
     );
     return (
       <Card>
-        <CardContent className={this.props.classes.root}>
-          {this.state.error && <FormLabel error>{this.state.error}</FormLabel>}
-          <div className={this.props.classes.header}>
-            <Text variant="h5">
-              {editingEquipment?.equipmentType.name ?? this.props.type?.name}
-            </Text>
-          </div>
-          <FormField
-            label="Name"
-            required
-            hasError={!editingEquipment.name}
-            errorText="Name cannot be empty"
-            hasSpacer={true}>
-            <TextInput
-              name="name"
-              autoFocus={true}
-              type="string"
-              className={classes.input}
+        <FormValidationContextProvider>
+          <CardContent className={this.props.classes.root}>
+            {this.state.error && (
+              <FormLabel error>{this.state.error}</FormLabel>
+            )}
+            <div className={this.props.classes.header}>
+              <Text variant="h5">
+                {editingEquipment?.equipmentType.name ?? this.props.type?.name}
+              </Text>
+            </div>
+            <NameInput
               value={editingEquipment.name}
               onChange={this._onNameChanged}
+              inputClass={classes.input}
             />
-          </FormField>
-          {editingEquipment.properties.length > 0 ? (
-            <PropertiesAddEditSection
-              properties={editingEquipment.properties}
-              onChange={index => this._propertyChangedHandler(index)}
+            {editingEquipment.properties.length > 0 ? (
+              <PropertiesAddEditSection
+                properties={editingEquipment.properties}
+                onChange={index => this._propertyChangedHandler(index)}
+              />
+            ) : null}
+            {this.props.editingEquipmentId && equipmentLiveStatusEnabled ? (
+              <LinkedDeviceAddEditSection
+                deviceID={editingEquipment.device?.id ?? ''}
+                onChange={this._deviceIDChangedHandler}
+              />
+            ) : null}
+          </CardContent>
+          <CardFooter>
+            <FormSaveCancelPanel
+              isDisabled={this.state.isSubmitting}
+              onCancel={this.props.onCancel}
+              onSave={this.onSave}
             />
-          ) : null}
-          {this.props.editingEquipmentId && equipmentLiveStatusEnabled ? (
-            <LinkedDeviceAddEditSection
-              deviceID={editingEquipment.device?.id ?? ''}
-              onChange={this._deviceIDChangedHandler}
-            />
-          ) : null}
-        </CardContent>
-        <CardFooter>
-          <Button
-            className={classes.cancelButton}
-            onClick={this.props.onCancel}
-            skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave} disabled={this.isSaveDisabled()}>
-            Save
-          </Button>
-        </CardFooter>
+          </CardFooter>
+        </FormValidationContextProvider>
       </Card>
     );
   }

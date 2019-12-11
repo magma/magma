@@ -460,6 +460,7 @@ export default withStyles(styles)(
               longitudeValue
               isEditable
               isInstanceProperty
+              isMandatory
             }
             positionDefinitions {
               ...PositionDefinitionsAddEditTable_positionDefinition
