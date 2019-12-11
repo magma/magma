@@ -35,11 +35,6 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-MESSAGE_DEF(
-  NAS_ERAB_SETUP_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_erab_setup_req_t,
-  itti_erab_setup_req)
 //MESSAGE_DEF(NAS_RAB_RELEASE_REQ,                MESSAGE_PRIORITY_MED,   itti_nas_rab_rel_req_t,          nas_rab_rel_req)
 
 /* NAS layer -> MME app messages */
@@ -78,8 +73,3 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_notify_service_reject_t,
   nas_notify_service_reject)
-MESSAGE_DEF(
-  NAS_ERAB_REL_CMD,
-  MESSAGE_PRIORITY_MED,
-  itti_erab_rel_cmd_t,
-  itti_erab_rel_cmd)
