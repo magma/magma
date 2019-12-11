@@ -48,7 +48,9 @@ def get_proto_serializer() -> Callable[[T, int], str]:
         serialized_proto = proto.SerializeToString()
         redis_state = RedisState(
             serialized_msg=serialized_proto,
-            version=version)
+            version=version,
+            is_garbage=False,
+        )
         return redis_state.SerializeToString()
     return _serialize_proto
 
@@ -77,7 +79,9 @@ def get_json_serializer() -> Callable[[T, int], str]:
         serialized_msg = jsonpickle.encode(msg)
         redis_state = RedisState(
             serialized_msg=serialized_msg.encode('utf-8'),
-            version=version)
+            version=version,
+            is_garbage=False,
+        )
         return redis_state.SerializeToString()
 
     return _serialize_json
