@@ -226,10 +226,15 @@ func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*mode
 
 	dev := models.Device{ID: eq.DeviceID}
 	if result.CheckinTime != 0 {
-		up := result.CheckinTime > time.Now().Add(3*time.Minute).Unix()
+		up := checkinTimeIsUp(result.CheckinTime, 3*time.Minute)
 		dev.Up = &up
 	}
 	return &dev, nil
+}
+
+// checkinTime is milliseconds since epoch
+func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
+	return checkinTime/1000+int64(buffer.Seconds()) > time.Now().Unix()
 }
 
 func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
