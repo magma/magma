@@ -87,57 +87,57 @@ const RangePropertyValueInput = (props: Props) => {
         });
 
         return (
-          <div className={classNames(classes.container, className)}>
-            <FormField
-              className={classes.formField}
-              label={label || ''}
-              required={required}
-              errorText={errorFrom}
-              hasError={!!errorFrom}>
-              <TextInput
-                autoFocus={autoFocus}
+          <FormField label={label || ''} required={required}>
+            <div className={classNames(classes.container, className)}>
+              <FormField
+                className={classes.formField}
                 required={required}
-                disabled={disabled}
-                prefix={<InputAffix>From</InputAffix>}
-                id="from-value"
-                variant="outlined"
-                className={classes.input}
-                margin={margin}
-                onKeyDown={e => {
-                  if (e.keyCode === ENTER_KEY_CODE) {
-                    props.onBlur(e);
-                  }
-                }}
-                value={parseFloat(rangeFrom)}
-                type="number"
-                onChange={props.onRangeFromChange}
-              />
-            </FormField>
-            <FormField
-              required={required}
-              useLabelPlaceholder={!!label}
-              errorText={errorTo}
-              hasError={!!errorTo}
-              className={classNames(classes.lngField, classes.formField)}>
-              <TextInput
+                errorText={errorFrom}
+                hasError={!!errorFrom}>
+                <TextInput
+                  autoFocus={autoFocus}
+                  required={required}
+                  disabled={disabled}
+                  prefix={<InputAffix>From</InputAffix>}
+                  id="from-value"
+                  variant="outlined"
+                  className={classes.input}
+                  margin={margin}
+                  onKeyDown={e => {
+                    if (e.keyCode === ENTER_KEY_CODE) {
+                      props.onBlur(e);
+                    }
+                  }}
+                  value={parseFloat(rangeFrom)}
+                  type="number"
+                  onChange={props.onRangeFromChange}
+                />
+              </FormField>
+              <FormField
                 required={required}
-                disabled={disabled}
-                prefix={<InputAffix>To</InputAffix>}
-                id="to-value"
-                variant="outlined"
-                className={classes.input}
-                margin={margin}
-                onKeyDown={e => {
-                  if (e.keyCode === ENTER_KEY_CODE) {
-                    props.onBlur(e);
-                  }
-                }}
-                type="number"
-                value={parseFloat(rangeTo)}
-                onChange={props.onRangeToChange}
-              />
-            </FormField>
-          </div>
+                errorText={errorTo}
+                hasError={!!errorTo}
+                className={classNames(classes.lngField, classes.formField)}>
+                <TextInput
+                  required={required}
+                  disabled={disabled}
+                  prefix={<InputAffix>To</InputAffix>}
+                  id="to-value"
+                  variant="outlined"
+                  className={classes.input}
+                  margin={margin}
+                  onKeyDown={e => {
+                    if (e.keyCode === ENTER_KEY_CODE) {
+                      props.onBlur(e);
+                    }
+                  }}
+                  type="number"
+                  value={parseFloat(rangeTo)}
+                  onChange={props.onRangeToChange}
+                />
+              </FormField>
+            </div>
+          </FormField>
         );
       }}
     </FormValidationContext.Consumer>

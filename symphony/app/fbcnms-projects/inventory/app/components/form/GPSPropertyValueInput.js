@@ -61,7 +61,7 @@ const GPSPropertyValueInput = (props: Props) => {
     required = false,
     autoFocus,
     fullWidth,
-    label,
+    label = '',
   } = props;
   const {latitude, longitude} = props.value || {
     latitude: '',
@@ -90,47 +90,48 @@ const GPSPropertyValueInput = (props: Props) => {
     },
   });
   return (
-    <div
-      className={classNames(classes.container, className, {
-        [classes.fullWidth]: fullWidth,
-      })}>
-      <FormField
-        label={label || ''}
-        required={required}
-        errorText={errorLatitude}
-        hasError={!!errorLatitude}
-        className={classes.field}>
-        <TextInput
+    <FormField label={label || ''} required={required}>
+      <div
+        className={classNames(classes.container, className, {
+          [classes.fullWidth]: fullWidth,
+        })}>
+        <FormField
           required={required}
-          autoFocus={autoFocus}
-          prefix={<InputAffix>Lat.</InputAffix>}
-          disabled={disabled}
-          variant="outlined"
-          className={classes.input}
-          margin={margin}
-          value={latitude}
-          type="number"
-          onChange={props.onLatitudeChange}
-        />
-      </FormField>
-      <FormField
-        required={required}
-        useLabelPlaceholder={!!label}
-        errorText={errorLongitude}
-        hasError={!!errorLongitude}
-        className={classNames(classes.lngField, classes.field)}>
-        <TextInput
-          prefix={<InputAffix>Long.</InputAffix>}
-          disabled={disabled}
-          variant="outlined"
-          className={classes.input}
-          margin={margin}
-          type="number"
-          value={longitude}
-          onChange={props.onLongitudeChange}
-        />
-      </FormField>
-    </div>
+          errorText={errorLatitude}
+          hasError={!!errorLatitude}
+          className={classes.field}>
+          <TextInput
+            required={required}
+            autoFocus={autoFocus}
+            prefix={<InputAffix>Lat.</InputAffix>}
+            disabled={disabled}
+            variant="outlined"
+            className={classes.input}
+            margin={margin}
+            value={latitude}
+            type="number"
+            onChange={props.onLatitudeChange}
+          />
+        </FormField>
+        <FormField
+          required={required}
+          useLabelPlaceholder={!!label}
+          errorText={errorLongitude}
+          hasError={!!errorLongitude}
+          className={classNames(classes.lngField, classes.field)}>
+          <TextInput
+            prefix={<InputAffix>Long.</InputAffix>}
+            disabled={disabled}
+            variant="outlined"
+            className={classes.input}
+            margin={margin}
+            type="number"
+            value={longitude}
+            onChange={props.onLongitudeChange}
+          />
+        </FormField>
+      </div>
+    </FormField>
   );
 };
 
