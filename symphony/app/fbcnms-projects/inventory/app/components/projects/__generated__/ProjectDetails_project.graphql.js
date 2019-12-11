@@ -57,6 +57,7 @@ export type ProjectDetails_project = {|
       +name: string,
       +type: PropertyKind,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
       +stringValue: ?string,
       +intValue: ?number,
@@ -299,6 +300,13 @@ return {
             {
               "kind": "ScalarField",
               "alias": null,
+              "name": "isMandatory",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "ScalarField",
+              "alias": null,
               "name": "isInstanceProperty",
               "args": null,
               "storageKey": null
@@ -335,5 +343,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'f06863c1bd831d866a0957d5c65fb927';
+(node/*: any*/).hash = '53419ebd7197ae2072499afc1f0dd17e';
 module.exports = node;

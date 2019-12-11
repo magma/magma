@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash efbb8eb6ab56f4e1049ca7aa15b9df9f
+ * @relayHash ec2c09ed554ce22c39405349b009bcb2
  */
 
 /* eslint-disable */
@@ -82,6 +82,7 @@ fragment ProjectDetails_project on Project {
       name
       type
       isEditable
+      isMandatory
       isInstanceProperty
       stringValue
       intValue
@@ -403,6 +404,13 @@ return {
                   {
                     "kind": "ScalarField",
                     "alias": null,
+                    "name": "isMandatory",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
                     "name": "isInstanceProperty",
                     "args": null,
                     "storageKey": null
@@ -486,7 +494,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    name\n    id\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    locationHierarchy {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    name\n    id\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    locationHierarchy {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n",
     "metadata": {}
   }
 };
