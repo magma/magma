@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package resolver
+package resolverutil
 
 import (
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -16,8 +16,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
 	"github.com/pkg/errors"
 )
 
@@ -78,7 +76,7 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 				),
 			),
 		)
-		pred, err := resolverutil.GetPropertyPredicate(*p)
+		pred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +101,7 @@ func serviceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 		var ps []predicate.Service
 		for _, lid := range filter.IDSet {
 			ps = append(ps, service.HasTerminationPointsWith(
-				equipment.HasLocationWith(resolverutil.BuildLocationAncestorFilter(lid, 1, *filter.MaxDepth))))
+				equipment.HasLocationWith(BuildLocationAncestorFilter(lid, 1, *filter.MaxDepth))))
 		}
 		return q.Where(service.Or(ps...)), nil
 	}
