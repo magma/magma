@@ -6,10 +6,12 @@ package graphgrpc
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc/codes"
@@ -61,6 +63,30 @@ func TestTenantServer_Get(t *testing.T) {
 	require.NotNil(t, tenant)
 	require.Equal(t, "foo", tenant.Id)
 	require.Equal(t, "foo", tenant.Name)
+}
+
+func TestTenantServer_Truncate(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	ts := NewTenantService(func(context.Context) ExecQueryer { return db })
+
+	_, err = ts.Truncate(context.Background(), &wrappers.StringValue{Value: ""})
+	require.IsType(t, codes.InvalidArgument, status.Code(err))
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		"SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
+	)).
+		WithArgs("tenant_foo").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	result := sqlmock.NewResult(0, 0)
+	mock.ExpectExec("SET FOREIGN_KEY_CHECKS=0").WillReturnResult(result)
+	for _, table := range migrate.Tables {
+		query := fmt.Sprintf("TRUNCATE TABLE `tenant_foo`.`%s`", table.Name)
+		mock.ExpectExec(query).WillReturnResult(result)
+	}
+	mock.ExpectExec("SET FOREIGN_KEY_CHECKS=1").WillReturnResult(result)
+	_, err = ts.Truncate(context.Background(), &wrappers.StringValue{Value: "foo"})
+	require.NoError(t, err)
 }
 
 func TestTenantServer_Delete(t *testing.T) {

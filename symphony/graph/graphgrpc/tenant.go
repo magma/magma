@@ -5,15 +5,15 @@
 package graphgrpc
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/graph/ent/migrate"
 	"github.com/facebookincubator/symphony/graph/viewer"
 
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -56,7 +56,9 @@ func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (
 
 // List all tenants.
 func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, error) {
-	rows, err := s.DB(ctx).QueryContext(ctx, "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"))
+	rows, err := s.DB(ctx).QueryContext(ctx,
+		"SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"),
+	)
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
@@ -88,25 +90,57 @@ func (s TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*Te
 	}
 }
 
-// Delete tenant by id.
-func (s TenantService) Delete(ctx context.Context, id *wrappers.StringValue) (*empty.Empty, error) {
-	if id.Value == "" {
-		return nil, status.Error(codes.InvalidArgument, "missing tenant id")
+// Truncate tenant data by name.
+func (s TenantService) Truncate(ctx context.Context, name *wrappers.StringValue) (_ *empty.Empty, err error) {
+	if name.Value == "" {
+		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
 	}
-	switch exist, err := s.exist(ctx, id.Value); {
+	switch exist, err := s.exist(ctx, name.Value); {
 	case err != nil:
 		return nil, status.FromContextError(err).Err()
 	case !exist:
-		return nil, status.Errorf(codes.NotFound, "missing tenant %s", id.Value)
+		return nil, status.Errorf(codes.NotFound, "missing tenant %s", name.Value)
 	}
-	if _, err := s.DB(ctx).ExecContext(ctx, fmt.Sprintf("DROP DATABASE `%s`", viewer.DBName(id.Value))); err != nil {
+	db, dbname := s.DB(ctx), viewer.DBName(name.Value)
+	if _, err := db.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=0"); err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
+	for _, table := range migrate.Tables {
+		query := fmt.Sprintf("TRUNCATE TABLE `%s`.`%s`", dbname, table.Name)
+		if _, err = db.ExecContext(ctx, query); err != nil {
+			err = status.FromContextError(err).Err()
+			break
+		}
+	}
+	if _, err := db.ExecContext(ctx, "SET FOREIGN_KEY_CHECKS=1"); err != nil {
+		return nil, status.FromContextError(err).Err()
+	}
+	return &empty.Empty{}, err
+}
+
+// Delete tenant by name.
+func (s TenantService) Delete(ctx context.Context, name *wrappers.StringValue) (*empty.Empty, error) {
+	if name.Value == "" {
+		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
+	}
+	switch exist, err := s.exist(ctx, name.Value); {
+	case err != nil:
+		return nil, status.FromContextError(err).Err()
+	case !exist:
+		return nil, status.Errorf(codes.NotFound, "missing tenant %s", name.Value)
+	}
+	if _, err := s.DB(ctx).ExecContext(ctx,
+		fmt.Sprintf("DROP DATABASE `%s`", viewer.DBName(name.Value)),
+	); err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
 	return &empty.Empty{}, nil
 }
 
 func (s TenantService) exist(ctx context.Context, name string) (bool, error) {
-	rows, err := s.DB(ctx).QueryContext(ctx, "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", viewer.DBName(name))
+	rows, err := s.DB(ctx).QueryContext(ctx,
+		"SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", viewer.DBName(name),
+	)
 	if err != nil {
 		return false, err
 	}
@@ -116,7 +150,7 @@ func (s TenantService) exist(ctx context.Context, name string) (bool, error) {
 	}
 	var n int
 	if err := rows.Scan(&n); err != nil {
-		return false, errors.WithMessage(err, "scanning count")
+		return false, fmt.Errorf("scanning count: %w", err)
 	}
 	return n > 0, nil
 }
