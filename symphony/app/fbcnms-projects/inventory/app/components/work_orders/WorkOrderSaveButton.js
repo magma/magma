@@ -8,6 +8,15 @@
  * @format
  */
 
+import Button from '@fbcnms/ui/components/design-system/Button';
+import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import React, {useCallback, useContext} from 'react';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import useRouter from '@fbcnms/ui/hooks/useRouter';
+import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {toPropertyInput} from '../../common/Property';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import type {
   EditWorkOrderMutationResponse,
   EditWorkOrderMutationVariables,
@@ -15,15 +24,6 @@ import type {
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
 import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-
-import Button from '@fbcnms/ui/components/design-system/Button';
-import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
-import React, {useCallback} from 'react';
-import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {toPropertyInput} from '../../common/Property';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
@@ -93,8 +93,13 @@ const WorkOrderSaveButton = (props: Props) => {
     EditWorkOrderMutation(variables, callbacks);
   }, [workOrder, locationId, properties, enqueueError, history, match]);
 
+  const validationContext = useContext(FormValidationContext);
+
   return (
-    <Button disabled={!workOrder.name} onClick={saveWorkOrder}>
+    <Button
+      disabled={validationContext.hasErrors}
+      tooltip={validationContext.errorMessage}
+      onClick={saveWorkOrder}>
       Save
     </Button>
   );

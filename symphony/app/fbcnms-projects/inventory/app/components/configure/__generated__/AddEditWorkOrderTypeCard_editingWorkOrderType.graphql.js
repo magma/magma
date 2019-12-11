@@ -37,6 +37,7 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType = {|
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
     +isEditable: ?boolean,
+    +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
   +$refType: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
@@ -178,6 +179,13 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "isMandatory",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
@@ -188,5 +196,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fc7e55b30d181153d1e8fc08a1095d1c';
+(node/*: any*/).hash = '382ac446d76c0c6031b0835d012d0a10';
 module.exports = node;

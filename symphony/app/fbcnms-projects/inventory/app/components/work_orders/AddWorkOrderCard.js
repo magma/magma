@@ -20,10 +20,10 @@ import type {WorkOrder} from '../../common/WorkOrder';
 
 import AddWorkOrderMutation from '../../mutations/AddWorkOrderMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -37,6 +37,7 @@ import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
@@ -139,6 +140,7 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
         rangeToValue
         isEditable
         isInstanceProperty
+        isMandatory
       }
     }
   }
@@ -168,174 +170,177 @@ class AddWorkOrderCard extends React.Component<Props, State> {
     }
     return (
       <div className={classes.root}>
-        <div className={classes.nameHeader}>
-          <Breadcrumbs
-            className={classes.breadcrumbs}
-            breadcrumbs={[
-              {
-                id: 'workOrders',
-                name: 'WorkOrders',
-                onClick: () => this.navigateToMainPage(),
-              },
-              {
-                id: `new_workOrder_` + Date.now(),
-                name: 'New WorkOrder',
-              },
-            ]}
-            size="large"
-          />
-          <Button
-            className={classes.cancelButton}
-            skin="regular"
-            onClick={this.navigateToMainPage}>
-            Cancel
-          </Button>
-          <Button disabled={!workOrder.name} onClick={this._saveWorkOrder}>
-            Save
-          </Button>
-        </div>
-        <div className={classes.contentRoot}>
-          <div className={classes.cards}>
-            <Grid container spacing={2}>
-              <Grid item xs={8} sm={8} lg={8} xl={8}>
-                <ExpandingPanel title="Details">
-                  <NameDescriptionSection
-                    name={workOrder.name}
-                    description={workOrder.description}
-                    onNameChange={value =>
-                      this._setWorkOrderDetail('name', value)
-                    }
-                    onDescriptionChange={value =>
-                      this._setWorkOrderDetail('description', value)
-                    }
-                  />
-                  <div className={classes.separator} />
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Project">
-                        <ProjectTypeahead
-                          className={classes.gridInput}
-                          margin="dense"
-                          onProjectSelection={project =>
-                            this._setWorkOrderDetail('projectId', project?.id)
-                          }
-                        />
-                      </FormField>
-                    </Grid>
-                    {workOrder.workOrderType && (
+        <FormValidationContextProvider>
+          <div className={classes.nameHeader}>
+            <Breadcrumbs
+              className={classes.breadcrumbs}
+              breadcrumbs={[
+                {
+                  id: 'workOrders',
+                  name: 'WorkOrders',
+                  onClick: () => this.navigateToMainPage(),
+                },
+                {
+                  id: `new_workOrder_` + Date.now(),
+                  name: 'New WorkOrder',
+                },
+              ]}
+              size="large"
+            />
+            <FormSaveCancelPanel
+              onCancel={this.navigateToMainPage}
+              onSave={this._saveWorkOrder}
+            />
+          </div>
+          <div className={classes.contentRoot}>
+            <div className={classes.cards}>
+              <Grid container spacing={2}>
+                <Grid item xs={8} sm={8} lg={8} xl={8}>
+                  <ExpandingPanel title="Details">
+                    <NameDescriptionSection
+                      name={workOrder.name}
+                      description={workOrder.description}
+                      onNameChange={value =>
+                        this._setWorkOrderDetail('name', value)
+                      }
+                      onDescriptionChange={value =>
+                        this._setWorkOrderDetail('description', value)
+                      }
+                    />
+                    <div className={classes.separator} />
+                    <Grid container spacing={2}>
                       <Grid item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField label="Type">
-                          <TextField
-                            disabled
-                            variant="outlined"
-                            margin="dense"
+                        <FormField label="Project">
+                          <ProjectTypeahead
                             className={classes.gridInput}
-                            value={workOrder.workOrderType.name}
+                            margin="dense"
+                            onProjectSelection={project =>
+                              this._setWorkOrderDetail('projectId', project?.id)
+                            }
                           />
                         </FormField>
                       </Grid>
-                    )}
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Priority">
-                        <TextField
-                          select
-                          className={classes.gridInput}
-                          variant="outlined"
-                          value={workOrder.priority}
-                          InputProps={{
-                            classes: {
-                              input: classes.dense,
-                            },
-                          }}
-                          onChange={event => {
-                            this._setWorkOrderDetail(
-                              'priority',
-                              event.target.value,
-                            );
-                          }}>
-                          {priorityValues.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </FormField>
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Status">
-                        <TextField
-                          select
-                          className={classes.gridInput}
-                          variant="outlined"
-                          value={workOrder.status}
-                          InputProps={{
-                            classes: {
-                              input: classes.dense,
-                            },
-                          }}
-                          onChange={event => {
-                            this._setWorkOrderDetail(
-                              'status',
-                              event.target.value,
-                            );
-                          }}>
-                          {statusValues.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </FormField>
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Location">
-                        <LocationTypeahead
-                          headline={null}
-                          className={classes.gridInput}
-                          margin="dense"
-                          onLocationSelection={location =>
-                            this._setWorkOrderDetail(
-                              'locationId',
-                              location?.id ?? null,
-                            )
-                          }
-                        />
-                      </FormField>
-                    </Grid>
-                    {workOrder.properties.map((property, index) => (
-                      <Grid key={property.id} item xs={12} sm={6} lg={4} xl={4}>
-                        <PropertyValueInput
-                          required={false}
-                          disabled={false}
-                          label={property.propertyType.name}
-                          className={classes.gridInput}
-                          margin="dense"
-                          inputType="Property"
-                          property={property}
-                          headlineVariant="form"
-                          fullWidth={true}
-                          onChange={this._propertyChangedHandler(index)}
-                        />
+                      {workOrder.workOrderType && (
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Type">
+                            <TextField
+                              disabled
+                              variant="outlined"
+                              margin="dense"
+                              className={classes.gridInput}
+                              value={workOrder.workOrderType.name}
+                            />
+                          </FormField>
+                        </Grid>
+                      )}
+                      <Grid item xs={12} sm={6} lg={4} xl={4}>
+                        <FormField label="Priority">
+                          <TextField
+                            select
+                            className={classes.gridInput}
+                            variant="outlined"
+                            value={workOrder.priority}
+                            InputProps={{
+                              classes: {
+                                input: classes.dense,
+                              },
+                            }}
+                            onChange={event => {
+                              this._setWorkOrderDetail(
+                                'priority',
+                                event.target.value,
+                              );
+                            }}>
+                            {priorityValues.map(option => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </FormField>
                       </Grid>
-                    ))}
-                  </Grid>
-                </ExpandingPanel>
+                      <Grid item xs={12} sm={6} lg={4} xl={4}>
+                        <FormField label="Status">
+                          <TextField
+                            select
+                            className={classes.gridInput}
+                            variant="outlined"
+                            value={workOrder.status}
+                            InputProps={{
+                              classes: {
+                                input: classes.dense,
+                              },
+                            }}
+                            onChange={event => {
+                              this._setWorkOrderDetail(
+                                'status',
+                                event.target.value,
+                              );
+                            }}>
+                            {statusValues.map(option => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        </FormField>
+                      </Grid>
+                      <Grid item xs={12} sm={6} lg={4} xl={4}>
+                        <FormField label="Location">
+                          <LocationTypeahead
+                            headline={null}
+                            className={classes.gridInput}
+                            margin="dense"
+                            onLocationSelection={location =>
+                              this._setWorkOrderDetail(
+                                'locationId',
+                                location?.id ?? null,
+                              )
+                            }
+                          />
+                        </FormField>
+                      </Grid>
+                      {workOrder.properties.map((property, index) => (
+                        <Grid
+                          key={property.id}
+                          item
+                          xs={12}
+                          sm={6}
+                          lg={4}
+                          xl={4}>
+                          <PropertyValueInput
+                            required={!!property.propertyType.isMandatory}
+                            disabled={false}
+                            label={property.propertyType.name}
+                            className={classes.gridInput}
+                            margin="dense"
+                            inputType="Property"
+                            property={property}
+                            headlineVariant="form"
+                            fullWidth={true}
+                            onChange={this._propertyChangedHandler(index)}
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </ExpandingPanel>
+                </Grid>
+                <Grid item xs={4} sm={4} lg={4} xl={4}>
+                  <ExpandingPanel title="Team">
+                    <UserTypeahead
+                      className={classes.input}
+                      headline="Assignee"
+                      onUserSelection={user =>
+                        this._setWorkOrderDetail('assignee', user)
+                      }
+                      margin="dense"
+                    />
+                  </ExpandingPanel>
+                </Grid>
               </Grid>
-              <Grid item xs={4} sm={4} lg={4} xl={4}>
-                <ExpandingPanel title="Team">
-                  <UserTypeahead
-                    className={classes.input}
-                    headline="Assignee"
-                    onUserSelection={user =>
-                      this._setWorkOrderDetail('assignee', user)
-                    }
-                    margin="dense"
-                  />
-                </ExpandingPanel>
-              </Grid>
-            </Grid>
+            </div>
           </div>
-        </div>
+        </FormValidationContextProvider>
       </div>
     );
   }

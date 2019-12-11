@@ -379,6 +379,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         latitudeValue: p.latitudeValue,
         longitudeValue: p.longitudeValue,
         isEditable: p.isEditable,
+        isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
       }));
 
@@ -400,6 +401,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           latitudeValue: null,
           longitudeValue: null,
           isEditable: true,
+          isMandatory: false,
           isInstanceProperty: true,
         },
       ],
@@ -431,6 +433,7 @@ export default withStyles(styles)(
               rangeFromValue
               rangeToValue
               isEditable
+              isMandatory
               isInstanceProperty
             }
           }

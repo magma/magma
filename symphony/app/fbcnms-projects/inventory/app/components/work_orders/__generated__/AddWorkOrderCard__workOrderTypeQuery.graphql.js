@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 76369c6f6948db9c7e7bfdfe65f9d641
+ * @relayHash 5d6fca694b768593547015eefc05a5b5
  */
 
 /* eslint-disable */
@@ -39,6 +39,7 @@ export type AddWorkOrderCard__workOrderTypeQueryResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
   |}
 |};
@@ -72,6 +73,7 @@ query AddWorkOrderCard__workOrderTypeQuery(
       rangeToValue
       isEditable
       isInstanceProperty
+      isMandatory
     }
   }
 }
@@ -219,6 +221,13 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -245,11 +254,11 @@ return {
     "operationKind": "query",
     "name": "AddWorkOrderCard__workOrderTypeQuery",
     "id": null,
-    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n  }\n}\n",
+    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '4b4fb9a1889980f53e23e5cb85855c62';
+(node/*: any*/).hash = '9442df751942aa66e10479b8cf9be74b';
 module.exports = node;
