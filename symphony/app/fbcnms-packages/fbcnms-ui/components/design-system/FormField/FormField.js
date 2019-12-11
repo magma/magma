@@ -30,6 +30,9 @@ const useStyles = makeStyles(({symphony}) => ({
       color: symphony.palette.R600,
     },
   },
+  labelPlaceholder: {
+    opacity: 0,
+  },
   labelContainer: {
     marginBottom: '6px',
   },
@@ -53,6 +56,7 @@ type Props = {
   required: boolean,
   errorText?: ?string,
   hasSpacer?: boolean,
+  useLabelPlaceholder?: boolean,
 };
 
 const FormField = (props: Props) => {
@@ -66,6 +70,7 @@ const FormField = (props: Props) => {
     errorText,
     hasSpacer,
     required,
+    useLabelPlaceholder,
   } = props;
   const classes = useStyles();
   return (
@@ -77,9 +82,13 @@ const FormField = (props: Props) => {
           {[classes.hasError]: hasError},
           className,
         )}>
-        {label && (
-          <Text className={classes.labelContainer} variant="body2">
-            {label}
+        {(label || useLabelPlaceholder) && (
+          <Text
+            variant="body2"
+            className={classNames(classes.labelContainer, {
+              [classes.labelPlaceholder]: !label && useLabelPlaceholder,
+            })}>
+            {label || (useLabelPlaceholder && '.') || ''}
             {required && ' *'}
           </Text>
         )}

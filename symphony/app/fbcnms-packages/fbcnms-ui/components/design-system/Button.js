@@ -237,6 +237,7 @@ type Props = {
   disabled?: boolean,
   leftIcon?: SvgIcon,
   rightIcon?: SvgIcon,
+  tooltip?: string,
 };
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
@@ -249,6 +250,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     onClick,
     leftIcon: LeftIcon = null,
     rightIcon: RightIcon = null,
+    tooltip,
   } = props;
   const classes = useStyles();
 
@@ -267,6 +269,7 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         className,
       )}
       type="button"
+      title={tooltip}
       disabled={disabled}
       onClick={onClick}
       ref={forwardedRef}>
