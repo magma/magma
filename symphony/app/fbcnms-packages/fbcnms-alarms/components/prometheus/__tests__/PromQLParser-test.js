@@ -237,7 +237,7 @@ const testCases = [
   ],
   [
     'aggregated threshold with by clause',
-    `avg(rate(http_status{code="500"}[5m])) by (region) > 5`,
+    `avg(rate(http_status{code="500"}[5m])) by (region, code) > 5`,
     [
       {value: 'avg', type: 'aggOp'},
       {value: '(', type: 'lParen'},
@@ -257,11 +257,31 @@ const testCases = [
       {value: 'by', type: 'clauseOp'},
       {value: '(', type: 'lParen'},
       {value: 'region', type: 'word'},
+      {value: ',', type: 'comma'},
+      {value: 'code', type: 'word'},
       {value: ')', type: 'rParen'},
       {value: '>', type: 'binOp'},
       {value: 5, type: 'scalar'},
     ],
-    null, // TODO: Implement by/without/etc. clauses for aggregators
+    new PromQL.BinaryOperation(
+      new PromQL.AggregationOperation(
+        'avg',
+        [
+          new PromQL.Function('rate', [
+            new PromQL.RangeSelector(
+              new PromQL.InstantSelector(
+                'http_status',
+                new PromQL.Labels().addEqual('code', '500'),
+              ),
+              new PromQL.Range(5, 'm'),
+            ),
+          ]),
+        ],
+        new PromQL.Clause('by', ['region', 'code']),
+      ),
+      new PromQL.Scalar(5),
+      '>',
+    ),
   ],
 ];
 

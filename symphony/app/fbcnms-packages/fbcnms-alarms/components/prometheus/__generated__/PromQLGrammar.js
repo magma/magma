@@ -5,7 +5,7 @@
 function id(x) { return x[0]; }
 
 const {lexer} = require('../PromQLTokenizer');
-const {AggregationOperation, BinaryOperation, Function, InstantSelector, Label, Labels, RangeSelector, Scalar} = require('../PromQL');
+const {AggregationOperation, BinaryOperation, Clause, Function, InstantSelector, Label, Labels, RangeSelector, Scalar} = require('../PromQL');
 var grammar = {
     Lexer: lexer,
     ParserRules: [
@@ -24,6 +24,12 @@ var grammar = {
     {"name": "BINARY_OPERATION", "symbols": ["EXPRESSION", "bin_op", "EXPRESSION"], "postprocess": ([lh, op, rh]) => new BinaryOperation(lh, rh, op)},
     {"name": "FUNCTION", "symbols": ["func_name", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([funcName, _lParen, params, _rParen]) => new Function(funcName, params)},
     {"name": "AGGREGATION", "symbols": ["agg_op", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([aggOp, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params)},
+    {"name": "AGGREGATION", "symbols": ["agg_op", (lexer.has("lParen") ? {type: "lParen"} : lParen), "func_params", (lexer.has("rParen") ? {type: "rParen"} : rParen), "dimensionClause"], "postprocess": ([aggOp, _lParen, params, _rParen, clause]) => new AggregationOperation(aggOp, params, clause)},
+    {"name": "dimensionClause", "symbols": ["clause_op", "labelList"], "postprocess": ([op, labelList]) => new Clause(op, labelList)},
+    {"name": "labelList", "symbols": [(lexer.has("lParen") ? {type: "lParen"} : lParen), "label_name_list", (lexer.has("rParen") ? {type: "rParen"} : rParen)], "postprocess": ([_lParen, labels, _rParen]) => labels},
+    {"name": "label_name_list", "symbols": ["label_name_list", (lexer.has("comma") ? {type: "comma"} : comma), "IDENTIFIER"], "postprocess": ([existingLabels, _, newLabel]) => [...existingLabels, newLabel]},
+    {"name": "label_name_list", "symbols": ["IDENTIFIER"], "postprocess": d => [d[0]]},
+    {"name": "clause_op", "symbols": [(lexer.has("clauseOp") ? {type: "clauseOp"} : clauseOp)], "postprocess": d => d[0].value},
     {"name": "func_params", "symbols": ["func_params", (lexer.has("comma") ? {type: "comma"} : comma), "parameter"], "postprocess": ([existingParams, _comma, newParam]) => [...existingParams, newParam]},
     {"name": "func_params", "symbols": ["parameter"], "postprocess": d => [d[0]]},
     {"name": "parameter", "symbols": ["SCALAR"], "postprocess": id},

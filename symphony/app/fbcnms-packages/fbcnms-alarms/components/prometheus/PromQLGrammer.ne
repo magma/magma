@@ -1,6 +1,6 @@
 @{%
 const {lexer} = require('../PromQLTokenizer');
-const {AggregationOperation, BinaryOperation, Function, InstantSelector, Label, Labels, RangeSelector, Scalar} = require('../PromQL');
+const {AggregationOperation, BinaryOperation, Clause, Function, InstantSelector, Label, Labels, RangeSelector, Scalar} = require('../PromQL');
 %}
 
 @lexer lexer
@@ -27,6 +27,16 @@ BINARY_OPERATION -> EXPRESSION bin_op EXPRESSION {% ([lh, op, rh]) => new Binary
 FUNCTION -> func_name %lParen func_params %rParen {% ([funcName, _lParen, params, _rParen]) => new Function(funcName, params) %}
 
 AGGREGATION -> agg_op %lParen func_params %rParen {% ([aggOp, _lParen, params, _rParen]) => new AggregationOperation(aggOp, params) %}
+             | agg_op %lParen func_params %rParen dimensionClause {% ([aggOp, _lParen, params, _rParen, clause]) => new AggregationOperation(aggOp, params, clause) %}
+
+dimensionClause -> clause_op labelList {% ([op, labelList]) => new Clause(op, labelList) %}
+
+labelList -> %lParen label_name_list %rParen {% ([_lParen, labels, _rParen]) => labels %}
+
+label_name_list -> label_name_list %comma IDENTIFIER {% ([existingLabels, _, newLabel]) => [...existingLabels, newLabel] %}
+                 | IDENTIFIER {% d => [d[0]] %}
+
+clause_op -> %clauseOp {% d => d[0].value %}
 
 func_params -> func_params %comma parameter {% ([existingParams, _comma, newParam]) => [...existingParams, newParam] %}
              | parameter {% d => [d[0]] %}
