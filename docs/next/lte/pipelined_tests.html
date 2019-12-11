@@ -45,9 +45,9 @@ will work with this framework after some threading fixes.</p>
 faster test writing.</p>
 <h3><a class="anchor" aria-hidden="true" id="setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass"></a><a href="#setup-that-can-be-used-for-multiple-tests-this-should-go-in-setupclass" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Setup that can be used for multiple tests, this should go in <code>setUpClass</code></h3>
 <p><strong>Setup a new bridge or use the production bridge</strong></p>
-<pre><code class="hljs">BRIDGE = 'testing_br'
-IFACE = 'testing_br'
-BridgeTools.create_bridge(BRIDGE, IFACE)
+<pre><code class="hljs">BRIDGE = <span class="hljs-string">'testing_br'</span>
+IFACE = <span class="hljs-string">'testing_br'</span>
+BridgeTools.create_bridge<span class="hljs-comment">(BRIDGE, IFACE)</span>
 </code></pre>
 <p><strong>Start ryu apps on a separate thread</strong></p>
 <pre><code class="hljs"><span class="hljs-comment"># Set the futures for pipelined controller references</span>
@@ -98,29 +98,29 @@ pkts_sent = 4096
 </code></pre>
 <p><strong>Setup the testing framework classes</strong></p>
 <pre><code class="hljs"><span class="hljs-comment"># Create a subscriber context, used for adding PolicyRules</span>
-sub_context = RyuDirectSubscriberContext(
-    imsi, sub_ip, self.enforcement_controller
-).add_dynamic_rule(policy)
-
+<span class="hljs-keyword">sub_context </span>= RyuDirectSubscriberContext(
+    imsi, <span class="hljs-keyword">sub_ip, </span>self.enforcement_controller
+).<span class="hljs-keyword">add_dynamic_rule(policy)
+</span>
 <span class="hljs-comment"># Create a table isolator from subscriber context, will set metadata/reg1,</span>
 <span class="hljs-comment"># forward the packets to table 5</span>
 isolator = RyuDirectTableIsolator(
-    RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                             .build_requests(),
-    self.testing_controller
+    RyuForwardFlowArgsBuilder.from_subscriber(<span class="hljs-keyword">sub_context.cfg)
+</span>                             .<span class="hljs-keyword">build_requests(),
+</span>    self.testing_controller
 )
 
 <span class="hljs-comment"># Create a packet sender, an ip packet for testing our PolicyRule</span>
-pkt_sender = ScapyPacketInjector(self.IFACE)
-packet = IPPacketBuilder()\
-    .set_ip_layer('45.10.0.0/20', sub_ip)\
-    .set_ether_layer(self.MAC_DEST, <span class="hljs-string">"00:00:00:00:00:00"</span>)\
-    .build()
-
+pkt_sender = <span class="hljs-keyword">ScapyPacketInjector(self.IFACE)
+</span>packet = IPPacketBuilder()\
+    .set_ip_layer(<span class="hljs-string">'45.10.0.0/20'</span>, <span class="hljs-keyword">sub_ip)\
+</span>    .set_ether_layer(self.MAC_DEST, <span class="hljs-string">"00:00:00:00:00:00"</span>)\
+    .<span class="hljs-keyword">build()
+</span>
 <span class="hljs-comment"># Generate a flow query for checking the stats of the added rule</span>
 flow_query = FlowQuery(
     self.TID, self.testing_controller,
-    match=flow_match_to_match(flow_list1[0].match)
+    match=flow_match_to_match(flow_list1[<span class="hljs-number">0</span>].match)
 )
 </code></pre>
 <p><strong>Test &amp; Verify everything works</strong></p>
