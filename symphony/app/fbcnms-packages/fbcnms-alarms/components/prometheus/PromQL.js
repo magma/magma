@@ -15,7 +15,7 @@ import type {
   LabelOperator,
 } from './PromQLTypes';
 
-interface Expression {
+export interface Expression {
   toPromQL(): string;
 }
 
@@ -38,24 +38,26 @@ export class Function implements Expression {
 }
 
 export class InstantSelector implements Expression {
-  selectorName: string;
-  labels: Labels;
+  selectorName: ?string;
+  labels: ?Labels;
 
-  constructor(selectorName: string, labels: Labels) {
+  constructor(selectorName: ?string, labels: ?Labels) {
     this.selectorName = selectorName;
-    this.labels = labels;
+    this.labels = labels || new Labels();
   }
 
   toPromQL(): string {
-    return `${this.selectorName}${this.labels.toPromQL()}`;
+    return (
+      (this.selectorName || '') + (this.labels ? this.labels.toPromQL() : '')
+    );
   }
 }
 
 export class RangeSelector extends InstantSelector {
   range: Range;
 
-  constructor(selectorName: string, labels: Labels, range: Range) {
-    super(selectorName, labels);
+  constructor(selector: InstantSelector, range: Range) {
+    super(selector.selectorName, selector.labels);
     this.range = range;
   }
 
@@ -224,27 +226,22 @@ export class Clause {
 
 export class AggregationOperation implements Expression {
   name: AggregationOperator;
-  expression: Expression;
-  parameter: ?string;
+  parameters: Array<Expression>;
   clause: ?Clause;
 
   constructor(
     name: AggregationOperator,
-    expression: Expression,
-    parameter: ?string,
+    parameters: Array<Expression>,
     clause: ?Clause,
   ) {
     this.name = name;
-    this.expression = expression;
-    this.parameter = parameter;
-    this.clause = clause;
+    (this.parameters = parameters), (this.clause = clause);
   }
 
   toPromQL(): string {
     return (
       `${this.name}(` +
-      (this.parameter ? `${this.parameter},` : '') +
-      this.expression.toPromQL() +
+      this.parameters.map(param => param.toPromQL()).join(',') +
       ')' +
       (this.clause ? ' ' + this.clause.toString() : '')
     );

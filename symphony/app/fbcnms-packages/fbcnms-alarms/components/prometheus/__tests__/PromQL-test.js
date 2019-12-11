@@ -12,7 +12,7 @@ import * as PromQL from '../PromQL';
 
 // Simple reusable PromQL Constructs to make tests cleaner
 const simpleLabel = new PromQL.Label('label', 'value', '=');
-const emptyLabels = new PromQL.Labels([]);
+const emptyLabels = new PromQL.Labels();
 const singleLabels = new PromQL.Labels([simpleLabel]);
 const basicSelector = new PromQL.InstantSelector('metric', emptyLabels);
 
@@ -62,11 +62,7 @@ describe('Labels', () => {
 
 describe('Selectors', () => {
   const testCases = [
-    [
-      'simple metric',
-      new PromQL.InstantSelector('metric', emptyLabels),
-      `metric`,
-    ],
+    ['simple metric', new PromQL.InstantSelector('metric'), `metric`],
     [
       'metric with label',
       new PromQL.InstantSelector('metric', singleLabels),
@@ -82,8 +78,22 @@ describe('Selectors', () => {
     ],
     [
       'range selector',
-      new PromQL.RangeSelector('metric', emptyLabels, new PromQL.Range(5, 'm')),
+      new PromQL.RangeSelector(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.Range(5, 'm'),
+      ),
       `metric[5m]`,
+    ],
+    [
+      'labeled range selector',
+      new PromQL.RangeSelector(
+        new PromQL.InstantSelector(
+          'metric',
+          new PromQL.Labels().addEqual('label', 'value'),
+        ),
+        new PromQL.Range(5, 'm'),
+      ),
+      `metric{label="value"}[5m]`,
     ],
   ];
 
@@ -109,16 +119,14 @@ describe('Functions', () => {
     ],
     [
       'sum of rate',
-      new PromQL.AggregationOperation(
-        'sum',
+      new PromQL.AggregationOperation('sum', [
         new PromQL.Function('rate', [
           new PromQL.RangeSelector(
-            'metric',
-            emptyLabels,
+            new PromQL.InstantSelector('metric', emptyLabels),
             new PromQL.Range(5, 'm'),
           ),
         ]),
-      ),
+      ]),
       'sum(rate(metric[5m]))',
     ],
   ];
@@ -166,8 +174,7 @@ describe('Aggregation Operators', () => {
       'sum by label',
       new PromQL.AggregationOperation(
         'sum',
-        basicSelector,
-        '',
+        [basicSelector],
         new PromQL.Clause('by', ['label']),
       ),
       'sum(metric) by (label)',
@@ -176,15 +183,17 @@ describe('Aggregation Operators', () => {
       'sum by multiple labels',
       new PromQL.AggregationOperation(
         'sum',
-        basicSelector,
-        '',
+        [basicSelector],
         new PromQL.Clause('by', ['label1', 'label2']),
       ),
       'sum(metric) by (label1,label2)',
     ],
     [
       'topk with parameter',
-      new PromQL.AggregationOperation('topk', basicSelector, '5'),
+      new PromQL.AggregationOperation('topk', [
+        new PromQL.Scalar(5),
+        basicSelector,
+      ]),
       'topk(5,metric)',
     ],
   ];
@@ -201,14 +210,17 @@ describe('realistic examples', () => {
       new PromQL.BinaryOperation(
         new PromQL.AggregationOperation(
           'avg',
-          new PromQL.Function('rate', [
-            new PromQL.RangeSelector(
-              'http_status',
-              new PromQL.Labels([new PromQL.Label('code', '500', '=')]),
-              new PromQL.Range(5, 'm'),
-            ),
-          ]),
-          '',
+          [
+            new PromQL.Function('rate', [
+              new PromQL.RangeSelector(
+                new PromQL.InstantSelector(
+                  'http_status',
+                  new PromQL.Labels([new PromQL.Label('code', '500', '=')]),
+                ),
+                new PromQL.Range(5, 'm'),
+              ),
+            ]),
+          ],
           new PromQL.Clause('by', ['region']),
         ),
         new PromQL.Scalar(5),

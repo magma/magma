@@ -10,6 +10,8 @@
 
 import * as Moo from 'moo';
 
+import {Range} from './PromQL';
+
 import {
   AGGREGATION_OPERATORS,
   BINARY_OPERATORS,
@@ -27,25 +29,35 @@ const lexerRules = {
   lBracket: '[',
   rBracket: ']',
   comma: ',',
-  duration: new RegExp(`[0-9]+[smhdwy]`),
-  scalar: new RegExp(`[-+]?[0-9]*\\.?[0-9]+`), // matches floating point and integers
+  range: {
+    match: new RegExp(`[0-9]+[smhdwy]`),
+    value: s =>
+      new Range(
+        parseInt(s.substring(0, s.length - 1), 10),
+        s.substring(s.length - 1),
+      ),
+  },
+  scalar: {
+    match: new RegExp(`[-+]?[0-9]*\\.?[0-9]+`),
+    value: s => parseFloat(s),
+  }, // matches floating point and integers
   aggOp: AGGREGATION_OPERATORS,
   functionName: FUNCTION_NAMES,
   labelOp: LABEL_OPERATORS,
   binOp: BINARY_OPERATORS,
   clauseOp: CLAUSE_OPS,
   word: new RegExp(`\\w+`),
-  string: new RegExp(`"[^"]*"`),
+  string: {match: new RegExp(`"[^"]*"`), value: s => s.slice(1, -1)}, // strip quotes from string
 };
 
-type Token = {
+export type Token = {
   value: string,
   type: TokenType,
 };
 
 type TokenType = $Keys<typeof lexerRules>;
 
-const lexer = Moo.compile(lexerRules);
+export const lexer = Moo.compile(lexerRules);
 // Ignore whitespace tokens
 lexer.next = (next => () => {
   let tok;
