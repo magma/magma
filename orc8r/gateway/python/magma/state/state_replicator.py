@@ -61,6 +61,9 @@ class StateReplicator(SDWatchdogTask):
         self._service = service
         # In memory mapping of states to version
         self._state_versions = {}
+        # Set of keys from current replication iteration - used to track
+        # keys to delete from _state_versions dict
+        self._state_keys_from_current_iteration = set()
         # Redis clients for each type of state to replicate
         self._redis_clients = []
         self._redis_clients.extend(self._get_proto_redis_clients())
@@ -138,6 +141,7 @@ class StateReplicator(SDWatchdogTask):
         request = await self._collect_states_to_replicate()
         if request is not None:
             await self._send_to_state_service(request)
+        await self._cleanup_deleted_keys()
 
     async def _resync(self):
         states_to_sync = []
@@ -181,6 +185,7 @@ class StateReplicator(SDWatchdogTask):
                 in_mem_key = self.make_mem_key(device_id, client.redis_type)
                 redis_version = client.get_version(key)
 
+                self._state_keys_from_current_iteration.add(in_mem_key)
                 if in_mem_key in self._state_versions and \
                         self._state_versions[in_mem_key] == redis_version:
                     continue
@@ -237,6 +242,13 @@ class StateReplicator(SDWatchdogTask):
         finally:
             # reset timeout to config-specified + some buffer
             self.set_timeout(self._interval * 2)
+
+    async def _cleanup_deleted_keys(self):
+        deleted_keys = set(self._state_versions) - \
+            self._state_keys_from_current_iteration
+        for key in deleted_keys:
+            del self._state_versions[key]
+        self._state_keys_from_current_iteration = set()
 
     @staticmethod
     def make_mem_key(device_id, state_type):
