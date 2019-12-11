@@ -557,6 +557,7 @@ type PropertyType implements Node {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 input PropertyTypeInput {
@@ -575,6 +576,7 @@ input PropertyTypeInput {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 type Property implements Node {

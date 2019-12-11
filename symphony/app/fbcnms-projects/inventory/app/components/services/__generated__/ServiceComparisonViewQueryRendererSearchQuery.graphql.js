@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3d03f3751ae3f0de3afd8aae79da6642
+ * @relayHash 76e14c084fdc212749d0d5ac0a395c21
  */
 
 /* eslint-disable */
@@ -43,6 +43,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type ServiceComparisonViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,

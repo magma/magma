@@ -568,6 +568,7 @@ type ComplexityRoot struct {
 		IsInstanceProperty func(childComplexity int) int
 		LatitudeVal        func(childComplexity int) int
 		LongitudeVal       func(childComplexity int) int
+		Mandatory          func(childComplexity int) int
 		Name               func(childComplexity int) int
 		RangeFromVal       func(childComplexity int) int
 		RangeToVal         func(childComplexity int) int
@@ -3683,6 +3684,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.LongitudeVal(childComplexity), true
 
+	case "PropertyType.isMandatory":
+		if e.complexity.PropertyType.Mandatory == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.Mandatory(childComplexity), true
+
 	case "PropertyType.name":
 		if e.complexity.PropertyType.Name == nil {
 			break
@@ -5919,6 +5927,7 @@ type PropertyType implements Node {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 input PropertyTypeInput {
@@ -5937,6 +5946,7 @@ input PropertyTypeInput {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 type Property implements Node {
@@ -21050,6 +21060,40 @@ func (ec *executionContext) _PropertyType_isInstanceProperty(ctx context.Context
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PropertyType_isMandatory(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Mandatory, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PythonPackage_version(ctx context.Context, field graphql.CollectedField, obj *models.PythonPackage) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -32026,6 +32070,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "isMandatory":
+			var err error
+			it.IsMandatory, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -36223,6 +36273,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_isEditable(ctx, field, obj)
 		case "isInstanceProperty":
 			out.Values[i] = ec._PropertyType_isInstanceProperty(ctx, field, obj)
+		case "isMandatory":
+			out.Values[i] = ec._PropertyType_isMandatory(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

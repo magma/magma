@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bb3db5d5cd4922f31b45194edb387659
+ * @relayHash ae3dda77178f92fa3526f2fb776197b0
  */
 
 /* eslint-disable */
@@ -56,6 +56,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type EditEquipmentTypeMutationVariables = {|
   input: EditEquipmentTypeInput

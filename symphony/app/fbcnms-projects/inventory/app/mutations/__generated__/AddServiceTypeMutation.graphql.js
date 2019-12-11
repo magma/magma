@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d8e65c732be03dc4b9c751147a9a29ca
+ * @relayHash 3d72f8dfc3520d58f05ec32399f375b2
  */
 
 /* eslint-disable */
@@ -37,6 +37,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type AddServiceTypeMutationVariables = {|
   data: ServiceTypeCreateData

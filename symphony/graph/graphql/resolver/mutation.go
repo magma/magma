@@ -166,6 +166,7 @@ func (r mutationResolver) AddPropertyTypes(
 			SetNillableRangeFromVal(input.RangeFromValue).
 			SetNillableRangeToVal(input.RangeToValue).
 			SetNillableEditable(input.IsEditable).
+			SetNillableMandatory(input.IsMandatory).
 			Save(ctx); err != nil {
 			return nil, errors.Wrap(err, "creating property type")
 		}
@@ -2377,6 +2378,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableIsInstanceProperty(input.IsInstanceProperty).
 		SetNillableEditable(input.IsEditable).
+		SetNillableMandatory(input.IsMandatory).
 		Exec(ctx); err != nil {
 		return errors.Wrap(err, "updating property type")
 	}

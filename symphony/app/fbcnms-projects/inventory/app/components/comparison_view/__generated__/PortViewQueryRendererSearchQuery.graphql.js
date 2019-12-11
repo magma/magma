@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash edf7acee0cab73068ff5cf0fed0bdf23
+ * @relayHash ef800e67797ca6ab6d157d85583d8834
  */
 
 /* eslint-disable */
@@ -44,6 +44,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type PortViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,
