@@ -8,10 +8,12 @@
  * @format
  */
 
+import AddIcon from '@material-ui/icons/Add';
 import Button from '../../components/design-system/Button';
 import React from 'react';
 import classNames from 'classnames';
 import {STORY_CATEGORIES} from '../storybookUtils';
+import {fbt} from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
@@ -21,7 +23,8 @@ const useStyles = makeStyles(_theme => ({
   },
   container: {
     margin: '16px 0px',
-    '& > :first-child': {
+    display: 'flex',
+    '& > button': {
       marginRight: '8px',
     },
   },
@@ -41,6 +44,12 @@ const ButtonsRoot = () => {
         <Button onClick={onButtonClicked} disabled>
           Default
         </Button>
+        <Button onClick={onButtonClicked} rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} leftIcon={AddIcon} disabled>
+          Default
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} skin="regular">
@@ -49,15 +58,41 @@ const ButtonsRoot = () => {
         <Button onClick={onButtonClicked} skin="regular" disabled>
           Default
         </Button>
+        <Button onClick={onButtonClicked} skin="regular" rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          skin="regular"
+          leftIcon={AddIcon}
+          disabled>
+          Default
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked}>OK</Button>
+        <Button onClick={onButtonClicked} rightIcon={AddIcon}>
+          OK
+        </Button>
+        <Button onClick={onButtonClicked} leftIcon={AddIcon}>
+          OK
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} skin="red">
           Default
         </Button>
         <Button onClick={onButtonClicked} skin="red" disabled>
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} skin="red" rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          skin="red"
+          leftIcon={AddIcon}
+          disabled>
           Default
         </Button>
       </div>
@@ -69,12 +104,32 @@ const ButtonsRoot = () => {
         <Button onClick={onButtonClicked} skin="gray" disabled>
           Default
         </Button>
+        <Button onClick={onButtonClicked} skin="gray" rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          skin="gray"
+          leftIcon={AddIcon}
+          disabled>
+          Default
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} variant="text">
           Default
         </Button>
         <Button onClick={onButtonClicked} variant="text" disabled>
+          Default
+        </Button>
+        <Button onClick={onButtonClicked} variant="text" rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          disabled
+          leftIcon={AddIcon}>
           Default
         </Button>
       </div>
@@ -89,9 +144,30 @@ const ButtonsRoot = () => {
           disabled>
           Default
         </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="regular"
+          rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="regular"
+          disabled
+          leftIcon={AddIcon}>
+          Default
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} variant="text">
+          OK
+        </Button>
+        <Button onClick={onButtonClicked} variant="text" rightIcon={AddIcon}>
+          OK
+        </Button>
+        <Button onClick={onButtonClicked} variant="text" rightIcon={AddIcon}>
           OK
         </Button>
       </div>
@@ -102,6 +178,21 @@ const ButtonsRoot = () => {
         <Button onClick={onButtonClicked} variant="text" skin="red" disabled>
           Default
         </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="red"
+          rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="red"
+          disabled
+          leftIcon={AddIcon}>
+          Default
+        </Button>
       </div>
       <div className={classes.container}>
         <Button onClick={onButtonClicked} variant="text" skin="gray">
@@ -109,6 +200,32 @@ const ButtonsRoot = () => {
         </Button>
         <Button onClick={onButtonClicked} variant="text" skin="gray" disabled>
           Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="gray"
+          rightIcon={AddIcon}>
+          Default
+        </Button>
+        <Button
+          onClick={onButtonClicked}
+          variant="text"
+          skin="gray"
+          disabled
+          leftIcon={AddIcon}>
+          Default
+        </Button>
+      </div>
+      <div className={classes.container}>
+        <Button onClick={onButtonClicked} rightIcon={AddIcon}>
+          Button with a long label
+        </Button>
+      </div>
+      <div className={classes.container}>
+        <Button onClick={onButtonClicked} rightIcon={AddIcon}>
+          <fbt desc="wow, much desc">Translated</fbt>{' '}
+          {fbt('with a function', 'wow, much desc')}
         </Button>
       </div>
     </div>
