@@ -22,8 +22,9 @@ from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer, get_json_deserializer, get_json_serializer, \
     RedisSerde
-from magma.state.state_replicator import StateReplicator
 from magma.common.grpc_client_manager import GRPCClientManager
+from magma.state.keys import make_mem_key
+from magma.state.state_replicator import StateReplicator
 from magma.common.redis.mocks.mock_redis import MockRedis
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 from orc8r.protos.common_pb2 import NetworkID, IDList
@@ -237,10 +238,10 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(3, len(self.state_replicator._state_versions))
-            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
-            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key1 = make_mem_key('id1', NID_TYPE)
+            mem_key2 = make_mem_key('aaa-bbb:id1',
                                                           IDList_TYPE)
-            mem_key3 = self.state_replicator.make_mem_key('id1', FOO_TYPE)
+            mem_key3 = make_mem_key('id1', FOO_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
@@ -258,7 +259,7 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(4, len(self.state_replicator._state_versions))
-            mem_key4 = self.state_replicator.make_mem_key('id2', NID_TYPE)
+            mem_key4 = make_mem_key('id2', NID_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(3,
@@ -300,8 +301,8 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly for successful replications
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(2, len(self.state_replicator._state_versions))
-            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
-            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key1 = make_mem_key('id1', NID_TYPE)
+            mem_key2 = make_mem_key('aaa-bbb:id1',
                                                           IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
@@ -340,7 +341,7 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._resync()
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
-            mem_key = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key = make_mem_key('aaa-bbb:id1',
                                                          IDList_TYPE)
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
@@ -395,7 +396,7 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(1, len(self.state_replicator._state_versions))
-            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
+            mem_key1 = make_mem_key('id1', NID_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
 
