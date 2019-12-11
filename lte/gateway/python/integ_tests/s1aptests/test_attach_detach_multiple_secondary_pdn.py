@@ -52,7 +52,6 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
                 response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value)
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-            # Send Activate default EPS bearer context accept
             print("********************** Sending Activate default EPS bearer "
                   "context accept for UE id ", ue_id)
             act_def_bearer_acc = s1ap_types.UeActDefEpsBearCtxtAcc_t()
@@ -68,8 +67,9 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             # Send PDN Disconnect
             pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
             pdn_disconnect_req.ue_Id = ue_id
-            pdn_disconnect_req.epsBearerId = bearer_ids[i] 
-            print("******************* Sending PDN Disconnect bearer id\n",pdn_disconnect_req.epsBearerId)
+            pdn_disconnect_req.epsBearerId = bearer_ids[i]
+            print("******************* Sending PDN Disconnect bearer id\n"
+                    ,pdn_disconnect_req.epsBearerId)
             self._s1ap_wrapper._s1_util.issue_cmd(s1ap_types.tfwCmd.
                                                   UE_PDN_DISCONNECT_REQ,
                                                   pdn_disconnect_req)
@@ -79,7 +79,8 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
             self.assertTrue(response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.
                             value)
 
-            print("******************* Received deactivate eps bearer context")
+            print("******************* Received deactivate eps bearer context"
+                    "request")
             # Send DeactDedicatedBearerAccept
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 ue_id, bearer_ids[i])
