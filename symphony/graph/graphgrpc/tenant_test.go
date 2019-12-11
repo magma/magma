@@ -19,7 +19,7 @@ import (
 func TestTenantServer_Create(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	ts := NewTenantService(db)
+	ts := NewTenantService(func(context.Context) ExecQueryer { return db })
 
 	tenant, err := ts.Create(context.Background(), &wrappers.StringValue{Value: ""})
 	require.Nil(t, tenant)
@@ -47,7 +47,7 @@ func TestTenantServer_Create(t *testing.T) {
 func TestTenantServer_Get(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	ts := NewTenantService(db)
+	ts := NewTenantService(func(context.Context) ExecQueryer { return db })
 
 	tenant, err := ts.Get(context.Background(), &wrappers.StringValue{Value: ""})
 	require.Nil(t, tenant)
@@ -66,7 +66,7 @@ func TestTenantServer_Get(t *testing.T) {
 func TestTenantServer_Delete(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	ts := NewTenantService(db)
+	ts := NewTenantService(func(context.Context) ExecQueryer { return db })
 
 	_, err = ts.Delete(context.Background(), &wrappers.StringValue{Value: ""})
 	require.IsType(t, codes.InvalidArgument, status.Code(err))
@@ -89,7 +89,7 @@ func TestTenantServer_Delete(t *testing.T) {
 func TestTenantServer_List(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)
-	ts := NewTenantService(db)
+	ts := NewTenantService(func(context.Context) ExecQueryer { return db })
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?")).
 		WithArgs("tenant_%").

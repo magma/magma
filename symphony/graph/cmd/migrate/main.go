@@ -37,8 +37,11 @@ func main() {
 		logger.Background().Fatal("opening database", zap.Error(err))
 	}
 
-	tenants, err := graphgrpc.NewTenantService(driver.DB()).
-		List(context.Background(), &empty.Empty{})
+	tenants, err := graphgrpc.NewTenantService(
+		func(context.Context) graphgrpc.ExecQueryer {
+			return driver.DB()
+		},
+	).List(context.Background(), &empty.Empty{})
 	if err != nil {
 		logger.Background().Fatal("listing tenants", zap.Error(err))
 	}

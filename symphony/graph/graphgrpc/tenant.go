@@ -18,35 +18,45 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TenantService is a tenant service
-type TenantService struct {
-	db *sql.DB
+type (
+	// TenantService is a tenant service.
+	TenantService struct{ DB Provider }
+
+	// ExecQueryer wraps QueryContext and ExecContext methods.
+	ExecQueryer interface {
+		QueryContext(context.Context, string, ...interface{}) (*sql.Rows, error)
+		ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+	}
+
+	// Provider provides a db from context.
+	Provider func(context.Context) ExecQueryer
+)
+
+// NewTenantService create a new tenant service.
+func NewTenantService(provider Provider) TenantService {
+	return TenantService{provider}
 }
 
-// NewTenantService creates a tenant service.
-func NewTenantService(db *sql.DB) *TenantService {
-	return &TenantService{db}
-}
-
-func (s *TenantService) Create(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
+// Create a tenant by name.
+func (s TenantService) Create(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
 	if name.Value == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
 	}
-	exist, err := s.exist(ctx, name.Value)
-	if err != nil {
+	switch exist, err := s.exist(ctx, name.Value); {
+	case err != nil:
 		return nil, status.FromContextError(err).Err()
-	}
-	if exist {
+	case exist:
 		return nil, status.Errorf(codes.AlreadyExists, "tenant %q exists", name.Value)
 	}
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin", viewer.DBName(name.Value))); err != nil {
+	if _, err := s.DB(ctx).ExecContext(ctx, fmt.Sprintf("CREATE DATABASE `%s` DEFAULT CHARACTER SET utf8mb4 DEFAULT COLLATE utf8mb4_bin", viewer.DBName(name.Value))); err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
 	return &Tenant{Id: name.Value, Name: name.Value}, nil
 }
 
-func (s *TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"))
+// List all tenants.
+func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, error) {
+	rows, err := s.DB(ctx).QueryContext(ctx, "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME LIKE ?", viewer.DBName("%"))
 	if err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
@@ -63,39 +73,40 @@ func (s *TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, 
 	return &TenantList{Tenants: tenants}, nil
 }
 
-func (s *TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
+// Get tenant by name.
+func (s TenantService) Get(ctx context.Context, name *wrappers.StringValue) (*Tenant, error) {
 	if name.Value == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant name")
 	}
-	exist, err := s.exist(ctx, name.Value)
-	if err != nil {
+	switch exist, err := s.exist(ctx, name.Value); {
+	case err != nil:
 		return nil, status.FromContextError(err).Err()
-	}
-	if !exist {
+	case !exist:
 		return nil, status.Errorf(codes.NotFound, "missing tenant %s", name.Value)
+	default:
+		return &Tenant{Id: name.Value, Name: name.Value}, nil
 	}
-	return &Tenant{Id: name.Value, Name: name.Value}, nil
 }
 
-func (s *TenantService) Delete(ctx context.Context, id *wrappers.StringValue) (*empty.Empty, error) {
+// Delete tenant by id.
+func (s TenantService) Delete(ctx context.Context, id *wrappers.StringValue) (*empty.Empty, error) {
 	if id.Value == "" {
 		return nil, status.Error(codes.InvalidArgument, "missing tenant id")
 	}
-	exist, err := s.exist(ctx, id.Value)
-	if err != nil {
+	switch exist, err := s.exist(ctx, id.Value); {
+	case err != nil:
 		return nil, status.FromContextError(err).Err()
-	}
-	if !exist {
+	case !exist:
 		return nil, status.Errorf(codes.NotFound, "missing tenant %s", id.Value)
 	}
-	if _, err := s.db.ExecContext(ctx, fmt.Sprintf("DROP DATABASE `%s`", viewer.DBName(id.Value))); err != nil {
+	if _, err := s.DB(ctx).ExecContext(ctx, fmt.Sprintf("DROP DATABASE `%s`", viewer.DBName(id.Value))); err != nil {
 		return nil, status.FromContextError(err).Err()
 	}
 	return &empty.Empty{}, nil
 }
 
-func (s *TenantService) exist(ctx context.Context, name string) (bool, error) {
-	rows, err := s.db.QueryContext(ctx, "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", viewer.DBName(name))
+func (s TenantService) exist(ctx context.Context, name string) (bool, error) {
+	rows, err := s.DB(ctx).QueryContext(ctx, "SELECT COUNT(*) FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?", viewer.DBName(name))
 	if err != nil {
 		return false, err
 	}
