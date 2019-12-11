@@ -61,16 +61,11 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
                 "context accept for UE id ",
                 ue_id,
             )
-            act_def_bearer_acc = s1ap_types.UeActDefEpsBearCtxtAcc_t()
-            act_def_bearer_acc.ue_Id = ue_id
-            act_def_bearer_acc.bearerId = (
-                act_def_bearer_req.m.pdnInfo.epsBearerId
-            )
-            bearer_ids.append(act_def_bearer_acc.bearerId)
+            bearer_ids.append(act_def_bearer_req.m.pdnInfo.epsBearerId)
             print(
                 "********************** Added default bearer with "
                 "bearer id",
-                act_def_bearer_acc.bearerId,
+                act_def_bearer_req.m.pdnInfo.epsBearerId,
             )
 
         time.sleep(5)
