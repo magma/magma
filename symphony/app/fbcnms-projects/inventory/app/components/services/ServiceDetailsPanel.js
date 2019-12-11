@@ -117,7 +117,6 @@ const ServiceDetailsPanel = (props: Props) => {
     externalId: service.externalId,
     customer: service.customer,
     properties: properties,
-    links: service.links,
   });
 
   const getServiceInput = () => {
@@ -130,7 +129,6 @@ const ServiceDetailsPanel = (props: Props) => {
         upstreamServiceIds: [],
         properties: toPropertyInput(editableService.properties),
         terminationPointIds: [],
-        linkIds: editableService.links.map(l => l.id),
       },
     };
   };

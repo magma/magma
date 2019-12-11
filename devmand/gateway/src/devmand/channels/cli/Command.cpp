@@ -14,13 +14,16 @@ namespace cli {
 using std::string;
 using std::vector;
 
-Command::Command(const std::string _command) : command(_command) {}
+Command::Command(const std::string _command, int _idx, bool skipCache)
+    : command(_command), idx(_idx), skipCache_(skipCache) {}
 
 // Factory methods
-Command Command::makeReadCommand(const std::string& cmd) {
-  return Command(cmd);
+ReadCommand ReadCommand::create(const std::string& cmd, bool skipCache) {
+  return ReadCommand(cmd, commandCounter++, skipCache);
 }
-
+WriteCommand WriteCommand::create(const std::string& cmd, bool skipCache) {
+  return WriteCommand(cmd, commandCounter++, skipCache);
+}
 static const char DELIMITER = '\n';
 
 bool Command::isMultiCommand() {
@@ -33,13 +36,46 @@ vector<Command> Command::splitMultiCommand() {
   string::size_type pos = 0;
   string::size_type prev = 0;
   while ((pos = str.find(DELIMITER, prev)) != std::string::npos) {
-    commands.emplace_back(
-        Command::makeReadCommand(str.substr(prev, pos - prev)));
+    commands.emplace_back(WriteCommand::create(str.substr(prev, pos - prev)));
     prev = pos + 1;
   }
 
-  commands.emplace_back(Command::makeReadCommand(str.substr(prev)));
+  commands.emplace_back(ReadCommand::create(str.substr(prev)));
   return commands;
+}
+
+ReadCommand::ReadCommand(const string& _command, int _idx, bool _skipCache)
+    : Command(_command, _idx, _skipCache) {}
+
+ReadCommand ReadCommand::create(const Command& cmd) {
+  return create(cmd.raw(), cmd.skipCache());
+}
+
+ReadCommand& ReadCommand::operator=(const ReadCommand& other) {
+  this->command = other.command;
+  this->idx = other.idx;
+  this->skipCache_ = other.skipCache_;
+  return *this;
+}
+
+ReadCommand::ReadCommand(const ReadCommand& rc)
+    : Command(rc.raw(), rc.idx, rc.skipCache()) {}
+
+WriteCommand::WriteCommand(const string& _command, int _idx, bool _skipCache)
+    : Command(_command, _idx, _skipCache) {}
+
+WriteCommand WriteCommand::create(const Command& cmd) {
+  return create(cmd.raw(), cmd.skipCache());
+}
+
+WriteCommand::WriteCommand(const WriteCommand& wc)
+    : Command(wc.raw(), wc.idx, wc.skipCache()) {}
+
+WriteCommand& WriteCommand::operator=(const WriteCommand& other) {
+  this->command = other.command;
+  this->idx = other.idx;
+  this->skipCache_ = other.skipCache_;
+  return *this;
 }
 
 } // namespace cli

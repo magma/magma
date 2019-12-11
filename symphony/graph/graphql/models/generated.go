@@ -568,7 +568,6 @@ type ServiceCreateData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceEditData struct {
@@ -579,7 +578,6 @@ type ServiceEditData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceFilterInput struct {

@@ -72,6 +72,7 @@ services:
     environment:
       USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
       GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
+      GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
     container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 

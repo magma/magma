@@ -11,7 +11,7 @@
 import * as React from 'react';
 import Portal from '../Core/Portal';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useLayoutEffect, useRef, useState} from 'react';
 
 const useStyles = makeStyles({
   root: {
@@ -92,6 +92,12 @@ const BaseContexualLayer = ({
     }
     setHasCalculated(true);
   }, [context, position]);
+
+  useLayoutEffect(() => {
+    if (!hidden) {
+      recalculateStyles();
+    }
+  }, [recalculateStyles, hidden]);
 
   const contextualLayerFunctionRef = useCallback(
     contextualLayerElement => {

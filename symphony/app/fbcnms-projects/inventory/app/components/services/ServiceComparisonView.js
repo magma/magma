@@ -12,7 +12,6 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 import type {PropertyType} from '../../common/PropertyType';
 import type {ServiceComparisonViewQueryRendererPropertiesQueryResponse} from './__generated__/ServiceComparisonViewQueryRendererPropertiesQuery.graphql.js';
 
-import AddServiceCard from './AddServiceCard';
 import AddServiceDialog from './AddServiceDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
@@ -116,11 +115,6 @@ const ServiceComparisonView = () => {
   const [filters, setFilters] = useState([]);
   const classes = useStyles();
 
-  const selectedServiceTypeId = useMemo(
-    () => extractEntityIdFromUrl('serviceType', location.search),
-    [location.search],
-  );
-
   const selectedServiceCardId = useMemo(
     () => extractEntityIdFromUrl('service', location.search),
     [location],
@@ -158,14 +152,6 @@ const ServiceComparisonView = () => {
   }, [setDialogOpen, dialogKey, setDialogKey, serviceKey, setServiceKey]);
 
   const hideDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
-
-  if (selectedServiceTypeId != null) {
-    return (
-      <InventoryErrorBoundary>
-        <AddServiceCard serviceTypeId={selectedServiceTypeId} />
-      </InventoryErrorBoundary>
-    );
-  }
 
   if (selectedServiceCardId != null) {
     return (

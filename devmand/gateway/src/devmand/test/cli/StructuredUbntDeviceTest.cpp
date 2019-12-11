@@ -38,9 +38,9 @@ class StructuredUbntDeviceTest : public testing::Test {
 
 class UbntFakeCli : public Cli {
  public:
-  folly::Future<string> executeAndRead(const Command& cmd) override {
+  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     (void)cmd;
-    if (cmd.toString() == "show interfaces description") {
+    if (cmd.raw() == "show interfaces description") {
       return "\n"
              "Interface  Admin      Link    Description\n"
              "---------  ---------  ------  ----------------------------------------------------------------\n"
@@ -53,9 +53,9 @@ class UbntFakeCli : public Cli {
              "0/7        Enable     Down\r\n"
              "0/8        Enable     Down\n"
              "3/6        Enable     Down\n";
-    } else if (cmd.toString().find("show running-config interface ") == 0) {
-      string ifcId = cmd.toString().substr(
-          string("show running-config interface ").size() - 1);
+    } else if (cmd.raw().find("show running-config interface ") == 0) {
+      string ifcId =
+          cmd.raw().substr(string("show running-config interface ").size() - 1);
 
       return "\n"
              "!Current Configuration:\n"
@@ -69,7 +69,7 @@ class UbntFakeCli : public Cli {
           "mtu 1500\n"
           "exit\n"
           "";
-    } else if (cmd.toString().find("show interface ethernet") == 0) {
+    } else if (cmd.raw().find("show interface ethernet") == 0) {
       return "\n"
              "Total Packets Received (Octets)................ 427066814515\n"
              "\n"
@@ -110,7 +110,7 @@ class UbntFakeCli : public Cli {
              "Packets Per Second Transmitted................. 1\n"
              "\n"
              "Time Since Counters Last Cleared............... 7 day 1 hr 24 min 53 sec";
-    } else if (cmd.toString() == "show interfaces description") {
+    } else if (cmd.raw() == "show interfaces description") {
       return "\n"
              "Interface  Admin      Link    Description\n"
              "---------  ---------  ------  ----------------------------------------------------------------\n"
@@ -129,7 +129,7 @@ class UbntFakeCli : public Cli {
     return "";
   }
 
-  folly::Future<string> execute(const Command& cmd) override {
+  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
     (void)cmd;
     return folly::Future<string>("");
   }

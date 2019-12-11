@@ -23,25 +23,23 @@ using namespace std;
 
 class EchoCli : public Cli {
  public:
-  folly::Future<string> executeAndRead(const Command& cmd) override {
-    return folly::Future<string>(cmd.toString());
+  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    return folly::Future<string>(cmd.raw());
   }
 
-  folly::Future<string> execute(const Command& cmd) override {
-    return folly::Future<string>(cmd.toString());
+  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+    return folly::Future<string>(cmd.raw());
   }
 };
 
 class ErrCli : public Cli {
  public:
-  folly::Future<string> executeAndRead(const Command& cmd) override {
-    throw runtime_error(cmd.toString());
-    return folly::Future<string>(runtime_error(cmd.toString()));
+  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    return folly::Future<string>(runtime_error(cmd.raw()));
   }
 
-  folly::Future<string> execute(const Command& cmd) override {
-    throw runtime_error(cmd.toString());
-    return folly::Future<string>(runtime_error(cmd.toString()));
+  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+    return folly::Future<string>(runtime_error(cmd.raw()));
   }
 };
 
@@ -53,16 +51,16 @@ class AsyncCli : public Cli {
       vector<unsigned int> _durations)
       : cli(_cli), executor(_executor), durations(_durations), index(0) {}
 
-  folly::Future<string> executeAndRead(const Command& cmd) override {
+  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     folly::Future<string> f = via(executor.get()).thenValue([=](...) {
       unsigned int tis = durations[(index++) % durations.size()];
       this_thread::sleep_for(chrono::seconds(tis));
-      return cli->executeAndRead(cmd);
+      return cli->executeRead(cmd);
     });
     return f;
   }
 
-  folly::Future<string> execute(const Command& cmd) override {
+  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
     (void)cmd;
     return folly::Future<string>(runtime_error("Unsupported"));
   }
@@ -74,6 +72,14 @@ class AsyncCli : public Cli {
   unsigned int index;
   bool quit;
 };
+
+template <typename NESTED>
+shared_ptr<AsyncCli> getMockCli(
+    uint delay,
+    shared_ptr<folly::CPUThreadPoolExecutor> exec) {
+  vector<unsigned int> durations = {delay};
+  return make_shared<AsyncCli>(make_shared<NESTED>(), exec, durations);
+}
 
 } // namespace cli
 } // namespace utils

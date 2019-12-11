@@ -988,7 +988,7 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   } else {
     OAILOG_ERROR(
       LOG_NAS_EMM,
-      "Failed to find emm contexet for ue_id received in TAU "
+      "Failed to find emm context for ue_id received in TAU "
       "Complete" MME_UE_S1AP_ID_FMT "\n",
       ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
