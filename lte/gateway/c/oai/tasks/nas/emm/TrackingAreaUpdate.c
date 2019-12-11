@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -56,6 +56,8 @@
 #include "mme_app_state.h"
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
+#include "mme_app_itti_messaging.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -65,11 +67,14 @@
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-/* TODO Commented some function declarations below since these were called from the code that got removed from TAU request
- * handling function. Reason this code was removed: This portion of code was incomplete and was related to handling of
- * some optional IEs /scenarios that were not relevant for the TAU periodic update handling and might have resulted in 
+/* TODO Commented some function declarations below since these were called
+ * from the code that got removed from TAU request handling function.
+ * Reason this code was removed: This portion of code was incomplete and was
+ * related to handling of some optional IEs /scenarios that were not relevant
+ * for the TAU periodic update handling and might have resulted in
  * unexpected behaviour/instability.
- * At present support for TAU is limited to handling of periodic TAU request only  mandatory IEs .
+ * At present support for TAU is limited to handling of periodic TAU request
+ * only  mandatory IEs .
  * Other aspects of TAU are TODOs for future.
  */
 
@@ -387,7 +392,8 @@ int emm_proc_tracking_area_update_reject(
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-/* TODO - Compiled out this function to remove compiler warnings since we don't expect TAU Complete from UE as we dont support implicit 
+/* TODO - Compiled out this function to remove compiler warnings since we
+ * don't expect TAU Complete from UE as we dont support implicit
  * GUTI re-allocation during TAU procedure.
  */
 #if 0
@@ -935,8 +941,8 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t **const ies)
  ***************************************************************************/
 int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
 {
-  emm_context_t *emm_ctx = NULL;
-  int rc = RETURNok;
+  emm_context_t* emm_ctx = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
@@ -950,46 +956,44 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id)
   emm_proc_common_clear_args(ue_id);
 
   /*
-   * Get the UE context
+   * Get the EMM context
    */
   emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctx) {
     /*
      * Upon receiving an TAU COMPLETE message, the MME shall stop timer T3450
+     * Timer is stopped within nas_delete_tau_procedure()
      */
-    nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_ctx);
+    nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_ctx);
     if (tau_proc) {
       OAILOG_INFO(
         LOG_NAS_EMM,
         "EMM-PROC  - Stop timer T3450 (%ld)\n",
         tau_proc->T3450.id);
-      nas_stop_T3450(tau_proc->ue_id, &tau_proc->T3450, NULL);
-      /*
-       * Upon receiving TAU COMPLETE message, the MME shall
-       * consider the TMSI sent in the TAU ACCEPT message as valid.
-       * - TODO
-       */
-      if(emm_ctx->csfbparams.newTmsiAllocated == true) {
+      if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);
       }
     }
-    //Send TMSI reallocation complete to SGS task
-    char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-    IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-    //TODO-pruthvi Uncomment after merging from master
-    //nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
-    emm_ctx->csfbparams.newTmsiAllocated = false;
-
-    /*If Active flag is not set, send ITTI message to MME APP to
-     *initiate UE context release
-     */
+    // If Active flag is not set, initiate UE context release
     if (!emm_ctx->csfbparams.tau_active_flag) {
-      nas_itti_tau_complete(ue_id);
+      ue_context_p =
+        PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+      ue_context_p->ue_context_rel_cause = S1AP_NAS_NORMAL_RELEASE;
+      // Notify S1AP to send UE Context Release Command to eNB.
+      mme_app_itti_ue_context_release(
+        ue_context_p, ue_context_p->ue_context_rel_cause);
     }
     emm_context_unlock(emm_ctx);
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Failed to find emm context for ue_id received in TAU "
+      "Complete" MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
 static nas_emm_tau_proc_t * _emm_proc_create_procedure_tau(

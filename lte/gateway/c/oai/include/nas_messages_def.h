@@ -74,11 +74,6 @@ MESSAGE_DEF(
   itti_nas_cs_domain_location_update_fail_t,
   nas_cs_domain_location_update_fail)
 MESSAGE_DEF(
-  NAS_TAU_COMPLETE,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_tau_complete_t,
-  nas_tau_complete)
-MESSAGE_DEF(
   NAS_NOTIFY_SERVICE_REJECT,
   MESSAGE_PRIORITY_MED,
   itti_nas_notify_service_reject_t,

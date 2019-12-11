@@ -261,9 +261,6 @@ int handle_csfb_s1ap_procedure_failure(
   char *failed_statement,
   uint8_t failed_procedure);
 
-void mme_app_handle_nas_tau_complete(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_tau_complete_t *itti_nas_tau_complete_p);
-
 int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p);
 
