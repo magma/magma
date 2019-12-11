@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 24826f6dde105aaa011839a55401be83
+ * @relayHash 6cbbade0a3a5414d6cba9a629f1d6647
  */
 
 /* eslint-disable */
@@ -78,6 +78,14 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isMandatory
     isInstanceProperty
   }
+  checkListDefinitions {
+    id
+    title
+    type
+    index
+    helpText
+    enumValues
+  }
 }
 */
 
@@ -148,7 +156,21 @@ v6 = [
     "name": "first",
     "value": 50
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v8 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -257,20 +279,8 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "type",
-                        "args": null,
-                        "storageKey": null
-                      },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "index",
-                        "args": null,
-                        "storageKey": null
-                      },
+                      (v7/*: any*/),
+                      (v8/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -350,6 +360,41 @@ return {
                       }
                     ]
                   },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "checkListDefinitions",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "CheckListItemDefinition",
+                    "plural": true,
+                    "selections": [
+                      (v0/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "title",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      (v7/*: any*/),
+                      (v8/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "helpText",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "enumValues",
+                        "args": null,
+                        "storageKey": null
+                      }
+                    ]
+                  },
                   (v3/*: any*/)
                 ]
               },
@@ -374,7 +419,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypesQuery",
     "id": null,
-    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n",
+    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {
       "connection": [
         {

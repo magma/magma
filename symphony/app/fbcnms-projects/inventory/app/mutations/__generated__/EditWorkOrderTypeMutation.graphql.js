@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7c4d2d82bad6b2d50101394224f7b366
+ * @relayHash 9cd96d28dbbc50cb21b5ee73af94845b
  */
 
 /* eslint-disable */
@@ -101,6 +101,14 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isMandatory
     isInstanceProperty
   }
+  checkListDefinitions {
+    id
+    title
+    type
+    index
+    helpText
+    enumValues
+  }
 }
 */
 
@@ -131,6 +139,20 @@ v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
   "args": null,
   "storageKey": null
 };
@@ -204,20 +226,8 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "type",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "index",
-                "args": null,
-                "storageKey": null
-              },
+              (v4/*: any*/),
+              (v5/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -296,6 +306,41 @@ return {
                 "storageKey": null
               }
             ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "checkListDefinitions",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "CheckListItemDefinition",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "title",
+                "args": null,
+                "storageKey": null
+              },
+              (v4/*: any*/),
+              (v5/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "helpText",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "enumValues",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           }
         ]
       }
@@ -305,7 +350,7 @@ return {
     "operationKind": "mutation",
     "name": "EditWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n",
+    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {}
   }
 };

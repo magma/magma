@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type AddEditWorkOrderTypeCard_editingWorkOrderType$ref: FragmentReference;
@@ -40,6 +41,14 @@ export type AddEditWorkOrderTypeCard_editingWorkOrderType = {|
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
+  +checkListDefinitions: $ReadOnlyArray<?{|
+    +id: string,
+    +title: string,
+    +type: CheckListItemType,
+    +index: ?number,
+    +helpText: ?string,
+    +enumValues: ?string,
+  |}>,
   +$refType: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
 |};
 export type AddEditWorkOrderTypeCard_editingWorkOrderType$data = AddEditWorkOrderTypeCard_editingWorkOrderType;
@@ -62,6 +71,20 @@ v1 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
+  "args": null,
+  "storageKey": null
+},
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
   "args": null,
   "storageKey": null
 };
@@ -99,20 +122,8 @@ return {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "type",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "index",
-          "args": null,
-          "storageKey": null
-        },
+        (v2/*: any*/),
+        (v3/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -191,10 +202,45 @@ return {
           "storageKey": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "checkListDefinitions",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "CheckListItemDefinition",
+      "plural": true,
+      "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "title",
+          "args": null,
+          "storageKey": null
+        },
+        (v2/*: any*/),
+        (v3/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "helpText",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "enumValues",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '382ac446d76c0c6031b0835d012d0a10';
+(node/*: any*/).hash = 'febd848a7783e3c52c50e88a651ef6b5';
 module.exports = node;

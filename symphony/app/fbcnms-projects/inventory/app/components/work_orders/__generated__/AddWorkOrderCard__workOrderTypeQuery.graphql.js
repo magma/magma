@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5d6fca694b768593547015eefc05a5b5
+ * @relayHash 0da7f49810ab4d170edfb7ec67a3e569
  */
 
 /* eslint-disable */
@@ -15,6 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
+export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type AddWorkOrderCard__workOrderTypeQueryVariables = {|
   workOrderTypeId: string
@@ -39,7 +40,14 @@ export type AddWorkOrderCard__workOrderTypeQueryResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
-      +isMandatory: ?boolean,
+    |}>,
+    +checkListDefinitions: $ReadOnlyArray<?{|
+      +id: string,
+      +title: string,
+      +type: CheckListItemType,
+      +index: ?number,
+      +helpText: ?string,
+      +enumValues: ?string,
     |}>,
   |}
 |};
@@ -73,7 +81,14 @@ query AddWorkOrderCard__workOrderTypeQuery(
       rangeToValue
       isEditable
       isInstanceProperty
-      isMandatory
+    }
+    checkListDefinitions {
+      id
+      title
+      type
+      index
+      helpText
+      enumValues
     }
   }
 }
@@ -102,7 +117,21 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = [
+v3 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+},
+v5 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -138,20 +167,8 @@ v3 = [
         "selections": [
           (v1/*: any*/),
           (v2/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "type",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "index",
-            "args": null,
-            "storageKey": null
-          },
+          (v3/*: any*/),
+          (v4/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -221,11 +238,39 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          }
+        ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "checkListDefinitions",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "CheckListItemDefinition",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "title",
+            "args": null,
+            "storageKey": null
+          },
+          (v3/*: any*/),
+          (v4/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "helpText",
+            "args": null,
+            "storageKey": null
           },
           {
             "kind": "ScalarField",
             "alias": null,
-            "name": "isMandatory",
+            "name": "enumValues",
             "args": null,
             "storageKey": null
           }
@@ -242,23 +287,23 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "AddWorkOrderCard__workOrderTypeQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "params": {
     "operationKind": "query",
     "name": "AddWorkOrderCard__workOrderTypeQuery",
     "id": null,
-    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
+    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n    checkListDefinitions {\n      id\n      title\n      type\n      index\n      helpText\n      enumValues\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '9442df751942aa66e10479b8cf9be74b';
+(node/*: any*/).hash = '044e32342062080ad81bb49989f4cc14';
 module.exports = node;

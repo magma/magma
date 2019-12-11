@@ -40558,7 +40558,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -43516,7 +43516,7 @@ func (ec *executionContext) marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalOSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

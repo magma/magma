@@ -8,8 +8,14 @@
  * @format
  */
 
+import CheckListTable from '../checklist/CheckListTable';
 import type {AddImageMutationResponse} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
+import type {
+  CheckListTable_list,
+  WorkOrderDetails_workOrder,
+} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+
 import type {ContextRouter} from 'react-router-dom';
 import type {
   ExecuteWorkOrderMutationResponse,
@@ -20,13 +26,13 @@ import type {Property} from '../../common/Property';
 import type {Theme, WithStyles} from '@material-ui/core';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
-import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
 import AddImageMutation from '../../mutations/AddImageMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
+import EditToggleButton from '@fbcnms/ui/components/design-system/toggles/EditToggleButton/EditToggleButton';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExecuteWorkOrderMutation from '../../mutations/ExecuteWorkOrderMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
@@ -46,6 +52,7 @@ import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import WorkOrderDetailsPane from './WorkOrderDetailsPane';
 import WorkOrderHeader from './WorkOrderHeader';
+import fbt from 'fbt';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
@@ -60,9 +67,11 @@ import {withStyles} from '@material-ui/core/styles';
 
 type State = {
   workOrder: WorkOrderDetails_workOrder,
+  checklist: CheckListTable_list,
   properties: Array<Property>,
   locationId: ?string,
   isLoadingDocument: boolean,
+  showChecklistDesignMode: boolean,
 };
 
 type Props = {
@@ -145,8 +154,10 @@ class WorkOrderDetails extends React.Component<Props, State> {
   state = {
     workOrder: this.props.workOrder,
     properties: this.getEditingProperties(),
+    checklist: this.props.workOrder.checkList,
     locationId: this.props.workOrder.location?.id,
     isLoadingDocument: false,
+    showChecklistDesignMode: false,
   };
 
   getEditingProperties(): Array<Property> {
@@ -207,7 +218,13 @@ class WorkOrderDetails extends React.Component<Props, State> {
 
   render() {
     const {classes, onWorkOrderRemoved, onCancelClicked} = this.props;
-    const {workOrder, properties, locationId} = this.state;
+    const {
+      workOrder,
+      properties,
+      checklist,
+      locationId,
+      showChecklistDesignMode,
+    } = this.state;
     const {location} = workOrder;
     return (
       <div className={classes.root}>
@@ -216,6 +233,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
             workOrderName={this.props.workOrder.name}
             workOrder={workOrder}
             properties={properties}
+            checklist={checklist}
             locationId={locationId}
             onWorkOrderRemoved={onWorkOrderRemoved}
             onCancelClicked={onCancelClicked}
@@ -419,6 +437,24 @@ class WorkOrderDetails extends React.Component<Props, State> {
                     ]}
                   />
                 </ExpandingPanel>
+                <ExpandingPanel
+                  title={fbt('Checklist', 'Checklist section header')}
+                  rightContent={
+                    <EditToggleButton
+                      isOnEdit={showChecklistDesignMode}
+                      onChange={newToggleValue =>
+                        this.setState({
+                          showChecklistDesignMode: newToggleValue,
+                        })
+                      }
+                    />
+                  }>
+                  <CheckListTable
+                    list={checklist}
+                    onChecklistChanged={this._checklistChangedHandler}
+                    onDesignMode={this.state.showChecklistDesignMode}
+                  />
+                </ExpandingPanel>
               </Grid>
               <Grid item xs={4} sm={4} lg={4} xl={4}>
                 <ExpandingPanel title="Team" className={classes.card}>
@@ -524,6 +560,14 @@ class WorkOrderDetails extends React.Component<Props, State> {
     });
   };
 
+  _checklistChangedHandler = updatedChecklist => {
+    this.setState(() => {
+      return {
+        checklist: updatedChecklist,
+      };
+    });
+  };
+
   _setWorkOrderDetail = (
     key:
       | 'name'
@@ -612,6 +656,9 @@ export default withRouter(
               project {
                 name
                 id
+              }
+              checkList {
+                ...CheckListTable_list
               }
             }
           `,
