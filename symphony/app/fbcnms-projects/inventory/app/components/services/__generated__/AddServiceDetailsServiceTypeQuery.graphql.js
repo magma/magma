@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 51693a8cb69e0d1869e0cd7e3c96505a
+ * @relayHash 75fe47bc29a6d0dba3f0b62940a59860
  */
 
 /* eslint-disable */
@@ -38,6 +38,7 @@ export type AddServiceDetailsServiceTypeQueryResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
   |}
 |};
@@ -70,6 +71,7 @@ query AddServiceDetailsServiceTypeQuery(
       rangeToValue
       isEditable
       isInstanceProperty
+      isMandatory
     }
   }
 }
@@ -210,6 +212,13 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -236,11 +245,11 @@ return {
     "operationKind": "query",
     "name": "AddServiceDetailsServiceTypeQuery",
     "id": null,
-    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  serviceType(id: $serviceTypeId) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n  }\n}\n",
+    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  serviceType(id: $serviceTypeId) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'bad6e41809c47eb435b5720751eafad7';
+(node/*: any*/).hash = 'bfca811a8364844684b9c089fdc47f62';
 module.exports = node;

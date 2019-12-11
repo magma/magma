@@ -40,6 +40,7 @@ export type AddEditLocationTypeCard_editingLocationType = {|
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
     +isEditable: ?boolean,
+    +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
   +surveyTemplateCategories: ?$ReadOnlyArray<?{|
@@ -208,6 +209,13 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "isMandatory",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
@@ -278,5 +286,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd49e3fe9df8141d9881f8160c732032d';
+(node/*: any*/).hash = 'a8646889770a54d6b386f9e60ad52c91';
 module.exports = node;
