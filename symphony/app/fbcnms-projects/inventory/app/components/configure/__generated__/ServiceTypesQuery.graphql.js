@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 83b16284e5b43874f84314ea24e43f9b
+ * @relayHash ab6ae9d4a9c205100df29720e39cb088
  */
 
 /* eslint-disable */
@@ -93,6 +93,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   rangeToValue
   isEditable
   isInstanceProperty
+  isMandatory
 }
 
 fragment ServiceTypeItem_serviceType on ServiceType {
@@ -354,6 +355,13 @@ return {
                         "name": "isInstanceProperty",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "isMandatory",
+                        "args": null,
+                        "storageKey": null
                       }
                     ]
                   },
@@ -388,7 +396,7 @@ return {
     "operationKind": "query",
     "name": "ServiceTypesQuery",
     "id": null,
-    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 50) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  numberOfServices\n}\n",
+    "text": "query ServiceTypesQuery {\n  serviceTypes(first: 50) {\n    edges {\n      node {\n        ...ServiceTypeItem_serviceType\n        ...AddEditServiceTypeCard_editingServiceType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditServiceTypeCard_editingServiceType on ServiceType {\n  id\n  name\n  numberOfServices\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServiceTypeItem_serviceType on ServiceType {\n  id\n  name\n  propertyTypes {\n    ...PropertyTypeFormField_propertyType\n    id\n  }\n  numberOfServices\n}\n",
     "metadata": {
       "connection": [
         {

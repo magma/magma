@@ -58,6 +58,7 @@ export type WorkOrderDetails_workOrder = {|
       +name: string,
       +type: PropertyKind,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
       +stringValue: ?string,
     |},
@@ -301,6 +302,13 @@ return {
               "kind": "ScalarField",
               "alias": null,
               "name": "isEditable",
+              "args": null,
+              "storageKey": null
+            },
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "isMandatory",
               "args": null,
               "storageKey": null
             },

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 255fbff8567ad04bd13f7142ef5824d2
+ * @relayHash b8089e708989299e6c920baeb68b4b85
  */
 
 /* eslint-disable */
@@ -151,6 +151,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   rangeToValue
   isEditable
   isInstanceProperty
+  isMandatory
 }
 */
 
@@ -411,6 +412,13 @@ return {
                         "name": "isInstanceProperty",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "isMandatory",
+                        "args": null,
+                        "storageKey": null
                       }
                     ]
                   },
@@ -489,7 +497,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesQuery",
     "id": null,
-    "text": "query EquipmentTypesQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        ...EquipmentTypeItem_equipmentType\n        ...AddEditEquipmentTypeCard_editingEquipmentType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditEquipmentTypeCard_editingEquipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    isEditable\n    isInstanceProperty\n  }\n  positionDefinitions {\n    id\n    name\n    index\n    visibleLabel\n  }\n  portDefinitions {\n    id\n    name\n    index\n    visibleLabel\n    type\n    portType {\n      id\n      name\n    }\n  }\n  numberOfEquipment\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  type\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n",
+    "text": "query EquipmentTypesQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        ...EquipmentTypeItem_equipmentType\n        ...AddEditEquipmentTypeCard_editingEquipmentType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditEquipmentTypeCard_editingEquipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    isEditable\n    isInstanceProperty\n  }\n  positionDefinitions {\n    id\n    name\n    index\n    visibleLabel\n  }\n  portDefinitions {\n    id\n    name\n    index\n    visibleLabel\n    type\n    portType {\n      id\n      name\n    }\n  }\n  numberOfEquipment\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  type\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
     "metadata": {
       "connection": [
         {

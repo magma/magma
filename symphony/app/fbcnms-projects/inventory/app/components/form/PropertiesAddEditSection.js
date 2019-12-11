@@ -54,7 +54,7 @@ class PropertiesAddEditSection extends React.Component<Props> {
             <Grid key={property.id} item xs={12} sm={12} lg={6} xl={4}>
               <PropertyValueInput
                 hasSpacer={true}
-                required={!!property.propertyType.isInstanceProperty}
+                required={!!property.propertyType.isMandatory}
                 disabled={!property.propertyType.isInstanceProperty}
                 label={property.propertyType.name}
                 className={classes.input}

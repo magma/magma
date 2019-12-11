@@ -44,6 +44,7 @@ export default withStyles(styles)(
           name
           type
           isEditable
+          isMandatory
           isInstanceProperty
           stringValue
         }

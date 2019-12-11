@@ -18,6 +18,7 @@ import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
 import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -27,6 +28,7 @@ import TextField from '@material-ui/core/TextField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
 import update from 'immutability-helper';
+import {getPropertyValue} from '../../common/Property';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
@@ -204,7 +206,7 @@ class PropertyValueInput extends React.Component<Props> {
             required={required}
             disabled={disabled}
             id="property-value"
-            label={label}
+            label={this.props.label}
             className={classNames(classes.input, className)}
             margin={margin}
             value={{
@@ -266,7 +268,7 @@ class PropertyValueInput extends React.Component<Props> {
             required={required}
             disabled={disabled}
             id="property-value"
-            label={label}
+            label={this.props.label}
             className={classNames(classes.input, className)}
             margin={margin}
             onBlur={e => onBlur && onBlur(e)}
@@ -333,21 +335,42 @@ class PropertyValueInput extends React.Component<Props> {
   };
 
   render() {
-    const {property, headlineVariant} = this.props;
+    const input = this.getTextInput();
+
+    const {property, headlineVariant, required} = this.props;
     const propertyType = !!property.propertyType
       ? property.propertyType
       : property;
-    const input = this.getTextInput();
-    return headlineVariant === 'form' ? (
-      <FormField
-        label={propertyType.name}
-        hasSpacer={
-          propertyType.type !== 'gps_location' && propertyType.type !== 'range'
-        }>
-        {input}
-      </FormField>
-    ) : (
-      input
+
+    const propInputType = propertyType.type;
+    if (
+      headlineVariant !== 'form' ||
+      propInputType === 'gps_location' ||
+      propInputType === 'range'
+    ) {
+      return input;
+    }
+
+    return (
+      <FormValidationContext.Consumer>
+        {validationContext => {
+          const errorText = validationContext.errorCheck({
+            fieldId: propertyType.name,
+            fieldDisplayName: propertyType.name,
+            value: getPropertyValue(property),
+            required,
+          });
+          return (
+            <FormField
+              required={required}
+              hasError={!!errorText}
+              errorText={errorText}
+              label={propertyType.name}>
+              {input}
+            </FormField>
+          );
+        }}
+      </FormValidationContext.Consumer>
     );
   }
 }
