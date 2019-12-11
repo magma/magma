@@ -53,10 +53,16 @@ export type ApiUtil = {|
   getSuppressions: (req: ApiRequest) => Promise<Array<AlertSuppression>>,
 
   // receivers
+  createReceiver: (
+    req: {receiver: AlertReceiver} & ApiRequest,
+  ) => Promise<void>,
+  editReceiver: (req: {receiver: AlertReceiver} & ApiRequest) => Promise<void>,
   getReceivers: (req: ApiRequest) => Promise<Array<AlertReceiver>>,
+  deleteReceiver: (req: {receiverName: string} & ApiRequest) => Promise<void>,
 
   // routes
-  getRoutes: (req: ApiRequest) => Promise<Array<AlertRoutingTree>>,
+  getRouteTree: (req: ApiRequest) => Promise<AlertRoutingTree>,
+  editRouteTree: (req: {route: AlertRoutingTree} & ApiRequest) => Promise<void>,
 
   // metric series
   getMetricSeries: (req: ApiRequest) => Promise<Array<PrometheusLabelset>>,

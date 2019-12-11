@@ -19,7 +19,10 @@ type Props = {
   className?: string,
   required?: boolean,
   headline?: string,
-  selectedProject?: ?string,
+  selectedProject?: ?{
+    id: string,
+    name: string,
+  },
   margin?: ?string,
   onProjectSelection: (?{id: string, name: string}) => void,
 };
@@ -104,8 +107,8 @@ class ProjectTypeahead extends React.Component<Props, State> {
           value={
             selectedProject
               ? {
-                  name: selectedProject,
-                  entityId: '1',
+                  name: selectedProject.name,
+                  entityId: selectedProject.id,
                   entityType: '',
                   type: '',
                 }

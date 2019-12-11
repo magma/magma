@@ -10,7 +10,6 @@
 #define LOG_WITH_GLOG
 
 #include <magma_logging.h>
-#include <atomic>
 
 namespace devmand {
 namespace test {
@@ -19,9 +18,7 @@ namespace log {
 
 using namespace std;
 
-extern atomic_bool loggingInitialized;
-
-extern void initLog();
+extern void initLog(uint32_t verbosity = MDEBUG);
 
 } // namespace log
 } // namespace utils

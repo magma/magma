@@ -19,8 +19,9 @@ type AllowedGrePeer struct {
 
 	// ip
 	// Required: true
-	// Format: ipv4
-	IP strfmt.IPv4 `json:"ip"`
+	// Max Length: 49
+	// Min Length: 5
+	IP string `json:"ip"`
 
 	// key
 	// Required: true
@@ -47,11 +48,15 @@ func (m *AllowedGrePeer) Validate(formats strfmt.Registry) error {
 
 func (m *AllowedGrePeer) validateIP(formats strfmt.Registry) error {
 
-	if err := validate.Required("ip", "body", strfmt.IPv4(m.IP)); err != nil {
+	if err := validate.RequiredString("ip", "body", string(m.IP)); err != nil {
 		return err
 	}
 
-	if err := validate.FormatOf("ip", "body", "ipv4", m.IP.String(), formats); err != nil {
+	if err := validate.MinLength("ip", "body", string(m.IP), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("ip", "body", string(m.IP), 49); err != nil {
 		return err
 	}
 

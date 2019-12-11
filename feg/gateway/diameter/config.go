@@ -75,6 +75,7 @@ type DiameterClientConfig struct {
 	WatchdogInterval   uint
 	RetryCount         uint // number of times to reconnect after connection lost
 	SupportedVendorIDs string
+	ServiceContextId   string
 }
 
 func (cfg *DiameterServerConfig) Validate() error {

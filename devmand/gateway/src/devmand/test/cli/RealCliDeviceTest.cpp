@@ -15,6 +15,9 @@
 #include <devmand/devices/Device.h>
 #include <devmand/devices/State.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
+#include <devmand/test/cli/utils/Log.h>
+#include <devmand/test/cli/utils/MockCli.h>
+#include <devmand/test/cli/utils/Ssh.h>
 #include <folly/executors/ThreadedExecutor.h>
 #include <gtest/gtest.h>
 #include <chrono>
@@ -32,9 +35,19 @@ using devmand::devices::Device;
 using devmand::devices::State;
 using devmand::devices::cli::PlaintextCliDevice;
 
-class RealCliDeviceTest : public ::testing::Test {};
+class RealCliDeviceTest : public ::testing::Test {
+ protected:
+  unique_ptr<channels::cli::Engine> cliEngine;
+
+  void SetUp() override {
+    devmand::test::utils::log::initLog();
+    cliEngine = make_unique<channels::cli::Engine>();
+  }
+};
 
 TEST_F(RealCliDeviceTest, DISABLED_ubiquiti) {
+  int i = 0;
+  string output = "";
   Application app;
   cartography::DeviceConfig deviceConfig;
   devmand::cartography::ChannelConfig chnlCfg;
@@ -48,16 +61,25 @@ TEST_F(RealCliDeviceTest, DISABLED_ubiquiti) {
   deviceConfig.channelConfigs.insert(std::make_pair("cli", chnlCfg));
   deviceConfig.ip = "10.19.0.245";
   deviceConfig.id = "ubiquiti-test-device";
+
   std::unique_ptr<devices::Device> dev =
-      PlaintextCliDevice::createDevice(app, deviceConfig);
+      PlaintextCliDevice::createDeviceWithEngine(app, deviceConfig, *cliEngine);
+  do {
+    if (i > 0) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 
-  std::shared_ptr<State> state = dev->getState();
-  const folly::dynamic& stateResult = state->collect().get();
+    i++;
 
-  std::stringstream buffer;
-  buffer << stateResult[kvPairs.at("stateCommand")];
-  EXPECT_EQ(
-      "No ACLs are configured", boost::algorithm::trim_copy(buffer.str()));
+    std::shared_ptr<State> state = dev->getState();
+    const folly::dynamic& stateResult = state->collect().get();
+
+    output = stateResult.getDefault(kvPairs.at("stateCommand"), "").asString();
+    if (i > 20) {
+      FAIL() << "Unable to execute command, probably not connected";
+    }
+  } while (output.empty());
+  EXPECT_EQ("No ACLs are configured", boost::algorithm::trim_copy(output));
 }
 
 } // namespace cli

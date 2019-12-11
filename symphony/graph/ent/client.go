@@ -2239,6 +2239,20 @@ func (c *LocationClient) QueryWorkOrders(l *Location) *WorkOrderQuery {
 	return query
 }
 
+// QueryFloorPlans queries the floor_plans edge of a Location.
+func (c *LocationClient) QueryFloorPlans(l *Location) *FloorPlanQuery {
+	query := &FloorPlanQuery{config: c.config}
+	id := l.id()
+	step := sql.NewStep(
+		sql.From(location.Table, location.FieldID, id),
+		sql.To(floorplan.Table, floorplan.FieldID),
+		sql.Edge(sql.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
+	)
+	query.sql = sql.Neighbors(l.driver.Dialect(), step)
+
+	return query
+}
+
 // LocationTypeClient is a client for the LocationType schema.
 type LocationTypeClient struct {
 	config

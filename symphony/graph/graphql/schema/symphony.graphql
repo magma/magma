@@ -80,6 +80,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {
@@ -1149,7 +1150,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -1160,7 +1160,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -1179,6 +1178,21 @@ type Survey implements Node {
   locationID: ID!
   sourceFile: File
   surveyResponses: [SurveyQuestion]!
+}
+
+input AddFloorPlanInput {
+  name: String!
+  locationID: ID!
+  image: AddImageInput!
+  referenceX: Int!
+  referenceY: Int!
+  latitude: Float!
+  longitude: Float!
+  referencePoint1X: Int!
+  referencePoint1Y: Int!
+  referencePoint2X: Int!
+  referencePoint2Y: Int!
+  scaleInMeters: Float!
 }
 
 type FloorPlan implements Node {
@@ -1683,6 +1697,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -1809,4 +1825,5 @@ type Mutation {
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
 }

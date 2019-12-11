@@ -217,20 +217,22 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	var rsp struct {
 		Equipment struct {
 			Device struct {
+				ID string
 				Up bool
 			}
 		}
 	}
 
-	query := `query { equipment(id: "` + equipment.ID + `") { device {up} } }`
+	query := `query { equipment(id: "` + equipment.ID + `") { device {id up} } }`
 	err = client.New(graphHandler).Post(query, &rsp)
 	require.NoError(t, err)
+	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.True(t, rsp.Equipment.Device.Up)
 
 	ts = 500
 	err = client.New(graphHandler).Post(query, &rsp)
 	require.NoError(t, err)
-
+	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.False(t, rsp.Equipment.Device.Up)
 }
 

@@ -49,6 +49,7 @@
     Tag gateway.mme
     DB /var/opt/magma/fluent-bit/fluent-bit-tail.db
     Refresh_Interval 5
+    Key message
 
 [FILTER]
     Name grep

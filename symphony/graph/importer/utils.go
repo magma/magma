@@ -37,6 +37,21 @@ func findIndex(a []string, x string) int {
 	return -1
 }
 
+func findIndexForSimilar(a []string, x string) int {
+	i := findIndex(a, x)
+	if i != -1 {
+		return i
+	}
+	newX := strings.ReplaceAll(x, " ", "_")
+	i = findIndex(a, newX)
+	if i != -1 {
+		return i
+	}
+	newX = strings.ReplaceAll(x, "_", " ")
+	i = findIndex(a, newX)
+	return i
+}
+
 func equal(a, b []string) bool {
 	if len(a) != len(b) {
 		return false

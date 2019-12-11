@@ -375,6 +375,7 @@ type ComplexityRoot struct {
 		Equipments        func(childComplexity int) int
 		ExternalID        func(childComplexity int) int
 		Files             func(childComplexity int) int
+		FloorPlans        func(childComplexity int) int
 		ID                func(childComplexity int) int
 		Images            func(childComplexity int) int
 		Latitude          func(childComplexity int) int
@@ -437,11 +438,13 @@ type ComplexityRoot struct {
 		AddEquipment                             func(childComplexity int, input models.AddEquipmentInput) int
 		AddEquipmentPortType                     func(childComplexity int, input models.AddEquipmentPortTypeInput) int
 		AddEquipmentType                         func(childComplexity int, input models.AddEquipmentTypeInput) int
+		AddFloorPlan                             func(childComplexity int, input models.AddFloorPlanInput) int
 		AddImage                                 func(childComplexity int, input models.AddImageInput) int
 		AddLink                                  func(childComplexity int, input models.AddLinkInput) int
 		AddLocation                              func(childComplexity int, input models.AddLocationInput) int
 		AddLocationType                          func(childComplexity int, input models.AddLocationTypeInput) int
 		AddService                               func(childComplexity int, data models.ServiceCreateData) int
+		AddServiceLink                           func(childComplexity int, id string, linkID string) int
 		AddServiceType                           func(childComplexity int, data models.ServiceTypeCreateData) int
 		AddTechnician                            func(childComplexity int, input models.TechnicianInput) int
 		AddWiFiScans                             func(childComplexity int, data []*models.SurveyWiFiScanData, locationID string) int
@@ -482,6 +485,7 @@ type ComplexityRoot struct {
 		RemoveLocation                           func(childComplexity int, id string) int
 		RemoveLocationType                       func(childComplexity int, id string) int
 		RemoveService                            func(childComplexity int, id string) int
+		RemoveServiceLink                        func(childComplexity int, id string, linkID string) int
 		RemoveServiceType                        func(childComplexity int, id string) int
 		RemoveSiteSurvey                         func(childComplexity int, id string) int
 		RemoveWorkOrder                          func(childComplexity int, id string) int
@@ -859,8 +863,6 @@ type ComplexityRoot struct {
 type ActionsRuleResolver interface {
 	Trigger(ctx context.Context, obj *ent.ActionsRule) (*models.ActionsTrigger, error)
 	TriggerID(ctx context.Context, obj *ent.ActionsRule) (models.TriggerID, error)
-	RuleActions(ctx context.Context, obj *ent.ActionsRule) ([]*schema.ActionsRuleAction, error)
-	RuleFilters(ctx context.Context, obj *ent.ActionsRule) ([]*schema.ActionsRuleFilter, error)
 }
 type ActionsRuleActionResolver interface {
 	Action(ctx context.Context, obj *schema.ActionsRuleAction) (*models.ActionsAction, error)
@@ -958,6 +960,7 @@ type LocationResolver interface {
 	WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error)
 	CellData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyCellScan, error)
 	DistanceKm(ctx context.Context, obj *ent.Location, latitude float64, longitude float64) (float64, error)
+	FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error)
 }
 type LocationTypeResolver interface {
 	IsSite(ctx context.Context, obj *ent.LocationType) (bool, error)
@@ -989,6 +992,8 @@ type MutationResolver interface {
 	RemoveLink(ctx context.Context, id string, workOrderID *string) (*ent.Link, error)
 	AddService(ctx context.Context, data models.ServiceCreateData) (*ent.Service, error)
 	EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error)
+	AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
+	RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error)
 	AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error)
 	EditServiceType(ctx context.Context, data models.ServiceTypeEditData) (*ent.ServiceType, error)
 	RemoveEquipmentFromPosition(ctx context.Context, positionID string, workOrderID *string) (*ent.EquipmentPosition, error)
@@ -1024,6 +1029,7 @@ type MutationResolver interface {
 	AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error)
 	RemoveCustomer(ctx context.Context, id string) (string, error)
 	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
+	AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -2357,6 +2363,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.Files(childComplexity), true
 
+	case "Location.floorPlans":
+		if e.complexity.Location.FloorPlans == nil {
+			break
+		}
+
+		return e.complexity.Location.FloorPlans(childComplexity), true
+
 	case "Location.id":
 		if e.complexity.Location.ID == nil {
 			break
@@ -2689,6 +2702,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddEquipmentType(childComplexity, args["input"].(models.AddEquipmentTypeInput)), true
 
+	case "Mutation.addFloorPlan":
+		if e.complexity.Mutation.AddFloorPlan == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addFloorPlan_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddFloorPlan(childComplexity, args["input"].(models.AddFloorPlanInput)), true
+
 	case "Mutation.addImage":
 		if e.complexity.Mutation.AddImage == nil {
 			break
@@ -2748,6 +2773,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddService(childComplexity, args["data"].(models.ServiceCreateData)), true
+
+	case "Mutation.addServiceLink":
+		if e.complexity.Mutation.AddServiceLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addServiceLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
 
 	case "Mutation.addServiceType":
 		if e.complexity.Mutation.AddServiceType == nil {
@@ -3228,6 +3265,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.RemoveService(childComplexity, args["id"].(string)), true
+
+	case "Mutation.removeServiceLink":
+		if e.complexity.Mutation.RemoveServiceLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeServiceLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveServiceLink(childComplexity, args["id"].(string), args["linkId"].(string)), true
 
 	case "Mutation.removeServiceType":
 		if e.complexity.Mutation.RemoveServiceType == nil {
@@ -5393,6 +5442,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {
@@ -6462,7 +6512,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -6473,7 +6522,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -6492,6 +6540,21 @@ type Survey implements Node {
   locationID: ID!
   sourceFile: File
   surveyResponses: [SurveyQuestion]!
+}
+
+input AddFloorPlanInput {
+  name: String!
+  locationID: ID!
+  image: AddImageInput!
+  referenceX: Int!
+  referenceY: Int!
+  latitude: Float!
+  longitude: Float!
+  referencePoint1X: Int!
+  referencePoint1Y: Int!
+  referencePoint2X: Int!
+  referencePoint2Y: Int!
+  scaleInMeters: Float!
 }
 
 type FloorPlan implements Node {
@@ -6778,8 +6841,10 @@ type ActionsTriggersSearchResult {
 
 # ActionsRuleAction is a user-configured data about an action to execute, along
 # with data for executing that action
-type ActionsRuleAction 
-  @goModel(model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction") {
+type ActionsRuleAction
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction"
+  ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
   data: String!
@@ -6787,7 +6852,9 @@ type ActionsRuleAction
 
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
-  @goModel(model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter") {
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter"
+  ) {
   filterID: String
   operatorID: String
   operator: ActionsOperator! @goField(forceResolver: true)
@@ -6992,6 +7059,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -7118,6 +7187,7 @@ type Mutation {
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
 }
 `},
 )
@@ -7326,6 +7396,20 @@ func (ec *executionContext) field_Mutation_addEquipment_args(ctx context.Context
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_addFloorPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.AddFloorPlanInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg0, err = ec.unmarshalNAddFloorPlanInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddFloorPlanInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_addImage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -7379,6 +7463,28 @@ func (ec *executionContext) field_Mutation_addLocation_args(ctx context.Context,
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["linkId"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["linkId"] = arg1
 	return args, nil
 }
 
@@ -8027,6 +8133,28 @@ func (ec *executionContext) field_Mutation_removeLocation_args(ctx context.Conte
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeServiceLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["linkId"]; ok {
+		arg1, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["linkId"] = arg1
 	return args, nil
 }
 
@@ -9564,13 +9692,13 @@ func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field 
 		Object:   "ActionsRule",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ActionsRule().RuleActions(rctx, obj)
+		return obj.RuleActions, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9601,13 +9729,13 @@ func (ec *executionContext) _ActionsRule_ruleFilters(ctx context.Context, field 
 		Object:   "ActionsRule",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ActionsRule().RuleFilters(rctx, obj)
+		return obj.RuleFilters, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15671,6 +15799,43 @@ func (ec *executionContext) _Location_distanceKm(ctx context.Context, field grap
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Location_floorPlans(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Location",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Location().FloorPlans(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.FloorPlan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.LocationConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -17261,6 +17426,88 @@ func (ec *executionContext) _Mutation_editService(ctx context.Context, field gra
 	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addServiceLink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddServiceLink(rctx, args["id"].(string), args["linkId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeServiceLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeServiceLink_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveServiceLink(rctx, args["id"].(string), args["linkId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addServiceType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -18724,6 +18971,47 @@ func (ec *executionContext) _Mutation_addActionsRule(ctx context.Context, field 
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addFloorPlan_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddFloorPlan(rctx, args["input"].(models.AddFloorPlanInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.FloorPlan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
@@ -29702,6 +29990,90 @@ func (ec *executionContext) unmarshalInputAddEquipmentTypeInput(ctx context.Cont
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputAddFloorPlanInput(ctx context.Context, obj interface{}) (models.AddFloorPlanInput, error) {
+	var it models.AddFloorPlanInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "locationID":
+			var err error
+			it.LocationID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "image":
+			var err error
+			it.Image, err = ec.unmarshalNAddImageInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddImageInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referenceX":
+			var err error
+			it.ReferenceX, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referenceY":
+			var err error
+			it.ReferenceY, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "latitude":
+			var err error
+			it.Latitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "longitude":
+			var err error
+			it.Longitude, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referencePoint1X":
+			var err error
+			it.ReferencePoint1x, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referencePoint1Y":
+			var err error
+			it.ReferencePoint1y, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referencePoint2X":
+			var err error
+			it.ReferencePoint2x, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referencePoint2Y":
+			var err error
+			it.ReferencePoint2y, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "scaleInMeters":
+			var err error
+			it.ScaleInMeters, err = ec.unmarshalNFloat2float64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputAddImageInput(ctx context.Context, obj interface{}) (models.AddImageInput, error) {
 	var it models.AddImageInput
 	var asMap = obj.(map[string]interface{})
@@ -31708,12 +32080,6 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "linkIds":
-			var err error
-			it.LinkIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -31765,12 +32131,6 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 		case "terminationPointIds":
 			var err error
 			it.TerminationPointIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "linkIds":
-			var err error
-			it.LinkIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32666,6 +33026,9 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 		}
 		return ec._SurveyCellScan(ctx, sel, obj)
 	case *ent.ActionsRule:
+		if obj == nil {
+			return graphql.Null
+		}
 		return ec._ActionsRule(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
@@ -32837,33 +33200,15 @@ func (ec *executionContext) _ActionsRule(ctx context.Context, sel ast.SelectionS
 				return res
 			})
 		case "ruleActions":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ActionsRule_ruleActions(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._ActionsRule_ruleActions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "ruleFilters":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ActionsRule_ruleFilters(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._ActionsRule_ruleFilters(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -34911,6 +35256,20 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 				}
 				return res
 			})
+		case "floorPlans":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_floorPlans(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35238,6 +35597,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addService(ctx, field)
 		case "editService":
 			out.Values[i] = ec._Mutation_editService(ctx, field)
+		case "addServiceLink":
+			out.Values[i] = ec._Mutation_addServiceLink(ctx, field)
+		case "removeServiceLink":
+			out.Values[i] = ec._Mutation_removeServiceLink(ctx, field)
 		case "addServiceType":
 			out.Values[i] = ec._Mutation_addServiceType(ctx, field)
 		case "editServiceType":
@@ -35338,6 +35701,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addActionsRule":
 			out.Values[i] = ec._Mutation_addActionsRule(ctx, field)
+		case "addFloorPlan":
+			out.Values[i] = ec._Mutation_addFloorPlan(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38591,8 +38956,20 @@ func (ec *executionContext) unmarshalNAddEquipmentTypeInput2githubᚗcomᚋfaceb
 	return ec.unmarshalInputAddEquipmentTypeInput(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNAddFloorPlanInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddFloorPlanInput(ctx context.Context, v interface{}) (models.AddFloorPlanInput, error) {
+	return ec.unmarshalInputAddFloorPlanInput(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNAddImageInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddImageInput(ctx context.Context, v interface{}) (models.AddImageInput, error) {
 	return ec.unmarshalInputAddImageInput(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNAddImageInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddImageInput(ctx context.Context, v interface{}) (*models.AddImageInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalNAddImageInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddImageInput(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalNAddLinkInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddLinkInput(ctx context.Context, v interface{}) (models.AddLinkInput, error) {
@@ -39025,7 +39402,7 @@ func (ec *executionContext) marshalNEquipment2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, sel, v[i])
+			ret[i] = ec.marshalNEquipment2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -39535,6 +39912,43 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v []*ent.FloorPlan) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNFloorPlanReferencePoint2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlanReferencePoint(ctx context.Context, sel ast.SelectionSet, v ent.FloorPlanReferencePoint) graphql.Marshaler {
 	return ec._FloorPlanReferencePoint(ctx, sel, &v)
 }
@@ -39832,7 +40246,7 @@ func (ec *executionContext) marshalNLocation2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
+			ret[i] = ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -39869,7 +40283,7 @@ func (ec *executionContext) marshalNLocation2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
+			ret[i] = ec.marshalNLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -40092,7 +40506,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -40129,7 +40543,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -40286,7 +40700,7 @@ func (ec *executionContext) marshalNProperty2ᚕᚖgithubᚗcomᚋfacebookincuba
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalNProperty2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -40998,7 +41412,7 @@ func (ec *executionContext) marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -41035,7 +41449,7 @@ func (ec *executionContext) marshalNWorkOrder2ᚕᚖgithubᚗcomᚋfacebookincub
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
+			ret[i] = ec.marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -42088,6 +42502,17 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return ec.marshalOFloat2float64(ctx, sel, *v)
 }
 
+func (ec *executionContext) marshalOFloorPlan2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v ent.FloorPlan) graphql.Marshaler {
+	return ec._FloorPlan(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx context.Context, sel ast.SelectionSet, v *ent.FloorPlan) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._FloorPlan(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOFutureState2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFutureState(ctx context.Context, v interface{}) (models.FutureState, error) {
 	var res models.FutureState
 	return res, res.UnmarshalGQL(v)
@@ -42528,7 +42953,7 @@ func (ec *executionContext) unmarshalOPropertyInput2ᚕᚖgithubᚗcomᚋfaceboo
 	var err error
 	res := make([]*models.PropertyInput, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalNPropertyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOPropertyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -42548,7 +42973,7 @@ func (ec *executionContext) unmarshalOPropertyInput2ᚕᚖgithubᚗcomᚋfaceboo
 	var err error
 	res := make([]*models.PropertyInput, len(vSlice))
 	for i := range vSlice {
-		res[i], err = ec.unmarshalOPropertyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalNPropertyInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -43039,7 +43464,7 @@ func (ec *executionContext) marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

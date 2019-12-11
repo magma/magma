@@ -125,21 +125,39 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 	p := filter.PropertyValue
 	switch filter.Operator {
 	case models.FilterOperatorIs:
-		q = q.Where(
-			link.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-				),
-			),
-		)
-		pred, err := GetPropertyPredicate(*p)
+		propPred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
-		if pred != nil {
-			q = q.Where(link.HasPropertiesWith(pred))
+
+		propTypePred, err := GetPropertyTypePredicate(*p)
+		if err != nil {
+			return nil, err
 		}
+		q = q.Where(link.Or(
+			link.HasPropertiesWith(
+				property.And(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					),
+					propPred,
+				),
+			),
+			link.And(
+				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasLinkPropertyTypesWith(
+					propertytype.Name(p.Name),
+					propertytype.Type(p.Type.String()),
+					propTypePred,
+				)))),
+				link.Not(link.HasPropertiesWith(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					)),
+				)),
+		),
+		)
 		return q, nil
 	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
 		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)
@@ -157,7 +175,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 				),
 			),
 			link.And(
-				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasPropertyTypesWith(
+				link.HasPortsWith(equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasLinkPropertyTypesWith(
 					propertytype.Name(p.Name),
 					propertytype.Type(p.Type.String()),
 					propTypePred,

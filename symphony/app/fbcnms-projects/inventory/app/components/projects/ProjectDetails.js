@@ -211,6 +211,7 @@ class ProjectDetails extends React.Component<Props, State> {
                 {
                   id: project.id,
                   name: this.props.project.name,
+                  subtext: `ID: ${project.id}`,
                 },
               ]}
               size="large"

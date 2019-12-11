@@ -115,9 +115,9 @@ func (m *importer) ProcessRuralLegacyLocationsCSV(w http.ResponseWriter, r *http
 			parsedLat, _ := strconv.ParseFloat(latVal, 64)
 			parsedLong, _ := strconv.ParseFloat(longVal, 64)
 
-			Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil)
-			Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil)
-			Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil)
+			Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil, nil)
+			Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil, nil)
+			Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil, nil)
 
 			estPropertyInput := []*models.PropertyInput{
 				{
@@ -139,10 +139,10 @@ func (m *importer) ProcessRuralLegacyLocationsCSV(w http.ResponseWriter, r *http
 					IsInstanceProperty: &instance,
 				},
 			}
-			Estacion, _ := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &Distrito.ID, estPropertyInput)
+			Estacion, _ := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &Distrito.ID, estPropertyInput, &CodigoUnicoEStacionVal)
 			estacions = append(estacions, Estacion)
 
-			CentroPoblado, _ := m.getOrCreateLocation(ctx, NombreCentroPobladoVal, 0.0, 0.0, CentroPobladoLocationType, &Distrito.ID, nil)
+			CentroPoblado, _ := m.getOrCreateLocation(ctx, NombreCentroPobladoVal, 0.0, 0.0, CentroPobladoLocationType, &Distrito.ID, nil, nil)
 			pobaldos = append(pobaldos, CentroPoblado)
 		}
 

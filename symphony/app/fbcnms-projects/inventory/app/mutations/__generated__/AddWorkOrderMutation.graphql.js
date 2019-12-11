@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 912c632240ac892147a3dd433f483410
+ * @relayHash 4f1ceaff15aaca806a3a60571d47edce
  */
 
 /* eslint-disable */
@@ -78,6 +78,10 @@ export type AddWorkOrderMutationResponse = {|
       +id: string,
       +name: string,
     |},
+    +project: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}
 |};
 export type AddWorkOrderMutation = {|
@@ -105,6 +109,10 @@ mutation AddWorkOrderMutation(
       name
     }
     workOrderType {
+      id
+      name
+    }
+    project {
       id
       name
     }
@@ -218,6 +226,16 @@ v4 = [
         "concreteType": "WorkOrderType",
         "plural": false,
         "selections": (v3/*: any*/)
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "project",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "Project",
+        "plural": false,
+        "selections": (v3/*: any*/)
       }
     ]
   }
@@ -242,7 +260,7 @@ return {
     "operationKind": "mutation",
     "name": "AddWorkOrderMutation",
     "id": null,
-    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n  }\n}\n",
+    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

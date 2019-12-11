@@ -253,9 +253,9 @@ func (m *importer) ProcessRuralRanCSV(w http.ResponseWriter, r *http.Request) {
 					ModeloEquipoNodoVal = "BTS"
 				}
 
-				Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil)
-				Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil)
-				Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil)
+				Departamento, _ := m.getOrCreateLocation(ctx, DepartamentoVal, 0.0, 0.0, DepartamentoLocationType, nil, nil, nil)
+				Provincia, _ := m.getOrCreateLocation(ctx, ProvinciaVal, 0.0, 0.0, ProvinciaLocationType, &Departamento.ID, nil, nil)
+				Distrito, _ := m.getOrCreateLocation(ctx, DistritoVal, 0.0, 0.0, DistritoLocationType, &Provincia.ID, nil, nil)
 
 				estPropertyInput := []*models.PropertyInput{
 					{
@@ -277,7 +277,7 @@ func (m *importer) ProcessRuralRanCSV(w http.ResponseWriter, r *http.Request) {
 						IsInstanceProperty: &instance,
 					},
 				}
-				Estacion, _ := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &Distrito.ID, estPropertyInput)
+				Estacion, _ := m.getOrCreateLocation(ctx, NombreEstacionVal, parsedLat, parsedLong, EstacionLocationType, &Distrito.ID, estPropertyInput, &CodigoUnicoEStacionVal)
 				Estacion = m.ClientFrom(ctx).Location.UpdateOne(Estacion).SetExternalID(CodigoUnicoEStacionVal).SaveX(ctx)
 
 				BTSEquipmentType := m.getOrCreateEquipmentType(ctx, ModeloEquipoNodoVal, 0, "", 4, []*models.PropertyTypeInput{

@@ -98,6 +98,21 @@ type AddEquipmentTypeInput struct {
 	Properties []*PropertyTypeInput      `json:"properties"`
 }
 
+type AddFloorPlanInput struct {
+	Name             string         `json:"name"`
+	LocationID       string         `json:"locationID"`
+	Image            *AddImageInput `json:"image"`
+	ReferenceX       int            `json:"referenceX"`
+	ReferenceY       int            `json:"referenceY"`
+	Latitude         float64        `json:"latitude"`
+	Longitude        float64        `json:"longitude"`
+	ReferencePoint1x int            `json:"referencePoint1X"`
+	ReferencePoint1y int            `json:"referencePoint1Y"`
+	ReferencePoint2x int            `json:"referencePoint2X"`
+	ReferencePoint2y int            `json:"referencePoint2Y"`
+	ScaleInMeters    float64        `json:"scaleInMeters"`
+}
+
 type AddImageInput struct {
 	EntityType  ImageEntity `json:"entityType"`
 	EntityID    string      `json:"entityId"`
@@ -553,7 +568,6 @@ type ServiceCreateData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceEditData struct {
@@ -564,7 +578,6 @@ type ServiceEditData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceFilterInput struct {

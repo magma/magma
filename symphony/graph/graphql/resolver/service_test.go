@@ -200,9 +200,12 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{l1.ID, l2.ID},
 		TerminationPointIds: []string{eq1.ID},
 	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s.ID, l1.ID)
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s.ID, l2.ID)
 	require.NoError(t, err)
 
 	res, err := r.Service().Topology(ctx, s)
@@ -287,9 +290,10 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{l.ID},
 		TerminationPointIds: []string{router1.ID},
 	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s.ID, l.ID)
 	require.NoError(t, err)
 
 	res, err := r.Service().Topology(ctx, s)
@@ -662,7 +666,6 @@ func TestServicesOfEquipment(t *testing.T) {
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2a",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{},
 		TerminationPointIds: []string{eq1.ID},
 	})
 	require.NoError(t, err)
@@ -670,9 +673,12 @@ func TestServicesOfEquipment(t *testing.T) {
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Internet Access Room 2b",
 		ServiceTypeID:       st.ID,
-		LinkIds:             []string{l1.ID, l2.ID},
 		TerminationPointIds: []string{eq1.ID},
 	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s2.ID, l1.ID)
+	require.NoError(t, err)
+	_, err = mr.AddServiceLink(ctx, s2.ID, l2.ID)
 	require.NoError(t, err)
 
 	eq1Services, err := r.Equipment().Services(ctx, eq1)

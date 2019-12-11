@@ -88,6 +88,8 @@ func (Location) Edges() []ent.Edge {
 			Ref("location"),
 		edge.From("work_orders", WorkOrder.Type).
 			Ref("location"),
+		edge.From("floor_plans", FloorPlan.Type).
+			Ref("location"),
 	}
 }
 

@@ -8,6 +8,7 @@
  * @format
  */
 
+import AddFloorPlanMutation from '../../mutations/AddFloorPlanMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -19,7 +20,7 @@ import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
-import {FileUploadButton} from '../FileUpload';
+import {FileUploadButton, uploadFile} from '../FileUpload';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -49,7 +50,11 @@ type Scale = {
   scaleInMeters?: number,
 };
 
-export default function LocationFloorPlansTab() {
+type Props = {
+  locationId: string,
+};
+
+export default function LocationFloorPlansTab(props: Props) {
   const imageRef = useRef();
   const classes = useStyles();
   const [referencePointDialogShown, setReferencePointDialogShown] = useState(
@@ -59,7 +64,45 @@ export default function LocationFloorPlansTab() {
   const [scaleDialogShown, setScaleDialogShown] = useState(false);
   const [scale, setScale] = useState<?Scale>(null);
   const [message, setMessage] = useState('');
+  const [file, setFile] = useState<?File>();
   useSnackbar(message, {variant: 'info'}, message != '', true);
+
+  const uploadFloorPlan = (imgKey, scaleInMeters) => {
+    const file2 = nullthrows(file);
+    const {x, y, latitude, longitude} = nullthrows(referencePoint);
+    const {x1, y1, x2, y2} = nullthrows(scale);
+
+    AddFloorPlanMutation(
+      {
+        input: {
+          name: '', // TODO expose name field
+          locationID: props.locationId,
+          image: {
+            entityType: 'LOCATION',
+            entityId: '', // we are not using this field here
+            imgKey,
+            fileName: file2.name,
+            fileSize: file2.size,
+            modified: new Date(file2.lastModified).toISOString(),
+            contentType: file2.type,
+          },
+          referenceX: x,
+          referenceY: y,
+          latitude: nullthrows(latitude),
+          longitude: nullthrows(longitude),
+          referencePoint1X: x1,
+          referencePoint1Y: y1,
+          referencePoint2X: nullthrows(x2),
+          referencePoint2Y: nullthrows(y2),
+          scaleInMeters: scaleInMeters,
+        },
+      },
+      {
+        onCompleted: () => setMessage('Uploaded successfully'),
+        onError: () => setMessage('Error uploading image'),
+      },
+    );
+  };
 
   return (
     <>
@@ -88,6 +131,9 @@ export default function LocationFloorPlansTab() {
             setMessage('Uploading...');
             setScaleDialogShown(false);
             setScale({...nullthrows(scale), scaleInMeters});
+            uploadFile(nullthrows(file), (_, imgKey) =>
+              uploadFloorPlan(imgKey, scaleInMeters),
+            );
           }}
           onClose={() => setScaleDialogShown(false)}
         />
@@ -122,6 +168,7 @@ export default function LocationFloorPlansTab() {
             }
           };
           reader.readAsDataURL(event.currentTarget.files[0]);
+          setFile(event.currentTarget.files[0]);
           setMessage(
             'Click a point on the image to provide a lat/lon reference',
           );

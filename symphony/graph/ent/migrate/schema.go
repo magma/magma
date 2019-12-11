@@ -428,7 +428,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "floor_plan_location_id", Type: field.TypeInt, Nullable: true},
+		{Name: "location_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_reference_point_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_scale_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_image_id", Type: field.TypeInt, Nullable: true},

@@ -36,6 +36,7 @@ const (
 	DisableDestHostEnv      = "DISABLE_DEST_HOST"
 	UseGyForAuthOnlyEnv     = "USE_GY_FOR_AUTH_ONLY"
 	GySupportedVendorIDsEnv = "GY_SUPPORTED_VENDOR_IDS"
+	GyServiceContextIdEnv   = "GY_SERVICE_CONTEXT_ID"
 
 	GyInitMethodFlag         = "gy_init_method"
 	OCSApnOverwriteFlag      = "ocs_apn_overwrite"
@@ -125,6 +126,7 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 			RetryCount:         uint(retries),
 			SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
+			ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
 		}
 	}
 	retries = configsPtr.GetGy().GetServer().GetRetryCount()
@@ -141,6 +143,7 @@ func GetGyClientConfiguration() *diameter.DiameterClientConfig {
 		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
 		RetryCount:         uint(retries),
 		SupportedVendorIDs: diameter.GetValueOrEnv("", GySupportedVendorIDsEnv, ""),
+		ServiceContextId:   diameter.GetValueOrEnv("", GyServiceContextIdEnv, ""),
 	}
 }
 

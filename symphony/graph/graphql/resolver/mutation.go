@@ -1611,8 +1611,7 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 		SetNillableExternalID(data.ExternalID).
 		SetTypeID(data.ServiceTypeID).
 		AddUpstreamIDs(data.UpstreamServiceIds...).
-		AddTerminationPointIDs(data.TerminationPointIds...).
-		AddLinkIDs(data.LinkIds...)
+		AddTerminationPointIDs(data.TerminationPointIds...)
 
 	if data.CustomerID != nil {
 		query.AddCustomerIDs(*data.CustomerID)
@@ -1641,9 +1640,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	oldLinkIds := s.QueryLinks().IDsX(ctx)
-	addedLinkIds, deletedLinkIds := resolverutil.GetDifferenceBetweenSlices(oldLinkIds, data.LinkIds)
-
 	oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
 	addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
 		oldTerminationPointIds, data.TerminationPointIds)
@@ -1662,8 +1658,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		UpdateOne(s).
 		SetName(data.Name).
 		SetNillableExternalID(data.ExternalID).
-		RemoveLinkIDs(deletedLinkIds...).
-		AddLinkIDs(addedLinkIds...).
 		RemoveTerminationPointIDs(deletedTerminationPointIds...).
 		AddTerminationPointIDs(addedTerminationPointIds...).
 		RemoveCustomerIDs(deletedCustomerIds...).
@@ -1709,6 +1703,38 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 			}
 		}
 	}
+	return s, nil
+}
+
+func (r mutationResolver) AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		AddLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q add link: id=%q", id, linkID)
+	}
+
+	return s, nil
+}
+
+func (r mutationResolver) RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		RemoveLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q remove link: id=%q", id, linkID)
+	}
+
 	return s, nil
 }
 
@@ -2586,4 +2612,46 @@ func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddAc
 		return nil, errors.Wrap(err, "creating actionsrule")
 	}
 	return actionsRule, nil
+}
+
+func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
+	img, err := r.createImage(ctx, input.Image)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create image")
+	}
+
+	client := r.ClientFrom(ctx)
+	referencePoint, err := client.FloorPlanReferencePoint.Create().
+		SetX(input.ReferenceX).
+		SetY(input.ReferenceY).
+		SetLatitude(input.Latitude).
+		SetLongitude(input.Longitude).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create reference point")
+	}
+
+	scale, err := client.FloorPlanScale.Create().
+		SetReferencePoint1X(input.ReferencePoint1x).
+		SetReferencePoint1Y(input.ReferencePoint1y).
+		SetReferencePoint2X(input.ReferencePoint2x).
+		SetReferencePoint2Y(input.ReferencePoint2y).
+		SetScaleInMeters(input.ScaleInMeters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create scale")
+	}
+
+	floorPlan, err := client.FloorPlan.Create().
+		SetName(input.Name).
+		SetLocationID(input.LocationID).
+		SetImage(img).
+		SetReferencePoint(referencePoint).
+		SetScale(scale).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create floor plan")
+	}
+
+	return floorPlan, nil
 }

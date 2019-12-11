@@ -237,7 +237,14 @@ class WorkOrderDetails extends React.Component<Props, State> {
                     <FormField label="Project">
                       <ProjectTypeahead
                         className={classes.gridInput}
-                        selectedProject={workOrder.project?.name}
+                        selectedProject={
+                          workOrder.project
+                            ? {
+                                id: workOrder.project.id,
+                                name: workOrder.project.name,
+                              }
+                            : null
+                        }
                         margin="dense"
                         onProjectSelection={project =>
                           this._setWorkOrderDetail('project', project)

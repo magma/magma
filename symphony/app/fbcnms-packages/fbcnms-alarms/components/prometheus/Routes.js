@@ -52,7 +52,7 @@ export default function Routes(props: Props) {
   };
 
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
-    apiUtil.getRoutes,
+    apiUtil.getRouteTree,
     {networkId: match.params.networkId},
     lastRefreshTime,
   );
@@ -66,7 +66,7 @@ export default function Routes(props: Props) {
     );
   }
 
-  const routesList = response || [];
+  const routesList = response?.routes || [];
 
   return (
     <>
