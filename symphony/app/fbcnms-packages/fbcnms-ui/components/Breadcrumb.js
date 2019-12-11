@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {TextVariant} from '../theme/symphony';
+
 import * as React from 'react';
 import SymphonyTheme from '../theme/symphony';
 import Text from './design-system/Text';
@@ -29,7 +31,6 @@ const useStyles = makeStyles(theme => ({
   },
   breadcrumbName: {
     whiteSpace: 'nowrap',
-    fontWeight: 500,
     color: theme.palette.blueGrayDark,
   },
   parentBreadcrumb: {
@@ -68,16 +69,19 @@ type Props = {
   data: BreadcrumbData,
   isLastBreadcrumb: boolean,
   size?: 'default' | 'small' | 'large',
+  variant?: TextVariant,
 };
 
 const Breadcrumb = (props: Props) => {
-  const {data, isLastBreadcrumb, size} = props;
+  const {data, isLastBreadcrumb, size, variant} = props;
   const {id, name, subtext, onClick} = data;
   const classes = useStyles();
   return (
     <div key={id} className={classes.root}>
       <div className={classes.upperSection}>
         <Tooltip
+          arrow
+          interactive
           placement="top"
           title={
             typeof subtext === 'string' ? (
@@ -90,12 +94,13 @@ const Breadcrumb = (props: Props) => {
           }>
           <div>
             <Text
+              variant={
+                variant ? variant : size === 'small' ? 'subtitle2' : 'h6'
+              }
               className={classNames({
                 [classes.breadcrumbName]: true,
                 [classes.parentBreadcrumb]: !isLastBreadcrumb,
                 [classes.hover]: !!onClick,
-                [classes.smallText]: size === 'small',
-                [classes.largeText]: size !== 'small',
               })}
               onClick={() => onClick && onClick(id)}>
               {name}
@@ -105,11 +110,8 @@ const Breadcrumb = (props: Props) => {
       </div>
       {!isLastBreadcrumb && (
         <Text
-          className={classNames({
-            [classes.slash]: true,
-            [classes.smallText]: size === 'small',
-            [classes.largeText]: size !== 'small',
-          })}>
+          variant={variant ? variant : size === 'small' ? 'subtitle2' : 'h6'}
+          className={classes.slash}>
           {'/'}
         </Text>
       )}

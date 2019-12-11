@@ -38,12 +38,11 @@ class MagmaPyLintTest(unittest.TestCase):
         )
 
         directories = [
-            'captive_portal',
             'enodebd',
             # 'mobilityd',
             'pipelined',
             # 'pkt_tester',
-            # 'policydb',
+            'policydb',
             # 'redirectd',
             'subscriberdb',
         ]

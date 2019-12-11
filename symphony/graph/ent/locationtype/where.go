@@ -885,16 +885,12 @@ func IndexLTE(v int) predicate.LocationType {
 func HasLocations() predicate.LocationType {
 	return predicate.LocationType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(LocationsColumn).
-						From(builder.Table(LocationsTable)).
-						Where(sql.NotNull(LocationsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationsTable, FieldID),
+				sql.Edge(sql.O2M, true, LocationsTable, LocationsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -918,16 +914,12 @@ func HasLocationsWith(preds ...predicate.Location) predicate.LocationType {
 func HasPropertyTypes() predicate.LocationType {
 	return predicate.LocationType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertyTypesColumn).
-						From(builder.Table(PropertyTypesTable)).
-						Where(sql.NotNull(PropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertyTypesTable, PropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -951,16 +943,12 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.LocationTyp
 func HasSurveyTemplateCategories() predicate.LocationType {
 	return predicate.LocationType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(SurveyTemplateCategoriesColumn).
-						From(builder.Table(SurveyTemplateCategoriesTable)).
-						Where(sql.NotNull(SurveyTemplateCategoriesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SurveyTemplateCategoriesTable, FieldID),
+				sql.Edge(sql.O2M, false, SurveyTemplateCategoriesTable, SurveyTemplateCategoriesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

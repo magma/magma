@@ -122,6 +122,11 @@ func (l *Location) QueryWorkOrders() *WorkOrderQuery {
 	return (&LocationClient{l.config}).QueryWorkOrders(l)
 }
 
+// QueryFloorPlans queries the floor_plans edge of the Location.
+func (l *Location) QueryFloorPlans() *FloorPlanQuery {
+	return (&LocationClient{l.config}).QueryFloorPlans(l)
+}
+
 // Update returns a builder for updating this Location.
 // Note that, you need to call Location.Unwrap() before calling this method, if this Location
 // was returned from a transaction, and the transaction was committed or rolled back.

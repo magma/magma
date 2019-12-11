@@ -178,10 +178,18 @@ class BridgeTools:
             """
             resubmit(port,1) => resubmit(port,app_name(main_table))
             """
-            resubmit_tokens = match.group(1).split(',')
-            in_port, table = resubmit_tokens[0], resubmit_tokens[1]
-            return 'resubmit({},{})'.format(in_port,
-                                            annotated_table_num(table))
+            ret = ''
+            # We can have more than one resubmit per flow
+            actions = [a for a in match.group().split('resubmit') if a]
+            for action in actions:
+                resubmit_tokens = re.search(r'\((.*?)\)', action)\
+                                    .group(1).split(',')
+                in_port, table = resubmit_tokens[0], resubmit_tokens[1]
+                if ret:
+                    ret += ','
+                ret += 'resubmit({},{})'.format(in_port,
+                                                annotated_table_num(table))
+            return ret
 
         def parse_flow(flow):
             sub_rules = [

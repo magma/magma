@@ -20,7 +20,6 @@ setup(
     name='lte',
     version=VERSION,
     packages=[
-        'magma.captive_portal',
         'magma.enodebd',
         'magma.enodebd.data_models',
         'magma.enodebd.device_config',
@@ -101,7 +100,7 @@ setup(
             # Keep grpcio and grpcio-tools on same version for now
             # If you update this version here, you probably also want to
             # update it in lte/gateway/python/Makefile
-            'grpcio-tools==1.16.1',
+            'grpcio-tools==1.25.0',
             'nose==1.3.7',
             'pyroute2',
             'iperf3',

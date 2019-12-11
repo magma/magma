@@ -7,6 +7,7 @@ from dacite import from_dict
 
 from ._utils import PropertyValue, _get_properties_to_add, _make_property_types
 from .consts import Customer, Equipment, Link, Service, ServiceType
+from .graphql.add_service_link_mutation import AddServiceLinkMutation
 from .graphql.add_service_mutation import AddServiceMutation, ServiceCreateData
 from .graphql.add_service_type_mutation import (
     AddServiceTypeMutation,
@@ -92,9 +93,12 @@ def add_service(
         properties=properties,
         upstreamServiceIds=[],
         terminationPointIds=[e.id for e in termination_points],
-        linkIds=[l.id for l in links],
     )
     result = AddServiceMutation.execute(client, data=service_create_data).addService
+    for l in links:
+        result = AddServiceLinkMutation.execute(
+            client, id=result.id, linkId=l.id
+        ).addServiceLink
     return Service(
         name=result.name,
         id=result.id,

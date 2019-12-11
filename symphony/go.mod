@@ -9,15 +9,16 @@ require (
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
 	contrib.go.opencensus.io/integrations/ocsql v0.1.5-0.20190624063948-41ee6eb7a3ea
-	github.com/99designs/gqlgen v0.10.1
+	github.com/99designs/gqlgen v0.10.2
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0
 	github.com/DATA-DOG/go-sqlmock v1.3.3
+	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/aws/aws-sdk-go v1.19.45
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/facebookincubator/ent v0.0.0-20191127142044-5fe9fcdc1b58
+	github.com/facebookincubator/ent v0.0.0-20191128111655-f98dbbc440cb
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
@@ -41,7 +42,7 @@ require (
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/stretchr/testify v1.4.0
 	github.com/unrolled/render v1.0.1
-	github.com/vektah/gqlparser v1.1.2
+	github.com/vektah/gqlparser v1.2.0
 	github.com/volatiletech/authboss v2.3.0+incompatible
 	go.opencensus.io v0.22.2
 	go.uber.org/multierr v1.4.0 // indirect
@@ -52,10 +53,10 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191105231009-c1f44814a5cd // indirect
 	golang.org/x/text v0.3.2
-	golang.org/x/tools v0.0.0-20191107010934-f79515f33823 // indirect
+	golang.org/x/tools v0.0.0-20191127201027-ecd32218bd7f // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.25.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gopkg.in/yaml.v2 v2.2.5 // indirect
+	gopkg.in/yaml.v2 v2.2.7 // indirect
 )

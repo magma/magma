@@ -8,15 +8,17 @@
  * @format
  */
 
+import type {AddEditWorkOrderTypeCard_editingWorkOrderType} from './__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql';
 import type {ContextRouter} from 'react-router-dom';
+import type {EditWorkOrderTypeMutationResponse} from '../../mutations/__generated__/EditWorkOrderTypeMutation.graphql';
 import type {WithStyles} from '@material-ui/core';
-import type {WorkOrderTypeItem_workOrderType} from './__generated__/WorkOrderTypeItem_workOrderType.graphql';
 
 import AddEditWorkOrderTypeCard from './AddEditWorkOrderTypeCard';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import ConfigureTitle from '@fbcnms/ui/components/ConfigureTitle';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
-import WorkOrderTypeItem from './WorkOrderTypeItem';
+import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
@@ -38,6 +40,7 @@ const styles = theme => ({
     overflowY: 'hidden',
   },
   typesList: {
+    flexGrow: 1,
     padding: '24px',
   },
   content: {
@@ -49,6 +52,7 @@ const styles = theme => ({
     marginBottom: theme.spacing(),
   },
   addButton: {
+    alignSelf: 'flex-end',
     marginLeft: 'auto',
   },
   addButtonContainer: {
@@ -61,9 +65,8 @@ type Props = ContextRouter & WithStyles<typeof styles> & {};
 
 type State = {
   dialogKey: number,
-  errorMessage: ?string,
   showAddEditCard: boolean,
-  editingWorkOrderType: ?WorkOrderTypeItem_workOrderType,
+  editingWorkOrderType: ?AddEditWorkOrderTypeCard_editingWorkOrderType,
 };
 
 const workOrderTypesQuery = graphql`
@@ -71,10 +74,10 @@ const workOrderTypesQuery = graphql`
     workOrderTypes(first: 50) @connection(key: "Configure_workOrderTypes") {
       edges {
         node {
-          ...WorkOrderTypeItem_workOrderType
-          ...AddEditWorkOrderTypeCard_editingWorkOrderType
           id
           name
+          description
+          ...AddEditWorkOrderTypeCard_editingWorkOrderType
         }
       }
     }
@@ -84,7 +87,6 @@ const workOrderTypesQuery = graphql`
 class WorkOrderTypes extends React.Component<Props, State> {
   state = {
     dialogKey: 1,
-    errorMessage: null,
     showAddEditCard: false,
     editingWorkOrderType: null,
   };
@@ -114,6 +116,10 @@ class WorkOrderTypes extends React.Component<Props, State> {
           return (
             <div className={classes.typesList}>
               <div className={classes.addButtonContainer}>
+                <ConfigureTitle
+                  title="Work Order Templates"
+                  subtitle="Create and manage reusable work orders."
+                />
                 <Button
                   className={classes.addButton}
                   onClick={() => this.showAddEditWorkOrderTypeCard(null)}>
@@ -121,19 +127,34 @@ class WorkOrderTypes extends React.Component<Props, State> {
                 </Button>
               </div>
               <div className={classes.root}>
-                {workOrderTypes.edges
-                  .map(edge => edge.node)
-                  .sort((woTypeA, woTypeB) =>
-                    sortLexicographically(woTypeA.name, woTypeB.name),
-                  )
-                  .map(woType => (
-                    <div className={classes.listItem} key={woType.id}>
-                      <WorkOrderTypeItem
-                        workOrderType={woType}
-                        onEdit={() => this.showAddEditWorkOrderTypeCard(woType)}
-                      />
-                    </div>
-                  ))}
+                <Table
+                  className={classes.table}
+                  data={workOrderTypes.edges
+                    .map(edge => edge.node)
+                    .sort((woTypeA, woTypeB) =>
+                      sortLexicographically(woTypeA.name, woTypeB.name),
+                    )}
+                  columns={[
+                    {
+                      key: 'name',
+                      title: 'Work order template',
+                      render: row => (
+                        <Button
+                          variant="text"
+                          onClick={() =>
+                            this.showAddEditWorkOrderTypeCard(row)
+                          }>
+                          {row.name}
+                        </Button>
+                      ),
+                    },
+                    {
+                      key: 'description',
+                      title: 'Description',
+                      render: row => row.description,
+                    },
+                  ]}
+                />
               </div>
             </div>
           );
@@ -142,7 +163,9 @@ class WorkOrderTypes extends React.Component<Props, State> {
     );
   }
 
-  showAddEditWorkOrderTypeCard = (woType: ?WorkOrderTypeItem_workOrderType) => {
+  showAddEditWorkOrderTypeCard = (
+    woType: ?AddEditWorkOrderTypeCard_editingWorkOrderType,
+  ) => {
     ServerLogger.info(LogEvents.ADD_WORK_ORDER_TYPE_BUTTON_CLICKED);
     this.setState({editingWorkOrderType: woType, showAddEditCard: true});
   };
@@ -154,7 +177,12 @@ class WorkOrderTypes extends React.Component<Props, State> {
       dialogKey: prevState.dialogKey + 1,
     }));
 
-  saveWorkOrder = (workOrderType: WorkOrderTypeItem_workOrderType) => {
+  saveWorkOrder = (
+    workOrderType: $PropertyType<
+      EditWorkOrderTypeMutationResponse,
+      'editWorkOrderType',
+    >,
+  ) => {
     ServerLogger.info(LogEvents.SAVE_WORK_ORDER_TYPE_BUTTON_CLICKED);
     this.setState(prevState => {
       if (workOrderType) {

@@ -192,5 +192,5 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	return &models.LinkSearchResult{
 		Links: links,
 		Count: count,
-	}, err
+	}, nil
 }

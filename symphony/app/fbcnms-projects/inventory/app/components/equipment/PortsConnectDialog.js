@@ -8,7 +8,9 @@
  * @format
  */
 
+import type {ContextRouter} from 'react-router-dom';
 import type {Equipment, EquipmentPort} from '../../common/Equipment';
+import type {PowerSearchEquipmentResultsTable_equipment} from '../comparison_view/__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
 import type {Property} from '../../common/Property';
 import type {WithStyles} from '@material-ui/core';
 
@@ -19,6 +21,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentComparisonViewQueryRenderer';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import PortsConnectConfirmation from './PortsConnectConfirmation';
+import PowerSearchEquipmentResultsTable from '../comparison_view/PowerSearchEquipmentResultsTable';
 import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
 import React from 'react';
 import Step from '@material-ui/core/Step';
@@ -31,6 +34,7 @@ import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'react-relay';
 import {sortPropertiesByIndex} from '../../common/Property';
 import {uniqBy} from 'lodash';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -80,7 +84,8 @@ type Props = {
   equipment: Equipment,
   port: EquipmentPort,
   onConnectPorts: (EquipmentPort, Array<Property>) => void,
-} & WithStyles<typeof styles>;
+} & WithStyles<typeof styles> &
+  ContextRouter;
 
 type State = {
   activeEquipement: ?Equipment,
@@ -93,25 +98,27 @@ const steps = ['Select Equipment', 'Select Port', 'Link Properties', 'Confirm'];
 
 const portsConnectDialogQuery = graphql`
   query PortsConnectDialogQuery($equipmentId: ID!) {
-    equipment(id: $equipmentId) {
-      id
-      name
-      equipmentType {
+    equipment: node(id: $equipmentId) {
+      ... on Equipment {
         id
         name
-        portDefinitions {
+        equipmentType {
           id
           name
-          visibleLabel
-          type
-          bandwidth
+          portDefinitions {
+            id
+            name
+            visibleLabel
+            type
+            bandwidth
+          }
         }
-      }
-      positions {
-        ...EquipmentPortsTable_position @relay(mask: false)
-      }
-      ports {
-        ...EquipmentPortsTable_port @relay(mask: false)
+        positions {
+          ...EquipmentPortsTable_position @relay(mask: false)
+        }
+        ports {
+          ...EquipmentPortsTable_port @relay(mask: false)
+        }
       }
     }
   }
@@ -161,16 +168,30 @@ class PortsConnectDialog extends React.Component<Props, State> {
     });
 
   getStepContent = () => {
-    const {classes} = this.props;
+    const {history, classes} = this.props;
     const {linkProperties} = this.state;
+    const EquipmentTable = (props: {
+      equipment: PowerSearchEquipmentResultsTable_equipment,
+    }) => {
+      return (
+        <div className={classes.searchResults}>
+          <PowerSearchEquipmentResultsTable
+            equipment={props.equipment}
+            onEquipmentSelected={this.handleElementSelected}
+            onWorkOrderSelected={workOrderId =>
+              history.replace(`inventory?workorder=${workOrderId}`)
+            }
+          />
+        </div>
+      );
+    };
     switch (this.state.activeStep) {
       case 0:
         return (
           <div className={classes.searchResults}>
-            <EquipmentComparisonViewQueryRenderer
-              limit={50}
-              onEquipmentSelected={this.handleElementSelected}
-            />
+            <EquipmentComparisonViewQueryRenderer limit={50}>
+              {props => <EquipmentTable {...props} />}
+            </EquipmentComparisonViewQueryRenderer>
           </div>
         );
       case 1:
@@ -297,4 +318,4 @@ class PortsConnectDialog extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(PortsConnectDialog);
+export default withRouter(withStyles(styles)(PortsConnectDialog));

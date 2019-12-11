@@ -12,7 +12,6 @@ import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
 import type {PropertyType} from '../../common/PropertyType';
 import type {ServiceComparisonViewQueryRendererPropertiesQueryResponse} from './__generated__/ServiceComparisonViewQueryRendererPropertiesQuery.graphql.js';
 
-import AddServiceCard from './AddServiceCard';
 import AddServiceDialog from './AddServiceDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
@@ -22,7 +21,7 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import ServiceCard from './ServiceCard';
+import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
@@ -116,11 +115,6 @@ const ServiceComparisonView = () => {
   const [filters, setFilters] = useState([]);
   const classes = useStyles();
 
-  const selectedServiceTypeId = useMemo(
-    () => extractEntityIdFromUrl('serviceType', location.search),
-    [location.search],
-  );
-
   const selectedServiceCardId = useMemo(
     () => extractEntityIdFromUrl('service', location.search),
     [location],
@@ -145,13 +139,6 @@ const ServiceComparisonView = () => {
     .concat(servicePropertiesFilterConfigs)
     .concat(locationTypesFilterConfigs);
 
-  const navigateToAddService = (selectedServiceTypeId: ?string) => {
-    history.push(
-      match.url +
-        (selectedServiceTypeId ? `?serviceType=${selectedServiceTypeId}` : ''),
-    );
-  };
-
   const navigateToService = (selectedServiceId: ?string) => {
     history.push(
       match.url + (selectedServiceId ? `?service=${selectedServiceId}` : ''),
@@ -166,18 +153,10 @@ const ServiceComparisonView = () => {
 
   const hideDialog = useCallback(() => setDialogOpen(false), [setDialogOpen]);
 
-  if (selectedServiceTypeId != null) {
-    return (
-      <InventoryErrorBoundary>
-        <AddServiceCard serviceTypeId={selectedServiceTypeId} />
-      </InventoryErrorBoundary>
-    );
-  }
-
   if (selectedServiceCardId != null) {
     return (
       <InventoryErrorBoundary>
-        <ServiceCard serviceId={selectedServiceCardId} />
+        <ServiceCardQueryRenderer serviceId={selectedServiceCardId} />
       </InventoryErrorBoundary>
     );
   }
@@ -228,8 +207,8 @@ const ServiceComparisonView = () => {
           key={`new_service_${dialogKey}`}
           open={dialogOpen}
           onClose={hideDialog}
-          onServiceTypeSelected={typeId => {
-            navigateToAddService(typeId);
+          onServiceCreated={serviceId => {
+            navigateToService(serviceId);
             setDialogOpen(false);
           }}
         />

@@ -49,28 +49,6 @@ MESSAGE_DEF(
   itti_nas_auth_param_req_t,
   nas_auth_param_req)
 MESSAGE_DEF(
-  NAS_SGS_DETACH_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_sgs_detach_req_t,
-  nas_sgs_detach_req)
-MESSAGE_DEF(
-  NAS_DETACH_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_detach_req_t,
-  nas_detach_req)
-
-/* MME app -> NAS layer messages */
-MESSAGE_DEF(
-  NAS_IMPLICIT_DETACH_UE_IND,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_implicit_detach_ue_ind_t,
-  nas_implicit_detach_ue_ind)
-MESSAGE_DEF(
-  NAS_NW_INITIATED_DETACH_UE_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_nw_initiated_detach_ue_req_t,
-  nas_nw_initiated_detach_ue_req)
-MESSAGE_DEF(
   NAS_EXTENDED_SERVICE_REQ,
   MESSAGE_PRIORITY_MED,
   itti_nas_extended_service_req_t,

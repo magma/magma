@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash db1c27b1976996dd33dcd3a71d6410fd
+ * @relayHash 7a31dc75df47affd1b08d069a19ba443
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-type WorkOrderTypeItem_workOrderType$ref = any;
+type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type AddWorkOrderTypeInput = {|
@@ -56,7 +56,7 @@ export type AddWorkOrderTypeMutationResponse = {|
   +addWorkOrderType: ?{|
     +id: string,
     +name: string,
-    +$fragmentRefs: WorkOrderTypeItem_workOrderType$ref,
+    +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
   |}
 |};
 export type AddWorkOrderTypeMutation = {|
@@ -73,41 +73,31 @@ mutation AddWorkOrderTypeMutation(
   addWorkOrderType(input: $input) {
     id
     name
-    ...WorkOrderTypeItem_workOrderType
+    ...AddEditWorkOrderTypeCard_editingWorkOrderType
   }
 }
 
-fragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {
-  ...PropertyTypeFormField_propertyType
-  id
-  index
-}
-
-fragment PropertyTypeFormField_propertyType on PropertyType {
+fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
   id
   name
-  type
-  index
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
-  isEditable
-  isInstanceProperty
-}
-
-fragment WorkOrderTypeItem_workOrderType on WorkOrderType {
-  id
-  name
-  propertyTypes {
-    ...DynamicPropertyTypesGrid_propertyTypes
-    id
-  }
+  description
   numberOfWorkOrders
+  propertyTypes {
+    id
+    name
+    type
+    index
+    stringValue
+    intValue
+    booleanValue
+    floatValue
+    latitudeValue
+    longitudeValue
+    rangeFromValue
+    rangeToValue
+    isEditable
+    isInstanceProperty
+  }
 }
 */
 
@@ -163,7 +153,7 @@ return {
           (v3/*: any*/),
           {
             "kind": "FragmentSpread",
-            "name": "WorkOrderTypeItem_workOrderType",
+            "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
             "args": null
           }
         ]
@@ -186,6 +176,20 @@ return {
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "description",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "numberOfWorkOrders",
+            "args": null,
+            "storageKey": null
+          },
           {
             "kind": "LinkedField",
             "alias": null,
@@ -282,13 +286,6 @@ return {
                 "storageKey": null
               }
             ]
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "numberOfWorkOrders",
-            "args": null,
-            "storageKey": null
           }
         ]
       }
@@ -298,11 +295,11 @@ return {
     "operationKind": "mutation",
     "name": "AddWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation AddWorkOrderTypeMutation(\n  $input: AddWorkOrderTypeInput!\n) {\n  addWorkOrderType(input: $input) {\n    id\n    name\n    ...WorkOrderTypeItem_workOrderType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment WorkOrderTypeItem_workOrderType on WorkOrderType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfWorkOrders\n}\n",
+    "text": "mutation AddWorkOrderTypeMutation(\n  $input: AddWorkOrderTypeInput!\n) {\n  addWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'dc294b47ae1e166b638cb2a93b0b61f4';
+(node/*: any*/).hash = '625638ad0b2898d9fadc2b197d39aa3a';
 module.exports = node;

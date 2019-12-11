@@ -7,6 +7,8 @@
  * @flow
  * @format
  */
+
+import type {FocusEvent} from '@fbcnms/ui/components/design-system/Input/TextInput';
 import type {Property} from '../../common/Property';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
@@ -37,7 +39,7 @@ type Props = {
   required: boolean,
   disabled: boolean,
   onChange: (Property | PropertyType) => void,
-  onBlur?: () => void,
+  onBlur?: (e: FocusEvent<HTMLInputElement>) => void,
   onKeyDown?: ?(e: SyntheticKeyboardEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
   headlineVariant?: 'headline' | 'form',
@@ -103,11 +105,12 @@ class PropertyValueInput extends React.Component<Props> {
         return inputType == 'Property' ? (
           <EnumPropertySelectValueInput
             label={label}
-            className={className}
+            className={classNames(classes.input, className)}
             inputClassName={classNames(classes.selectMenu, inputClassName)}
             margin={margin}
             property={property}
             onChange={onChange}
+            autoFocus={autoFocus}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />
@@ -128,7 +131,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             margin={margin}
             value={property.stringValue ?? ''}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -157,7 +160,7 @@ class PropertyValueInput extends React.Component<Props> {
             margin={margin}
             placeholder={'0'}
             {...(property.intValue ? {value: property.intValue} : {})}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -182,7 +185,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             margin={margin}
             value={property.floatValue ?? 0}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -232,7 +235,7 @@ class PropertyValueInput extends React.Component<Props> {
             id="property-value"
             variant="outlined"
             className={classNames(classes.input, className)}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             label={label}
             margin={margin}
             value={!!property.booleanValue ? 'True' : 'False'}
@@ -266,7 +269,7 @@ class PropertyValueInput extends React.Component<Props> {
             label={label}
             className={classNames(classes.input, className)}
             margin={margin}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             value={{
               rangeFrom: property.rangeFromValue,
               rangeTo: property.rangeToValue,

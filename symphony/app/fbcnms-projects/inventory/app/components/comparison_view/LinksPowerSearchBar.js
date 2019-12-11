@@ -68,6 +68,7 @@ const LinksPowerSearchBar = (props: Props) => {
       searchConfig={LinkCriteriaConfig}
       filterConfigs={filterConfigs}
       footer={footer}
+      exportPath={'/links'}
     />
   );
 };

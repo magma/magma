@@ -16,6 +16,8 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// ActionsRule is the client for interacting with the ActionsRule builders.
+	ActionsRule *ActionsRuleClient
 	// CheckListItem is the client for interacting with the CheckListItem builders.
 	CheckListItem *CheckListItemClient
 	// CheckListItemDefinition is the client for interacting with the CheckListItemDefinition builders.
@@ -103,6 +105,7 @@ func (tx *Tx) Client() *Client {
 	return &Client{
 		config:                      tx.config,
 		Schema:                      migrate.NewSchema(tx.driver),
+		ActionsRule:                 NewActionsRuleClient(tx.config),
 		CheckListItem:               NewCheckListItemClient(tx.config),
 		CheckListItemDefinition:     NewCheckListItemDefinitionClient(tx.config),
 		Comment:                     NewCommentClient(tx.config),
@@ -148,7 +151,7 @@ func (tx *Tx) Client() *Client {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: CheckListItem.QueryXXX(), the query will be executed
+// applies a query, for example: ActionsRule.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

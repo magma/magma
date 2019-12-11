@@ -93,6 +93,11 @@ COPY feg $MAGMA_ROOT/feg
 COPY lte/cloud $MAGMA_ROOT/lte/cloud
 COPY orc8r/cloud $MAGMA_ROOT/orc8r/cloud
 COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
+
+# -----------------------------------------------------------------------------
+# Builder image with binaries
+# -----------------------------------------------------------------------------
+FROM base as builder
 # Enable make gen if proto gen is required
 # RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
@@ -101,7 +106,7 @@ RUN make -C $MAGMA_ROOT/feg/gateway build
 # Go-cache base image
 # -----------------------------------------------------------------------------
 FROM ubuntu:xenial as gocache
-COPY --from=base /root/.cache /root/.cache
+COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
@@ -112,7 +117,7 @@ FROM ubuntu:xenial AS gateway_go
 RUN apt-get -y update && apt-get -y install daemontools
 
 # Copy the build artifacts.
-COPY --from=base /var/opt/magma/bin /var/opt/magma/bin
+COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma

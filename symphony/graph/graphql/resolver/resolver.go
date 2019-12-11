@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -14,8 +15,9 @@ import (
 )
 
 type resolver struct {
-	log    log.Logger
-	withTx bool
+	log         log.Logger
+	withTx      bool
+	orc8rClient *http.Client
 }
 
 // User information of the graphql request initiator
@@ -44,8 +46,8 @@ func (r resolver) User(ctx context.Context) User {
 	return User{viewer.FromContext(ctx).User}
 }
 
-func (resolver) Equipment() generated.EquipmentResolver {
-	return equipmentResolver{}
+func (r resolver) Equipment() generated.EquipmentResolver {
+	return equipmentResolver{r}
 }
 
 func (resolver) EquipmentPort() generated.EquipmentPortResolver {
@@ -176,6 +178,22 @@ func (resolver) CheckListItemDefinition() generated.CheckListItemDefinitionResol
 	return checkListItemDefinitionResolver{}
 }
 
+func (resolver) ActionsRule() generated.ActionsRuleResolver {
+	return actionsRuleResolver{}
+}
+
+func (resolver) ActionsRuleAction() generated.ActionsRuleActionResolver {
+	return actionsRuleActionResolver{}
+}
+
+func (resolver) ActionsRuleFilter() generated.ActionsRuleFilterResolver {
+	return actionsRuleFilterResolver{}
+}
+
+func (resolver) ActionsTrigger() generated.ActionsTriggerResolver {
+	return actionsTriggerResolver{}
+}
+
 // ResolveOption allows for managing resolver configuration using functional options.
 type ResolveOption func(*resolver)
 
@@ -183,5 +201,12 @@ type ResolveOption func(*resolver)
 func WithTransaction(b bool) ResolveOption {
 	return func(r *resolver) {
 		r.withTx = b
+	}
+}
+
+// WithOrc8rClient is used to provide orchestrator http client.
+func WithOrc8rClient(client *http.Client) ResolveOption {
+	return func(r *resolver) {
+		r.orc8rClient = client
 	}
 }

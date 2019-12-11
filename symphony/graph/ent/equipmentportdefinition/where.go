@@ -1067,8 +1067,12 @@ func VisibilityLabelContainsFold(v string) predicate.EquipmentPortDefinition {
 func HasEquipmentPortType() predicate.EquipmentPortDefinition {
 	return predicate.EquipmentPortDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentPortTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentPortTypeTable, FieldID),
+				sql.Edge(sql.M2O, false, EquipmentPortTypeTable, EquipmentPortTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1092,16 +1096,12 @@ func HasEquipmentPortTypeWith(preds ...predicate.EquipmentPortType) predicate.Eq
 func HasPorts() predicate.EquipmentPortDefinition {
 	return predicate.EquipmentPortDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PortsColumn).
-						From(builder.Table(PortsTable)).
-						Where(sql.NotNull(PortsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PortsTable, FieldID),
+				sql.Edge(sql.O2M, true, PortsTable, PortsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1125,8 +1125,12 @@ func HasPortsWith(preds ...predicate.EquipmentPort) predicate.EquipmentPortDefin
 func HasEquipmentType() predicate.EquipmentPortDefinition {
 	return predicate.EquipmentPortDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentTypeTable, EquipmentTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

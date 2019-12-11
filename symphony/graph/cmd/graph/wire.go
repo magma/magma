@@ -22,7 +22,7 @@ import (
 // NewApplication creates a new graph application.
 func NewApplication(flags *cliFlags) (*application, func(), error) {
 	wire.Build(
-		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL"),
+		wire.FieldsOf(new(*cliFlags), "Log", "Census", "MySQL", "Orc8r"),
 		log.Set,
 		newApplication,
 		newTenancy,

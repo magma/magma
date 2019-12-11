@@ -638,16 +638,12 @@ func DescriptionContainsFold(v string) predicate.WorkOrderType {
 func HasWorkOrders() predicate.WorkOrderType {
 	return predicate.WorkOrderType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WorkOrdersColumn).
-						From(builder.Table(WorkOrdersTable)).
-						Where(sql.NotNull(WorkOrdersColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrdersTable, FieldID),
+				sql.Edge(sql.O2M, true, WorkOrdersTable, WorkOrdersColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -671,16 +667,12 @@ func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.WorkOrderType {
 func HasPropertyTypes() predicate.WorkOrderType {
 	return predicate.WorkOrderType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertyTypesColumn).
-						From(builder.Table(PropertyTypesTable)).
-						Where(sql.NotNull(PropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertyTypesTable, PropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -704,16 +696,12 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.WorkOrderTy
 func HasDefinitions() predicate.WorkOrderType {
 	return predicate.WorkOrderType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(DefinitionsColumn).
-						From(builder.Table(DefinitionsTable)).
-						Where(sql.NotNull(DefinitionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(DefinitionsTable, FieldID),
+				sql.Edge(sql.O2M, true, DefinitionsTable, DefinitionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -737,16 +725,12 @@ func HasDefinitionsWith(preds ...predicate.WorkOrderDefinition) predicate.WorkOr
 func HasCheckListDefinitions() predicate.WorkOrderType {
 	return predicate.WorkOrderType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CheckListDefinitionsColumn).
-						From(builder.Table(CheckListDefinitionsTable)).
-						Where(sql.NotNull(CheckListDefinitionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CheckListDefinitionsTable, FieldID),
+				sql.Edge(sql.O2M, false, CheckListDefinitionsTable, CheckListDefinitionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

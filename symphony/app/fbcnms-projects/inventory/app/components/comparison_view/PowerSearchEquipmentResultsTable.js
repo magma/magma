@@ -11,6 +11,7 @@
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
 import type {Equipment} from '../../common/Equipment';
+import type {PowerSearchEquipmentResultsTable_equipment} from './__generated__/PowerSearchEquipmentResultsTable_equipment.graphql';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
@@ -71,7 +72,7 @@ const styles = theme => ({
 type Props = WithAlert &
   WithStyles<typeof styles> &
   ContextRouter & {
-    equipment: Array<Equipment>,
+    equipment: PowerSearchEquipmentResultsTable_equipment,
     onEquipmentSelected: (equipment: Equipment) => void,
     onWorkOrderSelected: (workOrderId: string) => void,
   };

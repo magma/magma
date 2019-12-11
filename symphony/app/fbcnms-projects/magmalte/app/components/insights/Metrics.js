@@ -13,15 +13,15 @@ import type {TimeRange} from './AsyncMetric';
 import * as React from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import AsyncMetric from './AsyncMetric';
+import Autocomplete from '@material-ui/lab/Autocomplete';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import FormControl from '@material-ui/core/FormControl';
 import GridList from '@material-ui/core/GridList';
 import GridListTile from '@material-ui/core/GridListTile';
 import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import TextField from '@material-ui/core/TextField';
 import TimeRangeSelector from './TimeRangeSelector';
 
 import {makeStyles} from '@material-ui/styles';
@@ -38,6 +38,9 @@ const useStyles = makeStyles(theme => ({
   formControl: {
     minWidth: '200px',
     padding: theme.spacing(),
+  },
+  selectorAutocomplete: {
+    width: '400px',
   },
 }));
 
@@ -109,12 +112,15 @@ function resolveCustomQuery(
 }
 
 export default function(props: {
-  menuItemOverrides?: React.Node,
   selectors: Array<string>,
   defaultSelector: string,
-  onSelectorChange: (SyntheticInputEvent<EventTarget>) => void,
+  onSelectorChange: (
+    event: SyntheticInputEvent<EventTarget>,
+    value: string,
+  ) => void,
   configs: MetricGraphConfig[],
   selectorName: string,
+  renderOptionOverride?: string => React.Node,
 }) {
   const {match} = useRouter();
   const classes = useStyles();
@@ -128,17 +134,28 @@ export default function(props: {
       <AppBar className={classes.appBar} position="static" color="default">
         <FormControl variant="filled" className={classes.formControl}>
           <InputLabel htmlFor="devices">{props.selectorName}</InputLabel>
-          <Select
-            inputProps={{id: 'devices'}}
-            value={selectedOrDefault}
-            onChange={props.onSelectorChange}>
-            {props.menuItemOverrides ||
-              props.selectors.map(device => (
-                <MenuItem value={device} key={device}>
-                  {device}
-                </MenuItem>
-              ))}
-          </Select>
+          <Autocomplete
+            className={classes.selectorAutocomplete}
+            defaultValue={props.defaultSelector}
+            options={props.selectors}
+            onChange={props.onSelectorChange}
+            disableClearable
+            renderOption={option =>
+              props.renderOptionOverride
+                ? props.renderOptionOverride(option)
+                : option
+            }
+            renderInput={params => (
+              <TextField
+                ref={params.ref}
+                InputLabelProps={params.InputLabelProps}
+                InputProps={params.InputProps}
+                inputProps={params.inputProps}
+                variant="filled"
+                fullWidth
+              />
+            )}
+          />
         </FormControl>
         <TimeRangeSelector
           className={classes.formControl}

@@ -638,8 +638,12 @@ func ExternalIDContainsFold(v string) predicate.Service {
 func HasType() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -663,15 +667,12 @@ func HasTypeWith(preds ...predicate.ServiceType) predicate.Service {
 func HasDownstream() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(DownstreamPrimaryKey[1]).
-						From(builder.Table(DownstreamTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(DownstreamTable, FieldID),
+				sql.Edge(sql.M2M, true, DownstreamTable, DownstreamPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -702,15 +703,12 @@ func HasDownstreamWith(preds ...predicate.Service) predicate.Service {
 func HasUpstream() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(UpstreamPrimaryKey[0]).
-						From(builder.Table(UpstreamTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(UpstreamTable, FieldID),
+				sql.Edge(sql.M2M, false, UpstreamTable, UpstreamPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -741,16 +739,12 @@ func HasUpstreamWith(preds ...predicate.Service) predicate.Service {
 func HasProperties() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -774,15 +768,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Service {
 func HasTerminationPoints() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(TerminationPointsPrimaryKey[0]).
-						From(builder.Table(TerminationPointsTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TerminationPointsTable, FieldID),
+				sql.Edge(sql.M2M, false, TerminationPointsTable, TerminationPointsPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -813,15 +804,12 @@ func HasTerminationPointsWith(preds ...predicate.Equipment) predicate.Service {
 func HasLinks() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(LinksPrimaryKey[0]).
-						From(builder.Table(LinksTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinksTable, FieldID),
+				sql.Edge(sql.M2M, false, LinksTable, LinksPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -852,15 +840,12 @@ func HasLinksWith(preds ...predicate.Link) predicate.Service {
 func HasCustomer() predicate.Service {
 	return predicate.Service(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CustomerPrimaryKey[0]).
-						From(builder.Table(CustomerTable)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CustomerTable, FieldID),
+				sql.Edge(sql.M2M, false, CustomerTable, CustomerPrimaryKey...),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

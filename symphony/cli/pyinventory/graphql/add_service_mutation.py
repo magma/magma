@@ -49,7 +49,6 @@ class ServiceCreateData:
     serviceTypeId: str
     upstreamServiceIds: List[str]
     terminationPointIds: List[str]
-    linkIds: List[str]
     externalId: Optional[str] = None
     customerId: Optional[str] = None
     properties: Optional[List[PropertyInput]] = None

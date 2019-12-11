@@ -53,7 +53,8 @@ void SshSession::openShell(
     const string& ip,
     int port,
     const string& username,
-    const string& password) {
+    const string& password,
+    const long timeout) {
   MLOG(MINFO) << "[" << id << "] "
               << "Connecting to host: " << ip << " port: " << port;
   sessionState.ip = ip;
@@ -62,12 +63,10 @@ void SshSession::openShell(
   sessionState.username = password;
   sessionState.session.store(ssh_new());
   ssh_options_set(sessionState.session, SSH_OPTIONS_USER, username.c_str());
-  // ssh_options_set(sessionState.session, SSH_OPTIONS_SSH_DIR, "%s/.ssh");
   ssh_options_set(sessionState.session, SSH_OPTIONS_HOST, ip.c_str());
   ssh_options_set(sessionState.session, SSH_OPTIONS_LOG_VERBOSITY, &verbosity);
   ssh_options_set(sessionState.session, SSH_OPTIONS_PORT, &port);
   // Connection timeout in seconds
-  long timeout = 120;
   ssh_options_set(sessionState.session, SSH_OPTIONS_TIMEOUT, &timeout);
 
   checkSuccess(ssh_connect(sessionState.session), SSH_OK);
@@ -78,7 +77,7 @@ void SshSession::openShell(
 
   sessionState.channel.store(ssh_channel_new(sessionState.session));
   if (sessionState.channel == nullptr) {
-    terminate();
+    terminate<CliException>();
   }
 
   rc = ssh_channel_open_session(sessionState.channel);
@@ -98,10 +97,12 @@ bool SshSession::checkSuccess(int return_code, int OK_RETURN_CODE) {
   if (return_code == OK_RETURN_CODE) {
     return true;
   }
-  terminate(); // TODO is this an appropriate reaction to every problem??
+  terminate<CliException>(); // TODO is this an appropriate reaction to every
+                             // problem??
   return false;
 }
 
+template <typename E>
 void SshSession::terminate() {
   const char* error_message = sessionState.session != nullptr
       ? ssh_get_error(sessionState.session)
@@ -111,7 +112,7 @@ void SshSession::terminate() {
                << " port: " << sessionState.port
                << " with error: " << error_message;
   string error = "Error with SSH: ";
-  throw std::runtime_error(error + error_message);
+  throw E(error + error_message);
 }
 
 string SshSession::read(int timeoutMillis) {
@@ -134,7 +135,7 @@ string SshSession::read(int timeoutMillis) {
       MLOG(MERROR) << "[" << id << "] "
                    << "Error reading data from SSH connection, read bytes: "
                    << bytes_read;
-      terminate();
+      terminate<CommandExecutionException>();
     } else if (bytes_read == 0) {
       return result;
     } else {
@@ -146,10 +147,9 @@ string SshSession::read(int timeoutMillis) {
 }
 
 void SshSession::write(const string& command) {
+  // If we are executing empty string, we can complete right away
+  // Why ? because keepalive is empty string
   if (command.empty()) {
-    MLOG(MERROR) << "[" << id << "] "
-                 << "Command for execution for host: " << sessionState.ip
-                 << " is empty, this should not happen";
     return;
   }
   const char* data = command.c_str();
@@ -161,7 +161,7 @@ void SshSession::write(const string& command) {
   if (bytes == SSH_ERROR) {
     MLOG(MERROR) << "[" << id << "] "
                  << "Error while executing command " << command;
-    terminate();
+    terminate<CommandExecutionException>();
   }
 }
 

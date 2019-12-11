@@ -112,10 +112,22 @@ int nas_itti_erab_rel_cmd(
           pdn_context_p->esm_data.n_bearers;
         NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel =
           calloc(NAS_ERAB_REL_CMD(message_p).n_bearers, sizeof(ebi_t));
-        for (uint8_t itr = 0; itr < pdn_context_p->esm_data.n_bearers; itr++) {
+        if (!NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel) {
+          OAILOG_ERROR(
+            LOG_NAS_EMM,
+            "Cannot allocate memory in nas_itti_erab_rel_cmd for "
+            "ue_id" MME_UE_S1AP_ID_FMT "\n",
+            ue_id);
+          OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+        }
+        uint8_t rel_index = 0;
+        for (uint8_t itr = 0; itr < BEARERS_PER_UE; itr++) {
           int idx = ue_mm_context_p->pdn_contexts[cid]->bearer_contexts[itr];
-          NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel[itr] =
-            ue_mm_context_p->bearer_contexts[idx]->ebi;
+          if (ue_mm_context_p->bearer_contexts[idx]) {
+            NAS_ERAB_REL_CMD(message_p).bearers_to_be_rel[rel_index] =
+              ue_mm_context_p->bearer_contexts[idx]->ebi;
+            rel_index++;
+          }
         }
       }
       unlock_ue_contexts(ue_mm_context_p);
@@ -158,43 +170,6 @@ void nas_itti_dedicated_eps_bearer_reject(
     itti_alloc_new_message(TASK_NAS_MME, MME_APP_CREATE_DEDICATED_BEARER_REJ);
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ue_id = ue_idP;
   MME_APP_CREATE_DEDICATED_BEARER_REJ(message_p).ebi = ebiP;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
-//------------------------------------------------------------------------------
-void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p;
-
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_DETACH_REQ);
-
-  NAS_DETACH_REQ(message_p).ue_id = ue_idP;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_OUT(LOG_NAS);
-}
-
-//------------------------------------------------------------------------------
-void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type)
-{
-  OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p;
-
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Send SGS Detach Request to MME for ue_id = %u\n",
-    ue_idP);
-  message_p = itti_alloc_new_message(TASK_NAS_MME, NAS_SGS_DETACH_REQ);
-  memset(
-    &message_p->ittiMsg.nas_sgs_detach_req,
-    0,
-    sizeof(itti_nas_sgs_detach_req_t));
-
-  NAS_SGS_DETACH_REQ(message_p).ue_id = ue_idP;
-  NAS_SGS_DETACH_REQ(message_p).detach_type = detach_type;
-
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }

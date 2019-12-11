@@ -6,11 +6,11 @@ package resolver
 
 import (
 	"context"
-	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"strconv"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -1220,6 +1220,7 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
+	t.Skip("skipping test until mandatory props are added - T57858029")
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
 	defer r.drv.Close()

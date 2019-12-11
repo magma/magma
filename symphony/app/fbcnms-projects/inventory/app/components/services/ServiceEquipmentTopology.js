@@ -24,7 +24,7 @@ type Props = {
 
 const styles = _ => ({
   card: {
-    height: '500px',
+    height: '100%',
     position: 'relative',
   },
 });

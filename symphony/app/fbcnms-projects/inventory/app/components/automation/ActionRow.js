@@ -8,15 +8,20 @@
  * @format
  */
 
-import type {ActionID, RuleAction, TriggerID} from './types';
+import type {
+  ActionRow_data,
+  ActionRow_data$key,
+} from './__generated__/ActionRow_data.graphql';
+import type {RuleAction} from './types';
 
 import ActionsAutoComplete from './ActionsAutoComplete';
 import Grid from '@material-ui/core/Grid';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import {getActionsForTrigger} from './constants';
 
+import nullthrows from '@fbcnms/util/nullthrows';
+import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(_theme => ({
@@ -34,17 +39,34 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-type Props = {
-  triggerID: TriggerID,
-  action: RuleAction,
+const query = graphql`
+  fragment ActionRow_data on ActionsTrigger {
+    triggerID
+    supportedActions {
+      actionID
+      dataType
+      description
+    }
+  }
+`;
+
+type Props = {|
+  trigger: ActionRow_data$key,
+  ruleAction: ?RuleAction,
   onChange: RuleAction => void,
-};
+|};
 
 export default function ActionRow(props: Props) {
-  const {action} = props;
+  const {trigger, ruleAction, onChange} = props;
   const classes = useStyles();
+  const data: ActionRow_data = useFragment<ActionRow_data>(query, trigger);
 
-  const validActions = getActionsForTrigger(props.triggerID);
+  const defaultRuleAction: RuleAction = {
+    actionID: nullthrows(data.supportedActions[0]).actionID,
+    data: [],
+  };
+
+  const thisRuleAction = ruleAction || defaultRuleAction;
 
   return (
     <>
@@ -53,17 +75,18 @@ export default function ActionRow(props: Props) {
       </Grid>
       <Grid item xs={9}>
         <Select
-          value={action.actionID}
+          value={thisRuleAction.actionID}
           onChange={({target}) => {
-            props.onChange({
-              ...action,
-              /* eslint-disable-next-line flowtype/no-weak-types */
-              actionID: ((target.value: any): ActionID),
+            onChange({
+              ...thisRuleAction,
+              actionID: target.value,
             });
           }}>
-          {validActions.map((validAction, i) => (
-            <MenuItem key={i} value={validAction.actionID}>
-              {validAction.name}
+          {data.supportedActions.filter(Boolean).map(supportedAction => (
+            <MenuItem
+              key={supportedAction.actionID}
+              value={supportedAction.actionID}>
+              {supportedAction.description}
             </MenuItem>
           ))}
         </Select>
@@ -72,7 +95,7 @@ export default function ActionRow(props: Props) {
       <Grid item xs={9}>
         <div className={classes.autoCompleteContainer}>
           <ActionsAutoComplete
-            value={action.data || []}
+            value={thisRuleAction.data}
             options={[
               '{{ gatewayID }}',
               '{{ networkID }}',
@@ -80,8 +103,8 @@ export default function ActionRow(props: Props) {
               'test_gateway1',
             ]}
             onChange={(evt, newValue) => {
-              props.onChange({
-                ...action,
+              onChange({
+                ...thisRuleAction,
                 data: newValue,
               });
             }}

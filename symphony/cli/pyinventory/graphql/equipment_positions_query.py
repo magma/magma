@@ -29,21 +29,23 @@ DATETIME_FIELD = field(
 class EquipmentPositionsQuery:
     __QUERY__ = """
     query EquipmentPositionsQuery($id: ID!) {
-  equipment(id: $id) {
-    equipmentType {
-      positionDefinitions {
-        id
-        name
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        positionDefinitions {
+          id
+          name
+        }
       }
-    }
-    positions {
-      definition {
-        id
-        name
-      }
-      attachedEquipment {
-        id
-        name
+      positions {
+        definition {
+          id
+          name
+        }
+        attachedEquipment {
+          id
+          name
+        }
       }
     }
   }
@@ -56,7 +58,7 @@ class EquipmentPositionsQuery:
     class EquipmentPositionsQueryData:
         @dataclass_json
         @dataclass
-        class Equipment:
+        class Node:
             @dataclass_json
             @dataclass
             class EquipmentType:
@@ -89,7 +91,7 @@ class EquipmentPositionsQuery:
             equipmentType: EquipmentType
             positions: List[EquipmentPosition]
 
-        equipment: Optional[Equipment] = None
+        equipment: Optional[Node] = None
 
     data: Optional[EquipmentPositionsQueryData] = None
     errors: Any = None

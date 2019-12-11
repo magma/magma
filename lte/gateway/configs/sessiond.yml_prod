@@ -9,7 +9,6 @@
 
 log_level: INFO
 rule_update_inteval_sec: 15
-use_proxied_controller: true
 
 # Session manager will report the usage when the usage is greater than
 # usage_reporting_threshold * available quota since last update

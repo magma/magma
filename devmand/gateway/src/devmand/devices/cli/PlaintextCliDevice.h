@@ -10,6 +10,7 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
+#include <devmand/Application.h>
 #include <devmand/channels/cli/Channel.h>
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
@@ -25,6 +26,7 @@ class PlaintextCliDevice : public Device {
  public:
   PlaintextCliDevice(
       Application& application,
+      Engine& engine,
       const Id id,
       const std::string stateCommand,
       const std::shared_ptr<Channel> channel,
@@ -40,6 +42,12 @@ class PlaintextCliDevice : public Device {
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
+  // visible for testing
+  static std::unique_ptr<devices::Device> createDeviceWithEngine(
+      Application& app,
+      const cartography::DeviceConfig& deviceConfig,
+      Engine& engine);
+
  public:
   std::shared_ptr<State> getState() override;
 
@@ -52,8 +60,9 @@ class PlaintextCliDevice : public Device {
 
  private:
   std::shared_ptr<Channel> channel;
-  const Command stateCommand;
+  const ReadCommand stateCommand;
   std::shared_ptr<CliCache> cmdCache;
+  std::shared_ptr<folly::Executor> executor;
 };
 
 } // namespace cli

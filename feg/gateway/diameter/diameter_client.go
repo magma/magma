@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
@@ -70,6 +69,14 @@ func (c *Client) OriginStateID() uint32 {
 		return c.originStateID
 	}
 	return 0
+}
+
+// ServiceContextId returns client's config ServiceContextId
+func (c *Client) ServiceContextId() string {
+	if c != nil && c.cfg != nil && len(c.cfg.ServiceContextId) > 0 {
+		return c.cfg.ServiceContextId
+	}
+	return ServiceContextIDDefault
 }
 
 // NewClient creates a new client based on the config passed.

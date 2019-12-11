@@ -49,13 +49,7 @@
 #define NAS_AUTHENTICATION_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_auth_req
 #define NAS_AUTHENTICATION_PARAM_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.nas_auth_param_req
-#define NAS_SGS_DETACH_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_sgs_detach_req
-#define NAS_DETACH_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_detach_req
 #define NAS_ERAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_setup_req
-#define NAS_IMPLICIT_DETACH_UE_IND(mSGpTR)                                     \
-  (mSGpTR)->ittiMsg.nas_implicit_detach_ue_ind
-#define NAS_NW_INITIATED_DETACH_UE_REQ(mSGpTR)                                 \
-  (mSGpTR)->ittiMsg.nas_nw_initiated_detach_ue_req
 #define NAS_CS_DOMAIN_LOCATION_UPDATE_REQ(mSGpTR)                              \
   (mSGpTR)->ittiMsg.nas_cs_domain_location_update_req
 #define NAS_CS_DOMAIN_LOCATION_UPDATE_ACC(mSGpTR)                              \
@@ -86,7 +80,6 @@ typedef struct itti_nas_info_transfer_s {
   //nas_error_code_t err_code;     /* Transaction status               */
   bstring nas_msg; /* Uplink NAS message           */
 } itti_nas_info_transfer_t;
-
 
 typedef struct itti_erab_setup_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
@@ -145,26 +138,6 @@ typedef struct itti_nas_auth_param_req_s {
   uint8_t num_vectors;
 } itti_nas_auth_param_req_t;
 
-typedef struct itti_nas_detach_req_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-  long cause;
-} itti_nas_detach_req_t;
-
-typedef struct itti_nas_implicit_detach_ue_ind_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-} itti_nas_implicit_detach_ue_ind_t;
-
-typedef struct itti_nas_nw_initiated_detach_ue_req_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-#define HSS_INITIATED_EPS_DETACH 0x00
-#define SGS_INITIATED_IMSI_DETACH 0x01
-#define MME_INITIATED_EPS_DETACH 0x02
-  uint8_t detach_type;
-} itti_nas_nw_initiated_detach_ue_req_t;
-
 typedef struct itti_nas_extended_service_req_s {
   /* UE identifier */
   mme_ue_s1ap_id_t ue_id;
@@ -172,13 +145,6 @@ typedef struct itti_nas_extended_service_req_s {
   /* csfb_response is valid only if service type Mobile Terminating CSFB */
   uint8_t csfb_response;
 } itti_nas_extended_service_req_t;
-
-typedef struct itti_nas_sgs_detach_req_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-  /* detach type */
-  uint8_t detach_type;
-} itti_nas_sgs_detach_req_t;
 
 typedef struct itti_nas_cs_domain_location_update_req_s {
 /* UE identifier */

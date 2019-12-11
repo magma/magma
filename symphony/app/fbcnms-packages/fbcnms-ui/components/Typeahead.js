@@ -12,7 +12,9 @@ import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
 import InputAffix from './design-system/Input/InputAffix';
 import React, {useState} from 'react';
+import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
+import Tooltip from '@material-ui/core/Tooltip';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import symphony from '../theme/symphony';
 import {blue05} from '../theme/colors';
@@ -128,31 +130,41 @@ const Typeahead = (props: Props) => {
   return (
     <div className={classes.container}>
       {selectedSuggestion && onSuggestionsClearRequested ? (
-        <div>
-          <TextInput
-            type="string"
-            required={!!required}
-            variant="outlined"
-            placeholder={placeholder ?? ''}
-            fullWidth={true}
-            disabled={selectedSuggestion != null}
-            value={selectedSuggestion ? selectedSuggestion.name : ''}
-            onChange={emptyFunction}
-            suffix={
-              searchTerm === '' ? (
-                <InputAffix
-                  onClick={() => {
-                    setSearchTerm('');
-                    setSelectedSuggestion(null);
-                    onSuggestionsClearRequested &&
-                      onSuggestionsClearRequested();
-                  }}>
-                  <CancelIcon className={classes.cancelIcon} />
-                </InputAffix>
-              ) : null
-            }
-          />
-        </div>
+        <Tooltip
+          arrow
+          interactive
+          placement="top"
+          title={
+            <Text variant="caption" color="light">
+              {selectedSuggestion.entityId}
+            </Text>
+          }>
+          <div>
+            <TextInput
+              type="string"
+              required={!!required}
+              variant="outlined"
+              placeholder={placeholder ?? ''}
+              fullWidth={true}
+              disabled={selectedSuggestion != null}
+              value={selectedSuggestion ? selectedSuggestion.name : ''}
+              onChange={emptyFunction}
+              suffix={
+                searchTerm === '' ? (
+                  <InputAffix
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedSuggestion(null);
+                      onSuggestionsClearRequested &&
+                        onSuggestionsClearRequested();
+                    }}>
+                    <CancelIcon className={classes.cancelIcon} />
+                  </InputAffix>
+                ) : null
+              }
+            />
+          </div>
+        </Tooltip>
       ) : (
         <Autosuggest
           suggestions={suggestions}

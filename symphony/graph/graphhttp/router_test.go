@@ -22,6 +22,7 @@ func TestRouter(t *testing.T) {
 	router, err := newRouter(
 		viewer.NewFixedTenancy(&ent.Client{}),
 		logtest.NewTestLogger(t),
+		nil,
 	)
 	require.NoError(t, err)
 

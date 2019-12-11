@@ -99,6 +99,7 @@ const locationAddEditCardQuery = graphql`
         name
         latitude
         longitude
+        externalId
         locationType {
           id
           name
@@ -221,7 +222,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
           <div className={this.props.classes.header}>
             <Text variant="h5">{editingLocation.locationType.name}</Text>
           </div>
-          <Grid container spacing={0} className={classes.row}>
+          <Grid container spacing={2} className={classes.row}>
             <Grid item xs={12} sm={12} lg={6} xl={4}>
               <FormField
                 label="Name"
@@ -238,8 +239,21 @@ class LocationAddEditCard extends React.Component<Props, State> {
                 />
               </FormField>
             </Grid>
+            <Grid item xs={12} sm={12} lg={6} xl={4}>
+              <FormField
+                label="External ID"
+                hasSpacer
+                className={classes.externalIdFormField}>
+                <TextInput
+                  className={classes.input}
+                  type="string"
+                  value={editingLocation.externalId ?? ''}
+                  onChange={this._onExternalIdChanged}
+                />
+              </FormField>
+            </Grid>
           </Grid>
-          <Grid container spacing={0} className={classes.row}>
+          <Grid container spacing={2} className={classes.row}>
             <Grid item xs={12} sm={12} lg={6} xl={4}>
               <GPSPropertyValueInput
                 name="name"
@@ -323,6 +337,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
         name: editingLocation.name,
         latitude: editingLocation.latitude ?? 0,
         longitude: editingLocation.longitude ?? 0,
+        externalID: editingLocation.externalId,
         parent: this.props.parentId,
         type: nullthrows(this.props.type?.id),
         properties: toPropertyInput(editingLocation.properties),
@@ -399,6 +414,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
       input: {
         id: nullthrows(this.props.editingLocationId),
         name: editingLocation.name,
+        externalID: editingLocation.externalId,
         latitude: editingLocation.latitude ?? 0,
         longitude: editingLocation.longitude ?? 0,
         properties: toPropertyInput(editingLocation.properties),
@@ -469,6 +485,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
       id: location?.id ?? 'Location@tmp',
       name: location?.name ?? '',
       locationType: locationType,
+      externalId: location?.externalId,
       properties: initialProps,
       equipments: location?.equipments ?? [],
       children: location?.children ?? [],
@@ -487,7 +504,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
       },
     });
 
-  fieldChangedHandler = (field: 'name') => event =>
+  fieldChangedHandler = (field: 'name' | 'externalId') => event =>
     this.setState({
       error: '',
       editingLocation: {
@@ -498,6 +515,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
     });
 
   _onNameChanged = this.fieldChangedHandler('name');
+  _onExternalIdChanged = this.fieldChangedHandler('externalId');
   _onLatitudeChanged = this.floatFieldChangedHandler('latitude');
   _onLongitudeChanged = this.floatFieldChangedHandler('longitude');
 

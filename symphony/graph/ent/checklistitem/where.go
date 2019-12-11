@@ -1073,8 +1073,12 @@ func HelpTextContainsFold(v string) predicate.CheckListItem {
 func HasWorkOrder() predicate.CheckListItem {
 	return predicate.CheckListItem(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(WorkOrderColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrderTable, FieldID),
+				sql.Edge(sql.M2O, true, WorkOrderTable, WorkOrderColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

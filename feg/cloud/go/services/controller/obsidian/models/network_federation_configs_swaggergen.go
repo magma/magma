@@ -859,6 +859,9 @@ type NetworkFederationConfigsSwx struct {
 	// derive unregister realm
 	DeriveUnregisterRealm bool `json:"derive_unregister_realm,omitempty"`
 
+	// hlr plmn ids
+	HlrPlmnIds []string `json:"hlr_plmn_ids"`
+
 	// register on auth
 	RegisterOnAuth bool `json:"register_on_auth,omitempty"`
 
@@ -873,6 +876,10 @@ type NetworkFederationConfigsSwx struct {
 func (m *NetworkFederationConfigsSwx) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateHlrPlmnIds(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateServer(formats); err != nil {
 		res = append(res, err)
 	}
@@ -880,6 +887,31 @@ func (m *NetworkFederationConfigsSwx) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkFederationConfigsSwx) validateHlrPlmnIds(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HlrPlmnIds) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.HlrPlmnIds); i++ {
+
+		if err := validate.MinLength("swx"+"."+"hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 5); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("swx"+"."+"hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 6); err != nil {
+			return err
+		}
+
+		if err := validate.Pattern("swx"+"."+"hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), `^(\d{5,6})$`); err != nil {
+			return err
+		}
+
+	}
+
 	return nil
 }
 

@@ -32,14 +32,31 @@ extern void initSsh();
 extern shared_ptr<CPUThreadPoolExecutor> testExecutor;
 
 struct server {
+ public:
   string id;
   ssh_bind sshbind = nullptr;
   ssh_session session = nullptr;
   Future<Unit> serverFuture;
+  mutex received_guard;
+  string received = "";
+
+  bool isConnected() {
+    return session != nullptr and ssh_is_connected(session);
+  }
+
+  string getReceived() {
+    lock_guard<std::mutex> lg(received_guard);
+    return received;
+  }
 
   void close() {
     MLOG(MDEBUG) << "Closing server: " << id;
-    shutdown(ssh_bind_get_fd(sshbind), SHUT_RDWR);
+    if (session != nullptr) {
+      shutdown(ssh_get_fd(session), SHUT_RDWR);
+    }
+    if (sshbind != nullptr) {
+      shutdown(ssh_bind_get_fd(sshbind), SHUT_RDWR);
+    }
 
     // Make sure the server thread finished before calling free
     move(serverFuture).wait();

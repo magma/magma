@@ -538,10 +538,10 @@ func TestSearchWO(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all, 4)
 
-	name := "Awo_1"
+	name := "_1"
 	f1 := models.WorkOrderFilterInput{
 		FilterType:  models.WorkOrderFilterTypeWorkOrderName,
-		Operator:    models.FilterOperatorIs,
+		Operator:    models.FilterOperatorContains,
 		StringValue: &name,
 	}
 	res1, err := qr.WorkOrderSearch(ctx, []*models.WorkOrderFilterInput{&f1}, &limit)

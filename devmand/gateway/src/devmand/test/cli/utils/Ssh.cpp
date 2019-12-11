@@ -24,12 +24,11 @@ shared_ptr<CPUThreadPoolExecutor> testExecutor =
 atomic_bool sshInitialized(false);
 
 void initSsh() {
-  if (sshInitialized.load()) {
-    return;
+  bool f = false;
+  if (sshInitialized.compare_exchange_strong(f, true)) {
+    Engine::initSsh();
+    MLOG(MDEBUG) << "Ssh for test initialized";
   }
-  Engine::initSsh();
-  sshInitialized.store(true);
-  MLOG(MDEBUG) << "Ssh for test initialized";
 }
 
 static const auto sleep = regex(R"(sleep (\d+))");
@@ -238,17 +237,19 @@ shared_ptr<server> startSshServer(
               handleCommand(chan, allInput);
               ssh_channel_write(
                   chan, prompt.c_str(), uint32_t(prompt.length()));
-            } else if (((int)buf[0]) == 3) {
-              // CTRL C
-              MLOG(MDEBUG) << "Quitting on ^C";
-              ssh_disconnect(retVal->session);
-              return;
+
+              {
+                lock_guard<std::mutex> lg(retVal->received_guard);
+                retVal->received = allInput.str();
+              }
+
             } else {
               wasEnter = false;
               ssh_channel_write(chan, buf, uint32_t(i));
             }
           }
         } while (i > 0);
+        MLOG(MDEBUG) << "Session disconnected";
       });
 
   retVal->serverFuture = move(future);

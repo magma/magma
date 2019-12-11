@@ -21,7 +21,7 @@ const mutation = graphql`
     addWorkOrderType(input: $input) {
       id
       name
-      ...WorkOrderTypeItem_workOrderType
+      ...AddEditWorkOrderTypeCard_editingWorkOrderType
     }
   }
 `;

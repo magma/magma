@@ -8,9 +8,13 @@
 #pragma once
 
 #include <devmand/channels/cli/SshSessionAsync.h>
+#include <folly/Optional.h>
 #include <memory>
 
-using devmand::channels::cli::sshsession::SshSessionAsync;
+using devmand::channels::cli::sshsession::SessionAsync;
+using folly::Future;
+using folly::SemiFuture;
+using folly::Unit;
 using std::shared_ptr;
 using std::string;
 
@@ -25,16 +29,26 @@ using std::string;
 
 class PromptResolver {
  public:
-  virtual string resolvePrompt(
-      shared_ptr<SshSessionAsync> session,
+  virtual Future<string> resolvePrompt(
+      shared_ptr<SessionAsync> session,
       const string& newline) = 0;
   virtual ~PromptResolver() = default;
 };
 
 class DefaultPromptResolver : public PromptResolver {
+ private:
+  Future<folly::Optional<string>> resolvePromptAsync(
+      shared_ptr<SessionAsync> session,
+      const string& newline,
+      int delayCounter);
+  Future<string> resolvePrompt(
+      shared_ptr<SessionAsync> session,
+      const string& newline,
+      int delayCounter);
+
  public:
-  string resolvePrompt(
-      shared_ptr<SshSessionAsync> session,
+  Future<string> resolvePrompt(
+      shared_ptr<SessionAsync> session,
       const string& newline);
   void removeEmptyStrings(std::vector<string>& split) const;
 };
@@ -42,18 +56,22 @@ class DefaultPromptResolver : public PromptResolver {
 class CliInitializer {
  public:
   virtual ~CliInitializer() = default;
-  virtual void initialize(shared_ptr<SshSessionAsync> session) = 0;
+  virtual SemiFuture<Unit> initialize(
+      shared_ptr<SessionAsync> session,
+      string secret) = 0;
 };
 
 class EmptyInitializer : public CliInitializer {
  public:
-  void initialize(shared_ptr<SshSessionAsync> session) override;
+  SemiFuture<Unit> initialize(shared_ptr<SessionAsync> session, string secret)
+      override;
   ~EmptyInitializer() override = default;
 };
 
 class UbiquitiInitializer : public CliInitializer {
  public:
-  void initialize(shared_ptr<SshSessionAsync> session) override;
+  SemiFuture<Unit> initialize(shared_ptr<SessionAsync> session, string secret)
+      override;
   ~UbiquitiInitializer() override = default;
 };
 

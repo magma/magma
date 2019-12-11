@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/cloud/ctxutil"
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/cloud/oc"
+	"github.com/facebookincubator/symphony/cloud/orc8r"
 	"github.com/facebookincubator/symphony/cloud/server"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -26,11 +27,12 @@ import (
 )
 
 type cliFlags struct {
-	HTTPAddress string     `env:"HTTP_ADDRESS" long:"http-address" default:":http" description:"the http address to listen on"`
-	GRPCAddress string     `env:"GRPC_ADDRESS" long:"grpc-address" default:":https" description:"the grpc address to listen on"`
-	MySQL       string     `env:"MYSQL_DSN" long:"mysql-dsn" description:"connection string to mysql"`
-	Log         log.Config `group:"log" namespace:"log" env-namespace:"LOG"`
-	Census      oc.Options `group:"oc" namespace:"oc" env-namespace:"OC"`
+	HTTPAddress string       `env:"HTTP_ADDRESS" long:"http-address" default:":http" description:"the http address to listen on"`
+	GRPCAddress string       `env:"GRPC_ADDRESS" long:"grpc-address" default:":https" description:"the grpc address to listen on"`
+	MySQL       string       `env:"MYSQL_DSN" long:"mysql-dsn" description:"connection string to mysql"`
+	Log         log.Config   `group:"log" namespace:"log" env-namespace:"LOG"`
+	Census      oc.Options   `group:"oc" namespace:"oc" env-namespace:"OC"`
+	Orc8r       orc8r.Config `group:"orc8r" namespace:"orc8r" env-namespace:"ORC8R"`
 }
 
 func main() {

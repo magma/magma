@@ -66,6 +66,11 @@ type Props = {
   className?: string,
   detailsPaneClass?: string,
   rightContent?: React.Node,
+  defaultExpanded?: boolean,
+  expandedClassName?: string,
+  expanded?: boolean,
+  expansionPanelSummaryClassName?: string,
+  onChange?: boolean => void,
 };
 
 const ExpandingPanel = ({
@@ -74,31 +79,45 @@ const ExpandingPanel = ({
   children,
   title,
   rightContent,
+  defaultExpanded,
+  expanded,
+  expandedClassName,
+  expansionPanelSummaryClassName,
+  onChange,
 }: Props) => {
   const classes = useStyles();
-  const [isExpanded, setIsExpanded] = React.useState(true);
   return (
     <ExpansionPanel
-      className={classNames(className, classes.expansionPanel)}
-      defaultExpanded={true}
-      expanded={isExpanded}>
+      className={classNames(classes.expansionPanel, className)}
+      classes={{expanded: expandedClassName}}
+      defaultExpanded={defaultExpanded}
+      expanded={expanded}
+      onChange={(event, expanded) => {
+        onChange && onChange(expanded);
+      }}>
       <ExpansionPanelSummary
-        className={classes.expansionPanelSummary}
+        className={classNames(
+          classes.expansionPanelSummary,
+          expansionPanelSummaryClassName,
+        )}
         classes={{
           expandIcon: classes.expandIcon,
           content: classes.summaryContent,
         }}
-        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}
-        IconButtonProps={{onClick: () => setIsExpanded(!isExpanded)}}>
+        expandIcon={<ExpandMoreIcon className={classes.expandButton} />}>
         <Text className={classes.panelTitle}>{title}</Text>
-        {rightContent}
+        <div onClick={event => event.stopPropagation()}>{rightContent}</div>
       </ExpansionPanelSummary>
       <ExpansionPanelDetails
-        className={classNames(detailsPaneClass, classes.panelDetails)}>
+        className={classNames(classes.panelDetails, detailsPaneClass)}>
         {children}
       </ExpansionPanelDetails>
     </ExpansionPanel>
   );
+};
+
+ExpandingPanel.defaultProps = {
+  defaultExpanded: true,
 };
 
 export default ExpandingPanel;

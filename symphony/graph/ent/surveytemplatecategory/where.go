@@ -620,16 +620,12 @@ func CategoryDescriptionContainsFold(v string) predicate.SurveyTemplateCategory 
 func HasSurveyTemplateQuestions() predicate.SurveyTemplateCategory {
 	return predicate.SurveyTemplateCategory(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(SurveyTemplateQuestionsColumn).
-						From(builder.Table(SurveyTemplateQuestionsTable)).
-						Where(sql.NotNull(SurveyTemplateQuestionsColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SurveyTemplateQuestionsTable, FieldID),
+				sql.Edge(sql.O2M, false, SurveyTemplateQuestionsTable, SurveyTemplateQuestionsColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

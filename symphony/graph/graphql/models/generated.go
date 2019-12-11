@@ -15,6 +15,60 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent"
 )
 
+type ActionsAction struct {
+	ActionID    ActionID `json:"actionID"`
+	Description string   `json:"description"`
+	DataType    string   `json:"dataType"`
+}
+
+type ActionsFilter struct {
+	FilterID           string             `json:"filterID"`
+	Description        string             `json:"description"`
+	SupportedOperators []*ActionsOperator `json:"supportedOperators"`
+}
+
+type ActionsOperator struct {
+	OperatorID  string `json:"operatorID"`
+	Description string `json:"description"`
+	DataInput   string `json:"dataInput"`
+}
+
+type ActionsRuleActionInput struct {
+	ActionID ActionID `json:"actionID"`
+	Data     string   `json:"data"`
+}
+
+type ActionsRuleFilterInput struct {
+	FilterID   string `json:"filterID"`
+	OperatorID string `json:"operatorID"`
+	Data       string `json:"data"`
+}
+
+type ActionsRulesSearchResult struct {
+	Results []*ent.ActionsRule `json:"results"`
+	Count   int                `json:"count"`
+}
+
+type ActionsTrigger struct {
+	ID               string           `json:"id"`
+	TriggerID        TriggerID        `json:"triggerID"`
+	Description      string           `json:"description"`
+	SupportedActions []*ActionsAction `json:"supportedActions"`
+	SupportedFilters []*ActionsFilter `json:"supportedFilters"`
+}
+
+type ActionsTriggersSearchResult struct {
+	Results []*ActionsTrigger `json:"results"`
+	Count   int               `json:"count"`
+}
+
+type AddActionsRuleInput struct {
+	Name        string                    `json:"name"`
+	TriggerID   string                    `json:"triggerID"`
+	RuleActions []*ActionsRuleActionInput `json:"ruleActions"`
+	RuleFilters []*ActionsRuleFilterInput `json:"ruleFilters"`
+}
+
 type AddCustomerInput struct {
 	Name       string  `json:"name"`
 	ExternalID *string `json:"externalId"`
@@ -42,6 +96,21 @@ type AddEquipmentTypeInput struct {
 	Positions  []*EquipmentPositionInput `json:"positions"`
 	Ports      []*EquipmentPortInput     `json:"ports"`
 	Properties []*PropertyTypeInput      `json:"properties"`
+}
+
+type AddFloorPlanInput struct {
+	Name             string         `json:"name"`
+	LocationID       string         `json:"locationID"`
+	Image            *AddImageInput `json:"image"`
+	ReferenceX       int            `json:"referenceX"`
+	ReferenceY       int            `json:"referenceY"`
+	Latitude         float64        `json:"latitude"`
+	Longitude        float64        `json:"longitude"`
+	ReferencePoint1x int            `json:"referencePoint1X"`
+	ReferencePoint1y int            `json:"referencePoint1Y"`
+	ReferencePoint2x int            `json:"referencePoint2X"`
+	ReferencePoint2y int            `json:"referencePoint2Y"`
+	ScaleInMeters    float64        `json:"scaleInMeters"`
 }
 
 type AddImageInput struct {
@@ -499,7 +568,6 @@ type ServiceCreateData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceEditData struct {
@@ -510,7 +578,6 @@ type ServiceEditData struct {
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
 	TerminationPointIds []string         `json:"terminationPointIds"`
-	LinkIds             []string         `json:"linkIds"`
 }
 
 type ServiceFilterInput struct {
@@ -685,6 +752,45 @@ type WorkOrderTypeConnection struct {
 type WorkOrderTypeEdge struct {
 	Node   *ent.WorkOrderType `json:"node"`
 	Cursor Cursor             `json:"cursor"`
+}
+
+type ActionID string
+
+const (
+	ActionIDMagmaRebootNode ActionID = "magma_reboot_node"
+)
+
+var AllActionID = []ActionID{
+	ActionIDMagmaRebootNode,
+}
+
+func (e ActionID) IsValid() bool {
+	switch e {
+	case ActionIDMagmaRebootNode:
+		return true
+	}
+	return false
+}
+
+func (e ActionID) String() string {
+	return string(e)
+}
+
+func (e *ActionID) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActionID(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActionID", str)
+	}
+	return nil
+}
+
+func (e ActionID) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type CellularNetworkType string
@@ -1437,6 +1543,45 @@ func (e *SurveyQuestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TriggerID string
+
+const (
+	TriggerIDMagmaAlert TriggerID = "magma_alert"
+)
+
+var AllTriggerID = []TriggerID{
+	TriggerIDMagmaAlert,
+}
+
+func (e TriggerID) IsValid() bool {
+	switch e {
+	case TriggerIDMagmaAlert:
+		return true
+	}
+	return false
+}
+
+func (e TriggerID) String() string {
+	return string(e)
+}
+
+func (e *TriggerID) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TriggerID(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TriggerID", str)
+	}
+	return nil
+}
+
+func (e TriggerID) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

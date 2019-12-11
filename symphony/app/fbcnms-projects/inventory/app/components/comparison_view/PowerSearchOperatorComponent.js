@@ -40,6 +40,8 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
+export const POWER_SEARCH_OPERATOR_ID = 'power_search_operator_select';
+
 type Props = {
   operator: Operator,
   onOperatorChange?: Operator => void,
@@ -55,6 +57,7 @@ const PowerSearchOperatorComponent = (props: Props) => {
       return (
         <div className={classes.operator}>
           <Select
+            id={POWER_SEARCH_OPERATOR_ID}
             value={operator}
             margin="none"
             variant="outlined"

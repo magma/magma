@@ -137,7 +137,7 @@ func (m *importer) getOrCreateLocationType(ctx context.Context, name string, pro
 		SaveX(ctx)
 }
 
-func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput) (*ent.Location, bool) {
+func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitude float64, longitude float64, locType *ent.LocationType, parentID *string, props []*models.PropertyInput, externalID *string) (*ent.Location, bool) {
 	log := m.log.For(ctx)
 	rq := locType.QueryLocations().Where(location.Name(name))
 	if parentID != nil {
@@ -158,6 +158,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 		Latitude:   &latitude,
 		Longitude:  &longitude,
 		Properties: props,
+		ExternalID: externalID,
 	})
 	if err != nil {
 		log.Panic(err.Error(), zap.Error(err))
