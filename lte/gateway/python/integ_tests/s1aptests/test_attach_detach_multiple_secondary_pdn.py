@@ -80,7 +80,7 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
                             value)
 
             print("******************* Received deactivate eps bearer context"
-                    "request")
+                    " request")
             # Send DeactDedicatedBearerAccept
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 ue_id, bearer_ids[i])

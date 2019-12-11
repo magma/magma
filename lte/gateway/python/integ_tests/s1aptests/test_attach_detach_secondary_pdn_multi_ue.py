@@ -58,11 +58,6 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
 
             print("********************** Sending Activate default EPS bearer "
                   "context accept for UE id ", ue_id)
-            act_def_bearer_acc.bearerId = act_def_bearer_req.m.pdnInfo.\
-                epsBearerId
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACTV_DEFAULT_EPS_BEARER_CNTXT_ACCEPT,
-                act_def_bearer_acc)
             bearer_ids.append(act_def_bearer_req.m.pdnInfo.epsBearerId)
 
         time.sleep(5)
@@ -84,7 +79,7 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
                             value)
 
             print("******************* Received deactivate eps bearer context"
-                    "request")
+                    " request")
             # Send DeactDedicatedBearerAccept
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 ue_id, bearer_ids[i])

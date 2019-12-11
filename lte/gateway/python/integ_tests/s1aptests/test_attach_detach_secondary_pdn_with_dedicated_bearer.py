@@ -101,7 +101,7 @@ class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
                             value)
 
             print("******************* Received deactivate eps bearer context"
-                    "request")
+                    " request")
             # Send DeactDedicatedBearerAccept
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
