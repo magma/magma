@@ -6,8 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import snowflake
-
+from magma.common.misc_utils import get_gateway_hwid
 
 def make_mem_key(device_id: str, state_type: str) -> str:
     """
@@ -25,4 +24,4 @@ def make_scoped_device_id(idval: str, scope: str) -> str:
     if scope == "network":
         return idval
     else:
-        return snowflake.snowflake() + ":" + idval
+        return get_gateway_hwid() + ":" + idval
