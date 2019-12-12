@@ -259,7 +259,7 @@ const AddServiceDetails = (props: Props) => {
                 {service.properties.map((property, index) => (
                   <Grid key={property.id} item xs={6}>
                     <PropertyValueInput
-                      required={!!property.propertyType.isInstanceProperty}
+                      required={!!property.propertyType.isMandatory}
                       disabled={!property.propertyType.isInstanceProperty}
                       label={property.propertyType.name}
                       className={classes.propInput}
