@@ -5,12 +5,14 @@
 package executor
 
 import (
+	"context"
+
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 )
 
 // DataLoader is an interface for querying data for the executor
 type DataLoader interface {
-	QueryRules(core.TriggerID) []core.Rule
+	QueryRules(context.Context, core.TriggerID) ([]core.Rule, error)
 }
 
 // BasicDataLoader is a simple implementation for querying rules.
@@ -20,7 +22,7 @@ type BasicDataLoader struct {
 }
 
 // QueryRules returns all rules matches the specified TriggerID
-func (b BasicDataLoader) QueryRules(triggerID core.TriggerID) (ret []core.Rule) {
+func (b BasicDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerID) (ret []core.Rule, _err error) {
 	for _, rule := range b.Rules {
 		if rule.TriggerID == triggerID {
 			ret = append(ret, rule)

@@ -33,7 +33,12 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 			continue
 		}
 
-		for _, rule := range exc.DataLoader.QueryRules(triggerID) {
+		rules, err := exc.DataLoader.QueryRules(ctx, triggerID)
+		if err != nil {
+			exc.OnError(errors.Errorf("could not query rules for trigger: %s", triggerID))
+		}
+
+		for _, rule := range rules {
 			shouldExecute, err := trigger.Evaluate(rule)
 			if err != nil {
 				exc.OnError(errors.Errorf("evaluating rule %s: %v", rule.ID, err))
