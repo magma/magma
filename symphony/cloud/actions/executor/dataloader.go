@@ -8,6 +8,9 @@ import (
 	"context"
 
 	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
+	"github.com/pkg/errors"
 )
 
 // DataLoader is an interface for querying data for the executor
@@ -29,4 +32,35 @@ func (b BasicDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerI
 		}
 	}
 	return
+}
+
+// EntDataLoader is an implementation of loading rules using Ents
+type EntDataLoader struct {
+	client *ent.Client
+}
+
+// QueryRules is an implementation of DataLoader.QueryRules
+func (e EntDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerID) ([]core.Rule, error) {
+	entRules, err := e.client.ActionsRule.Query().Where(
+		actionsrule.TriggerIDEQ(string(triggerID)),
+	).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "querying rules")
+	}
+
+	rules := []core.Rule{}
+	for _, rule := range entRules {
+		rules = append(rules, entRuleToRule(rule))
+	}
+	return rules, nil
+}
+
+func entRuleToRule(rule *ent.ActionsRule) core.Rule {
+	return core.Rule{
+		ID:          rule.ID,
+		Name:        rule.Name,
+		TriggerID:   core.TriggerID(rule.TriggerID),
+		RuleActions: rule.RuleActions,
+		RuleFilters: rule.RuleFilters,
+	}
 }
