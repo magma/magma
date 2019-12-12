@@ -277,7 +277,11 @@ const AddServiceDetails = (props: Props) => {
         </div>
       </DialogContent>
       <DialogActions className={classes.dialogActions}>
-        <FormSaveCancelPanel onCancel={onBackClicked} onSave={saveService} />
+        <FormSaveCancelPanel
+          onCancel={onBackClicked}
+          onSave={saveService}
+          captions={{cancelButton: 'Back', saveButton: 'Create'}}
+        />
       </DialogActions>
     </FormValidationContextProvider>
   );
