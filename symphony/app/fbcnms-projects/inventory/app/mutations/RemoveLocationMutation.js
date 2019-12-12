@@ -16,6 +16,7 @@ import type {
   RemoveLocationMutationMutationResponse,
   RemoveLocationMutationMutationVariables,
 } from './__generated__/RemoveLocationMutation.graphql';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation RemoveLocationMutation($id: ID!) {
@@ -26,8 +27,7 @@ const mutation = graphql`
 export default (
   variables: RemoveLocationMutationMutationVariables,
   callbacks?: MutationCallbacks<RemoveLocationMutationMutationResponse>,
-  // eslint-disable-next-line flowtype/no-weak-types
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveLocationMutation>(RelayEnvironment, {

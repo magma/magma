@@ -16,6 +16,7 @@ import type {
   RemoveServiceTypeMutationMutationResponse,
   RemoveServiceTypeMutationVariables,
 } from './__generated__/RemoveServiceTypeMutation.graphql';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation RemoveServiceTypeMutation($id: ID!) {
@@ -26,7 +27,7 @@ const mutation = graphql`
 export default (
   variables: RemoveServiceTypeMutationVariables,
   callbacks?: MutationCallbacks<RemoveServiceTypeMutationMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<RemoveServiceTypeMutation>(RelayEnvironment, {

@@ -8,15 +8,15 @@
  * @format
  */
 
+import RelayEnvironemnt from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
   EditProjectMutation,
   EditProjectMutationResponse,
   EditProjectMutationVariables,
 } from './__generated__/EditProjectMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironemnt from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation EditProjectMutation($input: EditProjectInput!) {
@@ -57,8 +57,7 @@ const mutation = graphql`
 export default (
   variables: EditProjectMutationVariables,
   callbacks?: MutationCallbacks<EditProjectMutationResponse>,
-  // eslint-disable-next-line flowtype/no-weak-types
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditProjectMutation>(RelayEnvironemnt, {

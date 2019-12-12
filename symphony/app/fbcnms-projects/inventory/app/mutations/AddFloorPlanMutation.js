@@ -16,6 +16,7 @@ import type {
   AddFloorPlanMutationVariables,
 } from './__generated__/AddFloorPlanMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddFloorPlanMutation($input: AddFloorPlanInput!) {
@@ -29,7 +30,7 @@ const mutation = graphql`
 export default (
   variables: AddFloorPlanMutationVariables,
   callbacks?: MutationCallbacks<AddFloorPlanMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddFloorPlanMutation>(RelayEnvironment, {

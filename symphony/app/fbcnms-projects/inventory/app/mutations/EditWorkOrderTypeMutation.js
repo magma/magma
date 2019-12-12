@@ -8,15 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
   EditWorkOrderTypeMutation,
   EditWorkOrderTypeMutationResponse,
   EditWorkOrderTypeMutationVariables,
 } from './__generated__/EditWorkOrderTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 export const mutation = graphql`
   mutation EditWorkOrderTypeMutation($input: EditWorkOrderTypeInput!) {
@@ -31,7 +31,7 @@ export const mutation = graphql`
 export default (
   variables: EditWorkOrderTypeMutationVariables,
   callbacks?: MutationCallbacks<EditWorkOrderTypeMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditWorkOrderTypeMutation>(RelayEnvironment, {

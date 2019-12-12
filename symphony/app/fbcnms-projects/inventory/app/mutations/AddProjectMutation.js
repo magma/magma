@@ -16,6 +16,7 @@ import type {
   AddProjectMutationVariables,
 } from './__generated__/AddProjectMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddProjectMutation($input: AddProjectInput!) {
@@ -28,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: AddProjectMutationVariables,
   callbacks?: MutationCallbacks<AddProjectMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddProjectMutation>(RelayEnvironment, {

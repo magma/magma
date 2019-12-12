@@ -16,6 +16,7 @@ import type {
   AddEquipmentPortTypeMutationVariables,
 } from './__generated__/AddEquipmentPortTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
@@ -30,7 +31,7 @@ const mutation = graphql`
 export default (
   variables: AddEquipmentPortTypeMutationVariables,
   callbacks?: MutationCallbacks<AddEquipmentPortTypeMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddEquipmentPortTypeMutation>(RelayEnvironment, {

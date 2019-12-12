@@ -16,6 +16,7 @@ import type {
   AddImageMutationVariables,
 } from './__generated__/AddImageMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddImageMutation($input: AddImageInput!) {
@@ -28,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: AddImageMutationVariables,
   callbacks?: MutationCallbacks<AddImageMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<AddImageMutation>(RelayEnvironment, {

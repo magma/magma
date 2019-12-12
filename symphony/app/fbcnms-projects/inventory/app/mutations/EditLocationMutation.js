@@ -8,15 +8,15 @@
  * @format
  */
 
+import RelayEnvironemnt from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
   EditLocationMutation,
   EditLocationMutationResponse,
   EditLocationMutationVariables,
 } from './__generated__/EditLocationMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironemnt from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation EditLocationMutation($input: EditLocationInput!) {
@@ -29,7 +29,7 @@ const mutation = graphql`
 export default (
   variables: EditLocationMutationVariables,
   callbacks?: MutationCallbacks<EditLocationMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<EditLocationMutation>(RelayEnvironemnt, {
