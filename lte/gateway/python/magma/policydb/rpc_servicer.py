@@ -9,9 +9,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import grpc
 import logging
-from typing import Any, Dict, List
-from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
-    FlowMatch
+from typing import List 
+from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
@@ -32,27 +31,22 @@ class SessionRpcServicer(CentralSessionControllerServicer):
     feature.
     """
 
-    def __init__(self, service_config, subscriberdb_stub: SubscriberDBStub):
-        self._config = service_config
+    def __init__(
+        self,
+        mconfig: mconfigs_pb2.PolicyDB,
+        subscriberdb_stub: SubscriberDBStub,
+    ):
+        self._mconfig = mconfig
         self._network_id = NetworkID(id="_")
         self._subscriberdb_stub = subscriberdb_stub
 
     @property
-    def config(self) -> Dict[str, Any]:
-        return self._config
+    def infinite_credit_charging_keys(self) -> List[int]:
+        return self._mconfig.infinite_unmetered_charging_keys
 
     @property
-    def redirect_rule_name(self) -> str:
-        return self._config['redirect_rule_name']
-
-    @property
-    def ip_whitelist(self) -> Dict[str, List[int]]:
-        """
-        Get whitelisted IP/port combinations which have all traffic allowed.
-
-        Returns: A dict keyed by IP, with values being a list of ports
-        """
-        return self._config['whitelisted_ips']
+    def postpay_charging_keys(self) -> List[int]:
+        return self._mconfig.infinite_metered_charging_keys
 
     def add_to_server(self, server):
         """ Add the servicer to a gRPC server """
@@ -71,8 +65,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         """
         imsi = request.subscriber.id
         logging.info('Creating a session for subscriber ID: %s', imsi)
-        resp = CreateSessionResponse(
-            credits=[],
+        return CreateSessionResponse(
+            credits=self._get_credits(imsi),
             static_rules=self._get_rules_for_imsi(imsi),
             dynamic_rules=self._get_default_dynamic_rules(imsi),
         )
@@ -94,7 +88,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         resp = UpdateSessionResponse()
         for credit_usage_update in request.updates:
             resp.responses.extend(
-                [self._get_credit_update_response(credit_usage_update.sid)],
+                self._get_credits(credit_usage_update.sid),
             )
         return resp
 
@@ -169,48 +163,19 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             logging.error('Unable to find data for subscriber %s', imsi)
             return []
 
-    def _get_credit_update_response(
-        self,
-        sid: str,
-    ) -> CreditUpdateResponse:
-        return CreditUpdateResponse(
-            success=True,
-            sid=sid,
-            charging_key=1,
-            credit=self._get_max_charging_credit(),
-            type=CreditUpdateResponse.ResponseType.Value('UPDATE'),
-            result_code=1,
-        )
-
-    def _get_max_charging_credit(self) -> ChargingCredit:
-        return ChargingCredit(
-            type=ChargingCredit.UnitType.Value('SECONDS'),
-            validity_time=86400,  # One day
-            is_final=False,
-            final_action=ChargingCredit.FinalAction.Value('TERMINATE'),
-            granted_units=self._get_max_granted_units(),
-        )
-
-    def _get_max_granted_units(self) -> GrantedUnits:
-        """ Get an arbitrarily large amount of granted credit """
-        return GrantedUnits(
-            total=CreditUnit(
-                is_valid=True,
-                volume=100 * 1024 * 1024 * 1024,  # 100 GiB
-            ),
-            rx=CreditUnit(
-                is_valid=True,
-                volume=50 * 1024 * 1024 * 1024,  # 50 GiB
-            ),
-            tx=CreditUnit(
-                is_valid=True,
-                volume=50 * 1024 * 1024 * 1024,  # 50 GiB
-            ),
-        )
-
-    def _is_subscriber(self, imsi: str) -> bool:
-        subscribers = self._subscriberdb_stub.ListSubscribers(self._network_id)
-        return imsi in subscribers.sids
+    def _get_credits(self, sid: str) -> List[CreditUpdateResponse]:
+        if len(self.infinite_credit_charging_keys) is not 0:
+            return [CreditUpdateResponse(
+                success=True,
+                sid=sid,
+                charging_key=self.infinite_credit_charging_keys[0],
+                type=CreditUpdateResponse.ResponseType.Value('UPDATE'),
+                result_code=1,
+                limit_type=CreditUpdateResponse.CreditLimitType.Value(
+                    "INFINITE_UNMETERED",
+                )
+            )]
+        return []
 
     def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
         try:
