@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 )
 
 // ActionsRule is the model entity for the ActionsRule schema.
@@ -31,9 +31,9 @@ type ActionsRule struct {
 	// TriggerID holds the value of the "triggerID" field.
 	TriggerID string `json:"triggerID,omitempty"`
 	// RuleFilters holds the value of the "ruleFilters" field.
-	RuleFilters []*schema.ActionsRuleFilter `json:"ruleFilters,omitempty"`
+	RuleFilters []*core.ActionsRuleFilter `json:"ruleFilters,omitempty"`
 	// RuleActions holds the value of the "ruleActions" field.
-	RuleActions []*schema.ActionsRuleAction `json:"ruleActions,omitempty"`
+	RuleActions []*core.ActionsRuleAction `json:"ruleActions,omitempty"`
 }
 
 // FromRows scans the sql response data into ActionsRule.

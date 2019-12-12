@@ -18,8 +18,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/vektah/gqlparser"
@@ -868,11 +868,11 @@ type ActionsRuleResolver interface {
 	TriggerID(ctx context.Context, obj *ent.ActionsRule) (models.TriggerID, error)
 }
 type ActionsRuleActionResolver interface {
-	Action(ctx context.Context, obj *schema.ActionsRuleAction) (*models.ActionsAction, error)
-	ActionID(ctx context.Context, obj *schema.ActionsRuleAction) (models.ActionID, error)
+	Action(ctx context.Context, obj *core.ActionsRuleAction) (*models.ActionsAction, error)
+	ActionID(ctx context.Context, obj *core.ActionsRuleAction) (models.ActionID, error)
 }
 type ActionsRuleFilterResolver interface {
-	Operator(ctx context.Context, obj *schema.ActionsRuleFilter) (*models.ActionsOperator, error)
+	Operator(ctx context.Context, obj *core.ActionsRuleFilter) (*models.ActionsOperator, error)
 }
 type ActionsTriggerResolver interface {
 	SupportedActions(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsAction, error)
@@ -6881,7 +6881,7 @@ type ActionsTriggersSearchResult {
 # with data for executing that action
 type ActionsRuleAction
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction"
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
   ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
@@ -6891,7 +6891,7 @@ type ActionsRuleAction
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter"
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
   ) {
   filterID: String
   operatorID: String
@@ -9786,10 +9786,10 @@ func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*schema.ActionsRuleAction)
+	res := resTmp.([]*core.ActionsRuleAction)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleAction(ctx, field.Selections, res)
+	return ec.marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_ruleFilters(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9823,13 +9823,13 @@ func (ec *executionContext) _ActionsRule_ruleFilters(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*schema.ActionsRuleFilter)
+	res := resTmp.([]*core.ActionsRuleFilter)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleFilter(ctx, field.Selections, res)
+	return ec.marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleAction_action(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleAction_action(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9866,7 +9866,7 @@ func (ec *executionContext) _ActionsRuleAction_action(ctx context.Context, field
 	return ec.marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9903,7 +9903,7 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleAction) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9940,7 +9940,7 @@ func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleFilter) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleFilter) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9974,7 +9974,7 @@ func (ec *executionContext) _ActionsRuleFilter_filterID(ctx context.Context, fie
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleFilter_operatorID(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleFilter) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleFilter_operatorID(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleFilter) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -10008,7 +10008,7 @@ func (ec *executionContext) _ActionsRuleFilter_operatorID(ctx context.Context, f
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleFilter_operator(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleFilter) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleFilter_operator(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleFilter) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -10045,7 +10045,7 @@ func (ec *executionContext) _ActionsRuleFilter_operator(ctx context.Context, fie
 	return ec.marshalNActionsOperator2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsOperator(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsRuleFilter_data(ctx context.Context, field graphql.CollectedField, obj *schema.ActionsRuleFilter) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsRuleFilter_data(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleFilter) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -33423,7 +33423,7 @@ func (ec *executionContext) _ActionsRule(ctx context.Context, sel ast.SelectionS
 
 var actionsRuleActionImplementors = []string{"ActionsRuleAction"}
 
-func (ec *executionContext) _ActionsRuleAction(ctx context.Context, sel ast.SelectionSet, obj *schema.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) _ActionsRuleAction(ctx context.Context, sel ast.SelectionSet, obj *core.ActionsRuleAction) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, actionsRuleActionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -33478,7 +33478,7 @@ func (ec *executionContext) _ActionsRuleAction(ctx context.Context, sel ast.Sele
 
 var actionsRuleFilterImplementors = []string{"ActionsRuleFilter"}
 
-func (ec *executionContext) _ActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, obj *schema.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) _ActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, obj *core.ActionsRuleFilter) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, actionsRuleFilterImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -38981,7 +38981,7 @@ func (ec *executionContext) marshalNActionsRule2ᚕᚖgithubᚗcomᚋfacebookinc
 	return ret
 }
 
-func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v []*schema.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleAction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -39005,7 +39005,7 @@ func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfaceb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleAction(ctx, sel, v[i])
+			ret[i] = ec.marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -39038,7 +39038,7 @@ func (ec *executionContext) unmarshalNActionsRuleActionInput2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v []*schema.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleFilter) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -39062,7 +39062,7 @@ func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfaceb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleFilter(ctx, sel, v[i])
+			ret[i] = ec.marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -42088,11 +42088,11 @@ func (ec *executionContext) marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._ActionsRule(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOActionsRuleAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v schema.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleAction) graphql.Marshaler {
 	return ec._ActionsRuleAction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v *schema.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleAction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -42111,11 +42111,11 @@ func (ec *executionContext) unmarshalOActionsRuleActionInput2ᚖgithubᚗcomᚋf
 	return &res, err
 }
 
-func (ec *executionContext) marshalOActionsRuleFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v schema.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleFilter) graphql.Marshaler {
 	return ec._ActionsRuleFilter(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚋschemaᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v *schema.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleFilter) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -13,7 +13,6 @@ import (
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/cloud/actions/executor"
 	"github.com/facebookincubator/symphony/cloud/actions/trigger/mocktrigger"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -102,8 +101,8 @@ func TestEditActionsRule(t *testing.T) {
 		ActionsRule.Create().
 		SetName("testInput").
 		SetTriggerID("trigger1").
-		SetRuleActions([]*schema.ActionsRuleAction{}).
-		SetRuleFilters([]*schema.ActionsRuleFilter{}).
+		SetRuleActions([]*core.ActionsRuleAction{}).
+		SetRuleFilters([]*core.ActionsRuleFilter{}).
 		Save(ctx)
 	assert.NoError(t, err)
 
@@ -127,8 +126,8 @@ func TestRemoveActionsRule(t *testing.T) {
 		ActionsRule.Create().
 		SetName("testInput").
 		SetTriggerID("trigger1").
-		SetRuleActions([]*schema.ActionsRuleAction{}).
-		SetRuleFilters([]*schema.ActionsRuleFilter{}).
+		SetRuleActions([]*core.ActionsRuleAction{}).
+		SetRuleFilters([]*core.ActionsRuleFilter{}).
 		Save(ctx)
 	assert.NoError(t, err)
 

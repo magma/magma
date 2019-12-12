@@ -47,28 +47,29 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 			if !shouldExecute {
 				continue
 			}
-			for _, actionID := range rule.ActionIDs {
-				err := exc.executeAction(rule, actionID, inputPayload)
+			for _, ruleAction := range rule.RuleActions {
+				err := exc.executeAction(rule, ruleAction, inputPayload)
 				if err != nil {
-					exc.OnError(errors.Errorf("executing action %s: %v", actionID, err))
+					exc.OnError(errors.Errorf("executing action %s: %v", ruleAction.ActionID, err))
 				}
 			}
 		}
 	}
 }
 
-func (exc Executor) executeAction(rule core.Rule, actionID core.ActionID, inputPayload map[string]interface{}) error {
-	action, err := exc.Registry.ActionForID(actionID)
+func (exc Executor) executeAction(rule core.Rule, ruleAction *core.ActionsRuleAction, inputPayload map[string]interface{}) error {
+	action, err := exc.Registry.ActionForID(ruleAction.ActionID)
 	if err != nil {
-		return errors.Errorf("could not find action %v, skipping: %v", actionID, err)
+		return errors.Errorf("could not find action %v, skipping: %v", ruleAction.ActionID, err)
 	}
 	actionContext := core.ActionContext{
 		TriggerPayload: inputPayload,
 		Rule:           rule,
+		RuleAction:     ruleAction,
 	}
 	err = action.Execute(actionContext)
 	if err != nil {
-		return errors.Errorf("executing %v: %v", actionID, err)
+		return errors.Errorf("executing %v: %v", ruleAction.ActionID, err)
 	}
 	return nil
 }

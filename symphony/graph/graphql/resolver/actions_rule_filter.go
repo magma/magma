@@ -7,13 +7,13 @@ package resolver
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/graph/ent/schema"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 )
 
 type actionsRuleFilterResolver struct{}
 
-func (actionsRuleFilterResolver) Operator(ctx context.Context, ar *schema.ActionsRuleFilter) (*models.ActionsOperator, error) {
+func (actionsRuleFilterResolver) Operator(ctx context.Context, ar *core.ActionsRuleFilter) (*models.ActionsOperator, error) {
 	// TODO: stub
 	return &models.ActionsOperator{
 		OperatorID:  ar.OperatorID,

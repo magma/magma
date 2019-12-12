@@ -127,7 +127,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
-		Type:  "[]*schema.ActionsRuleFilter",
+		Type:  "[]*core.ActionsRuleFilter",
 		Name:  "RuleFilters",
 		Value: string(buf),
 	}
@@ -135,7 +135,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
-		Type:  "[]*schema.ActionsRuleAction",
+		Type:  "[]*core.ActionsRuleAction",
 		Name:  "RuleActions",
 		Value: string(buf),
 	}

@@ -10,7 +10,6 @@ import (
 	"github.com/facebookincubator/symphony/cloud/actions"
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
@@ -38,11 +37,11 @@ func (actionsRuleResolver) Trigger(ctx context.Context, rule *ent.ActionsRule) (
 	}, nil
 }
 
-func (actionsRuleResolver) RuleActions(ctx context.Context, rule *ent.ActionsRule) ([]*schema.ActionsRuleAction, error) {
+func (actionsRuleResolver) RuleActions(ctx context.Context, rule *ent.ActionsRule) ([]*core.ActionsRuleAction, error) {
 	return rule.RuleActions, nil
 }
 
-func (actionsRuleResolver) RuleFilters(ctx context.Context, rule *ent.ActionsRule) ([]*schema.ActionsRuleFilter, error) {
+func (actionsRuleResolver) RuleFilters(ctx context.Context, rule *ent.ActionsRule) ([]*core.ActionsRuleFilter, error) {
 	return rule.RuleFilters, nil
 }
 

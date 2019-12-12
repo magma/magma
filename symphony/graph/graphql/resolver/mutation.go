@@ -26,7 +26,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
@@ -2572,16 +2571,16 @@ func (r mutationResolver) RemoveCustomer(ctx context.Context, id string) (string
 	return id, nil
 }
 
-func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRuleActionInput) ([]*schema.ActionsRuleAction, error) {
+func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRuleActionInput) ([]*core.ActionsRuleAction, error) {
 	ac := actions.FromContext(ctx)
-	ruleActions := make([]*schema.ActionsRuleAction, 0, len(inputActions))
+	ruleActions := make([]*core.ActionsRuleAction, 0, len(inputActions))
 	for _, ruleAction := range inputActions {
 		_, err := ac.ActionForID(core.ActionID(ruleAction.ActionID))
 		if err != nil {
 			return nil, errors.Wrap(err, "validating action")
 		}
 
-		ruleActions = append(ruleActions, &schema.ActionsRuleAction{
+		ruleActions = append(ruleActions, &core.ActionsRuleAction{
 			ActionID: core.ActionID(ruleAction.ActionID),
 			Data:     ruleAction.Data,
 		})
@@ -2589,10 +2588,10 @@ func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRul
 	return ruleActions, nil
 }
 
-func filtersInputToSchema(inputFilters []*models.ActionsRuleFilterInput) []*schema.ActionsRuleFilter {
-	ruleFilters := make([]*schema.ActionsRuleFilter, 0, len(inputFilters))
+func filtersInputToSchema(inputFilters []*models.ActionsRuleFilterInput) []*core.ActionsRuleFilter {
+	ruleFilters := make([]*core.ActionsRuleFilter, 0, len(inputFilters))
 	for _, ruleFilter := range inputFilters {
-		ruleFilters = append(ruleFilters, &schema.ActionsRuleFilter{
+		ruleFilters = append(ruleFilters, &core.ActionsRuleFilter{
 			FilterID:   ruleFilter.FilterID,
 			OperatorID: ruleFilter.OperatorID,
 			Data:       ruleFilter.Data,
