@@ -57,11 +57,6 @@ static void *nas_intertask_interface(void *args_p)
         OAI_FPRINTF_INFO("TASK_NAS_MME received MESSAGE_TEST\n");
       } break;
 
-      case MME_APP_CREATE_DEDICATED_BEARER_REQ:
-        nas_proc_create_dedicated_bearer(
-          &MME_APP_CREATE_DEDICATED_BEARER_REQ(received_message_p));
-        break;
-
       case S1AP_DEREGISTER_UE_REQ: {
         nas_proc_deregister_ue(
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
@@ -114,16 +109,6 @@ static void *nas_intertask_interface(void *args_p)
         nas_proc_notify_service_reject(
           &NAS_NOTIFY_SERVICE_REJECT(received_message_p));
       } break;
-
-      case MME_APP_DELETE_DEDICATED_BEARER_REQ:
-        nas_proc_delete_dedicated_bearer(
-          &MME_APP_DELETE_DEDICATED_BEARER_REQ(received_message_p));
-        break;
-
-      case MME_APP_PDN_DISCONNECT_RSP:
-        nas_proc_pdn_disconnect_rsp(
-          &MME_APP_PDN_DISCONNECT_RSP(received_message_p));
-        break;
 
       case TERMINATE_MESSAGE: {
         put_mme_nas_state(&mme_app_desc_p);

@@ -55,21 +55,6 @@ MESSAGE_DEF(
   itti_mme_app_delete_session_rsp_t,
   mme_app_delete_session_rsp)
 MESSAGE_DEF(
-  MME_APP_CREATE_DEDICATED_BEARER_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_create_dedicated_bearer_req_t,
-  mme_app_create_dedicated_bearer_req)
-MESSAGE_DEF(
-  MME_APP_CREATE_DEDICATED_BEARER_RSP,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_create_dedicated_bearer_rsp_t,
-  mme_app_create_dedicated_bearer_rsp)
-MESSAGE_DEF(
-  MME_APP_CREATE_DEDICATED_BEARER_REJ,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_create_dedicated_bearer_rej_t,
-  mme_app_create_dedicated_bearer_rej)
-MESSAGE_DEF(
   MME_APP_S1AP_MME_UE_ID_NOTIFICATION,
   MESSAGE_PRIORITY_MED,
   itti_mme_app_s1ap_mme_ue_id_notification_t,
@@ -89,28 +74,3 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_mme_app_dl_data_rej_t,
   mme_app_dl_data_rej)
-MESSAGE_DEF(
-  MME_APP_DELETE_DEDICATED_BEARER_RSP,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_delete_dedicated_bearer_rsp_t,
-  mme_app_delete_dedicated_bearer_rsp)
-MESSAGE_DEF(
-  MME_APP_DELETE_DEDICATED_BEARER_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_delete_dedicated_bearer_req_t,
-  mme_app_delete_dedicated_bearer_req)
-MESSAGE_DEF(
-  MME_APP_DELETE_DEDICATED_BEARER_REJ,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_delete_dedicated_bearer_rej_t,
-  mme_app_delete_dedicated_bearer_rej)
-MESSAGE_DEF(
-  MME_APP_PDN_DISCONNECT_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_pdn_disconnect_req_t,
-  mme_app_pdn_disconnect_req)
-MESSAGE_DEF(
-  MME_APP_PDN_DISCONNECT_RSP,
-  MESSAGE_PRIORITY_MED,
-  itti_mme_app_pdn_disconnect_rsp_t,
-  mme_app_pdn_disconnect_rsp)

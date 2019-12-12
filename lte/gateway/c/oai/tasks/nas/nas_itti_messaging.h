@@ -48,27 +48,10 @@ int nas_itti_dl_data_req(
   bstring nas_msgP,
   nas_error_code_t transaction_status);
 
-int nas_itti_erab_setup_req(
-  const mme_ue_s1ap_id_t ue_id,
-  const ebi_t ebi,
-  const bitrate_t mbr_dl,
-  const bitrate_t mbr_ul,
-  const bitrate_t gbr_dl,
-  const bitrate_t gbr_ul,
-  bstring nas_msg);
-
-void nas_itti_dedicated_eps_bearer_complete(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP);
-
 void nas_itti_extended_service_req(
   const mme_ue_s1ap_id_t ue_id,
   const uint8_t servicetype,
   uint8_t csfb_response);
-
-void nas_itti_dedicated_eps_bearer_reject(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP);
 
 void nas_itti_sgsap_uplink_unitdata(
   const char *const imsi,
@@ -101,27 +84,5 @@ void s6a_auth_info_rsp_timer_expiry_handler(void *args);
 void nas_itti_sgsap_ue_activity_ind(
   const char *imsi,
   const unsigned int imsi_len);
-
-void nas_itti_deactivate_eps_bearer_context(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP,
-  bool delete_default_bearer,
-  teid_t s_gw_teid_s11_s4);
-
-int nas_itti_erab_rel_cmd(
-  const mme_ue_s1ap_id_t ue_id,
-  const ebi_t ebi,
-  bstring nas_msg);
-
-void nas_itti_dedicated_eps_bearer_deactivation_reject(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP,
-  bool delete_default_bearer,
-  teid_t s_gw_teid_s11_s4);
-
-void nas_itti_pdn_disconnect_req(
-  const mme_ue_s1ap_id_t ue_idP,
-  const pdn_cid_t pid,
-  const ebi_t lbi);
 
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

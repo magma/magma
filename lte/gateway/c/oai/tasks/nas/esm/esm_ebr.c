@@ -116,35 +116,20 @@ void esm_ebr_initialize(void)
 int esm_ebr_assign(emm_context_t *emm_context)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  bearer_context_t *bearer_context = NULL;
-  ue_mm_context_t *ue_context =
+  ue_mm_context_t *ue_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-  int i;
 
-  lock_ue_contexts(ue_context);
-
-  i = _esm_ebr_get_available_entry(emm_context);
+  int i = _esm_ebr_get_available_entry(emm_context);
   if (i < 0) {
-    unlock_ue_contexts(ue_context);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
   }
 
-  bearer_context = malloc(sizeof(*bearer_context));
-  if (bearer_context == NULL) {
-    unlock_ue_contexts(ue_context);
-    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
-  }
-
-  unlock_ue_contexts(ue_context);
-
-  bearer_context->ebi = INDEX_TO_EBI(i);
-  esm_ebr_context_init(&bearer_context->esm_ebr_context);
   OAILOG_DEBUG(
     LOG_NAS_ESM,
-    "ESM-FSM - EPS bearer identity = %d assigned for (ue_id = %u)\n",
-    bearer_context->ebi,
-    ue_context->mme_ue_s1ap_id);
-  free_wrapper((void **) &bearer_context);
+    "ESM-FSM - EPS bearer identity = %u assigned for ue_id:"
+    MME_UE_S1AP_ID_FMT "\n",
+    INDEX_TO_EBI(i),
+    ue_context_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i));
 }
 

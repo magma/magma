@@ -78,7 +78,11 @@ bearer_context_t *mme_app_create_bearer_context(
 {
   ebi_t lebi = ebi;
   if ((EPS_BEARER_IDENTITY_FIRST > ebi) || (EPS_BEARER_IDENTITY_LAST < ebi)) {
-    lebi = mme_app_get_free_bearer_id(ue_mm_context);
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "Received invalid ebi :%u \n",
+      ebi);
+    return NULL;
   }
   lebi = mme_app_get_free_bearer_id(ue_mm_context);
   if (EPS_BEARER_IDENTITY_UNASSIGNED == lebi) {
