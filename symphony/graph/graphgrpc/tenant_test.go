@@ -81,7 +81,7 @@ func TestTenantServer_Truncate(t *testing.T) {
 	result := sqlmock.NewResult(0, 0)
 	mock.ExpectExec("SET FOREIGN_KEY_CHECKS=0").WillReturnResult(result)
 	for _, table := range migrate.Tables {
-		query := fmt.Sprintf("TRUNCATE TABLE `tenant_foo`.`%s`", table.Name)
+		query := fmt.Sprintf("DELETE FROM `tenant_foo`.`%s`", table.Name)
 		mock.ExpectExec(query).WillReturnResult(result)
 	}
 	mock.ExpectExec("SET FOREIGN_KEY_CHECKS=1").WillReturnResult(result)
