@@ -5,10 +5,12 @@
 package magmarebootnode
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/pkg/errors"
 )
 
 type action struct {
@@ -39,5 +41,18 @@ func (a *action) Execute(ctx core.ActionContext) error {
 
 	log.Printf("running action:%v, networkID:%v, gatewayID:%v, ruleID: %v",
 		core.MagmaRebootNodeActionID, networkID, gatewayID, rule.ID)
+
+	url := fmt.Sprintf("/networks/%s/gateways/%s/command/reboot", networkID, gatewayID)
+	res, err := a.orc8rClient.Post(url, "application/json", nil)
+	if err != nil {
+		return errors.Wrap(err, "rebooting node")
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		return fmt.Errorf("node reboot received status %d", res.StatusCode)
+	}
+
 	return nil
 }
