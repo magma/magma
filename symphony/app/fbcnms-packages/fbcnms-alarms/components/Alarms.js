@@ -8,7 +8,7 @@
  * @format
  */
 
-import AlertRules from './prometheus/AlertRules';
+import AlertRules from './AlertRules';
 import AppBar from '@material-ui/core/AppBar';
 import FiringAlerts from './prometheus/FiringAlerts';
 import React from 'react';
@@ -21,10 +21,11 @@ import {Link, Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {matchPath} from 'react-router';
 import {useRouter} from '@fbcnms/ui/hooks';
-import type {FiringAlarm, Labels} from './AlarmAPIType';
-import type {Match} from 'react-router-dom';
 
 import type {ApiUtil} from './AlarmsApi';
+import type {FiringAlarm, Labels} from './AlarmAPIType';
+import type {Match} from 'react-router-dom';
+import type {RuleInterfaceMap} from './RuleInterface';
 
 const useStyles = makeStyles(_theme => ({
   appBar: {
@@ -59,20 +60,23 @@ const TABS: TabMap = {
 
 const DEFAULT_TAB_NAME = 'alerts';
 
-type Props = {
+type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
   makeTabLink: ({match: Match, keyName: string}) => string,
   experimentalTabsEnabled: boolean,
   thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
+  ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
 };
-export default function Alarms(props: Props) {
+
+export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
   const {
     apiUtil,
     filterLabels,
     makeTabLink,
     experimentalTabsEnabled,
     thresholdEditorEnabled,
+    ruleMap,
   } = props;
   const classes = useStyles();
   const {match, location} = useRouter();
@@ -119,6 +123,7 @@ export default function Alarms(props: Props) {
           render={() => (
             <AlertRules
               {...alarmProps}
+              ruleMap={ruleMap}
               thresholdEditorEnabled={thresholdEditorEnabled}
             />
           )}

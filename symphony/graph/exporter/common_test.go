@@ -10,9 +10,11 @@ import (
 	"os"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/cloud/testdb"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
@@ -33,7 +35,11 @@ const (
 	equipmentType2Name  = "equipmentType2"
 	parentEquip         = "parentEquipmentName"
 	currEquip           = "currEquipmentName"
+	currEquip2          = "currEquipmentName2"
 	positionName        = "Position"
+	portName1           = "port1"
+	portName2           = "port2"
+	portName3           = "port3"
 	propNameStr         = "propNameStr"
 	propNameInt         = "propNameInts"
 	newPropNameStr      = "newPropNameStr"
@@ -132,6 +138,25 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	position1 := models.EquipmentPositionInput{
 		Name: positionName,
 	}
+
+	ptyp, _ := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
+		Name: "portType1",
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name:        propStr,
+				Type:        "string",
+				StringValue: pointer.ToString("t1"),
+			},
+			{
+				Name: propStr2,
+				Type: "string",
+			},
+		},
+	})
+	port1 := models.EquipmentPortInput{
+		Name:       portName1,
+		PortTypeID: &ptyp.ID,
+	}
 	strDefVal := propDefValue
 	intDefVal := propDevValInt
 	propDefInput1 := models.PropertyTypeInput{
@@ -147,11 +172,17 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:      equipmentTypeName,
 		Positions: []*models.EquipmentPositionInput{&position1},
+		Ports:     []*models.EquipmentPortInput{&port1},
 	})
 	require.NoError(t, err)
+
+	port2 := models.EquipmentPortInput{
+		Name: portName2,
+	}
 	equipmentType2, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       equipmentType2Name,
 		Properties: []*models.PropertyTypeInput{&propDefInput1, &propDefInput2},
+		Ports:      []*models.EquipmentPortInput{&port2},
 	})
 	require.NoError(t, err)
 
@@ -164,12 +195,13 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		Location: &clocation.ID,
 	})
 	require.NoError(t, err)
+
 	strVal := propInstanceValue
 	propInstance1 := models.PropertyInput{
 		PropertyTypeID: propDef1.ID,
 		StringValue:    &strVal,
 	}
-	_, err = mr.AddEquipment(ctx, models.AddEquipmentInput{
+	childEquip, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:               currEquip,
 		Type:               equipmentType2.ID,
 		Parent:             &parentEquipment.ID,
@@ -177,6 +209,16 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		Properties:         []*models.PropertyInput{&propInstance1},
 	})
 	require.NoError(t, err)
+
+	portDef1 := equipmentType.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName1)).OnlyX(ctx)
+	portDef2 := equipmentType2.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
+	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+		Sides: []*models.LinkSide{
+			{Equipment: parentEquipment.ID, Port: portDef1.ID},
+			{Equipment: childEquip.ID, Port: portDef2.ID},
+		},
+	})
+
 	val := propDefValue2
 	propertyInput := models.PropertyTypeInput{Name: newPropNameStr, StringValue: &val, Type: models.PropertyKindString}
 	_, err = r.Mutation().EditEquipmentType(ctx, models.EditEquipmentTypeInput{

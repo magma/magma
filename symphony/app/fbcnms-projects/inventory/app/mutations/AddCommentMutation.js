@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddCommentMutation,
   AddCommentMutationResponse,
   AddCommentMutationVariables,
 } from './__generated__/AddCommentMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddCommentMutation($input: CommentInput!) {
@@ -28,10 +29,10 @@ const mutation = graphql`
 export default (
   variables: AddCommentMutationVariables,
   callbacks?: MutationCallbacks<AddCommentMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddCommentMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

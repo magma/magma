@@ -11,6 +11,7 @@
 import * as React from 'react';
 import {Link} from 'react-router-dom';
 
+import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '../hooks';
 
@@ -23,21 +24,22 @@ const useStyles = makeStyles({
 type Props = {
   children: any,
   to: string,
+  className?: string,
 };
 
 function NestedRouteLink(props: Props, ref: React.Ref<any>) {
   const classes = useStyles();
   const {match} = useRouter();
-  const {children, to, ...childProps} = props;
+  const {children, to, className: childClassName, ...childProps} = props;
   // remove trailing/leading slashes
   const base = match.url.replace(/\/$/, '');
   const url = to.replace(/^\//, '');
   return (
     <Link
+      {...childProps}
       innerRef={ref}
-      className={classes.link}
-      to={`${base}/${url}`}
-      {...childProps}>
+      className={classNames(classes.link, childClassName)}
+      to={`${base}/${url}`}>
       {children}
     </Link>
   );

@@ -289,7 +289,7 @@ message CreditUsage {
     POOL_EXHAUSTED = 8;
   }
   UpdateType type = 5;
-  string monitoring_key = 6;
+  bytes monitoring_key = 6;
   ServiceIdentifier service_identifier = 7;
 }
 
@@ -321,6 +321,13 @@ message CreditUpdateResponse {
   ResponseType type = 5;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
+  enum CreditLimitType {
+    FINITE = 0;
+    INFINITE_UNMETERED = 1;
+    INFINITE_METERED = 2;
+  }
+  // When this is set to an infinite limit, field 'credit' should be ignored
+  CreditLimitType limit_type = 9;
 }
 
 // PCRF USAGE MONITORING
@@ -332,7 +339,7 @@ enum MonitoringLevel {
 
 // Used amount for a usage monitor
 message UsageMonitorUpdate {
-  string monitoring_key = 1;
+  bytes monitoring_key = 1;
   MonitoringLevel level = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
@@ -345,7 +352,7 @@ message UsageMonitoringCredit {
     DISABLE = 1; // no need to monitor any more
   }
   Action action = 1;
-  string monitoring_key = 2;
+  bytes monitoring_key = 2;
   MonitoringLevel level = 3;
   GrantedUnits granted_units = 5;
 }

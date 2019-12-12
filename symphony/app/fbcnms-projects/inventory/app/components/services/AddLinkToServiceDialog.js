@@ -9,6 +9,7 @@
  */
 
 import type {Equipment, Link} from '../../common/Equipment';
+import type {PowerSearchLinkFirstEquipmentResultsTable_equipment} from './__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
 import type {Service} from '../../common/Service';
 import type {WithStyles} from '@material-ui/core';
 
@@ -16,15 +17,16 @@ import AvailableLinksTable from './AvailableLinksTable';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import EquipmentComparisonViewQueryRenderer from '../comparison_view/EquipmentComparisonViewQueryRenderer';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
+import PowerSearchLinkFirstEquipmentResultsTable from './PowerSearchLinkFirstEquipmentResultsTable';
 import React from 'react';
-import Step from '@material-ui/core/Step';
-import StepConnector from '@material-ui/core/StepConnector/StepConnector.js';
-import StepLabel from '@material-ui/core/StepLabel';
-import Stepper from '@material-ui/core/Stepper';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {graphql} from 'react-relay';
+import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -40,26 +42,11 @@ const styles = theme => ({
     marginRight: '8px',
     fontWeight: 500,
   },
-  connectorActive: {
-    '& $connectorLine': {
-      borderColor: theme.palette.secondary.main,
-    },
-  },
-  connectorCompleted: {
-    '& $connectorLine': {
-      borderColor: theme.palette.primary.main,
-    },
-  },
-  connectorDisabled: {
-    '& $connectorLine': {
-      borderColor: theme.palette.grey[100],
-    },
-  },
-  connectorLine: {
-    transition: theme.transitions.create('border-color'),
-  },
   root: {
     minWidth: '80vh',
+    paddingTop: '0px',
+    paddingLeft: '32px',
+    paddingRight: '32px',
   },
   searchResults: {
     flexGrow: 1,
@@ -67,6 +54,13 @@ const styles = theme => ({
     flexDirection: 'column',
     backgroundColor: theme.palette.common.white,
     height: '100%',
+  },
+  title: {
+    display: 'block',
+  },
+  subtitle: {
+    display: 'block',
+    color: symphony.palette.D500,
   },
 });
 
@@ -117,30 +111,39 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   }
 
   handleElementSelected = equipment => {
-    this.setState(state => ({
-      activeStep: state.activeStep + 1,
+    this.setState({
       activeEquipement: equipment,
-    }));
+    });
   };
 
   handleLinkSelected = (link: Link) => {
-    const {onAddLink} = this.props;
-    this.setState(_ => ({
+    this.setState({
       activeLink: link,
-    }));
-    onAddLink(nullthrows(link));
+    });
   };
 
   getStepContent = () => {
     const {classes, service} = this.props;
+    const EquipmentTable = (props: {
+      equipment: PowerSearchLinkFirstEquipmentResultsTable_equipment,
+    }) => {
+      return (
+        <div className={classes.searchResults}>
+          <PowerSearchLinkFirstEquipmentResultsTable
+            equipment={props.equipment}
+            onEquipmentSelected={this.handleElementSelected}
+            selectedEquipment={this.state.activeEquipement}
+          />
+        </div>
+      );
+    };
     switch (this.state.activeStep) {
       case 0:
         return (
           <div className={classes.searchResults}>
-            <EquipmentComparisonViewQueryRenderer
-              limit={50}
-              onEquipmentSelected={this.handleElementSelected}
-            />
+            <EquipmentComparisonViewQueryRenderer limit={50}>
+              {props => <EquipmentTable {...props} />}
+            </EquipmentComparisonViewQueryRenderer>
           </div>
         );
       case 1:
@@ -172,6 +175,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
                 <AvailableLinksTable
                   equipment={nullthrows(this.state.activeEquipement)}
                   links={links}
+                  selectedLink={this.state.activeLink}
                   onLinkSelected={this.handleLinkSelected}
                 />
               );
@@ -202,50 +206,56 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   render() {
-    const {classes, onAddLink} = this.props;
-    const {activeStep, activeLink} = this.state;
+    const {classes, onAddLink, service, onClose} = this.props;
+    const {activeStep, activeLink, activeEquipement} = this.state;
     const lastStep = activeStep == steps.length - 1;
-    const connector = (
-      <StepConnector
-        classes={{
-          active: classes.connectorActive,
-          completed: classes.connectorCompleted,
-          disabled: classes.connectorDisabled,
-          line: classes.connectorLine,
-        }}
-      />
-    );
 
     return (
       <>
+        <DialogTitle>
+          <Text className={classes.title} variant="h6">
+            Add link to {service.name}
+          </Text>
+          {lastStep ? (
+            <Text
+              className={classes.subtitle}
+              variant="subtitle2"
+              color="light">
+              Select the link you want to add to this service.
+            </Text>
+          ) : (
+            <Text
+              className={classes.subtitle}
+              variant="subtitle2"
+              color="light">
+              Select the equipment associated with the link.
+            </Text>
+          )}
+        </DialogTitle>
         <DialogContent div className={classes.root}>
-          <Stepper
-            alternativeLabel
-            activeStep={activeStep}
-            connector={connector}>
-            {steps.map(label => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
           <div className={classes.content}>{this.getStepContent()}</div>
         </DialogContent>
         <DialogActions>
-          <Button
-            disabled={activeStep === 0}
-            skin="regular"
-            onClick={this.handleBack}>
-            Back
-          </Button>
           {!lastStep && (
-            <Button disabled={activeStep != 1} onClick={this.handleNext}>
+            <Button skin="regular" onClick={onClose}>
+              Cancel
+            </Button>
+          )}
+          {lastStep && (
+            <Button skin="regular" onClick={this.handleBack}>
+              Back
+            </Button>
+          )}
+          {!lastStep && (
+            <Button
+              disabled={activeEquipement === null}
+              onClick={this.handleNext}>
               Next
             </Button>
           )}
           {lastStep && (
             <Button
-              disabled={activeStep < steps.length - 1}
+              disabled={activeLink === null}
               color="primary"
               onClick={() => onAddLink(nullthrows(activeLink))}>
               Add
@@ -257,4 +267,4 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(AddLinkToServiceDialog);
+export default withRouter(withStyles(styles)(AddLinkToServiceDialog));

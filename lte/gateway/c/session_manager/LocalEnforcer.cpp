@@ -51,15 +51,17 @@ static void mark_rule_failures(
   PolicyReAuthAnswer& answer_out);
 
 LocalEnforcer::LocalEnforcer(
-  std::shared_ptr<SessionCloudReporter> reporter,
+  std::shared_ptr<SessionReporter> reporter,
   std::shared_ptr<StaticRuleStore> rule_store,
   std::shared_ptr<PipelinedClient> pipelined_client,
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client,
   std::shared_ptr<SpgwServiceClient> spgw_client,
   std::shared_ptr<aaa::AAAClient> aaa_client,
   long session_force_termination_timeout_ms):
   reporter_(reporter),
   rule_store_(rule_store),
   pipelined_client_(pipelined_client),
+  directoryd_client_(directoryd_client),
   spgw_client_(spgw_client),
   aaa_client_(aaa_client),
   session_force_termination_timeout_ms_(session_force_termination_timeout_ms)
@@ -265,12 +267,23 @@ void LocalEnforcer::install_redirect_flow(
 {
   std::vector<std::string> static_rules;
   std::vector<PolicyRule> dynamic_rules {create_redirect_rule(action)};
+  const std::string &imsi = action->get_imsi();
 
-  pipelined_client_->activate_flows_for_rules(
-    action->get_imsi(),
-    action->get_ip_addr(),
-    static_rules,
-    dynamic_rules);
+  auto request = directoryd_client_->get_directoryd_ip_field(imsi,
+    [this, imsi, static_rules, dynamic_rules](Status status,
+                                              DirectoryField resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not fetch subscriber " << imsi << "ip, "
+                   << "redirection fails, error: " << status.error_message();
+    } else {
+      pipelined_client_->activate_flows_for_rules(
+        imsi,
+        resp.value(),
+        static_rules,
+        dynamic_rules);
+    }
+  }
+);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates()
@@ -540,6 +553,9 @@ bool LocalEnforcer::init_session_credit(
     }
   }
   for (const auto &monitor : response.usage_monitors()) {
+    if (revalidation_required(monitor.event_triggers())) {
+      schedule_revalidation(monitor.revalidation_time());
+    }
     session_state->get_monitor_pool().receive_credit(monitor);
   }
   session_map_[imsi] = std::unique_ptr<SessionState>(session_state);

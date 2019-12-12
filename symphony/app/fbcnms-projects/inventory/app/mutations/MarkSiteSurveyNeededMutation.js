@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  MarkSiteSurveyNeededMutation,
   MarkSiteSurveyNeededMutationResponse,
   MarkSiteSurveyNeededMutationVariables,
 } from './__generated__/MarkSiteSurveyNeededMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation MarkSiteSurveyNeededMutation($locationId: ID!, $needed: Boolean!) {
@@ -27,10 +29,10 @@ const mutation = graphql`
 export default (
   variables: MarkSiteSurveyNeededMutationVariables,
   callbacks?: MutationCallbacks<MarkSiteSurveyNeededMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<MarkSiteSurveyNeededMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

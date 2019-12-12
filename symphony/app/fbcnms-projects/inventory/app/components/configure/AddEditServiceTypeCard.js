@@ -366,6 +366,7 @@ export default withStyles(styles)(
               rangeFromValue
               rangeToValue
               isEditable
+              isMandatory
               isInstanceProperty
             }
           }

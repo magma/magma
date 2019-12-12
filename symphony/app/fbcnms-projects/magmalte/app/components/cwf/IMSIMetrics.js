@@ -12,7 +12,6 @@ import type {MetricGraphConfig} from '../insights/Metrics';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import MenuItem from '@material-ui/core/MenuItem';
 import Metrics from '../insights/Metrics';
 import React from 'react';
 import {Route} from 'react-router-dom';
@@ -91,25 +90,19 @@ export default function() {
   });
   const allIMSIs = [...imsiSet];
 
-  const imsiMenuItems = allIMSIs.map(imsi => (
-    <MenuItem value={imsi} key={imsi}>
-      <ImsiAndIPMenuItem imsi={imsi} />
-    </MenuItem>
-  ));
-
   return (
     <Route
       path={relativePath('/:selectedID?')}
       render={() => (
         <Metrics
           configs={IMSI_CONFIGS}
-          onSelectorChange={({target}) => {
-            history.push(relativeUrl(`/${target.value}`));
-          }}
-          menuItemOverrides={imsiMenuItems}
+          onSelectorChange={(_, value) =>
+            history.push(relativeUrl(`/${value}`))
+          }
           selectors={allIMSIs}
           defaultSelector={allIMSIs[0]}
           selectorName={'imsi'}
+          renderOptionOverride={option => <ImsiAndIPMenuItem imsi={option} />}
         />
       )}
     />
@@ -118,9 +111,14 @@ export default function() {
 
 function ImsiAndIPMenuItem(props: {imsi: string}) {
   const {match} = useRouter();
+  // The directory record endpoint requires that "IMSI" be prepended
+  // to imsi number. Some metric series might have that on their label.
+  const queryIMSI = props.imsi.startsWith('IMSI')
+    ? props.imsi
+    : 'IMSI' + props.imsi;
   const {response} = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdSubscribersBySubscriberIdDirectoryRecord,
-    {networkId: match.params.networkId, subscriberId: props.imsi},
+    {networkId: match.params.networkId, subscriberId: queryIMSI},
   );
 
   const ipv4 = response?.ipv4_addr;

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
+	"github.com/facebookincubator/symphony/cloud/actions"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
@@ -34,6 +34,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
@@ -97,11 +98,7 @@ func (r mutationResolver) AddProperty(
 	if err != nil {
 		return nil, err
 	}
-	isEmpty, err := r.isEmptyProp(propType, input)
-	if err != nil {
-		return nil, err
-	}
-	if !propType.IsInstanceProperty || isEmpty {
+	if !propType.IsInstanceProperty {
 		return nil, nil
 	}
 	query := client.Property.Create()
@@ -168,6 +165,7 @@ func (r mutationResolver) AddPropertyTypes(
 			SetNillableRangeFromVal(input.RangeFromValue).
 			SetNillableRangeToVal(input.RangeToValue).
 			SetNillableEditable(input.IsEditable).
+			SetNillableMandatory(input.IsMandatory).
 			Save(ctx); err != nil {
 			return nil, errors.Wrap(err, "creating property type")
 		}
@@ -471,6 +469,7 @@ func (r mutationResolver) AddLocationType(
 		SetName(input.Name).
 		SetNillableMapType(input.MapType).
 		SetNillableMapZoomLevel(input.MapZoomLevel).
+		SetNillableSite(input.IsSite).
 		SetIndex(index).
 		AddPropertyTypes(props...).
 		AddSurveyTemplateCategories(categories...).
@@ -482,13 +481,6 @@ func (r mutationResolver) AddLocationType(
 		return nil, errors.Wrap(err, "creating location type")
 	}
 	return typ, nil
-}
-
-func (r mutationResolver) MarkLocationTypeIsSite(ctx context.Context, id string, isSite bool) (*ent.LocationType, error) {
-	return r.ClientFrom(ctx).
-		LocationType.UpdateOneID(id).
-		SetSite(isSite).
-		Save(ctx)
 }
 
 func (r mutationResolver) AddEquipmentPorts(ctx context.Context, et *ent.EquipmentType, e *ent.Equipment) ([]*ent.EquipmentPort, error) {
@@ -1619,8 +1611,7 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 		SetNillableExternalID(data.ExternalID).
 		SetTypeID(data.ServiceTypeID).
 		AddUpstreamIDs(data.UpstreamServiceIds...).
-		AddTerminationPointIDs(data.TerminationPointIds...).
-		AddLinkIDs(data.LinkIds...)
+		AddTerminationPointIDs(data.TerminationPointIds...)
 
 	if data.CustomerID != nil {
 		query.AddCustomerIDs(*data.CustomerID)
@@ -1629,6 +1620,9 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	s, err := query.Save(ctx)
 
 	if err != nil {
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A service with the name %v already exists", data.Name)
+		}
 		return nil, errors.Wrap(err, "creating service")
 	}
 	if _, err := r.AddProperties(ctx, data.Properties, func(b *ent.PropertyCreate) { b.SetService(s) }); err != nil {
@@ -1649,9 +1643,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	oldLinkIds := s.QueryLinks().IDsX(ctx)
-	addedLinkIds, deletedLinkIds := resolverutil.GetDifferenceBetweenSlices(oldLinkIds, data.LinkIds)
-
 	oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
 	addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
 		oldTerminationPointIds, data.TerminationPointIds)
@@ -1670,8 +1661,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		UpdateOne(s).
 		SetName(data.Name).
 		SetNillableExternalID(data.ExternalID).
-		RemoveLinkIDs(deletedLinkIds...).
-		AddLinkIDs(addedLinkIds...).
 		RemoveTerminationPointIDs(deletedTerminationPointIds...).
 		AddTerminationPointIDs(addedTerminationPointIds...).
 		RemoveCustomerIDs(deletedCustomerIds...).
@@ -1717,6 +1706,38 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 			}
 		}
 	}
+	return s, nil
+}
+
+func (r mutationResolver) AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		AddLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q add link: id=%q", id, linkID)
+	}
+
+	return s, nil
+}
+
+func (r mutationResolver) RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	client := r.ClientFrom(ctx)
+	s, err := client.Service.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying service: id=%q", id)
+	}
+	if s, err = client.Service.
+		UpdateOne(s).
+		RemoveLinkIDs(linkID).
+		Save(ctx); err != nil {
+		return nil, errors.Wrapf(err, "updating service: id=%q remove link: id=%q", id, linkID)
+	}
+
 	return s, nil
 }
 
@@ -2031,6 +2052,7 @@ func (r mutationResolver) EditLocationType(
 		SetName(input.Name).
 		SetNillableMapType(input.MapType).
 		SetNillableMapZoomLevel(input.MapZoomLevel).
+		SetNillableSite(input.IsSite).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintFailure(err) {
@@ -2060,6 +2082,7 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 ) ([]*ent.SurveyTemplateCategory, error) {
 	var (
 		categories = make([]*ent.SurveyTemplateCategory, len(surveyTemplateCategories))
+		keepIDs    = make(map[string]bool)
 		added      []*ent.SurveyTemplateCategory
 		err        error
 	)
@@ -2071,19 +2094,40 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 			}
 			categories[i] = category[0]
 			added = append(added, category[0])
-		} else if categories[i], err = r.updateSurveyTemplateCategory(ctx, input); err != nil {
-			return nil, err
+		} else {
+			keepIDs[*input.ID] = true
+			if categories[i], err = r.updateSurveyTemplateCategory(ctx, input); err != nil {
+				return nil, err
+			}
 		}
 	}
-	if added != nil {
-		if err := r.ClientFrom(ctx).
-			LocationType.
-			UpdateOneID(id).
-			AddSurveyTemplateCategories(added...).
-			Exec(ctx); err != nil {
-			return nil, errors.Wrapf(err, "updating location type: id=%q", id)
+
+	lt, err := r.ClientFrom(ctx).LocationType.Get(ctx, id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch location type: id=%q", id)
+	}
+
+	existingCategories, err := r.ClientFrom(ctx).LocationType.QuerySurveyTemplateCategories(lt).All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template categories for location type: id=%q", id)
+	}
+
+	deleteIDs := []string{}
+	for _, existingCategory := range existingCategories {
+		if _, ok := keepIDs[existingCategory.ID]; !ok {
+			deleteIDs = append(deleteIDs, existingCategory.ID)
 		}
 	}
+
+	if err := r.ClientFrom(ctx).
+		LocationType.
+		UpdateOneID(id).
+		AddSurveyTemplateCategories(added...).
+		RemoveSurveyTemplateCategoryIDs(deleteIDs...).
+		Exec(ctx); err != nil {
+		return nil, errors.Wrapf(err, "failed to update survey categories for location type")
+	}
+
 	return categories, nil
 }
 
@@ -2336,6 +2380,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableIsInstanceProperty(input.IsInstanceProperty).
 		SetNillableEditable(input.IsEditable).
+		SetNillableMandatory(input.IsMandatory).
 		Exec(ctx); err != nil {
 		return errors.Wrap(err, "updating property type")
 	}
@@ -2344,6 +2389,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 
 func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, input *models.SurveyTemplateCategoryInput) (*ent.SurveyTemplateCategory, error) {
 	updater := r.ClientFrom(ctx).SurveyTemplateCategory.UpdateOneID(*input.ID)
+	keepIDs := make(map[string]bool)
 	for _, questionInput := range input.SurveyTemplateQuestions {
 		if questionInput.ID == nil {
 			question, err := r.AddSurveyTemplateQuestions(ctx, questionInput)
@@ -2351,11 +2397,33 @@ func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, inpu
 				return nil, err
 			}
 			updater.AddSurveyTemplateQuestions(question...)
-		} else if err := r.updateSurveyTemplateQuestion(ctx, questionInput); err != nil {
-			return nil, err
+		} else {
+			if err := r.updateSurveyTemplateQuestion(ctx, questionInput); err != nil {
+				return nil, err
+			}
+			keepIDs[*questionInput.ID] = true
 		}
 	}
-	category, err := updater.
+
+	category, err := r.ClientFrom(ctx).SurveyTemplateCategory.Get(ctx, *input.ID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template category: id=%q", *input.ID)
+	}
+
+	existingQuestions, err := category.QuerySurveyTemplateQuestions().All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch survey template questions for category: id=%q", *input.ID)
+	}
+
+	deleteIDs := []string{}
+	for _, existingQuestion := range existingQuestions {
+		if _, ok := keepIDs[existingQuestion.ID]; !ok {
+			deleteIDs = append(deleteIDs, existingQuestion.ID)
+		}
+	}
+
+	category, err = updater.
+		RemoveSurveyTemplateQuestionIDs(deleteIDs...).
 		SetCategoryTitle(input.CategoryTitle).
 		SetCategoryDescription(input.CategoryDescription).
 		Save(ctx)
@@ -2494,7 +2562,10 @@ func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCusto
 		SetNillableExternalID(input.ExternalID).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating costumer")
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A customer with the name %v already exists", input.Name)
+		}
+		return nil, errors.Wrap(err, "creating customer")
 	}
 	return t, nil
 }
@@ -2504,4 +2575,141 @@ func (r mutationResolver) RemoveCustomer(ctx context.Context, id string) (string
 		return "", errors.Wrap(err, "removing customer")
 	}
 	return id, nil
+}
+
+func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRuleActionInput) ([]*core.ActionsRuleAction, error) {
+	ac := actions.FromContext(ctx)
+	ruleActions := make([]*core.ActionsRuleAction, 0, len(inputActions))
+	for _, ruleAction := range inputActions {
+		_, err := ac.ActionForID(core.ActionID(ruleAction.ActionID))
+		if err != nil {
+			return nil, errors.Wrap(err, "validating action")
+		}
+
+		ruleActions = append(ruleActions, &core.ActionsRuleAction{
+			ActionID: core.ActionID(ruleAction.ActionID),
+			Data:     ruleAction.Data,
+		})
+	}
+	return ruleActions, nil
+}
+
+func filtersInputToSchema(inputFilters []*models.ActionsRuleFilterInput) []*core.ActionsRuleFilter {
+	ruleFilters := make([]*core.ActionsRuleFilter, 0, len(inputFilters))
+	for _, ruleFilter := range inputFilters {
+		ruleFilters = append(ruleFilters, &core.ActionsRuleFilter{
+			FilterID:   ruleFilter.FilterID,
+			OperatorID: ruleFilter.OperatorID,
+			Data:       ruleFilter.Data,
+		})
+	}
+	return ruleFilters
+}
+
+func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
+	ac := actions.FromContext(ctx)
+
+	triggerID := core.TriggerID(input.TriggerID)
+	_, err := ac.TriggerForID(triggerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating trigger")
+	}
+
+	ruleActions, err := actionsInputToSchema(ctx, input.RuleActions)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating action")
+	}
+
+	ruleFilters := filtersInputToSchema(input.RuleFilters)
+
+	actionsRule, err := r.ClientFrom(ctx).
+		ActionsRule.Create().
+		SetName(input.Name).
+		SetTriggerID(input.TriggerID).
+		SetRuleActions(ruleActions).
+		SetRuleFilters(ruleFilters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "creating actionsrule")
+	}
+	return actionsRule, nil
+}
+
+func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
+	img, err := r.createImage(ctx, input.Image)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create image")
+	}
+
+	client := r.ClientFrom(ctx)
+	referencePoint, err := client.FloorPlanReferencePoint.Create().
+		SetX(input.ReferenceX).
+		SetY(input.ReferenceY).
+		SetLatitude(input.Latitude).
+		SetLongitude(input.Longitude).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create reference point")
+	}
+
+	scale, err := client.FloorPlanScale.Create().
+		SetReferencePoint1X(input.ReferencePoint1x).
+		SetReferencePoint1Y(input.ReferencePoint1y).
+		SetReferencePoint2X(input.ReferencePoint2x).
+		SetReferencePoint2Y(input.ReferencePoint2y).
+		SetScaleInMeters(input.ScaleInMeters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create scale")
+	}
+
+	floorPlan, err := client.FloorPlan.Create().
+		SetName(input.Name).
+		SetLocationID(input.LocationID).
+		SetImage(img).
+		SetReferencePoint(referencePoint).
+		SetScale(scale).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create floor plan")
+	}
+
+	return floorPlan, nil
+}
+
+func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
+	ac := actions.FromContext(ctx)
+
+	triggerID := core.TriggerID(input.TriggerID)
+	_, err := ac.TriggerForID(triggerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating trigger")
+	}
+
+	ruleActions, err := actionsInputToSchema(ctx, input.RuleActions)
+	if err != nil {
+		return nil, errors.Wrap(err, "validating action")
+	}
+
+	ruleFilters := filtersInputToSchema(input.RuleFilters)
+
+	actionsRule, err := r.ClientFrom(ctx).
+		ActionsRule.UpdateOneID(id).
+		SetName(input.Name).
+		SetTriggerID(input.TriggerID).
+		SetRuleActions(ruleActions).
+		SetRuleFilters(ruleFilters).
+		Save(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "updating actionsrule")
+	}
+	return actionsRule, nil
+}
+
+func (r mutationResolver) RemoveActionsRule(ctx context.Context, id string) (bool, error) {
+	client := r.ClientFrom(ctx)
+	if err := client.ActionsRule.DeleteOneID(id).Exec(ctx); err != nil {
+		return false, errors.Wrap(err, "removing actionsrule")
+	}
+	return true, nil
 }

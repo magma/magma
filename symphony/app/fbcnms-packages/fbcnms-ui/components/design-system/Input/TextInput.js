@@ -8,15 +8,16 @@
  * @format
  */
 
-import type {FormFieldContextValue} from '../FormField/FormFieldContext';
-import type {WithStyles} from '@material-ui/core';
+import type {TRefFor} from '../types/TRefFor.flow';
 
 import * as React from 'react';
 import FormFieldContext from '../FormField/FormFieldContext';
 import InputContext from './InputContext';
 import Text from '../Text';
 import classNames from 'classnames';
-import {withStyles} from '@material-ui/core/styles';
+import symphony from '../../../theme/symphony';
+import {makeStyles} from '@material-ui/styles';
+import {useCallback, useContext, useMemo, useState} from 'react';
 
 export const KEYBOARD_KEYS = {
   CODES: {
@@ -27,7 +28,7 @@ export const KEYBOARD_KEYS = {
   },
 };
 
-const styles = ({symphony}) => ({
+const useStyles = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
@@ -95,6 +96,13 @@ const styles = ({symphony}) => ({
   },
 });
 
+export type FocusEvent<T> = {
+  target: T,
+  relatedTarget: HTMLElement,
+};
+
+type FocusEventFn<T: HTMLElement> = (FocusEvent<T>) => void;
+
 type Props = {
   /** Input type. See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types */
   type?: string,
@@ -109,107 +117,112 @@ type Props = {
   suffix?: React.Node,
   onChange?: (e: SyntheticInputEvent<HTMLInputElement>) => void,
   onFocus?: () => void,
-  onBlur?: () => void,
+  onBlur?: FocusEventFn<HTMLInputElement>,
   onEnterPressed?: (e: KeyboardEvent) => void,
-} & WithStyles<typeof styles>;
-
-type State = {
-  hasFocus: boolean,
 };
 
-class TextInput extends React.Component<Props, State> {
-  static contextType = FormFieldContext;
+function TextInput(props: Props, forwardedRef: TRefFor<HTMLInputElement>) {
+  const {
+    className,
+    hasError: hasErrorProp,
+    disabled: disabledProp,
+    prefix,
+    suffix,
+    value,
+    hint,
+    onFocus,
+    onBlur,
+    onChange,
+    onEnterPressed,
+    ...rest
+  } = props;
+  const classes = useStyles();
+  const {hasError: contextHasError, disabled: contextDisabled} = useContext(
+    FormFieldContext,
+  );
+  const disabled = useMemo(
+    () => (disabledProp ? disabledProp : contextDisabled),
+    [disabledProp, contextDisabled],
+  );
+  const hasError = useMemo(
+    () => (hasErrorProp ? hasErrorProp : contextHasError),
+    [hasErrorProp, contextHasError],
+  );
+  const [hasFocus, setHasFocus] = useState(
+    disabled ? false : props.autoFocus === true,
+  );
 
-  static defaultProps = {
-    autoFocus: false,
-    disabled: false,
-    hasError: false,
-    type: 'string',
-  };
-
-  constructor(props: Props, context: FormFieldContextValue) {
-    super(props);
-
-    const disabled = props.disabled ? props.disabled : context.disabled;
-    this.state = {
-      hasFocus: disabled ? false : props.autoFocus === true,
-    };
-  }
-
-  _onInputFocused = () => {
-    this.setState({hasFocus: true});
-    const {onFocus} = this.props;
+  const onInputFocused = useCallback(() => {
+    setHasFocus(true);
     onFocus && onFocus();
-  };
+  }, [onFocus]);
 
-  _onInputBlurred = () => {
-    this.setState({hasFocus: false});
-    const {onBlur} = this.props;
-    onBlur && onBlur();
-  };
+  const onInputBlurred = useCallback(
+    (e: FocusEvent<HTMLInputElement>) => {
+      setHasFocus(false);
+      onBlur && onBlur(e);
+    },
+    [onBlur],
+  );
 
-  _onChange = (e: SyntheticInputEvent<HTMLInputElement>) => {
-    const {onChange} = this.props;
-    onChange && onChange(e);
-  };
+  const onInputChanged = useCallback(
+    (e: SyntheticInputEvent<HTMLInputElement>) => {
+      onChange && onChange(e);
+    },
+    [onChange],
+  );
 
-  _onKeyDown = (e: KeyboardEvent) => {
-    if (e.keyCode !== KEYBOARD_KEYS.CODES.ENTER) {
-      return;
-    }
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.keyCode !== KEYBOARD_KEYS.CODES.ENTER) {
+        return;
+      }
 
-    const {onEnterPressed} = this.props;
-    onEnterPressed && onEnterPressed(e);
-  };
+      onEnterPressed && onEnterPressed(e);
+    },
+    [onEnterPressed],
+  );
 
-  render() {
-    const {
-      classes,
-      className,
-      hasError: hasErrorProp,
-      disabled: disabledProp,
-      prefix,
-      suffix,
-      value,
-      hint,
-      ...rest
-    } = this.props;
-    const {hasFocus} = this.state;
-    const disabled = disabledProp ? disabledProp : this.context.disabled;
-    const hasError = hasErrorProp ? hasErrorProp : this.context.hasError;
-    return (
-      <div className={classNames(classes.root, className)}>
-        <div
-          className={classNames(classes.inputContainer, {
-            [classes.hasFocus]: hasFocus,
-            [classes.disabled]: disabled,
-            [classes.hasError]: hasError,
-          })}>
-          <InputContext.Provider value={{disabled, value: value ?? ''}}>
-            {prefix && <div className={classes.prefix}>{prefix}</div>}
-            <input
-              className={classes.input}
-              disabled={disabled}
-              onFocus={this._onInputFocused}
-              onBlur={this._onInputBlurred}
-              onChange={this._onChange}
-              onKeyDown={this._onKeyDown}
-              value={value}
-              {...rest}
-            />
-            {suffix && <div className={classes.suffix}>{suffix}</div>}
-          </InputContext.Provider>
-        </div>
-        {hint && (
-          <div className={classes.hint}>
-            <Text variant="caption" className={classes.hintText}>
-              {hint}
-            </Text>
-          </div>
-        )}
+  return (
+    <div className={classNames(classes.root, className)}>
+      <div
+        className={classNames(classes.inputContainer, {
+          [classes.hasFocus]: hasFocus,
+          [classes.disabled]: disabled,
+          [classes.hasError]: hasError,
+        })}>
+        <InputContext.Provider value={{disabled, value: value ?? ''}}>
+          {prefix && <div className={classes.prefix}>{prefix}</div>}
+          <input
+            {...rest}
+            className={classes.input}
+            disabled={disabled}
+            onFocus={onInputFocused}
+            onBlur={onInputBlurred}
+            onChange={onInputChanged}
+            onKeyDown={onKeyDown}
+            value={value}
+            ref={forwardedRef}
+          />
+          {suffix && <div className={classes.suffix}>{suffix}</div>}
+        </InputContext.Provider>
       </div>
-    );
-  }
+      {hint && (
+        <div className={classes.hint}>
+          <Text variant="caption" className={classes.hintText}>
+            {hint}
+          </Text>
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default withStyles(styles)(TextInput);
+TextInput.defaultProps = {
+  autoFocus: false,
+  disabled: false,
+  hasError: false,
+  type: 'string',
+};
+
+export default React.forwardRef<Props, HTMLInputElement>(TextInput);

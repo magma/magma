@@ -63,8 +63,8 @@ export default function(props: {
       render={() => (
         <Metrics
           configs={props.configs}
-          onSelectorChange={({target}) =>
-            history.push(relativeUrl(`/${target.value}`))
+          onSelectorChange={(e, value) =>
+            history.push(relativeUrl(`/${value}`))
           }
           selectors={Object.keys(allMetrics)}
           defaultSelector={selectedItem}

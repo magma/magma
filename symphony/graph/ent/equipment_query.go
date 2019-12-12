@@ -64,16 +64,11 @@ func (eq *EquipmentQuery) Order(o ...Order) *EquipmentQuery {
 // QueryType chains the current query on the type edge.
 func (eq *EquipmentQuery) QueryType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmenttype.Table
-	step.To.Column = equipmenttype.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.TypeTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.TypeColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(equipmenttype.Table, equipmenttype.FieldID),
+		sql.Edge(sql.M2O, false, equipment.TypeTable, equipment.TypeColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -81,16 +76,11 @@ func (eq *EquipmentQuery) QueryType() *EquipmentTypeQuery {
 // QueryLocation chains the current query on the location edge.
 func (eq *EquipmentQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = location.Table
-	step.To.Column = location.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.LocationTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.LocationColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(location.Table, location.FieldID),
+		sql.Edge(sql.M2O, true, equipment.LocationTable, equipment.LocationColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -98,16 +88,11 @@ func (eq *EquipmentQuery) QueryLocation() *LocationQuery {
 // QueryParentPosition chains the current query on the parent_position edge.
 func (eq *EquipmentQuery) QueryParentPosition() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.ParentPositionTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.ParentPositionColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -115,16 +100,11 @@ func (eq *EquipmentQuery) QueryParentPosition() *EquipmentPositionQuery {
 // QueryPositions chains the current query on the positions edge.
 func (eq *EquipmentQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentposition.Table
-	step.To.Column = equipmentposition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PositionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PositionsColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(equipmentposition.Table, equipmentposition.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -132,16 +112,11 @@ func (eq *EquipmentQuery) QueryPositions() *EquipmentPositionQuery {
 // QueryPorts chains the current query on the ports edge.
 func (eq *EquipmentQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = equipmentport.Table
-	step.To.Column = equipmentport.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PortsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PortsColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(equipmentport.Table, equipmentport.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PortsTable, equipment.PortsColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -149,16 +124,11 @@ func (eq *EquipmentQuery) QueryPorts() *EquipmentPortQuery {
 // QueryWorkOrder chains the current query on the work_order edge.
 func (eq *EquipmentQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -166,16 +136,11 @@ func (eq *EquipmentQuery) QueryWorkOrder() *WorkOrderQuery {
 // QueryProperties chains the current query on the properties edge.
 func (eq *EquipmentQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -183,16 +148,11 @@ func (eq *EquipmentQuery) QueryProperties() *PropertyQuery {
 // QueryService chains the current query on the service edge.
 func (eq *EquipmentQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = service.Table
-	step.To.Column = service.FieldID
-	step.Edge.Rel = sql.M2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipment.ServiceTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.ServicePrimaryKey...)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(service.Table, service.FieldID),
+		sql.Edge(sql.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
@@ -200,16 +160,11 @@ func (eq *EquipmentQuery) QueryService() *ServiceQuery {
 // QueryFiles chains the current query on the files edge.
 func (eq *EquipmentQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: eq.config}
-	step := &sql.Step{}
-	step.From.V = eq.sqlQuery()
-	step.From.Table = equipment.Table
-	step.From.Column = equipment.FieldID
-	step.To.Table = file.Table
-	step.To.Column = file.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipment.FilesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipment.FilesColumn)
+	step := sql.NewStep(
+		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sql.To(file.Table, file.FieldID),
+		sql.Edge(sql.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	)
 	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }

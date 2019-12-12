@@ -10,7 +10,7 @@
 
 import CancelIcon from '@material-ui/icons/Cancel';
 import InputAffix from '../../components/design-system/Input/InputAffix';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import TextInput from '../../components/design-system/Input/TextInput';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {storiesOf} from '@storybook/react';
@@ -36,6 +36,11 @@ const InputsRoot = () => {
   const [value, setValue] = useState('');
   const [numberValue, setNumberValue] = useState(123.4);
   const [affixValue, setAffixValue] = useState('Default');
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  useEffect(() => {
+    inputRef.current && inputRef.current.focus();
+  }, []);
+
   return (
     <div className={classes.root}>
       <TextInput
@@ -44,6 +49,7 @@ const InputsRoot = () => {
         placeholder="Placeholder"
         onChange={({target}) => setValue(target.value)}
         value={value}
+        ref={inputRef}
       />
       <TextInput
         className={classes.input}

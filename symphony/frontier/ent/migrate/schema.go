@@ -59,6 +59,36 @@ var (
 		PrimaryKey:  []*schema.Column{OrganizationsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{},
 	}
+	// TokensColumns holds the columns for the "tokens" table.
+	TokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "createdAt", Type: field.TypeTime},
+		{Name: "updatedAt", Type: field.TypeTime},
+		{Name: "value", Type: field.TypeString},
+		{Name: "user_id", Type: field.TypeInt, Nullable: true},
+	}
+	// TokensTable holds the schema information for the "tokens" table.
+	TokensTable = &schema.Table{
+		Name:       "tokens",
+		Columns:    TokensColumns,
+		PrimaryKey: []*schema.Column{TokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "tokens_Users_tokens",
+				Columns: []*schema.Column{TokensColumns[4]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "token_value_user_id",
+				Unique:  true,
+				Columns: []*schema.Column{TokensColumns[3], TokensColumns[4]},
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "Users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -79,7 +109,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{},
 		Indexes: []*schema.Index{
 			{
-				Name:    "email_organization",
+				Name:    "user_email_organization",
 				Unique:  true,
 				Columns: []*schema.Column{UsersColumns[3], UsersColumns[6]},
 			},
@@ -89,9 +119,11 @@ var (
 	Tables = []*schema.Table{
 		AuditLogEntriesTable,
 		OrganizationsTable,
+		TokensTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	TokensTable.ForeignKeys[0].RefTable = UsersTable
 }

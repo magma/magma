@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 50764a9ae02a495cceb23c342f022d10
+ * @relayHash 9cd96d28dbbc50cb21b5ee73af94845b
  */
 
 /* eslint-disable */
@@ -16,7 +16,6 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
-type WorkOrderTypeItem_workOrderType$ref = any;
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type EditWorkOrderTypeInput = {|
@@ -42,6 +41,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type CheckListDefinitionInput = {|
   id?: ?string,
@@ -58,7 +58,7 @@ export type EditWorkOrderTypeMutationResponse = {|
   +editWorkOrderType: ?{|
     +id: string,
     +name: string,
-    +$fragmentRefs: WorkOrderTypeItem_workOrderType$ref & AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+    +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
   |}
 |};
 export type EditWorkOrderTypeMutation = {|
@@ -75,7 +75,6 @@ mutation EditWorkOrderTypeMutation(
   editWorkOrderType(input: $input) {
     id
     name
-    ...WorkOrderTypeItem_workOrderType
     ...AddEditWorkOrderTypeCard_editingWorkOrderType
   }
 }
@@ -99,41 +98,17 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     rangeFromValue
     rangeToValue
     isEditable
+    isMandatory
     isInstanceProperty
   }
-}
-
-fragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {
-  ...PropertyTypeFormField_propertyType
-  id
-  index
-}
-
-fragment PropertyTypeFormField_propertyType on PropertyType {
-  id
-  name
-  type
-  index
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
-  isEditable
-  isInstanceProperty
-}
-
-fragment WorkOrderTypeItem_workOrderType on WorkOrderType {
-  id
-  name
-  propertyTypes {
-    ...DynamicPropertyTypesGrid_propertyTypes
+  checkListDefinitions {
     id
+    title
+    type
+    index
+    helpText
+    enumValues
   }
-  numberOfWorkOrders
 }
 */
 
@@ -166,6 +141,20 @@ v3 = {
   "name": "name",
   "args": null,
   "storageKey": null
+},
+v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
 };
 return {
   "kind": "Request",
@@ -187,11 +176,6 @@ return {
         "selections": [
           (v2/*: any*/),
           (v3/*: any*/),
-          {
-            "kind": "FragmentSpread",
-            "name": "WorkOrderTypeItem_workOrderType",
-            "args": null
-          },
           {
             "kind": "FragmentSpread",
             "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
@@ -218,6 +202,20 @@ return {
           (v2/*: any*/),
           (v3/*: any*/),
           {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "description",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "numberOfWorkOrders",
+            "args": null,
+            "storageKey": null
+          },
+          {
             "kind": "LinkedField",
             "alias": null,
             "name": "propertyTypes",
@@ -228,20 +226,8 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "type",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "index",
-                "args": null,
-                "storageKey": null
-              },
+              (v4/*: any*/),
+              (v5/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -308,6 +294,13 @@ return {
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "isMandatory",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "isInstanceProperty",
                 "args": null,
                 "storageKey": null
@@ -315,18 +308,39 @@ return {
             ]
           },
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "numberOfWorkOrders",
+            "name": "checkListDefinitions",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "description",
-            "args": null,
-            "storageKey": null
+            "concreteType": "CheckListItemDefinition",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "title",
+                "args": null,
+                "storageKey": null
+              },
+              (v4/*: any*/),
+              (v5/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "helpText",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "enumValues",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           }
         ]
       }
@@ -336,11 +350,11 @@ return {
     "operationKind": "mutation",
     "name": "EditWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...WorkOrderTypeItem_workOrderType\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment WorkOrderTypeItem_workOrderType on WorkOrderType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfWorkOrders\n}\n",
+    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '84908125a2c8612e196f0c7590bd28da';
+(node/*: any*/).hash = '8fad9d18663268f869507ab8bd510f66';
 module.exports = node;

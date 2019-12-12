@@ -37,6 +37,13 @@ const (
 
 	// Table holds the table name of the user in the database.
 	Table = "Users"
+	// TokensTable is the table the holds the tokens relation/edge.
+	TokensTable = "tokens"
+	// TokensInverseTable is the table name for the Token entity.
+	// It exists in this package in order to avoid circular dependency with the "token" package.
+	TokensInverseTable = "tokens"
+	// TokensColumn is the table column denoting the tokens relation/edge.
+	TokensColumn = "user_id"
 )
 
 // Columns holds all SQL columns are user fields.

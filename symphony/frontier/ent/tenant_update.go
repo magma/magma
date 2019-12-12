@@ -162,6 +162,7 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -180,8 +181,9 @@ func (tu *TenantUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(tenant.Table).Where(sql.InInts(tenant.FieldID, ids...))
+		updater = builder.Update(tenant.Table)
 	)
+	updater = updater.Where(sql.InInts(tenant.FieldID, ids...))
 	if value := tu.updated_at; value != nil {
 		updater.Set(tenant.FieldUpdatedAt, *value)
 	}
@@ -370,6 +372,7 @@ func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (t *Tenant, err error) 
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -393,8 +396,9 @@ func (tuo *TenantUpdateOne) sqlSave(ctx context.Context) (t *Tenant, err error) 
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(tenant.Table).Where(sql.InInts(tenant.FieldID, ids...))
+		updater = builder.Update(tenant.Table)
 	)
+	updater = updater.Where(sql.InInts(tenant.FieldID, ids...))
 	if value := tuo.updated_at; value != nil {
 		updater.Set(tenant.FieldUpdatedAt, *value)
 		t.UpdatedAt = *value

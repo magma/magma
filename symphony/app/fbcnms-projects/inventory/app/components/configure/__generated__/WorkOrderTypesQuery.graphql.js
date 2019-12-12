@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 95e5fb9331cc67e49649ad3e2793d498
+ * @relayHash 6cbbade0a3a5414d6cba9a629f1d6647
  */
 
 /* eslint-disable */
@@ -16,7 +16,6 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
-type WorkOrderTypeItem_workOrderType$ref = any;
 export type WorkOrderTypesQueryVariables = {||};
 export type WorkOrderTypesQueryResponse = {|
   +workOrderTypes: ?{|
@@ -24,7 +23,8 @@ export type WorkOrderTypesQueryResponse = {|
       +node: ?{|
         +id: string,
         +name: string,
-        +$fragmentRefs: WorkOrderTypeItem_workOrderType$ref & AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
+        +description: ?string,
+        +$fragmentRefs: AddEditWorkOrderTypeCard_editingWorkOrderType$ref,
       |}
     |}>
   |}
@@ -41,10 +41,10 @@ query WorkOrderTypesQuery {
   workOrderTypes(first: 50) {
     edges {
       node {
-        ...WorkOrderTypeItem_workOrderType
-        ...AddEditWorkOrderTypeCard_editingWorkOrderType
         id
         name
+        description
+        ...AddEditWorkOrderTypeCard_editingWorkOrderType
         __typename
       }
       cursor
@@ -75,41 +75,17 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     rangeFromValue
     rangeToValue
     isEditable
+    isMandatory
     isInstanceProperty
   }
-}
-
-fragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {
-  ...PropertyTypeFormField_propertyType
-  id
-  index
-}
-
-fragment PropertyTypeFormField_propertyType on PropertyType {
-  id
-  name
-  type
-  index
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
-  isEditable
-  isInstanceProperty
-}
-
-fragment WorkOrderTypeItem_workOrderType on WorkOrderType {
-  id
-  name
-  propertyTypes {
-    ...DynamicPropertyTypesGrid_propertyTypes
+  checkListDefinitions {
     id
+    title
+    type
+    index
+    helpText
+    enumValues
   }
-  numberOfWorkOrders
 }
 */
 
@@ -131,18 +107,25 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "__typename",
+  "name": "description",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "cursor",
+  "name": "__typename",
   "args": null,
   "storageKey": null
 },
 v4 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "cursor",
+  "args": null,
+  "storageKey": null
+},
+v5 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "pageInfo",
@@ -167,13 +150,27 @@ v4 = {
     }
   ]
 },
-v5 = [
+v6 = [
   {
     "kind": "Literal",
     "name": "first",
     "value": 50
   }
-];
+],
+v7 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "type",
+  "args": null,
+  "storageKey": null
+},
+v8 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "index",
+  "args": null,
+  "storageKey": null
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -213,11 +210,7 @@ return {
                   (v0/*: any*/),
                   (v1/*: any*/),
                   (v2/*: any*/),
-                  {
-                    "kind": "FragmentSpread",
-                    "name": "WorkOrderTypeItem_workOrderType",
-                    "args": null
-                  },
+                  (v3/*: any*/),
                   {
                     "kind": "FragmentSpread",
                     "name": "AddEditWorkOrderTypeCard_editingWorkOrderType",
@@ -225,10 +218,10 @@ return {
                   }
                 ]
               },
-              (v3/*: any*/)
+              (v4/*: any*/)
             ]
           },
-          (v4/*: any*/)
+          (v5/*: any*/)
         ]
       }
     ]
@@ -243,7 +236,7 @@ return {
         "alias": null,
         "name": "workOrderTypes",
         "storageKey": "workOrderTypes(first:50)",
-        "args": (v5/*: any*/),
+        "args": (v6/*: any*/),
         "concreteType": "WorkOrderTypeConnection",
         "plural": false,
         "selections": [
@@ -267,6 +260,14 @@ return {
                 "selections": [
                   (v0/*: any*/),
                   (v1/*: any*/),
+                  (v2/*: any*/),
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "numberOfWorkOrders",
+                    "args": null,
+                    "storageKey": null
+                  },
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -278,20 +279,8 @@ return {
                     "selections": [
                       (v0/*: any*/),
                       (v1/*: any*/),
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "type",
-                        "args": null,
-                        "storageKey": null
-                      },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "index",
-                        "args": null,
-                        "storageKey": null
-                      },
+                      (v7/*: any*/),
+                      (v8/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -358,6 +347,13 @@ return {
                       {
                         "kind": "ScalarField",
                         "alias": null,
+                        "name": "isMandatory",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
                         "name": "isInstanceProperty",
                         "args": null,
                         "storageKey": null
@@ -365,33 +361,54 @@ return {
                     ]
                   },
                   {
-                    "kind": "ScalarField",
+                    "kind": "LinkedField",
                     "alias": null,
-                    "name": "numberOfWorkOrders",
+                    "name": "checkListDefinitions",
+                    "storageKey": null,
                     "args": null,
-                    "storageKey": null
+                    "concreteType": "CheckListItemDefinition",
+                    "plural": true,
+                    "selections": [
+                      (v0/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "title",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      (v7/*: any*/),
+                      (v8/*: any*/),
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "helpText",
+                        "args": null,
+                        "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "enumValues",
+                        "args": null,
+                        "storageKey": null
+                      }
+                    ]
                   },
-                  {
-                    "kind": "ScalarField",
-                    "alias": null,
-                    "name": "description",
-                    "args": null,
-                    "storageKey": null
-                  },
-                  (v2/*: any*/)
+                  (v3/*: any*/)
                 ]
               },
-              (v3/*: any*/)
+              (v4/*: any*/)
             ]
           },
-          (v4/*: any*/)
+          (v5/*: any*/)
         ]
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "workOrderTypes",
-        "args": (v5/*: any*/),
+        "args": (v6/*: any*/),
         "handle": "connection",
         "key": "Configure_workOrderTypes",
         "filters": null
@@ -402,7 +419,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypesQuery",
     "id": null,
-    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        ...WorkOrderTypeItem_workOrderType\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n\nfragment WorkOrderTypeItem_workOrderType on WorkOrderType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfWorkOrders\n}\n",
+    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -419,5 +436,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'dd6075bc4b19391d12a481ba22c3c4c3';
+(node/*: any*/).hash = 'c4b90525f9cb861d52a9fc9c55b4bfad';
 module.exports = node;

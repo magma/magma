@@ -16,6 +16,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/schema"
+	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
@@ -80,6 +81,65 @@ type Edge struct {
 	Type string   `json:"type,omitempty"` // edge type.
 	Name string   `json:"name,omitempty"` // edge name.
 	IDs  []string `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ar.ID,
+		Type:   "ActionsRule",
+		Fields: make([]*Field, 6),
+		Edges:  make([]*Edge, 0),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ar.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.TriggerID); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "TriggerID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.RuleFilters); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "[]*core.ActionsRuleFilter",
+		Name:  "RuleFilters",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ar.RuleActions); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "[]*core.ActionsRuleAction",
+		Name:  "RuleActions",
+		Value: string(buf),
+	}
+	return node, nil
 }
 
 func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
@@ -1370,7 +1430,7 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		ID:     l.ID,
 		Type:   "Location",
 		Fields: make([]*Field, 7),
-		Edges:  make([]*Edge, 10),
+		Edges:  make([]*Edge, 11),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(l.CreateTime); err != nil {
@@ -1539,6 +1599,17 @@ func (l *Location) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrders",
+	}
+	ids, err = l.QueryFloorPlans().
+		Select(floorplan.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[10] = &Edge{
+		IDs:  ids,
+		Type: "FloorPlan",
+		Name: "FloorPlans",
 	}
 	return node, nil
 }
@@ -2023,7 +2094,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 16),
+		Fields: make([]*Field, 17),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2153,6 +2224,14 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[15] = &Field{
 		Type:  "bool",
 		Name:  "Editable",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pt.Mandatory); err != nil {
+		return nil, err
+	}
+	node.Fields[16] = &Field{
+		Type:  "bool",
+		Name:  "Mandatory",
 		Value: string(buf),
 	}
 	var ids []string
@@ -3646,6 +3725,12 @@ func (c *Client) Noder(ctx context.Context, id string) (Noder, error) {
 
 func (c *Client) noder(ctx context.Context, tbl string, id string) (Noder, error) {
 	switch tbl {
+	case actionsrule.Table:
+		n, err := c.ActionsRule.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
 	case checklistitem.Table:
 		n, err := c.CheckListItem.Get(ctx, id)
 		if err != nil {

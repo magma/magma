@@ -91,6 +91,7 @@ class AddLocationTypeInput:
         rangeToValue: Optional[float] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
+        isMandatory: Optional[bool] = None
 
     @dataclass_json
     @dataclass
@@ -114,6 +115,7 @@ class AddLocationTypeInput:
     surveyTemplateCategories: List[SurveyTemplateCategoryInput]
     mapType: Optional[str] = None
     mapZoomLevel: Optional[int] = None
+    isSite: Optional[bool] = None
 
 
 @dataclass_json

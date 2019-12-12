@@ -80,6 +80,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {
@@ -119,6 +120,7 @@ input AddLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
   surveyTemplateCategories: [SurveyTemplateCategoryInput!]
@@ -129,6 +131,7 @@ input EditLocationTypeInput {
   name: String!
   mapType: String
   mapZoomLevel: Int
+  isSite: Boolean
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
 }
@@ -554,6 +557,7 @@ type PropertyType implements Node {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 input PropertyTypeInput {
@@ -572,6 +576,7 @@ input PropertyTypeInput {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 type Property implements Node {
@@ -1147,7 +1152,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -1158,7 +1162,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -1177,6 +1180,21 @@ type Survey implements Node {
   locationID: ID!
   sourceFile: File
   surveyResponses: [SurveyQuestion]!
+}
+
+input AddFloorPlanInput {
+  name: String!
+  locationID: ID!
+  image: AddImageInput!
+  referenceX: Int!
+  referenceY: Int!
+  latitude: Float!
+  longitude: Float!
+  referencePoint1X: Int!
+  referencePoint1Y: Int!
+  referencePoint2X: Int!
+  referencePoint2Y: Int!
+  scaleInMeters: Float!
 }
 
 type FloorPlan implements Node {
@@ -1405,6 +1423,120 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
+# You will also need to update cloud/actions/core/id
+enum ActionID {
+  magma_reboot_node
+}
+
+# You will also need to update cloud/actions/core/id
+enum TriggerID {
+  magma_alert
+}
+
+# ActionsTrigger defines a trigger itself, along with what actions and filters
+# can be used
+type ActionsTrigger {
+  id: ID! # Same as triggerID, but used for Node
+  triggerID: TriggerID!
+  description: String!
+  supportedActions: [ActionsAction]! @goField(forceResolver: true)
+  supportedFilters: [ActionsFilter]! @goField(forceResolver: true)
+}
+
+# ActionsOperator defines how to filter a trigger.
+type ActionsOperator {
+  # Ex. "is", "isNot"
+  operatorID: String!
+  # Name displayed to the user. Ex: "is", "is not"
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataInput: String!
+}
+
+# ActionsAction defines an action that can be executed
+# Ex. "Reboot a magma device"
+type ActionsAction {
+  actionID: ActionID!
+  description: String!
+  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
+  dataType: String!
+}
+
+# ActionsFilter is a definition for how you can filter a trigger.
+# Ex: "The alerts network id [is, is not]"
+type ActionsFilter {
+  # unique identifier for the filter
+  filterID: String!
+  # Ex. "the alerts network id"
+  description: String!
+  # a list of operators the filter supports.
+  # Ex. "is", "is not"
+  supportedOperators: [ActionsOperator]!
+}
+
+type ActionsTriggersSearchResult {
+  results: [ActionsTrigger]!
+  count: Int!
+}
+
+# ActionsRuleAction is a user-configured data about an action to execute, along
+# with data for executing that action
+type ActionsRuleAction
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
+  ) {
+  action: ActionsAction! @goField(forceResolver: true)
+  actionID: ActionID!
+  data: String!
+}
+
+# ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
+type ActionsRuleFilter
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
+  ) {
+  filterID: String
+  operatorID: String
+  operator: ActionsOperator! @goField(forceResolver: true)
+  # Serialized JSON of the metadata to filter
+  # (contextual to the operator)
+  data: String!
+}
+
+# ActionsRule is a user-configured rule tieing a trigger, filtering it, and
+# executing 1 or more actions
+type ActionsRule implements Node {
+  id: ID!
+  name: String!
+  trigger: ActionsTrigger! @goField(forceResolver: true)
+  triggerID: TriggerID!
+  ruleActions: [ActionsRuleAction]!
+  ruleFilters: [ActionsRuleFilter]!
+}
+
+type ActionsRulesSearchResult {
+  results: [ActionsRule]!
+  count: Int!
+}
+
+input ActionsRuleActionInput {
+  actionID: ActionID!
+  data: String!
+}
+
+input ActionsRuleFilterInput {
+  filterID: String!
+  operatorID: String!
+  data: String!
+}
+
+input AddActionsRuleInput {
+  name: String!
+  triggerID: String!
+  ruleActions: [ActionsRuleActionInput]!
+  ruleFilters: [ActionsRuleFilterInput]!
+}
+
 type Query {
   me: Viewer
   node(id: ID!): Node
@@ -1426,10 +1558,9 @@ type Query {
     before: Cursor
     last: Int
   ): LocationConnection
-  equipment(id: ID!): Equipment
+  equipment(id: ID!): Equipment @deprecated(reason: "Use `node` instead")
   equipmentType(id: ID!): EquipmentType
-  equipmentPosition(id: ID!): EquipmentPosition
-  equipmentPositionDefinition(id: ID!): EquipmentPositionDefinition
+    @deprecated(reason: "Use `node` instead")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -1532,6 +1663,8 @@ type Query {
     before: Cursor
     last: Int
   ): CustomerConnection
+  actionsRules: ActionsRulesSearchResult
+  actionsTriggers: ActionsTriggersSearchResult
 }
 
 type Mutation {
@@ -1566,6 +1699,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -1672,16 +1807,6 @@ type Mutation {
     """
     parentLocationID: ID
   ): Location
-  markLocationTypeIsSite(
-    """
-    The ID of the location type
-    """
-    id: ID!
-    """
-    Is the location type a site or not
-    """
-    isSite: Boolean!
-  ): LocationType
   editLocationTypesIndex(
     """
     edit the location index to the location
@@ -1701,4 +1826,8 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  removeActionsRule(id: ID!): Boolean!
 }

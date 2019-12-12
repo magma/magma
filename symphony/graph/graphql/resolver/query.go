@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"sort"
 
+	"github.com/facebookincubator/symphony/cloud/actions"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -134,22 +136,6 @@ func (r queryResolver) EquipmentTypes(
 	_ *models.Cursor, _ *int,
 ) (*models.EquipmentTypeConnection, error) {
 	return resolverutil.EquipmentTypes(ctx, r.ClientFrom(ctx))
-}
-
-func (r queryResolver) EquipmentPosition(ctx context.Context, id string) (*ent.EquipmentPosition, error) {
-	ep, err := r.ClientFrom(ctx).EquipmentPosition.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position: id=%q", id)
-	}
-	return ep, nil
-}
-
-func (r queryResolver) EquipmentPositionDefinition(ctx context.Context, id string) (*ent.EquipmentPositionDefinition, error) {
-	epd, err := r.ClientFrom(ctx).EquipmentPositionDefinition.Get(ctx, id)
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, errors.Wrapf(err, "querying equipment position definition: id=%q", id)
-	}
-	return epd, nil
 }
 
 func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.EquipmentPortType, error) {
@@ -390,6 +376,51 @@ func (r queryResolver) Customers(
 		edges[i] = &models.CustomerEdge{Node: st}
 	}
 	return &models.CustomerConnection{Edges: edges}, nil
+}
+
+func (r queryResolver) ActionsRules(
+	ctx context.Context,
+) (*models.ActionsRulesSearchResult, error) {
+	return nil, errors.New("stub")
+}
+
+func (r queryResolver) ActionsTriggers(
+	ctx context.Context,
+) (*models.ActionsTriggersSearchResult, error) {
+	ac := actions.FromContext(ctx)
+	triggers := ac.Triggers()
+
+	ret := make([]*models.ActionsTrigger, len(triggers))
+	for i, trigger := range ac.Triggers() {
+		modelTriggerID := models.TriggerID(trigger.ID())
+		if !modelTriggerID.IsValid() {
+			return nil, errors.Errorf("triggerID %s not in models", trigger.ID())
+		}
+		ret[i] = &models.ActionsTrigger{
+			TriggerID:   modelTriggerID,
+			Description: trigger.Description(),
+		}
+	}
+
+	return &models.ActionsTriggersSearchResult{
+		Results: ret,
+		Count:   len(ret),
+	}, nil
+}
+
+func (r queryResolver) ActionsTrigger(
+	ctx context.Context, id models.TriggerID,
+) (*models.ActionsTrigger, error) {
+	ac := actions.FromContext(ctx)
+	actionsTriggerID := core.TriggerID(id)
+	trigger, err := ac.TriggerForID(actionsTriggerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting trigger")
+	}
+	return &models.ActionsTrigger{
+		TriggerID:   id,
+		Description: trigger.Description(),
+	}, nil
 }
 
 func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID string, propertyName string) ([]string, error) {

@@ -19,7 +19,6 @@ replace (
 
 require (
 	github.com/fiorix/go-diameter v3.0.3-0.20180924121357-70410bd9fce3+incompatible
-	github.com/go-openapi/swag v0.18.0
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
@@ -29,8 +28,8 @@ require (
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/common v0.2.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
-	github.com/stretchr/testify v1.3.0
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	google.golang.org/grpc v1.25.0
 
 	magma/feg/cloud/go v0.0.0

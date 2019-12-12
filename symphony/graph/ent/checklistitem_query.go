@@ -57,16 +57,11 @@ func (cliq *CheckListItemQuery) Order(o ...Order) *CheckListItemQuery {
 // QueryWorkOrder chains the current query on the work_order edge.
 func (cliq *CheckListItemQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: cliq.config}
-	step := &sql.Step{}
-	step.From.V = cliq.sqlQuery()
-	step.From.Table = checklistitem.Table
-	step.From.Column = checklistitem.FieldID
-	step.To.Table = workorder.Table
-	step.To.Column = workorder.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = checklistitem.WorkOrderTable
-	step.Edge.Columns = append(step.Edge.Columns, checklistitem.WorkOrderColumn)
+	step := sql.NewStep(
+		sql.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
+		sql.To(workorder.Table, workorder.FieldID),
+		sql.Edge(sql.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+	)
 	query.sql = sql.SetNeighbors(cliq.driver.Dialect(), step)
 	return query
 }

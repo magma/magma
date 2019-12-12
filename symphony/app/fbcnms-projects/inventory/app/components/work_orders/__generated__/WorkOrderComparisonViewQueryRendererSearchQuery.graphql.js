@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5fcb4b4dcb3e91ef10d28ad8e77aa10e
+ * @relayHash b80939c890ab484c1bf8cc241b8dbd6c
  */
 
 /* eslint-disable */
@@ -44,6 +44,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type WorkOrderComparisonViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,
@@ -107,6 +108,10 @@ fragment WorkOrdersView_workOrder on WorkOrder {
     id
     name
   }
+  project {
+    id
+    name
+  }
 }
 */
 
@@ -150,7 +155,11 @@ v3 = {
   "name": "name",
   "args": null,
   "storageKey": null
-};
+},
+v4 = [
+  (v2/*: any*/),
+  (v3/*: any*/)
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -276,10 +285,17 @@ return {
             "args": null,
             "concreteType": "WorkOrderType",
             "plural": false,
-            "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/)
-            ]
+            "selections": (v4/*: any*/)
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "project",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Project",
+            "plural": false,
+            "selections": (v4/*: any*/)
           },
           {
             "kind": "ScalarField",
@@ -296,7 +312,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    ...WorkOrdersView_workOrder\n    ...WorkOrdersMap_workOrders\n    id\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n}\n",
+    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    ...WorkOrdersView_workOrder\n    ...WorkOrdersMap_workOrders\n    id\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n}\n",
     "metadata": {}
   }
 };

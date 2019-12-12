@@ -620,16 +620,12 @@ func EmailContainsFold(v string) predicate.Technician {
 func HasWorkOrders() predicate.Technician {
 	return predicate.Technician(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WorkOrdersColumn).
-						From(builder.Table(WorkOrdersTable)).
-						Where(sql.NotNull(WorkOrdersColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrdersTable, FieldID),
+				sql.Edge(sql.O2M, true, WorkOrdersTable, WorkOrdersColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

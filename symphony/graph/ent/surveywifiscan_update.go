@@ -390,6 +390,7 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -408,8 +409,9 @@ func (swfsu *SurveyWiFiScanUpdate) sqlSave(ctx context.Context) (n int, err erro
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveywifiscan.Table).Where(sql.InInts(surveywifiscan.FieldID, ids...))
+		updater = builder.Update(surveywifiscan.Table)
 	)
+	updater = updater.Where(sql.InInts(surveywifiscan.FieldID, ids...))
 	if value := swfsu.update_time; value != nil {
 		updater.Set(surveywifiscan.FieldUpdateTime, *value)
 	}
@@ -906,6 +908,7 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -929,8 +932,9 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(surveywifiscan.Table).Where(sql.InInts(surveywifiscan.FieldID, ids...))
+		updater = builder.Update(surveywifiscan.Table)
 	)
+	updater = updater.Where(sql.InInts(surveywifiscan.FieldID, ids...))
 	if value := swfsuo.update_time; value != nil {
 		updater.Set(surveywifiscan.FieldUpdateTime, *value)
 		swfs.UpdateTime = *value

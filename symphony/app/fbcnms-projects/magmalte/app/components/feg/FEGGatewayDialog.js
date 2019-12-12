@@ -129,7 +129,7 @@ export default function FEGGatewayDialog(props: Props) {
     aaa_server: {},
     eap_aka: {},
     gx: getDiameterConfigs(gx),
-    gy: {server: getDiameterConfigs(gy).server},
+    gy: {server: getDiameterConfigs(gy).server, init_method: 2},
     health: {},
     hss: {},
     s6a: getDiameterConfigs(s6a),

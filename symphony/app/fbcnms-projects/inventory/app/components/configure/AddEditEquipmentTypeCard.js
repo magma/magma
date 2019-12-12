@@ -37,6 +37,7 @@ import SectionedCard from '@fbcnms/ui/components/SectionedCard';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
@@ -93,6 +94,12 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
     isSaving: false,
   };
 
+  _nameInputRef = React.createRef();
+
+  componentDidMount() {
+    this._nameInputRef.current && this._nameInputRef.current.focus();
+  }
+
   render() {
     const {classes, onClose} = this.props;
     const {editingEquipmentType} = this.state;
@@ -128,6 +135,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
                     className={classes.input}
                     value={this.state.editingEquipmentType.name}
                     onChange={this.handleNameChanged}
+                    ref={this._nameInputRef}
                   />
                 </FormField>
               </Grid>
@@ -172,6 +180,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             <Grid container direction="column" spacing={3}>
               <Grid item xs={12} xl={7}>
                 <PortDefinitionsAddEditTable
+                  // $FlowFixMe mix between relay and hand typed. Please fix.
                   portDefinitions={portDefinitions}
                   onPortDefinitionsChanged={ports =>
                     this.setState(state => ({
@@ -211,11 +220,38 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
     );
   }
   onSave = () => {
-    const {name} = this.state.editingEquipmentType;
+    const {
+      name,
+      positionDefinitions,
+      portDefinitions,
+    } = this.state.editingEquipmentType;
+    const {enqueueSnackbar} = this.props;
+
+    let error = null;
     if (!name) {
-      this.setState({error: 'Name cannot be empty'});
+      error = 'Name cannot be empty';
+    }
+
+    const hasDuplicateNames = (arr: Array<string>) =>
+      arr.length !== new Set(arr).size;
+
+    if (hasDuplicateNames(positionDefinitions.map(p => p.name))) {
+      error = 'Cannot have duplicate position names';
+    }
+
+    if (hasDuplicateNames(portDefinitions.map(p => p.name))) {
+      error = 'Cannot have duplicate port names';
+    }
+
+    if (error !== null) {
+      enqueueSnackbar(error, {
+        children: key => (
+          <SnackbarItem id={key} message={nullthrows(error)} variant="error" />
+        ),
+      });
       return;
     }
+
     this.setState({isSaving: true});
     if (this.props.editingEquipmentType) {
       this.editEquipmentType();
@@ -425,13 +461,14 @@ export default withStyles(styles)(
               longitudeValue
               isEditable
               isInstanceProperty
+              isMandatory
             }
             positionDefinitions {
               ...PositionDefinitionsAddEditTable_positionDefinition
                 @relay(mask: false)
             }
             portDefinitions {
-              ...PortDefinitionsAddEditTable_portDefinition @relay(mask: false)
+              ...PortDefinitionsAddEditTable_portDefinitions @relay(mask: false)
             }
             numberOfEquipment
           }

@@ -306,6 +306,26 @@ func TestEditLocationTypeWithSurveyTemplate(t *testing.T) {
 	require.Equal(t, len(questions), 1)
 	require.Equal(t, questions[0].QuestionTitle, updatedQuestion.QuestionTitle)
 	require.Equal(t, questions[0].QuestionDescription, updatedQuestion.QuestionDescription)
+
+	updatedCategory = models.SurveyTemplateCategoryInput{
+		ID:                      &categories[0].ID,
+		CategoryTitle:           "New Power",
+		CategoryDescription:     "Updated Description",
+		SurveyTemplateQuestions: []*models.SurveyTemplateQuestionInput{},
+	}
+
+	categories, err = mr.EditLocationTypeSurveyTemplateCategories(ctx, locType.ID, []*models.SurveyTemplateCategoryInput{&updatedCategory})
+	require.NoError(t, err)
+
+	questions, err = categories[0].QuerySurveyTemplateQuestions().All(ctx)
+	require.NoError(t, err)
+	require.Equal(t, len(categories), 1)
+	require.Equal(t, len(questions), 0)
+
+	_, err = mr.EditLocationTypeSurveyTemplateCategories(ctx, locType.ID, []*models.SurveyTemplateCategoryInput{})
+	require.NoError(t, err)
+	categories, _ = locType.QuerySurveyTemplateCategories().All(ctx)
+	require.Equal(t, len(categories), 0)
 }
 
 func TestEditLocationTypeWithProperties(t *testing.T) {
@@ -379,20 +399,17 @@ func TestMarkLocationTypeAsSite(t *testing.T) {
 
 	mapType := "map"
 	mapZoomLvl := 12
+	isSite := true
 
 	locType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name:         "example_type",
 		MapType:      &mapType,
 		MapZoomLevel: &mapZoomLvl,
+		IsSite:       &isSite,
 	})
 	require.NoError(t, err)
 
 	fetchedLocType, _ := qr.LocationType(ctx, locType.ID)
-	require.False(t, fetchedLocType.Site)
-
-	_, err = mr.MarkLocationTypeIsSite(ctx, locType.ID, true)
-	require.NoError(t, err)
-	fetchedLocType, _ = qr.LocationType(ctx, locType.ID)
 	require.True(t, fetchedLocType.Site)
 }
 

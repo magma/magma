@@ -11,17 +11,19 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddWorkOrderTypeMutation,
   AddWorkOrderTypeMutationResponse,
   AddWorkOrderTypeMutationVariables,
 } from './__generated__/AddWorkOrderTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddWorkOrderTypeMutation($input: AddWorkOrderTypeInput!) {
     addWorkOrderType(input: $input) {
       id
       name
-      ...WorkOrderTypeItem_workOrderType
+      ...AddEditWorkOrderTypeCard_editingWorkOrderType
     }
   }
 `;
@@ -29,10 +31,10 @@ const mutation = graphql`
 export default (
   variables: AddWorkOrderTypeMutationVariables,
   callbacks?: MutationCallbacks<AddWorkOrderTypeMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddWorkOrderTypeMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

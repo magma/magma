@@ -21,7 +21,6 @@ import grey from '@material-ui/core/colors/grey';
 import orange from '@material-ui/core/colors/orange';
 import red from '@material-ui/core/colors/red';
 import yellow from '@material-ui/core/colors/yellow';
-import {get} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -89,13 +88,13 @@ const BodyTableCell = withStyles({
   },
 })(TableCell);
 
-export const SEVERITY = {
-  critical: {index: 1, style: 'redSeverityChip'},
-  major: {index: 2, style: 'orangeSeverityChip'},
-  minor: {index: 3, style: 'yellowSeverityChip'},
-  warning: {index: 4, style: 'yellowSeverityChip'},
-  info: {index: 5, style: 'greySeverityChip'},
-  notice: {index: 6, style: 'greySeverityChip'},
+const SEVERITY = {
+  critical: {style: 'redSeverityChip'},
+  major: {style: 'orangeSeverityChip'},
+  minor: {style: 'yellowSeverityChip'},
+  warning: {style: 'yellowSeverityChip'},
+  info: {style: 'greySeverityChip'},
+  notice: {style: 'greySeverityChip'},
 };
 
 type RenderCellProps<TRow> = {
@@ -124,26 +123,33 @@ function RenderCell<TRow>({
       <CustomCell {...commonProps} value={column.renderFunc(row, classes)} />
     );
   } else {
-    const cellValue =
-      typeof column.getValue === 'function'
-        ? column.getValue(row)
-        : get(row, column.path);
+    /**
+     * Since column.render is the discriminator the ColumnData disjoint union,
+     * getValue needs to be called individually inside each conditional to work
+     * properly. Flow can't know which type getValue will return until after its
+     * type has been speciallized by checking against the column.render
+     * property.
+     */
     if (column.render === 'severity') {
-      return <SeverityCell {...commonProps} value={cellValue} />;
+      return <SeverityCell {...commonProps} value={column.getValue(row)} />;
     } else if (column.render === 'multipleGroups') {
-      return <MultiGroupsCell {...commonProps} value={cellValue} />;
+      return <MultiGroupsCell {...commonProps} value={column.getValue(row)} />;
     } else if (column.render === 'chip') {
-      return <ChipCell {...commonProps} value={cellValue} />;
-    } else if (typeof cellValue === 'object') {
+      return <ChipCell {...commonProps} value={column.getValue(row)} />;
+    } else if (column.render === 'labels') {
       return (
         <LabelsCell
           {...commonProps}
-          value={cellValue}
+          value={column.getValue(row)}
           hideFields={column.hideFields}
         />
       );
+    } else if (column.render === 'list') {
+      return (
+        <TextCell {...commonProps} value={column.getValue(row).join(', ')} />
+      );
     } else {
-      return <TextCell {...commonProps} value={cellValue} />;
+      return <TextCell {...commonProps} value={column.getValue(row)} />;
     }
   }
 }
@@ -163,7 +169,7 @@ export type CellProps<TValue> = {
   classes: {[string]: string},
 };
 
-type GroupsList = Array<{[string]: string}>;
+type GroupsList = Array<Labels>;
 
 function MultiGroupsCell({value, classes, columnIdx}: CellProps<GroupsList>) {
   return (
@@ -200,7 +206,7 @@ const renderLabelValue = labelValue => {
   return labelValue;
 };
 
-type Labels = {[string]: string};
+type Labels = {[string]: string | number | boolean};
 function LabelsCell({
   value,
   classes,
@@ -253,7 +259,7 @@ function TextCell({value, classes, columnIdx}: CellProps<string>) {
   );
 }
 
-function SeverityCell({value, classes}: CellProps<$Keys<typeof SEVERITY>>) {
+function SeverityCell({value, classes}: CellProps<string>) {
   return (
     <BodyTableCell>
       {value && value.toLowerCase() in SEVERITY && (
@@ -287,18 +293,42 @@ function ChipCell({value, classes}: CellProps<string>) {
   );
 }
 
-export type ColumnData<TRow> = {
+type CommonColumnProps<TRow> = {|
   title: string,
-  getValue?: <TCellVal>(TRow) => TCellVal,
   // DEPRECATED - use getValue instead
   path?: Array<string>,
   hideFields?: Array<string>,
-  render?: string,
-  // valid drop-down options list
-  validOptions?: Array<string>,
   renderFunc?: (tableRow: TRow, classes: {[string]: string}) => React.Node,
   tooltip?: React.Node,
-};
+|};
+
+// build up a disjoint union to handle all the renderer types
+export type ColumnData<TRow> =
+  | {
+      getValue: (row: TRow) => Array<Labels>,
+      render: 'multipleGroups',
+      ...CommonColumnProps<TRow>,
+    }
+  | {
+      getValue: (row: TRow) => Labels,
+      render: 'labels',
+      ...CommonColumnProps<TRow>,
+    }
+  | {
+      getValue: (row: TRow) => string,
+      render?: '' | 'chip',
+      ...CommonColumnProps<TRow>,
+    }
+  | {
+      getValue: (row: TRow) => string,
+      render: 'severity',
+      ...CommonColumnProps<TRow>,
+    }
+  | {
+      getValue: (row: TRow) => Array<string>,
+      render: 'list',
+      ...CommonColumnProps<TRow>,
+    };
 
 type Props<TRow> = {
   columnStruct: Array<ColumnData<TRow>>,
@@ -317,7 +347,7 @@ export default function SimpleTable<T>(props: Props<T>) {
     ...extraProps
   } = props;
 
-  const data = tableData;
+  const data = tableData || [];
 
   const rows = data.map((row: T, rowIdx: number) => {
     const rowKey = JSON.stringify(row || {});
@@ -347,22 +377,31 @@ export default function SimpleTable<T>(props: Props<T>) {
       </TableRow>
     );
   });
-  if (onActionsClick) {
-    columnStruct.push({title: 'actions'});
-  }
 
   return (
-    <div className={classes.body} {...extraProps}>
+    <div {...extraProps} className={classes.body}>
       <Table>
         <TableHead>
           <TableRow>
-            {columnStruct.map((column, idx) => (
-              <HeadTableCell key={'row' + idx}>{column.title}</HeadTableCell>
-            ))}
+            {columnStruct
+              .concat(onActionsClick ? [{title: 'actions'}] : [])
+              .map((column, idx) => (
+                <HeadTableCell key={'row' + idx}>{column.title}</HeadTableCell>
+              ))}
           </TableRow>
         </TableHead>
         <TableBody>{rows}</TableBody>
       </Table>
     </div>
   );
+}
+
+export function toLabels(obj: {}): Labels {
+  if (!obj) {
+    return {};
+  }
+  return Object.keys(obj).reduce((map, key) => {
+    map[key] = obj[key];
+    return map;
+  }, {});
 }

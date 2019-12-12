@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
@@ -72,6 +71,14 @@ func (c *Client) OriginStateID() uint32 {
 	return 0
 }
 
+// ServiceContextId returns client's config ServiceContextId
+func (c *Client) ServiceContextId() string {
+	if c != nil && c.cfg != nil && len(c.cfg.ServiceContextId) > 0 {
+		return c.cfg.ServiceContextId
+	}
+	return ServiceContextIDDefault
+}
+
 // NewClient creates a new client based on the config passed.
 // Input: clientCfg containing relavent diameter settings
 func NewClient(clientCfg *DiameterClientConfig) *Client {
@@ -96,6 +103,17 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		authAppIdAvps = []*diam.AVP{appIdAvp}
 	}
 
+	vendorSpecificApplicationIDs := getVendorSpecificApplicationIDAVPs(clientCfg, appIdAvp)
+
+	// Add the standard 3gpp vendor ID
+	vendorSpecificApplicationIDs = append(vendorSpecificApplicationIDs,
+		diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				appIdAvp,
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
+			},
+		}))
+
 	cli := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
@@ -106,15 +124,8 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		SupportedVendorID: []*diam.AVP{
 			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
 		},
-		AuthApplicationID: authAppIdAvps,
-		VendorSpecificApplicationID: []*diam.AVP{
-			diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					appIdAvp,
-					diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
-				},
-			}),
-		},
+		AuthApplicationID:           authAppIdAvps,
+		VendorSpecificApplicationID: vendorSpecificApplicationIDs,
 	}
 	go logErrors(mux.ErrorReports())
 	return &Client{
@@ -413,4 +424,32 @@ func ParseDiamSessionID(sessionID string) (host, rnd1, rnd2, imsi, bearrerId str
 		host = parts[0]
 	}
 	return
+}
+
+func getVendorSpecificApplicationIDAVPs(clientCfg *DiameterClientConfig,
+	appIdAvp *diam.AVP) []*diam.AVP {
+
+	var vendorSpecificApplicationIDs []*diam.AVP
+
+	if clientCfg.SupportedVendorIDs != "" {
+		// Split the vendor specific application ID string in tokens
+		strIds := strings.Split(clientCfg.SupportedVendorIDs, ",")
+		// Iterate over each string and append them to the AVP
+		for index := range strIds {
+			u32, err := strconv.ParseUint(strIds[index], 10, 32)
+			if err != nil {
+				break
+			}
+			vendorSpecificApplicationIDs = append(vendorSpecificApplicationIDs,
+				diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+					AVP: []*diam.AVP{
+						appIdAvp,
+						diam.NewAVP(avp.VendorID, avp.Mbit, 0,
+							datatype.Unsigned32(u32)),
+					},
+				}))
+		}
+	}
+	return vendorSpecificApplicationIDs
+
 }

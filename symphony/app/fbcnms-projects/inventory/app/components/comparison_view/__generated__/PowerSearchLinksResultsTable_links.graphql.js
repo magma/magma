@@ -47,6 +47,7 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
           +rangeToValue: ?number,
           +isEditable: ?boolean,
           +isInstanceProperty: ?boolean,
+          +isMandatory: ?boolean,
         |}>
       |},
     |},
@@ -289,7 +290,14 @@ return {
                     (v11/*: any*/),
                     (v12/*: any*/),
                     (v13/*: any*/),
-                    (v14/*: any*/)
+                    (v14/*: any*/),
+                    {
+                      "kind": "ScalarField",
+                      "alias": null,
+                      "name": "isMandatory",
+                      "args": null,
+                      "storageKey": null
+                    }
                   ]
                 }
               ]

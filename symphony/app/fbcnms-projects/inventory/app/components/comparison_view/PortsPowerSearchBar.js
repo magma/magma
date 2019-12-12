@@ -63,6 +63,7 @@ const PortsPowerSearchBar = (props: Props) => {
       searchConfig={PortCriteriaConfig}
       filterConfigs={filterConfigs}
       footer={footer}
+      exportPath={'/ports'}
     />
   );
 };

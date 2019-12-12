@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 413a47c24f7b49a503681104a5d27c82
+ * @relayHash 59ac43bbf68544c3cc2fc5d85d565880
  */
 
 /* eslint-disable */
@@ -38,6 +38,7 @@ export type EquipmentTypesListQueryResponse = {|
           +rangeToValue: ?number,
           +isEditable: ?boolean,
           +isInstanceProperty: ?boolean,
+          +isMandatory: ?boolean,
         |}>,
       |}
     |}>
@@ -72,6 +73,7 @@ query EquipmentTypesListQuery {
           rangeToValue
           isEditable
           isInstanceProperty
+          isMandatory
         }
       }
     }
@@ -224,6 +226,13 @@ v2 = [
                     "name": "isInstanceProperty",
                     "args": null,
                     "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "isMandatory",
+                    "args": null,
+                    "storageKey": null
                   }
                 ]
               }
@@ -254,7 +263,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypesListQuery",
     "id": null,
-    "text": "query EquipmentTypesListQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentTypesListQuery {\n  equipmentTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

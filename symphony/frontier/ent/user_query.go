@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
+	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
@@ -51,6 +52,18 @@ func (uq *UserQuery) Offset(offset int) *UserQuery {
 func (uq *UserQuery) Order(o ...Order) *UserQuery {
 	uq.order = append(uq.order, o...)
 	return uq
+}
+
+// QueryTokens chains the current query on the tokens edge.
+func (uq *UserQuery) QueryTokens() *TokenQuery {
+	query := &TokenQuery{config: uq.config}
+	step := sql.NewStep(
+		sql.From(user.Table, user.FieldID, uq.sqlQuery()),
+		sql.To(token.Table, token.FieldID),
+		sql.Edge(sql.O2M, false, user.TokensTable, user.TokensColumn),
+	)
+	query.sql = sql.SetNeighbors(uq.driver.Dialect(), step)
+	return query
 }
 
 // First returns the first User entity in the query. Returns *ErrNotFound when no user was found.

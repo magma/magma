@@ -32,9 +32,9 @@ const COPIED_MESSAGE = 'Copied to clipboard!';
  * pop up saying the copying was successful. Tooltip custom props can be
  * passed into this component directly.
  */
-export default function ClipboardLink(props: Props) {
-  if (props.title != null) {
-    return <ClipboardLinkWithTitle {...props} />;
+export default function ClipboardLink({title, ...props}: Props) {
+  if (title != null) {
+    return <ClipboardLinkWithTitle {...props} title={title} />;
   }
   return <ClipboardLinkNoTitle {...props} />;
 }
@@ -46,8 +46,8 @@ export default function ClipboardLink(props: Props) {
 
 // If they pass in a title, we need to change that title briefly to
 // COPIED_MESSAGE whenever the content is copied.
-function ClipboardLinkWithTitle(props: Props) {
-  const [currentTitle, setCurrentTitle] = useState(props.title);
+function ClipboardLinkWithTitle(props: {...Props, title: React.Node}) {
+  const [currentTitle, setCurrentTitle] = useState<React.Node>(props.title);
   return (
     <Tooltip
       {...props}

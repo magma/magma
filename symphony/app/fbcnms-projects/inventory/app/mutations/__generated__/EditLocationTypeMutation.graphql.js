@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 103e609ab4b1ed2f164996b512b77806
+ * @relayHash 1951c25a7c868a52a2aac14b6a58955e
  */
 
 /* eslint-disable */
@@ -23,6 +23,7 @@ export type EditLocationTypeInput = {|
   name: string,
   mapType?: ?string,
   mapZoomLevel?: ?number,
+  isSite?: ?boolean,
   properties?: ?$ReadOnlyArray<PropertyTypeInput>,
 |};
 export type PropertyTypeInput = {|
@@ -41,6 +42,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type EditLocationTypeMutationVariables = {|
   input: EditLocationTypeInput
@@ -77,6 +79,7 @@ fragment AddEditLocationTypeCard_editingLocationType on LocationType {
   mapType
   mapZoomLevel
   numberOfLocations
+  isSite
   propertyTypes {
     id
     name
@@ -91,6 +94,7 @@ fragment AddEditLocationTypeCard_editingLocationType on LocationType {
     rangeFromValue
     rangeToValue
     isEditable
+    isMandatory
     isInstanceProperty
   }
   surveyTemplateCategories {
@@ -122,7 +126,6 @@ fragment LocationTypeItem_locationType on LocationType {
     id
   }
   numberOfLocations
-  isSite
 }
 
 fragment PropertyTypeFormField_propertyType on PropertyType {
@@ -140,6 +143,7 @@ fragment PropertyTypeFormField_propertyType on PropertyType {
   rangeToValue
   isEditable
   isInstanceProperty
+  isMandatory
 }
 */
 
@@ -319,6 +323,13 @@ return {
                 "name": "isInstanceProperty",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "isMandatory",
+                "args": null,
+                "storageKey": null
               }
             ]
           },
@@ -326,13 +337,6 @@ return {
             "kind": "ScalarField",
             "alias": null,
             "name": "numberOfLocations",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "isSite",
             "args": null,
             "storageKey": null
           },
@@ -347,6 +351,13 @@ return {
             "kind": "ScalarField",
             "alias": null,
             "name": "mapZoomLevel",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isSite",
             "args": null,
             "storageKey": null
           },
@@ -418,7 +429,7 @@ return {
     "operationKind": "mutation",
     "name": "EditLocationTypeMutation",
     "id": null,
-    "text": "mutation EditLocationTypeMutation(\n  $input: EditLocationTypeInput!\n) {\n  editLocationType(input: $input) {\n    id\n    name\n    ...LocationTypeItem_locationType\n    ...AddEditLocationTypeCard_editingLocationType\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n  isSite\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n}\n",
+    "text": "mutation EditLocationTypeMutation(\n  $input: EditLocationTypeInput!\n) {\n  editLocationType(input: $input) {\n    id\n    name\n    ...LocationTypeItem_locationType\n    ...AddEditLocationTypeCard_editingLocationType\n  }\n}\n\nfragment AddEditLocationTypeCard_editingLocationType on LocationType {\n  id\n  name\n  mapType\n  mapZoomLevel\n  numberOfLocations\n  isSite\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  surveyTemplateCategories {\n    id\n    categoryTitle\n    categoryDescription\n    surveyTemplateQuestions {\n      id\n      questionTitle\n      questionDescription\n      questionType\n      index\n    }\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment LocationTypeItem_locationType on LocationType {\n  id\n  name\n  index\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  numberOfLocations\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
     "metadata": {}
   }
 };

@@ -203,6 +203,7 @@ func (lc *LinkCreate) sqlSave(ctx context.Context) (*Link, error) {
 		insert.Set(link.FieldFutureState, *value)
 		l.FutureState = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(link.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

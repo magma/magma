@@ -55,6 +55,9 @@ func (PropertyType) Fields() []ent.Field {
 		field.Bool("editable").
 			StructTag(`gqlgen:"isEditable"`).
 			Default(true),
+		field.Bool("mandatory").
+			StructTag(`gqlgen:"isMandatory"`).
+			Default(false),
 	}
 }
 

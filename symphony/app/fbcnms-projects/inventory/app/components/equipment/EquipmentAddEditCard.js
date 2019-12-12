@@ -26,24 +26,24 @@ import type {WithStyles} from '@material-ui/core';
 
 import AddEquipmentMutation from '../../mutations/AddEquipmentMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import EditEquipmentMutation from '../../mutations/EditEquipmentMutation';
-import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormLabel from '@material-ui/core/FormLabel';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import LinkedDeviceAddEditSection from '../form/LinkedDeviceAddEditSection';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
 import React from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -73,27 +73,50 @@ const styles = theme => ({
 
 const equipmentAddEditCardQuery = graphql`
   query EquipmentAddEditCardQuery($equipmentId: ID!) {
-    equipment(id: $equipmentId) {
-      id
-      name
-      parentLocation {
-        id
-      }
-      parentPosition {
-        id
-      }
-      device {
-        id
-      }
-      equipmentType {
+    equipment: node(id: $equipmentId) {
+      ... on Equipment {
         id
         name
-        propertyTypes {
+        parentLocation {
+          id
+        }
+        parentPosition {
+          id
+        }
+        device {
+          id
+        }
+        equipmentType {
           id
           name
-          index
-          isInstanceProperty
-          type
+          propertyTypes {
+            id
+            name
+            index
+            isInstanceProperty
+            type
+            isMandatory
+            stringValue
+            intValue
+            floatValue
+            booleanValue
+            latitudeValue
+            longitudeValue
+            rangeFromValue
+            rangeToValue
+          }
+        }
+        properties {
+          propertyType {
+            id
+            name
+            index
+            isInstanceProperty
+            type
+            stringValue
+            isMandatory
+          }
+          id
           stringValue
           intValue
           floatValue
@@ -102,33 +125,14 @@ const equipmentAddEditCardQuery = graphql`
           longitudeValue
           rangeFromValue
           rangeToValue
-        }
-      }
-      properties {
-        propertyType {
-          id
-          name
-          index
-          isInstanceProperty
-          type
-          stringValue
-        }
-        id
-        stringValue
-        intValue
-        floatValue
-        booleanValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
+          equipmentValue {
+            id
+            name
+          }
+          locationValue {
+            id
+            name
+          }
         }
       }
     }
@@ -137,24 +141,27 @@ const equipmentAddEditCardQuery = graphql`
 
 const equipmentAddEditCardQuery__equipmentTypeQuery = graphql`
   query EquipmentAddEditCardQuery__equipmentTypeQuery($equipmentTypeId: ID!) {
-    equipmentType(id: $equipmentTypeId) {
-      id
-      name
-      propertyTypes {
+    equipmentType: node(id: $equipmentTypeId) {
+      ... on EquipmentType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isMandatory
+          isInstanceProperty
+        }
       }
     }
   }
@@ -208,52 +215,42 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
     );
     return (
       <Card>
-        <CardContent className={this.props.classes.root}>
-          {this.state.error && <FormLabel error>{this.state.error}</FormLabel>}
-          <div className={this.props.classes.header}>
-            <Text variant="h5">
-              {editingEquipment?.equipmentType.name ?? this.props.type?.name}
-            </Text>
-          </div>
-          <FormField
-            label="Name"
-            required
-            hasError={!editingEquipment.name}
-            errorText="Name cannot be empty"
-            hasSpacer={true}>
-            <TextInput
-              name="name"
-              autoFocus={true}
-              type="string"
-              className={classes.input}
+        <FormValidationContextProvider>
+          <CardContent className={this.props.classes.root}>
+            {this.state.error && (
+              <FormLabel error>{this.state.error}</FormLabel>
+            )}
+            <div className={this.props.classes.header}>
+              <Text variant="h5">
+                {editingEquipment?.equipmentType.name ?? this.props.type?.name}
+              </Text>
+            </div>
+            <NameInput
               value={editingEquipment.name}
               onChange={this._onNameChanged}
+              inputClass={classes.input}
             />
-          </FormField>
-          {editingEquipment.properties.length > 0 ? (
-            <PropertiesAddEditSection
-              properties={editingEquipment.properties}
-              onChange={index => this._propertyChangedHandler(index)}
+            {editingEquipment.properties.length > 0 ? (
+              <PropertiesAddEditSection
+                properties={editingEquipment.properties}
+                onChange={index => this._propertyChangedHandler(index)}
+              />
+            ) : null}
+            {this.props.editingEquipmentId && equipmentLiveStatusEnabled ? (
+              <LinkedDeviceAddEditSection
+                deviceID={editingEquipment.device?.id ?? ''}
+                onChange={this._deviceIDChangedHandler}
+              />
+            ) : null}
+          </CardContent>
+          <CardFooter>
+            <FormSaveCancelPanel
+              isDisabled={this.state.isSubmitting}
+              onCancel={this.props.onCancel}
+              onSave={this.onSave}
             />
-          ) : null}
-          {this.props.editingEquipmentId && equipmentLiveStatusEnabled ? (
-            <LinkedDeviceAddEditSection
-              deviceID={editingEquipment.device?.id ?? ''}
-              onChange={this._deviceIDChangedHandler}
-            />
-          ) : null}
-        </CardContent>
-        <CardFooter>
-          <Button
-            className={classes.cancelButton}
-            onClick={this.props.onCancel}
-            skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave} disabled={this.isSaveDisabled()}>
-            Save
-          </Button>
-        </CardFooter>
+          </CardFooter>
+        </FormValidationContextProvider>
       </Card>
     );
   }
@@ -421,11 +418,10 @@ class EquipmentAddEditCard extends React.Component<Props, State> {
 
   _deviceIDChangedHandler = (deviceID: string) => {
     this.setState(prevState => {
-      const editingEquipment = nullthrows(prevState.editingEquipment);
       return {
         error: '',
         editingEquipment: update(prevState.editingEquipment, {
-          device: {...editingEquipment.device, id: deviceID},
+          device: {$set: {id: deviceID}},
         }),
       };
     });

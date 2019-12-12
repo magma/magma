@@ -447,8 +447,12 @@ func IndexNotNil() predicate.WorkOrderDefinition {
 func HasType() predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -472,8 +476,12 @@ func HasTypeWith(preds ...predicate.WorkOrderType) predicate.WorkOrderDefinition
 func HasProjectType() predicate.WorkOrderDefinition {
 	return predicate.WorkOrderDefinition(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ProjectTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ProjectTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, ProjectTypeTable, ProjectTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

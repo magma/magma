@@ -25,8 +25,6 @@ type Config struct {
 func NewServer(cfg Config) (*grpc.Server, func(), error) {
 	wire.Build(
 		wire.FieldsOf(new(Config), "DB", "Logger"),
-		NewTenantService,
-		wire.Bind(new(TenantServiceServer), new(*TenantService)),
 		newServer,
 	)
 	return nil, nil, nil

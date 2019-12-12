@@ -885,8 +885,12 @@ func SiteSurveyNeededNotNil() predicate.Location {
 func HasType() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(TypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(TypeTable, FieldID),
+				sql.Edge(sql.M2O, false, TypeTable, TypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -910,8 +914,12 @@ func HasTypeWith(preds ...predicate.LocationType) predicate.Location {
 func HasParent() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ParentColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ParentTable, FieldID),
+				sql.Edge(sql.M2O, true, ParentTable, ParentColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -935,16 +943,12 @@ func HasParentWith(preds ...predicate.Location) predicate.Location {
 func HasChildren() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ChildrenColumn).
-						From(builder.Table(ChildrenTable)).
-						Where(sql.NotNull(ChildrenColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ChildrenTable, FieldID),
+				sql.Edge(sql.O2M, false, ChildrenTable, ChildrenColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -968,16 +972,12 @@ func HasChildrenWith(preds ...predicate.Location) predicate.Location {
 func HasFiles() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(FilesColumn).
-						From(builder.Table(FilesTable)).
-						Where(sql.NotNull(FilesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(FilesTable, FieldID),
+				sql.Edge(sql.O2M, false, FilesTable, FilesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1001,16 +1001,12 @@ func HasFilesWith(preds ...predicate.File) predicate.Location {
 func HasEquipment() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(EquipmentColumn).
-						From(builder.Table(EquipmentTable)).
-						Where(sql.NotNull(EquipmentColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTable, FieldID),
+				sql.Edge(sql.O2M, false, EquipmentTable, EquipmentColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1034,16 +1030,12 @@ func HasEquipmentWith(preds ...predicate.Equipment) predicate.Location {
 func HasProperties() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1067,16 +1059,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Location {
 func HasSurvey() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(SurveyColumn).
-						From(builder.Table(SurveyTable)).
-						Where(sql.NotNull(SurveyColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(SurveyTable, FieldID),
+				sql.Edge(sql.O2M, true, SurveyTable, SurveyColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1100,16 +1088,12 @@ func HasSurveyWith(preds ...predicate.Survey) predicate.Location {
 func HasWifiScan() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WifiScanColumn).
-						From(builder.Table(WifiScanTable)).
-						Where(sql.NotNull(WifiScanColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WifiScanTable, FieldID),
+				sql.Edge(sql.O2M, true, WifiScanTable, WifiScanColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1133,16 +1117,12 @@ func HasWifiScanWith(preds ...predicate.SurveyWiFiScan) predicate.Location {
 func HasCellScan() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(CellScanColumn).
-						From(builder.Table(CellScanTable)).
-						Where(sql.NotNull(CellScanColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(CellScanTable, FieldID),
+				sql.Edge(sql.O2M, true, CellScanTable, CellScanColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1166,16 +1146,12 @@ func HasCellScanWith(preds ...predicate.SurveyCellScan) predicate.Location {
 func HasWorkOrders() predicate.Location {
 	return predicate.Location(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(WorkOrdersColumn).
-						From(builder.Table(WorkOrdersTable)).
-						Where(sql.NotNull(WorkOrdersColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrdersTable, FieldID),
+				sql.Edge(sql.O2M, true, WorkOrdersTable, WorkOrdersColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1187,6 +1163,35 @@ func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.Location {
 			builder := sql.Dialect(s.Dialect())
 			t1 := s.Table()
 			t2 := builder.Select(WorkOrdersColumn).From(builder.Table(WorkOrdersTable))
+			for _, p := range preds {
+				p(t2)
+			}
+			s.Where(sql.In(t1.C(FieldID), t2))
+		},
+	)
+}
+
+// HasFloorPlans applies the HasEdge predicate on the "floor_plans" edge.
+func HasFloorPlans() predicate.Location {
+	return predicate.Location(
+		func(s *sql.Selector) {
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(FloorPlansTable, FieldID),
+				sql.Edge(sql.O2M, true, FloorPlansTable, FloorPlansColumn),
+			)
+			sql.HasNeighbors(s, step)
+		},
+	)
+}
+
+// HasFloorPlansWith applies the HasEdge predicate on the "floor_plans" edge with a given conditions (other predicates).
+func HasFloorPlansWith(preds ...predicate.FloorPlan) predicate.Location {
+	return predicate.Location(
+		func(s *sql.Selector) {
+			builder := sql.Dialect(s.Dialect())
+			t1 := s.Table()
+			t2 := builder.Select(FloorPlansColumn).From(builder.Table(FloorPlansTable))
 			for _, p := range preds {
 				p(t2)
 			}

@@ -1,0 +1,116 @@
+{{/*
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+
+ * Code generated (@generated) by entc, DO NOT EDIT.
+ */}}
+{{ define "dialect/sql/globals" }}
+// insertLastID invokes the insert query on the transaction and returns the LastInsertID.
+func insertLastID(ctx context.Context, tx dialect.Tx, insert *sql.InsertBuilder) (int64, error) {
+	var (
+		res sql.Result
+		query, args = insert.Returning().Query()
+	)
+	// return zero value for id, because it doesn't
+	// exist on the database.
+	return 0, tx.Exec(ctx, query, args, &res)
+}
+
+func init() {
+	// remove the id field from blob columns.
+	blob.Columns = blob.Columns[1:]
+}
+
+// BeginTx returns a transactional client with options.
+func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) {
+	if _, ok := c.driver.(*txDriver); ok {
+		return nil, fmt.Errorf("ent: cannot start a transaction within a transaction")
+	}
+	tx, err := c.driver.(*sql.Driver).BeginTx(ctx, opts)
+	if err != nil {
+		return nil, fmt.Errorf("ent: starting a transaction: %v", err)
+	}
+	cfg := config{driver: &txDriver{tx: tx, drv: c.driver}, log: c.log, debug: c.debug}
+	return &Tx{
+		config: cfg,
+		{{ range $_, $n := $.Nodes -}}
+			{{ $n.Name }}: New{{ $n.Name }}Client(cfg),
+		{{ end -}}
+	}, nil
+}
+{{ end }}
+
+{{/* custom upder implementation for updating objects without loading them */}}
+{{ define "dialect/sql/update" }}
+{{ $builder := pascal $.Scope.Builder }}
+{{ $receiver := receiver $builder }}
+{{ $one := hasSuffix $builder "One" }}
+
+{{- if $one }}
+	func (*{{ $builder }}) sqlSave(context.Context) (*{{ $.Name }}, error) {
+		return nil, fmt.Errorf("cannot perform update-one on models with complex PK")
+	}
+{{- else }}
+func ({{ $receiver }} *{{ $builder }}) sqlSave(ctx context.Context) (int, error) {
+	var (
+		builder  = sql.Dialect({{ $receiver }}.driver.Dialect())
+		selector = builder.Select().From(builder.Table(blob.Table))
+	)
+	for _, p := range {{ $receiver }}.predicates {
+		p(selector)
+	}
+	{{- if $.Fields }}
+		var (
+			res sql.Result
+			updater = builder.Update({{ $.Package }}.Table).Where(selector.P())
+		)
+		{{- range $_, $f := $.Fields }}
+			{{- if or (not $f.Immutable) $f.UpdateDefault }}
+				if value := {{ $receiver }}.{{ $f.BuilderField }}; value != nil {
+					updater.Set({{ $.Package }}.{{ $f.Constant }}, *value)
+				}
+				{{- if $f.Type.Numeric }}
+					if value := {{ $receiver }}.add{{ $f.BuilderField }}; value != nil {
+						updater.Add({{ $.Package }}.{{ $f.Constant }}, *value)
+					}
+				{{- end }}
+			{{- end }}
+			{{- if $f.Optional }}
+				if {{ $receiver }}.clear{{ $f.BuilderField }} {
+					updater.SetNull({{ $.Package }}.{{ $f.Constant }})
+				}
+			{{- end }}
+		{{- end }}
+		if updater.Empty() {
+			return 0, nil
+		}
+		tx, err := {{ $receiver }}.driver.Tx(ctx)
+		if err != nil {
+			return 0, err
+		}
+		query, args := updater.Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+		if err := tx.Commit(); err != nil {
+			return 0, err
+		}
+		// returning the amount of nodes is not necessary.
+		return 0, nil
+	{{ end }}
+}
+{{- end }}
+{{ end }}
+
+{{ define "dialect/sql/meta/constants" }}
+// Table declared below. We override the default constant definition
+// of "ent", because we want to allow using the same blob API with
+// different tables.
+{{ end }}
+{{ define "meta/additional" }}
+// Table holds the table name of the {{ lower $.Name }} in the database.
+var Table = "{{ $.Table }}"
+{{ end }}

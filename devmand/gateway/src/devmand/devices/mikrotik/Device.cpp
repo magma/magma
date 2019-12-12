@@ -20,7 +20,7 @@ namespace mikrotik {
 
 static constexpr const unsigned short mikrotikPort = 8728;
 
-std::unique_ptr<devices::Device> Device::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
@@ -261,14 +261,13 @@ std::shared_ptr<State> Device::getState() {
 
   state->addFinally([state]() {
     state->update([](auto& lockedState) {
-      auto* field = lockedState.get_ptr("ietf-system:system");
-      if (field != nullptr and
-          ((field = field->get_ptr("hostname")) != nullptr)) {
-        auto hostname = field->asString();
-        PAPC(lockedState)["hostname"] = hostname;
-        PAPT(lockedState)["hostname"] = hostname;
-        JAP(lockedState)["hostname"] = hostname;
-        JAPT(lockedState)["hostname"] = hostname;
+      auto hostname =
+          YangUtils::lookup(lockedState, "ietf-system:system/hostname");
+      if (hostname != nullptr) {
+        PAPC(lockedState)
+        ["hostname"] = PAPT(lockedState)["hostname"] =
+            JAP(lockedState)["hostname"] = JAPT(lockedState)["hostname"] =
+                hostname.asString();
       }
     });
   });

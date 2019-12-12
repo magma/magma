@@ -33,7 +33,7 @@ const (
 	// It exists in this package in order to avoid circular dependency with the "location" package.
 	LocationInverseTable = "locations"
 	// LocationColumn is the table column denoting the location relation/edge.
-	LocationColumn = "floor_plan_location_id"
+	LocationColumn = "location_id"
 	// ReferencePointTable is the table the holds the reference_point relation/edge.
 	ReferencePointTable = "floor_plans"
 	// ReferencePointInverseTable is the table name for the FloorPlanReferencePoint entity.

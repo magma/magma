@@ -8,15 +8,17 @@
  * @format
  */
 
-import type {Property} from '../../common/Property';
-import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import React from 'react';
 import WorkOrderDeleteButton from './WorkOrderDeleteButton';
 import WorkOrderSaveButton from './WorkOrderSaveButton';
 import {makeStyles} from '@material-ui/styles';
+import type {
+  ChecklistViewer_checkListItems,
+  WorkOrderDetails_workOrder,
+} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {Property} from '../../common/Property';
 
 const useStyles = makeStyles(_theme => ({
   nameHeader: {
@@ -40,6 +42,7 @@ type Props = {
   workOrderName: string,
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
+  checklist: ChecklistViewer_checkListItems,
   locationId: ?string,
   onWorkOrderRemoved: () => void,
   onCancelClicked: () => void,
@@ -51,6 +54,7 @@ const WorkOrderHeader = (props: Props) => {
     workOrderName,
     workOrder,
     properties,
+    checklist,
     locationId,
     onWorkOrderRemoved,
     onCancelClicked,
@@ -87,6 +91,7 @@ const WorkOrderHeader = (props: Props) => {
       <WorkOrderSaveButton
         workOrder={workOrder}
         properties={properties}
+        checklist={checklist}
         locationId={locationId}
       />
     </div>

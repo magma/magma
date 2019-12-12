@@ -13,10 +13,13 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import * as d3 from 'd3';
+import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
+import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {blue05} from '@fbcnms/ui/theme/colors';
+import symphony from '@fbcnms/ui/theme/symphony';
+import {renderToStaticMarkup} from 'react-dom/server';
 import {withStyles} from '@material-ui/core/styles';
 
 const CHARGE_STRENGTH = -400;
@@ -45,8 +48,8 @@ const styles = theme => ({
   },
   link: {
     fill: 'none',
-    stroke: theme.palette.grey[300],
-    strokeWidth: 0.5,
+    stroke: symphony.palette.D300,
+    strokeWidth: 1,
   },
   node: {
     fill: theme.palette.common.white,
@@ -54,13 +57,17 @@ const styles = theme => ({
     strokeWidth: 1,
   },
   nodeText: {
-    ...theme.typography.caption,
-    fill: theme.palette.grey[900],
+    ...symphony.typography.caption,
+    fontWeight: 500,
+    fill: symphony.palette.D900,
     fontSize: TEXT_FONT_SIZE,
     cursor: 'pointer',
     pointerEvents: 'none',
     stroke: 'none',
     textAnchor: 'middle',
+  },
+  nodeRect: {
+    fill: symphony.palette.D10,
   },
 });
 
@@ -87,6 +94,21 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 
   componentDidMount() {
+    this.calculateGraph();
+  }
+
+  componentDidUpdate(prevProps) {
+    if (
+      this.props.networkTopology === prevProps.networkTopology &&
+      (this.props.rootIds === prevProps.rootIds ||
+        (this.props.rootIds.length == 0 && prevProps.rootIds.length == 0))
+    ) {
+      return;
+    }
+    this.calculateGraph();
+  }
+
+  calculateGraph() {
     const {classes, networkTopology, rootIds} = this.props;
 
     const container = nullthrows(this._topologyContainer?.current);
@@ -101,14 +123,19 @@ class ForceNetworkTopology extends React.Component<Props, State> {
       target: l.target,
     }));
 
+    d3.select(nullthrows(this._topologyContainer).current)
+      .selectAll('svg')
+      .remove();
+
     // Create SVG
-    const g = d3
+    const svg = d3
       .select(nullthrows(this._topologyContainer).current)
       .append('svg')
       .attr('width', width)
       .attr('height', height)
-      .attr('viewBox', [-width / 2, -height / 2, width, height])
-      .append('g');
+      .attr('viewBox', [-width / 2, -height / 2, width, height]);
+
+    const g = svg.append('g');
 
     // Create force simulation which will place the nodes and links on screen
     // with the correct distances between them
@@ -147,15 +174,38 @@ class ForceNetworkTopology extends React.Component<Props, State> {
       .attr('height', NODE_RADIUS * 2)
       .call(this._drag(simulation));
 
-    // Add a circle and a label on each node
-    node
-      .append('circle')
-      .attr('r', NODE_RADIUS)
-      .attr('fill', d => (rootIds.includes(d.id) ? blue05 : 'white'));
-    node
+    const newNode = node.append('g').attr('transform', 'translate(-8 -8)');
+
+    newNode.html(d =>
+      renderToStaticMarkup(
+        rootIds.includes(d.id) ? (
+          <ActiveEquipmentInLocationIcon />
+        ) : (
+          <ActiveEquipmentIcon />
+        ),
+      ),
+    );
+
+    const text = newNode
       .append('text')
       .text(d => d.name)
+      .attr('transform', 'translate(8 40)')
       .attr('class', classes.nodeText);
+
+    const textBoxes = text.nodes().map(node => node.getBBox());
+
+    newNode
+      .insert('rect', 'text')
+      .attr(
+        'transform',
+        (d, i) => `translate(-${textBoxes[i].width / 2 + 6} 24)`,
+      )
+      .attr('rx', 10)
+      .attr('ry', 10)
+      .data(textBoxes)
+      .attr('width', (d, i) => textBoxes[i].width + 30)
+      .attr('height', (d, i) => textBoxes[i].height + 12)
+      .attr('class', classes.nodeRect);
 
     const positionNodes = () => {
       node.attr('transform', d => `translate(${d.x} ${d.y})`);
@@ -200,7 +250,9 @@ class ForceNetworkTopology extends React.Component<Props, State> {
 
     simulation.on('end', () => {
       positionNodes();
-      this.setState({loading: false});
+      if (this.state.loading) {
+        this.setState({loading: false});
+      }
     });
   }
 

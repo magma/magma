@@ -8,43 +8,49 @@
  * @format
  */
 
-import type {
-  AddWorkOrderMutationResponse,
-  AddWorkOrderMutationVariables,
-} from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
-import type {ContextRouter} from 'react-router-dom';
-import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
-import type {WorkOrder} from '../../common/WorkOrder';
-
 import AddWorkOrderMutation from '../../mutations/AddWorkOrderMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import EditToggleButton from '@fbcnms/ui/components/design-system/toggles/EditToggleButton/EditToggleButton';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
+import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment.js';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
+import {graphql} from 'relay-runtime';
 import {priorityValues, statusValues} from '../../common/WorkOrder';
+import {removeTempIDs} from '../../common/EntUtils';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
+import type {
+  AddWorkOrderMutationResponse,
+  AddWorkOrderMutationVariables,
+  ChecklistItemInput,
+} from '../../mutations/__generated__/AddWorkOrderMutation.graphql';
+import type {CheckListTable_list} from '../checklist/__generated__/CheckListTable_list.graphql';
+import type {ContextRouter} from 'react-router-dom';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
+import type {WorkOrder, WorkOrderType} from '../../common/WorkOrder';
 
 type Props = {
   workOrderTypeId: ?string,
@@ -116,6 +122,7 @@ const styles = theme => ({
 type State = {
   workOrder: ?WorkOrder,
   locationId: ?string,
+  showChecklistDesignMode: boolean,
 };
 
 const addWorkOrderCard__workOrderTypeQuery = graphql`
@@ -140,6 +147,14 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
         isEditable
         isInstanceProperty
       }
+      checkListDefinitions {
+        id
+        title
+        type
+        index
+        helpText
+        enumValues
+      }
     }
   }
 `;
@@ -148,208 +163,259 @@ class AddWorkOrderCard extends React.Component<Props, State> {
   state = {
     locationId: null,
     workOrder: null,
+    showChecklistDesignMode: false,
   };
-  componentDidMount() {
-    this.getWorkOrder().then(workOrder => {
-      this.setState({
-        workOrder,
-      });
-    });
-  }
+
   render() {
-    const {classes} = this.props;
-    const {workOrder} = this.state;
-    if (!workOrder) {
-      return (
-        <div className={classes.root}>
-          <CircularProgress />
-        </div>
-      );
-    }
+    const {workOrderTypeId, classes} = this.props;
+    const {workOrder, showChecklistDesignMode} = this.state;
+
     return (
-      <div className={classes.root}>
-        <div className={classes.nameHeader}>
-          <Breadcrumbs
-            className={classes.breadcrumbs}
-            breadcrumbs={[
-              {
-                id: 'workOrders',
-                name: 'WorkOrders',
-                onClick: () => this.navigateToMainPage(),
-              },
-              {
-                id: `new_workOrder_` + Date.now(),
-                name: 'New WorkOrder',
-              },
-            ]}
-            size="large"
-          />
-          <Button
-            className={classes.cancelButton}
-            skin="regular"
-            onClick={this.navigateToMainPage}>
-            Cancel
-          </Button>
-          <Button onClick={this._saveWorkOrder}>Save</Button>
-        </div>
-        <div className={classes.contentRoot}>
-          <div className={classes.cards}>
-            <Grid container spacing={2}>
-              <Grid item xs={8} sm={8} lg={8} xl={8}>
-                <ExpandingPanel title="Details">
-                  <NameDescriptionSection
-                    name={workOrder.name}
-                    description={workOrder.description}
-                    onNameChange={value =>
-                      this._setWorkOrderDetail('name', value)
-                    }
-                    onDescriptionChange={value =>
-                      this._setWorkOrderDetail('description', value)
-                    }
+      <InventoryQueryRenderer
+        query={addWorkOrderCard__workOrderTypeQuery}
+        variables={{
+          workOrderTypeId,
+        }}
+        render={queryData => {
+          const {workOrderType} = queryData;
+
+          if (!workOrder && workOrderType) {
+            this.setState({
+              workOrder: this._creaetNewWorkOrder(workOrderType),
+            });
+          }
+
+          if (!workOrder) {
+            return (
+              <div className={classes.root}>
+                <CircularProgress />
+              </div>
+            );
+          }
+          return (
+            <div className={classes.root}>
+              <FormValidationContextProvider>
+                <div className={classes.nameHeader}>
+                  <Breadcrumbs
+                    className={classes.breadcrumbs}
+                    breadcrumbs={[
+                      {
+                        id: 'workOrders',
+                        name: 'WorkOrders',
+                        onClick: () => this.navigateToMainPage(),
+                      },
+                      {
+                        id: `new_workOrder_` + Date.now(),
+                        name: 'New WorkOrder',
+                      },
+                    ]}
+                    size="large"
                   />
-                  <div className={classes.separator} />
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Project">
-                        <ProjectTypeahead
-                          className={classes.gridInput}
-                          margin="dense"
-                          onProjectSelection={project =>
-                            this._setWorkOrderDetail('projectId', project?.id)
-                          }
-                        />
-                      </FormField>
-                    </Grid>
-                    {workOrder.workOrderType && (
-                      <Grid item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField label="Type">
-                          <TextField
-                            disabled
-                            variant="outlined"
-                            margin="dense"
-                            className={classes.gridInput}
-                            value={workOrder.workOrderType.name}
+                  <FormSaveCancelPanel
+                    onCancel={this.navigateToMainPage}
+                    onSave={this._saveWorkOrder}
+                  />
+                </div>
+                <div className={classes.contentRoot}>
+                  <div className={classes.cards}>
+                    <Grid container spacing={2}>
+                      <Grid item xs={8} sm={8} lg={8} xl={8}>
+                        <ExpandingPanel title="Details">
+                          <NameDescriptionSection
+                            name={workOrder.name}
+                            description={workOrder.description}
+                            onNameChange={value =>
+                              this._setWorkOrderDetail('name', value)
+                            }
+                            onDescriptionChange={value =>
+                              this._setWorkOrderDetail('description', value)
+                            }
                           />
-                        </FormField>
+                          <div className={classes.separator} />
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6} lg={4} xl={4}>
+                              <FormField label="Project">
+                                <ProjectTypeahead
+                                  className={classes.gridInput}
+                                  margin="dense"
+                                  onProjectSelection={project =>
+                                    this._setWorkOrderDetail(
+                                      'projectId',
+                                      project?.id,
+                                    )
+                                  }
+                                />
+                              </FormField>
+                            </Grid>
+                            {workOrder.workOrderType && (
+                              <Grid item xs={12} sm={6} lg={4} xl={4}>
+                                <FormField label="Type">
+                                  <TextField
+                                    disabled
+                                    variant="outlined"
+                                    margin="dense"
+                                    className={classes.gridInput}
+                                    value={workOrder.workOrderType.name}
+                                  />
+                                </FormField>
+                              </Grid>
+                            )}
+                            <Grid item xs={12} sm={6} lg={4} xl={4}>
+                              <FormField label="Priority">
+                                <TextField
+                                  select
+                                  className={classes.gridInput}
+                                  variant="outlined"
+                                  value={workOrder.priority}
+                                  InputProps={{
+                                    classes: {
+                                      input: classes.dense,
+                                    },
+                                  }}
+                                  onChange={event => {
+                                    this._setWorkOrderDetail(
+                                      'priority',
+                                      event.target.value,
+                                    );
+                                  }}>
+                                  {priorityValues.map(option => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}>
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </FormField>
+                            </Grid>
+                            <Grid item xs={12} sm={6} lg={4} xl={4}>
+                              <FormField label="Status">
+                                <TextField
+                                  select
+                                  className={classes.gridInput}
+                                  variant="outlined"
+                                  value={workOrder.status}
+                                  InputProps={{
+                                    classes: {
+                                      input: classes.dense,
+                                    },
+                                  }}
+                                  onChange={event => {
+                                    this._setWorkOrderDetail(
+                                      'status',
+                                      event.target.value,
+                                    );
+                                  }}>
+                                  {statusValues.map(option => (
+                                    <MenuItem
+                                      key={option.value}
+                                      value={option.value}>
+                                      {option.label}
+                                    </MenuItem>
+                                  ))}
+                                </TextField>
+                              </FormField>
+                            </Grid>
+                            <Grid item xs={12} sm={6} lg={4} xl={4}>
+                              <FormField label="Location">
+                                <LocationTypeahead
+                                  headline={null}
+                                  className={classes.gridInput}
+                                  margin="dense"
+                                  onLocationSelection={location =>
+                                    this._setWorkOrderDetail(
+                                      'locationId',
+                                      location?.id ?? null,
+                                    )
+                                  }
+                                />
+                              </FormField>
+                            </Grid>
+                            {workOrder.properties.map((property, index) => (
+                              <Grid
+                                key={property.id}
+                                item
+                                xs={12}
+                                sm={6}
+                                lg={4}
+                                xl={4}>
+                                <PropertyValueInput
+                                  required={false}
+                                  disabled={false}
+                                  label={property.propertyType.name}
+                                  className={classes.gridInput}
+                                  margin="dense"
+                                  inputType="Property"
+                                  property={property}
+                                  headlineVariant="form"
+                                  fullWidth={true}
+                                  onChange={this._propertyChangedHandler(index)}
+                                />
+                              </Grid>
+                            ))}
+                          </Grid>
+                        </ExpandingPanel>
+                        <ExpandingPanel
+                          title={fbt('Checklist', 'Checklist section header')}
+                          rightContent={
+                            <EditToggleButton
+                              isOnEdit={showChecklistDesignMode}
+                              onChange={newToggleValue =>
+                                this.setState({
+                                  showChecklistDesignMode: newToggleValue,
+                                })
+                              }
+                            />
+                          }>
+                          <CheckListTable
+                            list={workOrder.checkList}
+                            onChecklistChanged={this._checklistChangedHandler}
+                            onDesignMode={this.state.showChecklistDesignMode}
+                          />
+                        </ExpandingPanel>
                       </Grid>
-                    )}
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Priority">
-                        <TextField
-                          select
-                          className={classes.gridInput}
-                          variant="outlined"
-                          value={workOrder.priority}
-                          InputProps={{
-                            classes: {
-                              input: classes.dense,
-                            },
-                          }}
-                          onChange={event => {
-                            this._setWorkOrderDetail(
-                              'priority',
-                              event.target.value,
-                            );
-                          }}>
-                          {priorityValues.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </FormField>
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Status">
-                        <TextField
-                          select
-                          className={classes.gridInput}
-                          variant="outlined"
-                          value={workOrder.status}
-                          InputProps={{
-                            classes: {
-                              input: classes.dense,
-                            },
-                          }}
-                          onChange={event => {
-                            this._setWorkOrderDetail(
-                              'status',
-                              event.target.value,
-                            );
-                          }}>
-                          {statusValues.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </TextField>
-                      </FormField>
-                    </Grid>
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Location">
-                        <LocationTypeahead
-                          headline={null}
-                          className={classes.gridInput}
-                          margin="dense"
-                          onLocationSelection={location =>
-                            this._setWorkOrderDetail(
-                              'locationId',
-                              location?.id ?? null,
-                            )
-                          }
-                        />
-                      </FormField>
-                    </Grid>
-                    {workOrder.properties.map((property, index) => (
-                      <Grid key={property.id} item xs={12} sm={6} lg={4} xl={4}>
-                        <PropertyValueInput
-                          required={false}
-                          disabled={false}
-                          label={property.propertyType.name}
-                          className={classes.gridInput}
-                          margin="dense"
-                          inputType="Property"
-                          property={property}
-                          headlineVariant="form"
-                          fullWidth={true}
-                          onChange={this._propertyChangedHandler(index)}
-                        />
+                      <Grid item xs={4} sm={4} lg={4} xl={4}>
+                        <ExpandingPanel title="Team">
+                          <UserTypeahead
+                            className={classes.input}
+                            headline="Assignee"
+                            onUserSelection={user =>
+                              this._setWorkOrderDetail('assignee', user)
+                            }
+                            margin="dense"
+                          />
+                        </ExpandingPanel>
                       </Grid>
-                    ))}
-                  </Grid>
-                </ExpandingPanel>
-              </Grid>
-              <Grid item xs={4} sm={4} lg={4} xl={4}>
-                <ExpandingPanel title="Team">
-                  <UserTypeahead
-                    className={classes.input}
-                    headline="Assignee"
-                    onUserSelection={user =>
-                      this._setWorkOrderDetail('assignee', user)
-                    }
-                    margin="dense"
-                  />
-                </ExpandingPanel>
-              </Grid>
-            </Grid>
-          </div>
-        </div>
-      </div>
+                    </Grid>
+                  </div>
+                </div>
+              </FormValidationContextProvider>
+            </div>
+          );
+        }}
+      />
     );
   }
 
-  async getWorkOrder(): Promise<WorkOrder> {
-    const response = await fetchQuery(
-      RelayEnvironment,
-      addWorkOrderCard__workOrderTypeQuery,
-      {
-        workOrderTypeId: this.props.workOrderTypeId,
-      },
-    );
-    const workOrderType = response.workOrderType;
+  _toggleCheckListMode() {
+    this.setState(prevState => {
+      return {
+        showChecklistDesignMode: !prevState.showChecklistDesignMode,
+      };
+    });
+  }
+
+  _creaetNewWorkOrder(workOrderType: WorkOrderType): WorkOrder {
     const initialProps = (workOrderType.propertyTypes || [])
       .map(propType => getInitialPropertyFromType(propType))
       .sort(sortPropertiesByIndex);
+    const initialChecklist: CheckListTable_list = (
+      workOrderType.checkListDefinitions || []
+    ).map(checkListItem => {
+      return {
+        ...checkListItem,
+      };
+    });
     return {
       id: 'workOrder@tmp',
       workOrderType: workOrderType,
@@ -373,6 +439,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
       images: [],
       assignee: '',
       projectId: null,
+      checkList: initialChecklist,
     };
   }
 
@@ -386,8 +453,10 @@ class AddWorkOrderCard extends React.Component<Props, State> {
       status,
       priority,
       properties,
+      checkList,
     } = nullthrows(this.state.workOrder);
     const workOrderTypeId = nullthrows(this.state.workOrder?.workOrderTypeId);
+    const updatedChecklist: ChecklistItemInput = removeTempIDs(checkList || []);
     const variables: AddWorkOrderMutationVariables = {
       input: {
         name,
@@ -399,6 +468,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
         status,
         priority,
         properties: toPropertyInput(properties),
+        checkList: updatedChecklist,
       },
     };
 
@@ -456,6 +526,16 @@ class AddWorkOrderCard extends React.Component<Props, State> {
         }),
       };
     });
+
+  _checklistChangedHandler = updatedChecklist => {
+    this.setState(prevState => {
+      return {
+        workOrder: update(prevState.workOrder, {
+          checkList: {$set: updatedChecklist},
+        }),
+      };
+    });
+  };
 
   navigateToMainPage = () => {
     ServerLogger.info(LogEvents.WORK_ORDERS_SEARCH_NAV_CLICKED, {

@@ -9,14 +9,15 @@
  */
 import type {AlertConfig} from './AlarmAPIType';
 
+import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import ClipboardLink from '@fbcnms/ui/components/ClipboardLink';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
-import React from 'react';
 import {makeStyles} from '@material-ui/styles';
+import type {RuleViewerProps} from './RuleInterface';
 
 const useStyles = makeStyles({
   paper: {
@@ -28,27 +29,31 @@ const useStyles = makeStyles({
   },
 });
 
-type Props = {
+type Props<TRuleUnion> = {
   open: boolean,
   onClose: () => void,
   title: string,
-  additionalContent?: any,
-  alertConfig: AlertConfig | Object,
+  additionalContent?: React.Node,
+  rule: TRuleUnion,
   showCopyButton?: boolean,
   showDeleteButton?: boolean,
   onDelete?: () => Promise<void>,
+  RuleViewer: React.ComponentType<RuleViewerProps<TRuleUnion>>,
 };
 
-export default function AlertActionDialog(props: Props) {
+export default function AlertActionDialog<TRuleUnion>(
+  props: Props<TRuleUnion>,
+) {
   const {
     open,
     onClose,
     title,
     additionalContent,
-    alertConfig,
+    rule,
     showCopyButton,
     showDeleteButton,
     onDelete,
+    RuleViewer,
   } = props;
   const classes = useStyles();
 
@@ -59,9 +64,7 @@ export default function AlertActionDialog(props: Props) {
       onClose={onClose}>
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        <pre className={classes.pre}>
-          {JSON.stringify(alertConfig, null, 2)}
-        </pre>
+        <RuleViewer rule={rule} />
         {additionalContent}
       </DialogContent>
       <DialogActions>
@@ -72,7 +75,7 @@ export default function AlertActionDialog(props: Props) {
           <ClipboardLink>
             {({copyString}) => (
               <Button
-                onClick={() => copyString(JSON.stringify(alertConfig))}
+                onClick={() => copyString(JSON.stringify(rule) || '')}
                 color="primary"
                 variant="contained">
                 Copy
@@ -88,4 +91,20 @@ export default function AlertActionDialog(props: Props) {
       </DialogActions>
     </Dialog>
   );
+}
+
+AlertActionDialog.defaultProps = {
+  RuleViewer: SimpleJsonViewer,
+};
+
+const useJsonStyles = makeStyles({
+  pre: {
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-all',
+  },
+});
+
+function SimpleJsonViewer({rule}: {rule: AlertConfig}) {
+  const classes = useJsonStyles();
+  return <pre className={classes.pre}>{JSON.stringify(rule, null, 2)}</pre>;
 }

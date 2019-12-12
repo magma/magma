@@ -156,6 +156,7 @@ func (clidc *CheckListItemDefinitionCreate) sqlSave(ctx context.Context) (*Check
 		insert.Set(checklistitemdefinition.FieldHelpText, *value)
 		clid.HelpText = value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(checklistitemdefinition.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -193,6 +193,7 @@ func TestAddLocationWithProperties(t *testing.T) {
 }
 
 func TestAddLocationWithInvalidProperties(t *testing.T) {
+	t.Skip("skipping test until mandatory props are added - T57858029")
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
 	defer r.drv.Close()
@@ -1024,11 +1025,11 @@ func TestNearestSites(t *testing.T) {
 	ctx := viewertest.NewContext(r.client)
 	mr, qr := r.Mutation(), r.Query()
 
+	isSite := true
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
-		Name: "location_type",
+		Name:   "location_type",
+		IsSite: &isSite,
 	})
-	require.NoError(t, err)
-	_, err = mr.MarkLocationTypeIsSite(ctx, locationType.ID, true)
 	require.NoError(t, err)
 
 	// Meir Park

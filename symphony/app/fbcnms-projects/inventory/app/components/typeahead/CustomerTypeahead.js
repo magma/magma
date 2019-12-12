@@ -108,6 +108,7 @@ class CustomerTypeahead extends React.Component<Props, State> {
               : null
           }
           variant="small"
+          disabled={true}
         />
       </div>
     );

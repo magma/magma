@@ -61,6 +61,7 @@ type PropertyTypeUpdate struct {
 	clearrange_to_val            bool
 	is_instance_property         *bool
 	editable                     *bool
+	mandatory                    *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -413,6 +414,20 @@ func (ptu *PropertyTypeUpdate) SetNillableEditable(b *bool) *PropertyTypeUpdate 
 	return ptu
 }
 
+// SetMandatory sets the mandatory field.
+func (ptu *PropertyTypeUpdate) SetMandatory(b bool) *PropertyTypeUpdate {
+	ptu.mandatory = &b
+	return ptu
+}
+
+// SetNillableMandatory sets the mandatory field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableMandatory(b *bool) *PropertyTypeUpdate {
+	if b != nil {
+		ptu.SetMandatory(*b)
+	}
+	return ptu
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) AddPropertyIDs(ids ...string) *PropertyTypeUpdate {
 	if ptu.properties == nil {
@@ -715,6 +730,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -733,8 +749,9 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(propertytype.Table).Where(sql.InInts(propertytype.FieldID, ids...))
+		updater = builder.Update(propertytype.Table)
 	)
+	updater = updater.Where(sql.InInts(propertytype.FieldID, ids...))
 	if value := ptu.update_time; value != nil {
 		updater.Set(propertytype.FieldUpdateTime, *value)
 	}
@@ -830,6 +847,9 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value := ptu.editable; value != nil {
 		updater.Set(propertytype.FieldEditable, *value)
+	}
+	if value := ptu.mandatory; value != nil {
+		updater.Set(propertytype.FieldMandatory, *value)
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()
@@ -1101,6 +1121,7 @@ type PropertyTypeUpdateOne struct {
 	clearrange_to_val            bool
 	is_instance_property         *bool
 	editable                     *bool
+	mandatory                    *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -1446,6 +1467,20 @@ func (ptuo *PropertyTypeUpdateOne) SetNillableEditable(b *bool) *PropertyTypeUpd
 	return ptuo
 }
 
+// SetMandatory sets the mandatory field.
+func (ptuo *PropertyTypeUpdateOne) SetMandatory(b bool) *PropertyTypeUpdateOne {
+	ptuo.mandatory = &b
+	return ptuo
+}
+
+// SetNillableMandatory sets the mandatory field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableMandatory(b *bool) *PropertyTypeUpdateOne {
+	if b != nil {
+		ptuo.SetMandatory(*b)
+	}
+	return ptuo
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) AddPropertyIDs(ids ...string) *PropertyTypeUpdateOne {
 	if ptuo.properties == nil {
@@ -1746,6 +1781,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1769,8 +1805,9 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(propertytype.Table).Where(sql.InInts(propertytype.FieldID, ids...))
+		updater = builder.Update(propertytype.Table)
 	)
+	updater = updater.Where(sql.InInts(propertytype.FieldID, ids...))
 	if value := ptuo.update_time; value != nil {
 		updater.Set(propertytype.FieldUpdateTime, *value)
 		pt.UpdateTime = *value
@@ -1908,6 +1945,10 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	if value := ptuo.editable; value != nil {
 		updater.Set(propertytype.FieldEditable, *value)
 		pt.Editable = *value
+	}
+	if value := ptuo.mandatory; value != nil {
+		updater.Set(propertytype.FieldMandatory, *value)
+		pt.Mandatory = *value
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()

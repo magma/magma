@@ -36,6 +36,7 @@ export type AddEditServiceTypeCard_editingServiceType = {|
     +rangeFromValue: ?number,
     +rangeToValue: ?number,
     +isEditable: ?boolean,
+    +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
   |}>,
   +$refType: AddEditServiceTypeCard_editingServiceType$ref,
@@ -170,6 +171,13 @@ return {
         {
           "kind": "ScalarField",
           "alias": null,
+          "name": "isMandatory",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
@@ -180,5 +188,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b08a3be6ff33b05ef4be9b0faed46bf3';
+(node/*: any*/).hash = '1b8a927e2cc45461b99d2e031cdb8d3b';
 module.exports = node;

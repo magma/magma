@@ -158,6 +158,7 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -176,8 +177,9 @@ func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(customer.Table).Where(sql.InInts(customer.FieldID, ids...))
+		updater = builder.Update(customer.Table)
 	)
+	updater = updater.Where(sql.InInts(customer.FieldID, ids...))
 	if value := cu.update_time; value != nil {
 		updater.Set(customer.FieldUpdateTime, *value)
 	}
@@ -375,6 +377,7 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -398,8 +401,9 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(customer.Table).Where(sql.InInts(customer.FieldID, ids...))
+		updater = builder.Update(customer.Table)
 	)
+	updater = updater.Where(sql.InInts(customer.FieldID, ids...))
 	if value := cuo.update_time; value != nil {
 		updater.Set(customer.FieldUpdateTime, *value)
 		c.UpdateTime = *value
@@ -410,11 +414,10 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 	}
 	if value := cuo.external_id; value != nil {
 		updater.Set(customer.FieldExternalID, *value)
-		c.ExternalID = *value
+		c.ExternalID = value
 	}
 	if cuo.clearexternal_id {
-		var value string
-		c.ExternalID = value
+		c.ExternalID = nil
 		updater.SetNull(customer.FieldExternalID)
 	}
 	if !updater.Empty() {

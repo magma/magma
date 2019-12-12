@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 00466890ea4d326b8a138a4b3b11dec8
+ * @relayHash 276e47dee39822efcdeee7baaa69a4bc
  */
 
 /* eslint-disable */
@@ -24,9 +24,9 @@ export type PortsConnectDialogQueryVariables = {|
 |};
 export type PortsConnectDialogQueryResponse = {|
   +equipment: ?{|
-    +id: string,
-    +name: string,
-    +equipmentType: {|
+    +id?: string,
+    +name?: string,
+    +equipmentType?: {|
       +id: string,
       +name: string,
       +portDefinitions: $ReadOnlyArray<?{|
@@ -37,7 +37,7 @@ export type PortsConnectDialogQueryResponse = {|
         +bandwidth: ?string,
       |}>,
     |},
-    +positions: $ReadOnlyArray<?{|
+    +positions?: $ReadOnlyArray<?{|
       +attachedEquipment: ?{|
         +id: string,
         +name: string,
@@ -67,6 +67,7 @@ export type PortsConnectDialogQueryResponse = {|
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               |}>,
               +linkPropertyTypes: $ReadOnlyArray<?{|
                 +id: string,
@@ -83,6 +84,7 @@ export type PortsConnectDialogQueryResponse = {|
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               |}>,
             |},
           |},
@@ -131,6 +133,7 @@ export type PortsConnectDialogQueryResponse = {|
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   |}>
                 |},
               |},
@@ -167,6 +170,7 @@ export type PortsConnectDialogQueryResponse = {|
                 +name: string,
                 +type: PropertyKind,
                 +isEditable: ?boolean,
+                +isMandatory: ?boolean,
                 +isInstanceProperty: ?boolean,
                 +stringValue: ?string,
               |},
@@ -198,6 +202,7 @@ export type PortsConnectDialogQueryResponse = {|
               +name: string,
               +type: PropertyKind,
               +isEditable: ?boolean,
+              +isMandatory: ?boolean,
               +isInstanceProperty: ?boolean,
               +stringValue: ?string,
             |},
@@ -258,6 +263,7 @@ export type PortsConnectDialogQueryResponse = {|
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   |}>,
                   +linkPropertyTypes: $ReadOnlyArray<?{|
                     +id: string,
@@ -274,6 +280,7 @@ export type PortsConnectDialogQueryResponse = {|
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   |}>,
                 |},
               |},
@@ -322,6 +329,7 @@ export type PortsConnectDialogQueryResponse = {|
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       |}>
                     |},
                   |},
@@ -358,6 +366,7 @@ export type PortsConnectDialogQueryResponse = {|
                     +name: string,
                     +type: PropertyKind,
                     +isEditable: ?boolean,
+                    +isMandatory: ?boolean,
                     +isInstanceProperty: ?boolean,
                     +stringValue: ?string,
                   |},
@@ -389,6 +398,7 @@ export type PortsConnectDialogQueryResponse = {|
                   +name: string,
                   +type: PropertyKind,
                   +isEditable: ?boolean,
+                  +isMandatory: ?boolean,
                   +isInstanceProperty: ?boolean,
                   +stringValue: ?string,
                 |},
@@ -449,6 +459,7 @@ export type PortsConnectDialogQueryResponse = {|
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       |}>,
                       +linkPropertyTypes: $ReadOnlyArray<?{|
                         +id: string,
@@ -465,6 +476,7 @@ export type PortsConnectDialogQueryResponse = {|
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       |}>,
                     |},
                   |},
@@ -513,6 +525,7 @@ export type PortsConnectDialogQueryResponse = {|
                             +rangeToValue: ?number,
                             +isEditable: ?boolean,
                             +isInstanceProperty: ?boolean,
+                            +isMandatory: ?boolean,
                           |}>
                         |},
                       |},
@@ -549,6 +562,7 @@ export type PortsConnectDialogQueryResponse = {|
                         +name: string,
                         +type: PropertyKind,
                         +isEditable: ?boolean,
+                        +isMandatory: ?boolean,
                         +isInstanceProperty: ?boolean,
                         +stringValue: ?string,
                       |},
@@ -580,6 +594,7 @@ export type PortsConnectDialogQueryResponse = {|
                       +name: string,
                       +type: PropertyKind,
                       +isEditable: ?boolean,
+                      +isMandatory: ?boolean,
                       +isInstanceProperty: ?boolean,
                       +stringValue: ?string,
                     |},
@@ -640,6 +655,7 @@ export type PortsConnectDialogQueryResponse = {|
                             +rangeToValue: ?number,
                             +isEditable: ?boolean,
                             +isInstanceProperty: ?boolean,
+                            +isMandatory: ?boolean,
                           |}>,
                           +linkPropertyTypes: $ReadOnlyArray<?{|
                             +id: string,
@@ -656,6 +672,7 @@ export type PortsConnectDialogQueryResponse = {|
                             +rangeToValue: ?number,
                             +isEditable: ?boolean,
                             +isInstanceProperty: ?boolean,
+                            +isMandatory: ?boolean,
                           |}>,
                         |},
                       |},
@@ -704,6 +721,7 @@ export type PortsConnectDialogQueryResponse = {|
                                 +rangeToValue: ?number,
                                 +isEditable: ?boolean,
                                 +isInstanceProperty: ?boolean,
+                                +isMandatory: ?boolean,
                               |}>
                             |},
                           |},
@@ -740,6 +758,7 @@ export type PortsConnectDialogQueryResponse = {|
                             +name: string,
                             +type: PropertyKind,
                             +isEditable: ?boolean,
+                            +isMandatory: ?boolean,
                             +isInstanceProperty: ?boolean,
                             +stringValue: ?string,
                           |},
@@ -771,6 +790,7 @@ export type PortsConnectDialogQueryResponse = {|
                           +name: string,
                           +type: PropertyKind,
                           +isEditable: ?boolean,
+                          +isMandatory: ?boolean,
                           +isInstanceProperty: ?boolean,
                           +stringValue: ?string,
                         |},
@@ -809,7 +829,7 @@ export type PortsConnectDialogQueryResponse = {|
         |}>,
       |}
     |}>,
-    +ports: $ReadOnlyArray<?{|
+    +ports?: $ReadOnlyArray<?{|
       +id: string,
       +definition: {|
         +id: string,
@@ -835,6 +855,7 @@ export type PortsConnectDialogQueryResponse = {|
             +rangeToValue: ?number,
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
+            +isMandatory: ?boolean,
           |}>,
           +linkPropertyTypes: $ReadOnlyArray<?{|
             +id: string,
@@ -851,6 +872,7 @@ export type PortsConnectDialogQueryResponse = {|
             +rangeToValue: ?number,
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
+            +isMandatory: ?boolean,
           |}>,
         |},
       |},
@@ -899,6 +921,7 @@ export type PortsConnectDialogQueryResponse = {|
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               |}>
             |},
           |},
@@ -935,6 +958,7 @@ export type PortsConnectDialogQueryResponse = {|
             +name: string,
             +type: PropertyKind,
             +isEditable: ?boolean,
+            +isMandatory: ?boolean,
             +isInstanceProperty: ?boolean,
             +stringValue: ?string,
           |},
@@ -966,6 +990,7 @@ export type PortsConnectDialogQueryResponse = {|
           +name: string,
           +type: PropertyKind,
           +isEditable: ?boolean,
+          +isMandatory: ?boolean,
           +isInstanceProperty: ?boolean,
           +stringValue: ?string,
         |},
@@ -1000,367 +1025,148 @@ export type PortsConnectDialogQuery = {|
 query PortsConnectDialogQuery(
   $equipmentId: ID!
 ) {
-  equipment(id: $equipmentId) {
-    id
-    name
-    equipmentType {
+  equipment: node(id: $equipmentId) {
+    __typename
+    ... on Equipment {
       id
       name
-      portDefinitions {
+      equipmentType {
         id
         name
-        visibleLabel
-        type
-        bandwidth
+        portDefinitions {
+          id
+          name
+          visibleLabel
+          type
+          bandwidth
+        }
       }
-    }
-    positions {
-      attachedEquipment {
-        id
-        name
-        ports {
+      positions {
+        attachedEquipment {
           id
-          definition {
+          name
+          ports {
             id
-            name
-            index
-            visibleLabel
-            type
-            portType {
+            definition {
               id
               name
-              propertyTypes {
-                id
-                name
-                type
-                index
-                stringValue
-                intValue
-                booleanValue
-                floatValue
-                latitudeValue
-                longitudeValue
-                rangeFromValue
-                rangeToValue
-                isEditable
-                isInstanceProperty
-              }
-              linkPropertyTypes {
-                id
-                name
-                type
-                index
-                stringValue
-                intValue
-                booleanValue
-                floatValue
-                latitudeValue
-                longitudeValue
-                rangeFromValue
-                rangeToValue
-                isEditable
-                isInstanceProperty
-              }
-            }
-          }
-          parentEquipment {
-            id
-            name
-            equipmentType {
-              id
-              name
-              portDefinitions {
-                id
-                name
-                visibleLabel
-                type
-                portType {
-                  id
-                  name
-                }
-                bandwidth
-              }
-            }
-          }
-          link {
-            id
-            futureState
-            ports {
-              id
-              definition {
-                id
-                name
-                visibleLabel
-                type
-                portType {
-                  linkPropertyTypes {
-                    id
-                    name
-                    type
-                    index
-                    stringValue
-                    intValue
-                    booleanValue
-                    floatValue
-                    latitudeValue
-                    longitudeValue
-                    rangeFromValue
-                    rangeToValue
-                    isEditable
-                    isInstanceProperty
-                  }
-                  id
-                }
-              }
-              parentEquipment {
-                id
-                name
-                futureState
-                equipmentType {
-                  id
-                  name
-                  portDefinitions {
-                    id
-                    name
-                    visibleLabel
-                    type
-                    bandwidth
-                    portType {
-                      id
-                      name
-                    }
-                  }
-                }
-                ...EquipmentBreadcrumbs_equipment
-              }
-            }
-            workOrder {
-              id
-              status
-            }
-            properties {
-              id
-              propertyType {
-                id
-                name
-                type
-                isEditable
-                isInstanceProperty
-                stringValue
-              }
-              stringValue
-              intValue
-              floatValue
-              booleanValue
-              latitudeValue
-              longitudeValue
-              rangeFromValue
-              rangeToValue
-              equipmentValue {
-                id
-                name
-              }
-              locationValue {
-                id
-                name
-              }
-            }
-            services {
-              id
-            }
-          }
-          properties {
-            id
-            propertyType {
-              id
-              name
+              index
+              visibleLabel
               type
-              isEditable
-              isInstanceProperty
-              stringValue
-            }
-            stringValue
-            intValue
-            floatValue
-            booleanValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
-            equipmentValue {
-              id
-              name
-            }
-            locationValue {
-              id
-              name
-            }
-          }
-        }
-        equipmentType {
-          portDefinitions {
-            id
-            name
-            visibleLabel
-            type
-            bandwidth
-          }
-          id
-        }
-        positions {
-          attachedEquipment {
-            id
-            name
-            ports {
-              id
-              definition {
+              portType {
                 id
                 name
-                index
-                visibleLabel
-                type
-                portType {
+                propertyTypes {
                   id
                   name
-                  propertyTypes {
-                    id
-                    name
-                    type
-                    index
-                    stringValue
-                    intValue
-                    booleanValue
-                    floatValue
-                    latitudeValue
-                    longitudeValue
-                    rangeFromValue
-                    rangeToValue
-                    isEditable
-                    isInstanceProperty
-                  }
-                  linkPropertyTypes {
-                    id
-                    name
-                    type
-                    index
-                    stringValue
-                    intValue
-                    booleanValue
-                    floatValue
-                    latitudeValue
-                    longitudeValue
-                    rangeFromValue
-                    rangeToValue
-                    isEditable
-                    isInstanceProperty
-                  }
-                }
-              }
-              parentEquipment {
-                id
-                name
-                equipmentType {
-                  id
-                  name
-                  portDefinitions {
-                    id
-                    name
-                    visibleLabel
-                    type
-                    portType {
-                      id
-                      name
-                    }
-                    bandwidth
-                  }
-                }
-              }
-              link {
-                id
-                futureState
-                ports {
-                  id
-                  definition {
-                    id
-                    name
-                    visibleLabel
-                    type
-                    portType {
-                      linkPropertyTypes {
-                        id
-                        name
-                        type
-                        index
-                        stringValue
-                        intValue
-                        booleanValue
-                        floatValue
-                        latitudeValue
-                        longitudeValue
-                        rangeFromValue
-                        rangeToValue
-                        isEditable
-                        isInstanceProperty
-                      }
-                      id
-                    }
-                  }
-                  parentEquipment {
-                    id
-                    name
-                    futureState
-                    equipmentType {
-                      id
-                      name
-                      portDefinitions {
-                        id
-                        name
-                        visibleLabel
-                        type
-                        bandwidth
-                        portType {
-                          id
-                          name
-                        }
-                      }
-                    }
-                    ...EquipmentBreadcrumbs_equipment
-                  }
-                }
-                workOrder {
-                  id
-                  status
-                }
-                properties {
-                  id
-                  propertyType {
-                    id
-                    name
-                    type
-                    isEditable
-                    isInstanceProperty
-                    stringValue
-                  }
+                  type
+                  index
                   stringValue
                   intValue
-                  floatValue
                   booleanValue
+                  floatValue
                   latitudeValue
                   longitudeValue
                   rangeFromValue
                   rangeToValue
-                  equipmentValue {
-                    id
-                    name
-                  }
-                  locationValue {
-                    id
-                    name
-                  }
+                  isEditable
+                  isInstanceProperty
+                  isMandatory
                 }
-                services {
+                linkPropertyTypes {
                   id
+                  name
+                  type
+                  index
+                  stringValue
+                  intValue
+                  booleanValue
+                  floatValue
+                  latitudeValue
+                  longitudeValue
+                  rangeFromValue
+                  rangeToValue
+                  isEditable
+                  isInstanceProperty
+                  isMandatory
                 }
+              }
+            }
+            parentEquipment {
+              id
+              name
+              equipmentType {
+                id
+                name
+                portDefinitions {
+                  id
+                  name
+                  visibleLabel
+                  type
+                  portType {
+                    id
+                    name
+                  }
+                  bandwidth
+                }
+              }
+            }
+            link {
+              id
+              futureState
+              ports {
+                id
+                definition {
+                  id
+                  name
+                  visibleLabel
+                  type
+                  portType {
+                    linkPropertyTypes {
+                      id
+                      name
+                      type
+                      index
+                      stringValue
+                      intValue
+                      booleanValue
+                      floatValue
+                      latitudeValue
+                      longitudeValue
+                      rangeFromValue
+                      rangeToValue
+                      isEditable
+                      isInstanceProperty
+                      isMandatory
+                    }
+                    id
+                  }
+                }
+                parentEquipment {
+                  id
+                  name
+                  futureState
+                  equipmentType {
+                    id
+                    name
+                    portDefinitions {
+                      id
+                      name
+                      visibleLabel
+                      type
+                      bandwidth
+                      portType {
+                        id
+                        name
+                      }
+                    }
+                  }
+                  ...EquipmentBreadcrumbs_equipment
+                }
+              }
+              workOrder {
+                id
+                status
               }
               properties {
                 id
@@ -1369,6 +1175,7 @@ query PortsConnectDialogQuery(
                   name
                   type
                   isEditable
+                  isMandatory
                   isInstanceProperty
                   stringValue
                 }
@@ -1389,171 +1196,175 @@ query PortsConnectDialogQuery(
                   name
                 }
               }
-            }
-            equipmentType {
-              portDefinitions {
+              services {
                 id
-                name
-                visibleLabel
-                type
-                bandwidth
               }
-              id
             }
-            positions {
-              attachedEquipment {
+            properties {
+              id
+              propertyType {
                 id
                 name
-                ports {
+                type
+                isEditable
+                isMandatory
+                isInstanceProperty
+                stringValue
+              }
+              stringValue
+              intValue
+              floatValue
+              booleanValue
+              latitudeValue
+              longitudeValue
+              rangeFromValue
+              rangeToValue
+              equipmentValue {
+                id
+                name
+              }
+              locationValue {
+                id
+                name
+              }
+            }
+          }
+          equipmentType {
+            portDefinitions {
+              id
+              name
+              visibleLabel
+              type
+              bandwidth
+            }
+            id
+          }
+          positions {
+            attachedEquipment {
+              id
+              name
+              ports {
+                id
+                definition {
                   id
-                  definition {
+                  name
+                  index
+                  visibleLabel
+                  type
+                  portType {
                     id
                     name
-                    index
-                    visibleLabel
-                    type
-                    portType {
+                    propertyTypes {
                       id
                       name
-                      propertyTypes {
-                        id
-                        name
-                        type
-                        index
-                        stringValue
-                        intValue
-                        booleanValue
-                        floatValue
-                        latitudeValue
-                        longitudeValue
-                        rangeFromValue
-                        rangeToValue
-                        isEditable
-                        isInstanceProperty
-                      }
-                      linkPropertyTypes {
-                        id
-                        name
-                        type
-                        index
-                        stringValue
-                        intValue
-                        booleanValue
-                        floatValue
-                        latitudeValue
-                        longitudeValue
-                        rangeFromValue
-                        rangeToValue
-                        isEditable
-                        isInstanceProperty
-                      }
-                    }
-                  }
-                  parentEquipment {
-                    id
-                    name
-                    equipmentType {
-                      id
-                      name
-                      portDefinitions {
-                        id
-                        name
-                        visibleLabel
-                        type
-                        portType {
-                          id
-                          name
-                        }
-                        bandwidth
-                      }
-                    }
-                  }
-                  link {
-                    id
-                    futureState
-                    ports {
-                      id
-                      definition {
-                        id
-                        name
-                        visibleLabel
-                        type
-                        portType {
-                          linkPropertyTypes {
-                            id
-                            name
-                            type
-                            index
-                            stringValue
-                            intValue
-                            booleanValue
-                            floatValue
-                            latitudeValue
-                            longitudeValue
-                            rangeFromValue
-                            rangeToValue
-                            isEditable
-                            isInstanceProperty
-                          }
-                          id
-                        }
-                      }
-                      parentEquipment {
-                        id
-                        name
-                        futureState
-                        equipmentType {
-                          id
-                          name
-                          portDefinitions {
-                            id
-                            name
-                            visibleLabel
-                            type
-                            bandwidth
-                            portType {
-                              id
-                              name
-                            }
-                          }
-                        }
-                        ...EquipmentBreadcrumbs_equipment
-                      }
-                    }
-                    workOrder {
-                      id
-                      status
-                    }
-                    properties {
-                      id
-                      propertyType {
-                        id
-                        name
-                        type
-                        isEditable
-                        isInstanceProperty
-                        stringValue
-                      }
+                      type
+                      index
                       stringValue
                       intValue
-                      floatValue
                       booleanValue
+                      floatValue
                       latitudeValue
                       longitudeValue
                       rangeFromValue
                       rangeToValue
-                      equipmentValue {
-                        id
-                        name
-                      }
-                      locationValue {
-                        id
-                        name
-                      }
+                      isEditable
+                      isInstanceProperty
+                      isMandatory
                     }
-                    services {
+                    linkPropertyTypes {
                       id
+                      name
+                      type
+                      index
+                      stringValue
+                      intValue
+                      booleanValue
+                      floatValue
+                      latitudeValue
+                      longitudeValue
+                      rangeFromValue
+                      rangeToValue
+                      isEditable
+                      isInstanceProperty
+                      isMandatory
                     }
+                  }
+                }
+                parentEquipment {
+                  id
+                  name
+                  equipmentType {
+                    id
+                    name
+                    portDefinitions {
+                      id
+                      name
+                      visibleLabel
+                      type
+                      portType {
+                        id
+                        name
+                      }
+                      bandwidth
+                    }
+                  }
+                }
+                link {
+                  id
+                  futureState
+                  ports {
+                    id
+                    definition {
+                      id
+                      name
+                      visibleLabel
+                      type
+                      portType {
+                        linkPropertyTypes {
+                          id
+                          name
+                          type
+                          index
+                          stringValue
+                          intValue
+                          booleanValue
+                          floatValue
+                          latitudeValue
+                          longitudeValue
+                          rangeFromValue
+                          rangeToValue
+                          isEditable
+                          isInstanceProperty
+                          isMandatory
+                        }
+                        id
+                      }
+                    }
+                    parentEquipment {
+                      id
+                      name
+                      futureState
+                      equipmentType {
+                        id
+                        name
+                        portDefinitions {
+                          id
+                          name
+                          visibleLabel
+                          type
+                          bandwidth
+                          portType {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      ...EquipmentBreadcrumbs_equipment
+                    }
+                  }
+                  workOrder {
+                    id
+                    status
                   }
                   properties {
                     id
@@ -1562,6 +1373,7 @@ query PortsConnectDialogQuery(
                       name
                       type
                       isEditable
+                      isMandatory
                       isInstanceProperty
                       stringValue
                     }
@@ -1582,171 +1394,175 @@ query PortsConnectDialogQuery(
                       name
                     }
                   }
-                }
-                equipmentType {
-                  portDefinitions {
+                  services {
                     id
-                    name
-                    visibleLabel
-                    type
-                    bandwidth
                   }
-                  id
                 }
-                positions {
-                  attachedEquipment {
+                properties {
+                  id
+                  propertyType {
                     id
                     name
-                    ports {
+                    type
+                    isEditable
+                    isMandatory
+                    isInstanceProperty
+                    stringValue
+                  }
+                  stringValue
+                  intValue
+                  floatValue
+                  booleanValue
+                  latitudeValue
+                  longitudeValue
+                  rangeFromValue
+                  rangeToValue
+                  equipmentValue {
+                    id
+                    name
+                  }
+                  locationValue {
+                    id
+                    name
+                  }
+                }
+              }
+              equipmentType {
+                portDefinitions {
+                  id
+                  name
+                  visibleLabel
+                  type
+                  bandwidth
+                }
+                id
+              }
+              positions {
+                attachedEquipment {
+                  id
+                  name
+                  ports {
+                    id
+                    definition {
                       id
-                      definition {
+                      name
+                      index
+                      visibleLabel
+                      type
+                      portType {
                         id
                         name
-                        index
-                        visibleLabel
-                        type
-                        portType {
+                        propertyTypes {
                           id
                           name
-                          propertyTypes {
-                            id
-                            name
-                            type
-                            index
-                            stringValue
-                            intValue
-                            booleanValue
-                            floatValue
-                            latitudeValue
-                            longitudeValue
-                            rangeFromValue
-                            rangeToValue
-                            isEditable
-                            isInstanceProperty
-                          }
-                          linkPropertyTypes {
-                            id
-                            name
-                            type
-                            index
-                            stringValue
-                            intValue
-                            booleanValue
-                            floatValue
-                            latitudeValue
-                            longitudeValue
-                            rangeFromValue
-                            rangeToValue
-                            isEditable
-                            isInstanceProperty
-                          }
-                        }
-                      }
-                      parentEquipment {
-                        id
-                        name
-                        equipmentType {
-                          id
-                          name
-                          portDefinitions {
-                            id
-                            name
-                            visibleLabel
-                            type
-                            portType {
-                              id
-                              name
-                            }
-                            bandwidth
-                          }
-                        }
-                      }
-                      link {
-                        id
-                        futureState
-                        ports {
-                          id
-                          definition {
-                            id
-                            name
-                            visibleLabel
-                            type
-                            portType {
-                              linkPropertyTypes {
-                                id
-                                name
-                                type
-                                index
-                                stringValue
-                                intValue
-                                booleanValue
-                                floatValue
-                                latitudeValue
-                                longitudeValue
-                                rangeFromValue
-                                rangeToValue
-                                isEditable
-                                isInstanceProperty
-                              }
-                              id
-                            }
-                          }
-                          parentEquipment {
-                            id
-                            name
-                            futureState
-                            equipmentType {
-                              id
-                              name
-                              portDefinitions {
-                                id
-                                name
-                                visibleLabel
-                                type
-                                bandwidth
-                                portType {
-                                  id
-                                  name
-                                }
-                              }
-                            }
-                            ...EquipmentBreadcrumbs_equipment
-                          }
-                        }
-                        workOrder {
-                          id
-                          status
-                        }
-                        properties {
-                          id
-                          propertyType {
-                            id
-                            name
-                            type
-                            isEditable
-                            isInstanceProperty
-                            stringValue
-                          }
+                          type
+                          index
                           stringValue
                           intValue
-                          floatValue
                           booleanValue
+                          floatValue
                           latitudeValue
                           longitudeValue
                           rangeFromValue
                           rangeToValue
-                          equipmentValue {
-                            id
-                            name
-                          }
-                          locationValue {
-                            id
-                            name
-                          }
+                          isEditable
+                          isInstanceProperty
+                          isMandatory
                         }
-                        services {
+                        linkPropertyTypes {
                           id
+                          name
+                          type
+                          index
+                          stringValue
+                          intValue
+                          booleanValue
+                          floatValue
+                          latitudeValue
+                          longitudeValue
+                          rangeFromValue
+                          rangeToValue
+                          isEditable
+                          isInstanceProperty
+                          isMandatory
                         }
+                      }
+                    }
+                    parentEquipment {
+                      id
+                      name
+                      equipmentType {
+                        id
+                        name
+                        portDefinitions {
+                          id
+                          name
+                          visibleLabel
+                          type
+                          portType {
+                            id
+                            name
+                          }
+                          bandwidth
+                        }
+                      }
+                    }
+                    link {
+                      id
+                      futureState
+                      ports {
+                        id
+                        definition {
+                          id
+                          name
+                          visibleLabel
+                          type
+                          portType {
+                            linkPropertyTypes {
+                              id
+                              name
+                              type
+                              index
+                              stringValue
+                              intValue
+                              booleanValue
+                              floatValue
+                              latitudeValue
+                              longitudeValue
+                              rangeFromValue
+                              rangeToValue
+                              isEditable
+                              isInstanceProperty
+                              isMandatory
+                            }
+                            id
+                          }
+                        }
+                        parentEquipment {
+                          id
+                          name
+                          futureState
+                          equipmentType {
+                            id
+                            name
+                            portDefinitions {
+                              id
+                              name
+                              visibleLabel
+                              type
+                              bandwidth
+                              portType {
+                                id
+                                name
+                              }
+                            }
+                          }
+                          ...EquipmentBreadcrumbs_equipment
+                        }
+                      }
+                      workOrder {
+                        id
+                        status
                       }
                       properties {
                         id
@@ -1755,6 +1571,7 @@ query PortsConnectDialogQuery(
                           name
                           type
                           isEditable
+                          isMandatory
                           isInstanceProperty
                           stringValue
                         }
@@ -1775,148 +1592,413 @@ query PortsConnectDialogQuery(
                           name
                         }
                       }
+                      services {
+                        id
+                      }
                     }
-                    equipmentType {
-                      portDefinitions {
+                    properties {
+                      id
+                      propertyType {
                         id
                         name
-                        visibleLabel
                         type
-                        bandwidth
+                        isEditable
+                        isMandatory
+                        isInstanceProperty
+                        stringValue
                       }
-                      id
+                      stringValue
+                      intValue
+                      floatValue
+                      booleanValue
+                      latitudeValue
+                      longitudeValue
+                      rangeFromValue
+                      rangeToValue
+                      equipmentValue {
+                        id
+                        name
+                      }
+                      locationValue {
+                        id
+                        name
+                      }
                     }
                   }
-                  id
+                  equipmentType {
+                    portDefinitions {
+                      id
+                      name
+                      visibleLabel
+                      type
+                      bandwidth
+                    }
+                    id
+                  }
+                  positions {
+                    attachedEquipment {
+                      id
+                      name
+                      ports {
+                        id
+                        definition {
+                          id
+                          name
+                          index
+                          visibleLabel
+                          type
+                          portType {
+                            id
+                            name
+                            propertyTypes {
+                              id
+                              name
+                              type
+                              index
+                              stringValue
+                              intValue
+                              booleanValue
+                              floatValue
+                              latitudeValue
+                              longitudeValue
+                              rangeFromValue
+                              rangeToValue
+                              isEditable
+                              isInstanceProperty
+                              isMandatory
+                            }
+                            linkPropertyTypes {
+                              id
+                              name
+                              type
+                              index
+                              stringValue
+                              intValue
+                              booleanValue
+                              floatValue
+                              latitudeValue
+                              longitudeValue
+                              rangeFromValue
+                              rangeToValue
+                              isEditable
+                              isInstanceProperty
+                              isMandatory
+                            }
+                          }
+                        }
+                        parentEquipment {
+                          id
+                          name
+                          equipmentType {
+                            id
+                            name
+                            portDefinitions {
+                              id
+                              name
+                              visibleLabel
+                              type
+                              portType {
+                                id
+                                name
+                              }
+                              bandwidth
+                            }
+                          }
+                        }
+                        link {
+                          id
+                          futureState
+                          ports {
+                            id
+                            definition {
+                              id
+                              name
+                              visibleLabel
+                              type
+                              portType {
+                                linkPropertyTypes {
+                                  id
+                                  name
+                                  type
+                                  index
+                                  stringValue
+                                  intValue
+                                  booleanValue
+                                  floatValue
+                                  latitudeValue
+                                  longitudeValue
+                                  rangeFromValue
+                                  rangeToValue
+                                  isEditable
+                                  isInstanceProperty
+                                  isMandatory
+                                }
+                                id
+                              }
+                            }
+                            parentEquipment {
+                              id
+                              name
+                              futureState
+                              equipmentType {
+                                id
+                                name
+                                portDefinitions {
+                                  id
+                                  name
+                                  visibleLabel
+                                  type
+                                  bandwidth
+                                  portType {
+                                    id
+                                    name
+                                  }
+                                }
+                              }
+                              ...EquipmentBreadcrumbs_equipment
+                            }
+                          }
+                          workOrder {
+                            id
+                            status
+                          }
+                          properties {
+                            id
+                            propertyType {
+                              id
+                              name
+                              type
+                              isEditable
+                              isMandatory
+                              isInstanceProperty
+                              stringValue
+                            }
+                            stringValue
+                            intValue
+                            floatValue
+                            booleanValue
+                            latitudeValue
+                            longitudeValue
+                            rangeFromValue
+                            rangeToValue
+                            equipmentValue {
+                              id
+                              name
+                            }
+                            locationValue {
+                              id
+                              name
+                            }
+                          }
+                          services {
+                            id
+                          }
+                        }
+                        properties {
+                          id
+                          propertyType {
+                            id
+                            name
+                            type
+                            isEditable
+                            isMandatory
+                            isInstanceProperty
+                            stringValue
+                          }
+                          stringValue
+                          intValue
+                          floatValue
+                          booleanValue
+                          latitudeValue
+                          longitudeValue
+                          rangeFromValue
+                          rangeToValue
+                          equipmentValue {
+                            id
+                            name
+                          }
+                          locationValue {
+                            id
+                            name
+                          }
+                        }
+                      }
+                      equipmentType {
+                        portDefinitions {
+                          id
+                          name
+                          visibleLabel
+                          type
+                          bandwidth
+                        }
+                        id
+                      }
+                    }
+                    id
+                  }
                 }
+                id
               }
-              id
             }
+            id
           }
-          id
         }
-      }
-      id
-    }
-    ports {
-      id
-      definition {
         id
-        name
-        index
-        visibleLabel
-        type
-        portType {
+      }
+      ports {
+        id
+        definition {
           id
           name
-          propertyTypes {
+          index
+          visibleLabel
+          type
+          portType {
             id
             name
-            type
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
-            isEditable
-            isInstanceProperty
-          }
-          linkPropertyTypes {
-            id
-            name
-            type
-            index
-            stringValue
-            intValue
-            booleanValue
-            floatValue
-            latitudeValue
-            longitudeValue
-            rangeFromValue
-            rangeToValue
-            isEditable
-            isInstanceProperty
+            propertyTypes {
+              id
+              name
+              type
+              index
+              stringValue
+              intValue
+              booleanValue
+              floatValue
+              latitudeValue
+              longitudeValue
+              rangeFromValue
+              rangeToValue
+              isEditable
+              isInstanceProperty
+              isMandatory
+            }
+            linkPropertyTypes {
+              id
+              name
+              type
+              index
+              stringValue
+              intValue
+              booleanValue
+              floatValue
+              latitudeValue
+              longitudeValue
+              rangeFromValue
+              rangeToValue
+              isEditable
+              isInstanceProperty
+              isMandatory
+            }
           }
         }
-      }
-      parentEquipment {
-        id
-        name
-        equipmentType {
+        parentEquipment {
           id
           name
-          portDefinitions {
+          equipmentType {
             id
             name
-            visibleLabel
-            type
-            portType {
+            portDefinitions {
               id
               name
+              visibleLabel
+              type
+              portType {
+                id
+                name
+              }
+              bandwidth
             }
-            bandwidth
           }
         }
-      }
-      link {
-        id
-        futureState
-        ports {
+        link {
           id
-          definition {
+          futureState
+          ports {
             id
-            name
-            visibleLabel
-            type
-            portType {
-              linkPropertyTypes {
-                id
-                name
-                type
-                index
-                stringValue
-                intValue
-                booleanValue
-                floatValue
-                latitudeValue
-                longitudeValue
-                rangeFromValue
-                rangeToValue
-                isEditable
-                isInstanceProperty
-              }
-              id
-            }
-          }
-          parentEquipment {
-            id
-            name
-            futureState
-            equipmentType {
+            definition {
               id
               name
-              portDefinitions {
-                id
-                name
-                visibleLabel
-                type
-                bandwidth
-                portType {
+              visibleLabel
+              type
+              portType {
+                linkPropertyTypes {
                   id
                   name
+                  type
+                  index
+                  stringValue
+                  intValue
+                  booleanValue
+                  floatValue
+                  latitudeValue
+                  longitudeValue
+                  rangeFromValue
+                  rangeToValue
+                  isEditable
+                  isInstanceProperty
+                  isMandatory
                 }
+                id
               }
             }
-            ...EquipmentBreadcrumbs_equipment
+            parentEquipment {
+              id
+              name
+              futureState
+              equipmentType {
+                id
+                name
+                portDefinitions {
+                  id
+                  name
+                  visibleLabel
+                  type
+                  bandwidth
+                  portType {
+                    id
+                    name
+                  }
+                }
+              }
+              ...EquipmentBreadcrumbs_equipment
+            }
           }
-        }
-        workOrder {
-          id
-          status
+          workOrder {
+            id
+            status
+          }
+          properties {
+            id
+            propertyType {
+              id
+              name
+              type
+              isEditable
+              isMandatory
+              isInstanceProperty
+              stringValue
+            }
+            stringValue
+            intValue
+            floatValue
+            booleanValue
+            latitudeValue
+            longitudeValue
+            rangeFromValue
+            rangeToValue
+            equipmentValue {
+              id
+              name
+            }
+            locationValue {
+              id
+              name
+            }
+          }
+          services {
+            id
+          }
         }
         properties {
           id
@@ -1925,6 +2007,7 @@ query PortsConnectDialogQuery(
             name
             type
             isEditable
+            isMandatory
             isInstanceProperty
             stringValue
           }
@@ -1945,38 +2028,9 @@ query PortsConnectDialogQuery(
             name
           }
         }
-        services {
-          id
-        }
-      }
-      properties {
-        id
-        propertyType {
-          id
-          name
-          type
-          isEditable
-          isInstanceProperty
-          stringValue
-        }
-        stringValue
-        intValue
-        floatValue
-        booleanValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        equipmentValue {
-          id
-          name
-        }
-        locationValue {
-          id
-          name
-        }
       }
     }
+    id
   }
 }
 
@@ -2172,7 +2226,14 @@ v19 = {
   "args": null,
   "storageKey": null
 },
-v20 = [
+v20 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v21 = [
   (v2/*: any*/),
   (v3/*: any*/),
   (v5/*: any*/),
@@ -2186,9 +2247,10 @@ v20 = [
   (v16/*: any*/),
   (v17/*: any*/),
   (v18/*: any*/),
-  (v19/*: any*/)
+  (v19/*: any*/),
+  (v20/*: any*/)
 ],
-v21 = {
+v22 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "linkPropertyTypes",
@@ -2196,9 +2258,9 @@ v21 = {
   "args": null,
   "concreteType": "PropertyType",
   "plural": true,
-  "selections": (v20/*: any*/)
+  "selections": (v21/*: any*/)
 },
-v22 = {
+v23 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "definition",
@@ -2231,18 +2293,18 @@ v22 = {
           "args": null,
           "concreteType": "PropertyType",
           "plural": true,
-          "selections": (v20/*: any*/)
+          "selections": (v21/*: any*/)
         },
-        (v21/*: any*/)
+        (v22/*: any*/)
       ]
     }
   ]
 },
-v23 = [
+v24 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ],
-v24 = {
+v25 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "portType",
@@ -2250,9 +2312,9 @@ v24 = {
   "args": null,
   "concreteType": "EquipmentPortType",
   "plural": false,
-  "selections": (v23/*: any*/)
+  "selections": (v24/*: any*/)
 },
-v25 = {
+v26 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "parentEquipment",
@@ -2287,7 +2349,7 @@ v25 = {
             (v3/*: any*/),
             (v4/*: any*/),
             (v5/*: any*/),
-            (v24/*: any*/),
+            (v25/*: any*/),
             (v6/*: any*/)
           ]
         }
@@ -2295,14 +2357,14 @@ v25 = {
     }
   ]
 },
-v26 = {
+v27 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "futureState",
   "args": null,
   "storageKey": null
 },
-v27 = {
+v28 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -2327,12 +2389,12 @@ v27 = {
         (v4/*: any*/),
         (v5/*: any*/),
         (v6/*: any*/),
-        (v24/*: any*/)
+        (v25/*: any*/)
       ]
     }
   ]
 },
-v28 = {
+v29 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "workOrder",
@@ -2351,7 +2413,7 @@ v28 = {
     }
   ]
 },
-v29 = {
+v30 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -2374,6 +2436,7 @@ v29 = {
         (v3/*: any*/),
         (v5/*: any*/),
         (v18/*: any*/),
+        (v20/*: any*/),
         (v19/*: any*/),
         (v10/*: any*/)
       ]
@@ -2394,7 +2457,7 @@ v29 = {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v23/*: any*/)
+      "selections": (v24/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -2404,11 +2467,11 @@ v29 = {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v23/*: any*/)
+      "selections": (v24/*: any*/)
     }
   ]
 },
-v30 = {
+v31 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "services",
@@ -2420,7 +2483,7 @@ v30 = {
     (v2/*: any*/)
   ]
 },
-v31 = {
+v32 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "ports",
@@ -2430,8 +2493,8 @@ v31 = {
   "plural": true,
   "selections": [
     (v2/*: any*/),
-    (v22/*: any*/),
-    (v25/*: any*/),
+    (v23/*: any*/),
+    (v26/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -2442,7 +2505,7 @@ v31 = {
       "plural": false,
       "selections": [
         (v2/*: any*/),
-        (v26/*: any*/),
+        (v27/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -2475,7 +2538,7 @@ v31 = {
                   "concreteType": "EquipmentPortType",
                   "plural": false,
                   "selections": [
-                    (v21/*: any*/)
+                    (v22/*: any*/)
                   ]
                 }
               ]
@@ -2491,8 +2554,8 @@ v31 = {
               "selections": [
                 (v2/*: any*/),
                 (v3/*: any*/),
-                (v26/*: any*/),
                 (v27/*: any*/),
+                (v28/*: any*/),
                 {
                   "kind": "FragmentSpread",
                   "name": "EquipmentBreadcrumbs_equipment",
@@ -2502,15 +2565,15 @@ v31 = {
             }
           ]
         },
-        (v28/*: any*/),
         (v29/*: any*/),
-        (v30/*: any*/)
+        (v30/*: any*/),
+        (v31/*: any*/)
       ]
     },
-    (v29/*: any*/)
+    (v30/*: any*/)
   ]
 },
-v32 = {
+v33 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -2522,7 +2585,7 @@ v32 = {
     (v7/*: any*/)
   ]
 },
-v33 = {
+v34 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "ports",
@@ -2532,8 +2595,8 @@ v33 = {
   "plural": true,
   "selections": [
     (v2/*: any*/),
-    (v22/*: any*/),
-    (v25/*: any*/),
+    (v23/*: any*/),
+    (v26/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -2544,7 +2607,7 @@ v33 = {
       "plural": false,
       "selections": [
         (v2/*: any*/),
-        (v26/*: any*/),
+        (v27/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -2577,7 +2640,7 @@ v33 = {
                   "concreteType": "EquipmentPortType",
                   "plural": false,
                   "selections": [
-                    (v21/*: any*/),
+                    (v22/*: any*/),
                     (v2/*: any*/)
                   ]
                 }
@@ -2594,8 +2657,8 @@ v33 = {
               "selections": [
                 (v2/*: any*/),
                 (v3/*: any*/),
-                (v26/*: any*/),
                 (v27/*: any*/),
+                (v28/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -2665,7 +2728,7 @@ v33 = {
                           "args": null,
                           "concreteType": "EquipmentType",
                           "plural": false,
-                          "selections": (v23/*: any*/)
+                          "selections": (v24/*: any*/)
                         }
                       ]
                     }
@@ -2675,15 +2738,15 @@ v33 = {
             }
           ]
         },
-        (v28/*: any*/),
         (v29/*: any*/),
-        (v30/*: any*/)
+        (v30/*: any*/),
+        (v31/*: any*/)
       ]
     },
-    (v29/*: any*/)
+    (v30/*: any*/)
   ]
 },
-v34 = {
+v35 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -2707,104 +2770,110 @@ return {
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "equipment",
+        "alias": "equipment",
+        "name": "node",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "Equipment",
+        "concreteType": null,
         "plural": false,
         "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
-          (v8/*: any*/),
           {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "positions",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "EquipmentPosition",
-            "plural": true,
+            "kind": "InlineFragment",
+            "type": "Equipment",
             "selections": [
+              (v2/*: any*/),
+              (v3/*: any*/),
+              (v8/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "attachedEquipment",
+                "name": "positions",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "Equipment",
-                "plural": false,
+                "concreteType": "EquipmentPosition",
+                "plural": true,
                 "selections": [
-                  (v2/*: any*/),
-                  (v3/*: any*/),
-                  (v31/*: any*/),
-                  (v32/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "positions",
+                    "name": "attachedEquipment",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "EquipmentPosition",
-                    "plural": true,
+                    "concreteType": "Equipment",
+                    "plural": false,
                     "selections": [
+                      (v2/*: any*/),
+                      (v3/*: any*/),
+                      (v32/*: any*/),
+                      (v33/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
-                        "name": "attachedEquipment",
+                        "name": "positions",
                         "storageKey": null,
                         "args": null,
-                        "concreteType": "Equipment",
-                        "plural": false,
+                        "concreteType": "EquipmentPosition",
+                        "plural": true,
                         "selections": [
-                          (v2/*: any*/),
-                          (v3/*: any*/),
-                          (v31/*: any*/),
-                          (v32/*: any*/),
                           {
                             "kind": "LinkedField",
                             "alias": null,
-                            "name": "positions",
+                            "name": "attachedEquipment",
                             "storageKey": null,
                             "args": null,
-                            "concreteType": "EquipmentPosition",
-                            "plural": true,
+                            "concreteType": "Equipment",
+                            "plural": false,
                             "selections": [
+                              (v2/*: any*/),
+                              (v3/*: any*/),
+                              (v32/*: any*/),
+                              (v33/*: any*/),
                               {
                                 "kind": "LinkedField",
                                 "alias": null,
-                                "name": "attachedEquipment",
+                                "name": "positions",
                                 "storageKey": null,
                                 "args": null,
-                                "concreteType": "Equipment",
-                                "plural": false,
+                                "concreteType": "EquipmentPosition",
+                                "plural": true,
                                 "selections": [
-                                  (v2/*: any*/),
-                                  (v3/*: any*/),
-                                  (v31/*: any*/),
-                                  (v32/*: any*/),
                                   {
                                     "kind": "LinkedField",
                                     "alias": null,
-                                    "name": "positions",
+                                    "name": "attachedEquipment",
                                     "storageKey": null,
                                     "args": null,
-                                    "concreteType": "EquipmentPosition",
-                                    "plural": true,
+                                    "concreteType": "Equipment",
+                                    "plural": false,
                                     "selections": [
+                                      (v2/*: any*/),
+                                      (v3/*: any*/),
+                                      (v32/*: any*/),
+                                      (v33/*: any*/),
                                       {
                                         "kind": "LinkedField",
                                         "alias": null,
-                                        "name": "attachedEquipment",
+                                        "name": "positions",
                                         "storageKey": null,
                                         "args": null,
-                                        "concreteType": "Equipment",
-                                        "plural": false,
+                                        "concreteType": "EquipmentPosition",
+                                        "plural": true,
                                         "selections": [
-                                          (v2/*: any*/),
-                                          (v3/*: any*/),
-                                          (v31/*: any*/),
-                                          (v32/*: any*/)
+                                          {
+                                            "kind": "LinkedField",
+                                            "alias": null,
+                                            "name": "attachedEquipment",
+                                            "storageKey": null,
+                                            "args": null,
+                                            "concreteType": "Equipment",
+                                            "plural": false,
+                                            "selections": [
+                                              (v2/*: any*/),
+                                              (v3/*: any*/),
+                                              (v32/*: any*/),
+                                              (v33/*: any*/)
+                                            ]
+                                          }
                                         ]
                                       }
                                     ]
@@ -2818,10 +2887,10 @@ return {
                     ]
                   }
                 ]
-              }
+              },
+              (v32/*: any*/)
             ]
-          },
-          (v31/*: any*/)
+          }
         ]
       }
     ]
@@ -2833,125 +2902,138 @@ return {
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "equipment",
+        "alias": "equipment",
+        "name": "node",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "Equipment",
+        "concreteType": null,
         "plural": false,
         "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
-          (v8/*: any*/),
           {
-            "kind": "LinkedField",
+            "kind": "ScalarField",
             "alias": null,
-            "name": "positions",
-            "storageKey": null,
+            "name": "__typename",
             "args": null,
-            "concreteType": "EquipmentPosition",
-            "plural": true,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "InlineFragment",
+            "type": "Equipment",
             "selections": [
+              (v3/*: any*/),
+              (v8/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "attachedEquipment",
+                "name": "positions",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "Equipment",
-                "plural": false,
+                "concreteType": "EquipmentPosition",
+                "plural": true,
                 "selections": [
-                  (v2/*: any*/),
-                  (v3/*: any*/),
-                  (v33/*: any*/),
-                  (v34/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "positions",
+                    "name": "attachedEquipment",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "EquipmentPosition",
-                    "plural": true,
+                    "concreteType": "Equipment",
+                    "plural": false,
                     "selections": [
+                      (v2/*: any*/),
+                      (v3/*: any*/),
+                      (v34/*: any*/),
+                      (v35/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
-                        "name": "attachedEquipment",
+                        "name": "positions",
                         "storageKey": null,
                         "args": null,
-                        "concreteType": "Equipment",
-                        "plural": false,
+                        "concreteType": "EquipmentPosition",
+                        "plural": true,
                         "selections": [
-                          (v2/*: any*/),
-                          (v3/*: any*/),
-                          (v33/*: any*/),
-                          (v34/*: any*/),
                           {
                             "kind": "LinkedField",
                             "alias": null,
-                            "name": "positions",
+                            "name": "attachedEquipment",
                             "storageKey": null,
                             "args": null,
-                            "concreteType": "EquipmentPosition",
-                            "plural": true,
+                            "concreteType": "Equipment",
+                            "plural": false,
                             "selections": [
+                              (v2/*: any*/),
+                              (v3/*: any*/),
+                              (v34/*: any*/),
+                              (v35/*: any*/),
                               {
                                 "kind": "LinkedField",
                                 "alias": null,
-                                "name": "attachedEquipment",
+                                "name": "positions",
                                 "storageKey": null,
                                 "args": null,
-                                "concreteType": "Equipment",
-                                "plural": false,
+                                "concreteType": "EquipmentPosition",
+                                "plural": true,
                                 "selections": [
-                                  (v2/*: any*/),
-                                  (v3/*: any*/),
-                                  (v33/*: any*/),
-                                  (v34/*: any*/),
                                   {
                                     "kind": "LinkedField",
                                     "alias": null,
-                                    "name": "positions",
+                                    "name": "attachedEquipment",
                                     "storageKey": null,
                                     "args": null,
-                                    "concreteType": "EquipmentPosition",
-                                    "plural": true,
+                                    "concreteType": "Equipment",
+                                    "plural": false,
                                     "selections": [
+                                      (v2/*: any*/),
+                                      (v3/*: any*/),
+                                      (v34/*: any*/),
+                                      (v35/*: any*/),
                                       {
                                         "kind": "LinkedField",
                                         "alias": null,
-                                        "name": "attachedEquipment",
+                                        "name": "positions",
                                         "storageKey": null,
                                         "args": null,
-                                        "concreteType": "Equipment",
-                                        "plural": false,
+                                        "concreteType": "EquipmentPosition",
+                                        "plural": true,
                                         "selections": [
-                                          (v2/*: any*/),
-                                          (v3/*: any*/),
-                                          (v33/*: any*/),
-                                          (v34/*: any*/)
+                                          {
+                                            "kind": "LinkedField",
+                                            "alias": null,
+                                            "name": "attachedEquipment",
+                                            "storageKey": null,
+                                            "args": null,
+                                            "concreteType": "Equipment",
+                                            "plural": false,
+                                            "selections": [
+                                              (v2/*: any*/),
+                                              (v3/*: any*/),
+                                              (v34/*: any*/),
+                                              (v35/*: any*/)
+                                            ]
+                                          },
+                                          (v2/*: any*/)
                                         ]
-                                      },
-                                      (v2/*: any*/)
+                                      }
                                     ]
-                                  }
+                                  },
+                                  (v2/*: any*/)
                                 ]
-                              },
-                              (v2/*: any*/)
+                              }
                             ]
-                          }
+                          },
+                          (v2/*: any*/)
                         ]
-                      },
-                      (v2/*: any*/)
+                      }
                     ]
-                  }
+                  },
+                  (v2/*: any*/)
                 ]
               },
-              (v2/*: any*/)
+              (v34/*: any*/)
             ]
-          },
-          (v33/*: any*/)
+          }
         ]
       }
     ]
@@ -2960,11 +3042,11 @@ return {
     "operationKind": "query",
     "name": "PortsConnectDialogQuery",
     "id": null,
-    "text": "query PortsConnectDialogQuery(\n  $equipmentId: ID!\n) {\n  equipment(id: $equipmentId) {\n    id\n    name\n    equipmentType {\n      id\n      name\n      portDefinitions {\n        id\n        name\n        visibleLabel\n        type\n        bandwidth\n      }\n    }\n    positions {\n      attachedEquipment {\n        id\n        name\n        ports {\n          id\n          definition {\n            id\n            name\n            index\n            visibleLabel\n            type\n            portType {\n              id\n              name\n              propertyTypes {\n                id\n                name\n                type\n                index\n                stringValue\n                intValue\n                booleanValue\n                floatValue\n                latitudeValue\n                longitudeValue\n                rangeFromValue\n                rangeToValue\n                isEditable\n                isInstanceProperty\n              }\n              linkPropertyTypes {\n                id\n                name\n                type\n                index\n                stringValue\n                intValue\n                booleanValue\n                floatValue\n                latitudeValue\n                longitudeValue\n                rangeFromValue\n                rangeToValue\n                isEditable\n                isInstanceProperty\n              }\n            }\n          }\n          parentEquipment {\n            id\n            name\n            equipmentType {\n              id\n              name\n              portDefinitions {\n                id\n                name\n                visibleLabel\n                type\n                portType {\n                  id\n                  name\n                }\n                bandwidth\n              }\n            }\n          }\n          link {\n            id\n            futureState\n            ports {\n              id\n              definition {\n                id\n                name\n                visibleLabel\n                type\n                portType {\n                  linkPropertyTypes {\n                    id\n                    name\n                    type\n                    index\n                    stringValue\n                    intValue\n                    booleanValue\n                    floatValue\n                    latitudeValue\n                    longitudeValue\n                    rangeFromValue\n                    rangeToValue\n                    isEditable\n                    isInstanceProperty\n                  }\n                  id\n                }\n              }\n              parentEquipment {\n                id\n                name\n                futureState\n                equipmentType {\n                  id\n                  name\n                  portDefinitions {\n                    id\n                    name\n                    visibleLabel\n                    type\n                    bandwidth\n                    portType {\n                      id\n                      name\n                    }\n                  }\n                }\n                ...EquipmentBreadcrumbs_equipment\n              }\n            }\n            workOrder {\n              id\n              status\n            }\n            properties {\n              id\n              propertyType {\n                id\n                name\n                type\n                isEditable\n                isInstanceProperty\n                stringValue\n              }\n              stringValue\n              intValue\n              floatValue\n              booleanValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              equipmentValue {\n                id\n                name\n              }\n              locationValue {\n                id\n                name\n              }\n            }\n            services {\n              id\n            }\n          }\n          properties {\n            id\n            propertyType {\n              id\n              name\n              type\n              isEditable\n              isInstanceProperty\n              stringValue\n            }\n            stringValue\n            intValue\n            floatValue\n            booleanValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            equipmentValue {\n              id\n              name\n            }\n            locationValue {\n              id\n              name\n            }\n          }\n        }\n        equipmentType {\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            type\n            bandwidth\n          }\n          id\n        }\n        positions {\n          attachedEquipment {\n            id\n            name\n            ports {\n              id\n              definition {\n                id\n                name\n                index\n                visibleLabel\n                type\n                portType {\n                  id\n                  name\n                  propertyTypes {\n                    id\n                    name\n                    type\n                    index\n                    stringValue\n                    intValue\n                    booleanValue\n                    floatValue\n                    latitudeValue\n                    longitudeValue\n                    rangeFromValue\n                    rangeToValue\n                    isEditable\n                    isInstanceProperty\n                  }\n                  linkPropertyTypes {\n                    id\n                    name\n                    type\n                    index\n                    stringValue\n                    intValue\n                    booleanValue\n                    floatValue\n                    latitudeValue\n                    longitudeValue\n                    rangeFromValue\n                    rangeToValue\n                    isEditable\n                    isInstanceProperty\n                  }\n                }\n              }\n              parentEquipment {\n                id\n                name\n                equipmentType {\n                  id\n                  name\n                  portDefinitions {\n                    id\n                    name\n                    visibleLabel\n                    type\n                    portType {\n                      id\n                      name\n                    }\n                    bandwidth\n                  }\n                }\n              }\n              link {\n                id\n                futureState\n                ports {\n                  id\n                  definition {\n                    id\n                    name\n                    visibleLabel\n                    type\n                    portType {\n                      linkPropertyTypes {\n                        id\n                        name\n                        type\n                        index\n                        stringValue\n                        intValue\n                        booleanValue\n                        floatValue\n                        latitudeValue\n                        longitudeValue\n                        rangeFromValue\n                        rangeToValue\n                        isEditable\n                        isInstanceProperty\n                      }\n                      id\n                    }\n                  }\n                  parentEquipment {\n                    id\n                    name\n                    futureState\n                    equipmentType {\n                      id\n                      name\n                      portDefinitions {\n                        id\n                        name\n                        visibleLabel\n                        type\n                        bandwidth\n                        portType {\n                          id\n                          name\n                        }\n                      }\n                    }\n                    ...EquipmentBreadcrumbs_equipment\n                  }\n                }\n                workOrder {\n                  id\n                  status\n                }\n                properties {\n                  id\n                  propertyType {\n                    id\n                    name\n                    type\n                    isEditable\n                    isInstanceProperty\n                    stringValue\n                  }\n                  stringValue\n                  intValue\n                  floatValue\n                  booleanValue\n                  latitudeValue\n                  longitudeValue\n                  rangeFromValue\n                  rangeToValue\n                  equipmentValue {\n                    id\n                    name\n                  }\n                  locationValue {\n                    id\n                    name\n                  }\n                }\n                services {\n                  id\n                }\n              }\n              properties {\n                id\n                propertyType {\n                  id\n                  name\n                  type\n                  isEditable\n                  isInstanceProperty\n                  stringValue\n                }\n                stringValue\n                intValue\n                floatValue\n                booleanValue\n                latitudeValue\n                longitudeValue\n                rangeFromValue\n                rangeToValue\n                equipmentValue {\n                  id\n                  name\n                }\n                locationValue {\n                  id\n                  name\n                }\n              }\n            }\n            equipmentType {\n              portDefinitions {\n                id\n                name\n                visibleLabel\n                type\n                bandwidth\n              }\n              id\n            }\n            positions {\n              attachedEquipment {\n                id\n                name\n                ports {\n                  id\n                  definition {\n                    id\n                    name\n                    index\n                    visibleLabel\n                    type\n                    portType {\n                      id\n                      name\n                      propertyTypes {\n                        id\n                        name\n                        type\n                        index\n                        stringValue\n                        intValue\n                        booleanValue\n                        floatValue\n                        latitudeValue\n                        longitudeValue\n                        rangeFromValue\n                        rangeToValue\n                        isEditable\n                        isInstanceProperty\n                      }\n                      linkPropertyTypes {\n                        id\n                        name\n                        type\n                        index\n                        stringValue\n                        intValue\n                        booleanValue\n                        floatValue\n                        latitudeValue\n                        longitudeValue\n                        rangeFromValue\n                        rangeToValue\n                        isEditable\n                        isInstanceProperty\n                      }\n                    }\n                  }\n                  parentEquipment {\n                    id\n                    name\n                    equipmentType {\n                      id\n                      name\n                      portDefinitions {\n                        id\n                        name\n                        visibleLabel\n                        type\n                        portType {\n                          id\n                          name\n                        }\n                        bandwidth\n                      }\n                    }\n                  }\n                  link {\n                    id\n                    futureState\n                    ports {\n                      id\n                      definition {\n                        id\n                        name\n                        visibleLabel\n                        type\n                        portType {\n                          linkPropertyTypes {\n                            id\n                            name\n                            type\n                            index\n                            stringValue\n                            intValue\n                            booleanValue\n                            floatValue\n                            latitudeValue\n                            longitudeValue\n                            rangeFromValue\n                            rangeToValue\n                            isEditable\n                            isInstanceProperty\n                          }\n                          id\n                        }\n                      }\n                      parentEquipment {\n                        id\n                        name\n                        futureState\n                        equipmentType {\n                          id\n                          name\n                          portDefinitions {\n                            id\n                            name\n                            visibleLabel\n                            type\n                            bandwidth\n                            portType {\n                              id\n                              name\n                            }\n                          }\n                        }\n                        ...EquipmentBreadcrumbs_equipment\n                      }\n                    }\n                    workOrder {\n                      id\n                      status\n                    }\n                    properties {\n                      id\n                      propertyType {\n                        id\n                        name\n                        type\n                        isEditable\n                        isInstanceProperty\n                        stringValue\n                      }\n                      stringValue\n                      intValue\n                      floatValue\n                      booleanValue\n                      latitudeValue\n                      longitudeValue\n                      rangeFromValue\n                      rangeToValue\n                      equipmentValue {\n                        id\n                        name\n                      }\n                      locationValue {\n                        id\n                        name\n                      }\n                    }\n                    services {\n                      id\n                    }\n                  }\n                  properties {\n                    id\n                    propertyType {\n                      id\n                      name\n                      type\n                      isEditable\n                      isInstanceProperty\n                      stringValue\n                    }\n                    stringValue\n                    intValue\n                    floatValue\n                    booleanValue\n                    latitudeValue\n                    longitudeValue\n                    rangeFromValue\n                    rangeToValue\n                    equipmentValue {\n                      id\n                      name\n                    }\n                    locationValue {\n                      id\n                      name\n                    }\n                  }\n                }\n                equipmentType {\n                  portDefinitions {\n                    id\n                    name\n                    visibleLabel\n                    type\n                    bandwidth\n                  }\n                  id\n                }\n                positions {\n                  attachedEquipment {\n                    id\n                    name\n                    ports {\n                      id\n                      definition {\n                        id\n                        name\n                        index\n                        visibleLabel\n                        type\n                        portType {\n                          id\n                          name\n                          propertyTypes {\n                            id\n                            name\n                            type\n                            index\n                            stringValue\n                            intValue\n                            booleanValue\n                            floatValue\n                            latitudeValue\n                            longitudeValue\n                            rangeFromValue\n                            rangeToValue\n                            isEditable\n                            isInstanceProperty\n                          }\n                          linkPropertyTypes {\n                            id\n                            name\n                            type\n                            index\n                            stringValue\n                            intValue\n                            booleanValue\n                            floatValue\n                            latitudeValue\n                            longitudeValue\n                            rangeFromValue\n                            rangeToValue\n                            isEditable\n                            isInstanceProperty\n                          }\n                        }\n                      }\n                      parentEquipment {\n                        id\n                        name\n                        equipmentType {\n                          id\n                          name\n                          portDefinitions {\n                            id\n                            name\n                            visibleLabel\n                            type\n                            portType {\n                              id\n                              name\n                            }\n                            bandwidth\n                          }\n                        }\n                      }\n                      link {\n                        id\n                        futureState\n                        ports {\n                          id\n                          definition {\n                            id\n                            name\n                            visibleLabel\n                            type\n                            portType {\n                              linkPropertyTypes {\n                                id\n                                name\n                                type\n                                index\n                                stringValue\n                                intValue\n                                booleanValue\n                                floatValue\n                                latitudeValue\n                                longitudeValue\n                                rangeFromValue\n                                rangeToValue\n                                isEditable\n                                isInstanceProperty\n                              }\n                              id\n                            }\n                          }\n                          parentEquipment {\n                            id\n                            name\n                            futureState\n                            equipmentType {\n                              id\n                              name\n                              portDefinitions {\n                                id\n                                name\n                                visibleLabel\n                                type\n                                bandwidth\n                                portType {\n                                  id\n                                  name\n                                }\n                              }\n                            }\n                            ...EquipmentBreadcrumbs_equipment\n                          }\n                        }\n                        workOrder {\n                          id\n                          status\n                        }\n                        properties {\n                          id\n                          propertyType {\n                            id\n                            name\n                            type\n                            isEditable\n                            isInstanceProperty\n                            stringValue\n                          }\n                          stringValue\n                          intValue\n                          floatValue\n                          booleanValue\n                          latitudeValue\n                          longitudeValue\n                          rangeFromValue\n                          rangeToValue\n                          equipmentValue {\n                            id\n                            name\n                          }\n                          locationValue {\n                            id\n                            name\n                          }\n                        }\n                        services {\n                          id\n                        }\n                      }\n                      properties {\n                        id\n                        propertyType {\n                          id\n                          name\n                          type\n                          isEditable\n                          isInstanceProperty\n                          stringValue\n                        }\n                        stringValue\n                        intValue\n                        floatValue\n                        booleanValue\n                        latitudeValue\n                        longitudeValue\n                        rangeFromValue\n                        rangeToValue\n                        equipmentValue {\n                          id\n                          name\n                        }\n                        locationValue {\n                          id\n                          name\n                        }\n                      }\n                    }\n                    equipmentType {\n                      portDefinitions {\n                        id\n                        name\n                        visibleLabel\n                        type\n                        bandwidth\n                      }\n                      id\n                    }\n                  }\n                  id\n                }\n              }\n              id\n            }\n          }\n          id\n        }\n      }\n      id\n    }\n    ports {\n      id\n      definition {\n        id\n        name\n        index\n        visibleLabel\n        type\n        portType {\n          id\n          name\n          propertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n          }\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n          }\n        }\n      }\n      parentEquipment {\n        id\n        name\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            type\n            portType {\n              id\n              name\n            }\n            bandwidth\n          }\n        }\n      }\n      link {\n        id\n        futureState\n        ports {\n          id\n          definition {\n            id\n            name\n            visibleLabel\n            type\n            portType {\n              linkPropertyTypes {\n                id\n                name\n                type\n                index\n                stringValue\n                intValue\n                booleanValue\n                floatValue\n                latitudeValue\n                longitudeValue\n                rangeFromValue\n                rangeToValue\n                isEditable\n                isInstanceProperty\n              }\n              id\n            }\n          }\n          parentEquipment {\n            id\n            name\n            futureState\n            equipmentType {\n              id\n              name\n              portDefinitions {\n                id\n                name\n                visibleLabel\n                type\n                bandwidth\n                portType {\n                  id\n                  name\n                }\n              }\n            }\n            ...EquipmentBreadcrumbs_equipment\n          }\n        }\n        workOrder {\n          id\n          status\n        }\n        properties {\n          id\n          propertyType {\n            id\n            name\n            type\n            isEditable\n            isInstanceProperty\n            stringValue\n          }\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          equipmentValue {\n            id\n            name\n          }\n          locationValue {\n            id\n            name\n          }\n        }\n        services {\n          id\n        }\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          isEditable\n          isInstanceProperty\n          stringValue\n        }\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n      }\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query PortsConnectDialogQuery(\n  $equipmentId: ID!\n) {\n  equipment: node(id: $equipmentId) {\n    __typename\n    ... on Equipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          type\n          bandwidth\n        }\n      }\n      positions {\n        attachedEquipment {\n          id\n          name\n          ports {\n            id\n            definition {\n              id\n              name\n              index\n              visibleLabel\n              type\n              portType {\n                id\n                name\n                propertyTypes {\n                  id\n                  name\n                  type\n                  index\n                  stringValue\n                  intValue\n                  booleanValue\n                  floatValue\n                  latitudeValue\n                  longitudeValue\n                  rangeFromValue\n                  rangeToValue\n                  isEditable\n                  isInstanceProperty\n                  isMandatory\n                }\n                linkPropertyTypes {\n                  id\n                  name\n                  type\n                  index\n                  stringValue\n                  intValue\n                  booleanValue\n                  floatValue\n                  latitudeValue\n                  longitudeValue\n                  rangeFromValue\n                  rangeToValue\n                  isEditable\n                  isInstanceProperty\n                  isMandatory\n                }\n              }\n            }\n            parentEquipment {\n              id\n              name\n              equipmentType {\n                id\n                name\n                portDefinitions {\n                  id\n                  name\n                  visibleLabel\n                  type\n                  portType {\n                    id\n                    name\n                  }\n                  bandwidth\n                }\n              }\n            }\n            link {\n              id\n              futureState\n              ports {\n                id\n                definition {\n                  id\n                  name\n                  visibleLabel\n                  type\n                  portType {\n                    linkPropertyTypes {\n                      id\n                      name\n                      type\n                      index\n                      stringValue\n                      intValue\n                      booleanValue\n                      floatValue\n                      latitudeValue\n                      longitudeValue\n                      rangeFromValue\n                      rangeToValue\n                      isEditable\n                      isInstanceProperty\n                      isMandatory\n                    }\n                    id\n                  }\n                }\n                parentEquipment {\n                  id\n                  name\n                  futureState\n                  equipmentType {\n                    id\n                    name\n                    portDefinitions {\n                      id\n                      name\n                      visibleLabel\n                      type\n                      bandwidth\n                      portType {\n                        id\n                        name\n                      }\n                    }\n                  }\n                  ...EquipmentBreadcrumbs_equipment\n                }\n              }\n              workOrder {\n                id\n                status\n              }\n              properties {\n                id\n                propertyType {\n                  id\n                  name\n                  type\n                  isEditable\n                  isMandatory\n                  isInstanceProperty\n                  stringValue\n                }\n                stringValue\n                intValue\n                floatValue\n                booleanValue\n                latitudeValue\n                longitudeValue\n                rangeFromValue\n                rangeToValue\n                equipmentValue {\n                  id\n                  name\n                }\n                locationValue {\n                  id\n                  name\n                }\n              }\n              services {\n                id\n              }\n            }\n            properties {\n              id\n              propertyType {\n                id\n                name\n                type\n                isEditable\n                isMandatory\n                isInstanceProperty\n                stringValue\n              }\n              stringValue\n              intValue\n              floatValue\n              booleanValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              equipmentValue {\n                id\n                name\n              }\n              locationValue {\n                id\n                name\n              }\n            }\n          }\n          equipmentType {\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              type\n              bandwidth\n            }\n            id\n          }\n          positions {\n            attachedEquipment {\n              id\n              name\n              ports {\n                id\n                definition {\n                  id\n                  name\n                  index\n                  visibleLabel\n                  type\n                  portType {\n                    id\n                    name\n                    propertyTypes {\n                      id\n                      name\n                      type\n                      index\n                      stringValue\n                      intValue\n                      booleanValue\n                      floatValue\n                      latitudeValue\n                      longitudeValue\n                      rangeFromValue\n                      rangeToValue\n                      isEditable\n                      isInstanceProperty\n                      isMandatory\n                    }\n                    linkPropertyTypes {\n                      id\n                      name\n                      type\n                      index\n                      stringValue\n                      intValue\n                      booleanValue\n                      floatValue\n                      latitudeValue\n                      longitudeValue\n                      rangeFromValue\n                      rangeToValue\n                      isEditable\n                      isInstanceProperty\n                      isMandatory\n                    }\n                  }\n                }\n                parentEquipment {\n                  id\n                  name\n                  equipmentType {\n                    id\n                    name\n                    portDefinitions {\n                      id\n                      name\n                      visibleLabel\n                      type\n                      portType {\n                        id\n                        name\n                      }\n                      bandwidth\n                    }\n                  }\n                }\n                link {\n                  id\n                  futureState\n                  ports {\n                    id\n                    definition {\n                      id\n                      name\n                      visibleLabel\n                      type\n                      portType {\n                        linkPropertyTypes {\n                          id\n                          name\n                          type\n                          index\n                          stringValue\n                          intValue\n                          booleanValue\n                          floatValue\n                          latitudeValue\n                          longitudeValue\n                          rangeFromValue\n                          rangeToValue\n                          isEditable\n                          isInstanceProperty\n                          isMandatory\n                        }\n                        id\n                      }\n                    }\n                    parentEquipment {\n                      id\n                      name\n                      futureState\n                      equipmentType {\n                        id\n                        name\n                        portDefinitions {\n                          id\n                          name\n                          visibleLabel\n                          type\n                          bandwidth\n                          portType {\n                            id\n                            name\n                          }\n                        }\n                      }\n                      ...EquipmentBreadcrumbs_equipment\n                    }\n                  }\n                  workOrder {\n                    id\n                    status\n                  }\n                  properties {\n                    id\n                    propertyType {\n                      id\n                      name\n                      type\n                      isEditable\n                      isMandatory\n                      isInstanceProperty\n                      stringValue\n                    }\n                    stringValue\n                    intValue\n                    floatValue\n                    booleanValue\n                    latitudeValue\n                    longitudeValue\n                    rangeFromValue\n                    rangeToValue\n                    equipmentValue {\n                      id\n                      name\n                    }\n                    locationValue {\n                      id\n                      name\n                    }\n                  }\n                  services {\n                    id\n                  }\n                }\n                properties {\n                  id\n                  propertyType {\n                    id\n                    name\n                    type\n                    isEditable\n                    isMandatory\n                    isInstanceProperty\n                    stringValue\n                  }\n                  stringValue\n                  intValue\n                  floatValue\n                  booleanValue\n                  latitudeValue\n                  longitudeValue\n                  rangeFromValue\n                  rangeToValue\n                  equipmentValue {\n                    id\n                    name\n                  }\n                  locationValue {\n                    id\n                    name\n                  }\n                }\n              }\n              equipmentType {\n                portDefinitions {\n                  id\n                  name\n                  visibleLabel\n                  type\n                  bandwidth\n                }\n                id\n              }\n              positions {\n                attachedEquipment {\n                  id\n                  name\n                  ports {\n                    id\n                    definition {\n                      id\n                      name\n                      index\n                      visibleLabel\n                      type\n                      portType {\n                        id\n                        name\n                        propertyTypes {\n                          id\n                          name\n                          type\n                          index\n                          stringValue\n                          intValue\n                          booleanValue\n                          floatValue\n                          latitudeValue\n                          longitudeValue\n                          rangeFromValue\n                          rangeToValue\n                          isEditable\n                          isInstanceProperty\n                          isMandatory\n                        }\n                        linkPropertyTypes {\n                          id\n                          name\n                          type\n                          index\n                          stringValue\n                          intValue\n                          booleanValue\n                          floatValue\n                          latitudeValue\n                          longitudeValue\n                          rangeFromValue\n                          rangeToValue\n                          isEditable\n                          isInstanceProperty\n                          isMandatory\n                        }\n                      }\n                    }\n                    parentEquipment {\n                      id\n                      name\n                      equipmentType {\n                        id\n                        name\n                        portDefinitions {\n                          id\n                          name\n                          visibleLabel\n                          type\n                          portType {\n                            id\n                            name\n                          }\n                          bandwidth\n                        }\n                      }\n                    }\n                    link {\n                      id\n                      futureState\n                      ports {\n                        id\n                        definition {\n                          id\n                          name\n                          visibleLabel\n                          type\n                          portType {\n                            linkPropertyTypes {\n                              id\n                              name\n                              type\n                              index\n                              stringValue\n                              intValue\n                              booleanValue\n                              floatValue\n                              latitudeValue\n                              longitudeValue\n                              rangeFromValue\n                              rangeToValue\n                              isEditable\n                              isInstanceProperty\n                              isMandatory\n                            }\n                            id\n                          }\n                        }\n                        parentEquipment {\n                          id\n                          name\n                          futureState\n                          equipmentType {\n                            id\n                            name\n                            portDefinitions {\n                              id\n                              name\n                              visibleLabel\n                              type\n                              bandwidth\n                              portType {\n                                id\n                                name\n                              }\n                            }\n                          }\n                          ...EquipmentBreadcrumbs_equipment\n                        }\n                      }\n                      workOrder {\n                        id\n                        status\n                      }\n                      properties {\n                        id\n                        propertyType {\n                          id\n                          name\n                          type\n                          isEditable\n                          isMandatory\n                          isInstanceProperty\n                          stringValue\n                        }\n                        stringValue\n                        intValue\n                        floatValue\n                        booleanValue\n                        latitudeValue\n                        longitudeValue\n                        rangeFromValue\n                        rangeToValue\n                        equipmentValue {\n                          id\n                          name\n                        }\n                        locationValue {\n                          id\n                          name\n                        }\n                      }\n                      services {\n                        id\n                      }\n                    }\n                    properties {\n                      id\n                      propertyType {\n                        id\n                        name\n                        type\n                        isEditable\n                        isMandatory\n                        isInstanceProperty\n                        stringValue\n                      }\n                      stringValue\n                      intValue\n                      floatValue\n                      booleanValue\n                      latitudeValue\n                      longitudeValue\n                      rangeFromValue\n                      rangeToValue\n                      equipmentValue {\n                        id\n                        name\n                      }\n                      locationValue {\n                        id\n                        name\n                      }\n                    }\n                  }\n                  equipmentType {\n                    portDefinitions {\n                      id\n                      name\n                      visibleLabel\n                      type\n                      bandwidth\n                    }\n                    id\n                  }\n                  positions {\n                    attachedEquipment {\n                      id\n                      name\n                      ports {\n                        id\n                        definition {\n                          id\n                          name\n                          index\n                          visibleLabel\n                          type\n                          portType {\n                            id\n                            name\n                            propertyTypes {\n                              id\n                              name\n                              type\n                              index\n                              stringValue\n                              intValue\n                              booleanValue\n                              floatValue\n                              latitudeValue\n                              longitudeValue\n                              rangeFromValue\n                              rangeToValue\n                              isEditable\n                              isInstanceProperty\n                              isMandatory\n                            }\n                            linkPropertyTypes {\n                              id\n                              name\n                              type\n                              index\n                              stringValue\n                              intValue\n                              booleanValue\n                              floatValue\n                              latitudeValue\n                              longitudeValue\n                              rangeFromValue\n                              rangeToValue\n                              isEditable\n                              isInstanceProperty\n                              isMandatory\n                            }\n                          }\n                        }\n                        parentEquipment {\n                          id\n                          name\n                          equipmentType {\n                            id\n                            name\n                            portDefinitions {\n                              id\n                              name\n                              visibleLabel\n                              type\n                              portType {\n                                id\n                                name\n                              }\n                              bandwidth\n                            }\n                          }\n                        }\n                        link {\n                          id\n                          futureState\n                          ports {\n                            id\n                            definition {\n                              id\n                              name\n                              visibleLabel\n                              type\n                              portType {\n                                linkPropertyTypes {\n                                  id\n                                  name\n                                  type\n                                  index\n                                  stringValue\n                                  intValue\n                                  booleanValue\n                                  floatValue\n                                  latitudeValue\n                                  longitudeValue\n                                  rangeFromValue\n                                  rangeToValue\n                                  isEditable\n                                  isInstanceProperty\n                                  isMandatory\n                                }\n                                id\n                              }\n                            }\n                            parentEquipment {\n                              id\n                              name\n                              futureState\n                              equipmentType {\n                                id\n                                name\n                                portDefinitions {\n                                  id\n                                  name\n                                  visibleLabel\n                                  type\n                                  bandwidth\n                                  portType {\n                                    id\n                                    name\n                                  }\n                                }\n                              }\n                              ...EquipmentBreadcrumbs_equipment\n                            }\n                          }\n                          workOrder {\n                            id\n                            status\n                          }\n                          properties {\n                            id\n                            propertyType {\n                              id\n                              name\n                              type\n                              isEditable\n                              isMandatory\n                              isInstanceProperty\n                              stringValue\n                            }\n                            stringValue\n                            intValue\n                            floatValue\n                            booleanValue\n                            latitudeValue\n                            longitudeValue\n                            rangeFromValue\n                            rangeToValue\n                            equipmentValue {\n                              id\n                              name\n                            }\n                            locationValue {\n                              id\n                              name\n                            }\n                          }\n                          services {\n                            id\n                          }\n                        }\n                        properties {\n                          id\n                          propertyType {\n                            id\n                            name\n                            type\n                            isEditable\n                            isMandatory\n                            isInstanceProperty\n                            stringValue\n                          }\n                          stringValue\n                          intValue\n                          floatValue\n                          booleanValue\n                          latitudeValue\n                          longitudeValue\n                          rangeFromValue\n                          rangeToValue\n                          equipmentValue {\n                            id\n                            name\n                          }\n                          locationValue {\n                            id\n                            name\n                          }\n                        }\n                      }\n                      equipmentType {\n                        portDefinitions {\n                          id\n                          name\n                          visibleLabel\n                          type\n                          bandwidth\n                        }\n                        id\n                      }\n                    }\n                    id\n                  }\n                }\n                id\n              }\n            }\n            id\n          }\n        }\n        id\n      }\n      ports {\n        id\n        definition {\n          id\n          name\n          index\n          visibleLabel\n          type\n          portType {\n            id\n            name\n            propertyTypes {\n              id\n              name\n              type\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n            }\n            linkPropertyTypes {\n              id\n              name\n              type\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n            }\n          }\n        }\n        parentEquipment {\n          id\n          name\n          equipmentType {\n            id\n            name\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              type\n              portType {\n                id\n                name\n              }\n              bandwidth\n            }\n          }\n        }\n        link {\n          id\n          futureState\n          ports {\n            id\n            definition {\n              id\n              name\n              visibleLabel\n              type\n              portType {\n                linkPropertyTypes {\n                  id\n                  name\n                  type\n                  index\n                  stringValue\n                  intValue\n                  booleanValue\n                  floatValue\n                  latitudeValue\n                  longitudeValue\n                  rangeFromValue\n                  rangeToValue\n                  isEditable\n                  isInstanceProperty\n                  isMandatory\n                }\n                id\n              }\n            }\n            parentEquipment {\n              id\n              name\n              futureState\n              equipmentType {\n                id\n                name\n                portDefinitions {\n                  id\n                  name\n                  visibleLabel\n                  type\n                  bandwidth\n                  portType {\n                    id\n                    name\n                  }\n                }\n              }\n              ...EquipmentBreadcrumbs_equipment\n            }\n          }\n          workOrder {\n            id\n            status\n          }\n          properties {\n            id\n            propertyType {\n              id\n              name\n              type\n              isEditable\n              isMandatory\n              isInstanceProperty\n              stringValue\n            }\n            stringValue\n            intValue\n            floatValue\n            booleanValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            equipmentValue {\n              id\n              name\n            }\n            locationValue {\n              id\n              name\n            }\n          }\n          services {\n            id\n          }\n        }\n        properties {\n          id\n          propertyType {\n            id\n            name\n            type\n            isEditable\n            isMandatory\n            isInstanceProperty\n            stringValue\n          }\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          equipmentValue {\n            id\n            name\n          }\n          locationValue {\n            id\n            name\n          }\n        }\n      }\n    }\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '37cc041449d90fa6d9534ea54f6248db';
+(node/*: any*/).hash = 'f602628bf1e0c3c9b3aed53a6c785af2';
 module.exports = node;

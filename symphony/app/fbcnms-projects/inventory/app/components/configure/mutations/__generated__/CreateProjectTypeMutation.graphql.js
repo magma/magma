@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 55860de3d6d0035351c3ad98c936d8d5
+ * @relayHash 14b3c276c1be5e81a909dc0b6388eb6b
  */
 
 /* eslint-disable */
@@ -40,6 +40,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type WorkOrderDefinitionInput = {|
   id?: ?string,
@@ -97,6 +98,7 @@ fragment AddEditProjectTypeCard_editingProjectType on ProjectType {
     rangeFromValue
     rangeToValue
     isEditable
+    isMandatory
     isInstanceProperty
   }
 }
@@ -320,6 +322,13 @@ return {
               {
                 "kind": "ScalarField",
                 "alias": null,
+                "name": "isMandatory",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
                 "name": "isInstanceProperty",
                 "args": null,
                 "storageKey": null
@@ -334,7 +343,7 @@ return {
     "operationKind": "mutation",
     "name": "CreateProjectTypeMutation",
     "id": null,
-    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isInstanceProperty\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
+    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

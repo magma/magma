@@ -501,16 +501,12 @@ func HasCustomerNEQ(v bool) predicate.ServiceType {
 func HasServices() predicate.ServiceType {
 	return predicate.ServiceType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(ServicesColumn).
-						From(builder.Table(ServicesTable)).
-						Where(sql.NotNull(ServicesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServicesTable, FieldID),
+				sql.Edge(sql.O2M, true, ServicesTable, ServicesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -534,16 +530,12 @@ func HasServicesWith(preds ...predicate.Service) predicate.ServiceType {
 func HasPropertyTypes() predicate.ServiceType {
 	return predicate.ServiceType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertyTypesColumn).
-						From(builder.Table(PropertyTypesTable)).
-						Where(sql.NotNull(PropertyTypesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertyTypesTable, FieldID),
+				sql.Edge(sql.O2M, false, PropertyTypesTable, PropertyTypesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

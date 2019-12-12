@@ -89,6 +89,7 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -107,8 +108,9 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(comment.Table).Where(sql.InInts(comment.FieldID, ids...))
+		updater = builder.Update(comment.Table)
 	)
+	updater = updater.Where(sql.InInts(comment.FieldID, ids...))
 	if value := cu.update_time; value != nil {
 		updater.Set(comment.FieldUpdateTime, *value)
 	}
@@ -195,6 +197,7 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -218,8 +221,9 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(comment.Table).Where(sql.InInts(comment.FieldID, ids...))
+		updater = builder.Update(comment.Table)
 	)
+	updater = updater.Where(sql.InInts(comment.FieldID, ids...))
 	if value := cuo.update_time; value != nil {
 		updater.Set(comment.FieldUpdateTime, *value)
 		c.UpdateTime = *value

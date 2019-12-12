@@ -29,6 +29,7 @@ export type PropertyType = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 
 export const getPropertyDefaultValue = (propertyType: PropertyType) => {

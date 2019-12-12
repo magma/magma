@@ -51,6 +51,7 @@ export type EquipmentPortsTable_position = {
             +rangeToValue: ?number,
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
+            +isMandatory: ?boolean,
           }>,
           +linkPropertyTypes: $ReadOnlyArray<?{
             +id: string,
@@ -67,6 +68,7 @@ export type EquipmentPortsTable_position = {
             +rangeToValue: ?number,
             +isEditable: ?boolean,
             +isInstanceProperty: ?boolean,
+            +isMandatory: ?boolean,
           }>,
         },
       },
@@ -115,6 +117,7 @@ export type EquipmentPortsTable_position = {
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               }>
             },
           },
@@ -151,6 +154,7 @@ export type EquipmentPortsTable_position = {
             +name: string,
             +type: PropertyKind,
             +isEditable: ?boolean,
+            +isMandatory: ?boolean,
             +isInstanceProperty: ?boolean,
             +stringValue: ?string,
           },
@@ -182,6 +186,7 @@ export type EquipmentPortsTable_position = {
           +name: string,
           +type: PropertyKind,
           +isEditable: ?boolean,
+          +isMandatory: ?boolean,
           +isInstanceProperty: ?boolean,
           +stringValue: ?string,
         },
@@ -242,6 +247,7 @@ export type EquipmentPortsTable_position = {
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               }>,
               +linkPropertyTypes: $ReadOnlyArray<?{
                 +id: string,
@@ -258,6 +264,7 @@ export type EquipmentPortsTable_position = {
                 +rangeToValue: ?number,
                 +isEditable: ?boolean,
                 +isInstanceProperty: ?boolean,
+                +isMandatory: ?boolean,
               }>,
             },
           },
@@ -306,6 +313,7 @@ export type EquipmentPortsTable_position = {
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   }>
                 },
               },
@@ -342,6 +350,7 @@ export type EquipmentPortsTable_position = {
                 +name: string,
                 +type: PropertyKind,
                 +isEditable: ?boolean,
+                +isMandatory: ?boolean,
                 +isInstanceProperty: ?boolean,
                 +stringValue: ?string,
               },
@@ -373,6 +382,7 @@ export type EquipmentPortsTable_position = {
               +name: string,
               +type: PropertyKind,
               +isEditable: ?boolean,
+              +isMandatory: ?boolean,
               +isInstanceProperty: ?boolean,
               +stringValue: ?string,
             },
@@ -433,6 +443,7 @@ export type EquipmentPortsTable_position = {
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   }>,
                   +linkPropertyTypes: $ReadOnlyArray<?{
                     +id: string,
@@ -449,6 +460,7 @@ export type EquipmentPortsTable_position = {
                     +rangeToValue: ?number,
                     +isEditable: ?boolean,
                     +isInstanceProperty: ?boolean,
+                    +isMandatory: ?boolean,
                   }>,
                 },
               },
@@ -497,6 +509,7 @@ export type EquipmentPortsTable_position = {
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       }>
                     },
                   },
@@ -533,6 +546,7 @@ export type EquipmentPortsTable_position = {
                     +name: string,
                     +type: PropertyKind,
                     +isEditable: ?boolean,
+                    +isMandatory: ?boolean,
                     +isInstanceProperty: ?boolean,
                     +stringValue: ?string,
                   },
@@ -564,6 +578,7 @@ export type EquipmentPortsTable_position = {
                   +name: string,
                   +type: PropertyKind,
                   +isEditable: ?boolean,
+                  +isMandatory: ?boolean,
                   +isInstanceProperty: ?boolean,
                   +stringValue: ?string,
                 },
@@ -624,6 +639,7 @@ export type EquipmentPortsTable_position = {
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       }>,
                       +linkPropertyTypes: $ReadOnlyArray<?{
                         +id: string,
@@ -640,6 +656,7 @@ export type EquipmentPortsTable_position = {
                         +rangeToValue: ?number,
                         +isEditable: ?boolean,
                         +isInstanceProperty: ?boolean,
+                        +isMandatory: ?boolean,
                       }>,
                     },
                   },
@@ -688,6 +705,7 @@ export type EquipmentPortsTable_position = {
                             +rangeToValue: ?number,
                             +isEditable: ?boolean,
                             +isInstanceProperty: ?boolean,
+                            +isMandatory: ?boolean,
                           }>
                         },
                       },
@@ -724,6 +742,7 @@ export type EquipmentPortsTable_position = {
                         +name: string,
                         +type: PropertyKind,
                         +isEditable: ?boolean,
+                        +isMandatory: ?boolean,
                         +isInstanceProperty: ?boolean,
                         +stringValue: ?string,
                       },
@@ -755,6 +774,7 @@ export type EquipmentPortsTable_position = {
                       +name: string,
                       +type: PropertyKind,
                       +isEditable: ?boolean,
+                      +isMandatory: ?boolean,
                       +isInstanceProperty: ?boolean,
                       +stringValue: ?string,
                     },
@@ -907,7 +927,14 @@ v14 = {
   "args": null,
   "storageKey": null
 },
-v15 = [
+v15 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v16 = [
   (v0/*: any*/),
   (v1/*: any*/),
   (v4/*: any*/),
@@ -921,9 +948,10 @@ v15 = [
   (v11/*: any*/),
   (v12/*: any*/),
   (v13/*: any*/),
-  (v14/*: any*/)
+  (v14/*: any*/),
+  (v15/*: any*/)
 ],
-v16 = {
+v17 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "linkPropertyTypes",
@@ -931,13 +959,13 @@ v16 = {
   "args": null,
   "concreteType": "PropertyType",
   "plural": true,
-  "selections": (v15/*: any*/)
+  "selections": (v16/*: any*/)
 },
-v17 = [
+v18 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ],
-v18 = {
+v19 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "portType",
@@ -945,23 +973,23 @@ v18 = {
   "args": null,
   "concreteType": "EquipmentPortType",
   "plural": false,
-  "selections": (v17/*: any*/)
+  "selections": (v18/*: any*/)
 },
-v19 = {
+v20 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "bandwidth",
   "args": null,
   "storageKey": null
 },
-v20 = {
+v21 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "futureState",
   "args": null,
   "storageKey": null
 },
-v21 = {
+v22 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -984,6 +1012,7 @@ v21 = {
         (v1/*: any*/),
         (v4/*: any*/),
         (v13/*: any*/),
+        (v15/*: any*/),
         (v14/*: any*/),
         (v5/*: any*/)
       ]
@@ -1004,7 +1033,7 @@ v21 = {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v17/*: any*/)
+      "selections": (v18/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -1014,11 +1043,11 @@ v21 = {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v17/*: any*/)
+      "selections": (v18/*: any*/)
     }
   ]
 },
-v22 = {
+v23 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "ports",
@@ -1061,9 +1090,9 @@ v22 = {
               "args": null,
               "concreteType": "PropertyType",
               "plural": true,
-              "selections": (v15/*: any*/)
+              "selections": (v16/*: any*/)
             },
-            (v16/*: any*/)
+            (v17/*: any*/)
           ]
         }
       ]
@@ -1103,8 +1132,8 @@ v22 = {
                 (v1/*: any*/),
                 (v3/*: any*/),
                 (v4/*: any*/),
-                (v18/*: any*/),
-                (v19/*: any*/)
+                (v19/*: any*/),
+                (v20/*: any*/)
               ]
             }
           ]
@@ -1121,7 +1150,7 @@ v22 = {
       "plural": false,
       "selections": [
         (v0/*: any*/),
-        (v20/*: any*/),
+        (v21/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -1154,7 +1183,7 @@ v22 = {
                   "concreteType": "EquipmentPortType",
                   "plural": false,
                   "selections": [
-                    (v16/*: any*/)
+                    (v17/*: any*/)
                   ]
                 }
               ]
@@ -1170,7 +1199,7 @@ v22 = {
               "selections": [
                 (v0/*: any*/),
                 (v1/*: any*/),
-                (v20/*: any*/),
+                (v21/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -1195,8 +1224,8 @@ v22 = {
                         (v1/*: any*/),
                         (v3/*: any*/),
                         (v4/*: any*/),
-                        (v19/*: any*/),
-                        (v18/*: any*/)
+                        (v20/*: any*/),
+                        (v19/*: any*/)
                       ]
                     }
                   ]
@@ -1229,7 +1258,7 @@ v22 = {
             }
           ]
         },
-        (v21/*: any*/),
+        (v22/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -1244,10 +1273,10 @@ v22 = {
         }
       ]
     },
-    (v21/*: any*/)
+    (v22/*: any*/)
   ]
 },
-v23 = {
+v24 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -1269,7 +1298,7 @@ v23 = {
         (v1/*: any*/),
         (v3/*: any*/),
         (v4/*: any*/),
-        (v19/*: any*/)
+        (v20/*: any*/)
       ]
     }
   ]
@@ -1294,8 +1323,8 @@ return {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
-        (v22/*: any*/),
         (v23/*: any*/),
+        (v24/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -1316,8 +1345,8 @@ return {
               "selections": [
                 (v0/*: any*/),
                 (v1/*: any*/),
-                (v22/*: any*/),
                 (v23/*: any*/),
+                (v24/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -1338,8 +1367,8 @@ return {
                       "selections": [
                         (v0/*: any*/),
                         (v1/*: any*/),
-                        (v22/*: any*/),
                         (v23/*: any*/),
+                        (v24/*: any*/),
                         {
                           "kind": "LinkedField",
                           "alias": null,
@@ -1360,8 +1389,8 @@ return {
                               "selections": [
                                 (v0/*: any*/),
                                 (v1/*: any*/),
-                                (v22/*: any*/),
-                                (v23/*: any*/)
+                                (v23/*: any*/),
+                                (v24/*: any*/)
                               ]
                             }
                           ]

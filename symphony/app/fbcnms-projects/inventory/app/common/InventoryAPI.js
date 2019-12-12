@@ -13,4 +13,6 @@ export const InventoryAPIUrls = {
     `/inventory/inventory?location=${locationId}`,
   equipment: (equipmentId: string) =>
     `/inventory/inventory?equipment=${equipmentId}`,
+  project: (projectId: string) =>
+    `/workorders/projects/search?project=${projectId}`,
 };

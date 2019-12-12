@@ -18,6 +18,23 @@ import (
 )
 
 var (
+	// ActionsRulesColumns holds the columns for the "actions_rules" table.
+	ActionsRulesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString},
+		{Name: "trigger_id", Type: field.TypeString},
+		{Name: "rule_filters", Type: field.TypeJSON},
+		{Name: "rule_actions", Type: field.TypeJSON},
+	}
+	// ActionsRulesTable holds the schema information for the "actions_rules" table.
+	ActionsRulesTable = &schema.Table{
+		Name:        "actions_rules",
+		Columns:     ActionsRulesColumns,
+		PrimaryKey:  []*schema.Column{ActionsRulesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// CheckListItemsColumns holds the columns for the "check_list_items" table.
 	CheckListItemsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -113,7 +130,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 	}
 	// CustomersTable holds the schema information for the "customers" table.
@@ -411,7 +428,7 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "floor_plan_location_id", Type: field.TypeInt, Nullable: true},
+		{Name: "location_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_reference_point_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_scale_id", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_image_id", Type: field.TypeInt, Nullable: true},
@@ -746,6 +763,7 @@ var (
 		{Name: "range_to_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "is_instance_property", Type: field.TypeBool, Default: propertytype.DefaultIsInstanceProperty},
 		{Name: "editable", Type: field.TypeBool, Default: propertytype.DefaultEditable},
+		{Name: "mandatory", Type: field.TypeBool, Default: propertytype.DefaultMandatory},
 		{Name: "equipment_port_type_id", Type: field.TypeInt, Nullable: true},
 		{Name: "link_equipment_port_type_id", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_type_id", Type: field.TypeInt, Nullable: true},
@@ -762,49 +780,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "property_types_equipment_port_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[17]},
-
-				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[18]},
 
 				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "property_types_equipment_types_property_types",
+				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[19]},
+
+				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "property_types_equipment_types_property_types",
+				Columns: []*schema.Column{PropertyTypesColumns[20]},
 
 				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_location_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[20]},
+				Columns: []*schema.Column{PropertyTypesColumns[21]},
 
 				RefColumns: []*schema.Column{LocationTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_project_types_properties",
-				Columns: []*schema.Column{PropertyTypesColumns[21]},
+				Columns: []*schema.Column{PropertyTypesColumns[22]},
 
 				RefColumns: []*schema.Column{ProjectTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_service_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[22]},
+				Columns: []*schema.Column{PropertyTypesColumns[23]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_work_order_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[23]},
+				Columns: []*schema.Column{PropertyTypesColumns[24]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -814,27 +832,27 @@ var (
 			{
 				Name:    "propertytype_name_location_type_id",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[21]},
 			},
 			{
 				Name:    "propertytype_name_equipment_port_type_id",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[17]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[18]},
 			},
 			{
 				Name:    "propertytype_name_equipment_type_id",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[19]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
 			},
 			{
 				Name:    "propertytype_name_link_equipment_port_type_id",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[18]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[19]},
 			},
 			{
 				Name:    "propertytype_name_work_order_type_id",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[23]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[24]},
 			},
 		},
 	}
@@ -843,7 +861,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "type_id", Type: field.TypeInt, Nullable: true},
 	}
@@ -1324,6 +1342,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		ActionsRulesTable,
 		CheckListItemsTable,
 		CheckListItemDefinitionsTable,
 		CommentsTable,

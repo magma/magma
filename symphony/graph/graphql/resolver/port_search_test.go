@@ -64,11 +64,16 @@ func preparePortData(ctx context.Context, r *TestResolver, props []*models.Prope
 				Name: "propBool",
 				Type: "bool",
 			},
+			{
+				Name: "connected_date",
+				Type: models.PropertyKindDate,
+			},
 		},
 	})
 
 	strProp := ptyp.QueryPropertyTypes().Where(propertytype.Name("propStr")).OnlyX(ctx)
 	boolProp := ptyp.QueryPropertyTypes().Where(propertytype.Name("propBool")).OnlyX(ctx)
+	dateProp := ptyp.QueryPropertyTypes().Where(propertytype.Name("connected_date")).OnlyX(ctx)
 	equType1, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type",
 		Ports: []*models.EquipmentPortInput{
@@ -105,6 +110,10 @@ func preparePortData(ctx context.Context, r *TestResolver, props []*models.Prope
 			{
 				PropertyTypeID: boolProp.ID,
 				BooleanValue:   pointer.ToBool(true),
+			},
+			{
+				PropertyTypeID: dateProp.ID,
+				StringValue:    pointer.ToString("1988-03-29"),
 			},
 		},
 	})
@@ -307,4 +316,19 @@ func TestSearchPortProperties(t *testing.T) {
 	require.NoError(t, err)
 	ports = res4.Ports
 	require.Len(t, ports, 0)
+
+	f5 := models.PortFilterInput{
+		FilterType: models.PortFilterTypeProperty,
+		Operator:   models.FilterOperatorDateLessThan,
+		PropertyValue: &models.PropertyTypeInput{
+			Name:        "connected_date",
+			Type:        models.PropertyKindDate,
+			StringValue: pointer.ToString("2019-01-01"),
+		},
+	}
+
+	res5, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f5}, &limit)
+	require.NoError(t, err)
+	ports = res5.Ports
+	require.Len(t, ports, 1)
 }

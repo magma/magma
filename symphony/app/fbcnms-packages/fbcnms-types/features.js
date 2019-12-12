@@ -25,6 +25,8 @@ export type FeatureID =
   | 'alert_threshold_expression'
   | 'equipment_export'
   | 'import_exported_equipemnt'
+  | 'import_exported_ports'
+  | 'import_exported_links'
   | 'file_categories'
   | 'floor_plans'
   | 'work_order_map'
@@ -34,4 +36,5 @@ export type FeatureID =
   | 'services'
   | 'planned_equipment'
   | 'multi_subject_reports'
-  | 'equipment_live_status';
+  | 'equipment_live_status'
+  | 'logged_out_alert';

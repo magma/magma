@@ -21,7 +21,7 @@ type TestingT = zaptest.TestingT
 
 // NewTestLogger creates a new testing logger.
 func NewTestLogger(t TestingT) *TestLogger {
-	logger := zaptest.NewLogger(t)
+	logger := zaptest.NewLogger(t, zaptest.WrapOptions(zap.AddCaller()))
 	return &TestLogger{logger}
 }
 

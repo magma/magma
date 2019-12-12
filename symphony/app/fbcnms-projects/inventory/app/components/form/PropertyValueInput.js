@@ -7,6 +7,8 @@
  * @flow
  * @format
  */
+
+import type {FocusEvent} from '@fbcnms/ui/components/design-system/Input/TextInput';
 import type {Property} from '../../common/Property';
 import type {PropertyType} from '../../common/PropertyType';
 import type {WithStyles} from '@material-ui/core';
@@ -16,6 +18,7 @@ import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
 import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -25,6 +28,7 @@ import TextField from '@material-ui/core/TextField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import classNames from 'classnames';
 import update from 'immutability-helper';
+import {getPropertyValue} from '../../common/Property';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
@@ -37,7 +41,7 @@ type Props = {
   required: boolean,
   disabled: boolean,
   onChange: (Property | PropertyType) => void,
-  onBlur?: () => void,
+  onBlur?: (e: FocusEvent<HTMLInputElement>) => void,
   onKeyDown?: ?(e: SyntheticKeyboardEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
   headlineVariant?: 'headline' | 'form',
@@ -103,11 +107,12 @@ class PropertyValueInput extends React.Component<Props> {
         return inputType == 'Property' ? (
           <EnumPropertySelectValueInput
             label={label}
-            className={className}
+            className={classNames(classes.input, className)}
             inputClassName={classNames(classes.selectMenu, inputClassName)}
             margin={margin}
             property={property}
             onChange={onChange}
+            autoFocus={autoFocus}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />
@@ -128,7 +133,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             margin={margin}
             value={property.stringValue ?? ''}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -157,7 +162,7 @@ class PropertyValueInput extends React.Component<Props> {
             margin={margin}
             placeholder={'0'}
             {...(property.intValue ? {value: property.intValue} : {})}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -182,7 +187,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             margin={margin}
             value={property.floatValue ?? 0}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             onKeyDown={e => onKeyDown && onKeyDown(e)}
             onChange={event =>
               onChange(
@@ -201,7 +206,7 @@ class PropertyValueInput extends React.Component<Props> {
             required={required}
             disabled={disabled}
             id="property-value"
-            label={label}
+            label={this.props.label}
             className={classNames(classes.input, className)}
             margin={margin}
             value={{
@@ -232,7 +237,7 @@ class PropertyValueInput extends React.Component<Props> {
             id="property-value"
             variant="outlined"
             className={classNames(classes.input, className)}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             label={label}
             margin={margin}
             value={!!property.booleanValue ? 'True' : 'False'}
@@ -263,10 +268,10 @@ class PropertyValueInput extends React.Component<Props> {
             required={required}
             disabled={disabled}
             id="property-value"
-            label={label}
+            label={this.props.label}
             className={classNames(classes.input, className)}
             margin={margin}
-            onBlur={() => onBlur && onBlur()}
+            onBlur={e => onBlur && onBlur(e)}
             value={{
               rangeFrom: property.rangeFromValue,
               rangeTo: property.rangeToValue,
@@ -330,21 +335,42 @@ class PropertyValueInput extends React.Component<Props> {
   };
 
   render() {
-    const {property, headlineVariant} = this.props;
+    const input = this.getTextInput();
+
+    const {property, headlineVariant, required} = this.props;
     const propertyType = !!property.propertyType
       ? property.propertyType
       : property;
-    const input = this.getTextInput();
-    return headlineVariant === 'form' ? (
-      <FormField
-        label={propertyType.name}
-        hasSpacer={
-          propertyType.type !== 'gps_location' && propertyType.type !== 'range'
-        }>
-        {input}
-      </FormField>
-    ) : (
-      input
+
+    const propInputType = propertyType.type;
+    if (
+      headlineVariant !== 'form' ||
+      propInputType === 'gps_location' ||
+      propInputType === 'range'
+    ) {
+      return input;
+    }
+
+    return (
+      <FormValidationContext.Consumer>
+        {validationContext => {
+          const errorText = validationContext.errorCheck({
+            fieldId: propertyType.name,
+            fieldDisplayName: propertyType.name,
+            value: getPropertyValue(property),
+            required,
+          });
+          return (
+            <FormField
+              required={required}
+              hasError={!!errorText}
+              errorText={errorText}
+              label={propertyType.name}>
+              {input}
+            </FormField>
+          );
+        }}
+      </FormValidationContext.Consumer>
     );
   }
 }

@@ -60,16 +60,11 @@ func (epq *EquipmentPortQuery) Order(o ...Order) *EquipmentPortQuery {
 // QueryDefinition chains the current query on the definition edge.
 func (epq *EquipmentPortQuery) QueryDefinition() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: epq.config}
-	step := &sql.Step{}
-	step.From.V = epq.sqlQuery()
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.DefinitionTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.DefinitionColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.M2O, false, equipmentport.DefinitionTable, equipmentport.DefinitionColumn),
+	)
 	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
@@ -77,16 +72,11 @@ func (epq *EquipmentPortQuery) QueryDefinition() *EquipmentPortDefinitionQuery {
 // QueryParent chains the current query on the parent edge.
 func (epq *EquipmentPortQuery) QueryParent() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-	step := &sql.Step{}
-	step.From.V = epq.sqlQuery()
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmentport.ParentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.ParentColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.M2O, true, equipmentport.ParentTable, equipmentport.ParentColumn),
+	)
 	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
@@ -94,16 +84,11 @@ func (epq *EquipmentPortQuery) QueryParent() *EquipmentQuery {
 // QueryLink chains the current query on the link edge.
 func (epq *EquipmentPortQuery) QueryLink() *LinkQuery {
 	query := &LinkQuery{config: epq.config}
-	step := &sql.Step{}
-	step.From.V = epq.sqlQuery()
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = link.Table
-	step.To.Column = link.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.LinkTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.LinkColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sql.To(link.Table, link.FieldID),
+		sql.Edge(sql.M2O, false, equipmentport.LinkTable, equipmentport.LinkColumn),
+	)
 	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
@@ -111,16 +96,11 @@ func (epq *EquipmentPortQuery) QueryLink() *LinkQuery {
 // QueryProperties chains the current query on the properties edge.
 func (epq *EquipmentPortQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: epq.config}
-	step := &sql.Step{}
-	step.From.V = epq.sqlQuery()
-	step.From.Table = equipmentport.Table
-	step.From.Column = equipmentport.FieldID
-	step.To.Table = property.Table
-	step.To.Column = property.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmentport.PropertiesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmentport.PropertiesColumn)
+	step := sql.NewStep(
+		sql.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sql.To(property.Table, property.FieldID),
+		sql.Edge(sql.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	)
 	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }

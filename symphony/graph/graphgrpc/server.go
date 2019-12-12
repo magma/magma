@@ -5,8 +5,11 @@
 package graphgrpc
 
 import (
-	"github.com/facebookincubator/symphony/cloud/log"
+	"context"
+	"database/sql"
 
+	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/grpc-middleware/sqltx"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -18,26 +21,23 @@ import (
 	"google.golang.org/grpc/reflection"
 )
 
-func newServer(logger log.Logger, srv TenantServiceServer) (*grpc.Server, func(), error) {
-	grpc_zap.ReplaceGrpcLogger(logger.Background())
-
+func newServer(db *sql.DB, logger log.Logger) (*grpc.Server, func(), error) {
+	grpc_zap.ReplaceGrpcLoggerV2(logger.Background())
 	s := grpc.NewServer(
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-			grpc_ctxtags.StreamServerInterceptor(),
-			grpc_zap.StreamServerInterceptor(logger.Background()),
-			grpc_recovery.StreamServerInterceptor(),
-		)),
 		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
 			grpc_ctxtags.UnaryServerInterceptor(),
 			grpc_zap.UnaryServerInterceptor(logger.Background()),
 			grpc_recovery.UnaryServerInterceptor(),
+			sqltx.UnaryServerInterceptor(db),
 		)),
 		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
 	)
-
-	RegisterTenantServiceServer(s, srv)
+	RegisterTenantServiceServer(s,
+		NewTenantService(func(ctx context.Context) ExecQueryer {
+			return sqltx.FromContext(ctx)
+		}),
+	)
 	reflection.Register(s)
-
 	err := view.Register(ocgrpc.DefaultServerViews...)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "registering grpc views")

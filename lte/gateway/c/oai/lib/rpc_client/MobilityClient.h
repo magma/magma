@@ -70,6 +70,7 @@ class MobilityServiceClient {
      * Allocate an IPv4 address from the free IP pool
      *
      * @param imsi: IMSI string
+     * @param apn:  APN string
      * @param addr (out): contains the IP address allocated upon returning in
      * "network byte order"
      * @return 0 on success
@@ -77,7 +78,8 @@ class MobilityServiceClient {
      * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
      *         subscriber
      */
-  int AllocateIPv4Address(const std::string &imsi, struct in_addr *addr);
+  int AllocateIPv4Address(const std::string &imsi, const std::string &apn,
+                          struct in_addr *addr);
 
   /*
      * Release an allocated IPv4 address.
@@ -86,11 +88,13 @@ class MobilityServiceClient {
      * periodically.
      *
      * @param imsi: IMSI string
+     * @param apn:  APN string
      * @param addr: IP address to release in "network byte order"
      * @return 0 on success
      * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
      */
-  int ReleaseIPv4Address(const std::string &imsi, const struct in_addr &addr);
+  int ReleaseIPv4Address(const std::string &imsi, const std::string &apn,
+                         const struct in_addr &addr);
 
   /*
      * Get the allocated IPv4 address for a subscriber
@@ -101,6 +105,7 @@ class MobilityServiceClient {
      */
   int GetIPv4AddressForSubscriber(
     const std::string &imsi,
+    const std::string &apn,
     struct in_addr *addr);
 
   /*

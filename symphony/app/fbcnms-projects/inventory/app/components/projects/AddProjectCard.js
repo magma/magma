@@ -20,10 +20,10 @@ import type {WithStyles} from '@material-ui/core';
 
 import AddProjectMutation from '../../mutations/AddProjectMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
@@ -35,6 +35,7 @@ import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
@@ -153,116 +154,117 @@ class AddProjectCard extends React.Component<Props, State> {
     const {properties} = project;
     return (
       <div className={classes.root}>
-        <div className={classes.nameHeader}>
-          <div className={classes.breadcrumbs}>
-            <Breadcrumbs
-              breadcrumbs={[
-                {
-                  id: 'projects',
-                  name: 'Projects',
-                  onClick: () => this.navigateToMainPage(),
-                },
-                {
-                  id: `new_project_` + Date.now(),
-                  name: 'New Project',
-                },
-              ]}
-              size="large"
+        <FormValidationContextProvider>
+          <div className={classes.nameHeader}>
+            <div className={classes.breadcrumbs}>
+              <Breadcrumbs
+                breadcrumbs={[
+                  {
+                    id: 'projects',
+                    name: 'Projects',
+                    onClick: () => this.navigateToMainPage(),
+                  },
+                  {
+                    id: `new_project_` + Date.now(),
+                    name: 'New Project',
+                  },
+                ]}
+                size="large"
+              />
+            </div>
+            <FormSaveCancelPanel
+              onCancel={() => this.props.history.push(this.props.match.url)}
+              onSave={this._saveProject}
             />
           </div>
-          <Button
-            className={classes.cancelButton}
-            skin="regular"
-            onClick={() => this.props.history.push(this.props.match.url)}>
-            Cancel
-          </Button>
-          <Button onClick={() => this._saveProject()}>Save</Button>
-        </div>
-        <div className={classes.contentRoot}>
-          <div className={classes.cards}>
-            <Grid container spacing={2}>
-              <Grid item xs={8} sm={8} lg={8} xl={8}>
-                <ExpandingPanel title="Details">
-                  <NameDescriptionSection
-                    name={project.name}
-                    description={project.description}
-                    onNameChange={value =>
-                      this._setProjectDetail('name', value)
-                    }
-                    onDescriptionChange={value =>
-                      this._setProjectDetail('description', value)
-                    }
-                  />
-                  <div className={classes.separator} />
-                  <Grid container spacing={2}>
-                    {project.type && (
+          <div className={classes.contentRoot}>
+            <div className={classes.cards}>
+              <Grid container spacing={2}>
+                <Grid item xs={8} sm={8} lg={8} xl={8}>
+                  <ExpandingPanel title="Details">
+                    <NameDescriptionSection
+                      name={project.name}
+                      description={project.description}
+                      onNameChange={value =>
+                        this._setProjectDetail('name', value)
+                      }
+                      onDescriptionChange={value =>
+                        this._setProjectDetail('description', value)
+                      }
+                    />
+                    <div className={classes.separator} />
+                    <Grid container spacing={2}>
+                      {project.type && (
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Type">
+                            <TextField
+                              disabled
+                              variant="outlined"
+                              margin="dense"
+                              className={classes.gridInput}
+                              value={project.type.name}
+                            />
+                          </FormField>
+                        </Grid>
+                      )}
                       <Grid item xs={12} sm={6} lg={4} xl={4}>
-                        <FormField label="Type">
-                          <TextField
-                            disabled
-                            variant="outlined"
-                            margin="dense"
+                        <FormField label="Location">
+                          <LocationTypeahead
                             className={classes.gridInput}
-                            value={project.type.name}
+                            headline={null}
+                            margin="dense"
+                            onLocationSelection={location =>
+                              this._locationChangeHandler(location?.id ?? null)
+                            }
                           />
                         </FormField>
                       </Grid>
-                    )}
-                    <Grid item xs={12} sm={6} lg={4} xl={4}>
-                      <FormField label="Location">
-                        <LocationTypeahead
-                          className={classes.gridInput}
-                          headline={null}
-                          margin="dense"
-                          onLocationSelection={location =>
-                            this._locationChangeHandler(location?.id ?? null)
-                          }
-                        />
-                      </FormField>
+                      {properties &&
+                        properties.map((property, index) => (
+                          <Grid
+                            key={property.id}
+                            item
+                            xs={12}
+                            sm={6}
+                            lg={4}
+                            xl={4}>
+                            <PropertyValueInput
+                              required={
+                                !!property.propertyType.isInstanceProperty
+                              }
+                              disabled={
+                                !property.propertyType.isInstanceProperty
+                              }
+                              headlineVariant="form"
+                              fullWidth={true}
+                              label={property.propertyType.name}
+                              className={classes.gridInput}
+                              margin="dense"
+                              inputType="Property"
+                              property={property}
+                              onChange={this._propertyChangedHandler(index)}
+                            />
+                          </Grid>
+                        ))}
                     </Grid>
-                    {properties &&
-                      properties.map((property, index) => (
-                        <Grid
-                          key={property.id}
-                          item
-                          xs={12}
-                          sm={6}
-                          lg={4}
-                          xl={4}>
-                          <PropertyValueInput
-                            required={
-                              !!property.propertyType.isInstanceProperty
-                            }
-                            disabled={!property.propertyType.isInstanceProperty}
-                            headlineVariant="form"
-                            fullWidth={true}
-                            label={property.propertyType.name}
-                            className={classes.gridInput}
-                            margin="dense"
-                            inputType="Property"
-                            property={property}
-                            onChange={this._propertyChangedHandler(index)}
-                          />
-                        </Grid>
-                      ))}
-                  </Grid>
-                </ExpandingPanel>
+                  </ExpandingPanel>
+                </Grid>
+                <Grid item xs={4} sm={4} lg={4} xl={4}>
+                  <ExpandingPanel title="Team">
+                    <UserTypeahead
+                      className={classes.input}
+                      headline="Owner"
+                      onUserSelection={user =>
+                        this._setProjectDetail('creator', user)
+                      }
+                      margin="dense"
+                    />
+                  </ExpandingPanel>
+                </Grid>
               </Grid>
-              <Grid item xs={4} sm={4} lg={4} xl={4}>
-                <ExpandingPanel title="Team">
-                  <UserTypeahead
-                    className={classes.input}
-                    headline="Owner"
-                    onUserSelection={user =>
-                      this._setProjectDetail('creator', user)
-                    }
-                    margin="dense"
-                  />
-                </ExpandingPanel>
-              </Grid>
-            </Grid>
+            </div>
           </div>
-        </div>
+        </FormValidationContextProvider>
       </div>
     );
   }

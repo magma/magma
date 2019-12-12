@@ -95,6 +95,12 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
     editingEquipmentPortType: this.getEditingEquipmentPortType(),
   };
 
+  _nameInputRef = React.createRef();
+
+  componentDidMount() {
+    this._nameInputRef.current && this._nameInputRef.current.focus();
+  }
+
   render() {
     const {classes, onClose} = this.props;
     const {editingEquipmentPortType} = this.state;
@@ -124,6 +130,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
                     className={classes.input}
                     value={editingEquipmentPortType.name}
                     onChange={this.nameChanged}
+                    ref={this._nameInputRef}
                   />
                 </FormField>
               </Grid>
@@ -138,6 +145,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
                   <PropertyTypeTable
                     propertyTypes={propertyTypes}
                     onPropertiesChanged={this._propertyChangedHandler}
+                    supportMandatory={false}
                   />
                 </CardSection>
               </Grid>
@@ -152,6 +160,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
                   <PropertyTypeTable
                     propertyTypes={linkPropertyTypes}
                     onPropertiesChanged={this._linkPropertyChangedHandler}
+                    supportMandatory={false}
                   />
                 </CardSection>
               </Grid>

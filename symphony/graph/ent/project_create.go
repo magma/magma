@@ -239,6 +239,7 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 		insert.Set(project.FieldCreator, *value)
 		pr.Creator = value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(project.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

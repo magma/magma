@@ -399,6 +399,7 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -417,8 +418,9 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(service.Table).Where(sql.InInts(service.FieldID, ids...))
+		updater = builder.Update(service.Table)
 	)
+	updater = updater.Where(sql.InInts(service.FieldID, ids...))
 	if value := su.update_time; value != nil {
 		updater.Set(service.FieldUpdateTime, *value)
 	}
@@ -1085,6 +1087,7 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1108,8 +1111,9 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(service.Table).Where(sql.InInts(service.FieldID, ids...))
+		updater = builder.Update(service.Table)
 	)
+	updater = updater.Where(sql.InInts(service.FieldID, ids...))
 	if value := suo.update_time; value != nil {
 		updater.Set(service.FieldUpdateTime, *value)
 		s.UpdateTime = *value
@@ -1120,11 +1124,10 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 	}
 	if value := suo.external_id; value != nil {
 		updater.Set(service.FieldExternalID, *value)
-		s.ExternalID = *value
+		s.ExternalID = value
 	}
 	if suo.clearexternal_id {
-		var value string
-		s.ExternalID = value
+		s.ExternalID = nil
 		updater.SetNull(service.FieldExternalID)
 	}
 	if !updater.Empty() {

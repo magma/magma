@@ -50,6 +50,8 @@ const (
 	FieldIsInstanceProperty = "is_instance_property"
 	// FieldEditable holds the string denoting the editable vertex property in the database.
 	FieldEditable = "editable"
+	// FieldMandatory holds the string denoting the mandatory vertex property in the database.
+	FieldMandatory = "mandatory"
 
 	// Table holds the table name of the propertytype in the database.
 	Table = "property_types"
@@ -130,6 +132,7 @@ var Columns = []string{
 	FieldRangeToVal,
 	FieldIsInstanceProperty,
 	FieldEditable,
+	FieldMandatory,
 }
 
 var (
@@ -160,4 +163,9 @@ var (
 	descEditable = fields[13].Descriptor()
 	// DefaultEditable holds the default value on creation for the editable field.
 	DefaultEditable = descEditable.Default.(bool)
+
+	// descMandatory is the schema descriptor for mandatory field.
+	descMandatory = fields[14].Descriptor()
+	// DefaultMandatory holds the default value on creation for the mandatory field.
+	DefaultMandatory = descMandatory.Default.(bool)
 )

@@ -12,9 +12,11 @@ import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
+  RemoveEquipmentMutation,
   RemoveEquipmentMutationMutationResponse,
   RemoveEquipmentMutationMutationVariables,
 } from './__generated__/RemoveEquipmentMutation.graphql';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation RemoveEquipmentMutation($id: ID!, $work_order_id: ID) {
@@ -25,10 +27,10 @@ const mutation = graphql`
 export default (
   variables: RemoveEquipmentMutationMutationVariables,
   callbacks?: MutationCallbacks<RemoveEquipmentMutationMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<RemoveEquipmentMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

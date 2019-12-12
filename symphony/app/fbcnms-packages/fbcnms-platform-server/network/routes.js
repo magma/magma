@@ -110,10 +110,14 @@ router.post(
             dns: DEFAULT_DNS_CONFIG,
             federation: {feg_network_id: data.fegNetworkID},
             carrier_wifi: {
-              aaa_server: {},
+              aaa_server: {
+                accounting_enabled: true,
+                create_session_on_auth: true,
+                idle_session_timeout_ms: 500000,
+              },
               default_rule_id: '',
               eap_aka: {},
-              network_services: [],
+              network_services: ['policy_enforcement'],
             },
           },
         });

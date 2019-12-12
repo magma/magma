@@ -28,7 +28,7 @@ const WorkOrderSearchConfig: Array<EntityConfig> = [
         entityType: 'work_order',
         label: 'Name',
         component: PowerSearchWorkOrderNameFilter,
-        defaultOperator: 'is',
+        defaultOperator: 'contains',
       },
       {
         key: 'work_order_status',

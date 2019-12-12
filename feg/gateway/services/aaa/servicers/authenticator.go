@@ -110,12 +110,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		updateRequest := &orcprotos.UpdateRecordRequest{
 			Id:       imsi,
 			Location: "hwid", // actual hwid will be filled in by directory service
-			Fields: []*orcprotos.DirectoryField{
-				{
-					Key:   MacAddrKey,
-					Value: resp.Ctx.GetMacAddr(),
-				},
-			},
+			Fields:   map[string]string{MacAddrKey: resp.Ctx.GetMacAddr()},
 		}
 		go directoryd.UpdateRecord(updateRequest) // execute in a new goroutine in case calls to directoryd take long time
 	}

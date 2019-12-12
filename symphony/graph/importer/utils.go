@@ -37,6 +37,21 @@ func findIndex(a []string, x string) int {
 	return -1
 }
 
+func findIndexForSimilar(a []string, x string) int {
+	i := findIndex(a, x)
+	if i != -1 {
+		return i
+	}
+	newX := strings.ReplaceAll(x, " ", "_")
+	i = findIndex(a, newX)
+	if i != -1 {
+		return i
+	}
+	newX = strings.ReplaceAll(x, "_", " ")
+	i = findIndex(a, newX)
+	return i
+}
+
 func equal(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
@@ -161,6 +176,10 @@ func (m *importer) populateIndexToLocationTypeMap(ctx context.Context, firstLine
 			}
 		}
 	}
+}
+
+func (m *importer) populateEquipmentTypeNameToIDMapGeneral(ctx context.Context, firstLine []string, populateEquipProperties bool) error {
+	return m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, models.PropertyEntityEquipment), populateEquipProperties)
 }
 
 func (m *importer) populateEquipmentTypeNameToIDMap(ctx context.Context, firstLine ImportHeader, populateEquipProperties bool) error {

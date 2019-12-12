@@ -5,12 +5,12 @@
 package schema
 
 import (
-	"github.com/facebookincubator/symphony/frontier/ent/user/role"
-
 	"github.com/badoux/checkmail"
 	"github.com/facebookincubator/ent"
+	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/symphony/frontier/ent/user/role"
 )
 
 // User defines user schema.
@@ -44,6 +44,13 @@ func (User) Fields() []ent.Field {
 			StorageKey("networkIDs"),
 		field.Strings("tabs").
 			Optional(),
+	}
+}
+
+// Edges of user entity.
+func (User) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("tokens", Token.Type),
 	}
 }
 

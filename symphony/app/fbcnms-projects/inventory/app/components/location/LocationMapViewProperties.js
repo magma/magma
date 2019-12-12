@@ -9,7 +9,7 @@
  */
 import type {WithStyles} from '@material-ui/core';
 
-import ListItemText from '@material-ui/core/ListItemText';
+import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
@@ -33,6 +33,9 @@ const styles = theme => ({
   menu: {
     width: 305,
   },
+  selectMenu: {
+    height: '14px',
+  },
 });
 
 const mapViewTypes = {
@@ -55,56 +58,53 @@ class LocationMapViewProperties extends React.PureComponent<Props> {
     let levelsCount = 0;
     return (
       <div className={classes.container}>
-        <TextField
-          select
-          label="Map Type"
-          variant="outlined"
-          className={classes.input}
-          value={this.props.mapType}
-          onChange={this.props.onMapTypeChanged}
-          SelectProps={{
-            MenuProps: {
-              className: classes.menu,
-            },
-          }}
-          margin="normal">
-          {Object.keys(mapViewTypes).map(type => (
-            <MenuItem key={type} value={type}>
-              <ListItemText
-                classes={{primary: classes.primary}}
-                primary={mapViewTypes[type]}
-              />
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          label="Map Zoom Level"
-          variant="outlined"
-          className={classes.input}
-          value={this.props.mapZoomLevel}
-          onChange={this.props.onMapZoomLevelChanged}
-          MenuProps={{
-            className: classes.menu,
-          }}
-          margin="normal">
-          {Object.keys(mapZoomLevels).map(mapZoomLevel => {
-            levelsCount++;
-            return (
-              <MenuItem key={mapZoomLevel} value={parseInt(mapZoomLevel)}>
-                <ListItemText
-                  classes={{primary: classes.primary}}
-                  primary={
-                    levelsCount +
+        <FormField label="Map Type" className={classes.input}>
+          <TextField
+            select
+            variant="outlined"
+            value={this.props.mapType}
+            onChange={this.props.onMapTypeChanged}
+            SelectProps={{
+              classes: {selectMenu: classes.selectMenu},
+              MenuProps: {
+                className: classes.menu,
+              },
+            }}
+            margin="dense">
+            {Object.keys(mapViewTypes).map(type => (
+              <MenuItem key={type} value={type}>
+                {mapViewTypes[type]}
+              </MenuItem>
+            ))}
+          </TextField>
+        </FormField>
+        <FormField label="Map Zoom Level" className={classes.input}>
+          <TextField
+            select
+            variant="outlined"
+            className={classes.input}
+            value={this.props.mapZoomLevel}
+            onChange={this.props.onMapZoomLevelChanged}
+            SelectProps={{
+              classes: {selectMenu: classes.selectMenu},
+              MenuProps: {
+                className: classes.menu,
+              },
+            }}
+            margin="dense">
+            {Object.keys(mapZoomLevels).map(mapZoomLevel => {
+              levelsCount++;
+              return (
+                <MenuItem key={mapZoomLevel} value={parseInt(mapZoomLevel)}>
+                  {levelsCount +
                     (mapZoomLevels[mapZoomLevel]
                       ? ' - ' + mapZoomLevels[mapZoomLevel]
-                      : '')
-                  }
-                />
-              </MenuItem>
-            );
-          })}
-        </TextField>
+                      : '')}
+                </MenuItem>
+              );
+            })}
+          </TextField>
+        </FormField>
       </div>
     );
   }

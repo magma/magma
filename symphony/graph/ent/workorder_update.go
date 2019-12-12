@@ -575,6 +575,11 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 		v := workorder.UpdateDefaultUpdateTime()
 		wou.update_time = &v
 	}
+	if wou.name != nil {
+		if err := workorder.NameValidator(*wou.name); err != nil {
+			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
+	}
 	if len(wou._type) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
@@ -626,6 +631,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -644,8 +650,9 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(workorder.Table).Where(sql.InInts(workorder.FieldID, ids...))
+		updater = builder.Update(workorder.Table)
 	)
+	updater = updater.Where(sql.InInts(workorder.FieldID, ids...))
 	if value := wou.update_time; value != nil {
 		updater.Set(workorder.FieldUpdateTime, *value)
 	}
@@ -1620,6 +1627,11 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 		v := workorder.UpdateDefaultUpdateTime()
 		wouo.update_time = &v
 	}
+	if wouo.name != nil {
+		if err := workorder.NameValidator(*wouo.name); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+		}
+	}
 	if len(wouo._type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
@@ -1669,6 +1681,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1692,8 +1705,9 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(workorder.Table).Where(sql.InInts(workorder.FieldID, ids...))
+		updater = builder.Update(workorder.Table)
 	)
+	updater = updater.Where(sql.InInts(workorder.FieldID, ids...))
 	if value := wouo.update_time; value != nil {
 		updater.Set(workorder.FieldUpdateTime, *value)
 		wo.UpdateTime = *value

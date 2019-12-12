@@ -13,11 +13,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 )
 
-const (
-	ServiceContextIDDefault = "32251@3gpp.org" // Packet-Switch service context
-	ServiceIDDefault        = 0
-)
-
 type FinalUnitAction uint8
 
 const (

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
+	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
 )
 
@@ -27,10 +28,12 @@ type UserUpdate struct {
 	role       *int
 	addrole    *int
 
-	networks   *[]string
-	tabs       *[]string
-	cleartabs  bool
-	predicates []predicate.User
+	networks      *[]string
+	tabs          *[]string
+	cleartabs     bool
+	tokens        map[int]struct{}
+	removedTokens map[int]struct{}
+	predicates    []predicate.User
 }
 
 // Where adds a new predicate for the builder.
@@ -95,6 +98,46 @@ func (uu *UserUpdate) ClearTabs() *UserUpdate {
 	return uu
 }
 
+// AddTokenIDs adds the tokens edge to Token by ids.
+func (uu *UserUpdate) AddTokenIDs(ids ...int) *UserUpdate {
+	if uu.tokens == nil {
+		uu.tokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uu.tokens[ids[i]] = struct{}{}
+	}
+	return uu
+}
+
+// AddTokens adds the tokens edges to Token.
+func (uu *UserUpdate) AddTokens(t ...*Token) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.AddTokenIDs(ids...)
+}
+
+// RemoveTokenIDs removes the tokens edge to Token by ids.
+func (uu *UserUpdate) RemoveTokenIDs(ids ...int) *UserUpdate {
+	if uu.removedTokens == nil {
+		uu.removedTokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uu.removedTokens[ids[i]] = struct{}{}
+	}
+	return uu
+}
+
+// RemoveTokens removes tokens edges to Token.
+func (uu *UserUpdate) RemoveTokens(t ...*Token) *UserUpdate {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uu.RemoveTokenIDs(ids...)
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 	if uu.updated_at == nil {
@@ -155,6 +198,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -173,8 +217,9 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(user.Table).Where(sql.InInts(user.FieldID, ids...))
+		updater = builder.Update(user.Table)
 	)
+	updater = updater.Where(sql.InInts(user.FieldID, ids...))
 	if value := uu.updated_at; value != nil {
 		updater.Set(user.FieldUpdatedAt, *value)
 	}
@@ -213,6 +258,42 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			return 0, rollback(tx, err)
 		}
 	}
+	if len(uu.removedTokens) > 0 {
+		eids := make([]int, len(uu.removedTokens))
+		for eid := range uu.removedTokens {
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(user.TokensTable).
+			SetNull(user.TokensColumn).
+			Where(sql.InInts(user.TokensColumn, ids...)).
+			Where(sql.InInts(token.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(uu.tokens) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range uu.tokens {
+				p.Or().EQ(token.FieldID, eid)
+			}
+			query, args := builder.Update(user.TokensTable).
+				Set(user.TokensColumn, id).
+				Where(sql.And(p, sql.IsNull(user.TokensColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return 0, rollback(tx, err)
+			}
+			if int(affected) < len(uu.tokens) {
+				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uu.tokens))})
+			}
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -230,9 +311,11 @@ type UserUpdateOne struct {
 	role       *int
 	addrole    *int
 
-	networks  *[]string
-	tabs      *[]string
-	cleartabs bool
+	networks      *[]string
+	tabs          *[]string
+	cleartabs     bool
+	tokens        map[int]struct{}
+	removedTokens map[int]struct{}
 }
 
 // SetEmail sets the email field.
@@ -289,6 +372,46 @@ func (uuo *UserUpdateOne) ClearTabs() *UserUpdateOne {
 	uuo.tabs = nil
 	uuo.cleartabs = true
 	return uuo
+}
+
+// AddTokenIDs adds the tokens edge to Token by ids.
+func (uuo *UserUpdateOne) AddTokenIDs(ids ...int) *UserUpdateOne {
+	if uuo.tokens == nil {
+		uuo.tokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uuo.tokens[ids[i]] = struct{}{}
+	}
+	return uuo
+}
+
+// AddTokens adds the tokens edges to Token.
+func (uuo *UserUpdateOne) AddTokens(t ...*Token) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.AddTokenIDs(ids...)
+}
+
+// RemoveTokenIDs removes the tokens edge to Token by ids.
+func (uuo *UserUpdateOne) RemoveTokenIDs(ids ...int) *UserUpdateOne {
+	if uuo.removedTokens == nil {
+		uuo.removedTokens = make(map[int]struct{})
+	}
+	for i := range ids {
+		uuo.removedTokens[ids[i]] = struct{}{}
+	}
+	return uuo
+}
+
+// RemoveTokens removes tokens edges to Token.
+func (uuo *UserUpdateOne) RemoveTokens(t ...*Token) *UserUpdateOne {
+	ids := make([]int, len(t))
+	for i := range t {
+		ids[i] = t[i].ID
+	}
+	return uuo.RemoveTokenIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -349,6 +472,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -372,8 +496,9 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(user.Table).Where(sql.InInts(user.FieldID, ids...))
+		updater = builder.Update(user.Table)
 	)
+	updater = updater.Where(sql.InInts(user.FieldID, ids...))
 	if value := uuo.updated_at; value != nil {
 		updater.Set(user.FieldUpdatedAt, *value)
 		u.UpdatedAt = *value
@@ -419,6 +544,42 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 		query, args := updater.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
 			return nil, rollback(tx, err)
+		}
+	}
+	if len(uuo.removedTokens) > 0 {
+		eids := make([]int, len(uuo.removedTokens))
+		for eid := range uuo.removedTokens {
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(user.TokensTable).
+			SetNull(user.TokensColumn).
+			Where(sql.InInts(user.TokensColumn, ids...)).
+			Where(sql.InInts(token.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(uuo.tokens) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range uuo.tokens {
+				p.Or().EQ(token.FieldID, eid)
+			}
+			query, args := builder.Update(user.TokensTable).
+				Set(user.TokensColumn, id).
+				Where(sql.And(p, sql.IsNull(user.TokensColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			if int(affected) < len(uuo.tokens) {
+				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uuo.tokens))})
+			}
 		}
 	}
 	if err = tx.Commit(); err != nil {

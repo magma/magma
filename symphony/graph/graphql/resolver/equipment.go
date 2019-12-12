@@ -6,6 +6,12 @@ package resolver
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/facebookincubator/symphony/graph/ent/file"
 
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -101,7 +107,7 @@ func (equipmentTypeResolver) NumberOfEquipment(ctx context.Context, obj *ent.Equ
 	return obj.QueryEquipment().Count(ctx)
 }
 
-type equipmentResolver struct{}
+type equipmentResolver struct{ resolver }
 
 func (equipmentResolver) ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error) {
 	l, err := obj.QueryLocation().Only(ctx)
@@ -188,10 +194,47 @@ func (r equipmentResolver) LocationHierarchy(ctx context.Context, eq *ent.Equipm
 	return locs, nil
 }
 
-func (equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
-	var device models.Device
-	device.ID = eq.DeviceID
-	return &device, nil
+func (r equipmentResolver) Device(ctx context.Context, eq *ent.Equipment) (*models.Device, error) {
+	if eq.DeviceID == "" {
+		return nil, nil
+	}
+	if r.orc8rClient == nil {
+		return nil, errors.New("unsupported orc8r field")
+	}
+	parts := strings.Split(eq.DeviceID, ".")
+	if len(parts) < 2 {
+		return nil, errors.New("invalid equipment device id")
+	}
+
+	uri := fmt.Sprintf("/magma/v1/networks/%s/gateways/%s/status", parts[1], parts[0])
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, uri, nil)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create http request: %w", err)
+	}
+	rsp, err := r.orc8rClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("performing orc8r status request: %w", err)
+	}
+	defer rsp.Body.Close()
+
+	var result struct {
+		CheckinTime int64 `json:"checkin_time"`
+	}
+	if err := json.NewDecoder(rsp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("decoding orc8r response: %w", err)
+	}
+
+	dev := models.Device{ID: eq.DeviceID}
+	if result.CheckinTime != 0 {
+		up := checkinTimeIsUp(result.CheckinTime, 3*time.Minute)
+		dev.Up = &up
+	}
+	return &dev, nil
+}
+
+// checkinTime is milliseconds since epoch
+func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
+	return checkinTime/1000+int64(buffer.Seconds()) > time.Now().Unix()
 }
 
 func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {

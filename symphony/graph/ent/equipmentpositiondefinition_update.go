@@ -219,6 +219,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -237,8 +238,9 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentpositiondefinition.Table).Where(sql.InInts(equipmentpositiondefinition.FieldID, ids...))
+		updater = builder.Update(equipmentpositiondefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentpositiondefinition.FieldID, ids...))
 	if value := epdu.update_time; value != nil {
 		updater.Set(equipmentpositiondefinition.FieldUpdateTime, *value)
 	}
@@ -534,6 +536,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -557,8 +560,9 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(equipmentpositiondefinition.Table).Where(sql.InInts(equipmentpositiondefinition.FieldID, ids...))
+		updater = builder.Update(equipmentpositiondefinition.Table)
 	)
+	updater = updater.Where(sql.InInts(equipmentpositiondefinition.FieldID, ids...))
 	if value := epduo.update_time; value != nil {
 		updater.Set(equipmentpositiondefinition.FieldUpdateTime, *value)
 		epd.UpdateTime = *value

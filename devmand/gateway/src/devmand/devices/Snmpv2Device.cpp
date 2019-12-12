@@ -59,7 +59,7 @@ static std::string getTypeString(int ifMibType) {
   return folly::sformat("iana-if-type:{}", ts);
 }
 
-std::unique_ptr<devices::Device> Snmpv2Device::createDevice(
+std::shared_ptr<devices::Device> Snmpv2Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
@@ -99,7 +99,7 @@ std::shared_ptr<State> Snmpv2Device::getState() {
   using IfMib = devmand::channels::snmp::IfMib;
   using IModel = devmand::models::interface::Model;
 
-  auto state = PingDevice::getState();
+  std::shared_ptr<State> state = PingDevice::getState();
 
   state->update([](auto& lockedState) {
     IModel::init(lockedState);
@@ -125,26 +125,57 @@ std::shared_ptr<State> Snmpv2Device::getState() {
           lockedState["ietf-system:system"]["location"] = v;
         });
       }));
+
+  std::weak_ptr<Device> weak(this->shared_from_this());
+  // TODO: state::addRequest is for individual requests. We use it here so that
+  // State::collect doesn't miss any requests, since they're nested. Figure out
+  // a way to track individual requests again.
   state->addRequest(
-      IfMib::getInterfaceNames(snmpChannel).thenValue([state](auto results) {
-        state->update([&results](auto& lockedState) {
-          for (auto result : results) {
-            IModel::updateInterface(
-                lockedState, result.index, "name", result.value);
-            IModel::updateInterface(
-                lockedState, result.index, "state/name", result.value);
-            IModel::updateInterface(
-                lockedState, result.index, "config/name", result.value);
-          }
-        });
-      }));
-  state->addRequest(
-      IfMib::getInterfaceOperStatuses(snmpChannel)
+      IfMib::getInterfaceIndicies(snmpChannel)
+          // "this" pointer included in lambda so that it has snmpChannel in
+          // scope. Don't use "this" without first locking on the weak pointer
+          // so that you make sure the object still exists.
+          .thenValue([this, weak, state](auto interfaceIndices) {
+            auto sharedDevice = weak.lock();
+            if (not sharedDevice) {
+              LOG(INFO) << "Can't get state with destructed device object.";
+              return folly::Future<folly::Unit>();
+            }
+            return this->addToStateWithInterfaceIndices(
+                state, interfaceIndices);
+          }));
+
+  return state;
+}
+
+folly::Future<folly::Unit> Snmpv2Device::addToStateWithInterfaceIndices(
+    std::shared_ptr<State> state,
+    const devmand::channels::snmp::InterfaceIndicies& interfaceIndices) {
+  using IfMib = devmand::channels::snmp::IfMib;
+  using IModel = devmand::models::interface::Model;
+
+  std::vector<folly::Future<folly::Unit>> allFutures;
+  allFutures.push_back(
+      IfMib::getInterfaceNames(snmpChannel, interfaceIndices)
           .thenValue([state](auto results) {
             state->update([&results](auto& lockedState) {
               for (auto result : results) {
-                // TODO this is not valid according to the model but we need to
-                // fix the front-end.
+                IModel::updateInterface(
+                    lockedState, result.index, "name", result.value);
+                IModel::updateInterface(
+                    lockedState, result.index, "state/name", result.value);
+                IModel::updateInterface(
+                    lockedState, result.index, "config/name", result.value);
+              }
+            });
+          }));
+  allFutures.push_back(
+      IfMib::getInterfaceOperStatuses(snmpChannel, interfaceIndices)
+          .thenValue([state](auto results) {
+            state->update([&results](auto& lockedState) {
+              for (auto result : results) {
+                // TODO this is not valid according to the model but
+                // we need to fix the front-end.
                 IModel::updateInterface(
                     lockedState, result.index, "oper-status", result.value);
                 IModel::updateInterface(
@@ -155,9 +186,8 @@ std::shared_ptr<State> Snmpv2Device::getState() {
               }
             });
           }));
-
-  state->addRequest(
-      IfMib::getInterfaceAdminStatuses(snmpChannel)
+  allFutures.push_back(
+      IfMib::getInterfaceAdminStatuses(snmpChannel, interfaceIndices)
           .thenValue([state](auto results) {
             state->update([&results](auto& lockedState) {
               for (auto result : results) {
@@ -174,85 +204,90 @@ std::shared_ptr<State> Snmpv2Device::getState() {
               }
             });
           }));
+  allFutures.push_back(
+      IfMib::getInterfaceMtus(snmpChannel, interfaceIndices)
+          .thenValue([state](auto results) {
+            state->update([&results](auto& lockedState) {
+              for (auto result : results) {
+                IModel::updateInterface(
+                    lockedState, result.index, "config/mtu", result.value);
+                IModel::updateInterface(
+                    lockedState, result.index, "state/mtu", result.value);
+              }
+            });
+          }));
+  allFutures.push_back(
+      IfMib::getInterfaceTypes(snmpChannel, interfaceIndices)
+          .thenValue([state](auto results) {
+            state->update([&results](auto& lockedState) {
+              for (auto result : results) {
+                int ifMibType = folly::to<int>(result.value);
+                std::string interfaceType = getTypeString(ifMibType);
+                IModel::updateInterface(
+                    lockedState, result.index, "config/type", interfaceType);
+                IModel::updateInterface(
+                    lockedState, result.index, "state/type", interfaceType);
 
-  state->addRequest(
-      IfMib::getInterfaceMtus(snmpChannel).thenValue([state](auto results) {
-        state->update([&results](auto& lockedState) {
-          for (auto result : results) {
-            IModel::updateInterface(
-                lockedState, result.index, "config/mtu", result.value);
-            IModel::updateInterface(
-                lockedState, result.index, "state/mtu", result.value);
-          }
-        });
-      }));
+                bool loopbackMode = isLoopBack(ifMibType);
+                IModel::updateInterface(
+                    lockedState,
+                    result.index,
+                    "config/loopback-mode",
+                    loopbackMode);
+                IModel::updateInterface(
+                    lockedState,
+                    result.index,
+                    "state/loopback-mode",
+                    loopbackMode);
+              }
+            });
+          }));
 
-  state->addRequest(
-      IfMib::getInterfaceTypes(snmpChannel).thenValue([state](auto results) {
-        state->update([&results](auto& lockedState) {
-          for (auto result : results) {
-            int ifMibType = folly::to<int>(result.value);
-            std::string interfaceType = getTypeString(ifMibType);
-            IModel::updateInterface(
-                lockedState, result.index, "config/type", interfaceType);
-            IModel::updateInterface(
-                lockedState, result.index, "state/type", interfaceType);
+  allFutures.push_back(
+      IfMib::getInterfaceDescriptions(snmpChannel, interfaceIndices)
+          .thenValue([state](auto results) {
+            state->update([&results](auto& lockedState) {
+              for (auto result : results) {
+                IModel::updateInterface(
+                    lockedState,
+                    result.index,
+                    "config/description",
+                    result.value);
+                IModel::updateInterface(
+                    lockedState,
+                    result.index,
+                    "state/description",
+                    result.value);
+              }
+            });
+          }));
 
-            bool loopbackMode = isLoopBack(ifMibType);
-            IModel::updateInterface(
-                lockedState,
-                result.index,
-                "config/loopback-mode",
-                loopbackMode);
-            IModel::updateInterface(
-                lockedState, result.index, "state/loopback-mode", loopbackMode);
-          }
-        });
-      }));
+  allFutures.push_back(
+      IfMib::getInterfaceLastChange(snmpChannel, interfaceIndices)
+          .thenValue([state](auto results) {
+            state->update([&results](auto& lockedState) {
+              for (auto result : results) {
+                IModel::updateInterface(
+                    lockedState,
+                    result.index,
+                    "state/last-change",
+                    result.value);
+              }
+            });
+          }));
 
-  state->addRequest(IfMib::getInterfaceDescriptions(snmpChannel)
-                        .thenValue([state](auto results) {
-                          state->update([&results](auto& lockedState) {
-                            for (auto result : results) {
-                              IModel::updateInterface(
-                                  lockedState,
-                                  result.index,
-                                  "config/description",
-                                  result.value);
-                              IModel::updateInterface(
-                                  lockedState,
-                                  result.index,
-                                  "state/description",
-                                  result.value);
-                            }
-                          });
-                        }));
-
-  state->addRequest(IfMib::getInterfaceLastChange(snmpChannel)
-                        .thenValue([state](auto results) {
-                          state->update([&results](auto& lockedState) {
-                            for (auto result : results) {
-                              IModel::updateInterface(
-                                  lockedState,
-                                  result.index,
-                                  "state/last-change",
-                                  result.value);
-                            }
-                          });
-                        }));
-
-  auto addRequest = [&state, this](
+  auto addRequest = [this, &state, &allFutures, &interfaceIndices](
                         const std::string& oid, const std::string& path) {
-    state->addRequest(
-        IfMib::getInterfaceField(snmpChannel, oid)
+    allFutures.push_back(
+        IfMib::getInterfaceField(snmpChannel, interfaceIndices, oid)
             .thenValue([state, path](auto results) {
               state->update([&results, &state, &path](auto& lockedState) {
                 for (auto result : results) {
                   IModel::updateInterface(
                       lockedState, result.index, path, result.value);
                   // TODO: instead of doing this per device type, move to
-                  //   traversing the resulting device model and creating
-                  //   metrics in a more general fashion
+                  //   traversing the resulting device model and
+                  //   creating metrics in a more general fashion
                   state->setGauge(
                       folly::sformat(
                           "/{}/interface[ifindex={}]/{}",
@@ -283,17 +318,18 @@ std::shared_ptr<State> Snmpv2Device::getState() {
 
   // TODO how should I get state/logical? Perhaps based on type?
 
-  return state;
+  /*
+   *  TODO here are some fields I still don't know how to get. The in/out pkts
+   *  could come from summing perhaps.
+      |     +--ro in-pkts?               oc-yang:counter64
+      |     +--ro in-fcs-errors?         oc-yang:counter64
+      |     +--ro out-pkts?              oc-yang:counter64
+      |     +--ro carrier-transitions?   oc-yang:counter64
+      |     +--ro last-clear?            oc-types:timeticks64
+   */
+
+  return folly::collect(std::move(allFutures)).unit();
 }
-/*
- *  TODO here are some fields I still don't know how to get. The in/out pkts
- *  could come from summing perhaps.
-    |     +--ro in-pkts?               oc-yang:counter64
-    |     +--ro in-fcs-errors?         oc-yang:counter64
-    |     +--ro out-pkts?              oc-yang:counter64
-    |     +--ro carrier-transitions?   oc-yang:counter64
-    |     +--ro last-clear?            oc-types:timeticks64
- */
 
 } // namespace devices
 } // namespace devmand

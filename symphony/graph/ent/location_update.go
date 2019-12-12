@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -50,6 +51,7 @@ type LocationUpdate struct {
 	wifi_scan               map[string]struct{}
 	cell_scan               map[string]struct{}
 	work_orders             map[string]struct{}
+	floor_plans             map[string]struct{}
 	clearedType             bool
 	clearedParent           bool
 	removedChildren         map[string]struct{}
@@ -60,6 +62,7 @@ type LocationUpdate struct {
 	removedWifiScan         map[string]struct{}
 	removedCellScan         map[string]struct{}
 	removedWorkOrders       map[string]struct{}
+	removedFloorPlans       map[string]struct{}
 	predicates              []predicate.Location
 }
 
@@ -363,6 +366,26 @@ func (lu *LocationUpdate) AddWorkOrders(w ...*WorkOrder) *LocationUpdate {
 	return lu.AddWorkOrderIDs(ids...)
 }
 
+// AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
+func (lu *LocationUpdate) AddFloorPlanIDs(ids ...string) *LocationUpdate {
+	if lu.floor_plans == nil {
+		lu.floor_plans = make(map[string]struct{})
+	}
+	for i := range ids {
+		lu.floor_plans[ids[i]] = struct{}{}
+	}
+	return lu
+}
+
+// AddFloorPlans adds the floor_plans edges to FloorPlan.
+func (lu *LocationUpdate) AddFloorPlans(f ...*FloorPlan) *LocationUpdate {
+	ids := make([]string, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return lu.AddFloorPlanIDs(ids...)
+}
+
 // ClearType clears the type edge to LocationType.
 func (lu *LocationUpdate) ClearType() *LocationUpdate {
 	lu.clearedType = true
@@ -535,6 +558,26 @@ func (lu *LocationUpdate) RemoveWorkOrders(w ...*WorkOrder) *LocationUpdate {
 	return lu.RemoveWorkOrderIDs(ids...)
 }
 
+// RemoveFloorPlanIDs removes the floor_plans edge to FloorPlan by ids.
+func (lu *LocationUpdate) RemoveFloorPlanIDs(ids ...string) *LocationUpdate {
+	if lu.removedFloorPlans == nil {
+		lu.removedFloorPlans = make(map[string]struct{})
+	}
+	for i := range ids {
+		lu.removedFloorPlans[ids[i]] = struct{}{}
+	}
+	return lu
+}
+
+// RemoveFloorPlans removes floor_plans edges to FloorPlan.
+func (lu *LocationUpdate) RemoveFloorPlans(f ...*FloorPlan) *LocationUpdate {
+	ids := make([]string, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return lu.RemoveFloorPlanIDs(ids...)
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (lu *LocationUpdate) Save(ctx context.Context) (int, error) {
 	if lu.update_time == nil {
@@ -604,6 +647,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -622,8 +666,9 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(location.Table).Where(sql.InInts(location.FieldID, ids...))
+		updater = builder.Update(location.Table)
 	)
+	updater = updater.Where(sql.InInts(location.FieldID, ids...))
 	if value := lu.update_time; value != nil {
 		updater.Set(location.FieldUpdateTime, *value)
 	}
@@ -1078,6 +1123,52 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if len(lu.removedFloorPlans) > 0 {
+		eids := make([]int, len(lu.removedFloorPlans))
+		for eid := range lu.removedFloorPlans {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(location.FloorPlansTable).
+			SetNull(location.FloorPlansColumn).
+			Where(sql.InInts(location.FloorPlansColumn, ids...)).
+			Where(sql.InInts(floorplan.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(lu.floor_plans) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range lu.floor_plans {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(floorplan.FieldID, eid)
+			}
+			query, args := builder.Update(location.FloorPlansTable).
+				Set(location.FloorPlansColumn, id).
+				Where(sql.And(p, sql.IsNull(location.FloorPlansColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return 0, rollback(tx, err)
+			}
+			if int(affected) < len(lu.floor_plans) {
+				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(lu.floor_plans))})
+			}
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -1109,6 +1200,7 @@ type LocationUpdateOne struct {
 	wifi_scan               map[string]struct{}
 	cell_scan               map[string]struct{}
 	work_orders             map[string]struct{}
+	floor_plans             map[string]struct{}
 	clearedType             bool
 	clearedParent           bool
 	removedChildren         map[string]struct{}
@@ -1119,6 +1211,7 @@ type LocationUpdateOne struct {
 	removedWifiScan         map[string]struct{}
 	removedCellScan         map[string]struct{}
 	removedWorkOrders       map[string]struct{}
+	removedFloorPlans       map[string]struct{}
 }
 
 // SetName sets the name field.
@@ -1415,6 +1508,26 @@ func (luo *LocationUpdateOne) AddWorkOrders(w ...*WorkOrder) *LocationUpdateOne 
 	return luo.AddWorkOrderIDs(ids...)
 }
 
+// AddFloorPlanIDs adds the floor_plans edge to FloorPlan by ids.
+func (luo *LocationUpdateOne) AddFloorPlanIDs(ids ...string) *LocationUpdateOne {
+	if luo.floor_plans == nil {
+		luo.floor_plans = make(map[string]struct{})
+	}
+	for i := range ids {
+		luo.floor_plans[ids[i]] = struct{}{}
+	}
+	return luo
+}
+
+// AddFloorPlans adds the floor_plans edges to FloorPlan.
+func (luo *LocationUpdateOne) AddFloorPlans(f ...*FloorPlan) *LocationUpdateOne {
+	ids := make([]string, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return luo.AddFloorPlanIDs(ids...)
+}
+
 // ClearType clears the type edge to LocationType.
 func (luo *LocationUpdateOne) ClearType() *LocationUpdateOne {
 	luo.clearedType = true
@@ -1587,6 +1700,26 @@ func (luo *LocationUpdateOne) RemoveWorkOrders(w ...*WorkOrder) *LocationUpdateO
 	return luo.RemoveWorkOrderIDs(ids...)
 }
 
+// RemoveFloorPlanIDs removes the floor_plans edge to FloorPlan by ids.
+func (luo *LocationUpdateOne) RemoveFloorPlanIDs(ids ...string) *LocationUpdateOne {
+	if luo.removedFloorPlans == nil {
+		luo.removedFloorPlans = make(map[string]struct{})
+	}
+	for i := range ids {
+		luo.removedFloorPlans[ids[i]] = struct{}{}
+	}
+	return luo
+}
+
+// RemoveFloorPlans removes floor_plans edges to FloorPlan.
+func (luo *LocationUpdateOne) RemoveFloorPlans(f ...*FloorPlan) *LocationUpdateOne {
+	ids := make([]string, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return luo.RemoveFloorPlanIDs(ids...)
+}
+
 // Save executes the query and returns the updated entity.
 func (luo *LocationUpdateOne) Save(ctx context.Context) (*Location, error) {
 	if luo.update_time == nil {
@@ -1654,6 +1787,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -1677,8 +1811,9 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(location.Table).Where(sql.InInts(location.FieldID, ids...))
+		updater = builder.Update(location.Table)
 	)
+	updater = updater.Where(sql.InInts(location.FieldID, ids...))
 	if value := luo.update_time; value != nil {
 		updater.Set(location.FieldUpdateTime, *value)
 		l.UpdateTime = *value
@@ -2142,6 +2277,52 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 			}
 			if int(affected) < len(luo.work_orders) {
 				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(luo.work_orders))})
+			}
+		}
+	}
+	if len(luo.removedFloorPlans) > 0 {
+		eids := make([]int, len(luo.removedFloorPlans))
+		for eid := range luo.removedFloorPlans {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(location.FloorPlansTable).
+			SetNull(location.FloorPlansColumn).
+			Where(sql.InInts(location.FloorPlansColumn, ids...)).
+			Where(sql.InInts(floorplan.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(luo.floor_plans) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range luo.floor_plans {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(floorplan.FieldID, eid)
+			}
+			query, args := builder.Update(location.FloorPlansTable).
+				Set(location.FloorPlansColumn, id).
+				Where(sql.And(p, sql.IsNull(location.FloorPlansColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			if int(affected) < len(luo.floor_plans) {
+				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(luo.floor_plans))})
 			}
 		}
 	}

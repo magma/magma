@@ -39,6 +39,7 @@
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
+#include "emm_proc.h"
 
 int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
   const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP);
@@ -60,11 +61,10 @@ int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
 
-void mme_app_handle_detach_req(mme_app_desc_t *mme_app_desc_p,
-    const itti_nas_detach_req_t *const detach_req_p);
+void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id);
 
-void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
-  const itti_nas_sgs_detach_req_t *const sgs_detach_req_p);
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+  emm_proc_sgs_detach_type_t detach_type);
 
 int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
   const const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p);
@@ -200,7 +200,7 @@ int mme_app_send_sgsap_service_request(
   uint8_t service_indicator,
   struct ue_mm_context_s *ue_context_p);
 
-int mme_app_send_nas_detach_request(
+int mme_app_handle_nw_initiated_detach_request(
   mme_ue_s1ap_id_t ue_id,
   uint8_t detach_type);
 
@@ -261,9 +261,6 @@ int handle_csfb_s1ap_procedure_failure(
   char *failed_statement,
   uint8_t failed_procedure);
 
-void mme_app_handle_nas_tau_complete(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_tau_complete_t *itti_nas_tau_complete_p);
-
 int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p);
 
@@ -312,6 +309,11 @@ void mme_app_handle_path_switch_req_ack(
 
 void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
+
+void mme_app_update_paging_tai_list(
+  paging_tai_list_t* p_tai_list,
+  partial_tai_list_t* tai_list,
+  uint8_t num_of_tac);
 
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)

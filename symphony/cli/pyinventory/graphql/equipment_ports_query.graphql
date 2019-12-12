@@ -1,12 +1,14 @@
 query EquipmentPortsQuery($id: ID!) {
-  equipment(id: $id) {
-    ports {
-      definition {
-        id
-        name
-      }
-      link {
-        id
+  equipment: node(id: $id) {
+    ... on Equipment {
+      ports {
+        definition {
+          id
+          name
+        }
+        link {
+          id
+        }
       }
     }
   }

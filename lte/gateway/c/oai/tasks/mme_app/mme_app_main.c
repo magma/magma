@@ -115,11 +115,6 @@ void *mme_app_thread(void *args)
           &MME_APP_DELETE_DEDICATED_BEARER_RSP(received_message_p));
       } break;
 
-      case NAS_DETACH_REQ: {
-        mme_app_handle_detach_req(mme_app_desc_p,
-            &received_message_p->ittiMsg.nas_detach_req);
-      } break;
-
       case S6A_CANCEL_LOCATION_REQ: {
         /*
          * Check cancellation-type and handle it if it is SUBSCRIPTION_WITHDRAWAL.
@@ -227,12 +222,6 @@ void *mme_app_thread(void *args)
       case S1AP_INITIAL_UE_MESSAGE: {
         mme_app_handle_initial_ue_message(mme_app_desc_p,
           &S1AP_INITIAL_UE_MESSAGE(received_message_p));
-      } break;
-
-      case NAS_SGS_DETACH_REQ: {
-        OAILOG_INFO(LOG_MME_APP, "Recieved SGS detach request from NAS\n");
-        mme_app_handle_sgs_detach_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_sgs_detach_req);
       } break;
 
       case S6A_UPDATE_LOCATION_ANS: {
@@ -433,12 +422,6 @@ void *mme_app_thread(void *args)
         /*Received SGSAP Location Update Reject message from SGS task*/
         mme_app_handle_sgsap_location_update_rej(mme_app_desc_p,
           &received_message_p->ittiMsg.sgsap_location_update_rej);
-      } break;
-
-      case NAS_TAU_COMPLETE: {
-        /*Received TAU Complete message from NAS task*/
-        mme_app_handle_nas_tau_complete(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_tau_complete);
       } break;
 
       case SGSAP_ALERT_REQUEST: {

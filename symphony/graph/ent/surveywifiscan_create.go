@@ -328,6 +328,7 @@ func (swfsc *SurveyWiFiScanCreate) sqlSave(ctx context.Context) (*SurveyWiFiScan
 		insert.Set(surveywifiscan.FieldLongitude, *value)
 		swfs.Longitude = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(surveywifiscan.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

@@ -62,7 +62,10 @@ export function getSelectedFilter(
     filterConfig.name,
     filterConfig.defaultOperator,
     filterConfig.name === PROPERTY_FILTER_NAME
-      ? possibleProperties.find(propDef => propDef.name === filterConfig.label)
+      ? possibleProperties.find(
+          propDef =>
+            filterConfig.key === `property_${propDef.name}_${propDef.type}`,
+        )
       : null,
   );
 }

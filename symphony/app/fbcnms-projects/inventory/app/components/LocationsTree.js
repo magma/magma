@@ -8,33 +8,44 @@
  * @format
  */
 import type {Location} from '../common/Location';
-import type {WithStyles} from '@material-ui/core';
 
 import ActionButton from '@fbcnms/ui/components/ActionButton';
+import ExpandButtonContext from './context/ExpandButtonContext';
 import InventoryQueryRenderer from '../components/InventoryQueryRenderer';
 import InventoryTreeView from './InventoryTreeView';
-import React from 'react';
+import React, {useContext} from 'react';
+import classNames from 'classnames';
 import withInventoryErrorBoundary from '../common/withInventoryErrorBoundary';
 import {graphql} from 'relay-runtime';
+import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {withStyles} from '@material-ui/core/styles';
 
-type Props = WithStyles<typeof styles> & {
+const useStyles = makeStyles({
+  root: {
+    display: 'flex',
+    flexGrow: 1,
+    flexDirection: 'column',
+    height: '100%',
+  },
+  collapsedTree: {
+    flexGrow: 0,
+    overflow: 'hidden',
+    width: 0,
+    flexBasis: 0,
+  },
+  expandedTree: {
+    overflow: 'auto',
+    width: '25%',
+    minWidth: '25%',
+    flexGrow: 0,
+  },
+});
+
+type Props = {
   selectedLocationId: ?string,
   onSelect: ?(locationId: ?string) => void,
   onAddLocation: (parentLocation: ?Location) => void,
 };
-
-const styles = theme => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-  button: {
-    margin: theme.spacing(),
-  },
-});
 
 graphql`
   fragment LocationsTree_location on Location @relay(mask: false) {
@@ -63,9 +74,24 @@ const locationsTreeQuery = graphql`
   }
 `;
 
-class LocationsTree extends React.Component<Props> {
-  render() {
-    return (
+const LocationsTree = ({
+  selectedLocationId,
+  onAddLocation,
+  onSelect,
+}: Props) => {
+  const classes = useStyles();
+  const {isExpanded, showExpandButton, hideExpandButton} = useContext(
+    ExpandButtonContext,
+  );
+  return (
+    <div
+      className={classNames({
+        [classes.root]: true,
+        [classes.collapsedTree]: !isExpanded,
+        [classes.expandedTree]: isExpanded,
+      })}
+      onMouseEnter={showExpandButton}
+      onMouseLeave={hideExpandButton}>
       <InventoryQueryRenderer
         query={locationsTreeQuery}
         variables={{}}
@@ -73,7 +99,7 @@ class LocationsTree extends React.Component<Props> {
           return (
             <InventoryTreeView
               title="Locations"
-              selectedId={this.props.selectedLocationId}
+              selectedId={selectedLocationId}
               dummyRootTitle="Add top-level location"
               tree={
                 props?.locations
@@ -99,20 +125,20 @@ class LocationsTree extends React.Component<Props> {
               getHoverRightContent={(location: ?Location) => (
                 <ActionButton
                   action="add"
-                  onClick={() => this.props.onAddLocation(location)}
+                  onClick={() => onAddLocation(location)}
                 />
               )}
               onClick={(locationId: string) => {
-                if (this.props.onSelect) {
-                  this.props.onSelect(locationId);
+                if (onSelect) {
+                  onSelect(locationId);
                 }
               }}
             />
           );
         }}
       />
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default withStyles(styles)(withInventoryErrorBoundary(LocationsTree));
+export default withInventoryErrorBoundary(LocationsTree);

@@ -17,4 +17,6 @@ type ActionContext struct {
 	TriggerPayload map[string]interface{}
 	// Rule is the user-configured rule this action is executing for
 	Rule Rule
+	// RuleAction is the particular action + data this action is executing for
+	RuleAction *ActionsRuleAction
 }

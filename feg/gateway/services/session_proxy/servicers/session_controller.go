@@ -138,11 +138,12 @@ func (srv *CentralSessionController) CreateSession(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
+
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
 		DynamicRules:  dynamicRules,
-		UsageMonitors: getUsageMonitorsFromCCA(imsi, sessionID, gxCCAInit),
+		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit),
 	}, nil
 }
 
@@ -165,7 +166,7 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
-	usageMonitors := getUsageMonitorsFromCCA(imsi, pReq.SessionId, gxCCAInit)
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, pReq.SessionId, gxCCAInit)
 	return &protos.CreateSessionResponse{
 		StaticRules:   staticRules,
 		DynamicRules:  dynamicRules,

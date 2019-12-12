@@ -19,19 +19,20 @@ type State = {|
   dialogs: Map<DialogMapKey, boolean>,
 |};
 
-export type DialogProps = {
+export type DialogProps = {|
   cancelLabel?: Node,
   confirmLabel?: Node,
   message: Node,
   title?: ?Node,
-};
+|};
 
-export type DialogMapKey = DialogProps & {
+export type DialogMapKey = {|
   key: number,
   onCancel: () => void,
   onClose: () => void,
   onConfirm: () => void,
-};
+  ...DialogProps,
+|};
 
 export type WithAlert = {|
   alert: (Node | Error, ?Node) => Promise<boolean>,

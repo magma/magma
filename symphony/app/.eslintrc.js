@@ -16,7 +16,16 @@ module.exports.overrides = [
   {
     files: ['*'],
     rules: {
-      'prettier/prettier': [2, 'fb', '@format'],
+      'prettier/prettier': [
+        2,
+        {
+          singleQuote: true,
+          trailingComma: 'all',
+          bracketSpacing: false,
+          jsxBracketSameLine: true,
+          parser: 'flow',
+        },
+      ],
     },
   },
   {
@@ -69,6 +78,7 @@ module.exports.overrides = [
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
       'fbcnms-projects/platform-server/**/*.js',
+      'scripts/fb/fbt/*.js',
     ],
     rules: {
       'no-console': 'off',

@@ -221,6 +221,7 @@ func (etc *EquipmentTypeCreate) sqlSave(ctx context.Context) (*EquipmentType, er
 		insert.Set(equipmenttype.FieldName, *value)
 		et.Name = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipmenttype.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

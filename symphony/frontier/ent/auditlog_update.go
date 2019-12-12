@@ -165,6 +165,7 @@ func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		return 0, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -183,8 +184,9 @@ func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(auditlog.Table).Where(sql.InInts(auditlog.FieldID, ids...))
+		updater = builder.Update(auditlog.Table)
 	)
+	updater = updater.Where(sql.InInts(auditlog.FieldID, ids...))
 	if value := alu.updated_at; value != nil {
 		updater.Set(auditlog.FieldUpdatedAt, *value)
 	}
@@ -380,6 +382,7 @@ func (aluo *AuditLogUpdateOne) sqlSave(ctx context.Context) (al *AuditLog, err e
 		return nil, err
 	}
 	defer rows.Close()
+
 	var ids []int
 	for rows.Next() {
 		var id int
@@ -403,8 +406,9 @@ func (aluo *AuditLogUpdateOne) sqlSave(ctx context.Context) (al *AuditLog, err e
 	}
 	var (
 		res     sql.Result
-		updater = builder.Update(auditlog.Table).Where(sql.InInts(auditlog.FieldID, ids...))
+		updater = builder.Update(auditlog.Table)
 	)
+	updater = updater.Where(sql.InInts(auditlog.FieldID, ids...))
 	if value := aluo.updated_at; value != nil {
 		updater.Set(auditlog.FieldUpdatedAt, *value)
 		al.UpdatedAt = *value

@@ -22,10 +22,13 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer* enforcer,
-  SessionCloudReporter* reporter):
+  std::shared_ptr<LocalEnforcer> enforcer,
+  SessionReporter* reporter,
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client):
   enforcer_(enforcer),
   reporter_(reporter),
+  directoryd_client_(directoryd_client),
+
   current_epoch_(0),
   reported_epoch_(0),
   retry_timeout_(1)
@@ -252,15 +255,34 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         } else {
           MLOG(MINFO) << "Successfully initialized new session "
                       << "in sessiond for subscriber " << imsi;
+          add_session_to_directory_record(imsi, sid);
         }
       } else {
-        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
-                     << imsi << ": " << status.error_message();
+        MLOG(MERROR) << "Failed to initialize session in SessionProxy "
+                     << "for IMSI " << imsi << ": " << status.error_message();
       }
       LocalCreateSessionResponse resp;
       resp.set_session_id(response.session_id());
       response_callback(status, resp);
     });
+}
+
+void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
+  const std::string& imsi,
+  const std::string& session_id)
+{
+  UpdateRecordRequest request;
+  request.set_id(imsi);
+  auto update_fields = request.mutable_fields();
+  std::string session_id_key = "session_id";
+  update_fields->insert({session_id_key, session_id});
+  directoryd_client_->update_directoryd_record(request,
+    [this, imsi] (Status status, Void) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not add session_id to directory record for "
+      "subscriber " << imsi << "; " << status.error_message();
+    }
+  });
 }
 
 std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
@@ -284,7 +306,7 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
 }
 
 static void report_termination(
-  SessionCloudReporter& reporter,
+  SessionReporter& reporter,
   const SessionTerminateRequest& term_req)
 {
   reporter.report_terminate_session(

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 472816d28f20285c1dc1e9330c4e0577
+ * @relayHash 4907f6aa5d46992ee40dadcbd4440b7c
  */
 
 /* eslint-disable */
@@ -43,6 +43,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type AddLinkToServiceDialogQueryVariables = {|
   filters: $ReadOnlyArray<LinkFilterInput>

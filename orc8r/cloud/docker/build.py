@@ -63,6 +63,10 @@ def main() -> None:
     if args.mount:
         # Mount the source code and run a container with bash shell
         _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
+    elif args.generate:
+        _run_docker(
+            ['run', '--rm'] + _get_mount_volumes() + ['test', 'make gen'],
+        )
     elif args.tests:
         # Run unit tests
         _run_docker(['build', 'test'])
@@ -94,7 +98,7 @@ def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
 
 def _create_build_context_if_necessary(args: argparse.Namespace) -> None:
     """ Clear out the build context from the previous run """
-    if args.mount or args.noncore:
+    if args.noncore:
         return
 
     if os.path.exists(BUILD_CONTEXT):
@@ -110,7 +114,8 @@ def _create_build_context_if_necessary(args: argparse.Namespace) -> None:
 
 
 def _build_cache_if_necessary(args: argparse.Namespace) -> None:
-    if args.nocache or args.mount or args.tests or args.noncore:
+    if args.nocache or args.mount or args.generate or \
+            args.tests or args.noncore:
         return
 
     # Check if orc8r_cache image exists
@@ -124,7 +129,7 @@ def _build_cache_if_necessary(args: argparse.Namespace) -> None:
 def _build_controller_if_necessary(args: argparse.Namespace) -> None:
     # We don't build the controller container if we're running tests or
     # generating code or just creating noncore containers
-    if args.mount or args.tests or args.noncore:
+    if args.mount or args.generate or args.tests or args.noncore:
         return
 
     # controller will always only use docker-compose.yml and override so we
@@ -260,6 +265,9 @@ def _parse_args() -> argparse.Namespace:
                         help="Run unit tests")
     parser.add_argument('--mount', '-m', action='store_true',
                         help='Mount the source code and create a bash shell')
+    parser.add_argument('--generate', '-g', action='store_true',
+                        help='Mount the source code and regenerate '
+                             'generated files')
     parser.add_argument('--nocache', '-n', action='store_true',
                         help='Build the images without go cache base image')
     parser.add_argument('--all', '-a', action='store_true',

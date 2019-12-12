@@ -266,6 +266,15 @@ func Editable(v bool) predicate.PropertyType {
 	)
 }
 
+// Mandatory applies equality check predicate on the "mandatory" field. It's identical to MandatoryEQ.
+func Mandatory(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.PropertyType {
 	return predicate.PropertyType(
@@ -1876,20 +1885,34 @@ func EditableNEQ(v bool) predicate.PropertyType {
 	)
 }
 
+// MandatoryEQ applies the EQ predicate on the "mandatory" field.
+func MandatoryEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
+// MandatoryNEQ applies the NEQ predicate on the "mandatory" field.
+func MandatoryNEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.NEQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
 // HasProperties applies the HasEdge predicate on the "properties" edge.
 func HasProperties() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			builder := sql.Dialect(s.Dialect())
-			s.Where(
-				sql.In(
-					t1.C(FieldID),
-					builder.Select(PropertiesColumn).
-						From(builder.Table(PropertiesTable)).
-						Where(sql.NotNull(PropertiesColumn)),
-				),
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(PropertiesTable, FieldID),
+				sql.Edge(sql.O2M, true, PropertiesTable, PropertiesColumn),
 			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1913,8 +1936,12 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.PropertyType {
 func HasLocationType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LocationTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LocationTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, LocationTypeTable, LocationTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1938,8 +1965,12 @@ func HasLocationTypeWith(preds ...predicate.LocationType) predicate.PropertyType
 func HasEquipmentPortType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentPortTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentPortTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentPortTypeTable, EquipmentPortTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1963,8 +1994,12 @@ func HasEquipmentPortTypeWith(preds ...predicate.EquipmentPortType) predicate.Pr
 func HasLinkEquipmentPortType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(LinkEquipmentPortTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(LinkEquipmentPortTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, LinkEquipmentPortTypeTable, LinkEquipmentPortTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -1988,8 +2023,12 @@ func HasLinkEquipmentPortTypeWith(preds ...predicate.EquipmentPortType) predicat
 func HasEquipmentType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(EquipmentTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(EquipmentTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, EquipmentTypeTable, EquipmentTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2013,8 +2052,12 @@ func HasEquipmentTypeWith(preds ...predicate.EquipmentType) predicate.PropertyTy
 func HasServiceType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ServiceTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ServiceTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, ServiceTypeTable, ServiceTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2038,8 +2081,12 @@ func HasServiceTypeWith(preds ...predicate.ServiceType) predicate.PropertyType {
 func HasWorkOrderType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(WorkOrderTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(WorkOrderTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, WorkOrderTypeTable, WorkOrderTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }
@@ -2063,8 +2110,12 @@ func HasWorkOrderTypeWith(preds ...predicate.WorkOrderType) predicate.PropertyTy
 func HasProjectType() predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
-			t1 := s.Table()
-			s.Where(sql.NotNull(t1.C(ProjectTypeColumn)))
+			step := sql.NewStep(
+				sql.From(Table, FieldID),
+				sql.To(ProjectTypeTable, FieldID),
+				sql.Edge(sql.M2O, true, ProjectTypeTable, ProjectTypeColumn),
+			)
+			sql.HasNeighbors(s, step)
 		},
 	)
 }

@@ -14,29 +14,21 @@ import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
-import ToggleableExpressionEditor from './ToggleableExpressionEditor';
+import ToggleableExpressionEditor, {
+  AdvancedExpressionEditor,
+  thresholdToPromQL,
+} from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
-import {AdvancedExpressionEditor} from './ToggleableExpressionEditor';
+import {Labels} from './prometheus/PromQL';
+import {SEVERITY} from './Severity';
 
 import {makeStyles} from '@material-ui/styles';
-import {thresholdToPromQL} from './ToggleableExpressionEditor';
-
-//TODO move to more shared location
-import {SEVERITY} from './SimpleTable';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertConfig} from './AlarmAPIType';
-import type {ApiUtil} from './AlarmsApi';
+import type {GenericRule, RuleEditorProps} from './RuleInterface';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
-
-type Props = {
-  apiUtil: ApiUtil,
-  rule: ?AlertConfig,
-  updateAlertConfig: AlertConfig => void,
-  saveAlertRule: () => Promise<void>,
-  onExit: () => void,
-  isNew: boolean,
-  thresholdEditorEnabled: boolean,
-};
 
 type MenuItemProps = {key: string, value: string, children: string};
 
@@ -94,6 +86,7 @@ export type InputChangeFunc = (
 function RuleNameEditor(props: {onChange: InputChangeFunc, ruleName: string}) {
   return (
     <TextField
+      {...props}
       required
       label="Rule Name"
       placeholder="Ex: Service Down"
@@ -208,22 +201,58 @@ function DescriptionEditor(props: {
   );
 }
 
-export default function PrometheusEditor(props: Props) {
-  const {updateAlertConfig, onExit, saveAlertRule, isNew, rule} = props;
-
+type PrometheusEditorProps = {
+  ...RuleEditorProps<AlertConfig>,
+  thresholdEditorEnabled?: ?boolean,
+};
+export default function PrometheusEditor(props: PrometheusEditorProps) {
+  const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
+  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
   const classes = useStyles();
   const [formState, setFormState] = React.useState<FormState>(
-    fromAlertConfig(rule),
+    fromAlertConfig(rule ? rule.rawRule : null),
   );
   const [
     thresholdExpression,
     setThresholdExpression,
   ] = React.useState<ThresholdExpression>({
     metricName: '',
-    comparator: null,
+    comparator: '==',
     value: 0,
-    filters: [],
+    filters: new Labels(),
   });
+
+  const saveAlert = async () => {
+    try {
+      if (!rule) {
+        throw new Error('Alert config empty');
+      }
+
+      const request = {
+        networkId: match.params.networkId,
+        rule: toAlertConfig(formState),
+      };
+      if (isNew) {
+        await apiUtil.createAlertRule(request);
+      } else {
+        await apiUtil.editAlertRule(request);
+      }
+      enqueueSnackbar(`Successfully ${isNew ? 'added' : 'saved'} alert rule`, {
+        variant: 'success',
+      });
+      onExit();
+    } catch (error) {
+      enqueueSnackbar(
+        `Unable to create alert: ${
+          error.response ? error.response.data.message : error.message
+        }.`,
+        {
+          variant: 'error',
+        },
+      );
+    }
+  };
 
   /**
    * Passes the event value to an updater function which returns an update
@@ -240,9 +269,13 @@ export default function PrometheusEditor(props: Props) {
         ...formUpdate(value),
       };
       setFormState(updatedForm);
-      updateAlertConfig(toAlertConfig(updatedForm));
+      const updatedConfig = toAlertConfig(updatedForm);
+      onRuleUpdated({
+        ...rule,
+        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
+      });
     },
-    [formState, updateAlertConfig],
+    [formState, onRuleUpdated, rule],
   );
 
   // TODO: pull out common functionality between this and handleInputChange
@@ -255,9 +288,13 @@ export default function PrometheusEditor(props: Props) {
         expression: stringExpression,
       };
       setFormState(updatedForm);
-      updateAlertConfig(toAlertConfig(updatedForm));
+      const updatedConfig = toAlertConfig(updatedForm);
+      onRuleUpdated({
+        ...rule,
+        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
+      });
     },
-    [formState, updateAlertConfig],
+    [formState, onRuleUpdated, rule],
   );
 
   const severityOptions = React.useMemo<Array<MenuItemProps>>(
@@ -272,11 +309,12 @@ export default function PrometheusEditor(props: Props) {
 
   return (
     <Grid container spacing={3}>
-      <Grid container direction="column" spacing={2} wrap="nowrap">
+      <Grid container item direction="column" spacing={2} wrap="nowrap">
         <Grid item xs={12} sm={3}>
           <RuleNameEditor
             onChange={handleInputChange}
             ruleName={formState.ruleName}
+            disabled={!isNew}
           />
         </Grid>
         {props.thresholdEditorEnabled ? (
@@ -328,7 +366,7 @@ export default function PrometheusEditor(props: Props) {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => saveAlertRule()}
+          onClick={() => saveAlert()}
           className={classes.button}>
           {isNew ? 'Add' : 'Edit'}
         </Button>
@@ -351,8 +389,8 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
   const timeString = rule.for ?? '';
   const {timeNumber, timeUnit} = parseTimeString(timeString);
   return {
-    ruleName: rule.alert,
-    expression: rule.expr,
+    ruleName: rule.alert || '',
+    expression: rule.expr || '',
     severity: rule.labels?.severity || '',
     description: rule.annotations?.description || '',
     timeNumber,

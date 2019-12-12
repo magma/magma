@@ -161,6 +161,7 @@ func (fpsc *FloorPlanScaleCreate) sqlSave(ctx context.Context) (*FloorPlanScale,
 		insert.Set(floorplanscale.FieldScaleInMeters, *value)
 		fps.ScaleInMeters = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(floorplanscale.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

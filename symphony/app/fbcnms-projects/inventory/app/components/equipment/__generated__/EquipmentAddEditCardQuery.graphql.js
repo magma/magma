@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bcaa045594122c9c92846094b06927da
+ * @relayHash 89ce2f6dd165b2d0f897ecdc130c96c9
  */
 
 /* eslint-disable */
@@ -21,18 +21,18 @@ export type EquipmentAddEditCardQueryVariables = {|
 |};
 export type EquipmentAddEditCardQueryResponse = {|
   +equipment: ?{|
-    +id: string,
-    +name: string,
-    +parentLocation: ?{|
+    +id?: string,
+    +name?: string,
+    +parentLocation?: ?{|
       +id: string
     |},
-    +parentPosition: ?{|
+    +parentPosition?: ?{|
       +id: string
     |},
-    +device: ?{|
+    +device?: ?{|
       +id: string
     |},
-    +equipmentType: {|
+    +equipmentType?: {|
       +id: string,
       +name: string,
       +propertyTypes: $ReadOnlyArray<?{|
@@ -41,6 +41,7 @@ export type EquipmentAddEditCardQueryResponse = {|
         +index: ?number,
         +isInstanceProperty: ?boolean,
         +type: PropertyKind,
+        +isMandatory: ?boolean,
         +stringValue: ?string,
         +intValue: ?number,
         +floatValue: ?number,
@@ -51,7 +52,7 @@ export type EquipmentAddEditCardQueryResponse = {|
         +rangeToValue: ?number,
       |}>,
     |},
-    +properties: $ReadOnlyArray<?{|
+    +properties?: $ReadOnlyArray<?{|
       +propertyType: {|
         +id: string,
         +name: string,
@@ -59,6 +60,7 @@ export type EquipmentAddEditCardQueryResponse = {|
         +isInstanceProperty: ?boolean,
         +type: PropertyKind,
         +stringValue: ?string,
+        +isMandatory: ?boolean,
       |},
       +id: string,
       +stringValue: ?string,
@@ -91,27 +93,51 @@ export type EquipmentAddEditCardQuery = {|
 query EquipmentAddEditCardQuery(
   $equipmentId: ID!
 ) {
-  equipment(id: $equipmentId) {
-    id
-    name
-    parentLocation {
-      id
-    }
-    parentPosition {
-      id
-    }
-    device {
-      id
-    }
-    equipmentType {
+  equipment: node(id: $equipmentId) {
+    __typename
+    ... on Equipment {
       id
       name
-      propertyTypes {
+      parentLocation {
+        id
+      }
+      parentPosition {
+        id
+      }
+      device {
+        id
+      }
+      equipmentType {
         id
         name
-        index
-        isInstanceProperty
-        type
+        propertyTypes {
+          id
+          name
+          index
+          isInstanceProperty
+          type
+          isMandatory
+          stringValue
+          intValue
+          floatValue
+          booleanValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+        }
+      }
+      properties {
+        propertyType {
+          id
+          name
+          index
+          isInstanceProperty
+          type
+          stringValue
+          isMandatory
+        }
+        id
         stringValue
         intValue
         floatValue
@@ -120,35 +146,17 @@ query EquipmentAddEditCardQuery(
         longitudeValue
         rangeFromValue
         rangeToValue
+        equipmentValue {
+          id
+          name
+        }
+        locationValue {
+          id
+          name
+        }
       }
     }
-    properties {
-      propertyType {
-        id
-        name
-        index
-        isInstanceProperty
-        type
-        stringValue
-      }
-      id
-      stringValue
-      intValue
-      floatValue
-      booleanValue
-      latitudeValue
-      longitudeValue
-      rangeFromValue
-      rangeToValue
-      equipmentValue {
-        id
-        name
-      }
-      locationValue {
-        id
-        name
-      }
-    }
+    id
   }
 }
 */
@@ -162,249 +170,244 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = {
+v1 = [
+  {
+    "kind": "Variable",
+    "name": "id",
+    "variableName": "equipmentId"
+  }
+],
+v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
-v2 = {
+v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
 },
-v3 = [
-  (v1/*: any*/)
+v4 = [
+  (v2/*: any*/)
 ],
-v4 = {
+v5 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "parentLocation",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "Location",
+  "plural": false,
+  "selections": (v4/*: any*/)
+},
+v6 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "parentPosition",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "EquipmentPosition",
+  "plural": false,
+  "selections": (v4/*: any*/)
+},
+v7 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "device",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "Device",
+  "plural": false,
+  "selections": (v4/*: any*/)
+},
+v8 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v5 = {
+v9 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
 },
-v6 = {
+v10 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "type",
   "args": null,
   "storageKey": null
 },
-v7 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "stringValue",
-  "args": null,
-  "storageKey": null
-},
-v8 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "intValue",
-  "args": null,
-  "storageKey": null
-},
-v9 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "floatValue",
-  "args": null,
-  "storageKey": null
-},
-v10 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "booleanValue",
-  "args": null,
-  "storageKey": null
-},
 v11 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "latitudeValue",
+  "name": "isMandatory",
   "args": null,
   "storageKey": null
 },
 v12 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "longitudeValue",
+  "name": "stringValue",
   "args": null,
   "storageKey": null
 },
 v13 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "rangeFromValue",
+  "name": "intValue",
   "args": null,
   "storageKey": null
 },
 v14 = {
   "kind": "ScalarField",
   "alias": null,
+  "name": "floatValue",
+  "args": null,
+  "storageKey": null
+},
+v15 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "booleanValue",
+  "args": null,
+  "storageKey": null
+},
+v16 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "latitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v17 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "longitudeValue",
+  "args": null,
+  "storageKey": null
+},
+v18 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "rangeFromValue",
+  "args": null,
+  "storageKey": null
+},
+v19 = {
+  "kind": "ScalarField",
+  "alias": null,
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
 },
-v15 = [
-  (v1/*: any*/),
-  (v2/*: any*/)
+v20 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "equipmentType",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "EquipmentType",
+  "plural": false,
+  "selections": [
+    (v2/*: any*/),
+    (v3/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "propertyTypes",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "PropertyType",
+      "plural": true,
+      "selections": [
+        (v2/*: any*/),
+        (v3/*: any*/),
+        (v8/*: any*/),
+        (v9/*: any*/),
+        (v10/*: any*/),
+        (v11/*: any*/),
+        (v12/*: any*/),
+        (v13/*: any*/),
+        (v14/*: any*/),
+        (v15/*: any*/),
+        (v16/*: any*/),
+        (v17/*: any*/),
+        (v18/*: any*/),
+        (v19/*: any*/)
+      ]
+    }
+  ]
+},
+v21 = [
+  (v2/*: any*/),
+  (v3/*: any*/)
 ],
-v16 = [
-  {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "equipment",
-    "storageKey": null,
-    "args": [
-      {
-        "kind": "Variable",
-        "name": "id",
-        "variableName": "equipmentId"
-      }
-    ],
-    "concreteType": "Equipment",
-    "plural": false,
-    "selections": [
-      (v1/*: any*/),
-      (v2/*: any*/),
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "parentLocation",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "Location",
-        "plural": false,
-        "selections": (v3/*: any*/)
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "parentPosition",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "EquipmentPosition",
-        "plural": false,
-        "selections": (v3/*: any*/)
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "device",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "Device",
-        "plural": false,
-        "selections": (v3/*: any*/)
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "equipmentType",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "EquipmentType",
-        "plural": false,
-        "selections": [
-          (v1/*: any*/),
-          (v2/*: any*/),
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "propertyTypes",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "PropertyType",
-            "plural": true,
-            "selections": [
-              (v1/*: any*/),
-              (v2/*: any*/),
-              (v4/*: any*/),
-              (v5/*: any*/),
-              (v6/*: any*/),
-              (v7/*: any*/),
-              (v8/*: any*/),
-              (v9/*: any*/),
-              (v10/*: any*/),
-              (v11/*: any*/),
-              (v12/*: any*/),
-              (v13/*: any*/),
-              (v14/*: any*/)
-            ]
-          }
-        ]
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "properties",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "Property",
-        "plural": true,
-        "selections": [
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "propertyType",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "PropertyType",
-            "plural": false,
-            "selections": [
-              (v1/*: any*/),
-              (v2/*: any*/),
-              (v4/*: any*/),
-              (v5/*: any*/),
-              (v6/*: any*/),
-              (v7/*: any*/)
-            ]
-          },
-          (v1/*: any*/),
-          (v7/*: any*/),
-          (v8/*: any*/),
-          (v9/*: any*/),
-          (v10/*: any*/),
-          (v11/*: any*/),
-          (v12/*: any*/),
-          (v13/*: any*/),
-          (v14/*: any*/),
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "equipmentValue",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Equipment",
-            "plural": false,
-            "selections": (v15/*: any*/)
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "locationValue",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Location",
-            "plural": false,
-            "selections": (v15/*: any*/)
-          }
-        ]
-      }
-    ]
-  }
-];
+v22 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "properties",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "Property",
+  "plural": true,
+  "selections": [
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "propertyType",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "PropertyType",
+      "plural": false,
+      "selections": [
+        (v2/*: any*/),
+        (v3/*: any*/),
+        (v8/*: any*/),
+        (v9/*: any*/),
+        (v10/*: any*/),
+        (v12/*: any*/),
+        (v11/*: any*/)
+      ]
+    },
+    (v2/*: any*/),
+    (v12/*: any*/),
+    (v13/*: any*/),
+    (v14/*: any*/),
+    (v15/*: any*/),
+    (v16/*: any*/),
+    (v17/*: any*/),
+    (v18/*: any*/),
+    (v19/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "equipmentValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Equipment",
+      "plural": false,
+      "selections": (v21/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "locationValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Location",
+      "plural": false,
+      "selections": (v21/*: any*/)
+    }
+  ]
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -413,23 +416,80 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v16/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "equipment",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "InlineFragment",
+            "type": "Equipment",
+            "selections": [
+              (v2/*: any*/),
+              (v3/*: any*/),
+              (v5/*: any*/),
+              (v6/*: any*/),
+              (v7/*: any*/),
+              (v20/*: any*/),
+              (v22/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "operation": {
     "kind": "Operation",
     "name": "EquipmentAddEditCardQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v16/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "equipment",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "__typename",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "InlineFragment",
+            "type": "Equipment",
+            "selections": [
+              (v3/*: any*/),
+              (v5/*: any*/),
+              (v6/*: any*/),
+              (v7/*: any*/),
+              (v20/*: any*/),
+              (v22/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "params": {
     "operationKind": "query",
     "name": "EquipmentAddEditCardQuery",
     "id": null,
-    "text": "query EquipmentAddEditCardQuery(\n  $equipmentId: ID!\n) {\n  equipment(id: $equipmentId) {\n    id\n    name\n    parentLocation {\n      id\n    }\n    parentPosition {\n      id\n    }\n    device {\n      id\n    }\n    equipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        index\n        isInstanceProperty\n        type\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n      }\n    }\n    properties {\n      propertyType {\n        id\n        name\n        index\n        isInstanceProperty\n        type\n        stringValue\n      }\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentAddEditCardQuery(\n  $equipmentId: ID!\n) {\n  equipment: node(id: $equipmentId) {\n    __typename\n    ... on Equipment {\n      id\n      name\n      parentLocation {\n        id\n      }\n      parentPosition {\n        id\n      }\n      device {\n        id\n      }\n      equipmentType {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          isMandatory\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n        }\n      }\n      properties {\n        propertyType {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          stringValue\n          isMandatory\n        }\n        id\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'dfd1f534e95c18ec87062b42e4c129b4';
+(node/*: any*/).hash = 'd69e284fe3546901214f888e25567fad';
 module.exports = node;

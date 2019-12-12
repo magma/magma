@@ -61,16 +61,11 @@ func (etq *EquipmentTypeQuery) Order(o ...Order) *EquipmentTypeQuery {
 // QueryPortDefinitions chains the current query on the port_definitions edge.
 func (etq *EquipmentTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: etq.config}
-	step := &sql.Step{}
-	step.From.V = etq.sqlQuery()
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentportdefinition.Table
-	step.To.Column = equipmentportdefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PortDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PortDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
+	)
 	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
@@ -78,16 +73,11 @@ func (etq *EquipmentTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQu
 // QueryPositionDefinitions chains the current query on the position_definitions edge.
 func (etq *EquipmentTypeQuery) QueryPositionDefinitions() *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: etq.config}
-	step := &sql.Step{}
-	step.From.V = etq.sqlQuery()
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentpositiondefinition.Table
-	step.To.Column = equipmentpositiondefinition.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PositionDefinitionsTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PositionDefinitionsColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
+	)
 	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
@@ -95,16 +85,11 @@ func (etq *EquipmentTypeQuery) QueryPositionDefinitions() *EquipmentPositionDefi
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (etq *EquipmentTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: etq.config}
-	step := &sql.Step{}
-	step.From.V = etq.sqlQuery()
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = propertytype.Table
-	step.To.Column = propertytype.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.PropertyTypesTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.PropertyTypesColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sql.To(propertytype.Table, propertytype.FieldID),
+		sql.Edge(sql.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
+	)
 	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
@@ -112,16 +97,11 @@ func (etq *EquipmentTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 // QueryEquipment chains the current query on the equipment edge.
 func (etq *EquipmentTypeQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: etq.config}
-	step := &sql.Step{}
-	step.From.V = etq.sqlQuery()
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipment.Table
-	step.To.Column = equipment.FieldID
-	step.Edge.Rel = sql.O2M
-	step.Edge.Inverse = true
-	step.Edge.Table = equipmenttype.EquipmentTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.EquipmentColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sql.To(equipment.Table, equipment.FieldID),
+		sql.Edge(sql.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
+	)
 	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
@@ -129,16 +109,11 @@ func (etq *EquipmentTypeQuery) QueryEquipment() *EquipmentQuery {
 // QueryCategory chains the current query on the category edge.
 func (etq *EquipmentTypeQuery) QueryCategory() *EquipmentCategoryQuery {
 	query := &EquipmentCategoryQuery{config: etq.config}
-	step := &sql.Step{}
-	step.From.V = etq.sqlQuery()
-	step.From.Table = equipmenttype.Table
-	step.From.Column = equipmenttype.FieldID
-	step.To.Table = equipmentcategory.Table
-	step.To.Column = equipmentcategory.FieldID
-	step.Edge.Rel = sql.M2O
-	step.Edge.Inverse = false
-	step.Edge.Table = equipmenttype.CategoryTable
-	step.Edge.Columns = append(step.Edge.Columns, equipmenttype.CategoryColumn)
+	step := sql.NewStep(
+		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sql.To(equipmentcategory.Table, equipmentcategory.FieldID),
+		sql.Edge(sql.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+	)
 	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }

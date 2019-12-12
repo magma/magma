@@ -8,6 +8,7 @@
 #pragma once
 
 #include <devmand/channels/snmp/Channel.h>
+#include <devmand/channels/snmp/IfMib.h>
 #include <devmand/devices/PingDevice.h>
 
 /* TODO use this
@@ -51,12 +52,17 @@ class Snmpv2Device : public PingDevice {
   Snmpv2Device(Snmpv2Device&&) = delete;
   Snmpv2Device& operator=(Snmpv2Device&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
   std::shared_ptr<State> getState() override;
+
+ private:
+  folly::Future<folly::Unit> addToStateWithInterfaceIndices(
+      std::shared_ptr<State> state,
+      const devmand::channels::snmp::InterfaceIndicies& interfaceIndices);
 
  protected:
   void setConfig(const folly::dynamic& config) override {

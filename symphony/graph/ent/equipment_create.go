@@ -356,6 +356,7 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 		insert.Set(equipment.FieldDeviceID, *value)
 		e.DeviceID = *value
 	}
+
 	id, err := insertLastID(ctx, tx, insert.Returning(equipment.FieldID))
 	if err != nil {
 		return nil, rollback(tx, err)

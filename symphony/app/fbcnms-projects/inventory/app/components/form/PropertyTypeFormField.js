@@ -52,6 +52,7 @@ export default withStyles(styles)(
         rangeToValue
         isEditable
         isInstanceProperty
+        isMandatory
       }
     `,
   }),

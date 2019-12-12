@@ -19,13 +19,13 @@ type Props = {
 export default function InventoryErrorBoundary(props: Props) {
   return (
     <ErrorBoundary
+      {...props}
       onError={error =>
         ServerLogger.error(LogEvents.CLIENT_FATAL_ERROR, {
           message: error.message,
           stack: error.stack,
         })
       }
-      {...props}
     />
   );
 }

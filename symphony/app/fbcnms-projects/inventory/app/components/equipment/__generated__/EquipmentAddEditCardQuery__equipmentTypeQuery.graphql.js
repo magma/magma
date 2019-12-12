@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5e0254afd6e4bd4010820df23613cc26
+ * @relayHash 2439bb9af821e25f2b146f98e0e2b62a
  */
 
 /* eslint-disable */
@@ -21,9 +21,9 @@ export type EquipmentAddEditCardQuery__equipmentTypeQueryVariables = {|
 |};
 export type EquipmentAddEditCardQuery__equipmentTypeQueryResponse = {|
   +equipmentType: ?{|
-    +id: string,
-    +name: string,
-    +propertyTypes: $ReadOnlyArray<?{|
+    +id?: string,
+    +name?: string,
+    +propertyTypes?: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
       +type: PropertyKind,
@@ -37,6 +37,7 @@ export type EquipmentAddEditCardQuery__equipmentTypeQueryResponse = {|
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
     |}>,
   |}
@@ -52,25 +53,30 @@ export type EquipmentAddEditCardQuery__equipmentTypeQuery = {|
 query EquipmentAddEditCardQuery__equipmentTypeQuery(
   $equipmentTypeId: ID!
 ) {
-  equipmentType(id: $equipmentTypeId) {
-    id
-    name
-    propertyTypes {
+  equipmentType: node(id: $equipmentTypeId) {
+    __typename
+    ... on EquipmentType {
       id
       name
-      type
-      index
-      stringValue
-      intValue
-      booleanValue
-      floatValue
-      latitudeValue
-      longitudeValue
-      rangeFromValue
-      rangeToValue
-      isEditable
-      isInstanceProperty
+      propertyTypes {
+        id
+        name
+        type
+        index
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+        rangeFromValue
+        rangeToValue
+        isEditable
+        isMandatory
+        isInstanceProperty
+      }
     }
+    id
   }
 }
 */
@@ -84,138 +90,131 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = {
+v1 = [
+  {
+    "kind": "Variable",
+    "name": "id",
+    "variableName": "equipmentTypeId"
+  }
+],
+v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
-v2 = {
+v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
 },
-v3 = [
-  {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "equipmentType",
-    "storageKey": null,
-    "args": [
-      {
-        "kind": "Variable",
-        "name": "id",
-        "variableName": "equipmentTypeId"
-      }
-    ],
-    "concreteType": "EquipmentType",
-    "plural": false,
-    "selections": [
-      (v1/*: any*/),
-      (v2/*: any*/),
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "propertyTypes",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "PropertyType",
-        "plural": true,
-        "selections": [
-          (v1/*: any*/),
-          (v2/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "type",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "index",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "stringValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "intValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "booleanValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "floatValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "latitudeValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "longitudeValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "rangeFromValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "rangeToValue",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "isEditable",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "isInstanceProperty",
-            "args": null,
-            "storageKey": null
-          }
-        ]
-      }
-    ]
-  }
-];
+v4 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "propertyTypes",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "PropertyType",
+  "plural": true,
+  "selections": [
+    (v2/*: any*/),
+    (v3/*: any*/),
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "type",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "index",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "stringValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "intValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "booleanValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "floatValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "latitudeValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "longitudeValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "rangeFromValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "rangeToValue",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "isEditable",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "isMandatory",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "isInstanceProperty",
+      "args": null,
+      "storageKey": null
+    }
+  ]
+};
 return {
   "kind": "Request",
   "fragment": {
@@ -224,23 +223,72 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "equipmentType",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "InlineFragment",
+            "type": "EquipmentType",
+            "selections": [
+              (v2/*: any*/),
+              (v3/*: any*/),
+              (v4/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "operation": {
     "kind": "Operation",
     "name": "EquipmentAddEditCardQuery__equipmentTypeQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v3/*: any*/)
+    "selections": [
+      {
+        "kind": "LinkedField",
+        "alias": "equipmentType",
+        "name": "node",
+        "storageKey": null,
+        "args": (v1/*: any*/),
+        "concreteType": null,
+        "plural": false,
+        "selections": [
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "__typename",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/),
+          {
+            "kind": "InlineFragment",
+            "type": "EquipmentType",
+            "selections": [
+              (v3/*: any*/),
+              (v4/*: any*/)
+            ]
+          }
+        ]
+      }
+    ]
   },
   "params": {
     "operationKind": "query",
     "name": "EquipmentAddEditCardQuery__equipmentTypeQuery",
     "id": null,
-    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType(id: $equipmentTypeId) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n  }\n}\n",
+    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType: node(id: $equipmentTypeId) {\n    __typename\n    ... on EquipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '2a4fb3ad5837b8573d951f5f9b89f08e';
+(node/*: any*/).hash = '5e9bd8a8cf5bd38d1aad2769908ccf0f';
 module.exports = node;

@@ -126,6 +126,7 @@ static const char *_emm_cn_primitive_str[] = {
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL",
   "EMMCN_MM_INFORMATION_REQUEST",
   "EMMCN_DEACTIVATE_BEARER_REQ",
+  "EMMCN_PDN_DISCONNECT_RES",
 };
 
 //------------------------------------------------------------------------------
@@ -224,13 +225,13 @@ static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
     "TODO deregister UE " MME_UE_S1AP_ID_FMT
     ", following procedure is a test\n",
     ue_id);
-  emm_detach_request_ies_t *params = calloc(1, sizeof(*params));
-  params->type = EMM_DETACH_TYPE_EPS;
-  params->switch_off = false;
-  params->is_native_sc = false;
-  params->ksi = 0;
+  emm_detach_request_ies_t params = {0};
+  params.type = EMM_DETACH_TYPE_EPS;
+  params.switch_off = false;
+  params.is_native_sc = false;
+  params.ksi = 0;
   increment_counter("ue_detach", 1, 1, "cause", "deregister_ue");
-  emm_proc_detach_request(ue_id, params);
+  emm_proc_detach_request(ue_id, &params);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
@@ -473,9 +474,9 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
     rc = emm_proc_sgs_detach_request(ue_id, EMM_SGS_NW_INITIATED_EPS_DETACH);
   }
 
+  emm_context_unlock(emm_ctx_p);
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

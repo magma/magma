@@ -8,24 +8,10 @@
  * @format
  */
 
-import type {AddEditWorkOrderTypeCard_editingWorkOrderType} from './__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql';
-import type {
-  AddWorkOrderTypeMutationResponse,
-  AddWorkOrderTypeMutationVariables,
-} from '../../mutations/__generated__/AddWorkOrderTypeMutation.graphql';
-import type {
-  EditWorkOrderTypeMutationResponse,
-  EditWorkOrderTypeMutationVariables,
-} from '../../mutations/__generated__/EditWorkOrderTypeMutation.graphql';
-import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {WithSnackbarProps} from 'notistack';
-import type {WithStyles} from '@material-ui/core';
-import type {WorkOrderType} from '../../common/WorkOrder';
-
 import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import CheckListTable from '../checklist/CheckListTable';
 import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
@@ -40,6 +26,20 @@ import {getPropertyDefaultValue} from '../../common/PropertyType';
 import {sortByIndex} from '../draggable/DraggableUtils';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
+import type {AddEditWorkOrderTypeCard_editingWorkOrderType} from './__generated__/AddEditWorkOrderTypeCard_editingWorkOrderType.graphql';
+import type {
+  AddWorkOrderTypeMutationResponse,
+  AddWorkOrderTypeMutationVariables,
+} from '../../mutations/__generated__/AddWorkOrderTypeMutation.graphql';
+import type {
+  EditWorkOrderTypeMutationResponse,
+  EditWorkOrderTypeMutationVariables,
+} from '../../mutations/__generated__/EditWorkOrderTypeMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithSnackbarProps} from 'notistack';
+import type {WithStyles} from '@material-ui/core';
+import type {WorkOrderType} from '../../common/WorkOrder';
 
 const styles = theme => ({
   root: {
@@ -81,6 +81,10 @@ const styles = theme => ({
   cancelButton: {
     marginRight: '8px',
   },
+  iconButton: {
+    display: 'block',
+    marginLeft: 'auto',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -95,12 +99,14 @@ type Props = WithSnackbarProps &
 type State = {
   editingWorkOrderType: WorkOrderType,
   isSaving: boolean,
+  isInEditMode: boolean,
 };
 
 class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   state = {
     editingWorkOrderType: this.getEditingWorkOrderType(),
     isSaving: false,
+    isInEditMode: true,
   };
 
   render() {
@@ -158,6 +164,13 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
               onPropertiesChanged={this._propertyChangedHandler}
             />
           </ExpandingPanel>
+          <ExpandingPanel title="Checklist items">
+            <CheckListTable
+              list={editingWorkOrderType.checkListDefinitions}
+              onChecklistChanged={this._checklistChangedHandler}
+              onDesignMode={true}
+            />
+          </ExpandingPanel>
         </div>
       </div>
     );
@@ -213,6 +226,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       name,
       description,
       propertyTypes,
+      checkListDefinitions,
     } = this.state.editingWorkOrderType;
     const variables: EditWorkOrderTypeMutationVariables = {
       input: {
@@ -221,6 +235,9 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         description,
         properties: propertyTypes
           .filter(propType => !!propType.name)
+          .map(this.deleteTempId),
+        checkList: checkListDefinitions
+          .filter(checkListDefinition => !!checkListDefinition.title)
           .map(this.deleteTempId),
       },
     };
@@ -245,13 +262,21 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   };
 
   addNewWorkOrderType = () => {
-    const {name, description, propertyTypes} = this.state.editingWorkOrderType;
+    const {
+      name,
+      description,
+      propertyTypes,
+      checkListDefinitions,
+    } = this.state.editingWorkOrderType;
     const variables: AddWorkOrderTypeMutationVariables = {
       input: {
         name,
         description,
         properties: propertyTypes
           .filter(propType => !!propType.name)
+          .map(this.deleteTempId),
+        checkList: checkListDefinitions
+          .filter(checkListDefinition => !!checkListDefinition.title)
           .map(this.deleteTempId),
       },
     };
@@ -310,6 +335,16 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     });
   };
 
+  _checklistChangedHandler = updatedChecklist => {
+    this.setState(prevState => {
+      return {
+        editingWorkOrderType: update(prevState.editingWorkOrderType, {
+          checkListDefinitions: {$set: updatedChecklist},
+        }),
+      };
+    });
+  };
+
   getEditingWorkOrderType(): WorkOrderType {
     const editingWorkOrderType = this.props.editingWorkOrderType;
     const propertyTypes = (editingWorkOrderType?.propertyTypes ?? [])
@@ -326,7 +361,21 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         latitudeValue: p.latitudeValue,
         longitudeValue: p.longitudeValue,
         isEditable: p.isEditable,
+        isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
+      }));
+    // eslint-disable-next-line flowtype/no-weak-types
+    const checkListDefinitions: Array<any> = (
+      editingWorkOrderType?.checkListDefinitions ?? []
+    )
+      .filter(Boolean)
+      .map(p => ({
+        id: p.id,
+        title: p.title,
+        index: p.index || 0,
+        type: p.type,
+        enumValues: p.enumValues,
+        helpText: p.helpText,
       }));
 
     return {
@@ -347,9 +396,11 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           latitudeValue: null,
           longitudeValue: null,
           isEditable: true,
+          isMandatory: false,
           isInstanceProperty: true,
         },
       ],
+      checkListDefinitions: checkListDefinitions,
     };
   }
 }
@@ -378,7 +429,16 @@ export default withStyles(styles)(
               rangeFromValue
               rangeToValue
               isEditable
+              isMandatory
               isInstanceProperty
+            }
+            checkListDefinitions {
+              id
+              title
+              type
+              index
+              helpText
+              enumValues
             }
           }
         `,

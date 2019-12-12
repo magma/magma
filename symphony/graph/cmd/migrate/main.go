@@ -23,11 +23,12 @@ import (
 )
 
 func main() {
-	drv := flag.String("db_driver", "", "driver name")
-	dsn := flag.String("db_dsn", "", "data source name")
-	dc := flag.Bool("drop_column", false, "enable column drop")
-	di := flag.Bool("drop_index", false, "enable index drop")
-	plan := flag.Bool("plan", false, "print the execution plan")
+	drv := flag.String("db-driver", "mysql", "driver name")
+	dsn := flag.String("db-dsn", "", "data source name")
+	dropColumn := flag.Bool("drop-column", false, "enable column drop")
+	dropIndex := flag.Bool("drop-index", false, "enable index drop")
+	dryRun := flag.Bool("dry-run", false, "run in dry run mode")
+	tenantName := flag.String("tenant", "", "target specific tenant")
 	flag.Parse()
 
 	logger, _ := log.Config{Format: "console"}.Build()
@@ -36,40 +37,40 @@ func main() {
 		logger.Background().Fatal("opening database", zap.Error(err))
 	}
 
-	tenants, err := graphgrpc.NewTenantService(driver.DB()).
-		List(context.Background(), &empty.Empty{})
+	tenants, err := graphgrpc.NewTenantService(
+		func(context.Context) graphgrpc.ExecQueryer {
+			return driver.DB()
+		},
+	).List(context.Background(), &empty.Empty{})
 	if err != nil {
 		logger.Background().Fatal("listing tenants", zap.Error(err))
 	}
 
-	names := make([]string, len(tenants.Tenants))
-	for i, tenant := range tenants.Tenants {
-		names[i] = tenant.Name
+	names := make([]string, 0, len(tenants.Tenants))
+	for _, tenant := range tenants.Tenants {
+		if *tenantName == "" || *tenantName == tenant.Name {
+			names = append(names, tenant.Name)
+		}
 	}
 
 	cfg := migrate.MigratorConfig{
 		Driver: driver,
 		Logger: logger,
 		Options: []schema.MigrateOption{
-			schema.WithDropColumn(*dc),
-			schema.WithDropIndex(*di),
+			schema.WithDropColumn(*dropColumn),
+			schema.WithDropIndex(*dropIndex),
 		},
 	}
-	if *plan {
+	if *dryRun {
 		cfg.Creator = func(driver dialect.Driver) migrate.Creator {
-			return planner{entmigrate.NewSchema(driver)}
+			entSchema := entmigrate.NewSchema(driver)
+			return migrate.CreatorFunc(func(ctx context.Context, opts ...schema.MigrateOption) error {
+				return entSchema.WriteTo(ctx, os.Stdout, opts...)
+			})
 		}
 	}
 
 	if err := migrate.NewMigrator(cfg).Migrate(context.Background(), names...); err != nil {
 		os.Exit(1)
 	}
-}
-
-type planner struct {
-	*entmigrate.Schema
-}
-
-func (c planner) Create(ctx context.Context, opts ...schema.MigrateOption) error {
-	return c.WriteTo(ctx, os.Stdout, opts...)
 }
