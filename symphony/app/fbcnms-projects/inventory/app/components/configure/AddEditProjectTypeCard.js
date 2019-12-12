@@ -289,6 +289,7 @@ export default createFragmentContainer(AddEditProjectTypeCard, {
         rangeFromValue
         rangeToValue
         isEditable
+        isMandatory
         isInstanceProperty
       }
     }

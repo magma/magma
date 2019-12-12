@@ -15,9 +15,9 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type PortDefinitionsAddEditTable_portDefinition$ref: FragmentReference;
-declare export opaque type PortDefinitionsAddEditTable_portDefinition$fragmentType: PortDefinitionsAddEditTable_portDefinition$ref;
-export type PortDefinitionsAddEditTable_portDefinition = {|
+declare export opaque type PortDefinitionsAddEditTable_portDefinitions$ref: FragmentReference;
+declare export opaque type PortDefinitionsAddEditTable_portDefinitions$fragmentType: PortDefinitionsAddEditTable_portDefinitions$ref;
+export type PortDefinitionsAddEditTable_portDefinitions = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +index: ?number,
@@ -27,13 +27,13 @@ export type PortDefinitionsAddEditTable_portDefinition = {|
     +id: string,
     +name: string,
   |},
-  +$refType: PortDefinitionsAddEditTable_portDefinition$ref,
-|};
-export type PortDefinitionsAddEditTable_portDefinition$data = PortDefinitionsAddEditTable_portDefinition;
-export type PortDefinitionsAddEditTable_portDefinition$key = {
-  +$data?: PortDefinitionsAddEditTable_portDefinition$data,
-  +$fragmentRefs: PortDefinitionsAddEditTable_portDefinition$ref,
-};
+  +$refType: PortDefinitionsAddEditTable_portDefinitions$ref,
+|}>;
+export type PortDefinitionsAddEditTable_portDefinitions$data = PortDefinitionsAddEditTable_portDefinitions;
+export type PortDefinitionsAddEditTable_portDefinitions$key = $ReadOnlyArray<{
+  +$data?: PortDefinitionsAddEditTable_portDefinitions$data,
+  +$fragmentRefs: PortDefinitionsAddEditTable_portDefinitions$ref,
+}>;
 */
 
 
@@ -54,9 +54,11 @@ v1 = {
 };
 return {
   "kind": "Fragment",
-  "name": "PortDefinitionsAddEditTable_portDefinition",
+  "name": "PortDefinitionsAddEditTable_portDefinitions",
   "type": "EquipmentPortDefinition",
-  "metadata": null,
+  "metadata": {
+    "plural": true
+  },
   "argumentDefinitions": [],
   "selections": [
     (v0/*: any*/),
@@ -99,5 +101,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cb451e164a86b3be37ecb901b872cea8';
+(node/*: any*/).hash = 'ea9b6cd630a55568f3c9be58c6f7687d';
 module.exports = node;

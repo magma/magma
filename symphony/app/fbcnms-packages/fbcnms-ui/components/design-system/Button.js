@@ -28,6 +28,31 @@ const useStyles = makeStyles(_theme => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  icon: {},
+  hasIcon: {
+    justifyContent: 'start',
+    '& $buttonText': {
+      flexGrow: 1,
+    },
+  },
+  rightIcon: {
+    alignSelf: 'flex-end',
+    marginLeft: '6px',
+  },
+  leftIcon: {
+    alignSelf: 'flex-start',
+    marginRight: '6px',
+  },
+  hasRightIcon: {
+    '& $buttonText': {
+      textAlign: 'left',
+    },
+  },
+  hasLeftIcon: {
+    '& $buttonText': {
+      textAlign: 'right',
+    },
+  },
   primarySkin: {},
   redSkin: {},
   regularSkin: {},
@@ -38,10 +63,18 @@ const useStyles = makeStyles(_theme => ({
     minWidth: '88px',
     padding: '4px 18px',
     borderRadius: '4px',
+    '&$hasRightIcon': {
+      padding: '4px 6px 4px 12px',
+    },
+    '&$hasLeftIcon': {
+      padding: '4px 12px 4px 6px',
+    },
     '&$primarySkin': {
       backgroundColor: symphony.palette.primary,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.white,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.white,
+        },
       },
       '&:hover:not($disabled)': {
         backgroundColor: symphony.palette.B700,
@@ -52,8 +85,10 @@ const useStyles = makeStyles(_theme => ({
     },
     '&$redSkin': {
       backgroundColor: symphony.palette.R600,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.white,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.white,
+        },
       },
       '&:hover:not($disabled)': {
         backgroundColor: symphony.palette.R700,
@@ -64,101 +99,145 @@ const useStyles = makeStyles(_theme => ({
     },
     '&$regularSkin': {
       backgroundColor: symphony.palette.white,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.secondary,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.secondary,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        color: symphony.palette.primary,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.primary,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        color: symphony.palette.B700,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.B700,
+        },
       },
     },
     '&$graySkin': {
       backgroundColor: symphony.palette.background,
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.secondary,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.secondary,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        color: symphony.palette.primary,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.primary,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        color: symphony.palette.B700,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.B700,
+        },
       },
     },
     '&$disabled': {
       cursor: 'default',
       backgroundColor: symphony.palette.disabled,
-      '& $buttonText': {
+      '& $buttonText, $icon': {
         color: symphony.palette.white,
       },
     },
   },
   buttonText: {},
   textVariant: {
-    display: 'inline-block',
+    display: 'inline-flex',
+    textAlign: 'left',
     background: 'none',
     padding: 0,
     '&$primarySkin': {
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.primary,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.primary,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
     },
     '&$redSkin': {
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.R600,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.R600,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
     },
     '&$regularSkin': {
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.secondary,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.secondary,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
     },
     '&$graySkin': {
-      '&:not($disabled) $buttonText': {
-        color: symphony.palette.secondary,
+      '&:not($disabled)': {
+        '& $buttonText, $icon': {
+          color: symphony.palette.secondary,
+        },
       },
-      '&:hover:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:hover:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
-      '&:active:not($disabled) $buttonText': {
-        opacity: 0.75,
+      '&:active:not($disabled)': {
+        '& $buttonText, $icon': {
+          opacity: 0.75,
+        },
       },
     },
     '&$disabled': {
       cursor: 'default',
-      '& $buttonText': {
+      '& $buttonText, $icon': {
         color: symphony.palette.disabled,
       },
     },
   },
 }));
 
+export type ButtonVariant = 'contained' | 'text';
+export type ButtonSkin = 'primary' | 'regular' | 'red' | 'gray';
+type SvgIcon = React$ComponentType<SvgIconExports>;
+
 type Props = {
   className?: string,
   children: React.Node,
   onClick?: void | (() => void | Promise<void>),
-  skin?: 'primary' | 'regular' | 'red' | 'gray',
-  variant?: 'contained' | 'text',
+  skin?: ButtonSkin,
+  variant?: ButtonVariant,
   disabled?: boolean,
+  leftIcon?: SvgIcon,
+  rightIcon?: SvgIcon,
+  tooltip?: string,
 };
 
 const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
@@ -169,25 +248,11 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
     disabled = false,
     variant = 'contained',
     onClick,
+    leftIcon: LeftIcon = null,
+    rightIcon: RightIcon = null,
+    tooltip,
   } = props;
   const classes = useStyles();
-  const textifiedChildren = Array.isArray(children) ? (
-    children.map(c =>
-      typeof c === 'string' ? (
-        <Text variant="body2" weight="medium" className={classes.buttonText}>
-          {c}
-        </Text>
-      ) : (
-        c
-      ),
-    )
-  ) : typeof children === 'string' ? (
-    <Text variant="body2" weight="medium" className={classes.buttonText}>
-      {children}
-    </Text>
-  ) : (
-    children
-  );
 
   return (
     <button
@@ -195,14 +260,36 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
         classes.root,
         classes[`${skin}Skin`],
         classes[`${variant}Variant`],
-        {[classes.disabled]: disabled},
+        {
+          [classes.disabled]: disabled,
+          [classes.hasIcon]: LeftIcon != null || RightIcon != null,
+          [classes.hasLeftIcon]: LeftIcon != null,
+          [classes.hasRightIcon]: RightIcon != null,
+        },
         className,
       )}
       type="button"
+      title={tooltip}
       disabled={disabled}
       onClick={onClick}
       ref={forwardedRef}>
-      {textifiedChildren}
+      {LeftIcon ? (
+        <LeftIcon
+          className={classNames(classes.icon, classes.leftIcon)}
+          size="small"
+          color="inhreit"
+        />
+      ) : null}
+      <Text variant="body2" weight="medium" className={classes.buttonText}>
+        {children}
+      </Text>
+      {RightIcon ? (
+        <RightIcon
+          className={classNames(classes.icon, classes.rightIcon)}
+          size="small"
+          color="inhreit"
+        />
+      ) : null}
     </button>
   );
 };

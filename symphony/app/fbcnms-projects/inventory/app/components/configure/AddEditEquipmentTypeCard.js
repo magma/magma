@@ -180,6 +180,7 @@ class AddEditEquipmentTypeCard extends React.Component<Props, State> {
             <Grid container direction="column" spacing={3}>
               <Grid item xs={12} xl={7}>
                 <PortDefinitionsAddEditTable
+                  // $FlowFixMe mix between relay and hand typed. Please fix.
                   portDefinitions={portDefinitions}
                   onPortDefinitionsChanged={ports =>
                     this.setState(state => ({
@@ -460,13 +461,14 @@ export default withStyles(styles)(
               longitudeValue
               isEditable
               isInstanceProperty
+              isMandatory
             }
             positionDefinitions {
               ...PositionDefinitionsAddEditTable_positionDefinition
                 @relay(mask: false)
             }
             portDefinitions {
-              ...PortDefinitionsAddEditTable_portDefinition @relay(mask: false)
+              ...PortDefinitionsAddEditTable_portDefinitions @relay(mask: false)
             }
             numberOfEquipment
           }

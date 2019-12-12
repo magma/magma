@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  EditLinkMutation,
   EditLinkMutationResponse,
   EditLinkMutationVariables,
 } from './__generated__/EditLinkMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 export const mutation = graphql`
   mutation EditLinkMutation($input: EditLinkInput!) {
@@ -29,10 +30,10 @@ export const mutation = graphql`
 export default (
   variables: EditLinkMutationVariables,
   callbacks?: MutationCallbacks<EditLinkMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks || {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditLinkMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

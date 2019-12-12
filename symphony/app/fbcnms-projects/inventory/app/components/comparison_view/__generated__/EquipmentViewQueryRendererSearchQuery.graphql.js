@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a5b0e4f6275f2687126338753a3d82a1
+ * @relayHash 593732ff485e8b48b21cf69388647422
  */
 
 /* eslint-disable */
@@ -43,6 +43,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type EquipmentViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,

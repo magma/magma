@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  EditLocationTypesIndexMutation,
   EditLocationTypesIndexMutationResponse,
   EditLocationTypesIndexMutationVariables,
 } from './__generated__/EditLocationTypesIndexMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 export const mutation = graphql`
   mutation EditLocationTypesIndexMutation(
@@ -34,11 +35,10 @@ export const mutation = graphql`
 export default (
   variables: EditLocationTypesIndexMutationVariables,
   callbacks?: MutationCallbacks<EditLocationTypesIndexMutationResponse>,
-  // eslint-disable-next-line flowtype/no-weak-types
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditLocationTypesIndexMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

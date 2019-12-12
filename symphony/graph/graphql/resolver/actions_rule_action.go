@@ -8,14 +8,14 @@ import (
 	"context"
 
 	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
 
 type actionsRuleActionResolver struct{}
 
-func (actionsRuleActionResolver) Action(ctx context.Context, ar *schema.ActionsRuleAction) (*models.ActionsAction, error) {
+func (actionsRuleActionResolver) Action(ctx context.Context, ar *core.ActionsRuleAction) (*models.ActionsAction, error) {
 	ac := actions.FromContext(ctx)
 
 	action, err := ac.ActionForID(ar.ActionID)
@@ -29,7 +29,7 @@ func (actionsRuleActionResolver) Action(ctx context.Context, ar *schema.ActionsR
 	}, nil
 }
 
-func (actionsRuleActionResolver) ActionID(ctx context.Context, action *schema.ActionsRuleAction) (models.ActionID, error) {
+func (actionsRuleActionResolver) ActionID(ctx context.Context, action *core.ActionsRuleAction) (models.ActionID, error) {
 	value := models.ActionID(action.ActionID)
 	if !value.IsValid() {
 		return "", errors.Errorf("not a valid actionID: %s", action.ActionID)

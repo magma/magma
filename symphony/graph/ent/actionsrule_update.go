@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 // ActionsRuleUpdate is the builder for updating ActionsRule entities.
@@ -25,8 +25,8 @@ type ActionsRuleUpdate struct {
 	update_time *time.Time
 	name        *string
 	triggerID   *string
-	ruleFilters *[]*schema.ActionsRuleFilter
-	ruleActions *[]*schema.ActionsRuleAction
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
 	predicates  []predicate.ActionsRule
 }
 
@@ -49,14 +49,14 @@ func (aru *ActionsRuleUpdate) SetTriggerID(s string) *ActionsRuleUpdate {
 }
 
 // SetRuleFilters sets the ruleFilters field.
-func (aru *ActionsRuleUpdate) SetRuleFilters(srf []*schema.ActionsRuleFilter) *ActionsRuleUpdate {
-	aru.ruleFilters = &srf
+func (aru *ActionsRuleUpdate) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleUpdate {
+	aru.ruleFilters = &crf
 	return aru
 }
 
 // SetRuleActions sets the ruleActions field.
-func (aru *ActionsRuleUpdate) SetRuleActions(sra []*schema.ActionsRuleAction) *ActionsRuleUpdate {
-	aru.ruleActions = &sra
+func (aru *ActionsRuleUpdate) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleUpdate {
+	aru.ruleActions = &cra
 	return aru
 }
 
@@ -170,8 +170,8 @@ type ActionsRuleUpdateOne struct {
 	update_time *time.Time
 	name        *string
 	triggerID   *string
-	ruleFilters *[]*schema.ActionsRuleFilter
-	ruleActions *[]*schema.ActionsRuleAction
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
 }
 
 // SetName sets the name field.
@@ -187,14 +187,14 @@ func (aruo *ActionsRuleUpdateOne) SetTriggerID(s string) *ActionsRuleUpdateOne {
 }
 
 // SetRuleFilters sets the ruleFilters field.
-func (aruo *ActionsRuleUpdateOne) SetRuleFilters(srf []*schema.ActionsRuleFilter) *ActionsRuleUpdateOne {
-	aruo.ruleFilters = &srf
+func (aruo *ActionsRuleUpdateOne) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleUpdateOne {
+	aruo.ruleFilters = &crf
 	return aruo
 }
 
 // SetRuleActions sets the ruleActions field.
-func (aruo *ActionsRuleUpdateOne) SetRuleActions(sra []*schema.ActionsRuleAction) *ActionsRuleUpdateOne {
-	aruo.ruleActions = &sra
+func (aruo *ActionsRuleUpdateOne) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleUpdateOne {
+	aruo.ruleActions = &cra
 	return aruo
 }
 

@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddFloorPlanMutation,
   AddFloorPlanMutationResponse,
   AddFloorPlanMutationVariables,
 } from './__generated__/AddFloorPlanMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddFloorPlanMutation($input: AddFloorPlanInput!) {
@@ -28,10 +30,10 @@ const mutation = graphql`
 export default (
   variables: AddFloorPlanMutationVariables,
   callbacks?: MutationCallbacks<AddFloorPlanMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddFloorPlanMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

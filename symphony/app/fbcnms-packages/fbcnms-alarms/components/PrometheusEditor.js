@@ -19,7 +19,9 @@ import ToggleableExpressionEditor, {
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
+import {Labels} from './prometheus/PromQL';
 import {SEVERITY} from './Severity';
+
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -216,9 +218,9 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     setThresholdExpression,
   ] = React.useState<ThresholdExpression>({
     metricName: '',
-    comparator: null,
+    comparator: '==',
     value: 0,
-    filters: [],
+    filters: new Labels(),
   });
 
   const saveAlert = async () => {

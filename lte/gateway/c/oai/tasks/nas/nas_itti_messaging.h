@@ -85,10 +85,4 @@ void nas_itti_sgsap_ue_activity_ind(
   const char *imsi,
   const unsigned int imsi_len);
 
-void nas_itti_dedicated_eps_bearer_deactivation_reject(
-  const mme_ue_s1ap_id_t ue_idP,
-  const ebi_t ebiP,
-  bool delete_default_bearer,
-  teid_t s_gw_teid_s11_s4);
-
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

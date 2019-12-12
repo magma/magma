@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  EditLocationTypeSurveyTemplateCategoriesMutation,
   EditLocationTypeSurveyTemplateCategoriesMutationResponse,
   EditLocationTypeSurveyTemplateCategoriesMutationVariables,
 } from './__generated__/EditLocationTypeSurveyTemplateCategoriesMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 export const mutation = graphql`
   mutation EditLocationTypeSurveyTemplateCategoriesMutation(
@@ -34,14 +35,17 @@ export const mutation = graphql`
 export default (
   variables: EditLocationTypeSurveyTemplateCategoriesMutationVariables,
   callbacks?: MutationCallbacks<EditLocationTypeSurveyTemplateCategoriesMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
-    mutation,
-    variables,
-    updater,
-    onCompleted,
-    onError,
-  });
+  commitMutation<EditLocationTypeSurveyTemplateCategoriesMutation>(
+    RelayEnvironment,
+    {
+      mutation,
+      variables,
+      updater,
+      onCompleted,
+      onError,
+    },
+  );
 };

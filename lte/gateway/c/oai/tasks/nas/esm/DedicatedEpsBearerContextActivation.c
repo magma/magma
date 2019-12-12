@@ -281,7 +281,12 @@ int esm_proc_dedicated_eps_bearer_context_accept(
 
   ue_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-
+  if(ue_context_p) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "Failed to find ue context from emm_context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - Dedicated EPS bearer context activation "
@@ -306,7 +311,6 @@ int esm_proc_dedicated_eps_bearer_context_accept(
       OAILOG_WARNING(
         LOG_NAS_ESM, "ESM-PROC  - EBI %u was already ACTIVE\n", ebi);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
-//Rashmi Check with Pruthvi
     }
     mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
   }
@@ -352,6 +356,12 @@ int esm_proc_dedicated_eps_bearer_context_reject(
   ue_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
+  if(ue_context_p) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "Failed to find ue context from emm_context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - Dedicated EPS bearer context activation "
@@ -461,6 +471,8 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bid = BEARERS_PER_UE;
       ebi_t ebi = esm_ebr_timer_data->ebi;
+      ue_mm_context_t* ue_context_p = PARENT_STRUCT(esm_ebr_timer_data->ctx,
+        struct ue_mm_context_s, emm_context);
 
       /*
        * Release the dedicated EPS bearer context, enter state INACTIVE and
@@ -476,10 +488,8 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
         NULL);
 
       // Send dedicated_eps_bearer_reject to MME APP
-      if (rc != RETURNerror) {
-        mme_app_handle_create_dedicated_bearer_rej(
-          PARENT_STRUCT(esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context),
-          ebi);
+      if ((rc != RETURNerror) && (ue_context_p)) {
+        mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ebi);
       }
     }
   }

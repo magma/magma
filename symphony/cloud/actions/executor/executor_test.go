@@ -41,7 +41,12 @@ func TestExecutor(t *testing.T) {
 	testRule := core.Rule{
 		ID:        "rule1",
 		TriggerID: testTriggerID1,
-		ActionIDs: []core.ActionID{testActionID1},
+		RuleActions: []*core.ActionsRuleAction{
+			{
+				ActionID: testActionID1,
+				Data:     "testdata",
+			},
+		},
 	}
 
 	trigger1 := mocktrigger.New()

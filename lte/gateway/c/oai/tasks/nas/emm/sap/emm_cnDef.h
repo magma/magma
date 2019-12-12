@@ -141,7 +141,7 @@ typedef struct emm_cn_activate_dedicated_bearer_req_s {
   bearer_qos_t bearer_qos;
   traffic_flow_template_t *tft;
   protocol_configuration_options_t *pco;
-  teid_t sgw_fteid;
+  fteid_t sgw_fteid;
 } emm_cn_activate_dedicated_bearer_req_t;
 
 typedef struct emm_cn_deactivate_dedicated_bearer_req_s {

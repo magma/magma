@@ -534,6 +534,7 @@ type PropertyTypeInput struct {
 	RangeToValue       *float64     `json:"rangeToValue"`
 	IsEditable         *bool        `json:"isEditable"`
 	IsInstanceProperty *bool        `json:"isInstanceProperty"`
+	IsMandatory        *bool        `json:"isMandatory"`
 }
 
 type PythonPackage struct {

@@ -127,7 +127,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
-		Type:  "[]*schema.ActionsRuleFilter",
+		Type:  "[]*core.ActionsRuleFilter",
 		Name:  "RuleFilters",
 		Value: string(buf),
 	}
@@ -135,7 +135,7 @@ func (ar *ActionsRule) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[5] = &Field{
-		Type:  "[]*schema.ActionsRuleAction",
+		Type:  "[]*core.ActionsRuleAction",
 		Name:  "RuleActions",
 		Value: string(buf),
 	}
@@ -2094,7 +2094,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 16),
+		Fields: make([]*Field, 17),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2224,6 +2224,14 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[15] = &Field{
 		Type:  "bool",
 		Name:  "Editable",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pt.Mandatory); err != nil {
+		return nil, err
+	}
+	node.Fields[16] = &Field{
+		Type:  "bool",
+		Name:  "Mandatory",
 		Value: string(buf),
 	}
 	var ids []string

@@ -92,6 +92,7 @@ class EquipmentFilterInput:
         rangeToValue: Optional[float] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
+        isMandatory: Optional[bool] = None
 
     filterType: EquipmentFilterType = enum_field(EquipmentFilterType)
     operator: FilterOperator = enum_field(FilterOperator)

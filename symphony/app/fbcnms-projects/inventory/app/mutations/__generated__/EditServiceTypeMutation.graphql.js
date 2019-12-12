@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 74c3740207c09f48e25d33ab69351098
+ * @relayHash d4d133d578af6a94ec36be703a834c34
  */
 
 /* eslint-disable */
@@ -38,6 +38,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type EditServiceTypeMutationVariables = {|
   data: ServiceTypeEditData
@@ -61,6 +62,7 @@ export type EditServiceTypeMutationResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
   |}
 |};
@@ -93,6 +95,7 @@ mutation EditServiceTypeMutation(
       rangeToValue
       isEditable
       isInstanceProperty
+      isMandatory
     }
   }
 }
@@ -233,6 +236,13 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -259,7 +269,7 @@ return {
     "operationKind": "mutation",
     "name": "EditServiceTypeMutation",
     "id": null,
-    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n  }\n}\n",
+    "text": "mutation EditServiceTypeMutation(\n  $data: ServiceTypeEditData!\n) {\n  editServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

@@ -8,6 +8,7 @@
  * @format
  */
 
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import React from 'react';
 import Text from './design-system/Text';
 import TextField from '@material-ui/core/TextField';
@@ -70,16 +71,12 @@ const NameDescriptionSection = ({
   const classes = useStyles();
   return (
     <>
-      <Text className={classes.fieldName}>{title ?? 'Name'} *</Text>
-      <TextField
-        name="name"
-        className={classes.nameField}
-        placeholder={namePlaceholder ?? ''}
-        variant="outlined"
-        margin="dense"
+      <NameInput
         value={name}
         onChange={event => onNameChange && onNameChange(event.target.value)}
-        autoFocus
+        inputClass={classes.nameField}
+        title={title}
+        placeholder={namePlaceholder || ''}
       />
       <Text className={classNames(classes.fieldName, classes.descriptionTitle)}>
         Description

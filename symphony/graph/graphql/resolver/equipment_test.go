@@ -147,7 +147,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 }
 
 func TestOrc8rStatusEquipment(t *testing.T) {
-	ts := time.Now().Add(time.Hour / 2).Unix()
+	ts := time.Now().Add(time.Hour/2).Unix() * 1000
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, `{"checkin_time": `+strconv.FormatInt(ts, 10)+`}`)
 		assert.NoError(t, err)

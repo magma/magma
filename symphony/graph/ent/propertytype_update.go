@@ -61,6 +61,7 @@ type PropertyTypeUpdate struct {
 	clearrange_to_val            bool
 	is_instance_property         *bool
 	editable                     *bool
+	mandatory                    *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -409,6 +410,20 @@ func (ptu *PropertyTypeUpdate) SetEditable(b bool) *PropertyTypeUpdate {
 func (ptu *PropertyTypeUpdate) SetNillableEditable(b *bool) *PropertyTypeUpdate {
 	if b != nil {
 		ptu.SetEditable(*b)
+	}
+	return ptu
+}
+
+// SetMandatory sets the mandatory field.
+func (ptu *PropertyTypeUpdate) SetMandatory(b bool) *PropertyTypeUpdate {
+	ptu.mandatory = &b
+	return ptu
+}
+
+// SetNillableMandatory sets the mandatory field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableMandatory(b *bool) *PropertyTypeUpdate {
+	if b != nil {
+		ptu.SetMandatory(*b)
 	}
 	return ptu
 }
@@ -833,6 +848,9 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value := ptu.editable; value != nil {
 		updater.Set(propertytype.FieldEditable, *value)
 	}
+	if value := ptu.mandatory; value != nil {
+		updater.Set(propertytype.FieldMandatory, *value)
+	}
 	if !updater.Empty() {
 		query, args := updater.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
@@ -1103,6 +1121,7 @@ type PropertyTypeUpdateOne struct {
 	clearrange_to_val            bool
 	is_instance_property         *bool
 	editable                     *bool
+	mandatory                    *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -1444,6 +1463,20 @@ func (ptuo *PropertyTypeUpdateOne) SetEditable(b bool) *PropertyTypeUpdateOne {
 func (ptuo *PropertyTypeUpdateOne) SetNillableEditable(b *bool) *PropertyTypeUpdateOne {
 	if b != nil {
 		ptuo.SetEditable(*b)
+	}
+	return ptuo
+}
+
+// SetMandatory sets the mandatory field.
+func (ptuo *PropertyTypeUpdateOne) SetMandatory(b bool) *PropertyTypeUpdateOne {
+	ptuo.mandatory = &b
+	return ptuo
+}
+
+// SetNillableMandatory sets the mandatory field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableMandatory(b *bool) *PropertyTypeUpdateOne {
+	if b != nil {
+		ptuo.SetMandatory(*b)
 	}
 	return ptuo
 }
@@ -1912,6 +1945,10 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	if value := ptuo.editable; value != nil {
 		updater.Set(propertytype.FieldEditable, *value)
 		pt.Editable = *value
+	}
+	if value := ptuo.mandatory; value != nil {
+		updater.Set(propertytype.FieldMandatory, *value)
+		pt.Mandatory = *value
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()

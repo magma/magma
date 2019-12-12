@@ -28,3 +28,6 @@ const RelayEnvironment = new Environment({
 });
 
 export default RelayEnvironment;
+
+// TODO: This is type any - but until relay releases flow types, we can't use it
+export type StoreUpdater = (store: typeof Store) => void;

@@ -24,15 +24,16 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddLocationMutation from '../../mutations/AddLocationMutation';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import EditLocationMutation from '../../mutations/EditLocationMutation';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import GPSPropertyValueInput from '../form/GPSPropertyValueInput';
 import Grid from '@material-ui/core/Grid';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertiesAddEditSection from '../form/PropertiesAddEditSection';
 import React from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment.js';
@@ -43,6 +44,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
   getNonInstancePropertyTypes,
@@ -119,6 +121,7 @@ const locationAddEditCardQuery = graphql`
             longitudeValue
             rangeFromValue
             rangeToValue
+            isMandatory
           }
         }
         equipments {
@@ -139,6 +142,7 @@ const locationAddEditCardQuery = graphql`
             isEditable
             isInstanceProperty
             stringValue
+            isMandatory
           }
           stringValue
           intValue
@@ -183,6 +187,7 @@ const locationAddEditCard__locationTypeQuery = graphql`
           rangeToValue
           isEditable
           isInstanceProperty
+          isMandatory
         }
       }
     }
@@ -218,101 +223,68 @@ class LocationAddEditCard extends React.Component<Props, State> {
     const {latitude, longitude, properties} = editingLocation;
     return (
       <Card>
-        <CardContent className={this.props.classes.root}>
-          <div className={this.props.classes.header}>
-            <Text variant="h5">{editingLocation.locationType.name}</Text>
-          </div>
-          <Grid container spacing={2} className={classes.row}>
-            <Grid item xs={12} sm={12} lg={6} xl={4}>
-              <FormField
-                label="Name"
-                required
-                hasSpacer
-                hasError={!editingLocation.name}
-                errorText="Name cannot be empty">
-                <TextInput
-                  className={classes.input}
-                  type="string"
-                  autoFocus={true}
+        <FormValidationContextProvider>
+          <CardContent className={this.props.classes.root}>
+            <div className={this.props.classes.header}>
+              <Text variant="h5">{editingLocation.locationType.name}</Text>
+            </div>
+            <Grid container spacing={2} className={classes.row}>
+              <Grid item xs={12} sm={12} lg={6} xl={4}>
+                <NameInput
                   value={editingLocation.name}
                   onChange={this._onNameChanged}
+                  inputClass={classes.input}
                 />
-              </FormField>
+              </Grid>
+              <Grid item xs={12} sm={12} lg={6} xl={4}>
+                <FormField
+                  label="External ID"
+                  hasSpacer
+                  className={classes.externalIdFormField}>
+                  <TextInput
+                    className={classes.input}
+                    type="string"
+                    value={editingLocation.externalId ?? ''}
+                    onChange={this._onExternalIdChanged}
+                  />
+                </FormField>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={12} lg={6} xl={4}>
-              <FormField
-                label="External ID"
-                hasSpacer
-                className={classes.externalIdFormField}>
-                <TextInput
+            <Grid container spacing={0} className={classes.row}>
+              <Grid item xs={12} sm={12} lg={6} xl={4}>
+                <GPSPropertyValueInput
+                  label="Location"
+                  margin="normal"
+                  required={true}
+                  fullWidth
                   className={classes.input}
-                  type="string"
-                  value={editingLocation.externalId ?? ''}
-                  onChange={this._onExternalIdChanged}
+                  value={{
+                    latitude,
+                    longitude,
+                    accuracy: 0,
+                    altitude: 0,
+                    altitudeAccuracy: 0,
+                  }}
+                  onLatitudeChange={this._onLatitudeChanged}
+                  onLongitudeChange={this._onLongitudeChanged}
                 />
-              </FormField>
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid container spacing={2} className={classes.row}>
-            <Grid item xs={12} sm={12} lg={6} xl={4}>
-              <GPSPropertyValueInput
-                name="name"
-                label="Name"
-                margin="normal"
-                fullWidth
-                className={classes.input}
-                value={{
-                  latitude,
-                  longitude,
-                  accuracy: 0,
-                  altitude: 0,
-                  altitudeAccuracy: 0,
-                }}
-                onLatitudeChange={this._onLatitudeChanged}
-                onLongitudeChange={this._onLongitudeChanged}
+            {properties.length > 0 ? (
+              <PropertiesAddEditSection
+                properties={properties}
+                onChange={index => this._propertyChangedHandler(index)}
               />
-            </Grid>
-          </Grid>
-          {properties.length > 0 ? (
-            <PropertiesAddEditSection
-              properties={properties}
-              onChange={index => this._propertyChangedHandler(index)}
+            ) : null}
+          </CardContent>
+          <CardFooter>
+            <FormSaveCancelPanel
+              onCancel={this.props.onCancel}
+              onSave={this.onSave}
             />
-          ) : null}
-        </CardContent>
-        <CardFooter>
-          <Button
-            className={classes.cancelButton}
-            onClick={this.props.onCancel}
-            skin="regular">
-            Cancel
-          </Button>
-          <Button onClick={this.onSave} disabled={this.isSaveDisabled()}>
-            Save
-          </Button>
-        </CardFooter>
+          </CardFooter>
+        </FormValidationContextProvider>
       </Card>
-    );
-  }
-
-  isSaveDisabled() {
-    if (this.state.isSubmitting) {
-      return true;
-    }
-
-    const {editingLocation} = this.state;
-    const {latitude, longitude} = nullthrows(editingLocation);
-    const latError =
-      (latitude !== null && Number(latitude) < -90) || Number(latitude) > 90;
-    const longError =
-      (longitude !== null && Number(longitude) < -180) ||
-      Number(longitude) > 180;
-    return (
-      !editingLocation?.name ||
-      latError ||
-      longError ||
-      (Boolean(longitude) && latitude !== 0 && !Boolean(latitude)) ||
-      (!Boolean(longitude) && longitude !== 0 && Boolean(latitude))
     );
   }
 

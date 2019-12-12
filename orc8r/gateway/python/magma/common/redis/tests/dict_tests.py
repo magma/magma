@@ -130,6 +130,42 @@ class RedisDictTests(TestCase):
         self._flat_dict.clear()
         self.assertEqual(0, len(self._flat_dict.keys()))
 
+    @mock.patch("redis.Redis", MockRedis)
+    def test_flat_garbage_methods(self):
+        expected = LogVerbosity(verbosity=2)
+        expected2 = LogVerbosity(verbosity=3)
+
+        key = "k1"
+        key2 = "k2"
+        bad_key = "bad_key"
+        self._flat_dict[key] = expected
+        self._flat_dict[key2] = expected2
+
+        self._flat_dict.mark_as_garbage(key)
+        is_garbage = self._flat_dict.is_garbage(key)
+        self.assertTrue(is_garbage)
+        is_garbage2 = self._flat_dict.is_garbage(key2)
+        self.assertFalse(is_garbage2)
+
+        self.assertEqual([key], self._flat_dict.garbage_keys())
+        self.assertEqual([key2], self._flat_dict.keys())
+
+        self.assertIsNone(self._flat_dict.get(key))
+        self.assertEqual(expected2, self._flat_dict.get(key2))
+
+        deleted = self._flat_dict.delete_garbage(key)
+        not_deleted = self._flat_dict.delete_garbage(key2)
+        self.assertTrue(deleted)
+        self.assertFalse(not_deleted)
+
+        self.assertIsNone(self._flat_dict.get(key))
+        self.assertEqual(expected2, self._flat_dict.get(key2))
+
+        with self.assertRaises(KeyError):
+            self._flat_dict.is_garbage(bad_key)
+        with self.assertRaises(KeyError):
+            self._flat_dict.mark_as_garbage(bad_key)
+
 
 if __name__ == "__main__":
     main()

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0a81b851b836eb16d2d0ab80dcbdcff3
+ * @relayHash 96cdef26b2ed4440937f5a6ba9c8e3eb
  */
 
 /* eslint-disable */
@@ -38,6 +38,7 @@ export type LocationAddEditCard__locationTypeQueryResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
   |}
 |};
@@ -72,6 +73,7 @@ query LocationAddEditCard__locationTypeQuery(
         rangeToValue
         isEditable
         isInstanceProperty
+        isMandatory
       }
     }
     id
@@ -203,6 +205,13 @@ v4 = {
       "name": "isInstanceProperty",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "isMandatory",
+      "args": null,
+      "storageKey": null
     }
   ]
 };
@@ -275,11 +284,11 @@ return {
     "operationKind": "query",
     "name": "LocationAddEditCard__locationTypeQuery",
     "id": null,
-    "text": "query LocationAddEditCard__locationTypeQuery(\n  $locationTypeId: ID!\n) {\n  locationType: node(id: $locationTypeId) {\n    __typename\n    ... on LocationType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query LocationAddEditCard__locationTypeQuery(\n  $locationTypeId: ID!\n) {\n  locationType: node(id: $locationTypeId) {\n    __typename\n    ... on LocationType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7daa09b4f9bf8297877cd9e94961df52';
+(node/*: any*/).hash = 'd5a7d89034a409e8bae8790e37e41261';
 module.exports = node;

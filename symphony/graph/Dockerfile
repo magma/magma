@@ -15,6 +15,7 @@ RUN go mod download
 
 # Copy shared components
 COPY cloud /src/symphony/cloud
+COPY pkg /src/symphony/pkg
 
 # Build services
 WORKDIR /src/symphony/graph

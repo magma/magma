@@ -45,6 +45,14 @@ func TestQueryWithMatrixAndFunctions(t *testing.T) {
 	testQueryHelper(t, "sum_over_time(metric1[5m]) or sum_over_time(metric2[5m])", []string{"metric1", "metric2"})
 }
 
+func TestLabelSelectorQuery(t *testing.T) {
+	restrictor := NewQueryRestrictor(map[string]string{"networkID": "test"})
+	inputSelector := `{label1="value1"}`
+	restricted, err := restrictor.RestrictQuery(inputSelector)
+	assert.NoError(t, err)
+	assert.Equal(t, `{label1="value1",networkID="test"}`, restricted)
+}
+
 func testQueryHelper(t *testing.T, query string, metricsInQuery []string) {
 	singleLabel := map[string]string{"name1": "value1"}
 	restrictedBasicQuery, err := createRestrictedQuery(query, singleLabel)

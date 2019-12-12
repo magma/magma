@@ -15,7 +15,6 @@ import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import BasePopoverTrigger from './BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
-import Text from '../Text';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
@@ -24,19 +23,14 @@ const useStyles = makeStyles({
     justifyContent: 'flex-start',
     padding: '4px',
   },
-  label: {
-    textAlign: 'left',
-    flexGrow: 1,
-    padding: '2px 4px',
-  },
-  arrow: {
-    marginLeft: '4px',
-  },
   value: {
     fontWeight: 500,
   },
   menu: {
     margin: '8px 0px',
+  },
+  label: {
+    fontWeight: 400,
   },
 });
 
@@ -63,18 +57,16 @@ const Select = <TValue>({
           className={classNames(classes.root, className)}
           ref={contextRef}
           onClick={onShow}
-          skin="regular">
-          <Text className={classes.label} variant="body2">
-            {label}
-            {selectedValue ? ': ' : null}
-            {selectedValue ? (
-              <span className={classes.value}>
-                {options.find(option => option.value === selectedValue)
-                  ?.label ?? ''}
-              </span>
-            ) : null}
-          </Text>
-          <ArrowDropDownIcon className={classes.arrow} size="small" />
+          skin="regular"
+          rightIcon={ArrowDropDownIcon}>
+          <span className={classes.label}>{label}</span>
+          {selectedValue ? ': ' : null}
+          {selectedValue ? (
+            <span className={classes.value}>
+              {options.find(option => option.value === selectedValue)?.label ??
+                ''}
+            </span>
+          ) : null}
         </Button>
       )}
     </BasePopoverTrigger>

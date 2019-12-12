@@ -18,13 +18,14 @@ import type {Service} from '../../common/Service';
 
 import * as React from 'react';
 import AddServiceMutation from '../../mutations/AddServiceMutation';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import CustomerTypeahead from '../typeahead/CustomerTypeahead';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
+import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
+import NameInput from '@fbcnms/ui/components/design-system/Form/NameInput';
 import PropertyValueInput from '../form/PropertyValueInput';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -32,6 +33,7 @@ import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
@@ -46,11 +48,6 @@ const useStyles = makeStyles(_ => ({
     borderBottom: `1px solid ${symphony.palette.separator}`,
     margin: '0 0 24px 0px',
     paddingBottom: '24px',
-  },
-  input: {
-    width: '100%',
-    paddingBottom: '24px',
-    marginLeft: '0px',
   },
   propInput: {
     width: '100%',
@@ -109,6 +106,7 @@ const serviceTypeQuery = graphql`
         rangeToValue
         isEditable
         isInstanceProperty
+        isMandatory
       }
     }
   }
@@ -167,10 +165,6 @@ const AddServiceDetails = (props: Props) => {
     );
   };
 
-  const isSaveDisabled = () => {
-    return !service?.name;
-  };
-
   const enqueueError = (message: string) => {
     enqueueSnackbar(message, {
       children: key => (
@@ -214,7 +208,7 @@ const AddServiceDetails = (props: Props) => {
   };
 
   return (
-    <>
+    <FormValidationContextProvider>
       <DialogTitle className={classes.dialogTitle}>
         <Text variant="h6">{service.serviceType.name}</Text>
       </DialogTitle>
@@ -223,17 +217,12 @@ const AddServiceDetails = (props: Props) => {
           <div>
             <Grid container spacing={2}>
               <Grid item xs={6}>
-                <FormField label="Name" required>
-                  <TextInput
-                    name="name"
-                    autoFocus={true}
-                    type="string"
-                    className={classes.input}
-                    onChange={event =>
-                      setServiceState({...service, name: event.target.value})
-                    }
-                  />
-                </FormField>
+                <NameInput
+                  value={(serviceState && serviceState.name) || ''}
+                  onChange={event =>
+                    setServiceState({...service, name: event.target.value})
+                  }
+                />
               </Grid>
             </Grid>
             <Grid container spacing={2}>
@@ -288,14 +277,9 @@ const AddServiceDetails = (props: Props) => {
         </div>
       </DialogContent>
       <DialogActions className={classes.dialogActions}>
-        <Button onClick={onBackClicked} skin="regular">
-          Back
-        </Button>
-        <Button disabled={isSaveDisabled()} onClick={saveService}>
-          Create
-        </Button>
+        <FormSaveCancelPanel onCancel={onBackClicked} onSave={saveService} />
       </DialogActions>
-    </>
+    </FormValidationContextProvider>
   );
 };
 

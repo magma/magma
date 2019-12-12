@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddLinkMutation,
   AddLinkMutationResponse,
   AddLinkMutationVariables,
 } from './__generated__/AddLinkMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddLinkMutation($input: AddLinkInput!) {
@@ -27,10 +29,10 @@ const mutation = graphql`
 export default (
   variables: AddLinkMutationVariables,
   callbacks?: MutationCallbacks<AddLinkMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddLinkMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

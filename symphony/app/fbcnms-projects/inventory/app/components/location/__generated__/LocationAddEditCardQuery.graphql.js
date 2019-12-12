@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0d41f10391f3ae2526a9f880f04027dc
+ * @relayHash 54d2e7cb9b5d2efc849d653539ad879f
  */
 
 /* eslint-disable */
@@ -45,6 +45,7 @@ export type LocationAddEditCardQueryResponse = {|
         +longitudeValue: ?number,
         +rangeFromValue: ?number,
         +rangeToValue: ?number,
+        +isMandatory: ?boolean,
       |}>,
     |},
     +equipments?: $ReadOnlyArray<?{|
@@ -65,6 +66,7 @@ export type LocationAddEditCardQueryResponse = {|
         +isEditable: ?boolean,
         +isInstanceProperty: ?boolean,
         +stringValue: ?string,
+        +isMandatory: ?boolean,
       |},
       +stringValue: ?string,
       +intValue: ?number,
@@ -123,6 +125,7 @@ query LocationAddEditCardQuery(
           longitudeValue
           rangeFromValue
           rangeToValue
+          isMandatory
         }
       }
       equipments {
@@ -143,6 +146,7 @@ query LocationAddEditCardQuery(
           isEditable
           isInstanceProperty
           stringValue
+          isMandatory
         }
         stringValue
         intValue
@@ -296,6 +300,13 @@ v17 = {
   "storageKey": null
 },
 v18 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v19 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "locationType",
@@ -341,16 +352,17 @@ v18 = {
         (v14/*: any*/),
         (v15/*: any*/),
         (v16/*: any*/),
-        (v17/*: any*/)
+        (v17/*: any*/),
+        (v18/*: any*/)
       ]
     }
   ]
 },
-v19 = [
+v20 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ],
-v20 = {
+v21 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipments",
@@ -369,11 +381,11 @@ v20 = {
       "args": null,
       "concreteType": "EquipmentType",
       "plural": false,
-      "selections": (v19/*: any*/)
+      "selections": (v20/*: any*/)
     }
   ]
 },
-v21 = {
+v22 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "properties",
@@ -404,7 +416,8 @@ v21 = {
           "storageKey": null
         },
         (v8/*: any*/),
-        (v10/*: any*/)
+        (v10/*: any*/),
+        (v18/*: any*/)
       ]
     },
     (v10/*: any*/),
@@ -423,7 +436,7 @@ v21 = {
       "args": null,
       "concreteType": "Equipment",
       "plural": false,
-      "selections": (v19/*: any*/)
+      "selections": (v20/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -433,7 +446,7 @@ v21 = {
       "args": null,
       "concreteType": "Location",
       "plural": false,
-      "selections": (v19/*: any*/)
+      "selections": (v20/*: any*/)
     }
   ]
 };
@@ -464,9 +477,9 @@ return {
               (v4/*: any*/),
               (v5/*: any*/),
               (v6/*: any*/),
-              (v18/*: any*/),
-              (v20/*: any*/),
-              (v21/*: any*/)
+              (v19/*: any*/),
+              (v21/*: any*/),
+              (v22/*: any*/)
             ]
           }
         ]
@@ -503,9 +516,9 @@ return {
               (v4/*: any*/),
               (v5/*: any*/),
               (v6/*: any*/),
-              (v18/*: any*/),
-              (v20/*: any*/),
-              (v21/*: any*/)
+              (v19/*: any*/),
+              (v21/*: any*/),
+              (v22/*: any*/)
             ]
           }
         ]
@@ -516,11 +529,11 @@ return {
     "operationKind": "query",
     "name": "LocationAddEditCardQuery",
     "id": null,
-    "text": "query LocationAddEditCardQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      latitude\n      longitude\n      externalId\n      locationType {\n        id\n        name\n        mapType\n        mapZoomLevel\n        propertyTypes {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n        }\n      }\n      equipments {\n        id\n        name\n        equipmentType {\n          id\n          name\n        }\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          index\n          isEditable\n          isInstanceProperty\n          stringValue\n        }\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query LocationAddEditCardQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      latitude\n      longitude\n      externalId\n      locationType {\n        id\n        name\n        mapType\n        mapZoomLevel\n        propertyTypes {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isMandatory\n        }\n      }\n      equipments {\n        id\n        name\n        equipmentType {\n          id\n          name\n        }\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          index\n          isEditable\n          isInstanceProperty\n          stringValue\n          isMandatory\n        }\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a26a7a003c73b5337b11ef1eb12383e5';
+(node/*: any*/).hash = '00b9d2caeb30dd590d31cf8614483aaa';
 module.exports = node;

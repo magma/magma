@@ -29,6 +29,7 @@ export type PropertyType = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 
 export const getPropertyDefaultValue = (propertyType: PropertyType) => {
@@ -83,6 +84,7 @@ export const getInitialPropertyFromType = (
     rangeFromValue: propType.rangeFromValue,
     rangeToValue: propType.rangeToValue,
     isInstanceProperty: propType.isInstanceProperty,
+    isMandatory: propType.isMandatory,
     equipmentValue: null,
   };
 };

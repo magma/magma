@@ -468,6 +468,7 @@ func ExampleEquipmentPortType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt0)
 	pt1 := client.PropertyType.
@@ -488,6 +489,7 @@ func ExampleEquipmentPortType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 
@@ -651,6 +653,7 @@ func ExampleEquipmentType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt2)
 	ec4 := client.EquipmentCategory.
@@ -1114,6 +1117,7 @@ func ExampleLocationType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	stc2 := client.SurveyTemplateCategory.
@@ -1284,6 +1288,7 @@ func ExampleProjectType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	wod2 := client.WorkOrderDefinition.
@@ -1358,6 +1363,7 @@ func ExampleProperty() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt0)
 	e8 := client.Equipment.
@@ -1453,6 +1459,7 @@ func ExamplePropertyType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt)
 
@@ -1612,6 +1619,7 @@ func ExampleServiceType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 
@@ -2283,6 +2291,7 @@ func ExampleWorkOrderType() {
 		SetRangeToVal(1).
 		SetIsInstanceProperty(true).
 		SetEditable(true).
+		SetMandatory(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	clid3 := client.CheckListItemDefinition.

@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironemnt from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  EditServiceMutation,
   EditServiceMutationResponse,
   EditServiceMutationVariables,
 } from './__generated__/EditServiceMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironemnt from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation EditServiceMutation($data: ServiceEditData!) {
@@ -28,10 +29,10 @@ const mutation = graphql`
 export default (
   variables: EditServiceMutationVariables,
   callbacks?: MutationCallbacks<EditServiceMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<EditServiceMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

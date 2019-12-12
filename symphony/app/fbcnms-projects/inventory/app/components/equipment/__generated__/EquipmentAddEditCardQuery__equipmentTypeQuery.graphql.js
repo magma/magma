@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d23f671e7412a62c7276d005c5e2aa0c
+ * @relayHash 2439bb9af821e25f2b146f98e0e2b62a
  */
 
 /* eslint-disable */
@@ -37,6 +37,7 @@ export type EquipmentAddEditCardQuery__equipmentTypeQueryResponse = {|
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
     |}>,
   |}
@@ -71,6 +72,7 @@ query EquipmentAddEditCardQuery__equipmentTypeQuery(
         rangeFromValue
         rangeToValue
         isEditable
+        isMandatory
         isInstanceProperty
       }
     }
@@ -200,6 +202,13 @@ v4 = {
     {
       "kind": "ScalarField",
       "alias": null,
+      "name": "isMandatory",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
       "name": "isInstanceProperty",
       "args": null,
       "storageKey": null
@@ -275,11 +284,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentAddEditCardQuery__equipmentTypeQuery",
     "id": null,
-    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType: node(id: $equipmentTypeId) {\n    __typename\n    ... on EquipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query EquipmentAddEditCardQuery__equipmentTypeQuery(\n  $equipmentTypeId: ID!\n) {\n  equipmentType: node(id: $equipmentTypeId) {\n    __typename\n    ... on EquipmentType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isMandatory\n        isInstanceProperty\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '4411bf8107d59e06fb9c2fbeca1eed5e';
+(node/*: any*/).hash = '5e9bd8a8cf5bd38d1aad2769908ccf0f';
 module.exports = node;

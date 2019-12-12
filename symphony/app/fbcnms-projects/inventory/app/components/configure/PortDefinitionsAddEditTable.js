@@ -8,8 +8,8 @@
  * @format
  */
 
-import type PortDefinitionsAddEditTable_portDefinition from './__generated__/PortDefinitionsAddEditTable_portDefinition.graphql';
 import type {EquipmentPortType} from '../../common/EquipmentType';
+import type {PortDefinitionsAddEditTable_portDefinitions} from './__generated__/PortDefinitionsAddEditTable_portDefinitions.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import Button from '@material-ui/core/Button';
@@ -53,7 +53,8 @@ const styles = _theme => ({
 });
 
 graphql`
-  fragment PortDefinitionsAddEditTable_portDefinition on EquipmentPortDefinition {
+  fragment PortDefinitionsAddEditTable_portDefinitions on EquipmentPortDefinition
+    @relay(plural: true) {
     id
     name
     index
@@ -81,9 +82,9 @@ const equipmentPortTypesQuery = graphql`
 `;
 
 type Props = {
-  portDefinitions: Array<PortDefinitionsAddEditTable_portDefinition>,
+  portDefinitions: PortDefinitionsAddEditTable_portDefinitions,
   onPortDefinitionsChanged?: ?(
-    newPorts: Array<PortDefinitionsAddEditTable_portDefinition>,
+    newPorts: PortDefinitionsAddEditTable_portDefinitions,
   ) => void,
 } & WithStyles<typeof styles>;
 
@@ -275,7 +276,9 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
       this.props.onPortDefinitionsChanged(newItems);
   };
 
-  getEditingPort(): PortDefinitionsAddEditTable_portDefinition {
+  getEditingPort(): $Shape<
+    $ElementType<PortDefinitionsAddEditTable_portDefinitions, number>,
+  > {
     const index = this.props.portDefinitions.length;
     return {
       id: 'PortDefinition@tmp' + index,

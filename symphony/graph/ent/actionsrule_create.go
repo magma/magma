@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
 )
 
 // ActionsRuleCreate is the builder for creating a ActionsRule entity.
@@ -25,8 +25,8 @@ type ActionsRuleCreate struct {
 	update_time *time.Time
 	name        *string
 	triggerID   *string
-	ruleFilters *[]*schema.ActionsRuleFilter
-	ruleActions *[]*schema.ActionsRuleAction
+	ruleFilters *[]*core.ActionsRuleFilter
+	ruleActions *[]*core.ActionsRuleAction
 }
 
 // SetCreateTime sets the create_time field.
@@ -70,14 +70,14 @@ func (arc *ActionsRuleCreate) SetTriggerID(s string) *ActionsRuleCreate {
 }
 
 // SetRuleFilters sets the ruleFilters field.
-func (arc *ActionsRuleCreate) SetRuleFilters(srf []*schema.ActionsRuleFilter) *ActionsRuleCreate {
-	arc.ruleFilters = &srf
+func (arc *ActionsRuleCreate) SetRuleFilters(crf []*core.ActionsRuleFilter) *ActionsRuleCreate {
+	arc.ruleFilters = &crf
 	return arc
 }
 
 // SetRuleActions sets the ruleActions field.
-func (arc *ActionsRuleCreate) SetRuleActions(sra []*schema.ActionsRuleAction) *ActionsRuleCreate {
-	arc.ruleActions = &sra
+func (arc *ActionsRuleCreate) SetRuleActions(cra []*core.ActionsRuleAction) *ActionsRuleCreate {
+	arc.ruleActions = &cra
 	return arc
 }
 

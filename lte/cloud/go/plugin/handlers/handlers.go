@@ -74,6 +74,9 @@ const (
 	policyRuleManagePath     = policyRuleRootPath + obsidian.UrlSep + ":rule_id"
 	policyBaseNameRootPath   = policiesRootPath + obsidian.UrlSep + "base_names"
 	policyBaseNameManagePath = policyBaseNameRootPath + obsidian.UrlSep + ":base_name"
+
+	ratingGroupsRootPath   = handlers.ManageNetworkPath + obsidian.UrlSep + "rating_groups"
+	ratingGroupsManagePath = ratingGroupsRootPath + obsidian.UrlSep + ":rating_group_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -119,6 +122,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: policyRuleManagePath, Methods: obsidian.GET, HandlerFunc: GetRule},
 		{Path: policyRuleManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRule},
 		{Path: policyRuleManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRule},
+
+		{Path: ratingGroupsRootPath, Methods: obsidian.GET, HandlerFunc: ListRatingGroups},
+		{Path: ratingGroupsRootPath, Methods: obsidian.POST, HandlerFunc: CreateRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.GET, HandlerFunc: GetRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRatingGroup},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
 

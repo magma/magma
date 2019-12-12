@@ -21,8 +21,10 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
+import SearchIcon from '@material-ui/icons/Search';
 import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
-import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
+import ServicesView from './ServicesView';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
@@ -38,7 +40,7 @@ import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useGraphQL} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles(theme => ({
   cardRoot: {
     height: '100%',
     display: 'flex',
@@ -70,6 +72,21 @@ const useStyles = makeStyles(_ => ({
   searchBar: {
     flexGrow: 1,
   },
+  noResultsRoot: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: '100px',
+  },
+  noResultsLabel: {
+    color: theme.palette.grey[600],
+  },
+  searchIcon: {
+    color: theme.palette.grey[600],
+    marginBottom: '6px',
+    fontSize: '36px',
+  },
 }));
 
 const servicePropertiesQuery = graphql`
@@ -78,6 +95,20 @@ const servicePropertiesQuery = graphql`
       name
       type
       stringValue
+    }
+  }
+`;
+
+const serviceQuery = graphql`
+  query ServiceComparisonViewServiceQuery(
+    $limit: Int
+    $filters: [ServiceFilterInput!]!
+  ) {
+    serviceSearch(limit: $limit, filters: $filters) {
+      services {
+        ...ServicesView_service
+      }
+      count
     }
   }
 `;
@@ -107,6 +138,8 @@ function getPossibleProperties(
   return supportedProperties;
 }
 
+const QUERY_LIMIT = 100;
+
 const ServiceComparisonView = () => {
   const {match, history, location} = useRouter();
   const [dialogKey, setDialogKey] = useState(1);
@@ -120,17 +153,30 @@ const ServiceComparisonView = () => {
     [location],
   );
 
-  const serviceDataResponse = useGraphQL(
+  const servicePropertiesDataResponse = useGraphQL(
     RelayEnvironment,
     servicePropertiesQuery,
     {},
   );
+
   const possibleProperties = getPossibleProperties(
-    serviceDataResponse.response,
+    servicePropertiesDataResponse.response,
   );
   const servicePropertiesFilterConfigs = buildServicePropertyFilterConfigs(
     possibleProperties,
   );
+
+  const serviceDataResponse = useGraphQL(RelayEnvironment, serviceQuery, {
+    limit: 50,
+    filters: filters.map(f => ({
+      filterType: f.name.toUpperCase(),
+      operator: f.operator.toUpperCase(),
+      stringValue: f.stringValue,
+      propertyValue: f.propertyValue,
+      idSet: f.idSet,
+    })),
+    serviceKey: serviceKey,
+  });
 
   const locationTypesFilterConfigs = useLocationTypes();
 
@@ -161,6 +207,22 @@ const ServiceComparisonView = () => {
     );
   }
 
+  if (
+    serviceDataResponse.response == null ||
+    serviceDataResponse.response.serviceSearch.length === 0
+  ) {
+    return (
+      <div className={classes.noResultsRoot}>
+        <SearchIcon className={classes.searchIcon} />
+        <Text variant="h6" className={classes.noResultsLabel}>
+          No results found
+        </Text>
+      </div>
+    );
+  }
+
+  const {count, services} = serviceDataResponse.response.serviceSearch;
+
   return (
     <InventoryErrorBoundary>
       <Card className={classes.cardRoot}>
@@ -185,17 +247,25 @@ const ServiceComparisonView = () => {
                     )
                   }
                   onFiltersChanged={filters => setFilters(filters)}
+                  filters={filters}
+                  filterValues={filters}
+                  exportPath={'/services'}
+                  footer={
+                    count != null
+                      ? count > QUERY_LIMIT
+                        ? `1 to ${QUERY_LIMIT} of ${count}`
+                        : `1 to ${count}`
+                      : null
+                  }
                 />
               </div>
             </div>
             <div className={classes.searchResults}>
-              <ServiceComparisonViewQueryRenderer
-                limit={50}
-                filters={filters}
+              <ServicesView
+                service={services}
                 onServiceSelected={selectedServiceCardId =>
                   navigateToService(selectedServiceCardId)
                 }
-                serviceKey={serviceKey}
               />
             </div>
           </div>
