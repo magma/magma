@@ -28,7 +28,6 @@ export type Property = {|
   equipmentValue?: ?{id: string, name: string},
   locationValue?: ?{id: string, name: string},
   isInstanceProperty?: ?boolean,
-  isMandatory?: ?boolean,
 |};
 
 export const sortPropertiesByIndex = (a: Property, b: Property) =>
