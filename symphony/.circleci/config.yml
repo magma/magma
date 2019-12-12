@@ -560,6 +560,7 @@ workflows:
                 command: test -z $TESTIMIO_SKIP || circleci step halt
             - tfathalt:
                 <<: *tfvardir
+          options: "--suite Sanity"
           requires:
             - staging/deploy
       - tfapply:
