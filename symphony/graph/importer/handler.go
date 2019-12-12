@@ -84,6 +84,7 @@ func NewHandler(log log.Logger) (http.Handler, error) {
 		{"rural_legacy_locations", u.ProcessRuralLegacyLocationsCSV},
 		{"rural_locations", u.ProcessRuralLocationsCSV},
 		{"export_equipment", u.processExportedEquipment},
+		{"export_ports", u.processExportedPorts},
 	}
 	for _, route := range routes {
 		router.Path("/" + route.name).
