@@ -1620,6 +1620,9 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	s, err := query.Save(ctx)
 
 	if err != nil {
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A service with the name %v already exists", data.Name)
+		}
 		return nil, errors.Wrap(err, "creating service")
 	}
 	if _, err := r.AddProperties(ctx, data.Properties, func(b *ent.PropertyCreate) { b.SetService(s) }); err != nil {
@@ -2559,7 +2562,10 @@ func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCusto
 		SetNillableExternalID(input.ExternalID).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating custumer")
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A customer with the name %v already exists", input.Name)
+		}
+		return nil, errors.Wrap(err, "creating customer")
 	}
 	return t, nil
 }

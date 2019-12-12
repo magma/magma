@@ -130,7 +130,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 	}
 	// CustomersTable holds the schema information for the "customers" table.
@@ -861,7 +861,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "name", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Unique: true},
 		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "type_id", Type: field.TypeInt, Nullable: true},
 	}
