@@ -178,6 +178,10 @@ func (m *importer) populateIndexToLocationTypeMap(ctx context.Context, firstLine
 	}
 }
 
+func (m *importer) populateEquipmentTypeNameToIDMapGeneral(ctx context.Context, firstLine []string, populateEquipProperties bool) error {
+	return m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, models.PropertyEntityEquipment), populateEquipProperties)
+}
+
 func (m *importer) populateEquipmentTypeNameToIDMap(ctx context.Context, firstLine ImportHeader, populateEquipProperties bool) error {
 	equipmentTypeNameToID := getImportContext(ctx).equipmentTypeNameToID
 	qr := m.r.Query()

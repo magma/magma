@@ -31,7 +31,7 @@ func handleLinkFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.Li
 func stateFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
 	if filter.Operator == models.FilterOperatorIsOneOf {
 		p := link.FutureStateIn(filter.IDSet...)
-		if find(filter.IDSet, models.FutureStateInstall.String()) {
+		if Find(filter.IDSet, models.FutureStateInstall.String()) {
 			p = link.Or(p, link.FutureStateIsNil())
 		}
 		return q.Where(p), nil
@@ -112,7 +112,7 @@ func linkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.L
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-func find(s []string, e string) bool {
+func Find(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
 			return true
