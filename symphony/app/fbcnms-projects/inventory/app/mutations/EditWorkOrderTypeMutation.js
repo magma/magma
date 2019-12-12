@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditWorkOrderTypeMutation,
   EditWorkOrderTypeMutationResponse,
   EditWorkOrderTypeMutationVariables,
 } from './__generated__/EditWorkOrderTypeMutation.graphql';
@@ -33,7 +34,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditWorkOrderTypeMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

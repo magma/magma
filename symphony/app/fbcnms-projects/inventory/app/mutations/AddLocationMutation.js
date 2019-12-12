@@ -9,6 +9,7 @@
  */
 
 import type {
+  AddLocationMutation,
   AddLocationMutationResponse,
   AddLocationMutationVariables,
 } from './__generated__/AddLocationMutation.graphql';
@@ -34,7 +35,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<AddLocationMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

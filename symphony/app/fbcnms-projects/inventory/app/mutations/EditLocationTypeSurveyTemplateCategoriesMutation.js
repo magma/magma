@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditLocationTypeSurveyTemplateCategoriesMutation,
   EditLocationTypeSurveyTemplateCategoriesMutationResponse,
   EditLocationTypeSurveyTemplateCategoriesMutationVariables,
 } from './__generated__/EditLocationTypeSurveyTemplateCategoriesMutation.graphql';
@@ -37,11 +38,14 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
-    mutation,
-    variables,
-    updater,
-    onCompleted,
-    onError,
-  });
+  commitMutation<EditLocationTypeSurveyTemplateCategoriesMutation>(
+    RelayEnvironment,
+    {
+      mutation,
+      variables,
+      updater,
+      onCompleted,
+      onError,
+    },
+  );
 };

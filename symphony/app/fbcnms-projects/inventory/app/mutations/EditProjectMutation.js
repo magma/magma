@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditProjectMutation,
   EditProjectMutationResponse,
   EditProjectMutationVariables,
 } from './__generated__/EditProjectMutation.graphql';
@@ -60,7 +61,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<EditProjectMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

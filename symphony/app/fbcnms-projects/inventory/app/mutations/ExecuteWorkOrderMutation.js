@@ -11,6 +11,7 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  ExecuteWorkOrderMutation,
   ExecuteWorkOrderMutationResponse,
   ExecuteWorkOrderMutationVariables,
 } from './__generated__/ExecuteWorkOrderMutation.graphql';
@@ -37,7 +38,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<ExecuteWorkOrderMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

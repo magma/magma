@@ -12,6 +12,7 @@ import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
+  RemoveServiceMutation,
   RemoveServiceMutationMutationResponse,
   RemoveServiceMutationVariables,
 } from './__generated__/RemoveServiceMutation.graphql';
@@ -28,7 +29,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<RemoveServiceMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

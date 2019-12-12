@@ -9,6 +9,7 @@
  */
 
 import type {
+  AddServiceLinkMutation,
   AddServiceLinkMutationResponse,
   AddServiceLinkMutationVariables,
 } from './__generated__/AddServiceLinkMutation.graphql';
@@ -31,7 +32,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<AddServiceLinkMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

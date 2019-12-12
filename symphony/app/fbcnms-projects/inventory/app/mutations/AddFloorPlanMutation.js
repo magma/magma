@@ -11,6 +11,7 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddFloorPlanMutation,
   AddFloorPlanMutationResponse,
   AddFloorPlanMutationVariables,
 } from './__generated__/AddFloorPlanMutation.graphql';
@@ -31,7 +32,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddFloorPlanMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

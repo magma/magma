@@ -10,6 +10,7 @@
 
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
+  RemoveEquipmentFromPositionMutation,
   RemoveEquipmentFromPositionMutationResponse,
   RemoveEquipmentFromPositionMutationVariables,
 } from './__generated__/RemoveEquipmentFromPositionMutation.graphql';
@@ -37,7 +38,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<RemoveEquipmentFromPositionMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

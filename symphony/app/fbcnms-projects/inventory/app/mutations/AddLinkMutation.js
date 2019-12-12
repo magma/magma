@@ -11,6 +11,7 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddLinkMutation,
   AddLinkMutationResponse,
   AddLinkMutationVariables,
 } from './__generated__/AddLinkMutation.graphql';
@@ -30,7 +31,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddLinkMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

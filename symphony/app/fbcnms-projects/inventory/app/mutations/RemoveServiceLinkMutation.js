@@ -10,6 +10,7 @@
 
 import type {MutationCallbacks} from './MutationCallbacks.js';
 import type {
+  RemoveServiceLinkMutation,
   RemoveServiceLinkMutationResponse,
   RemoveServiceLinkMutationVariables,
 } from './__generated__/RemoveServiceLinkMutation.graphql';
@@ -31,7 +32,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironemnt, {
+  commitMutation<RemoveServiceLinkMutation>(RelayEnvironemnt, {
     mutation,
     variables,
     updater,

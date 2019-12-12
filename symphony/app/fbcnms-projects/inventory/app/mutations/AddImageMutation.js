@@ -11,6 +11,7 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddImageMutation,
   AddImageMutationResponse,
   AddImageMutationVariables,
 } from './__generated__/AddImageMutation.graphql';
@@ -30,7 +31,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddImageMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

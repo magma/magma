@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditEquipmentPortTypeMutation,
   EditEquipmentPortTypeMutationResponse,
   EditEquipmentPortTypeMutationVariables,
 } from './__generated__/EditEquipmentPortTypeMutation.graphql';
@@ -34,7 +35,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditEquipmentPortTypeMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

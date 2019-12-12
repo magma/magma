@@ -9,6 +9,7 @@
  */
 
 import type {
+  AddCommentMutation,
   AddCommentMutationResponse,
   AddCommentMutationVariables,
 } from './__generated__/AddCommentMutation.graphql';
@@ -31,7 +32,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddCommentMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

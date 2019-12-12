@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditEquipmentTypeMutation,
   EditEquipmentTypeMutationResponse,
   EditEquipmentTypeMutationVariables,
 } from './__generated__/EditEquipmentTypeMutation.graphql';
@@ -33,7 +34,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditEquipmentTypeMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

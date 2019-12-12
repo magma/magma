@@ -9,6 +9,7 @@
  */
 
 import type {
+  EditLinkMutation,
   EditLinkMutationResponse,
   EditLinkMutationVariables,
 } from './__generated__/EditLinkMutation.graphql';
@@ -32,7 +33,7 @@ export default (
   updater?: (store: any) => void,
 ) => {
   const {onCompleted, onError} = callbacks || {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditLinkMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,
