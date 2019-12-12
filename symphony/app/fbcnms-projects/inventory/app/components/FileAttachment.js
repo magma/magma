@@ -9,7 +9,7 @@
  */
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
-import type {FileAttachment_File} from './__generated__/FileAttachment_file.graphql';
+import type {FileAttachment_file} from './__generated__/FileAttachment_file.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -66,8 +66,8 @@ const styles = () => ({
 });
 
 type Props = {
-  file: FileAttachment_File,
-  onDocumentDeleted: (file: FileAttachment_File) => void,
+  file: FileAttachment_file,
+  onDocumentDeleted: (file: FileAttachment_file) => void,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -144,14 +144,14 @@ class FileAttachment extends React.Component<Props, State> {
           className={classNames(classes.cell, classes.secondaryCell)}
           component="th"
           scope="row">
-          {formatFileSize(file.sizeInBytes)}
+          {file.sizeInBytes != null && formatFileSize(file.sizeInBytes)}
         </TableCell>
         <TableCell
           padding="none"
           className={classNames(classes.cell, classes.secondaryCell)}
           component="th"
           scope="row">
-          {new Date(file.uploaded).toLocaleDateString()}
+          {file.uploaded && new Date(file.uploaded).toLocaleDateString()}
         </TableCell>
         <TableCell
           padding="none"
