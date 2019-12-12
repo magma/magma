@@ -13,16 +13,18 @@ import (
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/cloud/actions/executor"
 	"github.com/facebookincubator/symphony/cloud/actions/trigger/mocktrigger"
-	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func actionsContext(t *testing.T) (generated.ResolverRoot, context.Context) {
+func actionsContext(t *testing.T) (*TestResolver, context.Context) {
 
 	trigger1 := mocktrigger.New()
 	trigger1.On("ID").Return(core.TriggerID("trigger1"))
+	trigger2 := mocktrigger.New()
+	trigger2.On("ID").Return(core.TriggerID("trigger2"))
 
 	action1 := mockaction.New()
 	action1.On("ID").Return(core.ActionID("action1"))
@@ -30,6 +32,7 @@ func actionsContext(t *testing.T) (generated.ResolverRoot, context.Context) {
 	r, ctx := resolverctx(t)
 	registry := actions.MainRegistry()
 	registry.MustRegisterTrigger(trigger1)
+	registry.MustRegisterTrigger(trigger2)
 	registry.MustRegisterAction(action1)
 
 	exc := &executor.Executor{
@@ -40,7 +43,7 @@ func actionsContext(t *testing.T) (generated.ResolverRoot, context.Context) {
 		},
 	}
 	ctx = actions.NewContext(ctx, exc)
-	return r, ctx
+	return r.(*TestResolver), ctx
 }
 
 func TestAddActionsRuleInvalidTrigger(t *testing.T) {
@@ -90,4 +93,47 @@ func TestAddActionsRule(t *testing.T) {
 	assert.Equal(t, rule.RuleFilters[0].FilterID, "filter1")
 	assert.Equal(t, rule.RuleFilters[0].OperatorID, "eq")
 	assert.Equal(t, rule.RuleFilters[0].Data, "testdata")
+}
+
+func TestEditActionsRule(t *testing.T) {
+	r, ctx := actionsContext(t)
+
+	originalRule, err := r.client.
+		ActionsRule.Create().
+		SetName("testInput").
+		SetTriggerID("trigger1").
+		SetRuleActions([]*schema.ActionsRuleAction{}).
+		SetRuleFilters([]*schema.ActionsRuleFilter{}).
+		Save(ctx)
+	assert.NoError(t, err)
+
+	editedRule, err := r.Mutation().EditActionsRule(ctx, originalRule.ID, models.AddActionsRuleInput{
+		Name:        "testInput",
+		TriggerID:   "trigger2",
+		RuleActions: []*models.ActionsRuleActionInput{},
+		RuleFilters: []*models.ActionsRuleFilterInput{},
+	})
+	require.NoError(t, err)
+
+	assert.Equal(t, editedRule.ID, originalRule.ID)
+	assert.Equal(t, editedRule.Name, "testInput")
+	assert.Equal(t, editedRule.TriggerID, "trigger2")
+}
+
+func TestRemoveActionsRule(t *testing.T) {
+	r, ctx := actionsContext(t)
+
+	originalRule, err := r.client.
+		ActionsRule.Create().
+		SetName("testInput").
+		SetTriggerID("trigger1").
+		SetRuleActions([]*schema.ActionsRuleAction{}).
+		SetRuleFilters([]*schema.ActionsRuleFilter{}).
+		Save(ctx)
+	assert.NoError(t, err)
+
+	success, err := r.Mutation().RemoveActionsRule(ctx, originalRule.ID)
+	require.NoError(t, err)
+
+	assert.True(t, success)
 }

@@ -1826,6 +1826,8 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
-  addActionsRule(input: AddActionsRuleInput!): ActionsRule
   addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  removeActionsRule(id: ID!): Boolean!
 }

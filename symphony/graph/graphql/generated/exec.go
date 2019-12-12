@@ -456,6 +456,7 @@ type ComplexityRoot struct {
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID string, id string) int
 		DeleteProject                            func(childComplexity int, id string) int
 		DeleteProjectType                        func(childComplexity int, id string) int
+		EditActionsRule                          func(childComplexity int, id string, input models.AddActionsRuleInput) int
 		EditEquipment                            func(childComplexity int, input models.EditEquipmentInput) int
 		EditEquipmentPort                        func(childComplexity int, input models.EditEquipmentPortInput) int
 		EditEquipmentPortType                    func(childComplexity int, input models.EditEquipmentPortTypeInput) int
@@ -476,6 +477,7 @@ type ComplexityRoot struct {
 		MarkSiteSurveyNeeded                     func(childComplexity int, locationID string, needed bool) int
 		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *string, positionDefinitionID *string, equipmentID string) int
 		MoveLocation                             func(childComplexity int, locationID string, parentLocationID *string) int
+		RemoveActionsRule                        func(childComplexity int, id string) int
 		RemoveCustomer                           func(childComplexity int, id string) int
 		RemoveEquipment                          func(childComplexity int, id string, workOrderID *string) int
 		RemoveEquipmentFromPosition              func(childComplexity int, positionID string, workOrderID *string) int
@@ -1029,8 +1031,10 @@ type MutationResolver interface {
 	DeleteProject(ctx context.Context, id string) (bool, error)
 	AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error)
 	RemoveCustomer(ctx context.Context, id string) (string, error)
-	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error)
+	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
+	EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
+	RemoveActionsRule(ctx context.Context, id string) (bool, error)
 }
 type ProjectResolver interface {
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
@@ -2919,6 +2923,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteProjectType(childComplexity, args["id"].(string)), true
 
+	case "Mutation.editActionsRule":
+		if e.complexity.Mutation.EditActionsRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editActionsRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditActionsRule(childComplexity, args["id"].(string), args["input"].(models.AddActionsRuleInput)), true
+
 	case "Mutation.editEquipment":
 		if e.complexity.Mutation.EditEquipment == nil {
 			break
@@ -3158,6 +3174,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.MoveLocation(childComplexity, args["locationID"].(string), args["parentLocationID"].(*string)), true
+
+	case "Mutation.removeActionsRule":
+		if e.complexity.Mutation.RemoveActionsRule == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeActionsRule_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveActionsRule(childComplexity, args["id"].(string)), true
 
 	case "Mutation.removeCustomer":
 		if e.complexity.Mutation.RemoveCustomer == nil {
@@ -7196,8 +7224,10 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
-  addActionsRule(input: AddActionsRuleInput!): ActionsRule
   addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  removeActionsRule(id: ID!): Boolean!
 }
 `},
 )
@@ -7690,6 +7720,28 @@ func (ec *executionContext) field_Mutation_deleteProject_args(ctx context.Contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_editActionsRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 models.AddActionsRuleInput
+	if tmp, ok := rawArgs["input"]; ok {
+		arg1, err = ec.unmarshalNAddActionsRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddActionsRuleInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_editEquipmentPortType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -8007,6 +8059,20 @@ func (ec *executionContext) field_Mutation_moveLocation_args(ctx context.Context
 		}
 	}
 	args["parentLocationID"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeActionsRule_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -18942,6 +19008,47 @@ func (ec *executionContext) _Mutation_removeCustomer(ctx context.Context, field 
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addFloorPlan_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddFloorPlan(rctx, args["input"].(models.AddFloorPlanInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.FloorPlan)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_addActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -18983,7 +19090,7 @@ func (ec *executionContext) _Mutation_addActionsRule(ctx context.Context, field 
 	return ec.marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_editActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -19000,7 +19107,7 @@ func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field gr
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addFloorPlan_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_editActionsRule_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -19009,7 +19116,7 @@ func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddFloorPlan(rctx, args["input"].(models.AddFloorPlanInput))
+		return ec.resolvers.Mutation().EditActionsRule(rctx, args["id"].(string), args["input"].(models.AddActionsRuleInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19018,10 +19125,54 @@ func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*ent.FloorPlan)
+	res := resTmp.(*ent.ActionsRule)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+	return ec.marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐActionsRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_removeActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_removeActionsRule_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RemoveActionsRule(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
@@ -35749,10 +35900,17 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "addActionsRule":
-			out.Values[i] = ec._Mutation_addActionsRule(ctx, field)
 		case "addFloorPlan":
 			out.Values[i] = ec._Mutation_addFloorPlan(ctx, field)
+		case "addActionsRule":
+			out.Values[i] = ec._Mutation_addActionsRule(ctx, field)
+		case "editActionsRule":
+			out.Values[i] = ec._Mutation_editActionsRule(ctx, field)
+		case "removeActionsRule":
+			out.Values[i] = ec._Mutation_removeActionsRule(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
