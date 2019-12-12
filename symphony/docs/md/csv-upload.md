@@ -72,13 +72,13 @@ Location files should be of the following form:
 * The script will create a link between the two ports
 
 
-# Importing Exported Data
+# Importing Equipment Exported Data
 
 
 ### 1. Before importing you data
 * Verify that the locations types are defined by their order:
 Under the location types tab, drag and drop the locations types so that it's arranged from big ones to small ones.
-* Export the equipment data to CSV, [here's how you do it](export.md)
+* Export the equipment data to CSV, [here's how you do it](equipment-export.md)
 ### 2. Importing the Data
 
 * Ones the CSV file is exported, it can be modified and be used for uploading new equipment data or editing existing equipment data.
