@@ -712,6 +712,27 @@ static int _esm_sap_recv(
             &esm_msg.pdn_connectivity_request,
             &ebi,
             is_standalone);
+
+          if (esm_cause != ESM_CAUSE_SUCCESS) {
+            /*
+             * Return reject message
+             */
+           OAILOG_ERROR(
+             LOG_NAS_ESM,
+             "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
+             ue_id);
+            rc = esm_send_pdn_connectivity_reject(
+              pti, &esm_msg.pdn_connectivity_reject, esm_cause);
+            /*
+             * Setup the callback function used to send PDN connectivity
+             * * * * reject message onto the network
+             */
+            esm_procedure = esm_proc_pdn_connectivity_reject;
+            /*
+             * No ESM status message should be returned
+             */
+            esm_cause = ESM_CAUSE_SUCCESS;
+          }
           break;
         }
         if (is_standalone == true) {
