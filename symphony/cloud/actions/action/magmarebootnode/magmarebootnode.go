@@ -6,15 +6,18 @@ package magmarebootnode
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 )
 
-type action struct{}
+type action struct {
+	orc8rClient *http.Client
+}
 
 // New returns a new action
-func New() core.Action {
-	return &action{}
+func New(orc8rClient *http.Client) core.Action {
+	return &action{orc8rClient}
 }
 
 // ID returns the string identifier for this trigger

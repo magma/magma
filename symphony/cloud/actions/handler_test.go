@@ -11,11 +11,16 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/cloud/actions/executor"
+	"github.com/facebookincubator/symphony/cloud/actions/trigger/magmaalert"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
+	registry := executor.NewRegistry()
+	registry.MustRegisterTrigger(magmaalert.New())
+
 	h := Handler(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			exc := FromContext(r.Context())
@@ -26,6 +31,7 @@ func TestHandler(t *testing.T) {
 			_, _ = io.WriteString(w, "success")
 		}),
 		nil,
+		registry,
 	)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

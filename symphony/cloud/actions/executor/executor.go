@@ -14,7 +14,7 @@ import (
 // Executor will execute all Actions defined in Rules for a Trigger
 type Executor struct {
 	Context context.Context
-	Registry
+	*Registry
 	DataLoader
 	OnError func(error)
 }

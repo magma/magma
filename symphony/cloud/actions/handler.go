@@ -7,33 +7,18 @@ package actions
 import (
 	"net/http"
 
-	"github.com/facebookincubator/symphony/cloud/actions/action/magmarebootnode"
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/cloud/actions/executor"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/cloud/log"
 	"go.uber.org/zap"
 )
 
-// MainRegistry is a registry that contains all actions and triggers
-func MainRegistry() executor.Registry {
-
-	registry := executor.NewRegistry()
-
-	registry.MustRegisterAction(magmarebootnode.New())
-	registry.MustRegisterTrigger(magmaalert.New())
-
-	return registry
-}
-
 // Handler adds actions framework registry to incoming requests.
-func Handler(next http.Handler, logger log.Logger) http.Handler {
+func Handler(next http.Handler, logger log.Logger, registry *executor.Registry) http.Handler {
 
 	dataLoader := executor.BasicDataLoader{
 		Rules: []core.Rule{},
 	}
-
-	registry := MainRegistry()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
