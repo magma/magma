@@ -1092,7 +1092,7 @@ static int _esm_sap_send(
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_dedicated_bearer_context_activate_t *msg =
+      const esm_eps_dedicated_bearer_context_activate_t* msg =
         &data->eps_dedicated_bearer_context_activate;
 
       EpsQualityOfService eps_qos = {0};
@@ -1123,7 +1123,7 @@ static int _esm_sap_send(
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_bearer_context_deactivate_t *msg =
+      const esm_eps_bearer_context_deactivate_t* msg =
         &data->eps_bearer_context_deactivate;
       // Currently we support single bearear deactivation only at NAS
       rc = esm_send_deactivate_eps_bearer_context_request(

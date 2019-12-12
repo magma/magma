@@ -185,8 +185,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case S1AP_E_RAB_REL_RSP: {
-        mme_app_handle_e_rab_rel_rsp(
-          &S1AP_E_RAB_REL_RSP(received_message_p));
+        mme_app_handle_e_rab_rel_rsp(&S1AP_E_RAB_REL_RSP(received_message_p));
       } break;
 
       case NAS_EXTENDED_SERVICE_REQ: {

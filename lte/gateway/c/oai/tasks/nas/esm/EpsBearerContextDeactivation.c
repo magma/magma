@@ -308,8 +308,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   int bid = BEARERS_PER_UE;
   teid_t s_gw_teid_s11_s4 = 0;
 
-  ue_context_p = PARENT_STRUCT(
-    emm_context_p, struct ue_mm_context_s, emm_context);
+  ue_context_p =
+    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-PROC  - EPS bearer context deactivation "
@@ -374,8 +374,13 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
    */
   if (!emm_context_p->esm_ctx.is_pdn_disconnect) {
     // Send delete dedicated bearer response to SPGW
-    send_delete_dedicated_bearer_rsp(ue_context_p, delete_default_bearer,
-       &ebi, 1, s_gw_teid_s11_s4, REQUEST_ACCEPTED);
+    send_delete_dedicated_bearer_rsp(
+      ue_context_p,
+      delete_default_bearer,
+      &ebi,
+      1,
+      s_gw_teid_s11_s4,
+      REQUEST_ACCEPTED);
   }
 
   // Reset is_pdn_disconnect flag
@@ -474,9 +479,10 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       if (bid >= BEARERS_PER_UE) {
         OAILOG_WARNING(
           LOG_NAS_ESM,
-          "ESM-PROC  - Did not find bearer context for (ue_id="
-          MME_UE_S1AP_ID_FMT", ebi=%d), \n",
-          ue_id, ebi);
+          "ESM-PROC  - Did not find bearer context for "
+          "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d), \n",
+          ue_id,
+          ebi);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
@@ -500,8 +506,13 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
       */
       if (!ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
         //Send delete_dedicated_bearer_rsp to SPGW
-        send_delete_dedicated_bearer_rsp(ue_mm_context, delete_default_bearer,
-           &ebi, 1, s_gw_teid_s11_s4, UE_NOT_RESPONDING);
+        send_delete_dedicated_bearer_rsp(
+          ue_mm_context,
+          delete_default_bearer,
+          &ebi,
+          1,
+          s_gw_teid_s11_s4,
+          UE_NOT_RESPONDING);
       }
       // Reset is_pdn_disconnect flag
       if (mme_config.eps_network_feature_support
@@ -522,7 +533,8 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           LOG_NAS_ESM,
           "ESM-PROC  - Could not release bearer(ue_id=" MME_UE_S1AP_ID_FMT
           ", ebi=%d), \n",
-          ue_id, ebi);
+          ue_id,
+          ebi);
       }
       unlock_ue_contexts(ue_mm_context);
     }
