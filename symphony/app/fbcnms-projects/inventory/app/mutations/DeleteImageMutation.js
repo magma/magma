@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  DeleteImageMutation,
   DeleteImageMutationResponse,
   DeleteImageMutationVariables,
 } from './__generated__/DeleteImageMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation DeleteImageMutation(
@@ -32,10 +34,10 @@ const mutation = graphql`
 export default (
   variables: DeleteImageMutationVariables,
   callbacks?: MutationCallbacks<DeleteImageMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<DeleteImageMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

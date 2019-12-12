@@ -65,8 +65,8 @@ test('rendered row is transformed by path expression', () => {
     <Wrapper>
       <SimpleTable
         columnStruct={[
-          {title: 'name', path: ['name']},
-          {title: 'description', path: ['labels', 'description']},
+          {title: 'name', getValue: x => x.name},
+          {title: 'description', getValue: row => row.labels?.description},
         ]}
         tableData={rows}
       />
@@ -122,7 +122,9 @@ describe('column renderers', () => {
     const {container} = render(
       <Wrapper>
         <SimpleTable
-          columnStruct={[{title: 'labels', path: ['labels']}]}
+          columnStruct={[
+            {title: 'labels', getValue: row => row.labels, render: 'labels'},
+          ]}
           tableData={[{labels: {name: 'name', age: 'age'}}]}
         />
       </Wrapper>,
@@ -148,7 +150,11 @@ describe('column renderers', () => {
       <Wrapper>
         <SimpleTable
           columnStruct={[
-            {title: 'severity', path: ['severity'], render: 'severity'},
+            {
+              title: 'severity',
+              getValue: row => row.severity,
+              render: 'severity',
+            },
           ]}
           tableData={[{severity: 'minor'}, {severity: 'major'}]}
         />
@@ -166,7 +172,9 @@ describe('column renderers', () => {
     const {container} = render(
       <Wrapper>
         <SimpleTable
-          columnStruct={[{title: 'type', path: ['type'], render: 'chip'}]}
+          columnStruct={[
+            {title: 'type', getValue: row => row.type, render: 'chip'},
+          ]}
           tableData={[{type: 'slack'}, {type: 'pagerduty'}]}
         />
       </Wrapper>,
@@ -179,5 +187,8 @@ describe('column renderers', () => {
 });
 
 function mockColumns() {
-  return [{title: 'name', path: ['name']}, {title: 'age', path: ['age']}];
+  return [
+    {title: 'name', getValue: row => row.name},
+    {title: 'age', getValue: row => row.age},
+  ];
 }

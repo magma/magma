@@ -52,6 +52,8 @@ type PropertyType struct {
 	IsInstanceProperty bool `json:"is_instance_property,omitempty" gqlgen:"isInstanceProperty"`
 	// Editable holds the value of the "editable" field.
 	Editable bool `json:"editable,omitempty" gqlgen:"isEditable"`
+	// Mandatory holds the value of the "mandatory" field.
+	Mandatory bool `json:"mandatory,omitempty" gqlgen:"isMandatory"`
 }
 
 // FromRows scans the sql response data into PropertyType.
@@ -74,6 +76,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 		RangeToVal         sql.NullFloat64
 		IsInstanceProperty sql.NullBool
 		Editable           sql.NullBool
+		Mandatory          sql.NullBool
 	}
 	// the order here should be the same as in the `propertytype.Columns`.
 	if err := rows.Scan(
@@ -94,6 +97,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 		&scanpt.RangeToVal,
 		&scanpt.IsInstanceProperty,
 		&scanpt.Editable,
+		&scanpt.Mandatory,
 	); err != nil {
 		return err
 	}
@@ -114,6 +118,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 	pt.RangeToVal = scanpt.RangeToVal.Float64
 	pt.IsInstanceProperty = scanpt.IsInstanceProperty.Bool
 	pt.Editable = scanpt.Editable.Bool
+	pt.Mandatory = scanpt.Mandatory.Bool
 	return nil
 }
 
@@ -212,6 +217,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.IsInstanceProperty))
 	builder.WriteString(", editable=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Editable))
+	builder.WriteString(", mandatory=")
+	builder.WriteString(fmt.Sprintf("%v", pt.Mandatory))
 	builder.WriteByte(')')
 	return builder.String()
 }

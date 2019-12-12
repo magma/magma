@@ -57,8 +57,6 @@ int nas_itti_erab_setup_req(
   const bitrate_t gbr_ul,
   bstring nas_msg);
 
-void nas_itti_detach_req(const mme_ue_s1ap_id_t ue_idP);
-
 void nas_itti_dedicated_eps_bearer_complete(
   const mme_ue_s1ap_id_t ue_idP,
   const ebi_t ebiP);
@@ -93,10 +91,6 @@ void nas_itti_sgsap_tmsi_reallocation_comp(
 void nas_itti_cs_domain_location_update_req(
   unsigned int ue_idP,
   uint8_t msg_type);
-
-void nas_itti_tau_complete(unsigned int ue_idP);
-
-void nas_itti_sgs_detach_req(const uint32_t ue_idP, const uint8_t detach_type);
 
 void nas_itti_sgsap_tmsi_reallocation_comp(
   const char *imsi,

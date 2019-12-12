@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d8e65c732be03dc4b9c751147a9a29ca
+ * @relayHash 4f4e3d27f01ff3ca57a2c09153b1d068
  */
 
 /* eslint-disable */
@@ -37,6 +37,7 @@ export type PropertyTypeInput = {|
   rangeToValue?: ?number,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
+  isMandatory?: ?boolean,
 |};
 export type AddServiceTypeMutationVariables = {|
   data: ServiceTypeCreateData
@@ -60,6 +61,7 @@ export type AddServiceTypeMutationResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
     +numberOfServices: number,
   |}
@@ -93,6 +95,7 @@ mutation AddServiceTypeMutation(
       rangeToValue
       isEditable
       isInstanceProperty
+      isMandatory
     }
     numberOfServices
   }
@@ -234,6 +237,13 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
           }
         ]
       },
@@ -267,7 +277,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceTypeMutation",
     "id": null,
-    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n    numberOfServices\n  }\n}\n",
+    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n    numberOfServices\n  }\n}\n",
     "metadata": {}
   }
 };

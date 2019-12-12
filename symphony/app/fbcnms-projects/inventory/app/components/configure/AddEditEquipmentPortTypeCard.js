@@ -145,6 +145,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
                   <PropertyTypeTable
                     propertyTypes={propertyTypes}
                     onPropertiesChanged={this._propertyChangedHandler}
+                    supportMandatory={false}
                   />
                 </CardSection>
               </Grid>
@@ -159,6 +160,7 @@ class AddEditEquipmentPortTypeCard extends React.Component<Props, State> {
                   <PropertyTypeTable
                     propertyTypes={linkPropertyTypes}
                     onPropertiesChanged={this._linkPropertyChangedHandler}
+                    supportMandatory={false}
                   />
                 </CardSection>
               </Grid>

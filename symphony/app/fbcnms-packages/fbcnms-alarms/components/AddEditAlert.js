@@ -7,25 +7,25 @@
  * @flow
  * @format
  */
-import type {AlertConfig} from './AlarmAPIType';
-
 import Grid from '@material-ui/core/Grid';
-import PrometheusEditor from './PrometheusEditor';
+import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import {cloneDeep} from 'lodash';
+import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
-import type {ApiUtil} from './AlarmsApi';
 
-type Props = {
+import type {ApiUtil} from './AlarmsApi';
+import type {GenericRule, RuleInterfaceMap} from './RuleInterface';
+
+type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
-  additionalAlertRuleOptions?: Object,
+  ruleMap: RuleInterfaceMap<TRuleUnion>,
   onExit: () => void,
-  initialConfig: ?AlertConfig,
+  //TODO rename?
+  initialConfig: ?GenericRule<TRuleUnion>,
   isNew: boolean,
-  thresholdEditorEnabled: boolean,
+  thresholdEditorEnabled?: ?boolean,
+  defaultRuleType?: string,
 };
 
 const useStyles = makeStyles(theme => ({
@@ -46,46 +46,18 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function AddEditAlert(props: Props) {
-  const {isNew, apiUtil, onExit} = props;
-  const [alertConfig, setAlertConfig] = useState<?AlertConfig>(
-    cloneDeep(props.initialConfig),
+export default function AddEditAlert<TRuleUnion>(props: Props<TRuleUnion>) {
+  const {isNew, apiUtil, ruleMap, onExit} = props;
+  const [rule, setRule] = useState<?GenericRule<TRuleUnion>>(
+    props.initialConfig,
   );
 
-  const {match} = useRouter();
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const saveAlert = async () => {
-    try {
-      if (!alertConfig) {
-        throw new Error('Alert config empty');
-      }
-
-      const request = {
-        networkId: match.params.networkId,
-        rule: alertConfig,
-      };
-      if (isNew) {
-        await apiUtil.createAlertRule(request);
-      } else {
-        await apiUtil.editAlertRule(request);
-      }
-      enqueueSnackbar(`Successfully ${isNew ? 'added' : 'saved'} alert rule`, {
-        variant: 'success',
-      });
-      onExit();
-    } catch (error) {
-      enqueueSnackbar(
-        `Unable to create alert: ${
-          error.response ? error.response.data.message : error.message
-        }.`,
-        {
-          variant: 'error',
-        },
-      );
-    }
-  };
+  const [selectedRuleType, setSelectedRuleType] = React.useState<string>(
+    rule?.ruleType || props.defaultRuleType || 'prometheus',
+  );
 
   const classes = useStyles();
+  const {RuleEditor} = ruleMap[selectedRuleType];
 
   return (
     <Grid
@@ -94,15 +66,84 @@ export default function AddEditAlert(props: Props) {
       spacing={0}
       data-testid="add-edit-alert">
       <Grid className={classes.editingSpace} item xs>
-        <PrometheusEditor
-          apiUtil={props.apiUtil}
-          onExit={props.onExit}
-          updateAlertConfig={setAlertConfig}
-          isNew={props.isNew}
-          saveAlertRule={saveAlert}
-          rule={alertConfig}
+        {isNew && (
+          <SelectRuleType
+            ruleMap={ruleMap}
+            value={selectedRuleType}
+            onChange={setSelectedRuleType}
+          />
+        )}
+        <RuleEditor
+          apiUtil={apiUtil}
+          isNew={isNew}
+          onExit={onExit}
+          onRuleUpdated={setRule}
+          rule={rule}
+          //TODO remove this prop once context is created
           thresholdEditorEnabled={props.thresholdEditorEnabled}
         />
+      </Grid>
+    </Grid>
+  );
+}
+
+const useRuleTypeStyles = makeStyles(_theme => ({
+  select: {
+    textTransform: 'capitalize',
+  },
+  menuItem: {
+    textTransform: 'capitalize',
+  },
+}));
+function SelectRuleType<TRuleUnion>({
+  ruleMap,
+  value,
+  onChange,
+}: {
+  ruleMap: RuleInterfaceMap<TRuleUnion>,
+  onChange: string => void,
+  value: string,
+}) {
+  const classes = useRuleTypeStyles();
+  const ruleTypes = React.useMemo<Array<{type: string, friendlyName: string}>>(
+    () =>
+      Object.keys(ruleMap || {}).map(key => ({
+        type: key,
+        friendlyName: ruleMap[key].friendlyName || key,
+      })),
+    [ruleMap],
+  );
+
+  // if there's < 2 rule types, just stick with the default rule type
+  if (ruleTypes.length < 2) {
+    return null;
+  }
+
+  /**
+   * Grid structure is chosen here to match the selected editor's width
+   * and padding.
+   */
+  return (
+    <Grid container spacing={3}>
+      <Grid container item spacing={2}>
+        <Grid item xs={12} sm={3}>
+          <TextField
+            label="Rule Type"
+            value={value}
+            onChange={event => onChange(event.target.value)}
+            classes={{root: classes.select}}
+            select
+            fullWidth>
+            {ruleTypes.map(ruleType => (
+              <MenuItem
+                className={classes.menuItem}
+                key={ruleType.type}
+                value={ruleType.type}>
+                {ruleType.friendlyName}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
       </Grid>
     </Grid>
   );

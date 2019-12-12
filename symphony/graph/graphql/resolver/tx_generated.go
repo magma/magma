@@ -319,6 +319,34 @@ func (tr txResolver) EditService(ctx context.Context, data models.ServiceEditDat
 	return result, nil
 }
 
+func (tr txResolver) AddServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddServiceLink(ctx, id, linkID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) RemoveServiceLink(ctx context.Context, id string, linkID string) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.RemoveServiceLink(ctx, id, linkID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error) {
 	var result, zero *ent.ServiceType
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
@@ -765,6 +793,20 @@ func (tr txResolver) RemoveCustomer(ctx context.Context, id string) (string, err
 	return result, nil
 }
 
+func (tr txResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error) {
+	var result, zero *ent.FloorPlan
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddFloorPlan(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	var result, zero *ent.ActionsRule
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
@@ -775,6 +817,31 @@ func (tr txResolver) AddActionsRule(ctx context.Context, input models.AddActions
 	}
 	if result != nil {
 		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
+	var result, zero *ent.ActionsRule
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.EditActionsRule(ctx, id, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) RemoveActionsRule(ctx context.Context, id string) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.RemoveActionsRule(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
 	}
 	return result, nil
 }

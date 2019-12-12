@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  ExecuteWorkOrderMutation,
   ExecuteWorkOrderMutationResponse,
   ExecuteWorkOrderMutationVariables,
 } from './__generated__/ExecuteWorkOrderMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation ExecuteWorkOrderMutation($id: ID!) {
@@ -34,10 +36,10 @@ const mutation = graphql`
 export default (
   variables: ExecuteWorkOrderMutationVariables,
   callbacks?: MutationCallbacks<ExecuteWorkOrderMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<ExecuteWorkOrderMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

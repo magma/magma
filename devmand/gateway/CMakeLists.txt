@@ -123,7 +123,11 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/IoConfigurationBuilder.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReadCachingCli.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSocketReader.cpp)
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/SshSocketReader.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TimeoutTrackingCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/KeepaliveCli.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReconnectingCli.cpp
+        )
 
 target_link_libraries(devman_channel_cli
   devman)
@@ -181,8 +185,15 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ConfigGeneratorTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/RealCliDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CliScaleTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PromptAwareCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TimeoutTrackingCliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SshSessionTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/QueuedCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TimeoutTrackingCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PromptAwareCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReadCachingCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/KeepaliveCliTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReconnectingCliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Json.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Ssh.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Log.cpp
@@ -199,7 +210,9 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/FileWatcherTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/MikrotikChannelTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/PingChannelTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/SnmpChannelTest.cpp)
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/SnmpChannelTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ReconnectingSshTest.cpp
+        )
 
 target_link_libraries(devmantest
   devman

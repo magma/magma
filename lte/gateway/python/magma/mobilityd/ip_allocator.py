@@ -42,11 +42,9 @@ from ipaddress import ip_address
 
 import redis
 
-import magma.mobilityd.serialize_utils as serialize_utils
-from magma.common.redis.containers import RedisHashDict, RedisSet
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-
+from magma.mobilityd import mobility_store as store
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -138,25 +136,10 @@ class IPAllocator():
                 raise ValueError(
                     'Must specify a redis_port in mobilityd config.')
             client = redis.Redis(host='localhost', port=redis_port)
-            self._assigned_ip_blocks = RedisSet(
-                client,
-                'mobilityd:assigned_ip_blocks',
-                serialize_utils.serialize_ip_block,
-                serialize_utils.deserialize_ip_block)
-            self._ip_states = defaultdict_key(
-                lambda key: cleared_ip_states(client, key))
-            self._sid_ips_map = RedisHashDict(
-                client,
-                'mobilityd:sid_to_descriptors',
-                serialize_utils.serialize_ip_descs,
-                serialize_utils.deserialize_ip_descs,
-                default_factory=list)
-
-        # NOTE: clearing below (and _ip_states above) is done to sync
-        # a mobilityd restart with restarts from other services. Once
-        # all mobilityd-related services store persistent state (e.g.
-        # using the Redis service), we can remove these sync-necessitated
-        # clears on initialization.
+            self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
+            self._ip_states = store.defaultdict_key(
+                lambda key: store.ip_states(client, key))
+            self._sid_ips_map = store.SIDIPsDict(client)
 
         # TODO: once we are no longer clearing all values on initialization,
         # we should add unit tests to ensure values are written to Redis
@@ -184,16 +167,17 @@ class IPAllocator():
 
         with self._lock:
             self._assigned_ip_blocks.add(ipblock)
-            # TODO(oramadan) t23793559 HACK reserve the GW address for gtp_br0 iface and test VM
+            # TODO(oramadan) t23793559 HACK reserve the GW address for
+            #  gtp_br0 iface and test VM
             num_reserved_addresses = 11
             for ip in ipblock.hosts():
-                state = IPState.RESERVED if num_reserved_addresses > 0 else IPState.FREE
+                state = IPState.RESERVED if num_reserved_addresses > 0 \
+                    else IPState.FREE
                 ip_desc = IPDesc(ip=ip, state=state,
                                  ip_block=ipblock, sid=None)
                 self._add_ip_to_state(ip, ip_desc, state)
                 if num_reserved_addresses > 0:
                     num_reserved_addresses -= 1
-
 
     def remove_ip_blocks(self, *ipblocks, force=False):
         """ Makes the indicated block(s) unavailable for allocation
@@ -248,7 +232,8 @@ class IPAllocator():
                     self._remove_ip_from_state(ip, IPState.ALLOCATED)
                 else:
                     assert not self._test_ip_state(ip, IPState.ALLOCATED), \
-                    "Unexpected ALLOCATED IP %s from a soft IP block removal"
+                        "Unexpected ALLOCATED IP %s from a soft IP block " \
+                        "removal "
 
             # Remove the IP blocks
             self._assigned_ip_blocks -= remove_blocks
@@ -358,7 +343,7 @@ class IPAllocator():
                 self._add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
                 self._sid_ips_map[sid].append(ip_desc.ip)
                 assert len(self._sid_ips_map[sid]) == 1, \
-                        "Only one IP per SID is supported"
+                    "Only one IP per SID is supported"
 
                 IP_ALLOCATED_TOTAL.inc()
                 return ip_desc.ip
@@ -480,7 +465,7 @@ class IPAllocator():
         with self._lock:
             # check if auto recycling is enabled and no timer has been set
             if self._recycling_interval_seconds is not None \
-                and not self._recycle_timer:
+                    and not self._recycle_timer:
                 for ip in self._list_ips(IPState.RELEASED):
                     self._mark_ip_state(ip, IPState.REAPED)
                 if self._recycling_interval_seconds:
@@ -494,8 +479,8 @@ class IPAllocator():
     def _add_ip_to_state(self, ip, ip_desc, state):
         """ Add ip=>ip_desc pairs to a internal dict """
         assert ip_desc.state == state, \
-                "ip_desc.state %s does not match with state %s" \
-                % (ip_desc.state, state)
+            "ip_desc.state %s does not match with state %s" \
+            % (ip_desc.state, state)
         assert state in IPState, "unknown state %s" % state
 
         with self._lock:
@@ -555,13 +540,13 @@ class IPAllocator():
 
             # some internal checks
             assert ip_desc.state != state, \
-                    "move IP to the same state %s" % state
+                "move IP to the same state %s" % state
             assert ip == ip_desc.ip, "Unmatching ip_desc for %s" % ip
             if ip_desc.state == IPState.FREE:
                 assert ip_desc.sid is None, "Unexpected sid in a freed IPDesc"
             else:
                 assert ip_desc.sid is not None, \
-                        "Missing sid in state %s IPDesc" % state
+                    "Missing sid in state %s IPDesc" % state
 
             # remove, mark, add
             self._remove_ip_from_state(ip, old_state)
@@ -615,26 +600,3 @@ class MappingNotFoundError(Exception):
 
 class SubscriberNotFoundError(Exception):
     """ Exception thrown when subscriber ID is not found in SID-IP mapping """
-
-
-def cleared_ip_states(client, key):
-    """ Get cleared Redis view of IP states. """
-    redis_dict = RedisHashDict(
-        client,
-        'mobilityd:ip_to_descriptor:{}'.format(key),
-        serialize_utils.serialize_ip_desc,
-        serialize_utils.deserialize_ip_desc)
-    redis_dict.clear()
-    return redis_dict
-
-
-class defaultdict_key(defaultdict):
-    """
-    Same as standard lib's defaultdict, but takes the key as a parameter.
-    """
-    def __missing__(self, key):
-        # Follow defaultdict pattern in raising KeyError
-        if self.default_factory is None:
-            raise KeyError(key)
-        self[key] = self.default_factory(key)
-        return self[key]

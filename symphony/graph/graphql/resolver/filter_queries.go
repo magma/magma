@@ -88,42 +88,8 @@ func (r queryResolver) LocationSearch(ctx context.Context, filters []*models.Loc
 	}, err
 }
 
-// nolint: dupl
 func (r queryResolver) ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
-	var (
-		query = r.ClientFrom(ctx).Service.Query()
-		err   error
-	)
-	for _, f := range filters {
-		switch {
-		case strings.HasPrefix(f.FilterType.String(), "SERVICE_"):
-			if query, err = handleServiceFilter(query, f); err != nil {
-				return nil, err
-			}
-		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
-			if query, err = handleServiceLocationFilter(query, f); err != nil {
-				return nil, err
-			}
-		case strings.HasPrefix(f.FilterType.String(), "EQUIPMENT_IN_SERVICE"):
-			if query, err = handleEquipmentInServiceFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	count, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Count query failed")
-	}
-	services, err := query.All(ctx)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "Querying services failed")
-	}
-	return &models.ServiceSearchResult{
-		Services: services,
-		Count:    count,
-	}, err
+	return resolverutil.ServiceSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
 func (r queryResolver) ProjectSearch(ctx context.Context, filters []*models.ProjectFilterInput, limit *int) ([]*ent.Project, error) {

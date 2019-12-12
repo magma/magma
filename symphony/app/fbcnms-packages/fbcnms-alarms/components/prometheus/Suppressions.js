@@ -8,12 +8,12 @@
  * @format
  */
 
-import AlertActionDialog from '../AlertActionDialog';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import React from 'react';
-import SimpleTable from '../SimpleTable';
+import SimpleTable, {toLabels} from '../SimpleTable';
+import TableActionDialog from '../TableActionDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -42,10 +42,8 @@ type Props = {
 export default function Suppressions(props: Props) {
   const {apiUtil} = props;
   const [menuAnchorEl, setMenuAnchorEl] = useState<?HTMLElement>(null);
-  const [currentAlert, setCurrentAlert] = useState<Object>({});
-  const [showAlertActionDialog, setShowAlertActionDialog] = useState<?'view'>(
-    null,
-  );
+  const [currentRow, setCurrentRow] = useState<{}>({});
+  const [showDialog, setShowDialog] = useState(false);
   const [lastRefreshTime, _setLastRefreshTime] = useState<string>(
     new Date().toLocaleString(),
   );
@@ -53,11 +51,6 @@ export default function Suppressions(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const onDialogAction = args => {
-    setShowAlertActionDialog(args);
-    setMenuAnchorEl(null);
-  };
 
   const {isLoading, error, response} = apiUtil.useAlarmsApi(
     apiUtil.getSuppressions,
@@ -76,22 +69,27 @@ export default function Suppressions(props: Props) {
 
   const silencesList = response || [];
 
-  const columnStruct = [
-    {title: 'name', path: ['comment']},
-    {title: 'active', path: ['status', 'state']},
-    {title: 'created by', path: ['createdBy']},
-    {title: 'matchers', path: ['matchers'], render: 'multipleGroups'},
-  ];
-
   return (
     <>
       <SimpleTable
         tableData={silencesList}
         onActionsClick={(alert, target) => {
           setMenuAnchorEl(target);
-          setCurrentAlert(alert);
+          setCurrentRow(alert);
         }}
-        columnStruct={columnStruct}
+        columnStruct={[
+          {title: 'name', getValue: row => row.comment || ''},
+          {title: 'active', getValue: row => row.status?.state ?? ''},
+          {title: 'created by', getValue: row => row.createdBy},
+          {
+            title: 'matchers',
+            getValue: row =>
+              row.matchers
+                ? row.matchers.map(matcher => toLabels(matcher))
+                : [],
+            render: 'multipleGroups',
+          },
+        ]}
       />
       {isLoading && silencesList.length === 0 && (
         <div className={classes.loading}>
@@ -103,13 +101,13 @@ export default function Suppressions(props: Props) {
         keepMounted
         open={Boolean(menuAnchorEl)}
         onClose={() => setMenuAnchorEl(null)}>
-        <MenuItem onClick={() => onDialogAction('view')}>View</MenuItem>
+        <MenuItem onClick={() => setShowDialog(true)}>View</MenuItem>
       </Menu>
-      <AlertActionDialog
-        open={showAlertActionDialog != null}
-        onClose={() => onDialogAction(null)}
-        title={'View Alert'}
-        alertConfig={currentAlert || {}}
+      <TableActionDialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        title={'View Suppression'}
+        row={currentRow || {}}
         showCopyButton={true}
         showDeleteButton={false}
       />

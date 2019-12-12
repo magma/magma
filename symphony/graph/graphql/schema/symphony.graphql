@@ -80,6 +80,7 @@ type Location implements Node {
   wifiData: [SurveyWiFiScan]!
   cellData: [SurveyCellScan]!
   distanceKm(latitude: Float!, longitude: Float!): Float!
+  floorPlans: [FloorPlan]!
 }
 
 input AddLocationInput {
@@ -556,6 +557,7 @@ type PropertyType implements Node {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 input PropertyTypeInput {
@@ -574,6 +576,7 @@ input PropertyTypeInput {
   rangeToValue: Float
   isEditable: Boolean
   isInstanceProperty: Boolean
+  isMandatory: Boolean
 }
 
 type Property implements Node {
@@ -1149,7 +1152,6 @@ input ServiceCreateData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -1160,7 +1162,6 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
   terminationPointIds: [ID!]!
-  linkIds: [ID!]!
 }
 
 input SurveyCreateData {
@@ -1179,6 +1180,21 @@ type Survey implements Node {
   locationID: ID!
   sourceFile: File
   surveyResponses: [SurveyQuestion]!
+}
+
+input AddFloorPlanInput {
+  name: String!
+  locationID: ID!
+  image: AddImageInput!
+  referenceX: Int!
+  referenceY: Int!
+  latitude: Float!
+  longitude: Float!
+  referencePoint1X: Int!
+  referencePoint1Y: Int!
+  referencePoint2X: Int!
+  referencePoint2Y: Int!
+  scaleInMeters: Float!
 }
 
 type FloorPlan implements Node {
@@ -1467,7 +1483,7 @@ type ActionsTriggersSearchResult {
 # with data for executing that action
 type ActionsRuleAction
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleAction"
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
   ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
@@ -1477,7 +1493,7 @@ type ActionsRuleAction
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/ent/schema.ActionsRuleFilter"
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
   ) {
   filterID: String
   operatorID: String
@@ -1683,6 +1699,8 @@ type Mutation {
     """
     data: ServiceEditData!
   ): Service
+  addServiceLink(id: ID!, linkId: ID!): Service
+  removeServiceLink(id: ID!, linkId: ID!): Service
   addServiceType(
     """
     data to edit service type
@@ -1808,5 +1826,8 @@ type Mutation {
   deleteProject(id: ID!): Boolean!
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
+  addFloorPlan(input: AddFloorPlanInput!): FloorPlan
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
+  editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
+  removeActionsRule(id: ID!): Boolean!
 }

@@ -18,11 +18,12 @@ using namespace devmand::channels::cli;
 
 atomic_bool loggingInitialized(false);
 
-void initLog() {
+void initLog(uint32_t verbosity) {
   if (loggingInitialized.load()) {
+    magma::set_verbosity(verbosity);
     return;
   }
-  Engine::initLogging(MDEBUG, true);
+  Engine::initLogging(verbosity, true);
   loggingInitialized.store(true);
   MLOG(MDEBUG) << "Logging for test initialized";
 }

@@ -10,6 +10,7 @@
 #define LOG_WITH_GLOG
 #include <magma_logging.h>
 
+#include <devmand/Application.h>
 #include <devmand/channels/cli/Channel.h>
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
@@ -40,15 +41,17 @@ class StructuredUbntDevice : public Device {
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
+  // visible for testing
+  static std::unique_ptr<devices::Device> createDeviceWithEngine(
+      Application& app,
+      const cartography::DeviceConfig& deviceConfig,
+      Engine& engine);
+
  public:
   std::shared_ptr<State> getState() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override {
-    (void)config;
-    MLOG(MERROR) << "[" << id << "] "
-                 << "set config on unconfigurable device";
-  }
+  void setConfig(const folly::dynamic& config) override;
 
  private:
   std::shared_ptr<Channel> channel;

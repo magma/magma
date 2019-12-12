@@ -455,6 +455,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
         latitudeValue: p.latitudeValue,
         longitudeValue: p.longitudeValue,
         isEditable: p.isEditable,
+        isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
       }));
 
@@ -499,6 +500,7 @@ class AddEditLocationTypeCard extends React.Component<Props, State> {
                 floatValue: null,
                 latitudeValue: null,
                 longitudeValue: null,
+                isMandatory: false,
                 isEditable: true,
                 isInstanceProperty: true,
               },
@@ -552,6 +554,7 @@ export default withStyles(styles)(
               rangeFromValue
               rangeToValue
               isEditable
+              isMandatory
               isInstanceProperty
             }
             surveyTemplateCategories {

@@ -108,4 +108,33 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+
+        # TODO - Add APN config through CLI
+        # ims apn
+        apn_ims = ula.apn.add()
+        apn_ims.context_id = 1
+        apn_ims.service_selection = 'ims'
+        apn_ims.qos_profile.class_id = 5
+        apn_ims.qos_profile.priority_level = 15
+        apn_ims.qos_profile.preemption_capability = 1
+        apn_ims.qos_profile.preemption_vulnerability = 0
+
+        apn_ims.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
+        apn_ims.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+        apn_ims.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+
+        # internet apn
+        apn_internet = ula.apn.add()
+        apn_internet.context_id = 2
+        apn_internet.service_selection = 'internet'
+        apn_internet.qos_profile.class_id = 1
+        apn_internet.qos_profile.priority_level = 5
+        apn_internet.qos_profile.preemption_capability = 1
+        apn_internet.qos_profile.preemption_vulnerability = 0
+
+        apn_internet.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
+        apn_internet.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+        apn_internet.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+
+
         return ula

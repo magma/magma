@@ -10,22 +10,102 @@
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/CliFlavour.h>
+#include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
+#include <devmand/channels/cli/SshSessionAsync.h>
+#include <devmand/channels/cli/engine/Engine.h>
+#include <folly/Executor.h>
+
+namespace devmand::channels::cli {
 
 using devmand::cartography::DeviceConfig;
 using devmand::channels::cli::Cli;
 using devmand::channels::cli::CliFlavour;
-using std::shared_ptr;
+using devmand::channels::cli::sshsession::SshSessionAsync;
+using namespace std;
 
-namespace devmand::channels::cli {
+using folly::Executor;
+using folly::SemiFuture;
+using folly::Timekeeper;
+
+static constexpr auto configKeepAliveIntervalSeconds =
+    "keepAliveIntervalSeconds";
+static constexpr auto configMaxCommandTimeoutSeconds =
+    "maxCommandTimeoutSeconds";
+static constexpr auto reconnectingQuietPeriodConfig = "reconnectingQuietPeriod";
+static constexpr auto sshConnectionTimeoutConfig = "sshConnectionTimeout";
+
 class IoConfigurationBuilder {
- private:
-  DeviceConfig deviceConfig;
-
  public:
-  IoConfigurationBuilder(const DeviceConfig& deviceConfig);
+  struct ConnectionParameters {
+    string username;
+    string password;
+    string ip;
+    string id;
+    int port;
+    shared_ptr<CliFlavour> flavour;
+    chrono::seconds kaTimeout;
+    chrono::seconds cmdTimeout;
+    chrono::seconds reconnectingQuietPeriod;
+    long sshConnectionTimeout; /* in seconds */
+    shared_ptr<Timekeeper> timekeeper;
+    shared_ptr<Executor> sshExecutor;
+    shared_ptr<Executor> paExecutor;
+    shared_ptr<Executor> rcExecutor;
+    shared_ptr<Executor> ttExecutor;
+    shared_ptr<Executor> qExecutor;
+    shared_ptr<Executor> rExecutor;
+    shared_ptr<Executor> kaExecutor;
+  };
 
-  shared_ptr<Cli> getIo(
-      shared_ptr<CliCache> commandCache = ReadCachingCli::createCache());
+  IoConfigurationBuilder(
+      const DeviceConfig& deviceConfig,
+      channels::cli::Engine& engine);
+  IoConfigurationBuilder(shared_ptr<ConnectionParameters> _connectionParams);
+
+  ~IoConfigurationBuilder();
+
+  shared_ptr<Cli> createAll(shared_ptr<CliCache> commandCache);
+
+  static Future<shared_ptr<Cli>> createPromptAwareCli(
+      shared_ptr<ConnectionParameters> params);
+
+  static shared_ptr<ConnectionParameters> makeConnectionParameters(
+      string id,
+      string hostname,
+      string username,
+      string password,
+      string flavour,
+      int port,
+      chrono::seconds kaTimeout,
+      chrono::seconds cmdTimeout,
+      chrono::seconds reconnectingQuietPeriod,
+      long sshConnectionTimeout,
+      shared_ptr<Timekeeper> timekeeper,
+      shared_ptr<Executor> sshExecutor,
+      shared_ptr<Executor> paExecutor,
+      shared_ptr<Executor> rcExecutor,
+      shared_ptr<Executor> ttExecutor,
+      shared_ptr<Executor> qExecutor,
+      shared_ptr<Executor> rExecutor,
+      shared_ptr<Executor> kaExecutor);
+
+ private:
+  shared_ptr<ConnectionParameters> connectionParameters;
+
+  shared_ptr<Cli> createAllUsingFactory(shared_ptr<CliCache> commandCache);
+
+  static chrono::seconds toSeconds(const string& value);
+
+  static string loadConfigValue(
+      const std::map<std::string, std::string>& plaintextCliKv,
+      const string& key,
+      const string& defaultValue);
+
+  static Future<shared_ptr<Cli>> configurePromptAwareCli(
+      shared_ptr<PromptAwareCli> cli,
+      shared_ptr<SshSessionAsync> session,
+      shared_ptr<ConnectionParameters> params,
+      shared_ptr<Executor> executor);
 };
 } // namespace devmand::channels::cli

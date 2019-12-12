@@ -18,10 +18,9 @@ import (
 // Injectors from wire.go:
 
 func NewServer(cfg Config) (*grpc.Server, func(), error) {
-	logger := cfg.Logger
 	db := cfg.DB
-	tenantService := NewTenantService(db)
-	server, cleanup, err := newServer(logger, tenantService)
+	logger := cfg.Logger
+	server, cleanup, err := newServer(db, logger)
 	if err != nil {
 		return nil, nil, err
 	}

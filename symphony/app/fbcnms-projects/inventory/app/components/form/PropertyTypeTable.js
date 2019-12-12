@@ -79,11 +79,13 @@ const propertyTypeLabels = {
 type Props = {
   propertyTypes: Array<PropertyType>,
   onPropertiesChanged: (newProperties: Array<PropertyType>) => void,
+  supportMandatory?: boolean,
 } & WithStyles<typeof styles>;
 
 class PropertyTypeTable extends React.Component<Props> {
   render() {
     const {classes, propertyTypes} = this.props;
+    const {supportMandatory = true} = this.props;
     return (
       <div className={classes.container}>
         <Table component="div" className={classes.root}>
@@ -105,6 +107,14 @@ class PropertyTypeTable extends React.Component<Props> {
                 className={classes.cell}>
                 Fixed Value
               </TableCell>
+              {supportMandatory && (
+                <TableCell
+                  padding="checkbox"
+                  component="div"
+                  className={classes.cell}>
+                  Mandatory
+                </TableCell>
+              )}
               <TableCell component="div" />
             </TableRow>
           </TableHead>
@@ -160,6 +170,15 @@ class PropertyTypeTable extends React.Component<Props> {
                     color="primary"
                   />
                 </TableCell>
+                {supportMandatory && (
+                  <TableCell padding="checkbox" component="div">
+                    <Checkbox
+                      checked={!!property.isMandatory}
+                      onChange={this._handleIsMandatoryChecked(i)}
+                      color="primary"
+                    />
+                  </TableCell>
+                )}
                 <TableCell
                   className={classes.actionsBar}
                   align="right"
@@ -216,6 +235,17 @@ class PropertyTypeTable extends React.Component<Props> {
         index,
         'isInstanceProperty',
         !event.target.checked,
+      ),
+    );
+  };
+
+  _handleIsMandatoryChecked = index => event => {
+    this.props.onPropertiesChanged(
+      updateItem<PropertyType, 'isMandatory'>(
+        this.props.propertyTypes,
+        index,
+        'isMandatory',
+        event.target.checked,
       ),
     );
   };

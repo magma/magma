@@ -35,6 +35,10 @@ export type WorkOrdersView_workOrder = $ReadOnlyArray<{|
     +id: string,
     +name: string,
   |},
+  +project: ?{|
+    +id: string,
+    +name: string,
+  |},
   +$refType: WorkOrdersView_workOrder$ref,
 |}>;
 export type WorkOrdersView_workOrder$data = WorkOrdersView_workOrder;
@@ -136,10 +140,20 @@ return {
       "concreteType": "WorkOrderType",
       "plural": false,
       "selections": (v2/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "project",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Project",
+      "plural": false,
+      "selections": (v2/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '5c52b36c5b3b4c6f2dce4a7f650dc890';
+(node/*: any*/).hash = 'b420cc68c865cc34e5985dbd20c78f64';
 module.exports = node;

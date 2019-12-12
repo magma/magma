@@ -165,7 +165,7 @@ TEST_F(ModelRegistryTest, jsonDeserializationFail) {
 TEST_F(ModelRegistryTest, jsonSerializationNestedMultiThread) {
   folly::CPUThreadPoolExecutor executor(8);
 
-  for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 100; i++) {
     folly::Future<folly::Unit> f = folly::via(&executor, [&, i]() {
       Bundle& bundleOpenconfig = mreg.getBundle(Model::OPENCONFIG_0_1_6);
 

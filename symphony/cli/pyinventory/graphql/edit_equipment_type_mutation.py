@@ -95,6 +95,7 @@ class EditEquipmentTypeInput:
         rangeToValue: Optional[float] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
+        isMandatory: Optional[bool] = None
 
     id: str
     name: str

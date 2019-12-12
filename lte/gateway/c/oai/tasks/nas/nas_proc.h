@@ -136,7 +136,7 @@ int nas_proc_signalling_connection_rel_ind(mme_ue_s1ap_id_t ue_id);
 int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id);
 int nas_proc_smc_fail(emm_cn_smc_fail_t *emm_cn_smc_fail);
 int nas_proc_nw_initiated_detach_ue_request(
-  itti_nas_nw_initiated_detach_ue_req_t *const nw_initiated_detach_p);
+  emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p);
 int nas_proc_cs_domain_location_updt_acc(
   itti_nas_cs_domain_location_update_acc_t *itti_nas_location_update_acc_p);
 int nas_proc_cs_domain_location_updt_fail(

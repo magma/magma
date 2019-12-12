@@ -488,19 +488,20 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		},
 	})
 
-	_, _ = mr.AddService(ctx, models.ServiceCreateData{
+	s1, _ := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Room 201",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
-		LinkIds:             []string{l1.ID, l2.ID},
 	})
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
 
-	_, _ = mr.AddService(ctx, models.ServiceCreateData{
+	s2, _ := mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Room 202",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
-		LinkIds:             []string{l1.ID},
 	})
+	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
 
 	_, _ = mr.AddService(ctx, models.ServiceCreateData{
 		Name:                "Room 203",

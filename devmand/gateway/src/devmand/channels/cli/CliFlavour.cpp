@@ -20,46 +20,77 @@ using devmand::channels::cli::DefaultPromptResolver;
 using devmand::channels::cli::EmptyInitializer;
 using devmand::channels::cli::PromptResolver;
 using devmand::channels::cli::UbiquitiInitializer;
-using devmand::channels::cli::sshsession::SshSessionAsync;
+using devmand::channels::cli::sshsession::SessionAsync;
+using folly::Optional;
 
 static const int DEFAULT_MILLIS = 1000;
 
-void EmptyInitializer::initialize(shared_ptr<SshSessionAsync> session) {
+SemiFuture<Unit> EmptyInitializer::initialize(
+    shared_ptr<SessionAsync> session,
+    string secret) {
   (void)session;
+  (void)secret;
+  return folly::makeFuture();
 }
 
-void UbiquitiInitializer::initialize(shared_ptr<SshSessionAsync> session) {
-  session->write("enable\n")
-      .thenValue([=](...) { return session->write("ubnt\n"); })
-      .thenValue([=](...) { return session->write("terminal length 0\n"); })
-      .get();
+SemiFuture<Unit> UbiquitiInitializer::initialize(
+    shared_ptr<SessionAsync> session,
+    string secret) {
+  return session->write("enable\n")
+      .thenValue(
+          [session, secret](...) { return session->write(secret + "\n"); })
+      .thenValue(
+          [session](...) { return session->write("terminal length 0\n"); });
 }
 
-string DefaultPromptResolver::resolvePrompt(
-    shared_ptr<SshSessionAsync> session,
+Future<string> DefaultPromptResolver::resolvePrompt(
+    shared_ptr<SessionAsync> session,
     const string& newline) {
-  session->read(DEFAULT_MILLIS).get(); // clear input, converges faster on
-                                       // prompt
-  for (int i = 1;; i++) {
-    int millis = i * DEFAULT_MILLIS;
-    session->write(newline + newline).get();
-    string output = session->read(millis).get();
+  return session
+      ->read(DEFAULT_MILLIS) // clear input, converges faster on
+                             // prompt
+      .thenValue([=](...) { return resolvePrompt(session, newline, 1); });
+}
 
-    regex regxp("\\" + newline);
-    vector<string> split(
-        sregex_token_iterator(output.begin(), output.end(), regxp, -1),
-        sregex_token_iterator());
+Future<string> DefaultPromptResolver::resolvePrompt(
+    shared_ptr<SessionAsync> session,
+    const string& newline,
+    int delayCounter) {
+  return resolvePromptAsync(session, newline, delayCounter)
+      .thenValue([=](Optional<string> prompt) {
+        if (!prompt.hasValue()) {
+          return resolvePrompt(session, newline, delayCounter + 1);
+        } else {
+          return folly::makeFuture(prompt.value());
+        }
+      });
+}
 
-    removeEmptyStrings(split);
+Future<Optional<string>> DefaultPromptResolver::resolvePromptAsync(
+    shared_ptr<SessionAsync> session,
+    const string& newline,
+    int delayCounter) {
+  return session->write(newline + newline)
+      .thenValue([delayCounter, session](...) {
+        return session->read(delayCounter * DEFAULT_MILLIS);
+      })
+      .thenValue([=](string output) {
+        regex regxp("\\" + newline);
+        vector<string> split(
+            sregex_token_iterator(output.begin(), output.end(), regxp, -1),
+            sregex_token_iterator());
 
-    if (split.size() == 2) {
-      string s0 = boost::algorithm::trim_copy(split[0]);
-      string s1 = boost::algorithm::trim_copy(split[1]);
-      if (s0 == s1) {
-        return s0;
-      }
-    }
-  }
+        removeEmptyStrings(split);
+
+        if (split.size() == 2) {
+          string s0 = boost::algorithm::trim_copy(split[0]);
+          string s1 = boost::algorithm::trim_copy(split[1]);
+          if (s0 == s1) {
+            return folly::make_optional<string>(s0);
+          }
+        }
+        return Optional<string>();
+      });
 }
 
 void DefaultPromptResolver::removeEmptyStrings(vector<string>& split) const {

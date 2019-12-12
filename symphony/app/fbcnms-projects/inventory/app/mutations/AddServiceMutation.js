@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddServiceMutation,
   AddServiceMutationResponse,
   AddServiceMutationVariables,
 } from './__generated__/AddServiceTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddServiceMutation($data: ServiceCreateData!) {
@@ -28,10 +30,10 @@ const mutation = graphql`
 export default (
   variables: AddServiceMutationVariables,
   callbacks?: MutationCallbacks<AddServiceMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddServiceMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

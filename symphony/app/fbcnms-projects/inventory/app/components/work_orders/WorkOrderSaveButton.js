@@ -8,31 +8,35 @@
  * @format
  */
 
-import type {
-  EditWorkOrderMutationResponse,
-  EditWorkOrderMutationVariables,
-} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
-import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {Property} from '../../common/Property';
-import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {removeTempIDs} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import type {
+  ChecklistViewer_checkListItems,
+  WorkOrderDetails_workOrder,
+} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
+import type {
+  EditWorkOrderMutationResponse,
+  EditWorkOrderMutationVariables,
+} from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Property} from '../../common/Property';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
   properties: Array<Property>,
+  checklist: ChecklistViewer_checkListItems,
   locationId: ?string,
 };
 
 const WorkOrderSaveButton = (props: Props) => {
-  const {workOrder, properties, locationId} = props;
+  const {workOrder, properties, checklist, locationId} = props;
   const enqueueSnackbar = useEnqueueSnackbar();
   const {history, match} = useRouter();
 
@@ -72,6 +76,18 @@ const WorkOrderSaveButton = (props: Props) => {
         projectId: project?.id,
         properties: toPropertyInput(properties),
         locationId,
+        checkList: removeTempIDs(checklist).map(item => {
+          return {
+            id: item.id,
+            title: item.title,
+            type: item.type,
+            index: item.index,
+            helpText: item.helpText,
+            enumValues: item.enumValues,
+            stringValue: item.stringValue,
+            checked: item.checked,
+          };
+        }),
       },
     };
     const callbacks: MutationCallbacks<EditWorkOrderMutationResponse> = {
@@ -91,7 +107,15 @@ const WorkOrderSaveButton = (props: Props) => {
       source: 'work_order_details',
     });
     EditWorkOrderMutation(variables, callbacks);
-  }, [workOrder, locationId, properties, enqueueError, history, match]);
+  }, [
+    workOrder,
+    properties,
+    locationId,
+    checklist,
+    enqueueError,
+    history,
+    match.url,
+  ]);
 
   return (
     <Button disabled={!workOrder.name} onClick={saveWorkOrder}>

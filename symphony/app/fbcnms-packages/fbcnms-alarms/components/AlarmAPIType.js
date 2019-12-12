@@ -32,7 +32,24 @@ export type FiringAlarmStatus = {
 
 export type AlertReceiver = {
   name: string,
+  email_configs?: Array<ReceiversEmailConfig>,
   slack_configs?: Array<ReceiverSlackConfig>,
+  webhook_configs?: Array<ReceiversWebhookConfig>,
+};
+
+export type ReceiversEmailConfig = {
+  auth_identity?: string,
+  auth_password?: string,
+  auth_secret?: string,
+  auth_username?: string,
+  from: string,
+  headers?: {[string]: string},
+  hello?: string,
+  html?: string,
+  send_resolved?: boolean,
+  smarthost: string,
+  text?: string,
+  to: string,
 };
 
 export type ReceiverSlackConfig = {
@@ -79,10 +96,27 @@ export type SlackConfirmField = {
   dismiss_text: string,
 };
 
+export type ReceiversWebhookConfig = {
+  http_config?: HTTPConfig,
+  send_resolved?: boolean,
+  url: string,
+};
+
+export type HTTPConfig = {
+  basic_auth?: HTTPConfigBasicAuth,
+  bearer_token?: string,
+  proxy_url?: string,
+};
+
+export type HTTPConfigBasicAuth = {
+  password: string,
+  username: string,
+};
+
 /**
  * Prometheus alert rule configuration
  */
-export type AlertConfig = {
+export type AlertConfig = {|
   alert: string,
   expr: string,
   annotations?: {[string]: string},
@@ -90,7 +124,7 @@ export type AlertConfig = {
   labels?: {[string]: string},
   rawData?: AlertConfig,
   _isCustomAlertRule?: boolean,
-};
+|};
 
 export type AlertRoutingTree = {
   receiver: string,

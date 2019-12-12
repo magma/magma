@@ -432,84 +432,81 @@ void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
 //------------------------------------------------------------------------------
-void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
-  const itti_nas_sgs_detach_req_t *const sgs_detach_req_p)
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+  emm_proc_sgs_detach_type_t detach_type)
 {
-  struct ue_mm_context_s *ue_context = NULL;
   sgs_fsm_t evnt = {0};
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(sgs_detach_req_p != NULL);
-  ue_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, sgs_detach_req_p->ue_id);
-  if (ue_context == NULL) {
+  if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "UE context doesn't exist -> Nothing to do :-) \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  if (ue_context->sgs_context) {
-    evnt.ue_id = ue_context->mme_ue_s1ap_id;
-    evnt.ctx = ue_context->sgs_context;
+  if (ue_context_p->sgs_context) {
+    evnt.ue_id = ue_context_p->mme_ue_s1ap_id;
+    evnt.ctx = ue_context_p->sgs_context;
     /* check the SGS state and if it is null then do not send te Detach towards SGS*/
     OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n",
-      sgs_detach_req_p->detach_type);
+      detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
-      switch (sgs_detach_req_p->detach_type) {
+      switch (detach_type) {
           /*
         * Handle Ue initiated EPS detach towards SGS
         */
         case SGS_DETACH_TYPE_UE_INITIATED_EPS: {
-          ue_context->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
+          ue_context_p->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
-            ue_context, ue_context->sgs_detach_type);
+            ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_EPS_DETACH_IND;
         } break;
           /*
         * Handle Ue initiated IMSI detach towards SGS
         */
         case SGS_DETACH_TYPE_UE_INITIATED_EXPLICIT_NONEPS: {
-          ue_context->sgs_detach_type =
+          ue_context_p->sgs_detach_type =
             SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
-            ue_context, ue_context->sgs_detach_type);
+            ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_IMSI_DETACH_IND;
         } break;
           /*
         * Handle Ue initiated Combined EPS/IMSI detach towards SGS
         */
         case SGS_DETACH_TYPE_UE_INITIATED_COMBINED: {
-          ue_context->sgs_detach_type =
+          ue_context_p->sgs_detach_type =
             SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
-            ue_context, ue_context->sgs_detach_type);
+            ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_IMSI_DETACH_IND;
         } break;
           /*
         * Handle Network initiated EPS detach towards SGS
         */
         case SGS_DETACH_TYPE_NW_INITIATED_EPS: {
-          ue_context->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
+          ue_context_p->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
-            ue_context, ue_context->sgs_detach_type);
+            ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_EPS_DETACH_IND;
         } break;
           /*
         * Handle Network initiated Implicit IMSI detach towards SGS
         */
         case SGS_DETACH_TYPE_NW_INITIATED_IMPLICIT_NONEPS: {
-          ue_context->sgs_detach_type =
+          ue_context_p->sgs_detach_type =
             SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
-            ue_context, ue_context->sgs_detach_type);
+            ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_IMSI_DETACH_IND;
         } break;
         default:
           OAILOG_INFO(
             LOG_MME_APP,
             "SGS-DETACH REQ: Ue Id %u Invalid detach type : %u \n",
-            sgs_detach_req_p->ue_id,
-            ue_context->sgs_detach_type);
+            ue_context_p->mme_ue_s1ap_id,
+            ue_context_p->sgs_detach_type);
           break;
       }
       /*
@@ -523,7 +520,6 @@ void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
     OAILOG_ERROR(
       LOG_MME_APP, "UE SGS context doesn't exist -> Nothing to do :-) \n");
   }
-  unlock_ue_contexts(ue_context);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

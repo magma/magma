@@ -78,7 +78,7 @@ const FormField = (props: Props) => {
           className,
         )}>
         {label && (
-          <Text className={classes.labelContainer} variant="body2">
+          <Text variant="body2" className={classes.labelContainer}>
             {label}
             {required && ' *'}
           </Text>

@@ -32,9 +32,32 @@ class Cli {
   Cli& operator=(Cli&&) = delete;
 
  public:
-  virtual folly::Future<std::string> executeAndRead(const Command& cmd) = 0;
+  virtual folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) = 0;
 
-  virtual folly::Future<std::string> execute(const Command& cmd) = 0;
+  virtual folly::SemiFuture<std::string> executeWrite(
+      const WriteCommand cmd) = 0;
+};
+
+class CliException : public std::runtime_error {
+ public:
+  CliException(string msg) : std::runtime_error(msg) {}
+};
+
+class DisconnectedException : public CliException {
+ public:
+  DisconnectedException(string msg = "Not connected") : CliException(msg) {}
+};
+
+class CommandExecutionException : public CliException {
+ public:
+  CommandExecutionException(string msg = "Command execution failed")
+      : CliException(msg) {}
+};
+
+class CommandTimeoutException : public CommandExecutionException {
+ public:
+  CommandTimeoutException(string msg = "Command execution timed out")
+      : CommandExecutionException(msg) {}
 };
 
 } // namespace cli

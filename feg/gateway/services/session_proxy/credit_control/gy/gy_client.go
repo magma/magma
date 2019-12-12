@@ -219,7 +219,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.EventTimestamp, avp.Mbit, 0, datatype.Time(time.Now()))
 	m.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.CHARGING_CONTROL_APP_ID))
 	m.NewAVP(avp.CCRequestType, avp.Mbit, 0, datatype.Enumerated(request.Type))
-	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(ServiceContextIDDefault))
+	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(gyClient.diamClient.ServiceContextId()))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
 
 	// Always add MSISDN (TASA requirement) if it's provided by AGW

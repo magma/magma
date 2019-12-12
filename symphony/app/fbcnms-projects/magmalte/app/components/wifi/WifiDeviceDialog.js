@@ -219,7 +219,8 @@ class WifiDeviceDialog extends React.Component<Props, State> {
     );
   }
 
-  handleMACAddressChange = macAddress => this.setState({macAddress});
+  handleMACAddressChange = macAddress =>
+    this.setState({macAddress: macAddress.trim()});
   wifiConfigChangeHandler = (fieldName, value) => {
     this.setState({
       wifiConfigsChanged: true,

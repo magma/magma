@@ -8,14 +8,15 @@
  * @format
  */
 
+import RelayEnvironment from '../common/RelayEnvironment.js';
+import {commitMutation, graphql} from 'react-relay';
 import type {
+  EditEquipmentPortTypeMutation,
   EditEquipmentPortTypeMutationResponse,
   EditEquipmentPortTypeMutationVariables,
 } from './__generated__/EditEquipmentPortTypeMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
-
-import RelayEnvironment from '../common/RelayEnvironment.js';
-import {commitMutation, graphql} from 'react-relay';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 export const mutation = graphql`
   mutation EditEquipmentPortTypeMutation($input: EditEquipmentPortTypeInput!) {
@@ -31,10 +32,10 @@ export const mutation = graphql`
 export default (
   variables: EditEquipmentPortTypeMutationVariables,
   callbacks?: MutationCallbacks<EditEquipmentPortTypeMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<EditEquipmentPortTypeMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

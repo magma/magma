@@ -47,6 +47,7 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
           +rangeToValue: ?number,
           +isEditable: ?boolean,
           +isInstanceProperty: ?boolean,
+          +isMandatory: ?boolean,
         |}>
       |},
     |},
@@ -83,6 +84,7 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
       +name: string,
       +type: PropertyKind,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
       +stringValue: ?string,
     |},
@@ -222,7 +224,14 @@ v14 = {
   "args": null,
   "storageKey": null
 },
-v15 = [
+v15 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v16 = [
   (v0/*: any*/),
   (v2/*: any*/)
 ];
@@ -295,7 +304,8 @@ return {
                     (v11/*: any*/),
                     (v12/*: any*/),
                     (v13/*: any*/),
-                    (v14/*: any*/)
+                    (v14/*: any*/),
+                    (v15/*: any*/)
                   ]
                 }
               ]
@@ -353,7 +363,7 @@ return {
                       "args": null,
                       "concreteType": "EquipmentPortType",
                       "plural": false,
-                      "selections": (v15/*: any*/)
+                      "selections": (v16/*: any*/)
                     }
                   ]
                 }
@@ -410,6 +420,7 @@ return {
             (v2/*: any*/),
             (v4/*: any*/),
             (v13/*: any*/),
+            (v15/*: any*/),
             (v14/*: any*/),
             (v5/*: any*/)
           ]
@@ -430,7 +441,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v16/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -440,7 +451,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v15/*: any*/)
+          "selections": (v16/*: any*/)
         }
       ]
     },

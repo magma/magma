@@ -34,6 +34,7 @@ export type AddEditEquipmentTypeCard_editingEquipmentType = {|
     +longitudeValue: ?number,
     +isEditable: ?boolean,
     +isInstanceProperty: ?boolean,
+    +isMandatory: ?boolean,
   |}>,
   +positionDefinitions: $ReadOnlyArray<?{|
     +id: string,
@@ -176,6 +177,13 @@ return {
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "isMandatory",
+          "args": null,
+          "storageKey": null
         }
       ]
     },
@@ -234,5 +242,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'bcd0c24b8741d9d9735b400db30225cb';
+(node/*: any*/).hash = '6aa03df6f5bf29d5f15ae954fe87d0b6';
 module.exports = node;

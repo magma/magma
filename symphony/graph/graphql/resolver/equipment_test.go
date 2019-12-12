@@ -147,7 +147,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 }
 
 func TestOrc8rStatusEquipment(t *testing.T) {
-	ts := time.Now().Add(time.Hour / 2).Unix()
+	ts := time.Now().Add(time.Hour/2).Unix() * 1000
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := io.WriteString(w, `{"checkin_time": `+strconv.FormatInt(ts, 10)+`}`)
 		assert.NoError(t, err)
@@ -217,20 +217,22 @@ func TestOrc8rStatusEquipment(t *testing.T) {
 	var rsp struct {
 		Equipment struct {
 			Device struct {
+				ID string
 				Up bool
 			}
 		}
 	}
 
-	query := `query { equipment(id: "` + equipment.ID + `") { device {up} } }`
+	query := `query { equipment(id: "` + equipment.ID + `") { device {id up} } }`
 	err = client.New(graphHandler).Post(query, &rsp)
 	require.NoError(t, err)
+	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.True(t, rsp.Equipment.Device.Up)
 
 	ts = 500
 	err = client.New(graphHandler).Post(query, &rsp)
 	require.NoError(t, err)
-
+	assert.Equal(t, equipment.DeviceID, rsp.Equipment.Device.ID)
 	assert.False(t, rsp.Equipment.Device.Up)
 }
 

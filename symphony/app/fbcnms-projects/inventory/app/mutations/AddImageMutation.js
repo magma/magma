@@ -11,10 +11,12 @@
 import RelayEnvironment from '../common/RelayEnvironment.js';
 import {commitMutation, graphql} from 'react-relay';
 import type {
+  AddImageMutation,
   AddImageMutationResponse,
   AddImageMutationVariables,
 } from './__generated__/AddImageMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation AddImageMutation($input: AddImageInput!) {
@@ -27,10 +29,10 @@ const mutation = graphql`
 export default (
   variables: AddImageMutationVariables,
   callbacks?: MutationCallbacks<AddImageMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
-  commitMutation(RelayEnvironment, {
+  commitMutation<AddImageMutation>(RelayEnvironment, {
     mutation,
     variables,
     updater,

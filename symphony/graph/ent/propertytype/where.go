@@ -266,6 +266,15 @@ func Editable(v bool) predicate.PropertyType {
 	)
 }
 
+// Mandatory applies equality check predicate on the "mandatory" field. It's identical to MandatoryEQ.
+func Mandatory(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.PropertyType {
 	return predicate.PropertyType(
@@ -1872,6 +1881,24 @@ func EditableNEQ(v bool) predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
 			s.Where(sql.NEQ(s.C(FieldEditable), v))
+		},
+	)
+}
+
+// MandatoryEQ applies the EQ predicate on the "mandatory" field.
+func MandatoryEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
+// MandatoryNEQ applies the NEQ predicate on the "mandatory" field.
+func MandatoryNEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.NEQ(s.C(FieldMandatory), v))
 		},
 	)
 }

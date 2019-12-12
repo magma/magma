@@ -32,6 +32,7 @@
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "mme_app_ue_context.h"
 #include "NasSecurityAlgorithms.h"
 #include "conversions.h"
@@ -214,8 +215,7 @@ inline void emm_ctx_set_valid_imsi(
 #endif
   mme_api_notify_imsi(
     (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id,
-    imsi64,
-    imsi->length);
+    imsi64);
 }
 
 //------------------------------------------------------------------------------
@@ -653,7 +653,7 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
     return;
   }
   nas_delete_all_emm_procedures(ctxt);
-  free(ctxt->esm_ctx.esm_proc_data);
+  free_esm_context_content(&ctxt->esm_ctx);
   if (ctxt->esm_msg) {
     bdestroy(ctxt->esm_msg);
   }

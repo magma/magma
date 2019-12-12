@@ -192,5 +192,45 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	return &models.LinkSearchResult{
 		Links: links,
 		Count: count,
+	}, nil
+}
+
+func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
+	var (
+		query = client.Service.Query()
+		err   error
+	)
+	for _, f := range filters {
+		switch {
+		case strings.HasPrefix(f.FilterType.String(), "SERVICE_"):
+			if query, err = handleServiceFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
+			if query, err = handleServiceLocationFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "EQUIPMENT_IN_SERVICE"):
+			if query, err = handleEquipmentInServiceFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	count, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Count query failed")
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	services, err := query.All(ctx)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "Querying services failed")
+	}
+	return &models.ServiceSearchResult{
+		Services: services,
+		Count:    count,
 	}, err
 }

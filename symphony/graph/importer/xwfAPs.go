@@ -167,7 +167,7 @@ func (m *importer) ProcessXwfApsCSV(w http.ResponseWriter, r *http.Request) {
 			hotspotLat, _ := strconv.ParseFloat(hotspotLatVal, 64)
 			hotspotLong, _ := strconv.ParseFloat(hotspotLongVal, 64)
 
-			unknownLoc, _ := m.getOrCreateLocation(ctx, "_FB XPP data", 0.0, 0.0, unknownLocationType, nil, nil)
+			unknownLoc, _ := m.getOrCreateLocation(ctx, "_FB XPP data", 0.0, 0.0, unknownLocationType, nil, nil, nil)
 
 			xppIDPTypeID := m.getLocPropTypeID(ctx, "XPP ID", hotspotLocationType.ID)
 			ldPTypeID := m.getLocPropTypeID(ctx, "XPP Launch Date", hotspotLocationType.ID)
@@ -207,7 +207,7 @@ func (m *importer) ProcessXwfApsCSV(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 
-			hotspot, _ := m.getOrCreateLocation(ctx, hotspotNameVal, hotspotLat, hotspotLong, hotspotLocationType, &parent.ID, hotspotPropertyInput)
+			hotspot, _ := m.getOrCreateLocation(ctx, hotspotNameVal, hotspotLat, hotspotLong, hotspotLocationType, &parent.ID, hotspotPropertyInput, nil)
 
 			xppIDPTypeID = m.getEquipPropTypeID(ctx, "XPP ID", accesspointEquipmentType.ID)
 			macPTypeID := m.getEquipPropTypeID(ctx, "Mac", accesspointEquipmentType.ID)

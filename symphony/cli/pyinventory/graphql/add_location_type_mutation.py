@@ -91,6 +91,7 @@ class AddLocationTypeInput:
         rangeToValue: Optional[float] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
+        isMandatory: Optional[bool] = None
 
     @dataclass_json
     @dataclass

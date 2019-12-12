@@ -77,6 +77,11 @@ channels::ping::Engine& Application::getPingEngine(folly::IPAddress ip) {
   }
 }
 
+channels::cli::Engine& Application::getCliEngine() {
+  assert(cliEngine != nullptr);
+  return *cliEngine;
+}
+
 std::string Application::getName() const {
   return name;
 }

@@ -12,7 +12,8 @@
 #include <devmand/channels/cli/Command.h>
 #include <devmand/channels/cli/SshSession.h>
 #include <event2/event.h>
-#include <folly/executors/IOThreadPoolExecutor.h>
+#include <folly/executors/IOExecutor.h>
+#include <folly/executors/SerialExecutor.h>
 #include <folly/futures/Future.h>
 
 namespace devmand {
@@ -24,8 +25,10 @@ using boost::lockfree::capacity;
 using boost::lockfree::spsc_queue;
 using devmand::channels::cli::sshsession::SshSession;
 using folly::Future;
-using folly::IOThreadPoolExecutor;
+using folly::IOExecutor;
 using folly::makeFuture;
+using folly::Promise;
+using folly::SerialExecutor;
 using folly::Unit;
 using folly::via;
 using std::condition_variable;
@@ -35,35 +38,54 @@ using std::string;
 
 void readCallback(evutil_socket_t fd, short, void* ptr);
 
-class SshSessionAsync {
+class SessionAsync {
+ public:
+  virtual Future<Unit> write(const string& command) = 0;
+  virtual Future<string> read(int timeoutMillis) = 0;
+  virtual Future<string> readUntilOutput(const string& lastOutput) = 0;
+};
+
+class SshSessionAsync : public std::enable_shared_from_this<SshSessionAsync>,
+                        public SessionAsync {
  private:
-  shared_ptr<IOThreadPoolExecutor> executor;
+  string id;
+  shared_ptr<folly::Executor> executor;
+  folly::Executor::KeepAlive<SerialExecutor> serialExecutor;
   SshSession session;
   event* sessionEvent = nullptr;
   spsc_queue<string, capacity<200>> readQueue;
-  mutex mutex1;
-  condition_variable condition;
   std::atomic_bool reading;
+  std::atomic_bool callbackFinished;
+  std::atomic_bool matchingExpectedOutput;
+  struct ReadingState {
+    shared_ptr<Promise<string>> promise;
+    string currentLastOutput;
+    string outputSoFar;
+  } readingState;
 
  public:
-  explicit SshSessionAsync(
-      string _id,
-      shared_ptr<IOThreadPoolExecutor> _executor);
+  explicit SshSessionAsync(string _id, shared_ptr<folly::Executor> _executor);
   ~SshSessionAsync();
+
+  Future<Unit> write(const string& command) override;
+  // for clearing ssh channel and prompt resolving
+  Future<string> read(int timeoutMillis) override;
+  Future<string> readUntilOutput(const string& lastOutput) override;
 
   Future<Unit> openShell(
       const string& ip,
       int port,
       const string& username,
-      const string& password);
-  Future<Unit> write(const string& command);
-  Future<string> read(
-      int timeoutMillis); // for clearing ssh channel and prompt resolving
-  Future<string> readUntilOutput(const string& lastOutput);
+      const string& password,
+      const long sshConnectionTimeout = 10);
+
   void setEvent(event*);
-  void readToBuffer();
+  void readSshDataToBuffer();
+  void processDataInBuffer();
   socket_t getSshFd();
-  string readUntilOutputBlocking(string lastOutput);
+  void matchExpectedOutput();
+  static void failCurrentRead(runtime_error e, shared_ptr<Promise<string>> ptr);
+  void unregisterEvent();
 };
 
 } // namespace sshsession

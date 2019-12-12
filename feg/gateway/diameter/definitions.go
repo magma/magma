@@ -47,3 +47,8 @@ var diamCodeToNameMap = map[uint32]string{
 	5451: "USER_NO_APN_SUBSCRIPTION",
 	5452: "RAT_TYPE_NOT_ALLOWED",
 }
+
+const (
+	ServiceContextIDDefault = "32251@3gpp.org" // Packet-Switch service context
+	ServiceIDDefault        = 0
+)
