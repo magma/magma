@@ -133,10 +133,12 @@ void mme_app_handle_e_rab_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_e_rab_setup_rsp_t *const e_rab_setup_rsp);
 
 void mme_app_handle_create_dedicated_bearer_rsp(
-    ue_mm_context_t* ue_context_p, ebi_t ebi);
+  ue_mm_context_t* ue_context_p,
+  ebi_t ebi);
 
 void mme_app_handle_create_dedicated_bearer_rej(
-    ue_mm_context_t* ue_context_p, ebi_t ebi);
+  ue_mm_context_t* ue_context_p,
+  ebi_t ebi);
 
 void mme_ue_context_update_ue_sig_connection_state(
   mme_ue_context_t *const mme_ue_context_p,
@@ -269,7 +271,8 @@ int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_modify_ue_ambr_request(mme_app_desc_t *mme_app_desc_p,
   const itti_s11_modify_ue_ambr_request_t *const modify_ue_ambr_request_p);
 
-void mme_app_handle_nw_init_ded_bearer_actv_req(mme_app_desc_t *mme_app_desc_p,
+void mme_app_handle_nw_init_ded_bearer_actv_req(
+  mme_app_desc_t *mme_app_desc_p,
   const itti_s11_nw_init_actv_bearer_request_t
   *const nw_init_bearer_actv_req_p);
 

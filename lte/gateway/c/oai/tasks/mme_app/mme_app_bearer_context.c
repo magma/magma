@@ -70,18 +70,15 @@ static void mme_app_bearer_context_init(bearer_context_t *const bearer_context)
   }
 }
 //------------------------------------------------------------------------------
-bearer_context_t *mme_app_create_bearer_context(
-  ue_mm_context_t *const ue_mm_context,
+bearer_context_t* mme_app_create_bearer_context(
+  ue_mm_context_t* const ue_mm_context,
   const pdn_cid_t pdn_cid,
   const ebi_t ebi,
   const bool is_default)
 {
   ebi_t lebi = ebi;
   if ((EPS_BEARER_IDENTITY_FIRST > ebi) || (EPS_BEARER_IDENTITY_LAST < ebi)) {
-    OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "Received invalid ebi :%u \n",
-      ebi);
+    OAILOG_ERROR(LOG_NAS_ESM, "Received invalid ebi :%u \n", ebi);
     return NULL;
   }
   lebi = mme_app_get_free_bearer_id(ue_mm_context);

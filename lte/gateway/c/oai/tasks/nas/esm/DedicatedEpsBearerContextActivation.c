@@ -61,16 +61,16 @@
 /*
    Timer handlers
 */
-static void _dedicated_eps_bearer_activate_t3485_handler(void *);
+static void _dedicated_eps_bearer_activate_t3485_handler(void*);
 
 /* Maximum value of the activate dedicated EPS bearer context request
    retransmission counter */
 #define DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
 static int _dedicated_eps_bearer_activate(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg);
+  STOLEN_REF bstring* msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -206,9 +206,9 @@ int esm_proc_dedicated_eps_bearer_context(
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_request(
   bool is_standalone,
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  STOLEN_REF bstring *msg,
+  STOLEN_REF bstring* msg,
   bool ue_triggered)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -271,9 +271,9 @@ int esm_proc_dedicated_eps_bearer_context_request(
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_accept(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  esm_cause_t *esm_cause)
+  esm_cause_t* esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
@@ -281,10 +281,8 @@ int esm_proc_dedicated_eps_bearer_context_accept(
 
   ue_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
-  if(!ue_context_p) {
-    OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "Failed to find ue context from emm_context \n");
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   OAILOG_INFO(
@@ -345,9 +343,9 @@ int esm_proc_dedicated_eps_bearer_context_accept(
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_reject(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   ebi_t ebi,
-  esm_cause_t *esm_cause)
+  esm_cause_t* esm_cause)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -356,10 +354,8 @@ int esm_proc_dedicated_eps_bearer_context_reject(
   ue_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  if(!ue_context_p) {
-    OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "Failed to find ue context from emm_context \n");
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_NAS_ESM, "Failed to find ue context from emm_context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   OAILOG_INFO(
@@ -427,7 +423,7 @@ int esm_proc_dedicated_eps_bearer_context_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
+static void _dedicated_eps_bearer_activate_t3485_handler(void* args)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -435,7 +431,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
   /*
    * Get retransmission timer parameters data
    */
-  esm_ebr_timer_data_t *esm_ebr_timer_data = (esm_ebr_timer_data_t *) (args);
+  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
   if (esm_ebr_timer_data) {
     /*
@@ -471,8 +467,8 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void *args)
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bid = BEARERS_PER_UE;
       ebi_t ebi = esm_ebr_timer_data->ebi;
-      ue_mm_context_t* ue_context_p = PARENT_STRUCT(esm_ebr_timer_data->ctx,
-        struct ue_mm_context_s, emm_context);
+      ue_mm_context_t* ue_context_p = PARENT_STRUCT(
+        esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context);
 
       /*
        * Release the dedicated EPS bearer context, enter state INACTIVE and
