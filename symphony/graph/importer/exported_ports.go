@@ -39,7 +39,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, models.PropertyEntityPort)
+		importHeader := NewImportHeader(first, ImportEntityPort)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)

@@ -4,15 +4,14 @@
 
 package importer
 
-import "github.com/facebookincubator/symphony/graph/graphql/models"
-
 type ImportHeader struct {
 	line     []string
 	prnt3Idx int
-	entity   models.PropertyEntity
+	entity   ImportEntity
 }
 
-func NewImportHeader(line []string, entity models.PropertyEntity) ImportHeader {
+// NewImportHeader creates a new header to be used for import
+func NewImportHeader(line []string, entity ImportEntity) ImportHeader {
 	prnt3Idx := findIndex(line, "Parent Equipment (3)")
 	return ImportHeader{
 		line:     line,
@@ -43,9 +42,9 @@ func (l ImportHeader) LocationTypesRangeArr() []string {
 }
 
 func (l ImportHeader) LocationsRangeIdx() (int, int) {
-	if l.entity == models.PropertyEntityEquipment {
+	if l.entity == ImportEntityEquipment {
 		return 3, l.prnt3Idx
-	} else if l.entity == models.PropertyEntityPort {
+	} else if l.entity == ImportEntityPort {
 		return 5, l.prnt3Idx
 	}
 	return -1, -1
@@ -56,9 +55,9 @@ func (l ImportHeader) PositionIdx() int {
 }
 
 func (l ImportHeader) PropertyStartIdx() int {
-	if l.entity == models.PropertyEntityEquipment {
+	if l.entity == ImportEntityEquipment {
 		return l.PositionIdx() + 1
-	} else if l.entity == models.PropertyEntityPort {
+	} else if l.entity == ImportEntityPort {
 		return l.PositionIdx() + 5
 	}
 	return -1
