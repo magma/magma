@@ -32,7 +32,9 @@ using ::testing::Test;
 namespace magma {
 
 const SessionState::Config test_cfg = {.ue_ipv4 = "127.0.0.1",
-                                       .spgw_ipv4 = "128.0.0.1"};
+                                       .spgw_ipv4 = "128.0.0.1",
+                                       .msisdn = "",
+                                       .apn = "IMS"};
 
 class LocalEnforcerTest : public ::testing::Test {
  protected:
@@ -279,7 +281,7 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination)
   std::promise<void> termination_promise;
   auto future = termination_promise.get_future();
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
@@ -389,7 +391,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit)
 
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
@@ -432,7 +434,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
   // Collecting terminations should key 1 anyways during reporting
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
 
       EXPECT_EQ(term_req.credit_usages_size(), 2);
@@ -570,7 +572,7 @@ TEST_F(LocalEnforcerTest, test_all)
   // Terminate IMSI1
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
 
       EXPECT_EQ(term_req.sid(), "IMSI1");
@@ -590,6 +592,7 @@ TEST_F(LocalEnforcerTest, test_re_auth)
 
   ChargingReAuthRequest reauth;
   reauth.set_sid("IMSI1");
+  reauth.set_session_id("1234");
   reauth.set_charging_key(1);
   reauth.set_type(ChargingReAuthRequest::SINGLE_SERVICE);
   auto result = local_enforcer->init_charging_reauth(reauth);
@@ -884,7 +887,8 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
 
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("pcrf_only");
-  auto res_rules_to_install = monitor_updates_response->add_static_rules_to_install();
+  auto res_rules_to_install =
+        monitor_updates_response->add_static_rules_to_install();
   res_rules_to_install->CopyFrom(static_rule_install);
 
   EXPECT_CALL(
@@ -918,7 +922,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
   std::vector<EventTrigger> event_triggers;
   std::vector<UsageMonitoringCredit> usage_monitoring_credits;
   create_policy_reauth_request(
-    "session1",
+    "1234",
     "IMSI1",
     rules_to_remove,
     rules_to_install,

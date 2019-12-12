@@ -56,6 +56,11 @@ message LocalCreateSessionResponse {
   string session_id = 1;
 }
 
+message LocalEndSessionRequest {
+  SubscriberID sid = 1;
+  string apn = 2;
+}
+
 message LocalEndSessionResponse {
 }
 
@@ -218,7 +223,7 @@ service LocalSessionManager {
 
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
-  rpc EndSession(SubscriberID) returns (LocalEndSessionResponse) {}
+  rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
 }
 
 service SessionProxyResponder {

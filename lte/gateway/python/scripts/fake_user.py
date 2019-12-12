@@ -154,7 +154,8 @@ def main():
 
     # Remove fake_user
     subparser = subparsers.add_parser('remove', help='Removes the fake_user')
-    subparser.add_argument('--imsi', help='IMSI the user', default='IMSI12345')
+    subparser.add_argument('--imsi', help='IMSI of the user', default='IMSI12345')
+    subparser.add_argument('--apn', help='APN of the session', default='oai.ipv4')
     subparser.add_argument('--pcef', help='PCEF to end session', default='')
     subparser.set_defaults(func=remove_fake_user)
 

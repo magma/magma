@@ -10,6 +10,7 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
@@ -118,6 +119,7 @@ class LocalEnforcer {
    */
   void terminate_subscriber(
     const std::string& imsi,
+    const std::string& apn,
     std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   uint64_t get_charging_credit(
@@ -142,6 +144,7 @@ class LocalEnforcer {
     PolicyReAuthAnswer& answer_out);
 
   bool is_imsi_duplicate(const std::string& imsi);
+  bool is_apn_duplicate(const std::string& imsi, const std::string& apn);
 
   std::string *duplicate_session_id(
     const std::string& imsi, const magma::SessionState::Config& config);
@@ -159,7 +162,8 @@ class LocalEnforcer {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
+  std::unordered_map<std::string,
+                     std::vector<std::unique_ptr<SessionState>>> session_map_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
 
@@ -199,6 +203,17 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState>& session,
     const google::protobuf::RepeatedPtrField<std::basic_string<char>>
       rules_to_remove,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * Populate existing rules from a specific session;
+   * used to delete flow rules for a PDN session,
+   * distinct APNs are assumed to have mutually exclusive
+   * rules.
+   */
+  void populate_rules_from_session_to_remove(
+    const std::string& imsi,
+    const std::unique_ptr<SessionState>& session,
     RulesToProcess& rules_to_deactivate);
 
   /**

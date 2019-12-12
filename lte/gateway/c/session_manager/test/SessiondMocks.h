@@ -173,7 +173,7 @@ class MockSessionHandler final : public LocalSessionManagerHandler {
     EndSession,
     void(
       grpc::ServerContext *,
-      const SubscriberID *,
+      const LocalEndSessionRequest *,
       std::function<void(Status, LocalEndSessionResponse)>));
 };
 
