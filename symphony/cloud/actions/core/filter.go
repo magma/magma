@@ -4,6 +4,8 @@
 
 package core
 
+import "errors"
+
 // Filter is an interface for implementing a filter
 type Filter interface {
 	// A unique identifier contextual to trigger for the filter
@@ -14,6 +16,9 @@ type Filter interface {
 
 	// The operators supported by this filter
 	SupportedOperators() []Operator
+
+	// Returns true if the filter passes
+	Evaluate(ruleFilter *ActionsRuleFilter, inputParams map[string]interface{}) (bool, error)
 }
 
 // StringFieldFilter is a generic filter for filtering string fields
@@ -31,19 +36,30 @@ func NewStringFieldFilter(fieldName string, description string) Filter {
 }
 
 // FilterID implements the Filter interface
-func (sff *StringFieldFilter) FilterID() string {
-	return "stringfieldfilter_" + sff.fieldName
+func (f *StringFieldFilter) FilterID() string {
+	return "stringfieldfilter_" + f.fieldName
 }
 
 // Description implements the Filter interface
-func (sff *StringFieldFilter) Description() string {
-	return sff.description
+func (f *StringFieldFilter) Description() string {
+	return f.description
 }
 
 // SupportedOperators implements the Filter interface
-func (sff *StringFieldFilter) SupportedOperators() []Operator {
+func (f *StringFieldFilter) SupportedOperators() []Operator {
 	return []Operator{
 		OperatorIsString,
 		OperatorIsNotString,
 	}
+}
+
+// Evaluate implements the Filter interface
+func (f *StringFieldFilter) Evaluate(filter *ActionsRuleFilter, inputParams map[string]interface{}) (bool, error) {
+	if filter.OperatorID == OperatorIsString.OperatorID() {
+		return filter.Data == inputParams[f.fieldName], nil
+	}
+	if filter.OperatorID == OperatorIsNotString.OperatorID() {
+		return filter.Data != inputParams[f.fieldName], nil
+	}
+	return false, errors.New("invalid operatorID")
 }

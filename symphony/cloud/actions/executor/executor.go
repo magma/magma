@@ -39,7 +39,7 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 		}
 
 		for _, rule := range rules {
-			shouldExecute, err := trigger.Evaluate(rule)
+			shouldExecute, err := core.EvaluateTrigger(trigger, rule, inputPayload)
 			if err != nil {
 				exc.OnError(errors.Errorf("evaluating rule %s: %v", rule.ID, err))
 				continue
