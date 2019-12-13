@@ -75,6 +75,8 @@ const WorkOrdersPaneQuery = graphql`
   }
 `;
 
+// This is a QueryRenderer that uses the query in it.
+// eslint-disable-next-line relay/generated-flow-types
 class WorkOrdersPane extends React.Component<Props> {
   render() {
     const {classes, onNavigateToWorkOrder} = this.props;

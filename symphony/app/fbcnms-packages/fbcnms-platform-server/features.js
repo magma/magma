@@ -141,6 +141,18 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
+    id: 'import_exported_links',
+    title: 'Imported Exported Links',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
+    id: 'import_exported_ports',
+    title: 'Imported Exported Ports',
+    enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
+  },
+  {
     id: 'work_order_map',
     title: 'Work order map',
     enabledByDefault: false,

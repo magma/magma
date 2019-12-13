@@ -453,6 +453,7 @@ type ComplexityRoot struct {
 		CreateProject                            func(childComplexity int, input models.AddProjectInput) int
 		CreateProjectType                        func(childComplexity int, input models.AddProjectTypeInput) int
 		CreateSurvey                             func(childComplexity int, data models.SurveyCreateData) int
+		DeleteFloorPlan                          func(childComplexity int, id string) int
 		DeleteImage                              func(childComplexity int, entityType models.ImageEntity, entityID string, id string) int
 		DeleteProject                            func(childComplexity int, id string) int
 		DeleteProjectType                        func(childComplexity int, id string) int
@@ -1032,6 +1033,7 @@ type MutationResolver interface {
 	AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error)
 	RemoveCustomer(ctx context.Context, id string) (string, error)
 	AddFloorPlan(ctx context.Context, input models.AddFloorPlanInput) (*ent.FloorPlan, error)
+	DeleteFloorPlan(ctx context.Context, id string) (bool, error)
 	AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error)
 	RemoveActionsRule(ctx context.Context, id string) (bool, error)
@@ -2886,6 +2888,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateSurvey(childComplexity, args["data"].(models.SurveyCreateData)), true
+
+	case "Mutation.deleteFloorPlan":
+		if e.complexity.Mutation.DeleteFloorPlan == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteFloorPlan_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteFloorPlan(childComplexity, args["id"].(string)), true
 
 	case "Mutation.deleteImage":
 		if e.complexity.Mutation.DeleteImage == nil {
@@ -7225,6 +7239,7 @@ type Mutation {
   addCustomer(input: AddCustomerInput!): Customer
   removeCustomer(id: ID!): ID!
   addFloorPlan(input: AddFloorPlanInput!): FloorPlan
+  deleteFloorPlan(id: ID!): Boolean!
   addActionsRule(input: AddActionsRuleInput!): ActionsRule
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule
   removeActionsRule(id: ID!): Boolean!
@@ -7659,6 +7674,20 @@ func (ec *executionContext) field_Mutation_createSurvey_args(ctx context.Context
 		}
 	}
 	args["data"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteFloorPlan_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -19047,6 +19076,50 @@ func (ec *executionContext) _Mutation_addFloorPlan(ctx context.Context, field gr
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOFloorPlan2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteFloorPlan(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteFloorPlan_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteFloorPlan(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_addActionsRule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -35902,6 +35975,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "addFloorPlan":
 			out.Values[i] = ec._Mutation_addFloorPlan(ctx, field)
+		case "deleteFloorPlan":
+			out.Values[i] = ec._Mutation_deleteFloorPlan(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "addActionsRule":
 			out.Values[i] = ec._Mutation_addActionsRule(ctx, field)
 		case "editActionsRule":
@@ -40716,7 +40794,7 @@ func (ec *executionContext) marshalNProject2ᚕᚖgithubᚗcomᚋfacebookincubat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
+			ret[i] = ec.marshalOProject2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -43674,7 +43752,7 @@ func (ec *executionContext) marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNSurveyTemplateCategory2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

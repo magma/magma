@@ -86,7 +86,7 @@ void PCEFClient::create_session(
 }
 
 void PCEFClient::end_session(
-  const SubscriberID &request,
+  const LocalEndSessionRequest &request,
   std::function<void(Status, LocalEndSessionResponse)> callback)
 {
   PCEFClient &client = get_instance();

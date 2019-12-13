@@ -91,7 +91,7 @@ def add_location_type(
     return location_type
 
 
-def delete_location_type_with_locations(
+def delete_locations_by_location_type(
     client: GraphqlClient, location_type: LocationType
 ) -> None:
     locations = LocationTypeLocationsQuery.execute(
@@ -106,4 +106,10 @@ def delete_location_type_with_locations(
                 externalId=location.node.externalId,
             ),
         )
+
+
+def delete_location_type_with_locations(
+    client: GraphqlClient, location_type: LocationType
+) -> None:
+    delete_locations_by_location_type(client, location_type)
     RemoveLocationTypeMutation.execute(client, id=location_type.id)

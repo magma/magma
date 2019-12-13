@@ -84,7 +84,6 @@ export const getInitialPropertyFromType = (
     rangeFromValue: propType.rangeFromValue,
     rangeToValue: propType.rangeToValue,
     isInstanceProperty: propType.isInstanceProperty,
-    isMandatory: propType.isMandatory,
     equipmentValue: null,
   };
 };

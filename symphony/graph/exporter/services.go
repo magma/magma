@@ -99,7 +99,33 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 }
 
 func serviceToSlice(ctx context.Context, service *ent.Service, propertyTypes []string) ([]string, error) {
-	return []string{service.ID}, nil
+	st, err := service.QueryType().Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	serviceType := st.Name
+
+	var customerName, customerExternalID, externalID string
+	customer, err := service.QueryCustomer().Only(ctx)
+	if err == nil {
+		customerName = customer.Name
+		if customer.ExternalID != nil {
+			customerExternalID = *customer.ExternalID
+		}
+	}
+
+	if service.ExternalID != nil {
+		externalID = *service.ExternalID
+	}
+
+	properties, err := propertiesSlice(ctx, service, propertyTypes, models.PropertyEntityService)
+	if err != nil {
+		return nil, err
+	}
+
+	row := []string{service.ID, service.Name, serviceType, externalID, customerName, customerExternalID}
+	row = append(row, properties...)
+	return row, nil
 }
 
 func paramToServiceFilterInput(params string) ([]*models.ServiceFilterInput, error) {

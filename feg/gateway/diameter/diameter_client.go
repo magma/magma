@@ -10,17 +10,17 @@ package diameter
 
 import (
 	"fmt"
-	"math/rand"
-	"net"
-	"strconv"
-	"strings"
-	"time"
 	"github.com/fiorix/go-diameter/diam"
 	"github.com/fiorix/go-diameter/diam/avp"
 	"github.com/fiorix/go-diameter/diam/datatype"
 	"github.com/fiorix/go-diameter/diam/dict"
 	"github.com/fiorix/go-diameter/diam/sm"
 	"github.com/golang/glog"
+	"math/rand"
+	"net"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // KeyAndAnswer wraps the information to be returned to an AnswerHandler.

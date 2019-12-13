@@ -395,14 +395,14 @@ func TestSearchServicesByLocations(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
+		Name:                "Room 202",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq2.ID},
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
+		Name:                "Room 203",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID, eq2.ID},
 	})

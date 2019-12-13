@@ -18,8 +18,8 @@ type Registry struct {
 }
 
 // NewRegistry initializes a new registry
-func NewRegistry() Registry {
-	return Registry{
+func NewRegistry() *Registry {
+	return &Registry{
 		actions:  map[core.ActionID]core.Action{},
 		triggers: map[core.TriggerID]core.Trigger{},
 	}

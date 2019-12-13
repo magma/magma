@@ -7,13 +7,16 @@ package importer
 type ImportHeader struct {
 	line     []string
 	prnt3Idx int
+	entity   ImportEntity
 }
 
-func NewImportHeader(line []string) ImportHeader {
+// NewImportHeader creates a new header to be used for import
+func NewImportHeader(line []string, entity ImportEntity) ImportHeader {
 	prnt3Idx := findIndex(line, "Parent Equipment (3)")
 	return ImportHeader{
 		line:     line,
 		prnt3Idx: prnt3Idx,
+		entity:   entity,
 	}
 }
 
@@ -39,7 +42,12 @@ func (l ImportHeader) LocationTypesRangeArr() []string {
 }
 
 func (l ImportHeader) LocationsRangeIdx() (int, int) {
-	return 3, l.prnt3Idx
+	if l.entity == ImportEntityEquipment {
+		return 3, l.prnt3Idx
+	} else if l.entity == ImportEntityPort {
+		return 5, l.prnt3Idx
+	}
+	return -1, -1
 }
 
 func (l ImportHeader) PositionIdx() int {
@@ -47,5 +55,10 @@ func (l ImportHeader) PositionIdx() int {
 }
 
 func (l ImportHeader) PropertyStartIdx() int {
-	return l.PositionIdx() + 1
+	if l.entity == ImportEntityEquipment {
+		return l.PositionIdx() + 1
+	} else if l.entity == ImportEntityPort {
+		return l.PositionIdx() + 5
+	}
+	return -1
 }

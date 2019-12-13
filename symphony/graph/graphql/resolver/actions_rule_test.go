@@ -29,7 +29,7 @@ func actionsContext(t *testing.T) (*TestResolver, context.Context) {
 	action1.On("ID").Return(core.ActionID("action1"))
 
 	r, ctx := resolverctx(t)
-	registry := actions.MainRegistry()
+	registry := executor.NewRegistry()
 	registry.MustRegisterTrigger(trigger1)
 	registry.MustRegisterTrigger(trigger2)
 	registry.MustRegisterAction(action1)

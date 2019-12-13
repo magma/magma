@@ -103,6 +103,7 @@ type Props = {
   onSuggestionsClearRequested?: () => void,
   placeholder?: ?string,
   value?: ?Suggestion,
+  disabled?: boolean,
 };
 
 export type Suggestion = {
@@ -122,6 +123,7 @@ const Typeahead = (props: Props) => {
     required,
     value,
     margin,
+    disabled,
   } = props;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
@@ -200,6 +202,7 @@ const Typeahead = (props: Props) => {
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
+            disabled: disabled,
           }}
           highlightFirstSuggestion={true}
         />

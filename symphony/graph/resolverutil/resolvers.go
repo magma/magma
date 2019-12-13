@@ -41,6 +41,19 @@ func EquipmentTypes(ctx context.Context, client *ent.Client) (*models.EquipmentT
 	return &models.EquipmentTypeConnection{Edges: edges}, err
 }
 
+// ServiceTypes is a helper to bring service types
+func ServiceTypes(ctx context.Context, client *ent.Client) (*models.ServiceTypeConnection, error) {
+	sts, err := client.ServiceType.Query().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "querying service types")
+	}
+	edges := make([]*models.ServiceTypeEdge, len(sts))
+	for i, et := range sts {
+		edges[i] = &models.ServiceTypeEdge{Node: et}
+	}
+	return &models.ServiceTypeConnection{Edges: edges}, err
+}
+
 // EquipmentPortTypes is a helper to bring equipment port types
 func EquipmentPortTypes(ctx context.Context, client *ent.Client) (*models.EquipmentPortTypeConnection, error) {
 	ets, err := client.EquipmentPortType.Query().All(ctx)

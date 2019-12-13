@@ -259,7 +259,7 @@ const AddServiceDetails = (props: Props) => {
                 {service.properties.map((property, index) => (
                   <Grid key={property.id} item xs={6}>
                     <PropertyValueInput
-                      required={!!property.propertyType.isInstanceProperty}
+                      required={!!property.propertyType.isMandatory}
                       disabled={!property.propertyType.isInstanceProperty}
                       label={property.propertyType.name}
                       className={classes.propInput}
@@ -277,7 +277,11 @@ const AddServiceDetails = (props: Props) => {
         </div>
       </DialogContent>
       <DialogActions className={classes.dialogActions}>
-        <FormSaveCancelPanel onCancel={onBackClicked} onSave={saveService} />
+        <FormSaveCancelPanel
+          onCancel={onBackClicked}
+          onSave={saveService}
+          captions={{cancelButton: 'Back', saveButton: 'Create'}}
+        />
       </DialogActions>
     </FormValidationContextProvider>
   );

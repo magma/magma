@@ -50,7 +50,7 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 		equipmentTypeNameIdx := findIndex(firstLine, "Equipment Type")
 
 		m.populateIndexToLocationTypeMap(ctx, firstLine, false)
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine), true)
+		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, ImportEntityEquipment), true)
 		ic := getImportContext(ctx)
 		equipmentTypeIDToProperties := ic.equipmentTypeIDToProperties
 		equipmentTypeNameToID := ic.equipmentTypeNameToID
