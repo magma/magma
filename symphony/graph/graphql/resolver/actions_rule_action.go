@@ -25,7 +25,7 @@ func (actionsRuleActionResolver) Action(ctx context.Context, ar *core.ActionsRul
 
 	return &models.ActionsAction{
 		Description: action.Description(),
-		DataType:    "string", // TODO
+		DataType:    models.ActionsDataType(action.DataType()),
 	}, nil
 }
 

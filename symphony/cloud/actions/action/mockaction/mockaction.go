@@ -31,6 +31,12 @@ func (m *Action) Description() string {
 	return args.String(0)
 }
 
+// DataType implements core.Action.DataType()
+func (m *Action) DataType() string {
+	args := m.Called()
+	return args.String(0)
+}
+
 // Execute executes the action
 func (m *Action) Execute(ac core.ActionContext) error {
 	args := m.Called(ac)

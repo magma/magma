@@ -41,7 +41,7 @@ func (actionsTriggerResolver) SupportedActions(
 		actions = append(actions, &models.ActionsAction{
 			ActionID:    modelActionID,
 			Description: action.Description(),
-			DataType:    "string", // TODO
+			DataType:    models.ActionsDataType(action.DataType()),
 		})
 	}
 	return actions, nil

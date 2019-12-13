@@ -9,6 +9,7 @@ type Action interface {
 	ID() ActionID
 	Description() string
 	Execute(ActionContext) error
+	DataType() string
 }
 
 // ActionContext is a context passed to the an actions Execute method
