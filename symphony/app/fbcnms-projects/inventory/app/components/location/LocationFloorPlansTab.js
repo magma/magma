@@ -8,19 +8,30 @@
  * @format
  */
 
+import type {
+  LocationFloorPlansTab_location$data,
+  LocationFloorPlansTab_location$key,
+} from './__generated__/LocationFloorPlansTab_location.graphql';
+
 import AddFloorPlanMutation from '../../mutations/AddFloorPlanMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import Card from '@fbcnms/ui/components/design-system/Card/Card';
+import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import FileAttachment from '../FileAttachment';
 import FormGroup from '@material-ui/core/FormGroup';
 import React, {useRef, useState} from 'react';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
 import {FileUploadButton, uploadFile} from '../FileUpload';
+import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -32,6 +43,10 @@ const useStyles = makeStyles({
     display: 'inline-flex',
     margin: '5px 0',
     width: '100%',
+  },
+  table: {
+    minWidth: 70,
+    marginBottom: '12px',
   },
 });
 
@@ -51,7 +66,7 @@ type Scale = {
 };
 
 type Props = {
-  locationId: string,
+  location: LocationFloorPlansTab_location$key,
 };
 
 export default function LocationFloorPlansTab(props: Props) {
@@ -67,6 +82,22 @@ export default function LocationFloorPlansTab(props: Props) {
   const [file, setFile] = useState<?File>();
   useSnackbar(message, {variant: 'info'}, message != '', true);
 
+  const location: LocationFloorPlansTab_location$data = useFragment(
+    graphql`
+      fragment LocationFloorPlansTab_location on Location {
+        id
+        floorPlans {
+          id
+          name
+          image {
+            ...FileAttachment_file
+          }
+        }
+      }
+    `,
+    props.location,
+  );
+
   const uploadFloorPlan = (imgKey, scaleInMeters) => {
     const file2 = nullthrows(file);
     const {x, y, latitude, longitude} = nullthrows(referencePoint);
@@ -76,7 +107,7 @@ export default function LocationFloorPlansTab(props: Props) {
       {
         input: {
           name: '', // TODO expose name field
-          locationID: props.locationId,
+          locationID: location.id,
           image: {
             entityType: 'LOCATION',
             entityId: '', // we are not using this field here
@@ -101,7 +132,26 @@ export default function LocationFloorPlansTab(props: Props) {
         onCompleted: () => setMessage('Uploaded successfully'),
         onError: () => setMessage('Error uploading image'),
       },
+      store => {
+        const newNode = store.getRootField('addFloorPlan');
+        const entityProxy = store.get(location.id);
+        const floorPlans = entityProxy.getLinkedRecords('floorPlans') || [];
+        entityProxy.setLinkedRecords([...floorPlans, newNode], 'floorPlans');
+        setFile(null);
+      },
     );
+  };
+
+  const onFileChanged = event => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result == 'string') {
+        nullthrows(imageRef.current).src = reader.result;
+      }
+    };
+    reader.readAsDataURL(event.currentTarget.files[0]);
+    setFile(event.currentTarget.files[0]);
+    setMessage('Click a point on the image to provide a lat/lon reference');
   };
 
   return (
@@ -138,42 +188,51 @@ export default function LocationFloorPlansTab(props: Props) {
           onClose={() => setScaleDialogShown(false)}
         />
       )}
-      <img
-        ref={imageRef}
-        className={classes.img}
-        onClick={e => {
-          const box = e.target.getBoundingClientRect();
-          const x = e.pageX - box.x;
-          const y = e.pageY - box.y;
-          if (!referencePoint) {
-            setReferencePointDialogShown(true);
-            setReferencePoint({x, y});
-          } else {
-            if (scale && scale.x2 === undefined) {
-              setScale({...scale, x2: x, y2: y});
-              setScaleDialogShown(true);
+      {file ? (
+        <img
+          ref={imageRef}
+          className={classes.img}
+          onClick={e => {
+            const box = e.target.getBoundingClientRect();
+            const x = e.pageX - box.x;
+            const y = e.pageY - box.y;
+            if (!referencePoint) {
+              setReferencePointDialogShown(true);
+              setReferencePoint({x, y});
             } else {
-              setScale({x1: x, y1: y});
+              if (scale && scale.x2 === undefined) {
+                setScale({...scale, x2: x, y2: y});
+                setScaleDialogShown(true);
+              } else {
+                setScale({x1: x, y1: y});
+              }
             }
-          }
-        }}
-      />
-      <FileUploadButton
-        button={<Button>Upload</Button>}
-        onFileChanged={event => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            if (typeof reader.result == 'string') {
-              nullthrows(imageRef.current).src = reader.result;
-            }
-          };
-          reader.readAsDataURL(event.currentTarget.files[0]);
-          setFile(event.currentTarget.files[0]);
-          setMessage(
-            'Click a point on the image to provide a lat/lon reference',
-          );
-        }}
-      />
+          }}
+        />
+      ) : (
+        <Card>
+          <CardHeader
+            rightContent={
+              <FileUploadButton
+                button={<Button>Upload</Button>}
+                onFileChanged={onFileChanged}
+              />
+            }>
+            Floor Plans
+          </CardHeader>
+          <Table className={classes.table}>
+            <TableBody>
+              {location.floorPlans.filter(Boolean).map(floorPlan => (
+                <FileAttachment
+                  key={floorPlan.id}
+                  file={floorPlan.image}
+                  onDocumentDeleted={() => null}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      )}
     </>
   );
 }

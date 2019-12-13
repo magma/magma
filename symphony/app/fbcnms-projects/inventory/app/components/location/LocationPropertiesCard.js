@@ -158,6 +158,7 @@ const locationsPropertiesCardQuery = graphql`
         }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
+        ...LocationFloorPlansTab_location
       }
     }
   }
@@ -308,7 +309,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   <LocationCoverageMapTab location={location} />
                 ) : null}
                 {this.state.selectedTab === 'floor_plans' && (
-                  <LocationFloorPlansTab locationId={location.id} />
+                  <LocationFloorPlansTab location={location} />
                 )}
               </div>
             </div>

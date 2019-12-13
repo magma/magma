@@ -23,6 +23,9 @@ const mutation = graphql`
     addFloorPlan(input: $input) {
       id
       name
+      image {
+        ...FileAttachment_file
+      }
     }
   }
 `;
