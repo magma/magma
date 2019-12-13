@@ -370,8 +370,8 @@ int itti_send_msg_to_task(
 {
   thread_id_t destination_thread_id;
   task_id_t origin_task_id;
-  message_list_t* new;
-  uint32_t priority;
+  message_list_t *new;
+  uint32_t priority, rv;
   message_number_t message_number;
   uint32_t message_id;
 
@@ -444,8 +444,11 @@ int itti_send_msg_to_task(
       /*
        * Enqueue message in destination task queue
        */
-      lfds710_queue_bmm_enqueue(
+      rv = lfds710_queue_bmm_enqueue(
         &itti_desc.tasks[destination_task_id].message_queue, NULL, new);
+      AssertFatal(
+	rv,
+	"no queue place for task id %d\n", destination_task_id);
 
       /*
         * Only use event fd for tasks, subtasks will pool the queue
