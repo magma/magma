@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import grpc
 import logging
-from typing import List 
+from typing import Any, Dict, List, Union
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
     FlowMatch
@@ -35,7 +35,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
     def __init__(
         self,
-        mconfig: mconfigs_pb2.PolicyDB,
+        mconfig: Union[mconfigs_pb2.PolicyDB, Dict[str, Any]],
         subscriberdb_stub: SubscriberDBStub,
     ):
         self._mconfig = mconfig
@@ -44,10 +44,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
     @property
     def infinite_credit_charging_keys(self) -> List[int]:
+        if type(self._mconfig) is dict and\
+                'infinite_unmetered_charging_keys' not in self._mconfig:
+            return []
         return self._mconfig.infinite_unmetered_charging_keys
 
     @property
     def postpay_charging_keys(self) -> List[int]:
+        if type(self._mconfig) is dict and \
+                'infinite_metered_charging_keys' not in self._mconfig:
+            return []
         return self._mconfig.infinite_metered_charging_keys
 
     def add_to_server(self, server):
