@@ -1319,7 +1319,8 @@ int sgw_handle_delete_session_request(
 
       // TODO make async
       char* imsi = (char*) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
-      pcef_end_session(imsi);
+      char* apn = (char *) ctx_p->sgw_eps_bearer_context_information.pdn_connection.apn_in_use;
+      pcef_end_session(imsi, apn);
 
       itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;

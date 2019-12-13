@@ -23,6 +23,7 @@ func TestRouter(t *testing.T) {
 		viewer.NewFixedTenancy(&ent.Client{}),
 		logtest.NewTestLogger(t),
 		nil,
+		nil,
 	)
 	require.NoError(t, err)
 

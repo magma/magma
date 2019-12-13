@@ -5,32 +5,27 @@
 package models
 
 import (
-	"github.com/facebookincubator/symphony/cloud/actions"
+	"testing"
+
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 // TestMagmaTriggersExist ensures that all triggers defined in graphql
-// have an associated actions trigger
+// have an associated actions trigger, at the same index (string set
+// equivalence)
 func TestMagmaTriggersExist(t *testing.T) {
-	registry := actions.MainRegistry()
+	assert.Equal(t, len(core.AllTriggerIDs), len(AllTriggerID))
 
-	for _, graphqlTriggerID := range AllTriggerID {
-		actionsTriggerID := core.TriggerID(graphqlTriggerID)
-		trigger, err := registry.TriggerForID(actionsTriggerID)
-		assert.NoError(t, err)
-		assert.NotNil(t, trigger)
+	for i, triggerID := range AllTriggerID {
+		assert.Equal(t, string(triggerID), string(core.AllTriggerIDs[i]))
 	}
 }
 
 func TestMagmaActionsExist(t *testing.T) {
-	registry := actions.MainRegistry()
+	assert.Equal(t, len(core.AllActionIDs), len(AllActionID))
 
-	for _, graphqlActionID := range AllActionID {
-		actionsActionID := core.ActionID(graphqlActionID)
-		action, err := registry.ActionForID(actionsActionID)
-		assert.NoError(t, err)
-		assert.NotNil(t, action)
+	for i, actionID := range AllActionID {
+		assert.Equal(t, string(actionID), string(core.AllActionIDs[i]))
 	}
 }

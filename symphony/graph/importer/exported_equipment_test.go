@@ -148,17 +148,17 @@ func TestTitleLocationTypeInputValidation(t *testing.T) {
 	)
 	locTypeIDS := prepareBasicData(ctx, t, *r)
 
-	err = importer.inputValidations(ctx, NewImportHeader([]string{"aa"}, models.PropertyEntityEquipment))
+	err = importer.inputValidations(ctx, NewImportHeader([]string{"aa"}, ImportEntityEquipment))
 	require.Error(t, err)
-	err = importer.inputValidations(ctx, NewImportHeader(equipDataHeader[:], models.PropertyEntityEquipment))
+	err = importer.inputValidations(ctx, NewImportHeader(equipDataHeader[:], ImportEntityEquipment))
 	require.Error(t, err)
 
 	locationTypeNotInOrder := append(append(equipDataHeader[:], []string{locTypeNameS, locTypeNameM, locTypeNameL}...), parentsHeader[:]...)
-	err = importer.inputValidations(ctx, NewImportHeader(locationTypeNotInOrder, models.PropertyEntityEquipment))
+	err = importer.inputValidations(ctx, NewImportHeader(locationTypeNotInOrder, ImportEntityEquipment))
 	require.Error(t, err)
 
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
-	err = importer.inputValidations(ctx, NewImportHeader(locationTypeInOrder, models.PropertyEntityEquipment))
+	err = importer.inputValidations(ctx, NewImportHeader(locationTypeInOrder, ImportEntityEquipment))
 	require.NoError(t, err)
 	require.EqualValues(t, ic.indexToLocationTypeID, map[int]string{
 		3: locTypeIDS.locTypeIDL,
@@ -189,7 +189,7 @@ func TestTitleEquipmentTypeInputValidation(t *testing.T) {
 		propNameToIndex
 		equipmentTypeIDToProperties
 	*/
-	err = importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(titleWithProperties, models.PropertyEntityEquipment), true)
+	err = importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(titleWithProperties, ImportEntityEquipment), true)
 	require.NoError(t, err)
 	require.EqualValues(t, ic.equipmentTypeNameToID, map[string]string{
 		equipmentTypeName:  ids.equipTypeID,
@@ -233,7 +233,7 @@ func TestLocationHierarchy(t *testing.T) {
 		test3           = []string{"", "", equipmentTypeName, "", "locNameM", "", "", "", "", ""}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
-	title := NewImportHeader(locationTypeInOrder, models.PropertyEntityEquipment)
+	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 
@@ -279,7 +279,7 @@ func TestPosition(t *testing.T) {
 	)
 	_, _ = test2, test3
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
-	title := NewImportHeader(locationTypeInOrder, models.PropertyEntityEquipment)
+	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))
@@ -335,12 +335,12 @@ func TestValidatePropertiesForType(t *testing.T) {
 
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
 	finalFirstRow := append(locationTypeInOrder, propName1, propName2, propName3, propName4, propName5, propName6)
-	fl := NewImportHeader(locationTypeInOrder, models.PropertyEntityEquipment)
+	fl := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, fl)
 	require.NoError(t, err)
 
-	fl = NewImportHeader(finalFirstRow, models.PropertyEntityEquipment)
-	err = importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(finalFirstRow, models.PropertyEntityEquipment), true)
+	fl = NewImportHeader(finalFirstRow, ImportEntityEquipment)
+	err = importer.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(finalFirstRow, ImportEntityEquipment), true)
 	r1 := NewImportRecord(row1, fl)
 	require.NoError(t, err)
 	etyp1, err := q.EquipmentType(ctx, data.equipTypeID)
@@ -428,7 +428,7 @@ func TestValidateForExistingEquipment(t *testing.T) {
 		locCreate       = []string{"", "", equipmentTypeName, "locNameL", "locNameM", "", "", "", "", ""}
 	)
 	locationTypeInOrder := append(append(equipDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...)
-	title := NewImportHeader(locationTypeInOrder, models.PropertyEntityEquipment)
+	title := NewImportHeader(locationTypeInOrder, ImportEntityEquipment)
 	err = importer.inputValidations(ctx, title)
 	require.NoError(t, err)
 	loc, err := importer.verifyOrCreateLocationHierarchy(ctx, NewImportRecord(locCreate, title))

@@ -18,6 +18,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ImportEntity specifies an entity that can be imported
+type ImportEntity string
+
+const (
+	// ImportEntityEquipment specifies an equipment for import
+	ImportEntityEquipment ImportEntity = "EQUIPMENT"
+	// ImportEntityPort specifies a port for import
+	ImportEntityPort ImportEntity = "PORT"
+)
+
 // nolint: unparam
 func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int, locations []string, ignoreHierarchy bool) error {
 	currIndex := -1

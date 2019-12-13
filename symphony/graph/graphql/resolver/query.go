@@ -345,15 +345,7 @@ func (r queryResolver) ServiceType(ctx context.Context, id string) (*ent.Service
 func (r queryResolver) ServiceTypes(
 	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.ServiceTypeConnection, error) {
-	sts, err := r.ClientFrom(ctx).ServiceType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying service types")
-	}
-	edges := make([]*models.ServiceTypeEdge, len(sts))
-	for i, st := range sts {
-		edges[i] = &models.ServiceTypeEdge{Node: st}
-	}
-	return &models.ServiceTypeConnection{Edges: edges}, nil
+	return resolverutil.ServiceTypes(ctx, r.ClientFrom(ctx))
 }
 
 func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {

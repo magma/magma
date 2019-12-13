@@ -1,6 +1,6 @@
 ---
-id: export
-title: Exporting your data
+id: equipment-export
+title: Exporting your equipment data
 ---
 
 ### 1. Before Exporting your data

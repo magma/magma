@@ -70,14 +70,14 @@ const styles = _ => ({
   },
 });
 
-type Props = WithSnackbarProps &
+type Props = {
+  open: boolean,
+  onClose: () => void,
+  onSave: (serviceType: any) => void,
+  editingServiceType?: AddEditServiceTypeCard_editingServiceType,
+} & WithSnackbarProps &
   WithStyles<typeof styles> &
-  WithAlert & {
-    open: boolean,
-    onClose: () => void,
-    onSave: (serviceType: any) => void,
-    editingServiceType?: AddEditServiceTypeCard_editingServiceType,
-  };
+  WithAlert;
 
 type State = {
   error: string,
@@ -317,6 +317,7 @@ class AddEditServiceTypeCard extends React.Component<Props, State> {
         latitudeValue: p.latitudeValue,
         longitudeValue: p.longitudeValue,
         isEditable: p.isEditable,
+        isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
       }));
     return {

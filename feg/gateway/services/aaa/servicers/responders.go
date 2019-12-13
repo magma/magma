@@ -63,7 +63,11 @@ func (srv *accountingService) AbortSession(
 	}
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
-		session_manager.EndSession(makeSID(imsi))
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: makeSID(imsi),
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
 		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi())).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
@@ -125,7 +129,11 @@ func (srv *accountingService) TerminateRegistration(
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
 		sid := makeSID(imsi)
-		session_manager.EndSession(sid)
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: sid,
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
 		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id).Inc()
 	}
 

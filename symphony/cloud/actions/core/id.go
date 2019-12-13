@@ -21,3 +21,15 @@ const (
 	// MagmaAlertTriggerID is the id for magmaalert
 	MagmaAlertTriggerID TriggerID = "magma_alert"
 )
+
+var (
+	// AllTriggerIDs contains all core triggers
+	AllTriggerIDs = []TriggerID{
+		MagmaAlertTriggerID,
+	}
+
+	// AllActionIDs contains all core actions
+	AllActionIDs = []ActionID{
+		MagmaRebootNodeActionID,
+	}
+)

@@ -1902,6 +1902,14 @@ func (r mutationResolver) EditEquipment(
 	return e, nil
 }
 
+// TODO T58981969 Add isNewProp to all edit mutations
+func (r mutationResolver) isNewProp(directPropertiesTypes []string, propertyID *string, propertyTypeID string) bool {
+	if propertyID != nil {
+		return false
+	}
+	return !resolverutil.Find(directPropertiesTypes, propertyTypeID)
+}
+
 func (r mutationResolver) EditEquipmentPort(
 	ctx context.Context, input models.EditEquipmentPortInput,
 ) (*ent.EquipmentPort, error) {
@@ -1912,10 +1920,21 @@ func (r mutationResolver) EditEquipmentPort(
 	}
 
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := p.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range input.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := p.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}

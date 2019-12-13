@@ -200,6 +200,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
     if (core_sid != nullptr) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                  << " and APN " << request->apn()
                   << ", not creating session";
       enforcer_->get_event_base().runInEventBaseThread(
           [response_callback, core_sid]() {
@@ -219,14 +220,23 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       );
       return;
     }
-    MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                << ", terminating the old session";
-    EndSession(
-      context,
-      &request->sid(),
-      [&](grpc::Status status, LocalEndSessionResponse response) {
-        return;
-      });
+    if (enforcer_->is_apn_duplicate(imsi, request->apn())) {
+      MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                  << " and APN " << request->apn()
+                  << ", but different configuration."
+                  << " Ending the existing session";
+      LocalEndSessionRequest end_session_req;
+      end_session_req.mutable_sid()->CopyFrom(request->sid());
+      end_session_req.set_apn(request->apn());
+      EndSession(
+        context,
+        &end_session_req,
+        [&](grpc::Status status, LocalEndSessionResponse response) { return; });
+    } else {
+      MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                  << " but different APN " << request->apn()
+                  << ", will request a new session from PCRF/PCF";
+    }
   }
   send_create_session(
     copy_session_info2create_req(*request, sid),
@@ -337,7 +347,7 @@ static void report_termination(
  */
 void LocalSessionManagerHandlerImpl::EndSession(
   ServerContext* context,
-  const SubscriberID* request,
+  const LocalEndSessionRequest* request,
   std::function<void(Status, LocalEndSessionResponse)> response_callback)
 {
   auto &request_cpy = *request;
@@ -346,14 +356,16 @@ void LocalSessionManagerHandlerImpl::EndSession(
       try {
         auto reporter = reporter_;
         enforcer_->terminate_subscriber(
-          request_cpy.id(), [reporter](SessionTerminateRequest term_req) {
+          request_cpy.sid().id(),
+          request_cpy.apn(),
+          [reporter](SessionTerminateRequest term_req) {
             // report to cloud
             report_termination(*reporter, term_req);
           });
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                     << request_cpy.id();
+                     << request_cpy.sid().id();
         Status status(grpc::FAILED_PRECONDITION, "Session not found");
         response_callback(status, LocalEndSessionResponse());
       }

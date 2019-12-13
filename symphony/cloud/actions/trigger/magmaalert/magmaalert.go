@@ -45,9 +45,3 @@ func (*trigger) SupportedFilters() []core.Filter {
 		),
 	}
 }
-
-// Evaluate evaluates the user-supplied rule for if this rule
-// should be executed or not
-func (*trigger) Evaluate(rule core.Rule) (bool, error) {
-	return true, nil
-}

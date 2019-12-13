@@ -41,7 +41,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
-		importHeader := NewImportHeader(first, models.PropertyEntityEquipment)
+		importHeader := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
 			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
 			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)

@@ -51,7 +51,7 @@ class LocalSessionManagerHandler {
    */
   virtual void EndSession(
     ServerContext* context,
-    const SubscriberID* request,
+    const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) = 0;
 };
 
@@ -89,7 +89,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void EndSession(
     ServerContext* context,
-    const SubscriberID* request,
+    const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:

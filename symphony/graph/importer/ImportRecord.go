@@ -43,10 +43,10 @@ func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, pro
 	var pTyp *ent.PropertyType
 	var err error
 	switch l.entity() {
-	case models.PropertyEntityEquipment:
+	case ImportEntityEquipment:
 		typ := typ.(*ent.EquipmentType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
-	case models.PropertyEntityPort:
+	case ImportEntityPort:
 		typ := typ.(*ent.EquipmentPortType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
@@ -63,7 +63,7 @@ func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, pro
 	return getPropInput(*pTyp, l.line[idx])
 }
 
-func (l ImportRecord) entity() models.PropertyEntity {
+func (l ImportRecord) entity() ImportEntity {
 	return l.Header().entity
 }
 
@@ -80,14 +80,14 @@ func (l ImportRecord) TypeName() string {
 }
 
 func (l ImportRecord) PortEquipmentName() string {
-	if l.entity() == models.PropertyEntityPort {
+	if l.entity() == ImportEntityPort {
 		return l.line[3]
 	}
 	return ""
 }
 
 func (l ImportRecord) PortEquipmentTypeName() string {
-	if l.entity() == models.PropertyEntityPort {
+	if l.entity() == ImportEntityPort {
 		return l.line[4]
 	}
 	return ""
