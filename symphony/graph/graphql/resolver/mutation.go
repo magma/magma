@@ -2732,3 +2732,15 @@ func (r mutationResolver) RemoveActionsRule(ctx context.Context, id string) (boo
 	}
 	return true, nil
 }
+
+func (r mutationResolver) DeleteFloorPlan(ctx context.Context, id string) (bool, error) {
+	client := r.ClientFrom(ctx).FloorPlan
+	f, err := client.Get(ctx, id)
+	if err != nil {
+		return false, errors.Wrapf(err, "querying floorplan: id=%q", id)
+	}
+	if err := client.DeleteOne(f).Exec(ctx); err != nil {
+		return false, errors.Wrapf(err, "deleting floorplan: id=%q", id)
+	}
+	return true, nil
+}
