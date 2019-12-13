@@ -380,10 +380,11 @@ void *mme_app_thread(void *args)
       } break;
 
       case MME_APP_DOWNLINK_DATA_CNF: {
+        bstring nas_msg = NULL;
         nas_proc_dl_transfer_cnf(
           MME_APP_DL_DATA_CNF(received_message_p).ue_id,
           MME_APP_DL_DATA_CNF(received_message_p).err_code,
-          &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
+          &nas_msg);
       } break;
 
       case MME_APP_DOWNLINK_DATA_REJ: {
