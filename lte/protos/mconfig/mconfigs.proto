@@ -115,6 +115,8 @@ message SessionD {
 //------------------------------------------------------------------------------
 message PolicyDB {
     orc8r.LogLevel log_level = 1;
+    repeated uint32 infinite_unmetered_charging_keys = 2;
+    repeated uint32 infinite_metered_charging_keys = 3;
 }
 
 //------------------------------------------------------------------------------
