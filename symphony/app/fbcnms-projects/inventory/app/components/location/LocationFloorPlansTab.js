@@ -17,17 +17,20 @@ import AddFloorPlanMutation from '../../mutations/AddFloorPlanMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
+import DeleteFloorPlanMutation from '../../mutations/DeleteFloorPlanMutation';
 import FileAttachment from '../FileAttachment';
 import FloorPlanImage from './FloorPlanImage';
 import React, {useState} from 'react';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
+import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {DocumentAPIUrls} from '../../common/DocumentAPI';
 import {FileUploadButton} from '../FileUpload';
 import {graphql, useFragment} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles({
   table: {
@@ -39,6 +42,8 @@ const useStyles = makeStyles({
 type Props = {
   location: LocationFloorPlansTab_location$key,
 };
+
+const FLOOR_PLANS_KEY = 'floorPlans';
 
 export default function LocationFloorPlansTab(props: Props) {
   const classes = useStyles();
@@ -102,8 +107,8 @@ export default function LocationFloorPlansTab(props: Props) {
       store => {
         const newNode = store.getRootField('addFloorPlan');
         const entityProxy = store.get(location.id);
-        const floorPlans = entityProxy.getLinkedRecords('floorPlans') || [];
-        entityProxy.setLinkedRecords([...floorPlans, newNode], 'floorPlans');
+        const floorPlans = entityProxy.getLinkedRecords(FLOOR_PLANS_KEY) || [];
+        entityProxy.setLinkedRecords([...floorPlans, newNode], FLOOR_PLANS_KEY);
         setFile(null);
       },
     );
@@ -130,7 +135,27 @@ export default function LocationFloorPlansTab(props: Props) {
             <FileAttachment
               key={floorPlan.id}
               file={floorPlan.image}
-              onDocumentDeleted={() => null}
+              onDocumentDeleted={() =>
+                DeleteFloorPlanMutation(
+                  {id: floorPlan.id},
+                  {
+                    onCompleted: () => {
+                      enqueueSnackbar('Floor Plan deleted successfully', {
+                        variant: 'success',
+                      });
+                    },
+                  },
+                  store => {
+                    const proxy = store.get(location.id);
+                    const records = proxy
+                      .getLinkedRecords(FLOOR_PLANS_KEY)
+                      .filter(f => f && f.id !== floorPlan.id);
+                    proxy.setLinkedRecords(records, FLOOR_PLANS_KEY);
+                    store.delete(floorPlan.id);
+                    axios.delete(DocumentAPIUrls.delete_url(floorPlan.id));
+                  },
+                )
+              }
             />
           ))}
         </TableBody>
