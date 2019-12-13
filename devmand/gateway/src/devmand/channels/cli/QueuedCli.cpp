@@ -18,20 +18,23 @@ using namespace folly;
 shared_ptr<QueuedCli> QueuedCli::make(
     string id,
     shared_ptr<Cli> cli,
-    shared_ptr<Executor> parentExecutor) {
-  return std::make_shared<QueuedCli>(id, cli, parentExecutor);
+    shared_ptr<Executor> parentExecutor,
+    const long capacity) {
+  return std::make_shared<QueuedCli>(id, cli, parentExecutor, capacity);
 }
 
 QueuedCli::QueuedCli(
     string _id,
     shared_ptr<Cli> _cli,
-    shared_ptr<Executor> _parentExecutor) {
+    shared_ptr<Executor> _parentExecutor,
+    const long capacity) {
   queuedParameters = std::make_shared<QueuedParameters>(
       _id,
       _cli,
       _parentExecutor,
       SerialExecutor::create(
-          Executor::getKeepAliveToken(_parentExecutor.get())));
+          Executor::getKeepAliveToken(_parentExecutor.get())),
+      capacity);
 }
 
 QueuedCli::~QueuedCli() {
@@ -40,11 +43,11 @@ QueuedCli::~QueuedCli() {
                << "~QCli started";
   queuedParameters->shutdown = true;
   MLOG(MDEBUG) << "[" << id << "] "
-               << "~QCli: dequeuing " << queuedParameters->queue.size()
+               << "~QCli: dequeuing " << queuedParameters->queue->size()
                << " items";
   {
     QueueEntry queueEntry;
-    while (queuedParameters->queue.try_dequeue(queueEntry)) {
+    while (queuedParameters->queue->try_dequeue(queueEntry)) {
       MLOG(MDEBUG) << "[" << id << "] (" << queueEntry.command << ") "
                    << "~QCli: fulfilling promise with exception";
       queueEntry.promise->setException(runtime_error("QCli: Shutting down"));
@@ -149,7 +152,13 @@ SemiFuture<string> QueuedCli::executeSomething(
   MLOG(MDEBUG) << "[" << queuedParameters->id << "] (" << queueEntry.command
                << ") " << prefix << " adding to queue ('" << cmd << "')";
 
-  queuedParameters->queue.enqueue(move(queueEntry));
+    bool success = queuedParameters->queue->try_enqueue(move(queueEntry));
+
+    if (!success) {
+        promise->setException(runtime_error("QCli: queue is full"));
+        return promise->getFuture().semi();
+    }
+
   if (!queuedParameters->isProcessing) {
     triggerDequeue(queuedParameters);
   }
@@ -169,13 +178,13 @@ void QueuedCli::triggerDequeue(shared_ptr<QueuedParameters> queuedParameters) {
   via(queuedParameters->serialExecutorKeepAlive, [params = queuedParameters]() {
     MLOG(MDEBUG) << "[" << params->id << "] "
                  << "QCli.isProcessing:" << params->isProcessing
-                 << ", queue size:" << params->queue.size();
+                 << ", queue size:" << params->queue->size();
     // do nothing if still waiting for remote device to respond
     if (params->isProcessing) {
       return;
     }
     QueueEntry queueEntry;
-    if (!params->queue.try_dequeue(queueEntry)) {
+    if (!params->queue->try_dequeue(queueEntry)) {
       return;
     }
 
@@ -237,11 +246,14 @@ QueuedCli::QueuedParameters::QueuedParameters(
     const string& _id,
     const shared_ptr<Cli>& _cli,
     const shared_ptr<Executor>& _parentExecutor,
-    const Executor::KeepAlive<SerialExecutor>& _serialExecutorKeepAlive)
+    const Executor::KeepAlive<SerialExecutor>& _serialExecutorKeepAlive,
+    const long capacity)
     : id(_id),
       cli(_cli),
       parentExecutor(_parentExecutor),
-      serialExecutorKeepAlive(_serialExecutorKeepAlive) {}
+      serialExecutorKeepAlive(_serialExecutorKeepAlive),
+      queue(std::make_unique<CliQueue>(capacity))
+      {}
 } // namespace cli
 } // namespace channels
 } // namespace devmand

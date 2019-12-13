@@ -12,13 +12,13 @@
 #include <folly/Executor.h>
 #include <folly/executors/SerialExecutor.h>
 #include <folly/futures/Future.h>
+#include <folly/concurrency/DynamicBoundedQueue.h>
 
 namespace devmand::channels::cli {
 
 using namespace std;
 using namespace folly;
 using boost::recursive_mutex;
-
 /*
  * TODO: throw exception when queue is full
  */
@@ -31,6 +31,8 @@ class QueuedCli : public Cli {
     string loggingPrefix;
   };
 
+  using CliQueue = DynamicBoundedQueue<QueueEntry, false, true, false>;
+
   struct QueuedParameters {
     string id;
     shared_ptr<Cli> cli;
@@ -41,11 +43,10 @@ class QueuedCli : public Cli {
         serialExecutorKeepAlive; // maintain consumer thread
 
     /**
-     * Unbounded multi producer single consumer queue where consumer is not
+     * Bounded multi producer single consumer queue where consumer is not
      * blocked on dequeue.
      */
-    UnboundedQueue<QueueEntry, false, true, false>
-        queue; // TODO: investigate priority queue for keepalive commands
+    std::unique_ptr<CliQueue> queue; // TODO: investigate priority queue for keepalive commands
 
     atomic<bool> isProcessing = ATOMIC_VAR_INIT(false);
 
@@ -57,7 +58,8 @@ class QueuedCli : public Cli {
         const string& id,
         const shared_ptr<Cli>& cli,
         const shared_ptr<Executor>& parentExecutor,
-        const Executor::KeepAlive<SerialExecutor>& serialExecutorKeepAlive);
+        const Executor::KeepAlive<SerialExecutor>& serialExecutorKeepAlive,
+        const long capacity);
   };
   shared_ptr<QueuedParameters> queuedParameters;
 
@@ -80,10 +82,11 @@ class QueuedCli : public Cli {
   QueuedCli(
       string id,
       shared_ptr<Cli> cli,
-      shared_ptr<Executor> parentExecutor);
+      shared_ptr<Executor> parentExecutor,
+      const long capacity);
 
   static std::shared_ptr<QueuedCli>
-  make(string id, shared_ptr<Cli> cli, shared_ptr<Executor> parentExecutor);
+  make(string id, shared_ptr<Cli> cli, shared_ptr<Executor> parentExecutor, const long capacity = 100000);
 
   ~QueuedCli() override;
 

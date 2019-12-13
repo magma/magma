@@ -73,6 +73,25 @@ TEST_F(QueuedCliTest, queuedCli) {
   }
 }
 
+
+    TEST_F(QueuedCliTest, queueFullTest) {
+        unsigned int parallelThreads = 1;
+        shared_ptr<CPUThreadPoolExecutor> queuedCliParallelExecutor =
+                make_shared<CPUThreadPoolExecutor>(parallelThreads);
+        WriteCommand cmd = WriteCommand::create("a\nb\nc", true);
+        const shared_ptr<QueuedCli>& cli =
+                QueuedCli::make("testFullCapacity", make_shared<EchoCli>(), executor, 1); //capacity at 1
+
+        vector<Future<string>> queuedFutures;
+
+            queuedFutures.emplace_back(folly::via(
+                    queuedCliParallelExecutor.get(),
+                    [cli, cmd]() { return cli->executeWrite(cmd); }));
+
+        EXPECT_THROW(collect(queuedFutures.begin(), queuedFutures.end()).get(), runtime_error);
+    }
+
+
 TEST_F(QueuedCliTest, queueOrderingTest) {
   unsigned int iterations = 200;
   unsigned int parallelThreads = 165;
