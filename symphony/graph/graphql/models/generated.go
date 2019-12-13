@@ -16,9 +16,9 @@ import (
 )
 
 type ActionsAction struct {
-	ActionID    ActionID `json:"actionID"`
-	Description string   `json:"description"`
-	DataType    string   `json:"dataType"`
+	ActionID    ActionID        `json:"actionID"`
+	Description string          `json:"description"`
+	DataType    ActionsDataType `json:"dataType"`
 }
 
 type ActionsFilter struct {
@@ -28,9 +28,9 @@ type ActionsFilter struct {
 }
 
 type ActionsOperator struct {
-	OperatorID  string `json:"operatorID"`
-	Description string `json:"description"`
-	DataInput   string `json:"dataInput"`
+	OperatorID  string          `json:"operatorID"`
+	Description string          `json:"description"`
+	DataType    ActionsDataType `json:"dataType"`
 }
 
 type ActionsRuleActionInput struct {
@@ -791,6 +791,47 @@ func (e *ActionID) UnmarshalGQL(v interface{}) error {
 }
 
 func (e ActionID) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ActionsDataType string
+
+const (
+	ActionsDataTypeString      ActionsDataType = "string"
+	ActionsDataTypeArrayString ActionsDataType = "arrayString"
+)
+
+var AllActionsDataType = []ActionsDataType{
+	ActionsDataTypeString,
+	ActionsDataTypeArrayString,
+}
+
+func (e ActionsDataType) IsValid() bool {
+	switch e {
+	case ActionsDataTypeString, ActionsDataTypeArrayString:
+		return true
+	}
+	return false
+}
+
+func (e ActionsDataType) String() string {
+	return string(e)
+}
+
+func (e *ActionsDataType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ActionsDataType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ActionsDataType", str)
+	}
+	return nil
+}
+
+func (e ActionsDataType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

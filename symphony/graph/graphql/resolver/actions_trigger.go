@@ -79,6 +79,6 @@ func newSupportedOperator(operator core.Operator) *models.ActionsOperator {
 	return &models.ActionsOperator{
 		OperatorID:  operator.OperatorID(),
 		Description: operator.Description(),
-		DataInput:   operator.DataInput(),
+		DataType:    models.ActionsDataType(operator.DataType()),
 	}
 }

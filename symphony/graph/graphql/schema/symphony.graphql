@@ -1433,6 +1433,12 @@ enum TriggerID {
   magma_alert
 }
 
+# Data type for the input to be
+enum ActionsDataType {
+  string
+  arrayString
+}
+
 # ActionsTrigger defines a trigger itself, along with what actions and filters
 # can be used
 type ActionsTrigger {
@@ -1449,8 +1455,8 @@ type ActionsOperator {
   operatorID: String!
   # Name displayed to the user. Ex: "is", "is not"
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataInput: String!
+  # Data type that's expected for this operator Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsAction defines an action that can be executed
@@ -1458,8 +1464,8 @@ type ActionsOperator {
 type ActionsAction {
   actionID: ActionID!
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataType: String!
+  # Data type expected for this action. Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsFilter is a definition for how you can filter a trigger.

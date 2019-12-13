@@ -102,7 +102,7 @@ type ComplexityRoot struct {
 	}
 
 	ActionsOperator struct {
-		DataInput   func(childComplexity int) int
+		DataType    func(childComplexity int) int
 		Description func(childComplexity int) int
 		OperatorID  func(childComplexity int) int
 	}
@@ -1231,12 +1231,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ActionsFilter.SupportedOperators(childComplexity), true
 
-	case "ActionsOperator.dataInput":
-		if e.complexity.ActionsOperator.DataInput == nil {
+	case "ActionsOperator.dataType":
+		if e.complexity.ActionsOperator.DataType == nil {
 			break
 		}
 
-		return e.complexity.ActionsOperator.DataInput(childComplexity), true
+		return e.complexity.ActionsOperator.DataType(childComplexity), true
 
 	case "ActionsOperator.description":
 		if e.complexity.ActionsOperator.Description == nil {
@@ -6845,6 +6845,12 @@ enum TriggerID {
   magma_alert
 }
 
+# Data type for the input to be
+enum ActionsDataType {
+  string
+  arrayString
+}
+
 # ActionsTrigger defines a trigger itself, along with what actions and filters
 # can be used
 type ActionsTrigger {
@@ -6861,8 +6867,8 @@ type ActionsOperator {
   operatorID: String!
   # Name displayed to the user. Ex: "is", "is not"
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataInput: String!
+  # Data type that's expected for this operator Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsAction defines an action that can be executed
@@ -6870,8 +6876,8 @@ type ActionsOperator {
 type ActionsAction {
   actionID: ActionID!
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataType: String!
+  # Data type expected for this action. Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsFilter is a definition for how you can filter a trigger.
@@ -9408,10 +9414,10 @@ func (ec *executionContext) _ActionsAction_dataType(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(models.ActionsDataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
@@ -9599,7 +9605,7 @@ func (ec *executionContext) _ActionsOperator_description(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsOperator_dataType(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9618,7 +9624,7 @@ func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DataInput, nil
+		return obj.DataType, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9630,10 +9636,10 @@ func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(models.ActionsDataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_id(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -33408,8 +33414,8 @@ func (ec *executionContext) _ActionsOperator(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "dataInput":
-			out.Values[i] = ec._ActionsOperator_dataInput(ctx, field, obj)
+		case "dataType":
+			out.Values[i] = ec._ActionsOperator_dataType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -38932,6 +38938,15 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._ActionsAction(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx context.Context, v interface{}) (models.ActionsDataType, error) {
+	var res models.ActionsDataType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx context.Context, sel ast.SelectionSet, v models.ActionsDataType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {
