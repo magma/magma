@@ -166,8 +166,10 @@ static inline items_group_index_t items_group_get_free_item(
   items_group_position_t put;
   items_group_position_t get;
   items_group_position_t free_items;
-  items_group_index_t index = ITEMS_GROUP_INDEX_INVALID;
+  items_group_index_t index = ITEMS_GROUP_INDEX_INVALID, tmp;
 
+  /* FIXME(pboldin): we have a potential infinite loop here */
+retry:
   /*
    * Get current put position
    */
@@ -185,9 +187,18 @@ static inline items_group_index_t items_group_get_free_item(
     __sync_fetch_and_sub(&items_group->positions.ind.get, 1);
   } else {
     /*
-     * Get index at current get position
+     * Atomically get current index and swap it with ITEMS_GROUP_INDEX_INVALID
      */
     index = items_group->indexes[get];
+    tmp = __sync_val_compare_and_swap(&items_group->indexes[get], index, ITEMS_GROUP_INDEX_INVALID);
+
+    /*
+     * We failed to acquire indexes slot
+     */
+    if (tmp != index) {
+      index = ITEMS_GROUP_INDEX_INVALID;
+      goto retry;
+    }
 
     if (index <= ITEMS_GROUP_INDEX_INVALID) {
       /*
@@ -211,11 +222,6 @@ static inline items_group_index_t items_group_get_free_item(
       while (items_group->minimum > free_items) {
         items_group->minimum = free_items;
       }
-
-      /*
-       * Clear index at current get position to indicate that item is free
-       */
-      items_group->indexes[get] = ITEMS_GROUP_INDEX_INVALID;
     }
   }
 
@@ -229,7 +235,10 @@ static inline int items_group_put_free_item(
 {
   items_group_position_t put_raw;
   items_group_position_t put;
+  items_group_index_t tmp;
 
+  /* FIXME(pboldin): we have a potential infinite loop here */
+retry:
   /*
    * Get current put position and increase it
    */
@@ -244,16 +253,21 @@ static inline int items_group_put_free_item(
       &items_group->positions.ind.put, items_group->number_plus_one);
   }
 
+  /*
+   * Atomically save freed item index at current put position
+   */
+  tmp = __sync_val_compare_and_swap(
+    &items_group->indexes[put],
+    ITEMS_GROUP_INDEX_INVALID,
+    index);
+
   AssertError(
-    items_group->indexes[put] <= ITEMS_GROUP_INDEX_INVALID,
-    return (EXIT_FAILURE),
+    tmp == ITEMS_GROUP_INDEX_INVALID,
+    goto retry,
     "Index at current put position (%d) is not marked as free (%d)!\n",
     put,
     items_group->number_plus_one);
-  /*
-   * Save freed item index at current put position
-   */
-  items_group->indexes[put] = index;
+
   return (EXIT_SUCCESS);
 }
 
