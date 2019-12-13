@@ -150,7 +150,15 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             # Set flow match for ll packets
             # Don't set the app_name field
             FlowDescription(  # uplink flow
-                match=FlowMatch(),
+                match=FlowMatch(
+                    direction=FlowMatch.Direction.Value("UPLINK"),
+                ),
+                action=FlowDescription.Action.Value("PERMIT"),
+            ),
+            FlowDescription(  # downlink flow
+                match=FlowMatch(
+                    direction=FlowMatch.Direction.Value("DOWNLINK"),
+                ),
                 action=FlowDescription.Action.Value("PERMIT"),
             ),
         ]
