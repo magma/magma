@@ -12,6 +12,8 @@
 
 # virtualenv bin and build dirs
 PYTHON_VERSION=3.5
+PYTHON_BUILD ?= ${HOME}/build/python
+PIP_CACHE_HOME ?= ${HOME}/.pip-cache
 BIN := $(PYTHON_BUILD)/bin
 SRC := $(MAGMA_ROOT)
 SITE_PACKAGES_DIR := $(PYTHON_BUILD)/lib/python$(PYTHON_VERSION)/site-packages
@@ -19,11 +21,13 @@ SITE_PACKAGES_DIR := $(PYTHON_BUILD)/lib/python$(PYTHON_VERSION)/site-packages
 # Command to pip install into the virtualenv
 VIRT_ENV_PIP_INSTALL := $(BIN)/pip3 install -q -U --cache-dir $(PIP_CACHE_HOME)
 
-install_virtualenv:
+$(PYTHON_BUILD)/bin/python$(PYTHON_VERSION):
 	@echo "Initializing virtualenv with python version $(PYTHON_VERSION)"
 	virtualenv --system-site-packages --python=/usr/bin/python$(PYTHON_VERSION) $(PYTHON_BUILD)
 	. $(PYTHON_BUILD)/bin/activate;
 	$(VIRT_ENV_PIP_INSTALL) "pip>=19.1.1"
+
+install_virtualenv: $(PYTHON_BUILD)/bin/python$(PYTHON_VERSION)
 
 setupenv: $(PYTHON_BUILD)/sysdeps $(SITE_PACKAGES_DIR)/setuptools
 
