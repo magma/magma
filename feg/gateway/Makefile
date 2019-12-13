@@ -1,7 +1,7 @@
 .PHONY: all build download fmt test clean run install build_only gen precommit
 
 ifndef MAGMA_ROOT
-MAGMA_ROOT = /home/$USER/magma
+MAGMA_ROOT = /home/${USER}/magma
 endif
 export MAGMA_ROOT
 
