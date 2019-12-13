@@ -1870,6 +1870,10 @@ static bool s1ap_send_enb_deregistered_ind(
     arg->current_ue_index =
         (uint8_t)(arg->handled_ues % S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE);
 
+    arg->handled_ues++;
+    arg->current_ue_index =
+      (uint8_t)(arg->handled_ues % S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE);
+
     // max ues reached
     if (arg->current_ue_index == 0 && arg->handled_ues > 0) {
       S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
