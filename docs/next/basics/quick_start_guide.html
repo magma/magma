@@ -107,8 +107,8 @@ significantly.</p>
 cloud for the first time. We'll also use this time to register the local
 client certificate you'll need to access the local API gateway for your
 development stack.</p>
-<p>Starting Orchestrator is as simple as:</p>
-<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ docker-compose up -d
+<p>To start Orchestrator (without metrics) is as simple as:</p>
+<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ ./run.sh 
 
 Creating orc8r_postgres_1 ... <span class="hljs-keyword">done</span>
 Creating orc8r_test_1     ... <span class="hljs-keyword">done</span>
@@ -118,6 +118,23 @@ Creating fluentd          ... <span class="hljs-keyword">done</span>
 Creating orc8r_kibana_1   ... <span class="hljs-keyword">done</span>
 Creating orc8r_proxy_1      ... <span class="hljs-keyword">done</span>
 Creating orc8r_controller_1 ... <span class="hljs-keyword">done</span>
+</code></pre>
+<p>If you want to run everything, including metrics, run:</p>
+<pre><code class="hljs css language-bash">HOST [magma/orc8r/cloud/docker]$ ./run.sh -all
+
+Creating orc8r_alertmanager_1     ... <span class="hljs-keyword">done</span>
+Creating orc8r_maria_1            ... <span class="hljs-keyword">done</span>
+Creating elasticsearch            ... <span class="hljs-keyword">done</span>
+Creating orc8r_postgres_1         ... <span class="hljs-keyword">done</span>
+Creating orc8r_grafana_1          ... <span class="hljs-keyword">done</span>
+Creating orc8r_config-manager_1   ... <span class="hljs-keyword">done</span>
+Creating orc8r_test_1             ... <span class="hljs-keyword">done</span>
+Creating orc8r_prometheus-cache_1 ... <span class="hljs-keyword">done</span>
+Creating orc8r_prometheus_1       ... <span class="hljs-keyword">done</span>
+Creating orc8r_kibana_1           ... <span class="hljs-keyword">done</span>
+Creating fluentd                  ... <span class="hljs-keyword">done</span>
+Creating orc8r_proxy_1            ... <span class="hljs-keyword">done</span>
+Creating orc8r_controller_1       ... <span class="hljs-keyword">done</span>
 </code></pre>
 <p>The Orchestrator application containers will bootstrap certificates on startup
 which are cached for future runs. Watch the directory <code>magma/.cache/test_certs</code>
