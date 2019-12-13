@@ -199,12 +199,12 @@ void mme_ue_context_update_ue_sgs_neaf(
 #define IS_PLMN_EQUAL(pLMN1, pLMN2, iSpLMNeQUAL)                               \
   do {                                                                         \
     if (                                                                       \
-      (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) &&                                \
       (pLMN1.mcc_digit1 == pLMN2.mcc_digit1) &&                                \
-      (pLMN1.mnc_digit3 == pLMN2.mnc_digit3) &&                                \
+      (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) &&                                \
       (pLMN1.mcc_digit3 == pLMN2.mcc_digit3) &&                                \
+      (pLMN1.mnc_digit1 == pLMN2.mnc_digit1) &&                                \
       (pLMN1.mnc_digit2 == pLMN2.mnc_digit2) &&                                \
-      (pLMN1.mnc_digit1 == pLMN2.mnc_digit1)) {                                \
+      (pLMN1.mnc_digit3 == pLMN2.mnc_digit3)) {                                \
       iSpLMNeQUAL = true;                                                      \
     } else {                                                                   \
       iSpLMNeQUAL = false;                                                     \

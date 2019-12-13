@@ -448,15 +448,13 @@ int mme_api_new_guti(
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_context = NULL;
   imsi64_t imsi64 = imsi_to_imsi64(imsi);
-  uint8_t nb_gummei;
-  uint8_t p_cnt;
   bool is_plmn_equal = false;
 
   ue_context =
     mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
 
   if (ue_context) {
-    for (nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
+    for (uint8_t nb_gummei = 0; nb_gummei < _emm_data.conf.gummei.num_gummei;
          nb_gummei++) {
       /* comparing UE serving cell plmn with the gummei list in
        * mme configuration. */
@@ -562,7 +560,7 @@ int mme_api_new_guti(
         }
         break;
       case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-        for (p_cnt = 0;
+        for (uint8_t p_cnt = 0;
              p_cnt <
              (_emm_data.conf.tai_list.partial_tai_list[i].numberofelements + 1);
              p_cnt++) {
