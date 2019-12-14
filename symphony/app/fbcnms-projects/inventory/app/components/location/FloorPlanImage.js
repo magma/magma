@@ -14,13 +14,13 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
-import {uploadFile} from '../FileUpload';
 import {makeStyles} from '@material-ui/styles';
+import {uploadFile} from '../FileUpload';
 
 const useStyles = makeStyles({
   img: {
