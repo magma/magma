@@ -16,6 +16,7 @@ import type {
   DeleteFloorPlanMutationVariables,
 } from './__generated__/DeleteFloorPlanMutation.graphql';
 import type {MutationCallbacks} from './MutationCallbacks.js';
+import type {StoreUpdater} from '../common/RelayEnvironment';
 
 const mutation = graphql`
   mutation DeleteFloorPlanMutation($id: ID!) {
@@ -26,7 +27,7 @@ const mutation = graphql`
 export default (
   variables: DeleteFloorPlanMutationVariables,
   callbacks?: MutationCallbacks<DeleteFloorPlanMutationResponse>,
-  updater?: (store: any) => void,
+  updater?: StoreUpdater,
 ) => {
   const {onCompleted, onError} = callbacks ? callbacks : {};
   commitMutation<DeleteFloorPlanMutation>(RelayEnvironment, {
