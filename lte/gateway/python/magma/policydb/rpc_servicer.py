@@ -9,7 +9,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import grpc
 import logging
-from typing import List 
+from typing import List
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
     FlowMatch
