@@ -3,8 +3,8 @@ id: py-inventory
 title: Python Inventory Tool
 ---
 
-Pyinventory is a python package that allows for querying and modifying the FBC platform inventory
-using graphql queries.
+Pyinventory is a python package that allows for querying and modifying the Symphony Inventory
+data using graphql queries.
 Graphql is a query language developed by Facebook (https://graphql.org/)
 
 ## Prerequisites
