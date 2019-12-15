@@ -144,6 +144,6 @@ func TestRemoveFloorPlan(t *testing.T) {
 	require.NoError(t, err)
 	assert.Empty(t, floorPlansFromLocation)
 
-	res, err = mr.DeleteFloorPlan(ctx, floorPlan.ID)
+	_, err = mr.DeleteFloorPlan(ctx, floorPlan.ID)
 	require.Error(t, err)
 }
