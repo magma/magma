@@ -149,7 +149,6 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
           rc = (*evt->u.common.common_proc->emm_proc.base_proc.failure_notif)(
             emm_ctx);
         }
-
       }
 
       break;
