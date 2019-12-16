@@ -52,7 +52,9 @@ func TestEmptyDataExport(t *testing.T) {
 			nameTitle,
 			"Equipment Type",
 			"Parent Equipment (3)",
+			"Position (3)",
 			"Parent Equipment (2)",
+			"Position (2)",
 			"Parent Equipment",
 			"Equipment Position",
 		}, ln)
@@ -96,7 +98,9 @@ func TestExport(t *testing.T) {
 				locTypeNameM,
 				locTypeNameS,
 				"Parent Equipment (3)",
+				"Position (3)",
 				"Parent Equipment (2)",
+				"Position (2)",
 				"Parent Equipment",
 				"Equipment Position",
 				propNameStr,
@@ -117,6 +121,8 @@ func TestExport(t *testing.T) {
 				"",
 				"",
 				"",
+				"",
+				"",
 			})
 		case ln[1] == currEquip:
 			require.EqualValues(t, ln[1:], []string{
@@ -125,6 +131,8 @@ func TestExport(t *testing.T) {
 				grandParentLocation,
 				parentLocation,
 				childLocation,
+				"",
+				"",
 				"",
 				"",
 				parentEquip,
@@ -194,6 +202,8 @@ func TestExportWithFilters(t *testing.T) {
 				grandParentLocation,
 				parentLocation,
 				childLocation,
+				"",
+				"",
 				"",
 				"",
 				"",

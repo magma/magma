@@ -97,8 +97,16 @@ func (l ImportRecord) ThirdParent() string {
 	return l.line[l.title.ThirdParentIdx()]
 }
 
+func (l ImportRecord) ThirdPosition() string {
+	return l.line[l.title.ThirdPositionIdx()]
+}
+
 func (l ImportRecord) SecondParent() string {
 	return l.line[l.title.SecondParentIdx()]
+}
+
+func (l ImportRecord) SecondPosition() string {
+	return l.line[l.title.SecondPositionIdx()]
 }
 
 func (l ImportRecord) DirectParent() string {

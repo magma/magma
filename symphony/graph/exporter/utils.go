@@ -82,6 +82,21 @@ func parentHierarchy(ctx context.Context, equipment ent.Equipment) []string {
 	return parents
 }
 
+func parentHierarchyWithAllPositions(ctx context.Context, equipment ent.Equipment) []string {
+	var parents = make([]string, 2*maxEquipmentParents)
+	pos, _ := equipment.QueryParentPosition().Only(ctx)
+	for i := (2 * maxEquipmentParents) - 1; i >= 1; i -= 2 {
+		if pos == nil {
+			break
+		}
+		parentEquipment := pos.QueryParent().OnlyX(ctx)
+		parents[i] = pos.QueryDefinition().OnlyX(ctx).Name
+		parents[i-1] = parentEquipment.Name
+		pos, _ = parentEquipment.QueryParentPosition().Only(ctx)
+	}
+	return parents
+}
+
 func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string) ([]string, error) {
 	var parents = make([]string, len(orderedLocTypes))
 	firstEquipmentWithLocation := equipment

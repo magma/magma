@@ -37,7 +37,7 @@ func importExportedData(ctx context.Context, t *testing.T, organization string, 
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
-	file, err := os.Open("testdata/exportedData1.csv")
+	file, err := os.Open("testdata/exportedEquipmentData.csv")
 	require.Nil(t, err)
 
 	fileWriter, err := bw.CreateFormFile("file_0", file.Name())

@@ -22,7 +22,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const minimalEquipmentLineLength = 7
+const minimalEquipmentLineLength = 9
 
 // processExportedEquipment imports equipment csv generated from the export feature
 // nolint: staticcheck
@@ -121,7 +121,12 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					http.Error(w, fmt.Sprintf("creating equipment position (row #%d). %q", numRows, err), http.StatusBadRequest)
 					return
 				}
-				equip, created := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, parentLoc, pos, propInputs)
+				equip, created, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, parentLoc, pos, propInputs)
+				if err != nil {
+					log.Warn("creating/fetching equipment", zap.Error(err), zap.Int("line_number", numRows), importLine.ZapField())
+					http.Error(w, fmt.Sprintf("creating/fetching equipment (row #%d). %q", numRows, err), http.StatusBadRequest)
+					return
+				}
 				if created {
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating equipment", numRows), zap.String("name", equip.Name), zap.String("id", equip.ID))
@@ -204,8 +209,8 @@ func (m *importer) inputValidations(ctx context.Context, importHeader ImportHead
 	if !equal(firstLine[:locStart], []string{"Equipment ID", "Equipment Name", "Equipment Type"}) {
 		return errors.New("first line misses sequence; 'Equipment ID', 'Equipment Name' or 'Equipment Type'")
 	}
-	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}) {
-		return errors.New("first line misses sequence: 'Parent Equipment(3)', 'Parent Equipment (2)', 'Parent Equipment' or 'Equipment Position'")
+	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}) {
+		return errors.New("first line misses sequence: 'Parent Equipment(3)', 'Position (3)', 'Parent Equipment (2)', 'Position (2)', 'Parent Equipment' or 'Equipment Position'")
 	}
 	err := m.validateAllLocationTypeExist(ctx, 3, importHeader.LocationTypesRangeArr(), false)
 	return err
