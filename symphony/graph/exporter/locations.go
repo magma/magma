@@ -28,6 +28,7 @@ type locationsFilterInput struct {
 	IDSet         []string                  `json:"idSet"`
 	PropertyValue models.PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                      `json:"maxDepth"`
+	BoolValue     *bool                     `json:"boolValue"`
 }
 
 type locationsRower struct {
@@ -169,6 +170,7 @@ func paramToLocationFilterInput(params string) ([]*models.LocationFilterInput, e
 			PropertyValue: &propVal,
 			IDSet:         f.IDSet,
 			MaxDepth:      &maxDepth,
+			BoolValue:     f.BoolValue,
 		}
 		ret = append(ret, &inp)
 	}

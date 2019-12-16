@@ -6,12 +6,16 @@ package exporter
 
 import (
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/graphql/models"
+
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
@@ -117,7 +121,7 @@ func TestLocationsExport(t *testing.T) {
 				"",
 				"",
 			})
-		case ln[4] == "":
+		case ln[3] == childLocation:
 			require.EqualValues(t, ln[1:], []string{
 				grandParentLocation,
 				parentLocation,
@@ -133,4 +137,138 @@ func TestLocationsExport(t *testing.T) {
 			require.Fail(t, "line does not match")
 		}
 	}
+}
+
+func TestExportLocationWithFilters(t *testing.T) {
+	r, err := newExporterTestResolver(t)
+	log := r.exporter.log
+	require.NoError(t, err)
+	ctx := viewertest.NewContext(r.client)
+	e := &exporter{log, locationsRower{log}}
+	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+
+	prepareData(ctx, t, *r)
+
+	req, err := http.NewRequest("GET", server.URL, nil)
+	require.NoError(t, err)
+	req.Header.Set(tenantHeader, "fb-test")
+
+	f, err := json.Marshal([]locationsFilterInput{
+		{
+			Name:      "LOCATION_INST_HAS_EQUIPMENT",
+			Operator:  "IS",
+			BoolValue: pointer.ToBool(false),
+		},
+	})
+	require.NoError(t, err)
+	q := req.URL.Query()
+	q.Add("filters", string(f))
+	req.URL.RawQuery = q.Encode()
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer res.Body.Close()
+
+	reader := csv.NewReader(res.Body)
+	linesCount := 0
+	for {
+		ln, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		linesCount++
+		require.NoError(t, err, "error reading row")
+		switch ln[4] {
+		case externalIDL:
+			require.EqualValues(t, ln[1:], []string{
+				grandParentLocation,
+				"",
+				"",
+				externalIDL,
+				fmt.Sprintf("%f", lat),
+				fmt.Sprintf("%f", long),
+			})
+		case externalIDM:
+			require.EqualValues(t, ln[1:], []string{
+				grandParentLocation,
+				parentLocation,
+				"",
+				externalIDM,
+				fmt.Sprintf("%f", lat),
+				fmt.Sprintf("%f", long),
+			})
+		default:
+			if ln[1] == locTypeNameL {
+				continue
+			} else {
+				require.Fail(t, "unknown line %s", ln)
+			}
+		}
+	}
+	require.Equal(t, 3, linesCount)
+}
+
+func TestExportLocationWithPropertyFilters(t *testing.T) {
+	r, err := newExporterTestResolver(t)
+	log := r.exporter.log
+	require.NoError(t, err)
+	ctx := viewertest.NewContext(r.client)
+	e := &exporter{log, locationsRower{log}}
+	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+
+	prepareData(ctx, t, *r)
+
+	req, err := http.NewRequest("GET", server.URL, nil)
+	require.NoError(t, err)
+	req.Header.Set(tenantHeader, "fb-test")
+
+	f, err := json.Marshal([]locationsFilterInput{
+
+		{
+			Name:     "PROPERTY",
+			Operator: "IS",
+			PropertyValue: models.PropertyTypeInput{
+				Name:        propNameStr,
+				Type:        "string",
+				StringValue: pointer.ToString("override"),
+			},
+		},
+	})
+	require.NoError(t, err)
+	q := req.URL.Query()
+	q.Add("filters", string(f))
+	req.URL.RawQuery = q.Encode()
+
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer res.Body.Close()
+
+	reader := csv.NewReader(res.Body)
+	linesCount := 0
+	for {
+		ln, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		linesCount++
+		require.NoError(t, err, "error reading row")
+		if ln[3] == childLocation {
+			require.EqualValues(t, ln[1:], []string{
+				grandParentLocation,
+				parentLocation,
+				childLocation,
+				"",
+				fmt.Sprintf("%f", 0.0),
+				fmt.Sprintf("%f", 0.0),
+				"override",
+				"true",
+				"1988-03-29",
+			})
+		}
+	}
+	require.Equal(t, 2, linesCount)
 }
