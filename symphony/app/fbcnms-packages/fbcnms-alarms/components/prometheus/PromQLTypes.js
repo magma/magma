@@ -56,6 +56,7 @@ const AGGREGATION_OPERATORS_MAP = {
   stddev: 'stddev',
   stdvar: 'stdvar',
   count: 'count',
+  count_values: 'count_values',
   quantile: 'quantile',
   bottomk: 'bottomk',
   topk: 'topk',
@@ -124,3 +125,10 @@ const CLAUSE_OPS_MAP = {
   ignoring: 'ignoring',
 };
 export const CLAUSE_OPS: Array<string> = Object.keys(CLAUSE_OPS_MAP);
+
+export type GroupOperator = $Keys<typeof GROUP_OPS>;
+const GROUP_OPS_MAP = {
+  group_left: 'group_left',
+  group_right: 'group_right',
+};
+export const GROUP_OPS: Array<string> = Object.keys(GROUP_OPS_MAP);

@@ -119,7 +119,7 @@ const testCases = [
     'label list (e.g. by (label1, label2) clause)',
     `by (label1, label2)`,
     [
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'word'},
       {value: '(', type: 'lParen'},
       {value: 'label1', type: 'word'},
       {value: ',', type: 'comma'},
@@ -142,6 +142,44 @@ const testCases = [
     ]),
   ],
   [
+    'aggregation by',
+    `sum(metric) by (label)`,
+    [
+      {value: 'sum', type: 'aggOp'},
+      {value: '(', type: 'lParen'},
+      {value: 'metric', type: 'word'},
+      {value: ')', type: 'rParen'},
+      {value: 'by', type: 'word'},
+      {value: '(', type: 'lParen'},
+      {value: 'label', type: 'word'},
+      {value: ')', type: 'rParen'},
+    ],
+    new PromQL.AggregationOperation(
+      'sum',
+      [new PromQL.InstantSelector('metric')],
+      new PromQL.Clause('by', ['label']),
+    ),
+  ],
+  [
+    'aggregation by (clause preceding',
+    `sum by (label) (metric)`,
+    [
+      {value: 'sum', type: 'aggOp'},
+      {value: 'by', type: 'word'},
+      {value: '(', type: 'lParen'},
+      {value: 'label', type: 'word'},
+      {value: ')', type: 'rParen'},
+      {value: '(', type: 'lParen'},
+      {value: 'metric', type: 'word'},
+      {value: ')', type: 'rParen'},
+    ],
+    new PromQL.AggregationOperation(
+      'sum',
+      [new PromQL.InstantSelector('metric')],
+      new PromQL.Clause('by', ['label']),
+    ),
+  ],
+  [
     'simple function',
     `rate(1)`,
     [
@@ -151,6 +189,22 @@ const testCases = [
       {value: ')', type: 'rParen'},
     ],
     new PromQL.Function('rate', [new PromQL.Scalar(1)]),
+  ],
+  [
+    'function with string parameter',
+    `count_values("version", build_version)`,
+    [
+      {value: 'count_values', type: 'aggOp'},
+      {value: '(', type: 'lParen'},
+      {value: 'version', type: 'string'},
+      {value: ',', type: 'comma'},
+      {value: 'build_version', type: 'word'},
+      {value: ')', type: 'rParen'},
+    ],
+    new PromQL.AggregationOperation('count_values', [
+      new PromQL.String('version'),
+      new PromQL.InstantSelector('build_version'),
+    ]),
   ],
   [
     'floating point scalar',
@@ -254,7 +308,7 @@ const testCases = [
       {value: ']', type: 'rBracket'},
       {value: ')', type: 'rParen'},
       {value: ')', type: 'rParen'},
-      {value: 'by', type: 'clauseOp'},
+      {value: 'by', type: 'word'},
       {value: '(', type: 'lParen'},
       {value: 'region', type: 'word'},
       {value: ',', type: 'comma'},
@@ -280,6 +334,57 @@ const testCases = [
         new PromQL.Clause('by', ['region', 'code']),
       ),
       new PromQL.Scalar(5),
+      '>',
+    ),
+  ],
+  [
+    'instant selector offset',
+    `http_requests_total offset 5m`,
+    [
+      {value: 'http_requests_total', type: 'word'},
+      {value: 'offset', type: 'word'},
+      {value: new PromQL.Range(5, 'm'), type: 'range'},
+    ],
+    new PromQL.InstantSelector(
+      'http_requests_total',
+      new PromQL.Labels(),
+      new PromQL.Range(5, 'm'),
+    ),
+  ],
+  [
+    'binary operation with match clause',
+    `metric / on (label1,label2) metric2`,
+    [
+      {value: 'metric', type: 'word'},
+      {value: '/', type: 'binOp'},
+      {value: 'on', type: 'word'},
+      {value: '(', type: 'lParen'},
+      {value: 'label1', type: 'word'},
+      {value: ',', type: 'comma'},
+      {value: 'label2', type: 'word'},
+      {value: ')', type: 'rParen'},
+      {value: 'metric2', type: 'word'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('metric'),
+      new PromQL.InstantSelector('metric2'),
+      '/',
+      new PromQL.VectorMatchClause(
+        new PromQL.Clause('on', ['label1', 'label2']),
+      ),
+    ),
+  ],
+  [
+    'metric that starts with clause operator name',
+    `bytes_received > 0`,
+    [
+      {value: 'bytes_received', type: 'word'},
+      {value: '>', type: 'binOp'},
+      {value: 0, type: 'scalar'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('bytes_received'),
+      new PromQL.Scalar(0),
       '>',
     ),
   ],
