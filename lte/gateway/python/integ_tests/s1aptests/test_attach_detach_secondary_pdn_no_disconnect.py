@@ -51,8 +51,6 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
-        act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
-
         print(
             "************************* Sending Activate default EPS bearer "
             "context accept for UE id ",

@@ -47,7 +47,7 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
             ue_ids.append(ue_id)
 
         self._s1ap_wrapper._ue_idx = 0
-        for i in range(num_ues):
+        for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             # Send PDN Connectivity Request
             apn = "ims"
