@@ -9,6 +9,6 @@ packages:
   - "openvswitch-common_2.8.1-1_amd64.deb"
   - "openvswitch-switch_2.8.1-1_amd64.deb"
 
-private_package: "deb http://packages.magma.etagecom.io stretch-beta main"
+private_package: "deb http://packages.magma.etagecom.io stretch-stable main"
 source_name: "packages_magma_etagecom_io"
 apt_key: "http://packages.magma.etagecom.io/pubkey.gpg"

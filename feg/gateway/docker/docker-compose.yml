@@ -71,6 +71,8 @@ services:
     <<: *goservice
     environment:
       USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
+      GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
+      GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
     container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 
@@ -105,7 +107,7 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - ${CERTS_VOLUME}:/var/opt/magma/certs
       - ${CONFIGS_VOLUME}:/var/opt/magma/configs
-      - ${SNOWFLAKE_PATH}:/etc/snowflake 
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/var/opt/magma/docker
     environment:

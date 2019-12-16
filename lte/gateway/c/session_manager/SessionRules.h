@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include "CreditKey.h"
 #include "RuleStore.h"
 #include "ServiceAction.h"
 
@@ -22,7 +23,7 @@ class SessionRules {
 
   bool get_charging_key_for_rule_id(
     const std::string &rule_id,
-    uint32_t *charging_key);
+    CreditKey *charging_key);
 
   bool get_monitoring_key_for_rule_id(
     const std::string &rule_id,
@@ -36,7 +37,7 @@ class SessionRules {
 
   bool deactivate_static_rule(const std::string &rule_id);
 
-  void add_rules_to_action(ServiceAction &action, uint32_t charging_key);
+  void add_rules_to_action(ServiceAction &action, const CreditKey &charging_key);
   void add_rules_to_action(ServiceAction &action, std::string monitoring_key);
 
   std::vector<std::string> &get_static_rule_ids();

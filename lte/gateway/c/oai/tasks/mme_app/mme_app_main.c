@@ -110,19 +110,9 @@ void *mme_app_thread(void *args)
           &MME_APP_CREATE_DEDICATED_BEARER_REJ(received_message_p));
       } break;
 
-      case NAS_CONNECTION_ESTABLISHMENT_CNF: {
-        mme_app_handle_conn_est_cnf(mme_app_desc_p,
-          &NAS_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
-      } break;
-
       case MME_APP_DELETE_DEDICATED_BEARER_RSP: {
         mme_app_handle_delete_dedicated_bearer_rsp(mme_app_desc_p,
           &MME_APP_DELETE_DEDICATED_BEARER_RSP(received_message_p));
-      } break;
-
-      case NAS_DETACH_REQ: {
-        mme_app_handle_detach_req(mme_app_desc_p,
-            &received_message_p->ittiMsg.nas_detach_req);
       } break;
 
       case S6A_CANCEL_LOCATION_REQ: {
@@ -150,33 +140,6 @@ void *mme_app_thread(void *args)
       case NAS_ERAB_REL_CMD: {
         mme_app_handle_erab_rel_cmd(mme_app_desc_p,
             &NAS_ERAB_REL_CMD(received_message_p));
-      } break;
-
-
-      case NAS_PDN_CONFIG_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP,
-          "Received PDN CONFIG REQ from NAS_MME for ue_id = (%u)\n",
-          received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        struct ue_mm_context_s *ue_context_p = NULL;
-        ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-            &mme_app_desc_p->mme_ue_contexts,
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        if (ue_context_p) {
-          mme_app_send_s6a_update_location_req(ue_context_p);
-          unlock_ue_contexts(ue_context_p);
-        } else {
-          OAILOG_ERROR(
-            TASK_MME_APP, "UE context NULL for ue_id = (%u)\n",
-            received_message_p->ittiMsg.nas_pdn_config_req.ue_id);
-        }
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_REQ: {
-        OAILOG_INFO(
-          TASK_MME_APP, "Received PDN CONNECTIVITY REQ from NAS_MME\n");
-        mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_pdn_connectivity_req);
       } break;
 
       case S11_CREATE_BEARER_REQUEST: {
@@ -259,12 +222,6 @@ void *mme_app_thread(void *args)
       case S1AP_INITIAL_UE_MESSAGE: {
         mme_app_handle_initial_ue_message(mme_app_desc_p,
           &S1AP_INITIAL_UE_MESSAGE(received_message_p));
-      } break;
-
-      case NAS_SGS_DETACH_REQ: {
-        OAILOG_INFO(LOG_MME_APP, "Recieved SGS detach request from NAS\n");
-        mme_app_handle_sgs_detach_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_sgs_detach_req);
       } break;
 
       case S6A_UPDATE_LOCATION_ANS: {
@@ -467,12 +424,6 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.sgsap_location_update_rej);
       } break;
 
-      case NAS_TAU_COMPLETE: {
-        /*Received TAU Complete message from NAS task*/
-        mme_app_handle_nas_tau_complete(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_tau_complete);
-      } break;
-
       case SGSAP_ALERT_REQUEST: {
         /*Received SGSAP Alert Request message from SGS task*/
         mme_app_handle_sgsap_alert_request(mme_app_desc_p,
@@ -528,6 +479,11 @@ void *mme_app_thread(void *args)
       case MME_APP_DELETE_DEDICATED_BEARER_REJ: {
         mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_p,
           &MME_APP_DELETE_DEDICATED_BEARER_REJ(received_message_p));
+      } break;
+
+      case MME_APP_PDN_DISCONNECT_REQ: {
+        mme_app_handle_pdn_disconnect_req(mme_app_desc_p,
+          &MME_APP_PDN_DISCONNECT_REQ(received_message_p));
       } break;
 
       case S1AP_PATH_SWITCH_REQUEST: {

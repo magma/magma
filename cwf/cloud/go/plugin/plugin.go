@@ -11,13 +11,12 @@ package plugin
 import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin/handlers"
-	cwfmodels "magma/cwf/cloud/go/plugin/models"
-	cwfhandlers "magma/cwf/cloud/go/services/carrier_wifi/obsidian/handlers"
+	"magma/cwf/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	srvconfig "magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -42,9 +41,9 @@ func (*CwfOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &cwfmodels.NetworkCarrierWifiConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &cwfmodels.GatewayCwfConfigs{}),
-		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &cwfmodels.CwfSubscriberDirectoryRecord{}),
+		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &models.NetworkCarrierWifiConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &models.GatewayCwfConfigs{}),
+		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &models.CwfSubscriberDirectoryRecord{}),
 	}
 }
 
@@ -54,13 +53,12 @@ func (*CwfOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder
 	}
 }
 
-func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
+func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{}
 }
 
-func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
+func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		cwfhandlers.GetObsidianHandlers(),
 		handlers.GetHandlers(),
 	)
 }

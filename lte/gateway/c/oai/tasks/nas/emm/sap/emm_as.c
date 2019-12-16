@@ -925,8 +925,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
           "UE.ue_id=" MME_UE_S1AP_ID_FMT " \n",
           msg->ue_id);
         //Clean up S1AP and MME UE Context
-        nas_itti_detach_req(msg->ue_id);
         unlock_ue_contexts(ue_mm_context);
+        mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
 
@@ -1426,30 +1426,22 @@ static int _emm_as_send(const emm_as_t *msg)
         } else {
           OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "EMMAS-SAP - Sending nas_itti_establish_cnf to S1AP UE ID 0x%x sea "
-            "0x%04X sia 0x%04X\n",
+            "EMMAS-SAP - Sending establish_cnf to MME-APP module for UE ID: "
+            MME_UE_S1AP_ID_FMT " selected eea "
+            "0x%04X selected eia 0x%04X\n",
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.selected_encryption_algorithm,
             as_msg.msg.nas_establish_rsp.selected_integrity_algorithm);
           /*
            * Handle success case
            */
-          nas_itti_establish_cnf(
-            as_msg.msg.nas_establish_rsp.ue_id,
-            as_msg.msg.nas_establish_rsp.err_code,
-            as_msg.msg.nas_establish_rsp.nas_msg,
-            as_msg.msg.nas_establish_rsp.selected_encryption_algorithm,
-            as_msg.msg.nas_establish_rsp.selected_integrity_algorithm,
-            as_msg.msg.nas_establish_rsp.csfb_response,
-            as_msg.msg.nas_establish_rsp.presencemask,
-            as_msg.msg.nas_establish_rsp.service_type);
+          mme_app_handle_conn_est_cnf(&as_msg.msg.nas_establish_rsp);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } break;
 
       case AS_NAS_RELEASE_REQ:
-        nas_itti_detach_req(as_msg.msg.nas_release_req
-                              .ue_id); //, as_msg.msg.nas_release_req.cause);
+        mme_app_handle_detach_req(as_msg.msg.nas_release_req.ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         break;
 
@@ -2312,6 +2304,11 @@ static int _emm_as_establish_cnf(
    */
   int bytes =
     _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+
+  // Free any allocated data
+  if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
+   bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
+  }
 
   if (bytes > 0) {
     as_msg->err_code = AS_SUCCESS;

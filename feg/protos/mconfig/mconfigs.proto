@@ -84,8 +84,10 @@ message SwxConfig {
     uint32 minimum_request_threshold = 6;
     // Flag to ensure that we send SAR with REGISTER following successful MAA
     bool register_on_auth = 7;
-    // // use returned maa.AAAServerName to derive Origin Realm from
+    // use returned maa.AAAServerName to derive Origin Realm from
     bool derive_unregister_realm = 8;
+    // PLMN IDs served by HLR
+    repeated string hlr_plmn_ids = 9;
 }
 
 message EapAkaConfig {

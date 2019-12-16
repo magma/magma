@@ -43,6 +43,11 @@ message PolicyRule{
   }
   TrackingType tracking_type = 10;
   uint32 hard_timeout = 11; // optional
+  ServiceIdentifier service_identifier = 12; // optional
+}
+
+message ServiceIdentifier {
+  uint32 value = 1;
 }
 
 message FlowDescription {

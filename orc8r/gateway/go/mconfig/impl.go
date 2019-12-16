@@ -38,9 +38,9 @@ func init() {
 	go func() {
 		for {
 			<-refreshTicker.C
-			err := RefreshConfigs()
+			cfgPath, err := RefreshConfigs()
 			if err == nil {
-				log.Print("Mconfig refresh succeeded")
+				log.Print("Mconfig refresh succeeded from: ", cfgPath)
 			} else {
 				log.Printf("Mconfig refresh error: %v", err)
 			}
@@ -52,14 +52,16 @@ func init() {
 // and tries to reload mamaged configs from the file
 // refreshConfigs is thread safe and can be safely called while current configs are in use by
 // other threads/routines
-func RefreshConfigs() error {
-	dynamicConfigPath := configFilePath()
-	err := RefreshConfigsFrom(dynamicConfigPath)
+func RefreshConfigs() (string, error) {
+	// get dynamic config path
+	configPath := configFilePath()
+	err := RefreshConfigsFrom(configPath)
 	if err != nil {
-		log.Printf("Cannot load configs from %s: %v", dynamicConfigPath, err)
-		err = RefreshConfigsFrom(defaultConfigFilePath())
+		log.Printf("Cannot load configs from %s: %v", configPath, err)
+		configPath = defaultConfigFilePath()
+		err = RefreshConfigsFrom(configPath)
 	}
-	return err
+	return configPath, err
 }
 
 // RefreshConfigsFrom checks if Managed Config File mcpath has changed

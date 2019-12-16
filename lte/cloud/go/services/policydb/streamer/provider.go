@@ -153,14 +153,10 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 
 	bnProtos := make([]*lteProtos.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		bnConfig := bn.Config.(*lteModels.BaseNameRecord)
-		ruleNames := make([]string, 0, len(bn.Associations))
-		for _, assoc := range bn.Associations {
-			ruleNames = append(ruleNames, assoc.Key)
-		}
+		baseNameRecord := (&lteModels.BaseNameRecord{}).FromEntity(bn)
 		bnProto := &lteProtos.ChargingRuleBaseNameRecord{
-			Name:         string(bnConfig.Name),
-			RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: ruleNames},
+			Name:         string(baseNameRecord.Name),
+			RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: baseNameRecord.RuleNames},
 		}
 		bnProtos = append(bnProtos, bnProto)
 	}
@@ -170,7 +166,8 @@ func (provider *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.A
 func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(bns))
 	for _, bn := range bns {
-		marshaledBN, err := proto.Marshal(bn)
+		// We only send the rule names set here
+		marshaledBN, err := proto.Marshal(bn.RuleNamesSet)
 		if err != nil {
 			return nil, err
 		}

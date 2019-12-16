@@ -142,7 +142,7 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     struct apn_configuration_s *itti_msg_apn =
       &(itti_msg->subscription_data.apn_config_profile.apn_configuration[idx]);
 
-    itti_msg_apn->context_identifier = msg.default_context_id();
+    itti_msg_apn->context_identifier = apn.context_id();
     itti_msg_apn->pdn_type = (pdn_type_t) apn.pdn();
     auto service_sel = apn.service_selection();
     if (service_sel.length() > APN_MAX_LENGTH) {

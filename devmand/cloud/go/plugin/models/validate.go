@@ -32,11 +32,19 @@ func (m *SymphonyDevice) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
+func (m *MutableSymphonyDevice) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *SymphonyDeviceName) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
 func (m *SymphonyDeviceConfig) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *SymphonyDeviceAgent) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 

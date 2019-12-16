@@ -71,7 +71,7 @@ void pcef_create_session(
  * PCEF and returns true if successful.
  * This may turn asynchronous in the future if it's too long
  */
-bool pcef_end_session(char *imsi);
+bool pcef_end_session(char *imsi, char *apn);
 
 #ifdef __cplusplus
 }

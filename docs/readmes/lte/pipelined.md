@@ -42,7 +42,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
         |                   |
         V                   V
     -------------------------------
-    |            Table 0          |
+    |       Table 0 (SPECIAL)     |
     |         GTP APP (OAI)       |
     |- sets IMSI metadata         |
     |- sets tunnel id on downlink |
@@ -51,14 +51,14 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   |
                   V
     -------------------------------
-    |          Table 1            |
+    |      Table 1 (PHYSICAL)     |
     |           inout             |
     |- sets direction bit         |
     -------------------------------
                   |
                   V
     -------------------------------
-    |          Table 2            |
+    |      Table 2 (PHYSICAL)     |
     |            ARP              |
     |- Forwards non-ARP traffic   |
     |- Responds to ARP requests w/| ---> Arp traffic - LOCAL
@@ -67,7 +67,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   |
                   V
     -------------------------------
-    |          Table 3            |
+    |      Table 3 (PHYSICAL)     |
     |       access control        |
     |- Forwards normal traffic    |
     |- Drops traffic with ip      |
@@ -76,12 +76,26 @@ Static services include mandatory services (such as OAI and inout) which are alw
     -------------------------------
                   |
                   V
-   Configurable apps managed by cloud <---> Scratch tables
-            (Tables 4-19)                  (Tables 21 - 254)
+   Configurable PHYSICAL apps managed by cloud <---> Scratch tables
+            (Tables 4-9)                            (Tables 21 - 254)
                   |
                   V
     -------------------------------
-    |          Table 20           |
+    |      Table 10 (SPECIAL)     |
+    |           inout             |
+    |- Forwards uplink traffic to |
+    |  LOCAL port                 |
+    |- Forwards downlink traffic  |
+    |  to GTP port                |
+    -------------------------------
+                  |
+                  V
+   Configurable LOGICAL apps managed by cloud <---> Scratch tables
+            (Tables 11-19)                         (Tables 21 - 254)
+                  |
+                  V
+    -------------------------------
+    |      Table 20 (SPECIAL)     |
     |           inout             |
     |- Forwards uplink traffic to |
     |  LOCAL port                 |
@@ -95,6 +109,13 @@ Static services include mandatory services (such as OAI and inout) which are alw
     downlink              uplink
 
 ```
+
+### Service types
+
+Services(controllers) are split into two: Physical and Logical.
+Physical controllers: arpd, access_control.
+Logical controllers: metering, dpi, enforcement.
+
 
 ### Configurable Services
 

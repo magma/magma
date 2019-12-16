@@ -33,7 +33,7 @@ const (
 	GwSessiondService     GwServiceType = "sessiond"
 	GwSpgwService         GwServiceType = "spgw_service"
 	GwAbortSessionService GwServiceType = "abort_session_service"
-	GwAAAService          GwServiceType = "aaa_service"
+	GwAAAService          GwServiceType = "aaa_server"
 
 	// SyncRPC gateway header key
 	GatewayIdHeaderKey = "Gatewayid"

@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>pyinventory.site_survey API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyinventory.site_survey</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyinventory.site_survey.add_cell_validation"><code class="name flex">
+<span>def <span class="ident">add_cell_validation</span></span>(<span>worksheet, row_index, column_index, full_question_path, question, question_to_cell, bool_options, date_format, black_format)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.add_workbook_formats"><code class="name flex">
+<span>def <span class="ident">add_workbook_formats</span></span>(<span>workbook)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.adjust_column_and_row_sizes"><code class="name flex">
+<span>def <span class="ident">adjust_column_and_row_sizes</span></span>(<span>worksheet, rows, num_columns)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Rows height:
+- Title row is thicker than data row
+- blank separator row is thinner than data row
+Columns width:
+- Each column width is wider enough all the text in cells it contains</p>
+<p>:param worksheet: worksheet we operate on
+:param rows: list of tuples where each tuple represents a row in worksheet
+:param num_columns: number of columns in worksheet
+:return:</p></section>
+</dd>
+<dt id="pyinventory.site_survey.break_and_validate_coordinates"><code class="name flex">
+<span>def <span class="ident">break_and_validate_coordinates</span></span>(<span>value, invalid_type_err_msg)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.build_site_survey_from_survey_response"><code class="name flex">
+<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.delete_site_survey"><code class="name flex">
+<span>def <span class="ident">delete_site_survey</span></span>(<span>client, site_survey)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.dependency_check"><code class="name flex">
+<span>def <span class="ident">dependency_check</span></span>(<span>compare, value, result, bool_options)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.export_to_excel"><code class="name flex">
+<span>def <span class="ident">export_to_excel</span></span>(<span>json_file_path, excel_file_path)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.get_response_value"><code class="name flex">
+<span>def <span class="ident">get_response_value</span></span>(<span>full_representation_path, question_type, value, bool_options)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.get_site_surveys"><code class="name flex">
+<span>def <span class="ident">get_site_surveys</span></span>(<span>client, location)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Retrieve all site survey completed in the location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>could be retrieved from getLocation or addLocation api</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.SiteSurvey</code> <code>object</code> (<code>with</code> <code>name</code>, <code>id</code>, <code>completion</code> <code>time</code> <code>and</code> <code>the</code> <code>forms</code>)</dt>
+<dd>The forms are the results of the survey. It is a dict of dicts:
+{
+formA: {
+question1: value1
+question2: value2
+}
+formB: {
+question3: value3
+question4: value4
+}
+}</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.site_survey.get_survey_response"><code class="name flex">
+<span>def <span class="ident">get_survey_response</span></span>(<span>category_name, form_name, form_index, full_representation_path, question_index, question_type, value, bool_options, form_description=None)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.rpad"><code class="name flex">
+<span>def <span class="ident">rpad</span></span>(<span>l, char, size)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.upload_site_survey"><code class="name flex">
+<span>def <span class="ident">upload_site_survey</span></span>(<span>client, location, name, completion_date, excel_file_path, json_file_path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Upload the site survey to the given completion with the data in the
+given excel file. We use the schema file to validate the input in the
+excel is as needed for upload.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>could be retrieved from getLocation or addLocation api</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the site survey</dd>
+<dt><strong><code>completion_date</code></strong> :&ensp;<code>datetime.datetime</code> <code>object</code></dt>
+<dd>the time the site survey was completed</dd>
+<dt><strong><code>excel_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>the path for the excel with the site survey information
+The format of this excel should be created by calling site_survey.exportToExcel
+with the paremeter jsonFilePath (the next parameter of this function)</dd>
+<dt>json_file_path(str): the path for the json file of the schema of the site survey</dt>
+<dt>the json file should comply to the schema found in survey_schema.json</dt>
+<dt>Example of the format:</dt>
+<dt>{</dt>
+<dt>"forms": [</dt>
+<dt>{</dt>
+<dt>"formTitle": "Site Management - General Information",</dt>
+<dt>"questions": [</dt>
+<dt>{</dt>
+<dt>"questionName": "Exact address",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>},</dt>
+<dt>{</dt>
+<dt>"questionName": "Reference for address",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>},</dt>
+<dt>{</dt>
+<dt>"questionName": "Ubigeo",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>}</dt>
+<dt>]</dt>
+<dt>}</dt>
+<dt>]</dt>
+<dt>}</dt>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>input</code> <code>values</code> <code>in</code> <code>the</code> <code>excel</code> <code>are</code> <code>incorrect</code></dt>
+<dd>FailedOperationException for internal inventory error</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.site_survey.write_column_titles"><code class="name flex">
+<span>def <span class="ident">write_column_titles</span></span>(<span>worksheet, num_columns, title_format, translations)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.write_conditional_blank_color_if_dependency_fails"><code class="name flex">
+<span>def <span class="ident">write_conditional_blank_color_if_dependency_fails</span></span>(<span>worksheet, row_index, column_index, question, full_question_path, question_to_cell, bool_options, black_format)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.site_survey.write_form_description_as_cell_comment"><code class="name flex">
+<span>def <span class="ident">write_form_description_as_cell_comment</span></span>(<span>worksheet, form_names, question_index_to_row_index, form_name_to_description)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="pyinventory" href="index.html">pyinventory</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pyinventory.site_survey.add_cell_validation" href="#pyinventory.site_survey.add_cell_validation">add_cell_validation</a></code></li>
+<li><code><a title="pyinventory.site_survey.add_workbook_formats" href="#pyinventory.site_survey.add_workbook_formats">add_workbook_formats</a></code></li>
+<li><code><a title="pyinventory.site_survey.adjust_column_and_row_sizes" href="#pyinventory.site_survey.adjust_column_and_row_sizes">adjust_column_and_row_sizes</a></code></li>
+<li><code><a title="pyinventory.site_survey.break_and_validate_coordinates" href="#pyinventory.site_survey.break_and_validate_coordinates">break_and_validate_coordinates</a></code></li>
+<li><code><a title="pyinventory.site_survey.build_site_survey_from_survey_response" href="#pyinventory.site_survey.build_site_survey_from_survey_response">build_site_survey_from_survey_response</a></code></li>
+<li><code><a title="pyinventory.site_survey.delete_site_survey" href="#pyinventory.site_survey.delete_site_survey">delete_site_survey</a></code></li>
+<li><code><a title="pyinventory.site_survey.dependency_check" href="#pyinventory.site_survey.dependency_check">dependency_check</a></code></li>
+<li><code><a title="pyinventory.site_survey.export_to_excel" href="#pyinventory.site_survey.export_to_excel">export_to_excel</a></code></li>
+<li><code><a title="pyinventory.site_survey.get_response_value" href="#pyinventory.site_survey.get_response_value">get_response_value</a></code></li>
+<li><code><a title="pyinventory.site_survey.get_site_surveys" href="#pyinventory.site_survey.get_site_surveys">get_site_surveys</a></code></li>
+<li><code><a title="pyinventory.site_survey.get_survey_response" href="#pyinventory.site_survey.get_survey_response">get_survey_response</a></code></li>
+<li><code><a title="pyinventory.site_survey.rpad" href="#pyinventory.site_survey.rpad">rpad</a></code></li>
+<li><code><a title="pyinventory.site_survey.upload_site_survey" href="#pyinventory.site_survey.upload_site_survey">upload_site_survey</a></code></li>
+<li><code><a title="pyinventory.site_survey.write_column_titles" href="#pyinventory.site_survey.write_column_titles">write_column_titles</a></code></li>
+<li><code><a title="pyinventory.site_survey.write_conditional_blank_color_if_dependency_fails" href="#pyinventory.site_survey.write_conditional_blank_color_if_dependency_fails">write_conditional_blank_color_if_dependency_fails</a></code></li>
+<li><code><a title="pyinventory.site_survey.write_form_description_as_cell_comment" href="#pyinventory.site_survey.write_form_description_as_cell_comment">write_form_description_as_cell_comment</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

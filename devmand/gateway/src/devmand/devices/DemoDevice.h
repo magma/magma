@@ -23,7 +23,7 @@ class DemoDevice : public Device {
   DemoDevice(DemoDevice&&) = delete;
   DemoDevice& operator=(DemoDevice&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

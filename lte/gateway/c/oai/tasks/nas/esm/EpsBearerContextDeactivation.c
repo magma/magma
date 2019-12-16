@@ -177,8 +177,9 @@ int esm_proc_eps_bearer_context_deactivate(
       *esm_cause = ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY;
 
       for (i = 0; i < BEARERS_PER_UE; i++) {
-        if ((ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
-            (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
+        if (
+          (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
+          (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
           continue;
         }
 
@@ -266,7 +267,6 @@ int esm_proc_eps_bearer_context_deactivate_request(
         LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE PENDING\n", ebi);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
@@ -354,6 +354,16 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
        * Delete the PDN connection entry
        */
       _pdn_connectivity_delete(emm_context_p, pid);
+      ue_mm_context_t* ue_mm_context =
+        PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
+      // Free PDN context
+      if (ue_mm_context->pdn_contexts[pid]) {
+        free_wrapper((void**) &ue_mm_context->pdn_contexts[pid]);
+      }
+      // Free bearer context entry
+      if (ue_mm_context->bearer_contexts[bid]) {
+        free_wrapper((void**) &ue_mm_context->bearer_contexts[bid]);
+      }
     }
   } else {
     OAILOG_INFO(
@@ -368,12 +378,19 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     // Remove dedicated bearer context
     free_wrapper((void**) &ue_mm_context->bearer_contexts[bid]);
   }
-  // Send deactivate_eps_bearer_context to MME APP
-  nas_itti_deactivate_eps_bearer_context(
-    ue_id,
-    ebi,
-    delete_default_bearer,
-    s_gw_teid_s11_s4);
+  /* In case of PDN disconnect, no need to inform MME/SPGW as the session would 
+   * have been already released
+   */
+  if (!emm_context_p->esm_ctx.is_pdn_disconnect) {
+    // Send deactivate_eps_bearer_context to MME APP
+    nas_itti_deactivate_eps_bearer_context(
+      ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
+  }
+
+  // Reset is_pdn_disconnect flag
+  if (emm_context_p->esm_ctx.is_pdn_disconnect) {
+    emm_context_p->esm_ctx.is_pdn_disconnect = false;
+  }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
 }
@@ -381,7 +398,6 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-
 /*
    --------------------------------------------------------------------------
                 Timer handlers
@@ -488,8 +504,22 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
          */
         _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
       }
-      nas_itti_dedicated_eps_bearer_deactivation_reject(
-        ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
+      /* In case of PDN disconnect, no need to inform MME/SPGW as the session
+      * would have been already released
+      */
+      if (!ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
+        // Send bearer deactivation reject to MME APP
+        nas_itti_dedicated_eps_bearer_deactivation_reject(
+          ue_id, ebi, delete_default_bearer, s_gw_teid_s11_s4);
+      }
+      // Reset is_pdn_disconnect flag
+      if (mme_config.eps_network_feature_support
+            .ims_voice_over_ps_session_in_s1) {
+        if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
+          ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect = false;
+        }
+      }
+
       /*
        * Deactivate the EPS bearer context locally without peer-to-peer
        * * * * signalling between the UE and the MME
@@ -509,7 +539,6 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }
-
 /*
    --------------------------------------------------------------------------
                 MME specific local functions

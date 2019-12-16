@@ -16,7 +16,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "MagmaService.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
@@ -46,17 +46,19 @@ class SessiondTest : public ::testing::Test {
     pipelined_mock = std::make_shared<MockPipelined>();
 
     pipelined_client = std::make_shared<AsyncPipelinedClient>(test_channel);
+    directoryd_client = std::make_shared<AsyncDirectorydClient>(test_channel);
     spgw_client = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     auto rule_store = std::make_shared<StaticRuleStore>();
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
-    reporter = std::make_shared<SessionCloudReporterImpl>(evb, test_channel);
+    reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     monitor = std::make_shared<LocalEnforcer>(
       reporter,
       rule_store,
       pipelined_client,
+      directoryd_client,
       spgw_client,
       nullptr,
       SESSION_TERMINATION_TIMEOUT_MS);
@@ -66,11 +68,11 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
       local_service->GetNewCompletionQueue(),
       std::make_unique<LocalSessionManagerHandlerImpl>(
-        monitor.get(), reporter.get()));
+        monitor, reporter.get(), directoryd_client));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
       local_service->GetNewCompletionQueue(),
-      std::make_unique<SessionProxyResponderHandlerImpl>(monitor.get()));
+      std::make_unique<SessionProxyResponderHandlerImpl>(monitor));
 
     local_service->AddServiceToServer(session_manager.get());
     local_service->AddServiceToServer(proxy_responder.get());
@@ -144,12 +146,13 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<MockCentralController> controller_mock;
   std::shared_ptr<MockPipelined> pipelined_mock;
   std::shared_ptr<LocalEnforcer> monitor;
-  std::shared_ptr<SessionCloudReporterImpl> reporter;
+  std::shared_ptr<SessionReporterImpl> reporter;
   std::shared_ptr<LocalSessionManagerAsyncService> session_manager;
   std::shared_ptr<SessionProxyResponderAsyncService> proxy_responder;
   std::shared_ptr<service303::MagmaService> local_service;
   std::shared_ptr<service303::MagmaService> test_service;
   std::shared_ptr<AsyncPipelinedClient> pipelined_client;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
 };
 
@@ -323,8 +326,8 @@ TEST_F(SessiondTest, end_to_end_success)
 
   LocalEndSessionResponse update_resp;
   grpc::ClientContext end_context;
-  SubscriberID end_request;
-  end_request.set_id("IMSI1");
+  LocalEndSessionRequest end_request;
+  end_request.mutable_sid()->set_id("IMSI1");
   stub->EndSession(&end_context, end_request, &update_resp);
 
   set_timeout(5000, &end_promise);

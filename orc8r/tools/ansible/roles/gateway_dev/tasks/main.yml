@@ -88,4 +88,5 @@
     - generate_nghttpx_config.py
     - generate_lighttpd_config.py
     - show_gateway_info.py
+    - service_util.py
   when: full_provision

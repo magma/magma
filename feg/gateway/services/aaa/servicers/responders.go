@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/orc8r/gateway/directoryd"
 
 	"github.com/golang/protobuf/proto"
@@ -62,7 +63,12 @@ func (srv *accountingService) AbortSession(
 	}
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
-		session_manager.EndSession(makeSID(imsi))
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: makeSID(imsi),
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi())).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: imsi,
@@ -122,7 +128,13 @@ func (srv *accountingService) TerminateRegistration(
 
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
-		session_manager.EndSession(makeSID(imsi))
+		sid := makeSID(imsi)
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: sid,
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id).Inc()
 	}
 
 	srv.sessions.RemoveSession(sid)

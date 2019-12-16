@@ -151,7 +151,7 @@ int fuzz(char *target)
   sctp_task = mock_task_new(TASK_SCTP);
   (void) sctp_task;
 
-  if (s1ap_mme_init() != RETURNok) return -1;
+  if (s1ap_mme_init(&mme_config) != RETURNok) return -1;
 
   if (strcmp(target, "nas") == 0) {
     msg = generate_nas_fuzz(STDIN_FILENO);

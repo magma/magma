@@ -19,7 +19,7 @@
 namespace devmand {
 namespace devices {
 
-std::unique_ptr<devices::Device> PingDevice::createDevice(
+std::shared_ptr<devices::Device> PingDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   return std::make_unique<devices::PingDevice>(
@@ -34,7 +34,8 @@ PingDevice::PingDevice(
     const Id& id_,
     bool readonly_,
     const folly::IPAddress& ip_)
-    : Device(application, id_, readonly_), channel(application.getPingEngine(ip_), ip_) {}
+    : Device(application, id_, readonly_),
+      channel(application.getPingEngine(ip_), ip_) {}
 
 std::shared_ptr<State> PingDevice::getState() {
   auto state = State::make(app, getId());
@@ -48,6 +49,10 @@ std::shared_ptr<State> PingDevice::getState() {
       devmand::models::device::Model::addLatency(
           lockedState, "ping", "agent", "device", rtt);
     });
+
+    if (rtt != 0) {
+      state->setStatus(true);
+    }
 
     state->setGauge<unsigned long int>(
         "/fbc-symphony-device:system/latencies/"

@@ -52,7 +52,7 @@ func TestGxClient(t *testing.T) {
 	startServer(clientConfig, serverConfig)
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getMockReAuthHandler(),
 		nil,
 	)
@@ -185,7 +185,7 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 	startServer(clientConfig, serverConfig)
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getMockReAuthHandler(),
 		nil,
 	)

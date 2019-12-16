@@ -738,7 +738,6 @@ void SpgwStateConverter::proto_to_packet_filter(
   const gateway::spgw::PacketFilter &packet_filter_proto,
   packet_filter_t *packet_filter)
 {
-  packet_filter = (packet_filter_t *) calloc(1, sizeof(packet_filter_t));
   packet_filter->spare = packet_filter_proto.spare();
   packet_filter->direction = packet_filter_proto.direction();
   packet_filter->identifier = packet_filter_proto.identifier();

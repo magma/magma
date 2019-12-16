@@ -1,0 +1,10 @@
+query EquipmentTypeEquipmentQuery($id: ID!) {
+  equipmentType: node(id: $id) {
+    ... on EquipmentType {
+      equipments {
+        id
+        name
+      }
+    }
+  }
+}

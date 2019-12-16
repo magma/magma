@@ -17,7 +17,7 @@ SessionRules::SessionRules(StaticRuleStore &static_rule_ref):
 
 bool SessionRules::get_charging_key_for_rule_id(
   const std::string &rule_id,
-  uint32_t *charging_key)
+  CreditKey *charging_key)
 {
   // first check dynamic rules and then static rules
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, charging_key)) {
@@ -76,7 +76,7 @@ bool SessionRules::deactivate_static_rule(const std::string &rule_id)
  */
 void SessionRules::add_rules_to_action(
   ServiceAction &action,
-  uint32_t charging_key)
+  const CreditKey &charging_key)
 {
   static_rules_.get_rule_ids_for_charging_key(
     charging_key, *action.get_mutable_rule_ids());

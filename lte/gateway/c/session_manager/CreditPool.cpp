@@ -13,10 +13,11 @@
 
 namespace magma {
 
-ChargingCreditPool::ChargingCreditPool(const std::string &imsi): imsi_(imsi) {}
+ChargingCreditPool::ChargingCreditPool(const std::string &imsi):
+  credit_map_(4, &ccHash, &ccEqual), imsi_(imsi) {}
 
 bool ChargingCreditPool::add_used_credit(
-  const uint32_t &key,
+  const CreditKey &key,
   uint64_t used_tx,
   uint64_t used_rx)
 {
@@ -28,7 +29,7 @@ bool ChargingCreditPool::add_used_credit(
   return true;
 }
 
-bool ChargingCreditPool::reset_reporting_credit(const uint32_t &key)
+bool ChargingCreditPool::reset_reporting_credit(const CreditKey &key)
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -43,13 +44,13 @@ bool ChargingCreditPool::reset_reporting_credit(const uint32_t &key)
 static CreditUsage get_usage_proto_from_struct(
   const SessionCredit::Usage &usage_in,
   CreditUsage::UpdateType proto_update_type,
-  uint32_t charging_key)
+  const CreditKey &charging_key)
 {
   CreditUsage usage;
   usage.set_bytes_tx(usage_in.bytes_tx);
   usage.set_bytes_rx(usage_in.bytes_rx);
   usage.set_type(proto_update_type);
-  usage.set_charging_key(charging_key);
+  charging_key.set_credit_usage(&usage);
   return usage;
 }
 
@@ -96,7 +97,7 @@ void ChargingCreditPool::get_updates(
                    << credit_pair.first << " action type " << action_type;
       auto action = std::make_unique<ServiceAction>(action_type);
       if (action_type == REDIRECT) {
-        action->set_rating_group(credit_pair.first);
+        action->set_credit_key(credit_pair.first);
         action->set_redirect_server(credit.get_redirect_server());
       }
       populate_output_actions(
@@ -187,19 +188,27 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
    * in no GSUs present in Gy:CCA-I
    */
   uint64_t default_volume = 0;
-  auto credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
+  std::unique_ptr<SessionCredit> credit;
+  if (update.limit_type() == CreditUpdateResponse::FINITE) {
+    credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
+  } else {
+    credit = std::make_unique<SessionCredit>(
+      CreditType::CHARGING,
+      SERVICE_ENABLED,
+      true);
+  }
   receive_charging_credit_with_default(
     *credit,
     update.credit().granted_units(),
     default_volume,
     update.credit());
-  credit_map_[update.charging_key()] = std::move(credit);
+  credit_map_[CreditKey(update)] = std::move(credit);
   return true;
 }
 
 bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
 {
-  auto it = credit_map_.find(update.charging_key());
+  auto it = credit_map_.find(CreditKey(update));
   if (it == credit_map_.end()) {
     // new credit
     return init_new_credit(update);
@@ -225,7 +234,7 @@ bool ChargingCreditPool::receive_credit(const CreditUpdateResponse &update)
   return true;
 }
 
-uint64_t ChargingCreditPool::get_credit(const uint32_t &key, Bucket bucket)
+uint64_t ChargingCreditPool::get_credit(const CreditKey &key, Bucket bucket)
 {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -235,7 +244,7 @@ uint64_t ChargingCreditPool::get_credit(const uint32_t &key, Bucket bucket)
 }
 
 ChargingReAuthAnswer::Result ChargingCreditPool::reauth_key(
-  uint32_t charging_key)
+  const CreditKey &charging_key)
 {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
