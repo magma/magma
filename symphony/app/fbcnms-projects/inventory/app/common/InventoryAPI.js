@@ -13,8 +13,6 @@ const LOCATION_SEARCH_PARAM = 'location';
 const EQUIPMENT_SEARCH_PARAM = 'equipment';
 
 export const InventoryAPIUrls = {
-  path: INVENTORY_PATH,
-  locationSearchParam: LOCATION_SEARCH_PARAM,
   location: (locationId: string) =>
     `${INVENTORY_PATH}?${LOCATION_SEARCH_PARAM}=${locationId}`,
   equipment: (equipmentId: string) =>
