@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package main
 
 import (
 	"encoding/json"
@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"

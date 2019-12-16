@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package main
 
 import (
 	"encoding/json"
@@ -16,9 +16,8 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert/mocks"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/handlers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert/mocks"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/common/model"
@@ -45,6 +44,10 @@ var (
 	}
 )
 
+const (
+	testNID = "test"
+)
+
 func TestGetConfigureAlertHandler(t *testing.T) {
 	client := &mocks.PrometheusAlertClient{}
 	client.On("ValidateRule", sampleAlert1).Return(nil)
@@ -53,7 +56,7 @@ func TestGetConfigureAlertHandler(t *testing.T) {
 
 	configureAlert := GetConfigureAlertHandler(client, "")
 
-	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", handlers.AlertConfigURL, testNID)
+	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
 
 	err := configureAlert(c)
 	assert.NoError(t, err)
@@ -69,7 +72,7 @@ func TestGetRetrieveAlertHandler(t *testing.T) {
 
 	retrieveAlert := GetRetrieveAlertHandler(client)
 
-	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", handlers.AlertConfigURL, testNID)
+	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
 
 	err := retrieveAlert(c)
 	assert.NoError(t, err)
@@ -84,8 +87,8 @@ func TestGetDeleteAlertHandler(t *testing.T) {
 	deleteAlert := GetDeleteAlertHandler(client, "")
 
 	q := make(url.Values)
-	q.Set(handlers.AlertNameQueryParam, sampleAlert1.Alert)
-	c, rec := buildContext(nil, http.MethodDelete, "/?"+q.Encode(), handlers.AlertConfigURL, testNID)
+	q.Set(ruleNameQueryParam, sampleAlert1.Alert)
+	c, rec := buildContext(nil, http.MethodDelete, "/?"+q.Encode(), AlertPath, testNID)
 
 	err := deleteAlert(c)
 	assert.NoError(t, err)
@@ -93,7 +96,7 @@ func TestGetDeleteAlertHandler(t *testing.T) {
 	client.AssertCalled(t, "DeleteRule", testNID, sampleAlert1.Alert)
 
 	// No alert name given
-	c, _ = buildContext(nil, http.MethodDelete, "/", handlers.AlertConfigURL, testNID)
+	c, _ = buildContext(nil, http.MethodDelete, "/", AlertPath, testNID)
 	err = deleteAlert(c)
 	assert.Error(t, err)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
@@ -109,7 +112,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 
 	updateAlert := GetUpdateAlertHandler(client, "")
 
-	c, rec := buildContext(sampleAlert1, http.MethodPut, "/", handlers.AlertConfigURL, testNID)
+	c, rec := buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
@@ -154,4 +157,15 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	err = json.Unmarshal(rec.Body.Bytes(), &results)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleUpdateResult, results)
+}
+
+func buildContext(body interface{}, method, target, path, networkID string) (echo.Context, *httptest.ResponseRecorder) {
+	bytes, _ := json.Marshal(body)
+	req := httptest.NewRequest(method, target, strings.NewReader(string(bytes)))
+	rec := httptest.NewRecorder()
+	c := echo.New().NewContext(req, rec)
+	c.SetPath(path)
+	c.SetParamNames("file_prefix")
+	c.SetParamValues(networkID)
+	return c, rec
 }

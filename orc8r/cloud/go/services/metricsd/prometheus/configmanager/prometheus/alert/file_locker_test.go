@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
