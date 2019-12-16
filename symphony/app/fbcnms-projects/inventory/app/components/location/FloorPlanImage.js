@@ -117,8 +117,8 @@ export default function LocationFloorPlansTab(props: Props) {
         className={classes.img}
         onClick={e => {
           const box = e.target.getBoundingClientRect();
-          const x = e.pageX - box.x;
-          const y = e.pageY - box.y;
+          const x = Math.round(e.pageX - box.x);
+          const y = Math.round(e.pageY - box.y);
           if (!referencePoint) {
             setReferencePointDialogShown(true);
             setReferencePoint({x, y});

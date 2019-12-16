@@ -866,11 +866,10 @@ type ComplexityRoot struct {
 
 type ActionsRuleResolver interface {
 	Trigger(ctx context.Context, obj *ent.ActionsRule) (*models.ActionsTrigger, error)
-	TriggerID(ctx context.Context, obj *ent.ActionsRule) (models.TriggerID, error)
+	TriggerID(ctx context.Context, obj *ent.ActionsRule) (core.TriggerID, error)
 }
 type ActionsRuleActionResolver interface {
 	Action(ctx context.Context, obj *core.ActionsRuleAction) (*models.ActionsAction, error)
-	ActionID(ctx context.Context, obj *core.ActionsRuleAction) (models.ActionID, error)
 }
 type ActionsRuleFilterResolver interface {
 	Operator(ctx context.Context, obj *core.ActionsRuleFilter) (*models.ActionsOperator, error)
@@ -6836,19 +6835,28 @@ type LatestPythonPackageResult {
 }
 
 # You will also need to update cloud/actions/core/id
-enum ActionID {
+enum ActionID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+  ) {
   magma_reboot_node
 }
 
 # You will also need to update cloud/actions/core/id
-enum TriggerID {
+enum TriggerID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+  ) {
   magma_alert
 }
 
 # Data type for the input to be
-enum ActionsDataType {
+enum ActionsDataType
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+  ) {
   string
-  arrayString
+  stringArray
 }
 
 # ActionsTrigger defines a trigger itself, along with what actions and filters
@@ -6950,7 +6958,7 @@ input ActionsRuleFilterInput {
 
 input AddActionsRuleInput {
   name: String!
-  triggerID: String!
+  triggerID: TriggerID!
   ruleActions: [ActionsRuleActionInput]!
   ruleFilters: [ActionsRuleFilterInput]!
 }
@@ -9340,10 +9348,10 @@ func (ec *executionContext) _ActionsAction_actionID(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionID)
+	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsAction_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
@@ -9414,10 +9422,10 @@ func (ec *executionContext) _ActionsAction_dataType(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionsDataType)
+	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
@@ -9636,10 +9644,10 @@ func (ec *executionContext) _ActionsOperator_dataType(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionsDataType)
+	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_id(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9784,10 +9792,10 @@ func (ec *executionContext) _ActionsRule_triggerID(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.TriggerID)
+	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9914,13 +9922,13 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 		Object:   "ActionsRuleAction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ActionsRuleAction().ActionID(rctx, obj)
+		return obj.ActionID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9932,10 +9940,10 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionID)
+	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
@@ -10259,10 +10267,10 @@ func (ec *executionContext) _ActionsTrigger_triggerID(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.TriggerID)
+	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsTrigger_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
@@ -29946,7 +29954,7 @@ func (ec *executionContext) unmarshalInputActionsRuleActionInput(ctx context.Con
 		switch k {
 		case "actionID":
 			var err error
-			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, v)
+			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30006,7 +30014,7 @@ func (ec *executionContext) unmarshalInputAddActionsRuleInput(ctx context.Contex
 			}
 		case "triggerID":
 			var err error
-			it.TriggerID, err = ec.unmarshalNString2string(ctx, v)
+			it.TriggerID, err = ec.unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33526,19 +33534,10 @@ func (ec *executionContext) _ActionsRuleAction(ctx context.Context, sel ast.Sele
 				return res
 			})
 		case "actionID":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ActionsRuleAction_actionID(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._ActionsRuleAction_actionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "data":
 			out.Values[i] = ec._ActionsRuleAction_data(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -38880,13 +38879,19 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, v interface{}) (models.ActionID, error) {
-	var res models.ActionID
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return core.ActionID(tmp), err
 }
 
-func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, sel ast.SelectionSet, v models.ActionID) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNActionsAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v models.ActionsAction) graphql.Marshaler {
@@ -38940,13 +38945,19 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 	return ec._ActionsAction(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx context.Context, v interface{}) (models.ActionsDataType, error) {
-	var res models.ActionsDataType
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return core.DataType(tmp), err
 }
 
-func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsDataType(ctx context.Context, sel ast.SelectionSet, v models.ActionsDataType) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {
@@ -41678,12 +41689,12 @@ func (ec *executionContext) marshalNTopologyLink2ᚖgithubᚗcomᚋfacebookincub
 	return ec._TopologyLink(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, v interface{}) (models.TriggerID, error) {
-	var res models.TriggerID
+func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, v interface{}) (core.TriggerID, error) {
+	var res core.TriggerID
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v models.TriggerID) graphql.Marshaler {
+func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v core.TriggerID) graphql.Marshaler {
 	return v
 }
 

@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type ActionsDataType = "arrayString" | "string" | "%future added value";
+export type ActionsDataType = "string" | "stringArray" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type TriggerFilterOperator_data$ref: FragmentReference;
 declare export opaque type TriggerFilterOperator_data$fragmentType: TriggerFilterOperator_data$ref;

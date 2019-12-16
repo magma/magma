@@ -32,6 +32,7 @@ static_services: [
   'access_control',
   'tunnel_learn',
   'ryu_rest_service',
+  'startup_flows',
 #  'packet_tracer',
 ]
 
@@ -103,6 +104,9 @@ monitored_ifaces: ['cwag_br0',
                    'gre0',
                    'gre_sys'
                   ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: true
 
 ###############
 ## IMPORTANT ##

@@ -1424,19 +1424,28 @@ type LatestPythonPackageResult {
 }
 
 # You will also need to update cloud/actions/core/id
-enum ActionID {
+enum ActionID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+  ) {
   magma_reboot_node
 }
 
 # You will also need to update cloud/actions/core/id
-enum TriggerID {
+enum TriggerID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+  ) {
   magma_alert
 }
 
 # Data type for the input to be
-enum ActionsDataType {
+enum ActionsDataType
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+  ) {
   string
-  arrayString
+  stringArray
 }
 
 # ActionsTrigger defines a trigger itself, along with what actions and filters
@@ -1538,7 +1547,7 @@ input ActionsRuleFilterInput {
 
 input AddActionsRuleInput {
   name: String!
-  triggerID: String!
+  triggerID: TriggerID!
   ruleActions: [ActionsRuleActionInput]!
   ruleFilters: [ActionsRuleFilterInput]!
 }

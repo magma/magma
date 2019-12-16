@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,6 +24,6 @@ func TestActionsRuleOperator(t *testing.T) {
 
 	assert.Equal(t, res.OperatorID, core.OperatorIsString.OperatorID())
 	assert.Equal(t, res.Description, core.OperatorIsString.Description())
-	assert.Equal(t, res.DataType, models.ActionsDataType(core.OperatorIsString.DataType()))
+	assert.Equal(t, res.DataType, core.OperatorIsString.DataType())
 
 }

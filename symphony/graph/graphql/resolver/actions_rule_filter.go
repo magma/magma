@@ -22,6 +22,6 @@ func (actionsRuleFilterResolver) Operator(ctx context.Context, ar *core.ActionsR
 	return &models.ActionsOperator{
 		OperatorID:  operator.OperatorID(),
 		Description: operator.Description(),
-		DataType:    models.ActionsDataType(operator.DataType()),
+		DataType:    operator.DataType(),
 	}, nil
 }

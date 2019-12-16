@@ -8,14 +8,13 @@
  * @format
  */
 
-import CheckListTable from '../checklist/CheckListTable';
 import type {AddImageMutationResponse} from '../../mutations/__generated__/AddImageMutation.graphql';
 import type {AddImageMutationVariables} from '../../mutations/__generated__/AddImageMutation.graphql';
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   CheckListTable_list,
   WorkOrderDetails_workOrder,
 } from './__generated__/WorkOrderDetails_workOrder.graphql.js';
-
 import type {ContextRouter} from 'react-router-dom';
 import type {
   ExecuteWorkOrderMutationResponse,
@@ -28,7 +27,9 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import AddImageMutation from '../../mutations/AddImageMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
+import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
 import CommentsBox from '../comments/CommentsBox';
@@ -216,6 +217,9 @@ class WorkOrderDetails extends React.Component<Props, State> {
     });
   };
 
+  static contextType = AppContext;
+  context: AppContextType;
+
   render() {
     const {classes, onWorkOrderRemoved, onCancelClicked} = this.props;
     const {
@@ -226,6 +230,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
       showChecklistDesignMode,
     } = this.state;
     const {location} = workOrder;
+    const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
     return (
       <div className={classes.root}>
         <FormValidationContextProvider>
@@ -404,9 +409,11 @@ class WorkOrderDetails extends React.Component<Props, State> {
                     )}
                   </>
                 </ExpandingPanel>
-                <ExpandingPanel title="Actions">
-                  <WorkOrderDetailsPane workOrder={workOrder} />
-                </ExpandingPanel>
+                {actionsEnabled && (
+                  <ExpandingPanel title="Actions">
+                    <WorkOrderDetailsPane workOrder={workOrder} />
+                  </ExpandingPanel>
+                )}
                 <ExpandingPanel
                   title="Attachments"
                   rightContent={

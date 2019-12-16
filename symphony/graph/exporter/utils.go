@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent/location"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -97,10 +99,8 @@ func parentHierarchyWithAllPositions(ctx context.Context, equipment ent.Equipmen
 	return parents
 }
 
-func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string) ([]string, error) {
-	var parents = make([]string, len(orderedLocTypes))
+func locationHierarchyForEquipment(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string) ([]string, error) {
 	firstEquipmentWithLocation := equipment
-	var err error
 	for {
 		exist, err := firstEquipmentWithLocation.QueryLocation().Exist(ctx)
 		if err != nil {
@@ -117,6 +117,13 @@ func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLoc
 		firstEquipmentWithLocation = position.QueryParent().OnlyX(ctx)
 	}
 	currLoc := firstEquipmentWithLocation.QueryLocation().OnlyX(ctx)
+	return locationHierarchy(ctx, currLoc, orderedLocTypes)
+}
+
+func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTypes []string) ([]string, error) {
+	var parents = make([]string, len(orderedLocTypes))
+	var err error
+	currLoc := location
 	for {
 		typeName := currLoc.QueryType().OnlyX(ctx).Name
 		idx := index(orderedLocTypes, typeName)
@@ -158,6 +165,31 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 		for _, equipType := range equipTypesWithEquipment {
 			pts, err := equipType.QueryPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "querying property types")
+			}
+			for _, ptype := range pts {
+				if _, ok := alreadyAppended[ptype.Name]; !ok {
+					alreadyAppended[ptype.Name] = ""
+					propTypes = append(propTypes, ptype.Name)
+				}
+			}
+		}
+	case models.PropertyEntityLocation:
+		var locTypesWithInstances []ent.LocationType
+		locTypes, err := resolverutil.LocationTypes(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, typ := range locTypes.Edges {
+			locType := typ.Node
+			if locType.QueryLocations().Where(location.IDIn(ids...)).ExistX(ctx) {
+				locTypesWithInstances = append(locTypesWithInstances, *locType)
+			}
+		}
+		for _, locType := range locTypesWithInstances {
+			pts, err := locType.QueryPropertyTypes().All(ctx)
 			if err != nil {
 				return nil, errors.Wrap(err, "querying property types")
 			}
@@ -279,6 +311,14 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "can't query property types for service (id=%s)", entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	case models.PropertyEntityLocation:
+		entity := instance.(*ent.Location)
+		var err error
+		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for location (id=%s)", entity.ID)
 		}
 		props = entity.QueryProperties().AllX(ctx)
 	default:

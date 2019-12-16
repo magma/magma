@@ -95,6 +95,15 @@ describe('Selectors', () => {
       ),
       `metric{label="value"}[5m]`,
     ],
+    [
+      'selector with offset',
+      new PromQL.InstantSelector(
+        'http_requests_total',
+        new PromQL.Labels(),
+        new PromQL.Range(5, 'm'),
+      ),
+      `http_requests_total offset 5m`,
+    ],
   ];
 
   test.each(testCases)('%s', (_, instantSelector, expectedString) => {
@@ -157,9 +166,34 @@ describe('Binary Operators', () => {
         basicSelector,
         basicSelector,
         'or',
-        new PromQL.Clause('ignoring', ['label']),
+        new PromQL.VectorMatchClause(new PromQL.Clause('ignoring', ['label'])),
       ),
       `metric or ignoring (label) metric`,
+    ],
+    [
+      'binary operation with match clause',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.InstantSelector('metric2'),
+        '/',
+        new PromQL.VectorMatchClause(
+          new PromQL.Clause('on', ['label1', 'label2']),
+        ),
+      ),
+      `metric / on (label1,label2) metric2`,
+    ],
+    [
+      'binary operation with grouped match clause',
+      new PromQL.BinaryOperation(
+        new PromQL.InstantSelector('metric'),
+        new PromQL.InstantSelector('metric2'),
+        '/',
+        new PromQL.VectorMatchClause(
+          new PromQL.Clause('on', ['label1', 'label2']),
+          new PromQL.Clause('group_left', ['label1']),
+        ),
+      ),
+      `metric / on (label1,label2) group_left (label1) metric2`,
     ],
   ];
 
