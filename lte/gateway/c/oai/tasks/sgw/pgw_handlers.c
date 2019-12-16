@@ -587,7 +587,7 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
 
   // Check if valid LBI and EBI recvd
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!is_imsi_found)) {
+         (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
@@ -620,16 +620,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
                 no_of_bearers_rej++;
               }
             }
-          } else {
-            invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->lbi;
-            no_of_bearers_rej++;
-            OAILOG_ERROR(
-              LOG_PGW_APP,
-              "Unknown LBI (%d) received in pgw_nw_init_deactv_bearer_request"
-              "\n",
-              bearer_req_p->lbi);
-            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-            break;
           }
         }
       }
