@@ -28,7 +28,6 @@ type Props = {
   onWorkOrderSelected: (?string) => void,
   onAddEquipment: () => void,
   onLocationRemoved: () => void,
-  onLocationSelected: (locationId: string) => void,
 };
 
 class LocationCard extends React.Component<Props> {
@@ -66,7 +65,6 @@ class LocationCard extends React.Component<Props> {
             onEdit={this.props.onEdit}
             onAddEquipment={this.props.onAddEquipment}
             onLocationRemoved={this.props.onLocationRemoved}
-            onLocationSelected={this.props.onLocationSelected}
           />
         );
       default:

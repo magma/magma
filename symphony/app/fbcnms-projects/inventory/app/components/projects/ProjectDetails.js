@@ -27,6 +27,7 @@ import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormSaveCancelPanel from '@fbcnms/ui/components/design-system/Form/FormSaveCancelPanel';
 import Grid from '@material-ui/core/Grid';
+import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
@@ -298,14 +299,9 @@ class ProjectDetails extends React.Component<Props, State> {
                     {location && (
                       <>
                         <div className={classes.separator} />
-                        <Breadcrumbs
-                          className={classes.breadcrumbs}
-                          breadcrumbs={location.locationHierarchy
-                            .map(b => ({
-                              id: b.id,
-                              name: b.name,
-                            }))
-                            .concat([{id: location.id, name: location.name}])}
+
+                        <LocationBreadcrumbsTitle
+                          locationDetails={location}
                           size="small"
                         />
                         <Grid container spacing={2}>
@@ -392,18 +388,15 @@ export default withRouter(
                 id
               }
               location {
-                name
                 id
+                name
                 latitude
                 longitude
                 locationType {
                   mapType
                   mapZoomLevel
                 }
-                locationHierarchy {
-                  id
-                  name
-                }
+                ...LocationBreadcrumbsTitle_locationDetails
               }
               properties {
                 id

@@ -8,11 +8,17 @@
  * @format
  */
 
+const INVENTORY_PATH = '/inventory/inventory';
+const LOCATION_SEARCH_PARAM = 'location';
+const EQUIPMENT_SEARCH_PARAM = 'equipment';
+
 export const InventoryAPIUrls = {
+  path: INVENTORY_PATH,
+  locationSearchParam: LOCATION_SEARCH_PARAM,
   location: (locationId: string) =>
-    `/inventory/inventory?location=${locationId}`,
+    `${INVENTORY_PATH}?${LOCATION_SEARCH_PARAM}=${locationId}`,
   equipment: (equipmentId: string) =>
-    `/inventory/inventory?equipment=${equipmentId}`,
+    `${INVENTORY_PATH}?${EQUIPMENT_SEARCH_PARAM}=${equipmentId}`,
   project: (projectId: string) =>
     `/workorders/projects/search?project=${projectId}`,
 };

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ec2c09ed554ce22c39405349b009bcb2
+ * @relayHash 1037b4c197eb259606351cd496aaa1da
  */
 
 /* eslint-disable */
@@ -43,6 +43,23 @@ query ProjectCardQuery(
   }
 }
 
+fragment LocationBreadcrumbsTitle_locationDetails on Location {
+  id
+  name
+  locationType {
+    name
+    id
+  }
+  locationHierarchy {
+    id
+    name
+    locationType {
+      name
+      id
+    }
+  }
+}
+
 fragment ProjectDetails_project on Project {
   id
   name
@@ -53,8 +70,8 @@ fragment ProjectDetails_project on Project {
     id
   }
   location {
-    name
     id
+    name
     latitude
     longitude
     locationType {
@@ -62,10 +79,7 @@ fragment ProjectDetails_project on Project {
       mapZoomLevel
       id
     }
-    locationHierarchy {
-      id
-      name
-    }
+    ...LocationBreadcrumbsTitle_locationDetails
   }
   properties {
     id
@@ -301,8 +315,8 @@ return {
             "concreteType": "Location",
             "plural": false,
             "selections": [
-              (v3/*: any*/),
               (v2/*: any*/),
+              (v3/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -340,7 +354,8 @@ return {
                     "args": null,
                     "storageKey": null
                   },
-                  (v2/*: any*/)
+                  (v2/*: any*/),
+                  (v3/*: any*/)
                 ]
               },
               {
@@ -353,7 +368,17 @@ return {
                 "plural": true,
                 "selections": [
                   (v2/*: any*/),
-                  (v3/*: any*/)
+                  (v3/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "locationType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "LocationType",
+                    "plural": false,
+                    "selections": (v5/*: any*/)
+                  }
                 ]
               }
             ]
@@ -494,7 +519,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    name\n    id\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    locationHierarchy {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n",
     "metadata": {}
   }
 };

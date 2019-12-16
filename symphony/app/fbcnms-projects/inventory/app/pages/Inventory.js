@@ -216,9 +216,6 @@ class Inventory extends React.Component<Props, State> {
                   }
                   onAddEquipment={() => this.showDialog('equipment')}
                   onLocationRemoved={this.onDeleteLocation}
-                  onLocationSelected={selectedLocationId =>
-                    this.navigateToLocation(selectedLocationId)
-                  }
                 />
               )}
               {card.type == 'equipment' && (
