@@ -14,7 +14,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -32,6 +32,7 @@ class MeterController(MagmaController):
     """
 
     APP_NAME = "meter"
+    APP_TYPE = ControllerType.LOGICAL
     DEFAULT_FLOW_COOKIE = 0x1
     DEFAULT_IDLE_TIMEOUT_SEC = 60
 

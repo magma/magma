@@ -62,33 +62,9 @@ static void *nas_intertask_interface(void *args_p)
           &MME_APP_CREATE_DEDICATED_BEARER_REQ(received_message_p));
         break;
 
-      case NAS_PDN_CONFIG_RSP: {
-        nas_proc_pdn_config_res(&NAS_PDN_CONFIG_RSP(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_FAIL: {
-        nas_proc_pdn_connectivity_fail(
-          &NAS_PDN_CONNECTIVITY_FAIL(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_RSP: {
-        nas_proc_pdn_connectivity_res(
-          &NAS_PDN_CONNECTIVITY_RSP(received_message_p));
-      } break;
-
-      case NAS_IMPLICIT_DETACH_UE_IND: {
-        nas_proc_implicit_detach_ue_ind(
-          NAS_IMPLICIT_DETACH_UE_IND(received_message_p).ue_id);
-      } break;
-
       case S1AP_DEREGISTER_UE_REQ: {
         nas_proc_deregister_ue(
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
-      } break;
-
-      case NAS_NW_INITIATED_DETACH_UE_REQ: {
-        nas_proc_nw_initiated_detach_ue_request(
-          &NAS_NW_INITIATED_DETACH_UE_REQ(received_message_p));
       } break;
 
       case NAS_CS_DOMAIN_LOCATION_UPDATE_ACC: {
@@ -142,6 +118,11 @@ static void *nas_intertask_interface(void *args_p)
       case MME_APP_DELETE_DEDICATED_BEARER_REQ:
         nas_proc_delete_dedicated_bearer(
           &MME_APP_DELETE_DEDICATED_BEARER_REQ(received_message_p));
+        break;
+
+      case MME_APP_PDN_DISCONNECT_RSP:
+        nas_proc_pdn_disconnect_rsp(
+          &MME_APP_PDN_DISCONNECT_RSP(received_message_p));
         break;
 
       case TERMINATE_MESSAGE: {

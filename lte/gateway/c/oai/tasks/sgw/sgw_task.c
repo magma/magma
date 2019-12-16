@@ -66,7 +66,7 @@ static void *sgw_intertask_interface(void *args_p)
     MessageDef *received_message_p = NULL;
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
 
-    spgw_state_p = get_spgw_state(true);
+    spgw_state_p = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case GTPV1U_CREATE_TUNNEL_RESP: {

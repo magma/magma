@@ -9,6 +9,9 @@ services:
   # Example service name that contains dash: hello-world-blah
   # As we use "-" in nghttpx config to connect service name and hostname,
   # "-" is used as a delimiter in dispatcher to parse out service names.
+  subscriberdb:
+    ip_address: 127.0.0.1
+    port: 50051
   magmad:
     ip_address: 127.0.0.1
     port: 50052
@@ -38,6 +41,9 @@ services:
     ip_address: 127.0.0.1
     port: 50074
   aaa_server:
+    ip_address: 127.0.0.1
+    port: 9109
+  abort_session_service:
     ip_address: 127.0.0.1
     port: 9109
   eap_aka:

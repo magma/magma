@@ -83,6 +83,7 @@ int MobilityServiceClient::GetAssignedIPv4Block(
 
 int MobilityServiceClient::AllocateIPv4Address(
   const std::string &imsi,
+  const std::string &apn,
   struct in_addr *addr)
 {
   AllocateIPRequest request;
@@ -91,6 +92,8 @@ int MobilityServiceClient::AllocateIPv4Address(
   SubscriberID *sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
 
   ClientContext context;
   IPAddress ip_msg;
@@ -107,12 +110,15 @@ int MobilityServiceClient::AllocateIPv4Address(
 
 int MobilityServiceClient::ReleaseIPv4Address(
   const std::string &imsi,
+  const std::string &apn,
   const struct in_addr &addr)
 {
   ReleaseIPRequest request;
   SubscriberID *sid = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
 
   IPAddress *ip = request.mutable_ip();
   ip->set_version(IPAddress::IPV4);
@@ -130,19 +136,25 @@ int MobilityServiceClient::ReleaseIPv4Address(
   return 0;
 }
 
+// More than one IP can be assigned due to multiple PDNs (one per PDN)
+// Get PDN specific IP address
 int MobilityServiceClient::GetIPv4AddressForSubscriber(
   const std::string &imsi,
+  const std::string &apn,
   struct in_addr *addr)
 {
-  SubscriberID sid;
-  sid.set_id(imsi);
-  sid.set_type(SubscriberID::IMSI);
+  IPLookupRequest request;
+  SubscriberID *sid = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
 
   IPAddress ip_msg;
 
   ClientContext context;
-  Void resp;
-  Status status = stub_->GetIPForSubscriber(&context, sid, &ip_msg);
+
+  Status status = stub_->GetIPForSubscriber(&context, request, &ip_msg);
   if (!status.ok()) {
     std::cout << "GetIPv4AddressForSubscriber fails with code "
               << status.error_code() << ", msg: " << status.error_message()

@@ -1,0 +1,39 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  graph:
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
+
+  platform-server:
+    command: yarn run start:dev
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
+      - ${XPLAT_FBC_DIR}/fbcnms-packages:/app/fbcnms-packages:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/platform-server/config:/app/fbcnms-projects/platform-server/config:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/platform-server/src:/app/fbcnms-projects/platform-server/src:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/platform-server/scripts:/app/fbcnms-projects/platform-server/scripts:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/platform-server/static:/app/fbcnms-projects/platform-server/static:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/platform-server/views:/app/fbcnms-projects/platform-server/views:delegated
+
+  inventory:
+    build:
+      dockerfile: fbcnms-projects/inventory/Dockerfile.dev
+    command: yarn run dev
+    volumes:
+      - ${XPLAT_FBC_DIR}/fbcnms-packages:/app/fbcnms-packages:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/app:/app/fbcnms-projects/inventory/app:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/inventory/scripts:/app/fbcnms-projects/inventory/scripts:delegated
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/magmalte/app:/app/fbcnms-projects/magmalte/app:delegated
+
+  store:
+    environment:
+      S3_ENDPOINT: localhost:9000
+
+  nginx:
+    ports:
+      - 80:80

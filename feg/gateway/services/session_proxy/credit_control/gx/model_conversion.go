@@ -214,6 +214,17 @@ func ParseRuleInstallAVPs(
 	return staticRulesToInstall, dynamicRulesToInstall
 }
 
+func ParseRuleRemoveAVPs(policyDBClient policydb.PolicyDBClient, rulesToRemoveAVP []*RuleRemoveAVP) []string {
+	var ruleNames []string
+	for _, rule := range rulesToRemoveAVP {
+		ruleNames = append(ruleNames, rule.RuleNames...)
+		if len(rule.RuleBaseNames) > 0 {
+			ruleNames = append(ruleNames, policyDBClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+		}
+	}
+	return ruleNames
+}
+
 func GetEventTriggersRelatedInfo(
 	eventTriggers []EventTrigger,
 	revalidationTime *time.Time,
@@ -260,13 +271,13 @@ func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMon
 		monitor.GrantedServiceUnit.OutputOctets == nil) {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
-			MonitoringKey: monitor.MonitoringKey,
+			MonitoringKey: []byte(monitor.MonitoringKey),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	} else {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_CONTINUE,
-			MonitoringKey: monitor.MonitoringKey,
+			MonitoringKey: []byte(monitor.MonitoringKey),
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}

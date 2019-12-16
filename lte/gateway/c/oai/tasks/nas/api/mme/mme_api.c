@@ -350,11 +350,10 @@ int mme_api_get_esm_config(mme_api_esm_config_t *config)
  */
 int mme_api_notify_imsi(
   const mme_ue_s1ap_id_t id,
-  const imsi64_t imsi64,
-  uint8_t imsi_length)
+  const imsi64_t imsi64)
 {
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context = NULL;
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t* ue_mm_context = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS);
   ue_mm_context =
@@ -367,7 +366,6 @@ int mme_api_notify_imsi(
       ue_mm_context->enb_s1ap_id_key,
       id,
       imsi64,
-      imsi_length,
       ue_mm_context->mme_teid_s11,
       &ue_mm_context->emm_context._guti);
     unlock_ue_contexts(ue_mm_context);
@@ -389,10 +387,10 @@ int mme_api_notify_imsi(
  *  Return:    RETURNok, RETURNerror
  *
  */
-int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t *const guti)
+int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t* const guti)
 {
-  ue_mm_context_t *ue_mm_context = NULL;
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t* ue_mm_context = NULL;
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_NAS);
   ue_mm_context =
     mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts, id);
@@ -404,7 +402,6 @@ int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t *const guti)
       ue_mm_context->enb_s1ap_id_key,
       id,
       ue_mm_context->emm_context._imsi64,
-      ue_mm_context->emm_context._imsi.length,
       ue_mm_context->mme_teid_s11,
       guti);
     unlock_ue_contexts(ue_mm_context);

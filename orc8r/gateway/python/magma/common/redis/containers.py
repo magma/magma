@@ -10,7 +10,7 @@ from copy import deepcopy
 import redis
 from redis.lock import Lock
 import redis_collections
-from typing import Iterator, MutableMapping, Optional, TypeVar
+from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
 
 from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
@@ -207,8 +207,7 @@ class RedisFlatDict(MutableMapping[str, T]):
 
     def __len__(self) -> int:
         """Return the number of items in the dictionary."""
-        type_pattern = "*:" + self.redis_type
-        return len(self.redis.keys(pattern=type_pattern))
+        return len(self.keys())
 
     def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the dictionary."""
@@ -219,16 +218,22 @@ class RedisFlatDict(MutableMapping[str, T]):
                 split_key = deserialized_key.split(":", 1)
             except AttributeError:
                 split_key = k.split(":", 1)
+            if self.is_garbage(split_key[0]):
+                continue
             yield split_key[0]
 
     def __contains__(self, key: str) -> bool:
-        """Return ``True`` if *key* is present, else ``False``."""
+        """Return ``True`` if *key* is present and not garbage,
+        else ``False``.
+        """
         composite_key = self._make_composite_key(key)
-        return bool(self.redis.exists(composite_key))
+        return bool(self.redis.exists(composite_key)) and \
+               not self.is_garbage(key)
 
     def __getitem__(self, key: str) -> T:
         """Return the item of dictionary with key *key:type*. Raises a
-        :exc:`KeyError` if *key:type* is not in the map.
+        :exc:`KeyError` if *key:type* is not in the map or the object is
+        garbage
         """
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
@@ -237,10 +242,14 @@ class RedisFlatDict(MutableMapping[str, T]):
         if serialized_value is None:
             raise KeyError(composite_key)
 
-        value = self.serde.deserialize(serialized_value)
-        return value
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(serialized_value)
+        if proto_wrapper.is_garbage:
+            raise KeyError("Key %s is garbage" % key)
 
-    def __setitem__(self, key: str, value: T) -> bool:
+        return self.serde.deserialize(serialized_value)
+
+    def __setitem__(self, key: str, value: T) -> Any:
         """Set ``d[key:type]`` to *value*."""
         if ':' in key:
             raise ValueError("Key %s cannot contain ':' char" % key)
@@ -263,19 +272,17 @@ class RedisFlatDict(MutableMapping[str, T]):
 
     def get(self, key: str) -> Optional[T]:
         """Get ``d[key:type]`` from dictionary.
-        Returns None if *key:type* is not in the map"""
-        if ':' in key:
-            raise ValueError("Key %s cannot contain ':' char" % key)
-        composite_key = self._make_composite_key(key)
-        serialized_value = self.redis.get(composite_key)
-        if serialized_value is None:
+        Returns None if *key:type* is not in the map
+        """
+        try:
+            return self.__getitem__(key)
+        except (KeyError, ValueError):
             return None
-
-        return self.serde.deserialize(serialized_value)
 
     def clear(self) -> None:
         """
-        Clear all keys in the dictionary
+        Clear all keys in the dictionary. Objects are immediately deleted
+        (i.e. not garbage collected)
         """
         for key in self.keys():
             composite_key = self._make_composite_key(key)
@@ -294,11 +301,65 @@ class RedisFlatDict(MutableMapping[str, T]):
         proto_wrapper.ParseFromString(value)
         return proto_wrapper.version
 
-    def keys(self):
+    def keys(self) -> List[str]:
         """Return a copy of the dictionary's list of keys
         Note: for redis *key:type* key is returned
         """
         return list(self.__iter__())
+
+    def mark_as_garbage(self, key: str) -> Any:
+        """Mark ``d[key:type]`` for garbage collection
+        Raises a KeyError if *key:type* is not in the map.
+        """
+        composite_key = self._make_composite_key(key)
+        value = self.redis.get(composite_key)
+        if value is None:
+            raise KeyError(composite_key)
+
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(value)
+        proto_wrapper.is_garbage = True
+        garbage_serialized = proto_wrapper.SerializeToString()
+        return self.redis.set(composite_key, garbage_serialized)
+
+    def is_garbage(self, key: str) -> bool:
+        """Return if d[key:type] has been marked for garbage collection.
+        Raises a KeyError if *key:type* is not in the map.
+        """
+        composite_key = self._make_composite_key(key)
+        value = self.redis.get(composite_key)
+        if value is None:
+            raise KeyError(composite_key)
+
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(value)
+        return proto_wrapper.is_garbage
+
+    def garbage_keys(self) -> List[str]:
+        """Return a copy of the dictionary's list of keys that are garbage
+        Note: for redis *key:type* key is returned
+        """
+        garbage_keys = []
+        type_pattern = "*:" + self.redis_type
+        for k in self.redis.keys(pattern=type_pattern):
+            try:
+                deserialized_key = k.decode('utf-8')
+                split_key = deserialized_key.split(":", 1)
+            except AttributeError:
+                split_key = k.split(":", 1)
+            if not self.is_garbage(split_key[0]):
+                continue
+            garbage_keys.append(split_key[0])
+        return garbage_keys
+
+    def delete_garbage(self, key) -> bool:
+        """Remove ``d[key:type]`` from dictionary iff the object is garbage
+        Returns False if *key:type* is not in the map
+        """
+        if not self.is_garbage(key):
+            return False
+        count = self.__delitem__(key)
+        return count > 0
 
     def lock(self, key: str) -> Lock:
         """Lock the dictionary for key *key*"""

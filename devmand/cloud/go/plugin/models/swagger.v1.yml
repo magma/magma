@@ -522,7 +522,7 @@ paths:
           description: Configuration of the Symphony device create
           required: true
           schema:
-            $ref: '#/definitions/symphony_device'
+            $ref: '#/definitions/mutable_symphony_device'
       responses:
         '201':
           description: Success
@@ -555,7 +555,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/symphony_device'
+            $ref: '#/definitions/mutable_symphony_device'
       responses:
         '204':
           description: Success
@@ -584,9 +584,9 @@ paths:
         - $ref: '#/parameters/device_id'
       responses:
         '200':
-          description: The description of the agent
+          description: The name of the Symphony device
           schema:
-            $ref: '#/definitions/symphony_device_id'
+            $ref: '#/definitions/symphony_device_name'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -601,6 +601,39 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/symphony_device_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /symphony/{network_id}/devices/{device_id}/config:
+    get:
+      summary: Get the config of a Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: The config of the device
+          schema:
+            $ref: '#/definitions/symphony_device_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the whole config of a Symphony device
+      tags:
+        - Symphony Devices
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/device_id'
+        - name: name
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/symphony_device_config'
       responses:
         '204':
           description: Success
@@ -715,6 +748,8 @@ definitions:
       - id
       - name
       - config
+      - managing_agent
+      - state
     properties:
       id:
         $ref: '#/definitions/symphony_device_id'
@@ -722,6 +757,31 @@ definitions:
         $ref: '#/definitions/symphony_device_name'
       config:
         $ref: '#/definitions/symphony_device_config'
+      managing_agent:
+        $ref: '#/definitions/symphony_device_agent'
+      state:
+        $ref: '#/definitions/symphony_device_state'
+  mutable_symphony_device:
+    description: A Symphony device with the read-only fields omitted
+    type: object
+    required:
+      - id
+      - name
+      - config
+    properties:
+      id:
+        $ref: '#/definitions/symphony_device_id'
+      name:
+        $ref: '#/definitions/symphony_device_name'
+      config:
+        $ref: '#/definitions/symphony_device_config'
+      managing_agent:
+        $ref: '#/definitions/symphony_device_agent'
+  symphony_device_agent:
+    type: string
+    x-nullable: false
+    pattern: '^$|^[a-z][\da-z_]+$'
+    example: gw1
   symphony_device_id:
     description: The id of a Symphony device
     type: string

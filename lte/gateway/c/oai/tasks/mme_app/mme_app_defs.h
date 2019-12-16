@@ -39,6 +39,7 @@
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
+#include "emm_proc.h"
 
 int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
   const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP);
@@ -57,17 +58,13 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_cancel_location_req_t *const clr_pP);
 
-int mme_app_handle_nas_pdn_connectivity_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_pdn_connectivity_req_t *const nas_pdn_connectivity_req_p);
-
 int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
   itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
 
-void mme_app_handle_detach_req(mme_app_desc_t *mme_app_desc_p,
-    const itti_nas_detach_req_t *const detach_req_p);
+void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id);
 
-void mme_app_handle_sgs_detach_req(mme_app_desc_t *mme_app_desc_p,
-  const itti_nas_sgs_detach_req_t *const sgs_detach_req_p);
+void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+  emm_proc_sgs_detach_type_t detach_type);
 
 int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
   const const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p);
@@ -75,8 +72,8 @@ int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t *mme_app_desc_p,
   const const itti_sgsap_imsi_detach_ack_t *const imsi_detach_ack_p);
 
-void mme_app_handle_conn_est_cnf(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_conn_est_cnf_t *const nas_conn_est_cnf_pP);
+void mme_app_handle_conn_est_cnf(
+  nas_establish_rsp_t* const nas_conn_est_cnf_pP);
 
 void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_initial_ue_message_t *const conn_est_ind_pP);
@@ -203,7 +200,7 @@ int mme_app_send_sgsap_service_request(
   uint8_t service_indicator,
   struct ue_mm_context_s *ue_context_p);
 
-int mme_app_send_nas_detach_request(
+int mme_app_handle_nw_initiated_detach_request(
   mme_ue_s1ap_id_t ue_id,
   uint8_t detach_type);
 
@@ -264,9 +261,6 @@ int handle_csfb_s1ap_procedure_failure(
   char *failed_statement,
   uint8_t failed_procedure);
 
-void mme_app_handle_nas_tau_complete(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_tau_complete_t *itti_nas_tau_complete_p);
-
 int mme_app_handle_sgsap_service_abort_request(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p);
 
@@ -298,6 +292,10 @@ void mme_app_handle_delete_dedicated_bearer_rej(mme_app_desc_t *mme_app_desc_p,
   itti_mme_app_delete_dedicated_bearer_rej_t
   *const delete_dedicated_bearer_rej);
 
+void mme_app_handle_pdn_disconnect_req(
+  mme_app_desc_t *mme_app_desc_p,
+  itti_mme_app_pdn_disconnect_req_t *const mme_app_pdn_disconnect_req);
+
 void mme_app_handle_path_switch_request(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_path_switch_request_t *const path_switch_req_p);
 
@@ -311,6 +309,11 @@ void mme_app_handle_path_switch_req_ack(
 
 void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
+
+void mme_app_update_paging_tai_list(
+  paging_tai_list_t* p_tai_list,
+  partial_tai_list_t* tai_list,
+  uint8_t num_of_tac);
 
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)

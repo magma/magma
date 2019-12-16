@@ -22,9 +22,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin/handlers"
-	models2 "orc8r/devmand/cloud/go/plugin/models"
-	dmh "orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
+	"orc8r/devmand/cloud/go/plugin/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand
@@ -47,11 +45,8 @@ func (*DevmandOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 // GetSerdes gets the devmand serializers and deserializers
 func (*DevmandOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		state.NewStateSerde(devmand.SymphonyDeviceStateType, &models2.SymphonyDeviceState{}),
-
-		configurator.NewNetworkEntityConfigSerde(devmand.DevmandGatewayType, &models.GatewayDevmandConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(devmand.DeviceType, &models.ManagedDevice{}),
-		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models2.SymphonyDeviceConfig{}),
+		state.NewStateSerde(devmand.SymphonyDeviceStateType, &models.SymphonyDeviceState{}),
+		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models.SymphonyDeviceConfig{}),
 	}
 }
 
@@ -69,7 +64,6 @@ func (*DevmandOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.Confi
 // GetObsidianHandlers gets the devmand obsidian handlers
 func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		dmh.GetObsidianHandlers(),
 		handlers.GetHandlers(),
 	)
 }

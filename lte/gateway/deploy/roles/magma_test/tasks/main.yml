@@ -6,9 +6,8 @@
     state: present
     line: "{{ item }}"
   with_items:
-    - TIP_REPO={{ tip_repo }}
-    - S1AP_ROOT={{ s1aptester_root }}
-    - S1AP_SRC={{ s1aptester_src }}
+    - S1AP_TESTER_ROOT={{ s1ap_tester_root }}
+    - S1AP_TESTER_SRC={{ s1ap_tester_src }}
     - GATEWAY_NAME={{ gateway_name }}
     - GATEWAY_IP={{ gateway_ip }}
     - GATEWAY_PORT={{ gateway_port }}
@@ -20,14 +19,14 @@
   when: full_provision
 
 - name: Set up S1AP tester build directory
-  file: path={{ s1aptester_root }}/bin state=directory recurse=yes
+  file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
   when: full_provision
 
 - name: Set a convenience function for starting the S1AP tester
   lineinfile: >
     dest=/home/{{ ansible_user }}/.bashrc
     state=present
-    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
+    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
   when: full_provision
 
 - name: Add integ test scripts to path
@@ -41,14 +40,24 @@
     - build_s1_tester.sh
   when: full_provision
 
-- name: Install s1aptester code
-  shell: "{{ test_scripts }}/install_s1_tester.sh"
+- name: Clone s1aptester code
+  shell: "{{ test_scripts }}/clone_s1_tester.sh"
   args:
     executable: /bin/bash
   environment:
     MAGMA_ROOT: "{{ magma_root }}"
-    S1AP_SRC: "{{ s1aptester_src }}"
-    S1AP_ROOT: "{{ s1aptester_root }}"
+    S1AP_TESTER_SRC: "{{ s1ap_tester_src }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
+  when: full_provision
+
+- name: Build s1aptester code
+  shell: "{{ test_scripts }}/build_s1_tester.sh"
+  args:
+    executable: /bin/bash
+  environment:
+    MAGMA_ROOT: "{{ magma_root }}"
+    S1AP_TESTER_SRC: "{{ s1ap_tester_src }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
 # pip3 is busted on Debian Jessie so run in virtualenv.
@@ -64,7 +73,7 @@
 - name: Generate python types from C headers
   command: "/tmp/virtualenv/bin/python3.5 {{ test_scripts }}/c_parser.py"
   environment:
-    S1AP_ROOT: "{{ s1aptester_root }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
 - name: Install MySQL client for OAI upstreaming

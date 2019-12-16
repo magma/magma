@@ -59,11 +59,19 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 	mconfigOut["control_proxy"] = &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	mconfigOut["metricsd"] = &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO}
 
+	// TODO: wire through throttle config to REST API
+	// For now, set throttle rate based on the following calculations:
+	// Average per-line payload 200B, 1000 messages/minute gives a rough
+	// data usage of 10GB/month for log data.
 	mconfigOut["td-agent-bit"] = &mconfig.FluentBit{
 		ExtraTags: map[string]string{
 			"network_id": networkID,
 			"gateway_id": gatewayID,
 		},
+
+		ThrottleRate:     1000,
+		ThrottleWindow:   5,
+		ThrottleInterval: "1m",
 	}
 
 	return nil

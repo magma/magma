@@ -501,48 +501,52 @@ int nas_proc_deregister_ue(mme_ue_s1ap_id_t ue_id)
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res)
+int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
-
-  emm_sap.primitive = EMMCN_PDN_CONFIG_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = emm_cn_pdn_config_res;
+  emm_cn_ula_success_t emm_cn_ula_success = {0};
+  emm_cn_ula_success.ue_id = ue_id;
+  emm_sap.primitive = EMMCN_ULA_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_ula_success = &emm_cn_ula_success;
   OAILOG_INFO(
-    LOG_NAS,
-    "Received PDN CONFIG RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_config_res->ue_id);
+    LOG_NAS_ESM,
+    "Received S6a-Update Location Answer Success for ue_id = "
+     MME_UE_S1AP_ID_FMT "\n",
+    emm_cn_ula_success.ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *emm_cn_pdn_res)
+int nas_proc_cs_respose_success(
+  emm_cn_cs_response_success_t* cs_response_success)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_res = emm_cn_pdn_res;
+  emm_sap.primitive = EMMCN_CS_RESPONSE_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
   OAILOG_INFO(
-    LOG_NAS,
-    "Received PDN CONNECTIVITY RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_res->ue_id);
+    LOG_NAS_ESM,
+    "Handle Create Session Response Success at NAS for ue_id = "
+    MME_UE_S1AP_ID_FMT "\n",
+    cs_response_success->ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_fail(emm_cn_pdn_fail_t *emm_cn_pdn_fail)
+int nas_proc_ula_or_csrsp_fail(emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_FAIL;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_fail = emm_cn_pdn_fail;
+  emm_sap.primitive = EMMCN_ULA_OR_CSRSP_FAIL;
+  emm_sap.u.emm_cn.u.emm_cn_ula_or_csrsp_fail = ula_or_csrsp_fail;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -588,7 +592,7 @@ int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id)
 
 //------------------------------------------------------------------------------
 int nas_proc_nw_initiated_detach_ue_request(
-  itti_nas_nw_initiated_detach_ue_req_t *const nw_initiated_detach_p)
+  emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
@@ -1093,5 +1097,35 @@ int nas_proc_notify_service_reject(
       "procedure for ue-id:%u \n",
       service_reject_p->ue_id);
   }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    nas_proc_pdn_disconnect_rsp                                   **
+ **                                                                        **
+ ** Description: Processes _pdn_disconnect_rsp received from MME APP       **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **      emm_cn_pdn_disconnect_rsp : The received message from MME APP     **
+ **                                                                        **
+ ** Outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
+int nas_proc_pdn_disconnect_rsp(
+  emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
+
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "Received pdn_disconnect_rsp for ue id %u\n",
+    emm_cn_pdn_disconnect_rsp->ue_id);
+  emm_sap.primitive = EMMCN_PDN_DISCONNECT_RES;
+  emm_sap.u.emm_cn.u.emm_cn_pdn_disconnect_rsp = emm_cn_pdn_disconnect_rsp;
+  rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

@@ -143,9 +143,18 @@ func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOpt
 	if err != nil {
 		return nil, err
 	}
+	// First try to get an existing connection with reader lock
+	registry.RLock()
+	conn, ok := registry.serviceConnections[service]
+	registry.RUnlock()
+	if ok && conn != nil {
+		return conn, nil
+	}
+
 	registry.Lock()
 	defer registry.Unlock()
-	conn, ok := registry.serviceConnections[service]
+	// Re-check after taking the lock
+	conn, ok = registry.serviceConnections[service]
 	if ok && conn != nil {
 		return conn, nil
 	}

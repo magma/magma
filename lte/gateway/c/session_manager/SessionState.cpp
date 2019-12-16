@@ -57,7 +57,7 @@ void SessionState::add_used_credit(
     curr_state_ = SESSION_TERMINATING_FLOW_ACTIVE;
   }
 
-  uint32_t charging_key;
+  CreditKey charging_key;
   if (session_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
     charging_pool_.add_used_credit(charging_key, used_tx, used_rx);
   }

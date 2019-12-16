@@ -27,7 +27,7 @@ class PingDevice : public Device {
   PingDevice(PingDevice&&) = delete;
   PingDevice& operator=(PingDevice&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

@@ -17,7 +17,7 @@ using grpc::Status;
 namespace magma {
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
-  LocalEnforcer *enforcer):
+  std::shared_ptr<LocalEnforcer> enforcer):
   enforcer_(enforcer)
 {
 }

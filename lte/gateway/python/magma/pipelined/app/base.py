@@ -6,6 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+from enum import Enum
+
 from ryu import utils
 from ryu.base import app_manager
 from ryu.controller import dpset
@@ -19,6 +21,12 @@ from ryu.ofproto import ofproto_v1_4
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.metrics import OPENFLOW_ERROR_MSG
 from magma.pipelined.openflow.exceptions import MagmaOFError
+
+
+class ControllerType(Enum):
+    PHYSICAL = 1
+    LOGICAL = 2
+    SPECIAL = 3
 
 
 class MagmaController(app_manager.RyuApp):

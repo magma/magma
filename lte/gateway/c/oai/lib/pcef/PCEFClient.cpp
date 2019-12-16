@@ -41,28 +41,9 @@ class SubscriberID;
 }  // namespace lte
 }  // namespace magma
 
-#define CAPTIVE_PORTAL_SERVICE "captive_portal"
 #define MAGMAD_SERVICE "magmad"
 
 using grpc::Status;
-
-static bool captive_portal_enabled()
-{
-  magma::mconfig::MagmaD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(MAGMAD_SERVICE, &mconfig)) {
-    std::cout << "[ERROR] Unable to load mconfig for mme, using default" << std::endl;
-    return false;
-  }
-  for (int i = 0; i < mconfig.dynamic_services_size(); ++i) {
-    const auto &service_name = mconfig.dynamic_services(i);
-    if (service_name == CAPTIVE_PORTAL_SERVICE) {
-      std::cout << "[DEBUG] Captive portal enabled." << std::endl;
-      return true;
-    }
-  }
-  return false;
-}
 
 namespace magma {
 
@@ -76,13 +57,8 @@ PCEFClient::PCEFClient()
 {
   // Create channel
   std::shared_ptr<Channel> channel;
-  if (captive_portal_enabled()) {
-    channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      CAPTIVE_PORTAL_SERVICE, ServiceRegistrySingleton::LOCAL);
-  } else {
-    channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "sessiond", ServiceRegistrySingleton::LOCAL);
-  }
+channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+  "sessiond", ServiceRegistrySingleton::LOCAL);
   // Create stub for LocalSessionManager gRPC service
   stub_ = LocalSessionManager::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
@@ -110,7 +86,7 @@ void PCEFClient::create_session(
 }
 
 void PCEFClient::end_session(
-  const SubscriberID &request,
+  const LocalEndSessionRequest &request,
   std::function<void(Status, LocalEndSessionResponse)> callback)
 {
   PCEFClient &client = get_instance();

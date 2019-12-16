@@ -15,6 +15,7 @@ import (
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
@@ -23,7 +24,6 @@ import (
 	orcprotos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/gateway/mconfig"
 
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -52,9 +52,9 @@ func (p *MockPolicyClient) IgnoreAnswer(request *gx.CreditControlRequest) {
 	return
 }
 
-func (p *MockPolicyClient) EnableConnections() {
+func (p *MockPolicyClient) EnableConnections() error {
 	p.Called()
-	return
+	return nil
 }
 
 func (p *MockPolicyClient) DisableConnections(period time.Duration) {
@@ -66,9 +66,11 @@ type MockPolicyDBClient struct {
 	mock.Mock
 }
 
-func (client *MockPolicyDBClient) GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]uint32, error) {
+func (client *MockPolicyDBClient) GetChargingKeysForRules(
+	ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]policydb.ChargingKey, error) {
+
 	args := client.Called(ruleIDs)
-	return args.Get(0).([]uint32), args.Error(1)
+	return args.Get(0).([]policydb.ChargingKey), args.Error(1)
 }
 
 func (client *MockPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []string {
@@ -97,9 +99,9 @@ func (cc *MockCreditClient) IgnoreAnswer(request *gy.CreditControlRequest) {
 	return
 }
 
-func (cc *MockCreditClient) EnableConnections() {
+func (cc *MockCreditClient) EnableConnections() error {
 	cc.Called()
-	return
+	return nil
 }
 
 func (cc *MockCreditClient) DisableConnections(period time.Duration) {
@@ -213,7 +215,8 @@ func TestStartSessionGyFail(t *testing.T) {
 		}
 	}).Once()
 
-	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]uint32{1}, nil).Once()
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gy
 	mocks.gy.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
@@ -265,8 +268,11 @@ func standardUsageTest(
 			RedirectServerAddress: "http://www.example.com/",
 		}
 
-		var rg20 uint32 = 20
-		var rg21 uint32 = 21
+		var (
+			rg20 uint32 = 20
+			si20 uint32 = 201
+			rg21 uint32 = 21
+		)
 		activationTime := time.Unix(1, 0)
 		deactivationTime := time.Unix(2, 0)
 		ruleInstalls := []*gx.RuleInstallAVP{
@@ -277,6 +283,7 @@ func standardUsageTest(
 					&gx.RuleDefinition{
 						RuleName:            "dyn_rule_20",
 						RatingGroup:         &rg20,
+						ServiceIdentifier:   &si20,
 						Precedence:          100,
 						MonitoringKey:       &key1,
 						RedirectInformation: &redirect,
@@ -307,7 +314,15 @@ func standardUsageTest(
 
 	// send rating groups back
 	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]uint32{1, 2, 10, 11, 11, 20, 21}, nil).Once()
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{
+			policydb.ChargingKey{RatingGroup: 1},
+			policydb.ChargingKey{RatingGroup: 2},
+			policydb.ChargingKey{RatingGroup: 10},
+			policydb.ChargingKey{RatingGroup: 11},
+			policydb.ChargingKey{RatingGroup: 11},
+			policydb.ChargingKey{RatingGroup: 20, ServiceIdTracking: true, ServiceIdentifier: 201},
+			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
 		mocks.gy.On(
@@ -368,6 +383,12 @@ func standardUsageTest(
 		assert.True(t, update.Success)
 		assert.Equal(t, IMSI1, update.Sid)
 		ratingGroups = append(ratingGroups, update.ChargingKey)
+		if update.ChargingKey == 20 {
+			assert.NotNil(t, update.ServiceIdentifier)
+			assert.Equal(t, uint32(201), update.GetServiceIdentifier().GetValue())
+		} else {
+			assert.Nil(t, update.ServiceIdentifier)
+		}
 		assert.Equal(t, uint64(2048), update.Credit.GrantedUnits.Total.Volume)
 		assert.True(t, update.Credit.GrantedUnits.Total.IsValid)
 		assert.False(t, update.Credit.GrantedUnits.Rx.IsValid)
@@ -580,9 +601,9 @@ func TestGxUsageMonitoring(t *testing.T) {
 		assert.Equal(t, IMSI1, update.Sid)
 		assert.Equal(t, protos.UsageMonitoringCredit_CONTINUE, update.Credit.Action)
 		assert.Equal(t, uint64(2048), update.Credit.GrantedUnits.Total.Volume)
-		if update.Credit.MonitoringKey == "mkey" {
+		if string(update.Credit.MonitoringKey) == "mkey" {
 			assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
-		} else if update.Credit.MonitoringKey == "mkey2" {
+		} else if string(update.Credit.MonitoringKey) == "mkey2" {
 			assert.Equal(t, protos.MonitoringLevel_PCC_RULE_LEVEL, update.Credit.Level)
 		} else {
 			assert.True(t, false)
@@ -611,13 +632,79 @@ func TestGxUsageMonitoring(t *testing.T) {
 	assert.Nil(t, update.Credit.GrantedUnits)
 	assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
 
+	// Test that static rule install avp in CCA-Update by rule names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{"static1", "static2"}, []string{})).Times(1)
+
+	ruleInstallUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "static1", update.StaticRulesToInstall[0].RuleId)
+	assert.Equal(t, "static2", update.StaticRulesToInstall[1].RuleId)
+
+	// Test that static rule install avp in CCA-Update by rule base names gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
+	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
+
+	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "base_rule_1", update.StaticRulesToInstall[0].RuleId)
+	assert.Equal(t, "base_rule_2", update.StaticRulesToInstall[1].RuleId)
+
+	// Test that dynamic rule install avp in CCA-Update gets propagated properly
+	mocks.gx.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
+	).Return(nil).Run(returnDynamicRuleInstallGxUpdateResponse).Times(1)
+
+	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
+			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		},
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Equal(t, 1, len(ruleInstallUpdateResponse.UsageMonitorResponses))
+	update = ruleInstallUpdateResponse.UsageMonitorResponses[0]
+	assert.True(t, update.Success)
+	assert.Equal(t, IMSI1, update.Sid)
+	assert.Nil(t, update.Credit.GrantedUnits)
+	assert.Equal(t, "dyn_rule_20", update.DynamicRulesToInstall[0].PolicyRule.Id)
+
 	// Test that rule remove avp in CCA-Update by rule names gets propagated properly
 	mocks.gx.On(
 		"SendCreditControlRequest",
 		mock.Anything,
 		mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
-	).Return(nil).Run(returnRuleDisableByRuleNameGxUpdateResponse).Times(1)
+	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule1", "rule2"}, []string{})).Times(1)
 
 	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
@@ -638,7 +725,7 @@ func TestGxUsageMonitoring(t *testing.T) {
 		mock.Anything,
 		mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(credit_control.CRTUpdate)),
-	).Return(nil).Run(returnRuleDisableByBaseNameGxUpdateResponse).Times(1)
+	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{}, []string{"base_10"})).Times(1)
 	mocks.policydb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
 
 	ruleDisableUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
@@ -774,7 +861,7 @@ func createUsageMonitoringRequest(
 		Update: &protos.UsageMonitorUpdate{
 			BytesTx:       1024,
 			BytesRx:       2048,
-			MonitoringKey: monitoringKey,
+			MonitoringKey: []byte(monitoringKey),
 			Level:         monitoringLevel,
 		},
 		SessionId:     fmt.Sprintf("%s-1234", sid),
@@ -800,14 +887,17 @@ func returnDefaultGyResponse(args mock.Arguments) {
 	done := args.Get(1).(chan interface{})
 	request := args.Get(2).(*gy.CreditControlRequest)
 	credits := make([]*gy.ReceivedCredits, 0, len(request.Credits))
+
 	for _, credit := range request.Credits {
 		credits = append(credits, &gy.ReceivedCredits{
-			RatingGroup:  credit.RatingGroup,
-			GrantedUnits: &credit_control.GrantedServiceUnit{TotalOctets: &units},
-			ValidityTime: 3600,
-			ResultCode:   uint32(diameter.SuccessCode),
+			RatingGroup:       credit.RatingGroup,
+			ServiceIdentifier: credit.ServiceIdentifier,
+			GrantedUnits:      &credit_control.GrantedServiceUnit{TotalOctets: &units},
+			ValidityTime:      3600,
+			ResultCode:        uint32(diameter.SuccessCode),
 		})
 	}
+
 	done <- &gy.CreditControlAnswer{
 		ResultCode:    uint32(diameter.SuccessCode),
 		SessionID:     request.SessionID,
@@ -901,7 +991,34 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 	}
 }
 
-func returnRuleDisableByRuleNameGxUpdateResponse(args mock.Arguments) {
+func getRuleInstallGxUpdateResponse(ruleNames, baseNames []string) func(mock.Arguments) {
+	return func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+		for _, report := range request.UsageReports {
+			monitors = append(monitors, &gx.UsageMonitoringInfo{
+				MonitoringKey:      report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+				Level:              report.Level,
+			})
+		}
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+			UsageMonitors: monitors,
+			RuleInstallAVP: []*gx.RuleInstallAVP{
+				{
+					RuleNames:     ruleNames,
+					RuleBaseNames: baseNames,
+				},
+			},
+		}
+	}
+}
+
+func returnDynamicRuleInstallGxUpdateResponse(args mock.Arguments) {
 	done := args.Get(1).(chan interface{})
 	request := args.Get(2).(*gx.CreditControlRequest)
 	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
@@ -912,40 +1029,52 @@ func returnRuleDisableByRuleNameGxUpdateResponse(args mock.Arguments) {
 			Level:              report.Level,
 		})
 	}
+	activationTime := time.Unix(1, 0)
+	deactivationTime := time.Unix(2, 0)
 	done <- &gx.CreditControlAnswer{
 		ResultCode:    uint32(diameter.SuccessCode),
 		SessionID:     request.SessionID,
 		RequestNumber: request.RequestNumber,
 		UsageMonitors: monitors,
-		RuleRemoveAVP: []*gx.RuleRemoveAVP{
-			{
-				RuleNames: []string{"rule1", "rule2"},
+		RuleInstallAVP: []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleDefinitions: []*gx.RuleDefinition{
+					&gx.RuleDefinition{
+						RuleName: "dyn_rule_20",
+						//RatingGroup: swag.Uint32(20),
+					},
+				},
+				RuleActivationTime:   &activationTime,
+				RuleDeactivationTime: &deactivationTime,
 			},
 		},
 	}
 }
 
-func returnRuleDisableByBaseNameGxUpdateResponse(args mock.Arguments) {
-	done := args.Get(1).(chan interface{})
-	request := args.Get(2).(*gx.CreditControlRequest)
-	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
-	for _, report := range request.UsageReports {
-		monitors = append(monitors, &gx.UsageMonitoringInfo{
-			MonitoringKey:      report.MonitoringKey,
-			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
-			Level:              report.Level,
-		})
-	}
-	done <- &gx.CreditControlAnswer{
-		ResultCode:    uint32(diameter.SuccessCode),
-		SessionID:     request.SessionID,
-		RequestNumber: request.RequestNumber,
-		UsageMonitors: monitors,
-		RuleRemoveAVP: []*gx.RuleRemoveAVP{
-			{
-				RuleBaseNames: []string{"base_10"},
+func getRuleDisableGxUpdateResponse(ruleNames []string, ruleBaseNames []string) func(mock.Arguments) {
+	return func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
+		for _, report := range request.UsageReports {
+			monitors = append(monitors, &gx.UsageMonitoringInfo{
+				MonitoringKey:      report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+				Level:              report.Level,
+			})
+		}
+		done <- &gx.CreditControlAnswer{
+			ResultCode:    uint32(diameter.SuccessCode),
+			SessionID:     request.SessionID,
+			RequestNumber: request.RequestNumber,
+			UsageMonitors: monitors,
+			RuleRemoveAVP: []*gx.RuleRemoveAVP{
+				{
+					RuleNames:     ruleNames,
+					RuleBaseNames: ruleBaseNames,
+				},
 			},
-		},
+		}
 	}
 }
 
@@ -969,6 +1098,38 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		policydb: &MockPolicyDBClient{},
 	}
 
+	// send static rules back
+	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+		activationTime := time.Unix(1, 0)
+		deactivationTime := time.Unix(2, 0)
+		ruleInstalls := []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleNames:            []string{"static_rule_1"},
+				RuleActivationTime:   &activationTime,
+				RuleDeactivationTime: &deactivationTime,
+			},
+		}
+
+		done <- &gx.CreditControlAnswer{
+			ResultCode:     uint32(diameter.SuccessCode),
+			SessionID:      request.SessionID,
+			RequestNumber:  request.RequestNumber,
+			RuleInstallAVP: ruleInstalls,
+		}
+	}).Once()
+
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
+
+	mocks.gy.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+	).Return(nil).Run(returnGySuccessNoRatingGroup).Once()
+
 	cfg := getTestConfig(gy.PerKeyInit)
 	cfg.UseGyForAuthOnly = true
 	srv := servicers.NewCentralSessionController(
@@ -977,8 +1138,15 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		mocks.policydb,
 		cfg,
 	)
-
-	standardUsageTest(t, srv, mocks, gy.PerKeyInit)
+	ctx := context.Background()
+	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.NoError(t, err)
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
@@ -1007,7 +1175,8 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 			RuleInstallAVP: ruleInstalls,
 		}
 	}).Once()
-	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]uint32{}, nil).Once()
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{}, nil).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
 	mocks.gy.On(
@@ -1034,87 +1203,6 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	})
 	mocks.gx.AssertExpectations(t)
 	assert.NoError(t, err)
-}
-
-func TestSessionControllerUseGyForAuthOnlyFail(t *testing.T) {
-	mocks := &sessionMocks{
-		gy:       &MockCreditClient{},
-		gx:       &MockPolicyClient{},
-		policydb: &MockPolicyDBClient{},
-	}
-
-	// Send back DIAMETER_SUCCESS (2001) from gx
-	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
-		done := args.Get(1).(chan interface{})
-		request := args.Get(2).(*gx.CreditControlRequest)
-
-		activationTime := time.Unix(1, 0)
-		deactivationTime := time.Unix(2, 0)
-		ruleInstalls := []*gx.RuleInstallAVP{
-			&gx.RuleInstallAVP{
-				RuleNames: []string{"static_rule_1"},
-				RuleDefinitions: []*gx.RuleDefinition{
-					&gx.RuleDefinition{
-						RuleName:    "dyn_rule_20",
-						RatingGroup: swag.Uint32(20),
-					},
-				},
-				RuleActivationTime:   &activationTime,
-				RuleDeactivationTime: &deactivationTime,
-			},
-		}
-
-		done <- &gx.CreditControlAnswer{
-			ResultCode:     uint32(diameter.SuccessCode),
-			SessionID:      request.SessionID,
-			RequestNumber:  request.RequestNumber,
-			RuleInstallAVP: ruleInstalls,
-		}
-	}).Once()
-	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]uint32{1, 20}, nil).Once()
-
-	// return success for CCA but Diameter-Rating-Failed for Multiple-Services-Credit-Control
-	mocks.gy.On(
-		"SendCreditControlRequest",
-		mock.Anything,
-		mock.Anything,
-		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
-	).Return(nil).Run(returnGyMSCCDiameterRatingFailed).Once()
-
-	cfg := getTestConfig(gy.PerKeyInit)
-	cfg.UseGyForAuthOnly = true
-	srv := servicers.NewCentralSessionController(
-		mocks.gy,
-		mocks.gx,
-		mocks.policydb,
-		cfg,
-	)
-	ctx := context.Background()
-	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
-		SessionId: "00101-1234",
-	})
-	mocks.gx.AssertExpectations(t)
-	assert.Error(t, err)
-}
-
-func returnGyMSCCDiameterRatingFailed(args mock.Arguments) {
-	done := args.Get(1).(chan interface{})
-	request := args.Get(2).(*gy.CreditControlRequest)
-	credits := make([]*gy.ReceivedCredits, 0, len(request.Credits))
-	for _ = range request.Credits {
-		credits = append(credits, &gy.ReceivedCredits{
-			ResultCode: diameter.DiameterRatingFailed,
-		})
-	}
-	done <- &gy.CreditControlAnswer{
-		ResultCode:    uint32(diameter.SuccessCode),
-		SessionID:     request.SessionID,
-		RequestNumber: request.RequestNumber,
-		Credits:       credits,
-	}
 }
 
 func returnGySuccessNoRatingGroup(args mock.Arguments) {

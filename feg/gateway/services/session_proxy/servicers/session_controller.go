@@ -96,6 +96,10 @@ func (srv *CentralSessionController) CreateSession(
 		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
 	}
 
+	if srv.cfg.UseGyForAuthOnly {
+		return srv.handleUseGyForAuthOnly(imsi, request, gxCCAInit)
+	}
+
 	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
 	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
 	if err != nil {
@@ -105,7 +109,7 @@ func (srv *CentralSessionController) CreateSession(
 	keys = removeDuplicateChargingKeys(keys)
 	credits := []*protos.CreditUpdateResponse{}
 
-	if len(keys) > 0 || srv.cfg.UseGyForAuthOnly {
+	if len(keys) > 0 {
 		if srv.cfg.InitMethod == gy.PerSessionInit {
 			_, err = srv.sendSingleCreditRequest(getCCRInitRequest(imsi, request))
 			metrics.UpdateGyRecentRequestMetrics(err)
@@ -127,18 +131,6 @@ func (srv *CentralSessionController) CreateSession(
 		}
 		credits = getInitialCreditResponsesFromCCA(gyCCAInit, gyCCRInit)
 
-		if srv.cfg.UseGyForAuthOnly {
-			// For this case we want all Multiple-Services-Credit-Control
-			// diameter code to succeed as well.
-			for _, credit := range credits {
-				if credit.ResultCode != diameter.SuccessCode {
-					err = fmt.Errorf("Received unsuccessful result code from OCS in the MSCC: %v "+
-						"for session: %s, IMSI: %s", credit.ResultCode, request.SessionId, imsi)
-					glog.Errorf("Failed to send second single credit request: %s", err)
-					return nil, err
-				}
-			}
-		}
 		metrics.OcsCcrInitRequests.Inc()
 	}
 
@@ -146,21 +138,49 @@ func (srv *CentralSessionController) CreateSession(
 		srv.dbClient,
 		gxCCAInit.RuleInstallAVP,
 	)
+
 	return &protos.CreateSessionResponse{
 		Credits:       credits,
 		StaticRules:   staticRules,
 		DynamicRules:  dynamicRules,
-		UsageMonitors: getUsageMonitorsFromCCA(imsi, sessionID, gxCCAInit),
+		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, sessionID, gxCCAInit),
 	}, nil
 }
 
-func removeDuplicateChargingKeys(keysIn []uint32) []uint32 {
-	keysOut := []uint32{}
-	keyMap := make(map[uint32]bool)
+func (srv *CentralSessionController) handleUseGyForAuthOnly(
+	imsi string,
+	pReq *protos.CreateSessionRequest,
+	gxCCAInit *gx.CreditControlAnswer,
+) (*protos.CreateSessionResponse, error) {
+	gyCCRInit := getCCRInitRequest(imsi, pReq)
+	_, err := srv.sendSingleCreditRequest(gyCCRInit)
+	metrics.UpdateGyRecentRequestMetrics(err)
+	if err != nil {
+		metrics.OcsCcrInitSendFailures.Inc()
+		glog.Errorf("Failed to send second single credit request: %s", err)
+		return nil, err
+	}
+	metrics.OcsCcrInitRequests.Inc()
+
+	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
+		srv.dbClient,
+		gxCCAInit.RuleInstallAVP,
+	)
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, pReq.SessionId, gxCCAInit)
+	return &protos.CreateSessionResponse{
+		StaticRules:   staticRules,
+		DynamicRules:  dynamicRules,
+		UsageMonitors: usageMonitors,
+	}, nil
+}
+
+func removeDuplicateChargingKeys(keysIn []policydb.ChargingKey) []policydb.ChargingKey {
+	keysOut := []policydb.ChargingKey{}
+	keyMap := make(map[policydb.ChargingKey]struct{})
 	for _, k := range keysIn {
 		if _, ok := keyMap[k]; !ok {
 			keysOut = append(keysOut, k)
-			keyMap[k] = true
+			keyMap[k] = struct{}{}
 		}
 	}
 	return keysOut
@@ -249,14 +269,19 @@ func (srv *CentralSessionController) Disable(
 	return &orcprotos.Void{}, nil
 }
 
-// Enable enables diameter connection creation
-// If creation is already enabled, Enable has no effect
+// Enable enables diameter connection creation and gets a connection to the
+// diameter server(s). If creation is already enabled and a connection already
+// exists, Enable has no effect
 func (srv *CentralSessionController) Enable(
 	ctx context.Context,
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
-	srv.policyClient.EnableConnections()
-	srv.creditClient.EnableConnections()
+	pcErr := srv.policyClient.EnableConnections()
+	ccErr := srv.creditClient.EnableConnections()
+	if pcErr != nil || ccErr != nil {
+		return &orcprotos.Void{}, fmt.Errorf("An error occurred while enabling connections; policyClient err: %s, creditClient err: %s",
+			pcErr, ccErr)
+	}
 	return &orcprotos.Void{}, nil
 }
 

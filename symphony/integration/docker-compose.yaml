@@ -1,0 +1,190 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  frontier:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: frontier/Dockerfile
+    environment:
+      INVENTORY_TARGET: http://inventory:8080
+      PROXY_TARGET: http://platform-server
+      KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
+    env_file: &env_files
+      - conf/log.env
+      - conf/census.env
+    networks:
+      - public
+      - private
+    healthcheck:
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
+    ports:
+      - 8082:80
+
+  platform-server:
+    build:
+      context: ${XPLAT_FBC_DIR}
+      dockerfile: fbcnms-projects/platform-server/Dockerfile
+    environment:
+      API_HOST: ${MAGMA_API_HOST:-api-staging.magma.etagecom.io}
+      API_CERT_FILENAME: /magma_certs/${MAGMA_API_AUTH:-}api_cert
+      API_PRIVATE_KEY_FILENAME: /magma_certs/${MAGMA_API_AUTH:-}api_key
+      PORT: 80
+      MYSQL_HOST: mysql
+      MYSQL_DB: auth
+      MYSQL_USER: root
+      MYSQL_PASS: root
+      SESSION_TOKEN: bgnllrfbcldunrbefllrnegehrflvlvn
+      FB_TEST_USER: fbuser@fb.com
+    networks:
+      - public
+      - private
+    depends_on:
+      - mysql
+    healthcheck:
+      test: "curl -If -H \"Host: fb-test.localhost\" localhost/healthz"
+      interval: "10s"
+      timeout: "3s"
+    restart: on-failure
+
+  inventory:
+    build:
+      context: ${XPLAT_FBC_DIR}
+      dockerfile: fbcnms-projects/inventory/Dockerfile
+    networks:
+      - public
+      - private
+    healthcheck:
+      test: "curl -If localhost:8080"
+    restart: on-failure
+
+  graph:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: graph/Dockerfile
+    image: integration_graph
+    environment:
+      GQL_DEBUG: 1
+      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true
+      ORC8R_HOST: ${ORC8R_API_HOSTNAME:-api-staging.magma.etagecom.io}
+      ORC8R_CERT: /magma_certs/${ORC8R_API_CERT:-}api_cert
+      ORC8R_PKEY: /magma_certs/${ORC8R_API_PRIVATE_KEY:-}api_key
+    env_file: *env_files
+    networks:
+      - private
+      - public
+    volumes:
+      - ${HOME}/magma_certs:/magma_certs:ro
+    depends_on:
+      - migrate
+      - mysql
+    healthcheck:
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
+
+  migrate:
+    image: integration_graph
+    entrypoint: /bin/migrate
+    command: "-db-dsn=root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true"
+    networks:
+      - private
+    depends_on:
+      - mysql
+    restart: on-failure
+
+  store:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: store/Dockerfile
+    environment:
+      S3_ENDPOINT: fb-test.thesymphony.cloud:9000
+      S3_BUCKET: store.blobs
+      S3_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+      AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
+    env_file: *env_files
+    networks:
+      - private
+    healthcheck:
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
+
+  docs:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony/docs
+    ports:
+      - 8090:80
+    networks:
+      - private
+      - public
+    healthcheck:
+      test: curl -Ifk http://localhost/healthz
+    restart: on-failure
+
+  fluentd:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony/integration/fluentd
+    networks:
+      - private
+    volumes:
+      - ${PWD}/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro
+    restart: on-failure
+
+  nginx:
+    build:
+      context: nginx
+    ports:
+      - 443:443
+      - 9000:9000
+    networks:
+      public:
+        aliases:
+          - fb-test.thesymphony.cloud
+      private:
+        aliases:
+          - fb-test.thesymphony.cloud
+    healthcheck:
+      test: curl -Ifk https://localhost/healthz
+    restart: on-failure
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: auth
+    volumes:
+      - ${PWD}/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: mysqladmin ping -proot
+    networks:
+      - private
+    restart: on-failure
+
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
+    networks:
+      - private
+    entrypoint: sh
+    command: -c 'mkdir -p /data/store.blobs && /usr/bin/minio server /data'
+    restart: on-failure
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - 16686:16686
+    networks:
+      - public
+      - private
+    restart: on-failure
+
+networks:
+  public:
+  private:
+    internal: true

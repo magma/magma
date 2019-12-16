@@ -34,6 +34,14 @@ struct enb_description_s;
 #define S1AP_TIMER_INACTIVE_ID (-1)
 #define S1AP_UE_CONTEXT_REL_COMP_TIMER 1 // in seconds
 
+typedef struct s1ap_state_s {
+  // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
+  hash_table_ts_t enbs;
+  // contains sctp association id, key is mme_ue_s1ap_id
+  hash_table_ts_t mmeid2associd;
+  uint32_t num_enbs;
+} s1ap_state_t;
+
 enum s1_timer_class_s {
   S1AP_INVALID_TIMER_CLASS,
   S1AP_ENB_TIMER,
@@ -95,6 +103,27 @@ typedef struct ue_description_s {
   struct s1ap_timer_t s1ap_ue_context_rel_timer;
 } ue_description_t;
 
+/* Maximum no. of Broadcast PLMNs. Value is 6
+ * 3gpp spec 36.413 section-9.1.8.4
+ */
+#define S1AP_MAX_BROADCAST_PLMNS 6
+/* Maximum TAI Items configured, can be upto 256 */
+#define S1AP_MAX_TAI_ITEMS 16
+
+/* Supported TAI items includes TAC and Broadcast PLMNs */
+typedef struct supported_tai_items_s {
+  uint16_t tac;            ///< Supported TAC value
+  uint8_t bplmnlist_count; ///< Number of Broadcast PLMNs in the TAI
+  plmn_t bplmns[S1AP_MAX_BROADCAST_PLMNS]; ///< List of Broadcast PLMNS
+} supported_tai_items_t;
+
+/* Supported TAs by eNB received in S1 Setup request message */
+typedef struct supported_ta_list_s {
+  uint8_t list_count; ///< Number of TAIs in the list
+  supported_tai_items_t
+    supported_tai_items[S1AP_MAX_TAI_ITEMS]; ///< List of TAIs
+} supported_ta_list_t;
+
 /* Main structure representing eNB association over s1ap
  * Generated (or updated) every time a new S1SetupRequest is received.
  */
@@ -107,6 +136,7 @@ typedef struct enb_description_s {
   char enb_name[150];         ///< Printable eNB Name
   uint32_t enb_id;            ///< Unique eNB ID
   uint8_t default_paging_drx; ///< Default paging DRX interval for eNB
+  supported_ta_list_t supported_ta_list; ///< Supported TAs by eNB
   /*@}*/
 
   /** UE list for this eNB **/

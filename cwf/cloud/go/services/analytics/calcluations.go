@@ -47,9 +47,9 @@ type XAPCalculation struct {
 // past X days and have used over `thresholdBytes` data in that time
 func (x *XAPCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, error) {
 	// List the users who have had an active session over the last X days
-	uniqueUsersQuery := fmt.Sprintf(`count(max_over_time(active_sessions[%dd]) >= 1) by (imsi)`, x.Days)
+	uniqueUsersQuery := fmt.Sprintf(`count(max_over_time(active_sessions[%dd]) >= 1) by (imsi,networkID)`, x.Days)
 	// List the users who have used at least x.ThresholdBytes of data in the last X days
-	usersOverThresholdQuery := fmt.Sprintf(`count(sum(increase(octets_in[%dd])) by (imsi) > %d)`, x.Days, x.ThresholdBytes)
+	usersOverThresholdQuery := fmt.Sprintf(`count(sum(increase(octets_in[%dd])) by (imsi,networkID) > %d) by (imsi,networkID)`, x.Days, x.ThresholdBytes)
 	// Count the users who match both conditions
 	intersectionQuery := fmt.Sprintf(`count(%s and %s) by (%s)`, uniqueUsersQuery, usersOverThresholdQuery, metrics.NetworkLabelName)
 
@@ -151,7 +151,7 @@ type UserConsumptionCalculation struct {
 }
 
 func (x *UserConsumptionCalculation) Calculate(prometheusClient PrometheusAPI) ([]Result, error) {
-	consumptionQuery := fmt.Sprintf(`sum(increase(octets_%s[%dd]) by (%s)`, x.Direction, x.Days, metrics.NetworkLabelName)
+	consumptionQuery := fmt.Sprintf(`sum(increase(octets_%s[%dd])) by (%s)`, x.Direction, x.Days, metrics.NetworkLabelName)
 
 	vec, err := queryPrometheusVector(prometheusClient, consumptionQuery)
 	if err != nil {

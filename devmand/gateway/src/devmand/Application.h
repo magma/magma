@@ -22,20 +22,22 @@
 #include <devmand/UnifiedView.h>
 #include <devmand/cartography/Cartographer.h>
 #include <devmand/channels/Engine.h>
+#include <devmand/channels/cli/engine/Engine.h>
 #include <devmand/channels/packet/Engine.h>
 #include <devmand/channels/ping/Engine.h>
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/devices/Device.h>
 #include <devmand/devices/Factory.h>
+#include <devmand/syslog/Manager.h>
 
 namespace devmand {
 
 using Services = std::list<std::unique_ptr<Service>>;
 using ChannelEngines = std::set<std::unique_ptr<channels::Engine>>;
-using Devices = std::map<devices::Id, std::unique_ptr<devices::Device>>;
+using Devices = std::map<devices::Id, std::shared_ptr<devices::Device>>;
 using IPVersion = channels::ping::IPVersion;
 
-class Application final : public MetricSink {
+class Application : public MetricSink {
  public:
   Application();
   virtual ~Application() = default;
@@ -45,13 +47,14 @@ class Application final : public MetricSink {
   Application& operator=(Application&&) = delete;
 
  public:
+  void init();
   void run();
   int status() const;
 
   void add(const cartography::DeviceConfig& deviceConfig);
   void del(const cartography::DeviceConfig& deviceConfig);
 
-  void add(std::unique_ptr<devices::Device>&& device);
+  void add(std::shared_ptr<devices::Device>&& device);
   void add(std::unique_ptr<Service>&& service);
 
   void addPlatform(
@@ -93,6 +96,9 @@ class Application final : public MetricSink {
   channels::snmp::Engine& getSnmpEngine();
   channels::ping::Engine& getPingEngine(IPVersion ipv = IPVersion::v4);
   channels::ping::Engine& getPingEngine(folly::IPAddress ip);
+  channels::cli::Engine& getCliEngine();
+
+  syslog::Manager& getSyslogManager();
 
  private:
   void pollDevices();
@@ -140,6 +146,7 @@ class Application final : public MetricSink {
   channels::snmp::Engine* snmpEngine;
   channels::ping::Engine* pingEngine;
   channels::ping::Engine* pingEngineIpv6;
+  channels::cli::Engine* cliEngine;
 
   /*
    * A config writer for dhcpd.
@@ -159,6 +166,8 @@ class Application final : public MetricSink {
    * to discover devices on the network.
    */
   cartography::Cartographer cartographer;
+
+  syslog::Manager syslogManager;
 
   static constexpr auto name = "devmand";
   static constexpr auto version = "0.0";

@@ -38,7 +38,7 @@ type CreditClient interface {
 		request *CreditControlRequest,
 	) error
 	IgnoreAnswer(request *CreditControlRequest)
-	EnableConnections()
+	EnableConnections() error
 	DisableConnections(period time.Duration)
 }
 
@@ -49,16 +49,18 @@ type ReAuthHandler func(request *ReAuthRequest) *ReAuthAnswer
 // over Gy
 type GyClient struct {
 	diamClient *diameter.Client
+	serverCfg  *diameter.DiameterServerConfig
 }
 
 var (
 	apnOverwrite      string
-	serviceIdentifier int = -1
+	serviceIdentifier int64 = -1
 )
 
 // NewGyClient contructs a new GyClient with the magma diameter settings
 func NewConnectedGyClient(
 	diamClient *diameter.Client,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
@@ -68,7 +70,7 @@ func NewConnectedGyClient(
 	siStr := diameter.GetValueOrEnv(OCSServiceIdentifierFlag, OCSServiceIdentifierEnv, "")
 	if len(siStr) > 0 {
 		var err error
-		serviceIdentifier, err = strconv.Atoi(siStr)
+		serviceIdentifier, err = strconv.ParseInt(siStr, 10, 0)
 		if err != nil {
 			serviceIdentifier = -1
 		}
@@ -80,21 +82,22 @@ func NewConnectedGyClient(
 			true,
 			credit_control.NewASRHandler(diamClient, cloudRegistry))
 	}
-	return &GyClient{diamClient: diamClient}
+	return &GyClient{
+		diamClient: diamClient,
+		serverCfg:  serverCfg,
+	}
 }
 
 // NewGyClient contructs a new GyClient with the magma diameter settings
 func NewGyClient(
 	clientCfg *diameter.DiameterClientConfig,
-	servers []*diameter.DiameterServerConfig,
+	serverCfg *diameter.DiameterServerConfig,
 	reAuthHandler ReAuthHandler,
 	cloudRegistry registry.CloudRegistry,
 ) *GyClient {
 	diamClient := diameter.NewClient(clientCfg)
-	for _, server := range servers {
-		diamClient.BeginConnection(server)
-	}
-	return NewConnectedGyClient(diamClient, reAuthHandler, cloudRegistry)
+	diamClient.BeginConnection(serverCfg)
+	return NewConnectedGyClient(diamClient, serverCfg, reAuthHandler, cloudRegistry)
 }
 
 // SendCreditControlRequest sends a Credit Control Request to the
@@ -149,8 +152,9 @@ func (gyClient *GyClient) IgnoreAnswer(request *CreditControlRequest) {
 	)
 }
 
-func (gyClient *GyClient) EnableConnections() {
+func (gyClient *GyClient) EnableConnections() error {
 	gyClient.diamClient.EnableConnectionCreation()
+	return gyClient.diamClient.BeginConnection(gyClient.serverCfg)
 }
 
 func (gyClient *GyClient) DisableConnections(period time.Duration) {
@@ -215,14 +219,9 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.EventTimestamp, avp.Mbit, 0, datatype.Time(time.Now()))
 	m.NewAVP(avp.AuthApplicationID, avp.Mbit, 0, datatype.Unsigned32(diam.CHARGING_CONTROL_APP_ID))
 	m.NewAVP(avp.CCRequestType, avp.Mbit, 0, datatype.Enumerated(request.Type))
-	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(ServiceContextIDDefault))
+	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(gyClient.diamClient.ServiceContextId()))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
-	m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
-		AVP: []*diam.AVP{
-			diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(credit_control.EndUserIMSI)),
-			diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(request.IMSI)),
-		},
-	})
+
 	// Always add MSISDN (TASA requirement) if it's provided by AGW
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
@@ -232,6 +231,13 @@ func (gyClient *GyClient) createCreditControlMessage(
 			},
 		})
 	}
+
+	m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.SubscriptionIDType, avp.Mbit, 0, datatype.Enumerated(credit_control.EndUserIMSI)),
+			diam.NewAVP(avp.SubscriptionIDData, avp.Mbit, 0, datatype.UTF8String(request.IMSI)),
+		},
+	})
 
 	if len(request.Imei) > 0 {
 		m.NewAVP(avp.UserEquipmentInfo, 0, 0, &diam.GroupedAVP{
@@ -254,7 +260,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginHost(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginRealm(), request.SessionID))))
 
 	return m, nil
 }
@@ -265,13 +271,17 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	svcInfoGrp := []*diam.AVP{}
 	csAddr, _, _ := net.SplitHostPort(server.Addr)
 
+	ratType := request.RatType
+	if len(ratType) == 0 {
+		ratType = RAT_TYPE_EUTRAN
+	}
 	psInfoAvps := []*diam.AVP{
 		// Set PDP Type as IPV4(0)
 		diam.NewAVP(avp.TGPPPDPType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0)),
-		// Argentina TZ (UTC-3hrs) TODO: Make it configurable
-		diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
-		// Set RAT Type as EUTRAN(6)-3GPP TS 29.274
-		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString("\x06")),
+		// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
+		// diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
+		// Set RAT Type as EUTRAN(6). See 3GPP TS 29.274, 8.17 "Table 8.17-1: RAT Type values"
+		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ratType)),
 		// Set it to 0
 		diam.NewAVP(avp.TGPPSelectionMode, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String("0")),
 		diam.NewAVP(avp.TGPPNSAPI, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString("5")),
@@ -306,7 +316,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with current TASA OCS*********************
+	/********************** TBD - doesn't work with some OCSes *********************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -336,7 +346,12 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	}
 	if serviceIdentifier >= 0 {
 		avpGroup = append(
-			avpGroup, diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
+			avpGroup,
+			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(serviceIdentifier)))
+	} else if credits.ServiceIdentifier != nil {
+		avpGroup = append(
+			avpGroup,
+			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(*credits.ServiceIdentifier)))
 	}
 
 	/*** Altamira OCS needs empty RSU ***/
@@ -381,10 +396,11 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 	creditList := make([]*ReceivedCredits, 0, len(cca.CreditControl))
 	for _, mscc := range cca.CreditControl {
 		receivedCredits := &ReceivedCredits{
-			ResultCode:   mscc.ResultCode,
-			GrantedUnits: &mscc.GrantedServiceUnit,
-			ValidityTime: mscc.ValidityTime,
-			RatingGroup:  mscc.RatingGroup,
+			ResultCode:        mscc.ResultCode,
+			GrantedUnits:      &mscc.GrantedServiceUnit,
+			ValidityTime:      mscc.ValidityTime,
+			RatingGroup:       mscc.RatingGroup,
+			ServiceIdentifier: mscc.ServiceIdentifier,
 		}
 		if mscc.FinalUnitIndication != nil {
 			receivedCredits.IsFinal = true

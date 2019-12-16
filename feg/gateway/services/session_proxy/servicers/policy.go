@@ -136,14 +136,18 @@ func getPolicyRulesFromDefinitions(ruleDefs []*gx.RuleDefinition) []*protos.Poli
 	return policyRules
 }
 
-func getUsageMonitorsFromCCA(imsi string, sessionID string, gxCCA *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
-	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCA.UsageMonitors))
-	for _, monitor := range gxCCA.UsageMonitors {
+func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
+	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
+	// If there is a message wide revalidation time, apply it to every Usage Monitor
+	triggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
+	for _, monitor := range gxCCAInit.UsageMonitors {
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
-			Credit:    gx.GetUsageMonitorCreditFromAVP(monitor),
-			SessionId: sessionID,
-			Sid:       addSidPrefix(imsi),
-			Success:   true,
+			Credit:           gx.GetUsageMonitorCreditFromAVP(monitor),
+			SessionId:        sessionID,
+			Sid:              addSidPrefix(imsi),
+			Success:          true,
+			EventTriggers:    triggers,
+			RevalidationTime: revalidationTime,
 		})
 	}
 	return monitors
@@ -170,7 +174,7 @@ func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest
 
 func getGxUsageReportFromUsageUpdate(update *protos.UsageMonitorUpdate) *gx.UsageReport {
 	return &gx.UsageReport{
-		MonitoringKey: update.MonitoringKey,
+		MonitoringKey: string(update.MonitoringKey),
 		Level:         gx.MonitoringLevel(update.Level),
 		InputOctets:   update.BytesTx,
 		OutputOctets:  update.BytesRx, // receive == output
@@ -292,7 +296,7 @@ func addMissingGxResponses(
 			SessionId: ccr.SessionID,
 			Sid:       addSidPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
-				MonitoringKey: ccr.UsageReports[0].MonitoringKey,
+				MonitoringKey: []byte(ccr.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
 			},
 		})
@@ -303,19 +307,29 @@ func addMissingGxResponses(
 
 // getSingleUsageMonitorResponseFromCCA creates a UsageMonitoringUpdateResponse proto from a CCA
 func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) *protos.UsageMonitoringUpdateResponse {
+	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
+		srv.dbClient,
+		answer.RuleInstallAVP,
+	)
+	rulesToRemove := gx.ParseRuleRemoveAVPs(
+		srv.dbClient,
+		answer.RuleRemoveAVP,
+	)
 	res := &protos.UsageMonitoringUpdateResponse{
-		Success:       answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
-		SessionId:     request.SessionID,
-		Sid:           addSidPrefix(request.IMSI),
-		ResultCode:    answer.ResultCode,
-		RulesToRemove: srv.getRulesToRemoveFromAVP(answer.RuleRemoveAVP),
+		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
+		SessionId:             request.SessionID,
+		Sid:                   addSidPrefix(request.IMSI),
+		ResultCode:            answer.ResultCode,
+		RulesToRemove:         rulesToRemove,
+		StaticRulesToInstall:  staticRules,
+		DynamicRulesToInstall: dynamicRules,
 	}
 	if len(answer.UsageMonitors) == 0 {
 		glog.Infof("No usage monitor response in CCA for subscriber %s", request.IMSI)
 		res.Credit =
 			&protos.UsageMonitoringCredit{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: request.UsageReports[0].MonitoringKey,
+				MonitoringKey: []byte(request.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
 		res.Credit = gx.GetUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
@@ -326,15 +340,4 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 		answer.RevalidationTime,
 	)
 	return res
-}
-
-func (srv *CentralSessionController) getRulesToRemoveFromAVP(rulesToRemoveAVP []*gx.RuleRemoveAVP) []string {
-	var ruleNames []string
-	for _, rule := range rulesToRemoveAVP {
-		ruleNames = append(ruleNames, rule.RuleNames...)
-		if len(rule.RuleBaseNames) > 0 {
-			ruleNames = append(ruleNames, srv.dbClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
-		}
-	}
-	return ruleNames
 }

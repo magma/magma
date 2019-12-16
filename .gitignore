@@ -15,8 +15,9 @@ Session.vim
 __pycache__/
 *.py[cod]
 # Virtual environments
-.env
+.env/
 .coverage
+.python-version
 
 # C extensions
 *.so
@@ -70,3 +71,7 @@ orc8r/cloud/helm/**/.secrets/
 
 # Certs for accessing the cloud
 .certs
+
+# Clion config
+devmand/gateway/.idea/
+devmand/gateway/cmake-build-debug/

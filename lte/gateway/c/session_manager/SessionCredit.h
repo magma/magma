@@ -10,11 +10,13 @@
 
 #include <ctime>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "ServiceAction.h"
+#include "CreditKey.h"
 
 namespace magma {
 
@@ -81,6 +83,11 @@ class SessionCredit {
   SessionCredit(CreditType credit_type);
 
   SessionCredit(CreditType credit_type, ServiceState start_state);
+
+  SessionCredit(
+    CreditType credit_type,
+    ServiceState start_state,
+    bool unlimited_quota);
 
   /**
    * add_used_credit increments USED_TX and USED_RX
@@ -184,6 +191,7 @@ class SessionCredit {
  private:
   bool reporting_;
   bool is_final_;
+  bool unlimited_quota_;
   FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
   ServiceState service_state_;

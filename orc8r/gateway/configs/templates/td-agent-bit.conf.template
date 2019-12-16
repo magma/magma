@@ -49,6 +49,7 @@
     Tag gateway.mme
     DB /var/opt/magma/fluent-bit/fluent-bit-tail.db
     Refresh_Interval 5
+    Key message
 
 [FILTER]
     Name grep
@@ -62,6 +63,13 @@
 {% for k, v in extra_tags %}
     Set {{k}} {{v}}
 {% endfor %}
+
+[FILTER]
+    Name     throttle
+    Match    *
+    Rate     {{ throttle_rate }}
+    Window   {{ throttle_window }}
+    Interval {{ throttle_interval}}
 
 [OUTPUT]
     Name          forward

@@ -66,14 +66,16 @@ type DiameterServerConfig struct {
 
 // DiameterClientConfig holds information for connecting with a diameter server
 type DiameterClientConfig struct {
-	Host             string // diameter host
-	Realm            string // diameter realm
-	ProductName      string
-	AppID            uint32
-	AuthAppID        uint32
-	Retransmits      uint
-	WatchdogInterval uint
-	RetryCount       uint // number of times to reconnect after connection lost
+	Host               string // diameter host
+	Realm              string // diameter realm
+	ProductName        string
+	AppID              uint32
+	AuthAppID          uint32
+	Retransmits        uint
+	WatchdogInterval   uint
+	RetryCount         uint // number of times to reconnect after connection lost
+	SupportedVendorIDs string
+	ServiceContextId   string
 }
 
 func (cfg *DiameterServerConfig) Validate() error {

@@ -44,7 +44,7 @@ class FrinxDevice : public Device {
   FrinxDevice(FrinxDevice&&) = delete;
   FrinxDevice& operator=(FrinxDevice&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 

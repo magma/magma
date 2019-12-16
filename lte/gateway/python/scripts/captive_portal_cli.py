@@ -19,22 +19,22 @@ from lte.protos.session_manager_pb2_grpc import CentralSessionControllerStub
 @grpc_wrapper
 def create_session(client, args):
     message = CreateSessionRequest()
-    client.CreateSession(message)
-    print('Successfully got a response from CreateSession')
+    resp = client.CreateSession(message)
+    print('Successfully got a response from CreateSession:\n', resp)
 
 
 @grpc_wrapper
 def update_session(client, args):
     message = UpdateSessionRequest()
-    client.UpdateSession(message)
-    print('Successfully got a response from UpdateSession')
+    resp = client.UpdateSession(message)
+    print('Successfully got a response from UpdateSession:\n', resp)
 
 
 @grpc_wrapper
 def terminate_session(client, args):
     message = SessionTerminateRequest()
-    client.TerminateSession(message)
-    print('Successfully got a response from TerminateSession')
+    resp = client.TerminateSession(message)
+    print('Successfully got a response from TerminateSession:\n', resp)
 
 
 def create_parser():
@@ -74,7 +74,7 @@ def main():
         exit(1)
 
     # Execute the subcommand function
-    args.func(args, CentralSessionControllerStub, 'captive_portal')
+    args.func(args, CentralSessionControllerStub, 'policydb')
 
 
 if __name__ == "__main__":

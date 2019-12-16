@@ -136,6 +136,14 @@ paths:
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - in: query
+          name: match
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+          description: Matcher for metric series query
+          required: false
+        - in: query
           name: start
           type: string
           description: start time of the requested range (UnixTime or RFC3339)

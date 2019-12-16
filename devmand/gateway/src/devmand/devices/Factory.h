@@ -31,11 +31,11 @@ class Factory final {
   Factory& operator=(Factory&&) = delete;
 
  public:
-  using PlatformBuilder = std::function<std::unique_ptr<devices::Device>(
+  using PlatformBuilder = std::function<std::shared_ptr<devices::Device>(
       Application& application,
       const cartography::DeviceConfig& deviceConfig)>;
 
-  std::unique_ptr<devices::Device> createDevice(
+  std::shared_ptr<devices::Device> createDevice(
       const cartography::DeviceConfig& deviceConfig);
 
   void addPlatform(

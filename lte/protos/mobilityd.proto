@@ -25,6 +25,11 @@ message IPAddress {
   bytes address = 2; // network byte order
 }
 
+message IPLookupRequest {
+  SubscriberID sid = 1;
+  string apn = 2;
+}
+
 // --------------------------------------------------------------------------
 // IP Block definition.
 //
@@ -54,6 +59,7 @@ message ListAddedIPBlocksResponse {
 message SubscriberIPTableEntry {
   SubscriberID sid = 1;
   IPAddress ip = 2;
+  string apn = 3;
 }
 
 message SubscriberIPTable {
@@ -66,6 +72,7 @@ message SubscriberIPTable {
 message AllocateIPRequest {
   // sid: SubscriberID an IP is allocated for
   // version: IP version requested
+  // apn: Access Point Name (e.g., "ims", "internet")
   SubscriberID sid = 1;
 
   enum IPVersion {
@@ -73,6 +80,7 @@ message AllocateIPRequest {
     IPV6 = 1;
   }
   IPVersion version = 2;
+  string apn = 3;
 }
 
 message ListAllocatedIPsResponse {
@@ -83,8 +91,10 @@ message ListAllocatedIPsResponse {
 message ReleaseIPRequest {
   // sid: SubscriberID associated with the IP address
   // ip: IP address to release
+  // apn: Access Point Name to release apn-specific IP address
   SubscriberID sid = 1;
   IPAddress ip = 2;
+  string apn = 3;
 }
 
 message RemoveIPBlockRequest {
@@ -130,7 +140,7 @@ service MobilityService {
   rpc ReleaseIPAddress (ReleaseIPRequest) returns (magma.orc8r.Void);
 
   // Gets subscriber's IP address. Throws NOT_FOUND if it doesn't exist
-  rpc GetIPForSubscriber (SubscriberID) returns (IPAddress);
+  rpc GetIPForSubscriber (IPLookupRequest) returns (IPAddress);
 
   // Gets subscriber's ID from an IP Address.
   // Throws NOT_FOUND if it doesn't exist

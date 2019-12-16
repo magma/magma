@@ -47,7 +47,7 @@ constexpr const char* checkConnectEpTemplate =
 constexpr const char* errorTemplate = "Error on endpoint {} ({})";
 constexpr const char* contentTypeJson = "application/json";
 
-std::unique_ptr<devices::Device> FrinxDevice::createDevice(
+std::shared_ptr<devices::Device> FrinxDevice::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;

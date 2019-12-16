@@ -113,7 +113,7 @@ int esm_proc_pdn_disconnect_request(
   /*
    * Get UE's ESM context
    */
-  if (emm_context->esm_ctx.n_active_pdns > 1) {
+  if (emm_context->esm_ctx.n_pdns > 1) {
     /*
      * Get the identifier of the PDN connection entry assigned to the
      * * * * procedure transaction identity

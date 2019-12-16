@@ -55,35 +55,38 @@ int get_assigned_ipv4_block(
   return status;
 }
 
-int allocate_ipv4_address(const char *subscriber_id, struct in_addr *addr)
+int allocate_ipv4_address(const char *subscriber_id, const char *apn,
+                          struct in_addr *addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
   MobilityServiceClient client(channel);
-  int status = client.AllocateIPv4Address(subscriber_id, addr);
+  int status = client.AllocateIPv4Address(subscriber_id, apn, addr);
   return status;
 }
 
-int release_ipv4_address(const char *subscriber_id, const struct in_addr *addr)
+int release_ipv4_address(const char *subscriber_id, const char *apn,
+                         const struct in_addr *addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
   MobilityServiceClient client(channel);
-  int status = client.ReleaseIPv4Address(subscriber_id, *addr);
+  int status = client.ReleaseIPv4Address(subscriber_id, apn, *addr);
   return status;
 }
 
 int get_ipv4_address_for_subscriber(
   const char *subscriber_id,
+  const char *apn,
   struct in_addr *addr)
 {
   const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
   const std::shared_ptr<Channel> channel =
     CreateChannel(MOBILITYD_ENDPOINT, cred);
   MobilityServiceClient client(channel);
-  int status = client.GetIPv4AddressForSubscriber(subscriber_id, addr);
+  int status = client.GetIPv4AddressForSubscriber(subscriber_id, apn, addr);
   return status;
 }
 

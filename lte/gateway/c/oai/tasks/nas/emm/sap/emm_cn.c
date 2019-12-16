@@ -51,6 +51,7 @@
 #include "3gpp_29.274.h"
 #include "3gpp_24.301.h"
 #include "mme_app_ue_context.h"
+#include "dynamic_memory_check.h"
 #include "emm_cn.h"
 #include "emm_sap.h"
 #include "emm_proc.h"
@@ -62,6 +63,7 @@
 #include "esm_sap.h"
 #include "service303.h"
 #include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"
 #include "mme_config.h"
 #include "3gpp_23.003.h"
@@ -76,6 +78,7 @@
 #include "esm_data.h"
 #include "esm_msg.h"
 #include "esm_sapDef.h"
+#include "mme_app_defs.h"
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
@@ -102,8 +105,8 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
 static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP);
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP);
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -112,9 +115,9 @@ static const char *_emm_cn_primitive_str[] = {
   "EMM_CN_AUTHENTICATION_PARAM_RES",
   "EMM_CN_AUTHENTICATION_PARAM_FAIL",
   "EMM_CN_DEREGISTER_UE",
-  "EMM_CN_PDN_CONFIG_RES",
-  "EMM_CN_PDN_CONNECTIVITY_RES",
-  "EMM_CN_PDN_CONNECTIVITY_FAIL",
+  "EMM_CN_ULA_SUCCESS",
+  "EMM_CN_CS_RESPONSE_SUCCESS",
+  "EMM_CN_ULA_OR_CSRSP_FAIL",
   "EMM_CN_ACTIVATE_DEDICATED_BEARER_REQ",
   "EMMCN_IMPLICIT_DETACH_UE",
   "EMMCN_SMC_PROC_FAIL",
@@ -123,6 +126,7 @@ static const char *_emm_cn_primitive_str[] = {
   "EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL",
   "EMMCN_MM_INFORMATION_REQUEST",
   "EMMCN_DEACTIVATE_BEARER_REQ",
+  "EMMCN_PDN_DISCONNECT_RES",
 };
 
 //------------------------------------------------------------------------------
@@ -221,13 +225,13 @@ static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
     "TODO deregister UE " MME_UE_S1AP_ID_FMT
     ", following procedure is a test\n",
     ue_id);
-  emm_detach_request_ies_t *params = calloc(1, sizeof(*params));
-  params->type = EMM_DETACH_TYPE_EPS;
-  params->switch_off = false;
-  params->is_native_sc = false;
-  params->ksi = 0;
+  emm_detach_request_ies_t params = {0};
+  params.type = EMM_DETACH_TYPE_EPS;
+  params.switch_off = false;
+  params.is_native_sc = false;
+  params.ksi = 0;
   increment_counter("ue_detach", 1, 1, "cause", "deregister_ue");
-  emm_proc_detach_request(ue_id, params);
+  emm_proc_detach_request(ue_id, &params);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
@@ -274,7 +278,7 @@ void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
+static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -282,7 +286,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   pdn_cid_t pdn_cid = 0;
   ebi_t new_ebi = 0;
-  bool is_pdn_connectivity = false;
+  bool is_pdn_context_exist_for_apn = false;
 
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -337,7 +341,7 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       (ue_mm_context->pdn_contexts[pdn_cid]) &&
       (ue_mm_context->pdn_contexts[pdn_cid]->context_identifier ==
        apn_config->context_identifier)) {
-      is_pdn_connectivity = true;
+      is_pdn_context_exist_for_apn = true;
       break;
     }
   }
@@ -394,8 +398,8 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
        * Create local default EPS bearer context
        */
       if (
-        (!is_pdn_connectivity) ||
-        ((is_pdn_connectivity) &&
+        (!is_pdn_context_exist_for_apn) ||
+        ((is_pdn_context_exist_for_apn) &&
          (EPS_BEARER_IDENTITY_UNASSIGNED ==
           ue_mm_context->pdn_contexts[pdn_cid]->default_ebi))) {
         rc = esm_proc_default_eps_bearer_context(
@@ -426,18 +430,12 @@ static int _emm_cn_pdn_config_res(emm_cn_pdn_config_res_t *msg_pP)
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
-    if (!is_pdn_connectivity) {
-      nas_itti_pdn_connectivity_req(
-        emm_ctx->esm_ctx.esm_proc_data->pti,
-        msg_pP->ue_id,
-        pdn_cid,
-        &emm_ctx->_imsi,
-        emm_ctx->_imeisv,
-        emm_ctx->esm_ctx.esm_proc_data,
-        emm_ctx->esm_ctx.esm_proc_data->request_type);
-    } else {
+    if (!is_pdn_context_exist_for_apn) {
+      if ((mme_app_send_s11_create_session_req(
+        mme_app_desc_p, ue_mm_context, pdn_cid)) == RETURNok) {
+        increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
+      }
     }
-
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
@@ -476,9 +474,9 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
     rc = emm_proc_sgs_detach_request(ue_id, EMM_SGS_NW_INITIATED_EPS_DETACH);
   }
 
+  emm_context_unlock(emm_ctx_p);
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -532,7 +530,7 @@ static int _is_csfb_enabled(struct emm_context_s *emm_ctx_p, bstring esm_data)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -566,6 +564,11 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
   }
 
   memset(&esm_msg, 0, sizeof(ESM_msg));
+
+  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
+    is_standalone = emm_ctx->esm_ctx.is_standalone;
+    emm_ctx->esm_ctx.is_standalone = false;
+  }
 
   switch (msg_pP->pdn_type) {
     case IPv4:
@@ -637,6 +640,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
+    bdestroy_wrapper(&msg_pP->pdn_addr);
     if (size > 0) {
       rsp = blk2bstr(emm_cn_sap_buffer, size);
     }
@@ -651,7 +655,7 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
       &rsp,
       triggered_by_ue);
 
-    if (rc != RETURNok) {
+    if ((rc != RETURNok) || (is_standalone)) {
       /*
        * Return indication that ESM procedure failed
        */
@@ -715,11 +719,11 @@ static int _emm_cn_pdn_connectivity_res(emm_cn_pdn_res_t *msg_pP)
 }
 
 //------------------------------------------------------------------------------
-static int _emm_cn_pdn_connectivity_fail(const emm_cn_pdn_fail_t *msg)
+static int _emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
-  struct emm_context_s *emm_ctx_p = NULL;
+  struct emm_context_s* emm_ctx_p = NULL;
   ESM_msg esm_msg = {.header = {0}};
   int esm_cause;
   emm_ctx_p = emm_context_get(&_emm_data, msg->ue_id);
@@ -1290,6 +1294,106 @@ static int _emm_cn_cs_domain_mm_information_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
+static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNok;
+  proc_tid_t pti;
+#define ESM_SAP_BUFFER_SIZE 4096
+  uint8_t esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
+  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
+  bstring rsp = NULL;
+
+  ESM_msg esm_msg = {0};
+
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, msg->ue_id);
+
+
+  pti = ue_mm_context_p->emm_context.esm_ctx.esm_proc_data->pti;
+  /*
+   * Build the ESM message to be sent to UE
+   */
+  rc = esm_send_deactivate_eps_bearer_context_request(
+    pti,
+    msg->lbi,
+    &esm_msg.deactivate_eps_bearer_context_request,
+    ESM_CAUSE_REGULAR_DEACTIVATION);
+
+  if (rc != RETURNok) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Building of deactivate_eps_bearer_context_request failed for bearer"
+      "%u\n",
+      msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+  /*
+   * Encode the ESM message
+   */
+  int size =
+    esm_msg_encode(&esm_msg, (uint8_t*) esm_sap_buffer, ESM_SAP_BUFFER_SIZE);
+
+  if (size > 0) {
+    rsp = blk2bstr(esm_sap_buffer, size);
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_EMM, "Message encoding failed for bearer %u\n", msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+
+  /*
+   * Send the ESM message
+   */
+  rc = esm_proc_eps_bearer_context_deactivate_request(
+    true /*standalone*/,
+    &ue_mm_context_p->emm_context,
+    msg->lbi,
+    &rsp,
+    true /*UE triggered*/);
+
+  if (rc != RETURNok) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "Processing eps_bearer_context_deactivate_request failed for bearer"
+      "%u\n",
+      msg->lbi);
+    unlock_ue_contexts(ue_mm_context_p);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  /*
+   * Execute the PDN disconnect procedure requested by the UE
+   */
+  int pid = esm_proc_pdn_disconnect_request(
+    &ue_mm_context_p->emm_context, pti, &esm_cause);
+
+  if (pid != RETURNerror) {
+    /*
+     * Release the associated default EPS bearer context
+     */
+    int bid = 0;
+    rc = esm_proc_eps_bearer_context_deactivate(
+      &ue_mm_context_p->emm_context,
+      false /* Release locally */,
+      msg->lbi,
+      &pid,
+      &bid,
+      &esm_cause);
+    if (rc != RETURNok) {
+      OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Processing bearer deactivation failed for ebi %u\n",
+        msg->lbi);
+    }
+  }
+  unlock_ue_contexts(ue_mm_context_p);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
 //------------------------------------------------------------------------------
 int emm_cn_send(const emm_cn_t *msg)
 {
@@ -1316,16 +1420,16 @@ int emm_cn_send(const emm_cn_t *msg)
       rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
-    case EMMCN_PDN_CONFIG_RES:
-      rc = _emm_cn_pdn_config_res(msg->u.emm_cn_pdn_config_res);
+    case EMMCN_ULA_SUCCESS:
+      rc = _emm_cn_ula_success(msg->u.emm_cn_ula_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_RES:
-      rc = _emm_cn_pdn_connectivity_res(msg->u.emm_cn_pdn_res);
+    case EMMCN_CS_RESPONSE_SUCCESS:
+      rc = _emm_cn_cs_response_success(msg->u.emm_cn_cs_response_success);
       break;
 
-    case EMMCN_PDN_CONNECTIVITY_FAIL:
-      rc = _emm_cn_pdn_connectivity_fail(msg->u.emm_cn_pdn_fail);
+    case EMMCN_ULA_OR_CSRSP_FAIL:
+      rc = _emm_cn_ula_or_csrsp_fail(msg->u.emm_cn_ula_or_csrsp_fail);
       break;
 
     case EMMCN_ACTIVATE_DEDICATED_BEARER_REQ:
@@ -1362,6 +1466,10 @@ int emm_cn_send(const emm_cn_t *msg)
    case EMMCN_DEACTIVATE_BEARER_REQ:
       rc = _emm_cn_deactivate_dedicated_bearer_req(
         msg->u.deactivate_dedicated_bearer_req);
+      break;
+
+    case EMMCN_PDN_DISCONNECT_RES:
+      rc = _emm_cn_pdn_disconnect_rsp(msg->u.emm_cn_pdn_disconnect_rsp);
       break;
 
     default:
