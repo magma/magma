@@ -147,7 +147,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(ctx context.Context) (err error) {
-		lParents, err = locationHierarchy(ctx, equipment, orderedLocTypes)
+		lParents, err = locationHierarchyForEquipment(ctx, equipment, orderedLocTypes)
 		return err
 	})
 	g.Go(func(ctx context.Context) (err error) {
