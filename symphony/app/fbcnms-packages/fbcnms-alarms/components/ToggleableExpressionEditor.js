@@ -83,9 +83,9 @@ export default function ToggleableExpressionEditor(props: {
   expression: ThresholdExpression,
   stringExpression: string,
   apiUtil: ApiUtil,
+  toggleOn: boolean,
+  onToggleChange: boolean => void,
 }) {
-  const [toggleOn, setToggleOn] = React.useState(false);
-
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
   const {response, error} = props.apiUtil.useAlarmsApi(
@@ -101,11 +101,11 @@ export default function ToggleableExpressionEditor(props: {
     <Grid container item xs={12}>
       <Grid item xs={12}>
         <ToggleSwitch
-          toggleOn={toggleOn}
-          onChange={({target}) => setToggleOn(target.checked)}
+          toggleOn={props.toggleOn}
+          onChange={({target}) => props.onToggleChange(target.checked)}
         />
       </Grid>
-      {toggleOn ? (
+      {props.toggleOn ? (
         <Grid item xs={4}>
           <AdvancedExpressionEditor
             onChange={props.onChange}
@@ -159,6 +159,15 @@ function ThresholdExpressionEditor(props: {
           {item}
         </MenuItem>
       ))}
+      {props.metricsByName[props.expression.metricName] ? (
+        ''
+      ) : (
+        <MenuItem
+          key={props.expression.metricName}
+          value={props.expression.metricName}>
+          {props.expression.metricName}
+        </MenuItem>
+      )}
     </Select>
   );
 
@@ -193,16 +202,12 @@ function ThresholdExpressionEditor(props: {
           <TextField
             value={props.expression.value}
             type="number"
-            InputLabelProps={{
-              shrink: true,
-            }}
             onChange={({target}) => {
               props.onChange({
                 ...props.expression,
                 value: parseFloat(target.value),
               });
             }}
-            margin="normal"
           />
         </Grid>
       </Grid>
@@ -213,7 +218,9 @@ function ThresholdExpressionEditor(props: {
           <></>
         )}
         <MetricFilters
-          metricSeries={props.metricsByName[props.expression.metricName]}
+          metricSeries={
+            props.metricsByName[(props.expression?.metricName)] || []
+          }
           expression={props.expression}
           onChange={props.onChange}
         />
@@ -277,13 +284,17 @@ function MetricFilter(props: {
   selectedLabel: string,
   selectedValue: string,
 }) {
+  const labelNames: Array<string> = [];
+  props.metricSeries.forEach(metric => {
+    labelNames.push(...Object.keys(metric));
+  });
+  labelNames.push(props.selectedLabel);
+
   return (
     <Grid container xs={12} spacing={1} alignItems="center">
       <Grid item>
         <FilterSelector
-          values={getFilteredListOfLabelNames([
-            ...new Set(...props.metricSeries.map(Object.keys)),
-          ])}
+          values={getFilteredListOfLabelNames([...new Set(labelNames)])}
           defaultVal="Label"
           onChange={({target}) => {
             const filtersCopy = props.expression.filters.copy();

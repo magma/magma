@@ -17,7 +17,9 @@ export const BINARY_COMPARATORS_MAP = {
   '<=': '<=',
   '>=': '>=',
 };
-const BINARY_COMPARATORS = Object.keys(BINARY_COMPARATORS_MAP);
+export const BINARY_COMPARATORS: Array<BinaryComparator> = Object.keys(
+  BINARY_COMPARATORS_MAP,
+);
 
 export type BinaryArithmetic = $Keys<typeof BINARY_ARITHMETIC_OPS_MAP>;
 export const BINARY_ARITHMETIC_OPS_MAP = {

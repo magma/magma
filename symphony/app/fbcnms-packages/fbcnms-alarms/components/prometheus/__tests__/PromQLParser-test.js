@@ -9,7 +9,7 @@
  */
 
 import * as PromQL from '../PromQL';
-import Parser from '../PromQLParser';
+import {Parse} from '../PromQLParser';
 import {Tokenize} from '../PromQLTokenizer';
 
 const testCases = [
@@ -399,12 +399,7 @@ describe('Tokenize', () => {
 describe('Parser', () => {
   test.each(testCases)('%s', (name, input, _, expected) => {
     if (expected !== null) {
-      const parser = Parser();
-      parser.feed(input);
-      // parser returns array of all possible parsing trees, so access the first
-      // element of results since this grammar should only produce 1 for each
-      // input
-      expect(parser.results[0]).toEqual(expected);
+      expect(Parse(input)).toEqual(expected);
     }
   });
 });

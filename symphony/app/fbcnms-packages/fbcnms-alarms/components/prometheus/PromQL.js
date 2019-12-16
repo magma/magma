@@ -151,6 +151,11 @@ export class Labels {
     return this;
   }
 
+  removeByName(name: string): Labels {
+    this.labels = this.labels.filter(label => label.name !== name);
+    return this;
+  }
+
   len(): number {
     return this.labels.length;
   }
