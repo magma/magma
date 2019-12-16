@@ -42,7 +42,7 @@ func (er equipmentRower) rows(ctx context.Context, url *url.URL) ([][]string, er
 		err             error
 		filterInput     []*models.EquipmentFilterInput
 		equipDataHeader = [...]string{bom + "Equipment ID", "Equipment Name", "Equipment Type"}
-		parentsHeader   = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
+		parentsHeader   = [...]string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -142,9 +142,8 @@ func paramToFilterInput(params string) ([]*models.EquipmentFilterInput, error) {
 
 func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string, propertyTypes []string) ([]string, error) {
 	var (
-		posName              string
 		lParents, properties []string
-		eParents             = make([]string, maxEquipmentParents)
+		eParents             = make([]string, maxEquipmentParents*2)
 	)
 	g := ctxgroup.WithContext(ctx)
 	g.Go(func(ctx context.Context) (err error) {
@@ -162,8 +161,7 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 		}
 		err = nil
 		if pos != nil {
-			posName = pos.QueryDefinition().OnlyX(ctx).Name
-			eParents = parentHierarchy(ctx, *equipment)
+			eParents = parentHierarchyWithAllPositions(ctx, *equipment)
 		}
 		return
 	})
@@ -173,7 +171,6 @@ func equipToSlice(ctx context.Context, equipment *ent.Equipment, orderedLocTypes
 	row := []string{equipment.ID, equipment.Name, equipment.QueryType().OnlyX(ctx).Name}
 	row = append(row, lParents...)
 	row = append(row, eParents...)
-	row = append(row, posName)
 	row = append(row, properties...)
 
 	return row, nil
