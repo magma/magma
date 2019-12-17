@@ -6,16 +6,20 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import time
+from typing import List
 from abc import ABCMeta, abstractmethod
+
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
     ActivateFlowsResult, ActivateFlowsRequest
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
-
-
-global_epoch = int(time.time())
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
+    DIRECTION_REG
+from magma.pipelined.openflow.messages import MsgChannel
+from magma.pipelined.policy_converters import FlowMatchError
 
 
 class PolicyMixin(metaclass=ABCMeta):
@@ -34,14 +38,87 @@ class PolicyMixin(metaclass=ABCMeta):
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
 
-    def setup_flows(self, request):
-        if request.epoch != global_epoch:
-            self.logger.warning(
-                "Received SetupFlowsRequest has outdated epoch - %d, current "
-                "epoch is - %d.", request.epoch, global_epoch)
-            return SetupFlowsResult(
-                result=SetupFlowsResult.OUTDATED_EPOCH)
-        return SetupFlowsResult(result=self.setup(request))
+    def setup(self, requests: List[ActivateFlowsRequest],
+              startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
+        """
+        Setup flows for subscribers, used on restart.
+
+        Args:
+            rules (List[OFPFlowStats]): list of subcriber policyrules
+        """
+        self.logger.debug('Setting up enforcer default rules')
+        remaining_flows = self._install_default_flows_if_not_installed(
+            self._datapath, startup_flows)
+
+        self.logger.debug('Startup flows before filtering -> %s',
+            [flow.match for flow in startup_flows])
+        extra_flows = self._add_missing_flows(requests, remaining_flows)
+
+        self.logger.debug('Startup flows after filtering will be deleted -> %s',
+            [flow.match for flow in startup_flows])
+        self._remove_extra_flows(extra_flows)
+
+        self.init_finished = True
+        return SetupFlowsResult.SUCCESS
+
+    def _remove_extra_flows(self, extra_flows):
+        msg_list = []
+        for flow in extra_flows:
+            if DIRECTION_REG in flow.match:
+                direction = Direction(flow.match.get(DIRECTION_REG, None))
+            else:
+                direction = None
+            match = MagmaMatch(imsi=flow.match.get(IMSI_REG, None),
+                direction=direction)
+            self.logger.debug('Sending msg for deletion -> %s',
+                flow.match.get('reg1', None))
+            msg_list.append(flows.get_delete_flow_msg(
+                self._datapath, self.tbl_num, match, cookie=flow.cookie,
+                cookie_mask=flows.OVS_COOKIE_MATCH_ALL))
+        if msg_list:
+            chan = self._msg_hub.send(msg_list, self._datapath)
+            self._wait_for_responses(chan, len(msg_list))
+
+    def _add_missing_flows(self, requests, current_flows):
+        msg_list = []
+        for add_flow_req in requests:
+            imsi = add_flow_req.sid.id
+            static_rule_ids = add_flow_req.rule_ids
+            dynamic_rules = add_flow_req.dynamic_rules
+
+            #TODO FIX REDIRECTION RECOVERY
+            #ip_addr = add_flow_req.ip_addr
+            for rule_id in static_rule_ids:
+                rule = self._policy_dict[rule_id]
+                if rule is None:
+                    self.logger.error("Could not find rule for rule_id: %s",
+                        rule_id)
+                    continue
+                try:
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+                    msg_list.extend(flow_adds)
+                except FlowMatchError:
+                    self.logger.error("Failed to verify rule_id: %s", rule_id)
+
+            for rule in dynamic_rules:
+                try:
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+                    msg_list.extend(flow_adds)
+                except FlowMatchError:
+                    self.logger.error("Failed to verify rule_id: %s", rule.id)
+
+            flow_add = self._get_default_flow_msg_for_subscriber(imsi)
+            if flow_add:
+                msg_list.append(flow_add)
+
+        msgs_to_send, remaining_flows = \
+            self._msg_hub.filter_msgs_if_not_in_flow_list(msg_list,
+                                                          current_flows)
+        if msgs_to_send:
+            chan = self._msg_hub.send(msgs_to_send, self._datapath)
+            self._wait_for_responses(chan, len(msgs_to_send))
+
+        return remaining_flows
 
     def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules):
         """
@@ -97,6 +174,19 @@ class PolicyMixin(metaclass=ABCMeta):
             self.logger.error("Could not find rule for rule_id: %s", rule_id)
             return RuleModResult.FAILURE
         return self._install_flow_for_rule(imsi, ip_addr, rule)
+
+    def _wait_for_responses(self, chan, response_count):
+        def fail(err):
+            #TODO need to rework setup to return all rule specific success/fails
+            self.logger.error("Failed to install rule for subscriber: %s", err)
+
+        for _ in range(response_count):
+            try:
+                result = chan.get()
+            except MsgChannel.Timeout:
+                return fail("No response from OVS")
+            if not result.ok():
+                return fail(result.exception())
 
     @abstractmethod
     def _install_flow_for_rule(self, imsi, ip_addr, rule):
