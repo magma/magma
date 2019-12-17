@@ -24,6 +24,7 @@ import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -237,22 +238,24 @@ const ServiceDetailsPanel = (props: Props) => {
           expansionPanelSummaryClassName={classes.expansionPanel}
           detailsPaneClass={classes.detailPane}
           className={classes.panel}>
-          {editableService.properties.map((property, index) => (
-            <PropertyValueInput
-              fullWidth
-              required={!!property.propertyType.isInstanceProperty}
-              disabled={!property.propertyType.isInstanceProperty}
-              label={property.propertyType.name}
-              className={classes.input}
-              margin="dense"
-              inputType="Property"
-              property={property}
-              // $FlowFixMe pass property and not property type
-              onChange={onChangeProperty(index)}
-              onBlur={onBlur}
-              headlineVariant="form"
-            />
-          ))}
+          <FormValidationContextProvider>
+            {editableService.properties.map((property, index) => (
+              <PropertyValueInput
+                fullWidth
+                required={!!property.propertyType.isMandatory}
+                disabled={!property.propertyType.isInstanceProperty}
+                label={property.propertyType.name}
+                className={classes.input}
+                margin="dense"
+                inputType="Property"
+                property={property}
+                // $FlowFixMe pass property and not property type
+                onChange={onChangeProperty(index)}
+                onBlur={onBlur}
+                headlineVariant="form"
+              />
+            ))}
+          </FormValidationContextProvider>
         </ExpandingPanel>
       </div>
     </SideBar>
@@ -295,6 +298,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           type
           isEditable
           isInstanceProperty
+          isMandatory
           stringValue
         }
         stringValue
