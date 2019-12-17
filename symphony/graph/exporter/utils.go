@@ -162,10 +162,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range equipTypes.Edges {
 			equipType := typ.Node
-			switch exist, err := equipType.QueryEquipment().Where(equipment.IDIn(ids...)).Exist(ctx); {
-			case err != nil:
-				return nil, errors.Wrapf(err, "checking equipment instance existence for type: %s", equipType.Name)
-			case exist:
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := equipType.QueryEquipment().Where(equipment.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking equipment instance existence for type: %s", equipType.Name)
+				case exist:
+					equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
+				}
+			} else {
 				equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
 			}
 		}
@@ -190,10 +195,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range locTypes.Edges {
 			locType := typ.Node
-			switch exist, err := locType.QueryLocations().Where(location.IDIn(ids...)).Exist(ctx); {
-			case err != nil:
-				return nil, errors.Wrapf(err, "checking location instance existence for type: %s", locType.Name)
-			case exist:
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := locType.QueryLocations().Where(location.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking location instance existence for type: %s", locType.Name)
+				case exist:
+					locTypesWithInstances = append(locTypesWithInstances, *locType)
+				}
+			} else {
 				locTypesWithInstances = append(locTypesWithInstances, *locType)
 			}
 		}
@@ -219,17 +229,28 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		for _, typ := range portTypes.Edges {
 			portType := typ.Node
 			if entity == models.PropertyEntityLink {
-				switch exist, err := portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).Exist(ctx); {
-				case err != nil:
-					return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
-				case exist:
+				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+				if len(ids) < 50 {
+					switch exist, err := portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).Exist(ctx); {
+					case err != nil:
+						return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+					case exist:
+						relevantPortTypes = append(relevantPortTypes, *portType)
+					}
+				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
+
 			} else if entity == models.PropertyEntityPort {
-				switch exist, err := portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).Exist(ctx); {
-				case err != nil:
-					return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
-				case exist:
+				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+				if len(ids) < 50 {
+					switch exist, err := portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).Exist(ctx); {
+					case err != nil:
+						return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+					case exist:
+						relevantPortTypes = append(relevantPortTypes, *portType)
+					}
+				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
 			}
@@ -260,10 +281,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range serviceTypes.Edges {
 			serviceType := typ.Node
-			switch exist, err := serviceType.QueryServices().Where(service.IDIn(ids...)).Exist(ctx); {
-			case err != nil:
-				return nil, errors.Wrapf(err, "checking service instance existence for type: %s", serviceType.Name)
-			case exist:
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := serviceType.QueryServices().Where(service.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking service instance existence for type: %s", serviceType.Name)
+				case exist:
+					serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
+				}
+			} else {
 				serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
 			}
 		}
