@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 from typing import List
 
-from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult
+from lte.protos.pipelined_pb2 import RuleModResult
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
     global_epoch
@@ -230,28 +230,9 @@ class EnforcementController(PolicyMixin, MagmaController):
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
         """
-        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self.get_of_priority(rule.priority)
 
         if rule.redirect.support == rule.redirect.ENABLED:
-            # TODO currently if redirection is enabled we ignore other flows
-            # from rule.flow_list, confirm that this is the expected behaviour
-            redirect_request = RedirectionManager.RedirectRequest(
-                imsi=imsi,
-                ip_addr=ip_addr,
-                rule=rule,
-                rule_num=rule_num,
-                priority=priority)
-            try:
-                self._redirect_manager.handle_redirection(
-                    self._datapath, self.loop, redirect_request)
-                return RuleModResult.SUCCESS
-            except RedirectException as err:
-                self.logger.error(
-                    'Redirect Exception for imsi %s, rule.id - %s : %s',
-                    imsi, rule.id, err
-                )
-                return RuleModResult.FAILURE
+            return self._install_redirect_flow(imsi, ip_addr, rule)
 
         if not rule.flow_list:
             self.logger.error('The flow list for imsi %s, rule.id - %s'
@@ -259,17 +240,6 @@ class EnforcementController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
         flow_adds = []
-        for flow in rule.flow_list:
-            try:
-                flow_adds.append(self._get_classify_rule_flow_msg(
-                    imsi, flow, rule_num, priority, ul_qos,
-                    dl_qos, rule.hard_timeout,
-                    rule.id))
-            except FlowMatchError as err:  # invalid match
-                self.logger.error(
-                    "Failed to install rule %s for subscriber %s: %s",
-                    rule.id, imsi, err)
-                return RuleModResult.FAILURE
         try:
             flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
         except FlowMatchError:
@@ -338,6 +308,26 @@ class EnforcementController(PolicyMixin, MagmaController):
             priority=priority,
             cookie=rule_num,
             resubmit_table=self.next_main_table)
+
+    def _install_redirect_flow(self, imsi, ip_addr, rule):
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        priority = self.get_of_priority(rule.priority)
+        redirect_request = RedirectionManager.RedirectRequest(
+            imsi=imsi,
+            ip_addr=ip_addr,
+            rule=rule,
+            rule_num=rule_num,
+            priority=priority)
+        try:
+            self._redirect_manager.handle_redirection(
+                self._datapath, self.loop, redirect_request)
+            return RuleModResult.SUCCESS
+        except RedirectException as err:
+            self.logger.error(
+                'Redirect Exception for imsi %s, rule.id - %s : %s',
+                imsi, rule.id, err
+            )
+            return RuleModResult.FAILURE
 
     def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ul_qos,
                                       dl_qos, rule_id):
