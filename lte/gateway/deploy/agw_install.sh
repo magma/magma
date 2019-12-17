@@ -20,12 +20,21 @@ if ! grep -q 'Debian' /etc/issue; then
   exit 1
 fi
 
+echo "Checking if $MAGMA_USER user exists"
+if getent passwd $MAGMA_USER > /dev/null 2>&1; then
+    echo "$MAGMA_USER user exists"
+else
+    echo "Creating user $MAGMA_USER"
+    sudo useradd --shell /bin/bash $MAGMA_USER
+fi
+
 echo "Making sure $MAGMA_USER user is sudoers"
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
   adduser $MAGMA_USER sudo
   echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
+# TODO: make this section agnostic to environment
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
 if [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub; then
@@ -101,6 +110,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   alias python=python3
   pip3 install ansible
   git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
+  chown -R $MAGMA_USER:$MAGMA_USER /home/$MAGMA_USER
   echo "Generating localhost hostfile for Ansible"
   echo "[ovs_build]
   127.0.0.1 ansible_connection=local
