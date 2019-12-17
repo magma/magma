@@ -22,3 +22,5 @@ state_protos:
 #    state_scope: - state scope used to determine deviceID.
 #                   Either 'network' or 'gateway' (defaults to 'gateway')
 json_state:
+  - redis_key: "directory_record"
+    state_scope: "network"

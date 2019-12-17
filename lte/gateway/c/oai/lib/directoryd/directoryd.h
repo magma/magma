@@ -33,13 +33,12 @@ extern "C" {
  * So we will define this type table_id_t here and later
  * cast it to magma::TableID in directoryd.cpp .
  */
-typedef enum { IMSI_TO_HWID = 0, HWID_TO_HOSTNAME = 1 } table_id_t;
 
-bool directoryd_report_location(table_id_t table, char *imsi);
+bool directoryd_report_location(char* imsi);
 
-bool directoryd_remove_location(table_id_t table, char *imsi);
+bool directoryd_remove_location(char* imsi);
 
-bool directoryd_update_location(table_id_t table, char *imsi, char *location);
+bool directoryd_update_location(char* imsi, char* location);
 
 #ifdef __cplusplus
 }
