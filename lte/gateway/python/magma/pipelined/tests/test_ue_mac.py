@@ -58,13 +58,16 @@ class UEMacAddressTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.UEMac,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.Arp:
+                    Future(),
+                PipelinedController.StartupFlows:
                     Future(),
             },
             config={
@@ -73,6 +76,7 @@ class UEMacAddressTest(unittest.TestCase):
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
+                'clean_restart': True,
             },
             mconfig=None,
             loop=None,

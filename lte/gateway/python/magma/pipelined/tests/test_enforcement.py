@@ -28,7 +28,8 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send, SnapshotVerifier
+    stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
+    fake_controller_setup
 
 
 class EnforcementTableTest(unittest.TestCase):
@@ -57,21 +58,27 @@ class EnforcementTableTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False
+                'enable_queue_pgm': False,
+                'clean_restart': True,
             },
-            mconfig=None,
+            mconfig=PipelineD(
+                relay_enabled=True
+            ),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False
@@ -99,6 +106,7 @@ class EnforcementTableTest(unittest.TestCase):
             Packets are properly matched with the 'simple_match' policy
             Send /20 (4096) packets, match /16 (256) packets
         """
+        fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
@@ -155,6 +163,7 @@ class EnforcementTableTest(unittest.TestCase):
         Assert:
             Only 1 flow gets added to the table (drop flow)
         """
+        fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI000000000000001'
         sub_ip = '192.168.128.45'
         flow_list = [FlowDescription(
@@ -189,6 +198,7 @@ class EnforcementTableTest(unittest.TestCase):
             Packets are properly matched with the 'match' policy
             The total packet delta in the table is from the above match
         """
+        fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI208950000000001'
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
@@ -254,6 +264,7 @@ class EnforcementTableTest(unittest.TestCase):
             For subcriber2 the packets are matched to the proper policy
             The total packet delta in the table is from the above matches
         """
+        fake_controller_setup(self.enforcement_controller)
         pkt_sender = ScapyPacketInjector(self.IFACE)
         ip_match = [FlowDescription(
             match=FlowMatch(ipv4_src='8.8.8.0/24', direction=1),
