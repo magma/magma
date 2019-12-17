@@ -30,11 +30,11 @@ using namespace folly;
 
 class CliScaleTest : public ::testing::Test {
  protected:
-  unique_ptr<channels::cli::Engine> cliEngine;
+  channels::cli::Engine cliEngine;
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MWARNING);
-    cliEngine = make_unique<channels::cli::Engine>();
+//    cliEngine = channels::cli::Engine();
   }
 };
 
@@ -79,15 +79,7 @@ TEST_F(CliScaleTest, DISABLED_scale) {
             60s,
             10s,
             30,
-            cliEngine->getTimekeeper(),
-            cliEngine->getExecutor(Engine::executorRequestType::sshCli),
-            cliEngine->getExecutor(Engine::executorRequestType::paCli),
-            cliEngine->getExecutor(Engine::executorRequestType::rcCli),
-            cliEngine->getExecutor(Engine::executorRequestType::ttCli),
-            cliEngine->getExecutor(Engine::executorRequestType::lCli),
-            cliEngine->getExecutor(Engine::executorRequestType::qCli),
-            cliEngine->getExecutor(Engine::executorRequestType::rCli),
-            cliEngine->getExecutor(Engine::executorRequestType::kaCli)));
+            cliEngine));
     return ioConfigurationBuilder.createAll(ReadCachingCli::createCache());
   };
   const ReadCommand& cmd = ReadCommand::create("show running-config");

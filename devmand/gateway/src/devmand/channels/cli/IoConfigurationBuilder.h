@@ -83,15 +83,7 @@ class IoConfigurationBuilder {
       chrono::seconds cmdTimeout,
       chrono::seconds reconnectingQuietPeriod,
       long sshConnectionTimeout,
-      shared_ptr<CliThreadWheelTimekeeper> timekeeper,
-      shared_ptr<Executor> sshExecutor,
-      shared_ptr<Executor> paExecutor,
-      shared_ptr<Executor> rcExecutor,
-      shared_ptr<Executor> ttExecutor,
-      shared_ptr<Executor> lExecutor,
-      shared_ptr<Executor> qExecutor,
-      shared_ptr<Executor> rExecutor,
-      shared_ptr<Executor> kaExecutor);
+      channels::cli::Engine& engine);
 
  private:
   shared_ptr<ConnectionParameters> connectionParameters;

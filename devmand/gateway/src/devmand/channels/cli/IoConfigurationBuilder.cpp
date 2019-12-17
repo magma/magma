@@ -57,15 +57,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
           loadConfigValue(plaintextCliKv, reconnectingQuietPeriodConfig, "5")),
       std::stol(
           loadConfigValue(plaintextCliKv, sshConnectionTimeoutConfig, "30")),
-      engine.getTimekeeper(),
-      engine.getExecutor(Engine::executorRequestType::sshCli),
-      engine.getExecutor(Engine::executorRequestType::paCli),
-      engine.getExecutor(Engine::executorRequestType::rcCli),
-      engine.getExecutor(Engine::executorRequestType::ttCli),
-      engine.getExecutor(Engine::executorRequestType::lCli),
-      engine.getExecutor(Engine::executorRequestType::qCli),
-      engine.getExecutor(Engine::executorRequestType::rCli),
-      engine.getExecutor(Engine::executorRequestType::kaCli));
+      engine);
 }
 
 IoConfigurationBuilder::~IoConfigurationBuilder() {
@@ -202,15 +194,8 @@ IoConfigurationBuilder::makeConnectionParameters(
     chrono::seconds cmdTimeout,
     chrono::seconds reconnectingQuietPeriod,
     long sshConnectionTimeout,
-    shared_ptr<CliThreadWheelTimekeeper> timekeeper,
-    shared_ptr<Executor> sshExecutor,
-    shared_ptr<Executor> paExecutor,
-    shared_ptr<Executor> rcExecutor,
-    shared_ptr<Executor> ttExecutor,
-    shared_ptr<Executor> lExecutor,
-    shared_ptr<Executor> qExecutor,
-    shared_ptr<Executor> rExecutor,
-    shared_ptr<Executor> kaExecutor) {
+    channels::cli::Engine& engine
+    ) {
   shared_ptr<IoConfigurationBuilder::ConnectionParameters>
       connectionParameters =
           make_shared<IoConfigurationBuilder::ConnectionParameters>();
@@ -224,15 +209,15 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->cmdTimeout = cmdTimeout;
   connectionParameters->reconnectingQuietPeriod = reconnectingQuietPeriod;
   connectionParameters->sshConnectionTimeout = sshConnectionTimeout;
-  connectionParameters->timekeeper = timekeeper;
-  connectionParameters->sshExecutor = sshExecutor;
-  connectionParameters->paExecutor = paExecutor;
-  connectionParameters->rcExecutor = rcExecutor;
-  connectionParameters->ttExecutor = ttExecutor;
-  connectionParameters->lExecutor = lExecutor;
-  connectionParameters->qExecutor = qExecutor;
-  connectionParameters->rExecutor = rExecutor;
-  connectionParameters->kaExecutor = kaExecutor;
+  connectionParameters->timekeeper = engine.getTimekeeper();
+  connectionParameters->sshExecutor = engine.getExecutor(Engine::executorRequestType::sshCli);
+  connectionParameters->paExecutor = engine.getExecutor(Engine::executorRequestType::paCli);
+  connectionParameters->rcExecutor = engine.getExecutor(Engine::executorRequestType::rcCli);
+  connectionParameters->ttExecutor = engine.getExecutor(Engine::executorRequestType::ttCli);
+  connectionParameters->lExecutor = engine.getExecutor(Engine::executorRequestType::lCli);
+  connectionParameters->qExecutor = engine.getExecutor(Engine::executorRequestType::qCli);
+  connectionParameters->rExecutor = engine.getExecutor(Engine::executorRequestType::rCli);
+  connectionParameters->kaExecutor = engine.getExecutor(Engine::executorRequestType::kaCli);
 
   return connectionParameters;
 }
