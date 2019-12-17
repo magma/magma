@@ -325,12 +325,15 @@ class AccessControlTestCWF(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing, ],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'CWF',
@@ -340,6 +343,7 @@ class AccessControlTestCWF(unittest.TestCase):
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'enable_queue_pgm': False,
+                'clean_restart': True,
                 'access_control': {
                     'ip_blacklist': [
                         {
