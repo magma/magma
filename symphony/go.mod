@@ -12,6 +12,7 @@ require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0
+	github.com/Azure/go-autorest v12.0.0+incompatible
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/aws/aws-sdk-go v1.19.45

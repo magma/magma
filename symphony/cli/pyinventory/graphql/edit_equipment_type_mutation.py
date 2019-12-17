@@ -95,6 +95,7 @@ class EditEquipmentTypeInput:
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
+        isDeleted: Optional[bool] = None
 
     id: str
     name: str

@@ -535,6 +535,7 @@ type PropertyTypeInput struct {
 	IsEditable         *bool        `json:"isEditable"`
 	IsInstanceProperty *bool        `json:"isInstanceProperty"`
 	IsMandatory        *bool        `json:"isMandatory"`
+	IsDeleted          *bool        `json:"isDeleted"`
 }
 
 type PythonPackage struct {

@@ -562,6 +562,7 @@ type ComplexityRoot struct {
 	PropertyType struct {
 		BoolVal            func(childComplexity int) int
 		Category           func(childComplexity int) int
+		Deleted            func(childComplexity int) int
 		Editable           func(childComplexity int) int
 		FloatVal           func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -3663,6 +3664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.Category(childComplexity), true
 
+	case "PropertyType.isDeleted":
+		if e.complexity.PropertyType.Deleted == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.Deleted(childComplexity), true
+
 	case "PropertyType.isEditable":
 		if e.complexity.PropertyType.Editable == nil {
 			break
@@ -5422,8 +5430,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> cd ~/fbsource/xplat/fbc-mobile-app
 #    %> yarn relay
 #  Pyinventory API:
-#    %> sudo python3 setup.py develop
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
+#    %> sudo python3 setup.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
@@ -5968,6 +5976,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -5987,6 +5996,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {
@@ -21304,6 +21314,40 @@ func (ec *executionContext) _PropertyType_isMandatory(ctx context.Context, field
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PropertyType_isDeleted(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deleted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PythonPackage_version(ctx context.Context, field graphql.CollectedField, obj *models.PythonPackage) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -32317,6 +32361,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "isDeleted":
+			var err error
+			it.IsDeleted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -36530,6 +36580,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_isInstanceProperty(ctx, field, obj)
 		case "isMandatory":
 			out.Values[i] = ec._PropertyType_isMandatory(ctx, field, obj)
+		case "isDeleted":
+			out.Values[i] = ec._PropertyType_isDeleted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

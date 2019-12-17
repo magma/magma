@@ -95,6 +95,7 @@ class AddEquipmentTypeInput:
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
+        isDeleted: Optional[bool] = None
 
     name: str
     positions: List[EquipmentPositionInput]

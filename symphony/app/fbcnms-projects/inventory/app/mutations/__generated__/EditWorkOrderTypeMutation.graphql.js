@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9cd96d28dbbc50cb21b5ee73af94845b
+ * @relayHash f653fa59debc50f8735d3e3a7d56b611
  */
 
 /* eslint-disable */
@@ -42,6 +42,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type CheckListDefinitionInput = {|
   id?: ?string,

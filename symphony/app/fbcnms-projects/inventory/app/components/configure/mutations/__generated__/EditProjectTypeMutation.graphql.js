@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f0265c64ad7785e4d6254baf86acd871
+ * @relayHash 7b21f5f87b81bd7f2023b8d15d564f43
  */
 
 /* eslint-disable */
@@ -42,6 +42,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type WorkOrderDefinitionInput = {|
   id?: ?string,

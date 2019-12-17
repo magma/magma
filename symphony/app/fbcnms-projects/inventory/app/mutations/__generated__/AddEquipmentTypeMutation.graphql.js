@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6a039a6b40e70df1dbe38c27de9b4602
+ * @relayHash deb6641f2c435a6305a116ebe7d4fe51
  */
 
 /* eslint-disable */
@@ -55,6 +55,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type AddEquipmentTypeMutationVariables = {|
   input: AddEquipmentTypeInput

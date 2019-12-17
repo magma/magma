@@ -556,6 +556,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -575,6 +576,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {

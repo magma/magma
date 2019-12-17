@@ -62,6 +62,7 @@ type PropertyTypeUpdate struct {
 	is_instance_property         *bool
 	editable                     *bool
 	mandatory                    *bool
+	deleted                      *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -424,6 +425,20 @@ func (ptu *PropertyTypeUpdate) SetMandatory(b bool) *PropertyTypeUpdate {
 func (ptu *PropertyTypeUpdate) SetNillableMandatory(b *bool) *PropertyTypeUpdate {
 	if b != nil {
 		ptu.SetMandatory(*b)
+	}
+	return ptu
+}
+
+// SetDeleted sets the deleted field.
+func (ptu *PropertyTypeUpdate) SetDeleted(b bool) *PropertyTypeUpdate {
+	ptu.deleted = &b
+	return ptu
+}
+
+// SetNillableDeleted sets the deleted field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableDeleted(b *bool) *PropertyTypeUpdate {
+	if b != nil {
+		ptu.SetDeleted(*b)
 	}
 	return ptu
 }
@@ -851,6 +866,9 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value := ptu.mandatory; value != nil {
 		updater.Set(propertytype.FieldMandatory, *value)
 	}
+	if value := ptu.deleted; value != nil {
+		updater.Set(propertytype.FieldDeleted, *value)
+	}
 	if !updater.Empty() {
 		query, args := updater.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
@@ -1122,6 +1140,7 @@ type PropertyTypeUpdateOne struct {
 	is_instance_property         *bool
 	editable                     *bool
 	mandatory                    *bool
+	deleted                      *bool
 	properties                   map[string]struct{}
 	location_type                map[string]struct{}
 	equipment_port_type          map[string]struct{}
@@ -1477,6 +1496,20 @@ func (ptuo *PropertyTypeUpdateOne) SetMandatory(b bool) *PropertyTypeUpdateOne {
 func (ptuo *PropertyTypeUpdateOne) SetNillableMandatory(b *bool) *PropertyTypeUpdateOne {
 	if b != nil {
 		ptuo.SetMandatory(*b)
+	}
+	return ptuo
+}
+
+// SetDeleted sets the deleted field.
+func (ptuo *PropertyTypeUpdateOne) SetDeleted(b bool) *PropertyTypeUpdateOne {
+	ptuo.deleted = &b
+	return ptuo
+}
+
+// SetNillableDeleted sets the deleted field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableDeleted(b *bool) *PropertyTypeUpdateOne {
+	if b != nil {
+		ptuo.SetDeleted(*b)
 	}
 	return ptuo
 }
@@ -1949,6 +1982,10 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	if value := ptuo.mandatory; value != nil {
 		updater.Set(propertytype.FieldMandatory, *value)
 		pt.Mandatory = *value
+	}
+	if value := ptuo.deleted; value != nil {
+		updater.Set(propertytype.FieldDeleted, *value)
+		pt.Deleted = *value
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()

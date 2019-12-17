@@ -2086,7 +2086,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 17),
+		Fields: make([]*Field, 18),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2224,6 +2224,14 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[16] = &Field{
 		Type:  "bool",
 		Name:  "Mandatory",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pt.Deleted); err != nil {
+		return nil, err
+	}
+	node.Fields[17] = &Field{
+		Type:  "bool",
+		Name:  "Deleted",
 		Value: string(buf),
 	}
 	var ids []string
