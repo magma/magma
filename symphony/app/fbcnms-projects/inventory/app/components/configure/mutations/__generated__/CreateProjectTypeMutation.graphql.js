@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 470cd68d0c2a33897657ff05e3ef9153
+ * @relayHash d09d0a7aec502a00decdd69c9afee0cc
  */
 
 /* eslint-disable */
@@ -101,6 +101,7 @@ fragment AddEditProjectTypeCard_editingProjectType on ProjectType {
     isEditable
     isMandatory
     isInstanceProperty
+    isDeleted
   }
 }
 
@@ -333,6 +334,13 @@ return {
                 "name": "isInstanceProperty",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "isDeleted",
+                "args": null,
+                "storageKey": null
               }
             ]
           }
@@ -344,7 +352,7 @@ return {
     "operationKind": "mutation",
     "name": "CreateProjectTypeMutation",
     "id": null,
-    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
+    "text": "mutation CreateProjectTypeMutation(\n  $input: AddProjectTypeInput!\n) {\n  createProjectType(input: $input) {\n    ...ProjectTypeCard_projectType\n    ...AddEditProjectTypeCard_editingProjectType\n    id\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };

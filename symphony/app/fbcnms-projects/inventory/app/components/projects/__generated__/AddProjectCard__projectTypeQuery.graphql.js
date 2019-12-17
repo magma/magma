@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9f667dedfb67e958bcbf8f849c4a4497
+ * @relayHash 582593f90f2dfd3d80bb828f10c1808f
  */
 
 /* eslint-disable */
@@ -39,6 +39,7 @@ export type AddProjectCard__projectTypeQueryResponse = {|
       +rangeToValue: ?number,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isDeleted: ?boolean,
     |}>,
   |}
 |};
@@ -72,6 +73,7 @@ query AddProjectCard__projectTypeQuery(
       rangeToValue
       isEditable
       isInstanceProperty
+      isDeleted
     }
   }
 }
@@ -219,6 +221,13 @@ v3 = [
             "name": "isInstanceProperty",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -245,11 +254,11 @@ return {
     "operationKind": "query",
     "name": "AddProjectCard__projectTypeQuery",
     "id": null,
-    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType(id: $projectTypeId) {\n    id\n    name\n    description\n    properties {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n  }\n}\n",
+    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType(id: $projectTypeId) {\n    id\n    name\n    description\n    properties {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isDeleted\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '65a45cab3c41f4bf2b163c2413469833';
+(node/*: any*/).hash = '4e64fbb4bcd4b08fd18f47abf0bc55d5';
 module.exports = node;

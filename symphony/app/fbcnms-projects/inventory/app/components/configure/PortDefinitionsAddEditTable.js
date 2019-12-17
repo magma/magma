@@ -280,7 +280,7 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
   > {
     const index = this.props.portDefinitions.length;
     return {
-      id: 'PortDefinition@tmp' + index,
+      id: `PortDefinition@tmp-${index}-${Date.now()}`,
       name: '',
       index: index,
       visibleLabel: '',
