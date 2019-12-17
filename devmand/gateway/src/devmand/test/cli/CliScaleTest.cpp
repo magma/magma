@@ -84,6 +84,7 @@ TEST_F(CliScaleTest, DISABLED_scale) {
             cliEngine->getExecutor(Engine::executorRequestType::paCli),
             cliEngine->getExecutor(Engine::executorRequestType::rcCli),
             cliEngine->getExecutor(Engine::executorRequestType::ttCli),
+            cliEngine->getExecutor(Engine::executorRequestType::lCli),
             cliEngine->getExecutor(Engine::executorRequestType::qCli),
             cliEngine->getExecutor(Engine::executorRequestType::rCli),
             cliEngine->getExecutor(Engine::executorRequestType::kaCli)));

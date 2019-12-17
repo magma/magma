@@ -18,6 +18,7 @@
 #include <devmand/channels/cli/SshSession.h>
 #include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/channels/cli/TimeoutTrackingCli.h>
+#include <devmand/channels/cli/LoggingCli.h>
 #include <folly/Singleton.h>
 
 namespace devmand {
@@ -61,6 +62,7 @@ IoConfigurationBuilder::IoConfigurationBuilder(
       engine.getExecutor(Engine::executorRequestType::paCli),
       engine.getExecutor(Engine::executorRequestType::rcCli),
       engine.getExecutor(Engine::executorRequestType::ttCli),
+      engine.getExecutor(Engine::executorRequestType::lCli),
       engine.getExecutor(Engine::executorRequestType::qCli),
       engine.getExecutor(Engine::executorRequestType::rCli),
       engine.getExecutor(Engine::executorRequestType::kaCli));
@@ -98,9 +100,11 @@ shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
                   params->timekeeper,
                   params->ttExecutor,
                   params->cmdTimeout);
+              // create logging cli
+              shared_ptr<LoggingCli> lcli = make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
               // create Queued cli
               shared_ptr<QueuedCli> qcli =
-                  QueuedCli::make(params->id, ttcli, params->qExecutor);
+                  QueuedCli::make(params->id, lcli, params->qExecutor);
               return qcli;
             });
       };
@@ -203,6 +207,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     shared_ptr<Executor> paExecutor,
     shared_ptr<Executor> rcExecutor,
     shared_ptr<Executor> ttExecutor,
+    shared_ptr<Executor> lExecutor,
     shared_ptr<Executor> qExecutor,
     shared_ptr<Executor> rExecutor,
     shared_ptr<Executor> kaExecutor) {
@@ -224,6 +229,7 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->paExecutor = paExecutor;
   connectionParameters->rcExecutor = rcExecutor;
   connectionParameters->ttExecutor = ttExecutor;
+  connectionParameters->lExecutor = lExecutor;
   connectionParameters->qExecutor = qExecutor;
   connectionParameters->rExecutor = rExecutor;
   connectionParameters->kaExecutor = kaExecutor;
