@@ -34,10 +34,10 @@ openflow::OpenflowController
   ctrl(CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
 }
 
-int start_of_controller(void)
+int start_of_controller(bool persist_state)
 {
   static openflow::PagingApplication paging_app;
-  static openflow::BaseApplication base_app;
+  static openflow::BaseApplication base_app(persist_state);
   static openflow::GTPApplication gtp_app(
     std::string(bdata(spgw_config.sgw_config.ovs_config.uplink_mac)),
     spgw_config.sgw_config.ovs_config.gtp_port_num);

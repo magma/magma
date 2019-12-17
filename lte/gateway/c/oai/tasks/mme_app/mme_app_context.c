@@ -392,8 +392,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
       ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
   }
-  // Release emm and esm context
-  _clear_emm_ctxt(&ue_context_p->emm_context);
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
 
   ue_context_p->send_ue_purge_request = false;
@@ -969,7 +967,8 @@ void mme_remove_ue_context(
 
   if (!lock_ue_contexts(ue_context_p)) {
     mme_app_ue_context_free_content(ue_context_p);
-
+    // Release emm and esm context
+    _clear_emm_ctxt(&ue_context_p->emm_context);
     // IMSI
     if (ue_context_p->emm_context._imsi64) {
       hash_rc = hashtable_uint64_ts_remove(

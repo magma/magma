@@ -29,7 +29,7 @@ extern "C" {
 #define CONTROLLER_PORT 6654
 #define NUM_WORKERS 2
 
-int start_of_controller(void);
+int start_of_controller(bool persist_state);
 
 int stop_of_controller(void);
 
@@ -45,10 +45,12 @@ int openflow_controller_del_gtp_tunnel(
     struct in_addr ue,
     uint32_t i_tei,
     struct ipv4flow_dl *flow_dl);
+
 int openflow_controller_discard_data_on_tunnel(
   struct in_addr ue,
   uint32_t i_tei,
   struct ipv4flow_dl *flow_dl);
+
 int openflow_controller_forward_data_on_tunnel(
   struct in_addr ue,
   uint32_t i_tei,
