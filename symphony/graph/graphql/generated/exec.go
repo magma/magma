@@ -38960,18 +38960,12 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // region    ***************************** type.gotpl *****************************
 
 func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return core.ActionID(tmp), err
+	var res core.ActionID
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNActionsAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v models.ActionsAction) graphql.Marshaler {
@@ -39026,18 +39020,12 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 }
 
 func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return core.DataType(tmp), err
+	var res core.DataType
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {

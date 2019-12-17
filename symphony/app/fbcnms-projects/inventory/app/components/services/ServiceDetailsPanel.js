@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {EditServiceMutationResponse} from '../../mutations/__generated__/EditServiceMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
 import type {Service} from '../../common/Service';
 
@@ -20,6 +22,7 @@ import IconButton from '@material-ui/core/IconButton';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useRef, useState} from 'react';
 import SideBar from '@fbcnms/ui/components/layout/SideBar';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
@@ -33,6 +36,7 @@ import {
   toPropertyInput,
 } from '../../common/Property';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   shown: boolean,
@@ -101,6 +105,7 @@ const ServiceDetailsPanel = (props: Props) => {
   const thisElement = useRef(null);
   const [isDirty, setIsDirty] = useState(false);
   useVerticalScrollingEffect(thisElement);
+  const enqueueSnackbar = useEnqueueSnackbar();
   let properties = service?.properties ?? [];
   if (service.serviceType.propertyTypes) {
     properties = [
@@ -151,9 +156,28 @@ const ServiceDetailsPanel = (props: Props) => {
     setIsDirty(true);
   };
 
+  const enqueueError = (message: string) => {
+    enqueueSnackbar(message, {
+      children: key => (
+        <SnackbarItem id={key} message={message} variant="error" />
+      ),
+    });
+  };
+
   const onBlur = () => {
     if (isDirty) {
-      EditServiceMutation(getServiceInput());
+      const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+        onCompleted: (response, errors) => {
+          if (errors && errors[0]) {
+            enqueueError(errors[0].message);
+          }
+        },
+        onError: () => {
+          enqueueError('Error saving service');
+        },
+      };
+
+      EditServiceMutation(getServiceInput(), callbacks);
     }
   };
 
