@@ -6,10 +6,16 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import time
 from abc import ABCMeta, abstractmethod
 
-from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult
+from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
+    ActivateFlowsResult, ActivateFlowsRequest
+from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
+
+
+global_epoch = int(time.time())
 
 
 class PolicyMixin(metaclass=ABCMeta):
@@ -27,6 +33,15 @@ class PolicyMixin(metaclass=ABCMeta):
         self._rule_mapper = kwargs['rule_id_mapper']
         self._session_rule_version_mapper = kwargs[
             'session_rule_version_mapper']
+
+    def setup_flows(self, request):
+        if request.epoch != global_epoch:
+            self.logger.warning(
+                "Received SetupFlowsRequest has outdated epoch - %d, current "
+                "epoch is - %d.", request.epoch, global_epoch)
+            return SetupFlowsResult(
+                result=SetupFlowsResult.OUTDATED_EPOCH)
+        return SetupFlowsResult(result=self.setup(request))
 
     def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules):
         """
