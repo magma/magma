@@ -67,28 +67,27 @@ if [ "$(uname -r)" != "4.9.0-9-amd64" ]; then
   apt update
   # Installing prerequesites, Kvers, headers
   apt install -y sudo python-minimal aptitude linux-image-4.9.0-9-amd64 linux-headers-4.9.0-9-amd64
+  echo "Checking if kernel headers was installed, else install"
+  if ! [ "$(dpkg -l  | grep headers-4.9.0-9-amd64)" ]; then
+    # Get from alternative repository and add as debian packages local repo
+    wget http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-xfce-CD-1.iso
+    mkdir -p /mnt/disk
+    mount -o loop debian-9.9.0-amd64-xfce-CD-1.iso /mnt/disk
+    echo 'deb file:///mnt/disk/ stretch main contrib' >> /etc/apt/sources.list
+    sudo apt-get update --allow-unauthenticated
+    # Install kernel headers
+    sudo apt -y install linux-headers-4.9.0-9-amd64 --allow-unauthenticated
+    # Clean headers files and umount
+    umount /mnt/disk
+    rm debian-9.9.0-amd64-xfce-CD-1.iso
+    sed -i '/deb file:\/\/\/mnt\/disk\//d' /etc/apt/sources.list
+  fi
   # Removing dev repository snapshot from source.list
   sed -i '/20190801T025637Z/d' /etc/apt/sources.list
   # Removing incompatible Kernel version
   DEBIAN_FRONTEND=noninteractive apt remove -y linux-image-4.9.0-11-amd64
   # Setting REBOOT flag to 1 because we need to boot with the right Kernel version
   NEED_REBOOT=1
-fi
-
-echo "Checking if kernel headers is installed"
-if [ "$(dpkg -l  | grep headers-4.9.0-9-amd64)" ]; then
-  # Get from alternative repository and add as debian packages local repo
-  wget http://cdimage.debian.org/mirror/cdimage/archive/9.9.0/amd64/iso-cd/debian-9.9.0-amd64-xfce-CD-1.iso
-  mkdir -p /mnt/disk
-  mount -o loop debian-9.9.0-amd64-xfce-CD-1.iso /mnt/disk
-  echo 'deb file:///mnt/disk/ stretch main contrib' >> /etc/apt/sources.list
-  sudo apt-get update --allow-unauthenticated
-  # Install kernel headers
-  sudo apt -y install linux-headers-4.9.0-9-amd64 --allow-unauthenticated
-  # Clean headers files and umount
-  umount /mnt/disk
-  rm debian-9.9.0-amd64-xfce-CD-1.iso
-  sed -i '/deb file:\/\/\/mnt\/disk\//d' /etc/apt/sources.list
 fi
 
 if [ $NEED_REBOOT = 1 ]; then
