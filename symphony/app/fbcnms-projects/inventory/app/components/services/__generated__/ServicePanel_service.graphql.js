@@ -15,6 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type ServiceLinksView_links$ref = any;
+export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServicePanel_service$ref: FragmentReference;
 declare export opaque type ServicePanel_service$fragmentType: ServicePanel_service$ref;
@@ -22,6 +23,7 @@ export type ServicePanel_service = {|
   +id: string,
   +name: string,
   +externalId: ?string,
+  +status: ServiceStatus,
   +customer: ?{|
     +name: string
   |},
@@ -77,6 +79,13 @@ return {
       "storageKey": null
     },
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "status",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "customer",
@@ -117,5 +126,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '061762a22c667a807f5bc1687b9755d4';
+(node/*: any*/).hash = 'eaf2a0ad573b59046b4aa8ddc78afcaa';
 module.exports = node;

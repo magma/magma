@@ -25,6 +25,13 @@ export const serviceStatusToVisibleNames = {
   DISCONNECTED: 'Disconnected',
 };
 
+export const serviceStatusToColor = {
+  PENDING: 'orange',
+  IN_SERVICE: 'green',
+  MAINTENANCE: 'orange',
+  DISCONNECTED: 'gray',
+};
+
 export type Customer = {
   id: string,
   name: string,
