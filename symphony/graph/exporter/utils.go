@@ -162,7 +162,10 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range equipTypes.Edges {
 			equipType := typ.Node
-			if equipType.QueryEquipment().Where(equipment.IDIn(ids...)).ExistX(ctx) {
+			switch exist, err := equipType.QueryEquipment().Where(equipment.IDIn(ids...)).Exist(ctx); {
+			case err != nil:
+				return nil, errors.Wrapf(err, "checking equipment instance existence for type: %s", equipType.Name)
+			case exist:
 				equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
 			}
 		}
@@ -187,7 +190,10 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range locTypes.Edges {
 			locType := typ.Node
-			if locType.QueryLocations().Where(location.IDIn(ids...)).ExistX(ctx) {
+			switch exist, err := locType.QueryLocations().Where(location.IDIn(ids...)).Exist(ctx); {
+			case err != nil:
+				return nil, errors.Wrapf(err, "checking location instance existence for type: %s", locType.Name)
+			case exist:
 				locTypesWithInstances = append(locTypesWithInstances, *locType)
 			}
 		}
@@ -213,11 +219,17 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		for _, typ := range portTypes.Edges {
 			portType := typ.Node
 			if entity == models.PropertyEntityLink {
-				if portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).ExistX(ctx) {
+				switch exist, err := portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+				case exist:
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
 			} else if entity == models.PropertyEntityPort {
-				if portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).ExistX(ctx) {
+				switch exist, err := portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+				case exist:
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
 			}
@@ -248,7 +260,10 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range serviceTypes.Edges {
 			serviceType := typ.Node
-			if serviceType.QueryServices().Where(service.IDIn(ids...)).ExistX(ctx) {
+			switch exist, err := serviceType.QueryServices().Where(service.IDIn(ids...)).Exist(ctx); {
+			case err != nil:
+				return nil, errors.Wrapf(err, "checking service instance existence for type: %s", serviceType.Name)
+			case exist:
 				serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
 			}
 		}
