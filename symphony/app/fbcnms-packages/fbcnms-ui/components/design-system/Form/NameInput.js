@@ -32,7 +32,7 @@ const NameInput = (props: Props) => {
   };
   const fieldId = useMemo(() => shortid.generate(), []);
   const validationContext = useContext(FormValidationContext);
-  const errorText = validationContext.errorCheck({
+  const errorText = validationContext.error.check({
     fieldId,
     fieldDisplayName: title,
     value: value,

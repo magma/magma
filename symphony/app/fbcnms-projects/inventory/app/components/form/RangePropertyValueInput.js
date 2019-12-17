@@ -73,13 +73,13 @@ const RangePropertyValueInput = (props: Props) => {
   return (
     <FormValidationContext.Consumer>
       {validationContext => {
-        const errorFrom = validationContext.errorCheck({
+        const errorFrom = validationContext.error.check({
           fieldId: `${fieldIdPrefix}From`,
           fieldDisplayName: 'From',
           value: parseFloat(rangeFrom),
           required: required,
         });
-        const errorTo = validationContext.errorCheck({
+        const errorTo = validationContext.error.check({
           fieldId: `${fieldIdPrefix}To`,
           fieldDisplayName: 'To',
           value: parseFloat(rangeTo),

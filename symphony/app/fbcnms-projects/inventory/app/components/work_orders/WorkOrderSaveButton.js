@@ -122,8 +122,8 @@ const WorkOrderSaveButton = (props: Props) => {
 
   return (
     <Button
-      disabled={validationContext.hasErrors}
-      tooltip={validationContext.errorMessage}
+      disabled={validationContext.error.detected}
+      tooltip={validationContext.error.message}
       onClick={saveWorkOrder}>
       Save
     </Button>

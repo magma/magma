@@ -354,7 +354,7 @@ class PropertyValueInput extends React.Component<Props> {
     return (
       <FormValidationContext.Consumer>
         {validationContext => {
-          const errorText = validationContext.errorCheck({
+          const errorText = validationContext.error.check({
             fieldId: propertyType.name,
             fieldDisplayName: propertyType.name,
             value: getPropertyValue(property),
