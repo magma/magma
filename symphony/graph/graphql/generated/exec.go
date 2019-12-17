@@ -236,7 +236,6 @@ type ComplexityRoot struct {
 		Index           func(childComplexity int) int
 		Name            func(childComplexity int) int
 		PortType        func(childComplexity int) int
-		Type            func(childComplexity int) int
 		VisibilityLabel func(childComplexity int) int
 	}
 
@@ -1812,13 +1811,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortDefinition.PortType(childComplexity), true
-
-	case "EquipmentPortDefinition.type":
-		if e.complexity.EquipmentPortDefinition.Type == nil {
-			break
-		}
-
-		return e.complexity.EquipmentPortDefinition.Type(childComplexity), true
 
 	case "EquipmentPortDefinition.visibleLabel":
 		if e.complexity.EquipmentPortDefinition.VisibilityLabel == nil {
@@ -5796,7 +5788,6 @@ type EquipmentPortDefinition implements Node {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portType: EquipmentPortType
   bandwidth: String
 }
@@ -5814,7 +5805,6 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portTypeID: String
   bandwidth: String
 }
@@ -12524,43 +12514,6 @@ func (ec *executionContext) _EquipmentPortDefinition_visibleLabel(ctx context.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EquipmentPortDefinition_type(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EquipmentPortDefinition",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinition_portType(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
@@ -31812,12 +31765,6 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "type":
-			var err error
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "portTypeID":
 			var err error
 			it.PortTypeID, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -34445,11 +34392,6 @@ func (ec *executionContext) _EquipmentPortDefinition(ctx context.Context, sel as
 			out.Values[i] = ec._EquipmentPortDefinition_index(ctx, field, obj)
 		case "visibleLabel":
 			out.Values[i] = ec._EquipmentPortDefinition_visibleLabel(ctx, field, obj)
-		case "type":
-			out.Values[i] = ec._EquipmentPortDefinition_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "portType":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

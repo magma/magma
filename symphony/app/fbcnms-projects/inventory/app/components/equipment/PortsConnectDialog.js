@@ -109,7 +109,6 @@ const portsConnectDialogQuery = graphql`
             id
             name
             visibleLabel
-            type
             bandwidth
           }
         }

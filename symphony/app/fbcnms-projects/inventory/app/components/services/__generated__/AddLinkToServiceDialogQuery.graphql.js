@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4907f6aa5d46992ee40dadcbd4440b7c
+ * @relayHash 2a7ef421004970a87e6886f90df479e1
  */
 
 /* eslint-disable */
@@ -60,7 +60,6 @@ export type AddLinkToServiceDialogQueryResponse = {|
         +definition: {|
           +id: string,
           +name: string,
-          +type: string,
         |},
       |}>,
       +$fragmentRefs: AvailableLinksTable_links$ref,
@@ -89,7 +88,6 @@ query AddLinkToServiceDialogQuery(
         definition {
           id
           name
-          type
         }
         id
       }
@@ -115,7 +113,6 @@ fragment AvailableLinksTable_links on Link {
     definition {
       id
       name
-      type
     }
     id
   }
@@ -202,17 +199,7 @@ v5 = {
   "args": null,
   "concreteType": "EquipmentPortDefinition",
   "plural": false,
-  "selections": [
-    (v2/*: any*/),
-    (v3/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "type",
-      "args": null,
-      "storageKey": null
-    }
-  ]
+  "selections": (v4/*: any*/)
 },
 v6 = {
   "kind": "LinkedField",
@@ -418,11 +405,11 @@ return {
     "operationKind": "query",
     "name": "AddLinkToServiceDialogQuery",
     "id": null,
-    "text": "query AddLinkToServiceDialogQuery(\n  $filters: [LinkFilterInput!]!\n) {\n  linkSearch(filters: $filters, limit: 50) {\n    links {\n      id\n      ports {\n        parentEquipment {\n          id\n          name\n        }\n        definition {\n          id\n          name\n          type\n        }\n        id\n      }\n      ...AvailableLinksTable_links\n    }\n  }\n}\n\nfragment AvailableLinksTable_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n    definition {\n      id\n      name\n      type\n    }\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query AddLinkToServiceDialogQuery(\n  $filters: [LinkFilterInput!]!\n) {\n  linkSearch(filters: $filters, limit: 50) {\n    links {\n      id\n      ports {\n        parentEquipment {\n          id\n          name\n        }\n        definition {\n          id\n          name\n        }\n        id\n      }\n      ...AvailableLinksTable_links\n    }\n  }\n}\n\nfragment AvailableLinksTable_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '936f6e24d2d86a4abdd6049b6a7b31d4';
+(node/*: any*/).hash = '19c8e4fff87c015a4e3c6614a2101f38';
 module.exports = node;

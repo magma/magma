@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 685fe1985827a3c317fd9615fbb9e1f3
+ * @relayHash 13dbf7852fa5c33fb3aca7b1a5ba5136
  */
 
 /* eslint-disable */
@@ -36,7 +36,6 @@ export type EquipmentPortInput = {|
   name: string,
   index?: ?number,
   visibleLabel?: ?string,
-  type: string,
   portTypeID?: ?string,
   bandwidth?: ?string,
 |};
@@ -115,7 +114,6 @@ fragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {
   name
   index
   visibleLabel
-  type
   portType {
     id
     name
@@ -181,18 +179,11 @@ v3 = {
 v4 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
-v5 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v6 = {
+v5 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "visibleLabel",
@@ -255,8 +246,14 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "type",
+                "args": null,
+                "storageKey": null
+              },
               (v4/*: any*/),
-              (v5/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
@@ -347,8 +344,8 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
-              (v5/*: any*/),
-              (v6/*: any*/)
+              (v4/*: any*/),
+              (v5/*: any*/)
             ]
           },
           {
@@ -362,9 +359,8 @@ return {
             "selections": [
               (v2/*: any*/),
               (v3/*: any*/),
-              (v5/*: any*/),
-              (v6/*: any*/),
               (v4/*: any*/),
+              (v5/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
@@ -395,7 +391,7 @@ return {
     "operationKind": "mutation",
     "name": "EditEquipmentTypeMutation",
     "id": null,
-    "text": "mutation EditEquipmentTypeMutation(\n  $input: EditEquipmentTypeInput!\n) {\n  editEquipmentType(input: $input) {\n    id\n    name\n    ...EquipmentTypeItem_equipmentType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  type\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
+    "text": "mutation EditEquipmentTypeMutation(\n  $input: EditEquipmentTypeInput!\n) {\n  editEquipmentType(input: $input) {\n    id\n    name\n    ...EquipmentTypeItem_equipmentType\n  }\n}\n\nfragment DynamicPropertyTypesGrid_propertyTypes on PropertyType {\n  ...PropertyTypeFormField_propertyType\n  id\n  index\n}\n\nfragment EquipmentTypeItem_equipmentType on EquipmentType {\n  id\n  name\n  propertyTypes {\n    ...DynamicPropertyTypesGrid_propertyTypes\n    id\n  }\n  positionDefinitions {\n    ...PositionDefinitionsTable_positionDefinitions\n    id\n  }\n  portDefinitions {\n    ...PortDefinitionsTable_portDefinitions\n    id\n  }\n  numberOfEquipment\n}\n\nfragment PortDefinitionsTable_portDefinitions on EquipmentPortDefinition {\n  id\n  name\n  index\n  visibleLabel\n  portType {\n    id\n    name\n  }\n}\n\nfragment PositionDefinitionsTable_positionDefinitions on EquipmentPositionDefinition {\n  id\n  name\n  index\n  visibleLabel\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n",
     "metadata": {}
   }
 };

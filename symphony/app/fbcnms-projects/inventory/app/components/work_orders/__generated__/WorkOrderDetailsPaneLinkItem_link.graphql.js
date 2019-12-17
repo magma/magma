@@ -30,7 +30,6 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
       +id: string,
       +name: string,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +linkPropertyTypes: $ReadOnlyArray<?{|
           +id: string,
@@ -62,7 +61,6 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +bandwidth: ?string,
           +portType: ?{|
             +id: string,
@@ -266,7 +264,6 @@ return {
             (v0/*: any*/),
             (v2/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -347,7 +344,6 @@ return {
                     (v0/*: any*/),
                     (v2/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     {
                       "kind": "ScalarField",
                       "alias": null,

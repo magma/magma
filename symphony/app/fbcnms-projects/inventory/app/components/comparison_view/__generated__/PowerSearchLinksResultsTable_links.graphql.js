@@ -30,7 +30,6 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
       +id: string,
       +name: string,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +linkPropertyTypes: $ReadOnlyArray<?{|
           +id: string,
@@ -62,7 +61,6 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +bandwidth: ?string,
           +portType: ?{|
             +id: string,
@@ -252,7 +250,6 @@ return {
             (v0/*: any*/),
             (v2/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -339,7 +336,6 @@ return {
                     (v0/*: any*/),
                     (v2/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     {
                       "kind": "ScalarField",
                       "alias": null,
@@ -440,5 +436,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd5361727e460b190db038c45d30830a6';
+(node/*: any*/).hash = '8273986dcdb823c1311ba256c7cc3b34';
 module.exports = node;

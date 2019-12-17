@@ -65,7 +65,6 @@ func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, po
 	for i := 1; i <= portsCount; i++ {
 		p := client.EquipmentPortDefinition.Create().
 			SetName(strconv.Itoa(i)).
-			SetType("").
 			SaveX(ctx)
 		wq.AddPortDefinitions(p)
 	}
@@ -86,16 +85,16 @@ func (m *importer) ensureSplitterType(ctx context.Context, name string, inPortsC
 	}
 	q := client.EquipmentType.Create().SetName(name)
 	if inPortsCount == 1 {
-		inP := client.EquipmentPortDefinition.Create().SetName("in").SetType("in").SaveX(ctx)
+		inP := client.EquipmentPortDefinition.Create().SetName("in").SaveX(ctx)
 		q.AddPortDefinitions(inP)
 	} else {
 		for i := 1; i <= inPortsCount; i++ {
-			inP := client.EquipmentPortDefinition.Create().SetName("in" + strconv.Itoa(i)).SetType("in").SaveX(ctx)
+			inP := client.EquipmentPortDefinition.Create().SetName("in" + strconv.Itoa(i)).SaveX(ctx)
 			q.AddPortDefinitions(inP)
 		}
 	}
 	for i := 1; i <= outPortsCount; i++ {
-		outP := client.EquipmentPortDefinition.Create().SetName("out" + strconv.Itoa(i)).SetType("out").SaveX(ctx)
+		outP := client.EquipmentPortDefinition.Create().SetName("out" + strconv.Itoa(i)).SaveX(ctx)
 		q.AddPortDefinitions(outP)
 	}
 	log.Debug("Creating new spliter type", zap.String("name", name))

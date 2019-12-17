@@ -102,7 +102,6 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 				if _, err := m.ClientFrom(ctx).EquipmentPortDefinition.
 					Create().
 					SetName(name).
-					SetType(portType).
 					SetEquipmentPortType(potyTypeObj).
 					SetVisibilityLabel(line[portLabelIndex]).
 					SetBandwidth(line[portBWIndex]).

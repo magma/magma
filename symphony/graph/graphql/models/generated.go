@@ -347,7 +347,6 @@ type EquipmentPortInput struct {
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
-	Type         string  `json:"type"`
 	PortTypeID   *string `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
 }

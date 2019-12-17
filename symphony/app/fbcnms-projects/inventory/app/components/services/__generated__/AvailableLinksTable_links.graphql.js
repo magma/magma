@@ -34,7 +34,6 @@ export type AvailableLinksTable_links = $ReadOnlyArray<{|
     +definition: {|
       +id: string,
       +name: string,
-      +type: string,
     |},
   |}>,
   +$refType: AvailableLinksTable_links$ref,
@@ -132,14 +131,7 @@ return {
           "plural": false,
           "selections": [
             (v0/*: any*/),
-            (v1/*: any*/),
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "type",
-              "args": null,
-              "storageKey": null
-            }
+            (v1/*: any*/)
           ]
         }
       ]
@@ -148,5 +140,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7e0c247f19b1885eb0633e567cb533cb';
+(node/*: any*/).hash = '6868986f0fbbbb699a7152390136e645';
 module.exports = node;

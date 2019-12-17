@@ -335,7 +335,6 @@ func ExampleEquipmentPort() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").
@@ -421,7 +420,6 @@ func ExampleEquipmentPortDefinition() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").
@@ -620,7 +618,6 @@ func ExampleEquipmentType() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").

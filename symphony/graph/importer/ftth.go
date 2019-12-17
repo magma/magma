@@ -448,7 +448,6 @@ func (m *importer) getOrCreateCard16Type(ctx context.Context, name string, portT
 	for i := 1; i <= 16; i++ {
 		p := client.EquipmentPortDefinition.Create().
 			SetName(strconv.Itoa(i)).
-			SetType(strconv.Itoa(i)).
 			SetEquipmentPortType(portType).
 			SaveX(ctx)
 		q.AddPortDefinitions(p)

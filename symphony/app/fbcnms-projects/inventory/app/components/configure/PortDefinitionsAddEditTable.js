@@ -59,7 +59,6 @@ graphql`
     name
     index
     visibleLabel
-    type
     portType {
       id
       name
@@ -285,7 +284,6 @@ class PortDefinitionsAddEditTable extends React.Component<Props, State> {
       name: '',
       index: index,
       visibleLabel: '',
-      type: '',
       portType: null,
     };
   }

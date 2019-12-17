@@ -705,7 +705,6 @@ func (r mutationResolver) AddEquipmentPortDefinitions(
 		if defs[i], err = client.Create().
 			SetName(input.Name).
 			SetNillableIndex(input.Index).
-			SetType(input.Type).
 			SetNillableBandwidth(input.Bandwidth).
 			SetNillableVisibilityLabel(input.VisibleLabel).
 			SetNillableEquipmentPortTypeID(input.PortTypeID).
@@ -2245,7 +2244,6 @@ func (r mutationResolver) EditEquipmentType(
 				UpdateOneID(*input.ID).
 				SetName(input.Name).
 				SetNillableIndex(input.Index).
-				SetType(input.Type).
 				SetNillableBandwidth(input.Bandwidth).
 				SetNillableVisibilityLabel(input.VisibleLabel).
 				Exec(ctx); err != nil {

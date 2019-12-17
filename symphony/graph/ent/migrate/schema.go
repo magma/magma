@@ -247,7 +247,6 @@ var (
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
-		{Name: "type", Type: field.TypeString},
 		{Name: "index", Type: field.TypeInt, Nullable: true},
 		{Name: "bandwidth", Type: field.TypeString, Nullable: true},
 		{Name: "visibility_label", Type: field.TypeString, Nullable: true},
@@ -262,14 +261,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "equipment_port_definitions_equipment_port_types_equipment_port_type",
-				Columns: []*schema.Column{EquipmentPortDefinitionsColumns[8]},
+				Columns: []*schema.Column{EquipmentPortDefinitionsColumns[7]},
 
 				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "equipment_port_definitions_equipment_types_port_definitions",
-				Columns: []*schema.Column{EquipmentPortDefinitionsColumns[9]},
+				Columns: []*schema.Column{EquipmentPortDefinitionsColumns[8]},
 
 				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
 				OnDelete:   schema.SetNull,
