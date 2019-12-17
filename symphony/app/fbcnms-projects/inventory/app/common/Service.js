@@ -12,6 +12,19 @@ import type {Equipment, Link} from './Equipment';
 import type {Property} from './Property';
 import type {ServiceType} from './ServiceType';
 
+export type ServiceStatus =
+  | 'PENDING'
+  | 'IN_SERVICE'
+  | 'MAINTENANCE'
+  | 'DISCONNECTED';
+
+export const serviceStatusToVisibleNames = {
+  PENDING: 'Pending',
+  IN_SERVICE: 'In Service',
+  MAINTENANCE: 'Maintenance',
+  DISCONNECTED: 'Disconnected',
+};
+
 export type Customer = {
   id: string,
   name: string,
@@ -21,6 +34,7 @@ export type Service = {
   id: string,
   name: string,
   externalId: ?string,
+  status: ServiceStatus,
   customer: ?Customer,
   serviceType: ServiceType,
   upstream: Array<Service>,

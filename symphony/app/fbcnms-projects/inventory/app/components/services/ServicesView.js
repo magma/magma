@@ -19,6 +19,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {serviceStatusToVisibleNames} from '../../common/Service';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = theme => ({
@@ -98,9 +99,13 @@ class ServicesView extends React.Component<Props> {
     return <LocationLink title={cellData.name} id={cellData.id} />;
   };
 
-  _cellRenderer = ({cellData}) => {
+  _cellRenderer = ({dataKey, _, cellData}) => {
     const {classes} = this.props;
-    const content = <Text className={classes.cellText}>{cellData ?? ''}</Text>;
+    let data = cellData ?? '';
+    if (dataKey === 'status') {
+      data = serviceStatusToVisibleNames[data];
+    }
+    const content = <Text className={classes.cellText}>{data}</Text>;
     return <div className={classes.cell}>{content}</div>;
   };
 
@@ -157,6 +162,15 @@ class ServicesView extends React.Component<Props> {
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
             />
+            <Column
+              label="Status"
+              dataKey="status"
+              cellDataGetter={({rowData}) => rowData.status}
+              width={180}
+              flexGrow={1}
+              headerRenderer={this._headerRenderer}
+              cellRenderer={this._cellRenderer}
+            />
           </Table>
         )}
       </AutoSizer>
@@ -171,6 +185,7 @@ export default withStyles(styles)(
         id
         name
         externalId
+        status
         customer {
           id
           name

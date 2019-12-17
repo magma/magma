@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ec6e4b2eb7752824f734caafce87615b
+ * @relayHash 773f6b3791c478ac893c8e60456d757f
  */
 
 /* eslint-disable */
@@ -16,10 +16,12 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type ServiceCard_service$ref = any;
+export type ServiceStatus = "DISCONNECTED" | "IN_SERVICE" | "MAINTENANCE" | "PENDING" | "%future added value";
 export type ServiceEditData = {|
   id: string,
   name?: ?string,
   externalId?: ?string,
+  status?: ?ServiceStatus,
   customerId?: ?string,
   upstreamServiceIds?: ?$ReadOnlyArray<string>,
   properties?: ?$ReadOnlyArray<?PropertyInput>,

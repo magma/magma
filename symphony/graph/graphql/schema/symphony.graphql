@@ -631,6 +631,13 @@ enum WorkOrderStatus {
   DONE
 }
 
+enum ServiceStatus {
+  PENDING
+  IN_SERVICE
+  MAINTENANCE
+  DISCONNECTED
+}
+
 """
 Equipment planned status
 """
@@ -1097,6 +1104,7 @@ type Service implements Node {
   id: ID!
   name: String!
   externalId: String
+  status: ServiceStatus!
   customer: Customer
   serviceType: ServiceType!
   upstream: [Service]!
@@ -1147,6 +1155,7 @@ input ServiceTypeEditData {
 input ServiceCreateData {
   name: String!
   externalId: String
+  status: ServiceStatus = PENDING
   serviceTypeId: ID!
   customerId: ID
   upstreamServiceIds: [ID!]!
@@ -1158,6 +1167,7 @@ input ServiceEditData {
   id: ID!
   name: String
   externalId: String
+  status: ServiceStatus
   customerId: ID
   upstreamServiceIds: [ID!]
   properties: [PropertyInput]

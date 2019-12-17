@@ -655,6 +655,7 @@ type ComplexityRoot struct {
 		Name              func(childComplexity int) int
 		Properties        func(childComplexity int) int
 		ServiceType       func(childComplexity int) int
+		Status            func(childComplexity int) int
 		TerminationPoints func(childComplexity int) int
 		Topology          func(childComplexity int) int
 		Upstream          func(childComplexity int) int
@@ -1105,6 +1106,7 @@ type QueryResolver interface {
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
 }
 type ServiceResolver interface {
+	Status(ctx context.Context, obj *ent.Service) (models.ServiceStatus, error)
 	Customer(ctx context.Context, obj *ent.Service) (*ent.Customer, error)
 	ServiceType(ctx context.Context, obj *ent.Service) (*ent.ServiceType, error)
 	Upstream(ctx context.Context, obj *ent.Service) ([]*ent.Service, error)
@@ -4367,6 +4369,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.ServiceType(childComplexity), true
 
+	case "Service.status":
+		if e.complexity.Service.Status == nil {
+			break
+		}
+
+		return e.complexity.Service.Status(childComplexity), true
+
 	case "Service.terminationPoints":
 		if e.complexity.Service.TerminationPoints == nil {
 			break
@@ -6042,6 +6051,13 @@ enum WorkOrderStatus {
   DONE
 }
 
+enum ServiceStatus {
+  PENDING
+  IN_SERVICE
+  MAINTENANCE
+  DISCONNECTED
+}
+
 """
 Equipment planned status
 """
@@ -6508,6 +6524,7 @@ type Service implements Node {
   id: ID!
   name: String!
   externalId: String
+  status: ServiceStatus!
   customer: Customer
   serviceType: ServiceType!
   upstream: [Service]!
@@ -6558,6 +6575,7 @@ input ServiceTypeEditData {
 input ServiceCreateData {
   name: String!
   externalId: String
+  status: ServiceStatus = PENDING
   serviceTypeId: ID!
   customerId: ID
   upstreamServiceIds: [ID!]!
@@ -6569,6 +6587,7 @@ input ServiceEditData {
   id: ID!
   name: String
   externalId: String
+  status: ServiceStatus
   customerId: ID
   upstreamServiceIds: [ID!]
   properties: [PropertyInput]
@@ -23613,6 +23632,43 @@ func (ec *executionContext) _Service_externalId(ctx context.Context, field graph
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Service_status(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Service",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().Status(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.ServiceStatus)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Service_customer(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -32324,6 +32380,10 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 	var it models.ServiceCreateData
 	var asMap = obj.(map[string]interface{})
 
+	if _, present := asMap["status"]; !present {
+		asMap["status"] = "PENDING"
+	}
+
 	for k, v := range asMap {
 		switch k {
 		case "name":
@@ -32335,6 +32395,12 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 		case "externalId":
 			var err error
 			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32395,6 +32461,12 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 		case "externalId":
 			var err error
 			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -37210,6 +37282,20 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "externalId":
 			out.Values[i] = ec._Service_externalId(ctx, field, obj)
+		case "status":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "customer":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -41281,6 +41367,15 @@ func (ec *executionContext) marshalNServiceSearchResult2ᚖgithubᚗcomᚋfacebo
 	return ec._ServiceSearchResult(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
+	var res models.ServiceStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v models.ServiceStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNServiceType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx context.Context, sel ast.SelectionSet, v ent.ServiceType) graphql.Marshaler {
 	return ec._ServiceType(ctx, sel, &v)
 }
@@ -43448,6 +43543,30 @@ func (ec *executionContext) marshalOService2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Service(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
+	var res models.ServiceStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v models.ServiceStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (*models.ServiceStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v *models.ServiceStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOServiceType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx context.Context, sel ast.SelectionSet, v ent.ServiceType) graphql.Marshaler {

@@ -522,6 +522,7 @@ func TestSearchLinksByService(t *testing.T) {
 		Name:                "Internet Access Room 2a",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s1.ID, data.l1)
@@ -531,6 +532,7 @@ func TestSearchLinksByService(t *testing.T) {
 		Name:                "Internet Access Room 2b",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, data.l1)
