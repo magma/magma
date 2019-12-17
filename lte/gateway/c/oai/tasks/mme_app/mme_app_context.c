@@ -106,7 +106,7 @@ static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_report_location(IMSI_TO_HWID, imsi_str);
+  directoryd_report_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Reported UE location to directoryd, IMSI: " IMSI_64_FMT "\n",
@@ -117,7 +117,7 @@ static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_remove_location(IMSI_TO_HWID, imsi_str);
+  directoryd_remove_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Deleted UE location from directoryd, IMSI: " IMSI_64_FMT "\n",

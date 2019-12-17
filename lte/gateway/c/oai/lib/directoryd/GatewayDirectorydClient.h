@@ -35,12 +35,12 @@ namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -52,27 +52,25 @@ using namespace orc8r;
 /*
  * gRPC client for DirectoryService
  */
-class DirectoryServiceClient : public GRPCReceiver {
+class GatewayDirectoryServiceClient : public GRPCReceiver {
  public:
-  static bool UpdateLocation(
-    TableID table,
-    const std::string &id,
-    const std::string &location,
+  static bool UpdateRecord(
+    const std::string& id,
+    const std::string& location,
     std::function<void(Status, Void)> callback);
 
-  static bool DeleteLocation(
-    TableID table,
-    const std::string &id,
+  static bool DeleteRecord(
+    const std::string& id,
     std::function<void(Status, Void)> callback);
 
  public:
-  DirectoryServiceClient(DirectoryServiceClient const &) = delete;
-  void operator=(DirectoryServiceClient const &) = delete;
+  GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const&) = delete;
+  void operator=(GatewayDirectoryServiceClient const&) = delete;
 
  private:
-  DirectoryServiceClient();
-  static DirectoryServiceClient &get_instance();
-  std::shared_ptr<DirectoryService::Stub> stub_;
+  GatewayDirectoryServiceClient();
+  static GatewayDirectoryServiceClient& get_instance();
+  std::shared_ptr<GatewayDirectoryService::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 30; // seconds
 };
 
