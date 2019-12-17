@@ -42,11 +42,15 @@ type Props = {
 };
 
 const useStyles = makeStyles({
+  root: {
+    height: '100%',
+  },
   sideBar: {
     border: 'none',
     boxShadow: 'none',
     borderRadius: '0px',
     padding: '0px',
+    overflowY: 'auto',
   },
   separator: {
     borderBottom: `1px solid ${symphony.palette.separator}`,
@@ -62,9 +66,6 @@ const useStyles = makeStyles({
     boxShadow: 'none',
     padding: '0px',
     background: 'transparent',
-  },
-  scroller: {
-    overflowY: 'auto',
   },
   closeButton: {
     '&&': {

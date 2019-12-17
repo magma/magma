@@ -40,6 +40,10 @@ type Props = {
 };
 
 const useStyles = makeStyles({
+  root: {
+    overflowY: 'auto',
+    height: '100%',
+  },
   contentRoot: {
     position: 'relative',
     flexGrow: 1,
@@ -136,7 +140,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   };
 
   return (
-    <div ref={ref}>
+    <div className={classes.root} ref={ref}>
       <Card className={classes.detailsCard}>
         <div className={classes.detail}>
           <Text variant="h6" className={classes.text}>
