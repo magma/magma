@@ -69,7 +69,7 @@ const GPSPropertyValueInput = (props: Props) => {
   };
   const fieldIdPrefix = `gpsLocation-${label || 'field'}-`;
   const validationContext = useContext(FormValidationContext);
-  const errorLatitude = validationContext.errorCheck({
+  const errorLatitude = validationContext.error.check({
     fieldId: `${fieldIdPrefix}Latitude`,
     fieldDisplayName: 'Latitude',
     value: latitude,
@@ -79,7 +79,7 @@ const GPSPropertyValueInput = (props: Props) => {
       to: 90,
     },
   });
-  const errorLongitude = validationContext.errorCheck({
+  const errorLongitude = validationContext.error.check({
     fieldId: `${fieldIdPrefix}Longitude`,
     fieldDisplayName: 'Longitude',
     value: longitude,

@@ -18,28 +18,40 @@ import type {
   RemoveServiceLinkMutationResponse,
   RemoveServiceLinkMutationVariables,
 } from '../../mutations/__generated__/RemoveServiceLinkMutation.graphql';
-import type {Service} from '../../common/Service';
+import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
+import type {ServiceStatus} from '../../common/Service';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
+import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import IconButton from '@material-ui/core/IconButton';
 import React, {useState} from 'react';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
+import Select from '@fbcnms/ui/components/design-system/ContexualLayer/Select';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
+import {
+  serviceStatusToColor,
+  serviceStatusToVisibleNames,
+} from '../../common/Service';
 
 type Props = {
-  service: Service,
+  service: ServicePanel_service,
   onOpenDetailsPanel: () => void,
 };
 
 const useStyles = makeStyles({
+  root: {
+    overflowY: 'auto',
+    height: '100%',
+  },
   contentRoot: {
     position: 'relative',
     flexGrow: 1,
@@ -97,6 +109,9 @@ const useStyles = makeStyles({
   editText: {
     color: symphony.palette.B500,
   },
+  select: {
+    marginBottom: '24px',
+  },
 });
 
 /* $FlowFixMe - Flow doesn't support typing when using forwardRef on a
@@ -135,8 +150,30 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
     RemoveServiceLinkMutation(variables, callbacks);
   };
 
+  const onStatusChange = (status: ServiceStatus) => {
+    EditServiceMutation({
+      data: {
+        id: service.id,
+        status: status,
+      },
+    });
+  };
+
+  const getValidServiceStatus = (type: string): ServiceStatus => {
+    if (
+      type === 'DISCONNECTED' ||
+      type === 'IN_SERVICE' ||
+      type === 'MAINTENANCE' ||
+      type === 'PENDING'
+    ) {
+      return type;
+    }
+
+    return 'PENDING';
+  };
+
   return (
-    <div ref={ref}>
+    <div className={classes.root} ref={ref}>
       <Card className={classes.detailsCard}>
         <div className={classes.detail}>
           <Text variant="h6" className={classes.text}>
@@ -149,6 +186,17 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
             {service.externalId}
           </Text>
         </div>
+        <Select
+          className={classes.select}
+          label="Status"
+          options={Object.entries(serviceStatusToVisibleNames).map(entry => {
+            // $FlowFixMe - Flow doesn't value type well from object
+            return {value: entry[0], label: entry[1]};
+          })}
+          selectedValue={service.status}
+          onChange={value => onStatusChange(getValidServiceStatus(value))}
+          skin={serviceStatusToColor[getValidServiceStatus(service.status)]}
+        />
         <div className={classes.detail}>
           <Text variant="subtitle2" className={classes.text}>
             Service Type
@@ -201,7 +249,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
       {showAddMenu ? (
         <ServiceLinksSubservicesMenu
           key={`${service.id}-menu`}
-          service={service}
+          service={{id: service.id, name: service.name}}
           anchorEl={anchorEl}
           onClose={() => setAnchorEl(null)}
           onAddLink={onAddLink}
@@ -211,4 +259,23 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   );
 });
 
-export default ServicePanel;
+export default createFragmentContainer(ServicePanel, {
+  service: graphql`
+    fragment ServicePanel_service on Service {
+      id
+      name
+      externalId
+      status
+      customer {
+        name
+      }
+      serviceType {
+        name
+      }
+      links {
+        id
+        ...ServiceLinksView_links
+      }
+    }
+  `,
+});

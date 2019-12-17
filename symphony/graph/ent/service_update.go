@@ -28,6 +28,7 @@ type ServiceUpdate struct {
 	name                     *string
 	external_id              *string
 	clearexternal_id         bool
+	status                   *string
 	_type                    map[string]struct{}
 	downstream               map[string]struct{}
 	upstream                 map[string]struct{}
@@ -75,6 +76,12 @@ func (su *ServiceUpdate) SetNillableExternalID(s *string) *ServiceUpdate {
 func (su *ServiceUpdate) ClearExternalID() *ServiceUpdate {
 	su.external_id = nil
 	su.clearexternal_id = true
+	return su
+}
+
+// SetStatus sets the status field.
+func (su *ServiceUpdate) SetStatus(s string) *ServiceUpdate {
+	su.status = &s
 	return su
 }
 
@@ -433,6 +440,9 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if su.clearexternal_id {
 		updater.SetNull(service.FieldExternalID)
 	}
+	if value := su.status; value != nil {
+		updater.Set(service.FieldStatus, *value)
+	}
 	if !updater.Empty() {
 		query, args := updater.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
@@ -725,6 +735,7 @@ type ServiceUpdateOne struct {
 	name                     *string
 	external_id              *string
 	clearexternal_id         bool
+	status                   *string
 	_type                    map[string]struct{}
 	downstream               map[string]struct{}
 	upstream                 map[string]struct{}
@@ -765,6 +776,12 @@ func (suo *ServiceUpdateOne) SetNillableExternalID(s *string) *ServiceUpdateOne 
 func (suo *ServiceUpdateOne) ClearExternalID() *ServiceUpdateOne {
 	suo.external_id = nil
 	suo.clearexternal_id = true
+	return suo
+}
+
+// SetStatus sets the status field.
+func (suo *ServiceUpdateOne) SetStatus(s string) *ServiceUpdateOne {
+	suo.status = &s
 	return suo
 }
 
@@ -1129,6 +1146,10 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 	if suo.clearexternal_id {
 		s.ExternalID = nil
 		updater.SetNull(service.FieldExternalID)
+	}
+	if value := suo.status; value != nil {
+		updater.Set(service.FieldStatus, *value)
+		s.Status = *value
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()

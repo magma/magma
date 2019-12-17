@@ -55,7 +55,7 @@ class MeterController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        self.delete_all_flows(datapath)
         if self.config.enabled:
             self._install_default_flows(datapath)
         else:
@@ -71,6 +71,9 @@ class MeterController(MagmaController):
                                              resubmit_table=self.next_table)
 
     def cleanup_on_disconnect(self, datapath):
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
     def _install_default_flows(self, datapath):

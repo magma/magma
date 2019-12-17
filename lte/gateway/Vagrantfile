@@ -147,6 +147,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_prod.vm.hostname = "magma-prod"
     # magma_prod.vm.box = "debian/stretch64"
     # magma_prod.vm.box_version = "9.9.1"
+    # Create a private network, which can be bridged to a physical eNB
+    magma_prod.vm.network "private_network", ip: "10.10.2.1", nic_type: "82540EM"
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_prod.vm.network "private_network", ip: "192.168.60.151", nic_type: "82540EM"

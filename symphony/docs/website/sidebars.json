@@ -4,7 +4,8 @@
       "inventory-intro",
       "csv-upload",
       "py-inventory",
-      "export"
+      "equipment-export",
+      "service-export"
     ],
     "NMS": [
       "nms-overview"

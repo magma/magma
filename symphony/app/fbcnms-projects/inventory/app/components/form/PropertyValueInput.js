@@ -81,11 +81,10 @@ class PropertyValueInput extends React.Component<Props> {
     fullWidth: false,
   };
 
-  getTextInput = (): React.Node => {
+  getTextInput = (showDisabled): React.Node => {
     const {
       autoFocus,
       classes,
-      disabled,
       onChange,
       onBlur,
       margin,
@@ -96,6 +95,7 @@ class PropertyValueInput extends React.Component<Props> {
       inputType,
       headlineVariant,
     } = this.props;
+    const disabled = this.props.disabled || showDisabled;
     const property = this.props.property;
     const propertyType = !!property.propertyType
       ? property.propertyType
@@ -335,26 +335,25 @@ class PropertyValueInput extends React.Component<Props> {
   };
 
   render() {
-    const input = this.getTextInput();
-
-    const {property, headlineVariant, required} = this.props;
-    const propertyType = !!property.propertyType
-      ? property.propertyType
-      : property;
-
-    const propInputType = propertyType.type;
-    if (
-      headlineVariant !== 'form' ||
-      propInputType === 'gps_location' ||
-      propInputType === 'range'
-    ) {
-      return input;
-    }
-
     return (
       <FormValidationContext.Consumer>
         {validationContext => {
-          const errorText = validationContext.errorCheck({
+          const input = this.getTextInput(validationContext.editLock.detected);
+
+          const {property, headlineVariant, required} = this.props;
+          const propertyType = !!property.propertyType
+            ? property.propertyType
+            : property;
+
+          const propInputType = propertyType.type;
+          if (
+            headlineVariant !== 'form' ||
+            propInputType === 'gps_location' ||
+            propInputType === 'range'
+          ) {
+            return input;
+          }
+          const errorText = validationContext.error.check({
             fieldId: propertyType.name,
             fieldDisplayName: propertyType.name,
             value: getPropertyValue(property),

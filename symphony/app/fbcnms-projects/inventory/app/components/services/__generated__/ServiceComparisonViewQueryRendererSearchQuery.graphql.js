@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 277396935735af1ff3b6bd548ef6db93
+ * @relayHash 9b30e8b5d186439a2274adec9b1d981c
  */
 
 /* eslint-disable */
@@ -45,11 +45,11 @@ export type PropertyTypeInput = {|
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
 |};
-export type ServiceComparisonViewServiceQueryVariables = {|
+export type ServiceComparisonViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,
   filters: $ReadOnlyArray<ServiceFilterInput>,
 |};
-export type ServiceComparisonViewServiceQueryResponse = {|
+export type ServiceComparisonViewQueryRendererSearchQueryResponse = {|
   +serviceSearch: {|
     +services: $ReadOnlyArray<?{|
       +$fragmentRefs: ServicesView_service$ref
@@ -57,15 +57,15 @@ export type ServiceComparisonViewServiceQueryResponse = {|
     +count: number,
   |}
 |};
-export type ServiceComparisonViewServiceQuery = {|
-  variables: ServiceComparisonViewServiceQueryVariables,
-  response: ServiceComparisonViewServiceQueryResponse,
+export type ServiceComparisonViewQueryRendererSearchQuery = {|
+  variables: ServiceComparisonViewQueryRendererSearchQueryVariables,
+  response: ServiceComparisonViewQueryRendererSearchQueryResponse,
 |};
 */
 
 
 /*
-query ServiceComparisonViewServiceQuery(
+query ServiceComparisonViewQueryRendererSearchQuery(
   $limit: Int
   $filters: [ServiceFilterInput!]!
 ) {
@@ -153,6 +153,7 @@ fragment ServicesView_service on Service {
   id
   name
   externalId
+  status
   customer {
     id
     name
@@ -321,7 +322,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "ServiceComparisonViewServiceQuery",
+    "name": "ServiceComparisonViewQueryRendererSearchQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
@@ -358,7 +359,7 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "ServiceComparisonViewServiceQuery",
+    "name": "ServiceComparisonViewQueryRendererSearchQuery",
     "argumentDefinitions": (v0/*: any*/),
     "selections": [
       {
@@ -385,6 +386,13 @@ return {
                 "kind": "ScalarField",
                 "alias": null,
                 "name": "externalId",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "status",
                 "args": null,
                 "storageKey": null
               },
@@ -505,13 +513,13 @@ return {
   },
   "params": {
     "operationKind": "query",
-    "name": "ServiceComparisonViewServiceQuery",
+    "name": "ServiceComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query ServiceComparisonViewServiceQuery(\n  $limit: Int\n  $filters: [ServiceFilterInput!]!\n) {\n  serviceSearch(limit: $limit, filters: $filters) {\n    services {\n      ...ServicesView_service\n      id\n    }\n    count\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isMandatory\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
+    "text": "query ServiceComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [ServiceFilterInput!]!\n) {\n  serviceSearch(limit: $limit, filters: $filters) {\n    services {\n      ...ServicesView_service\n      id\n    }\n    count\n  }\n}\n\nfragment DynamicPropertiesGrid_properties on Property {\n  ...PropertyFormField_property\n  propertyType {\n    id\n    index\n  }\n}\n\nfragment DynamicPropertiesGrid_propertyTypes on PropertyType {\n  id\n  name\n  index\n  isInstanceProperty\n  type\n  stringValue\n  intValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  floatValue\n}\n\nfragment PropertyFormField_property on Property {\n  id\n  propertyType {\n    id\n    name\n    type\n    isEditable\n    isMandatory\n    isInstanceProperty\n    stringValue\n  }\n  stringValue\n  intValue\n  floatValue\n  booleanValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  equipmentValue {\n    id\n    name\n  }\n  locationValue {\n    id\n    name\n  }\n}\n\nfragment PropertyTypeFormField_propertyType on PropertyType {\n  id\n  name\n  type\n  index\n  stringValue\n  intValue\n  booleanValue\n  floatValue\n  latitudeValue\n  longitudeValue\n  rangeFromValue\n  rangeToValue\n  isEditable\n  isInstanceProperty\n  isMandatory\n}\n\nfragment ServicesView_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    id\n    name\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      ...PropertyTypeFormField_propertyType\n      ...DynamicPropertiesGrid_propertyTypes\n      id\n    }\n  }\n  properties {\n    ...PropertyFormField_property\n    ...DynamicPropertiesGrid_properties\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a351e390f166076c560d36445c27f8f0';
+(node/*: any*/).hash = 'ed58dc0dacf235000888b2776b58fd08';
 module.exports = node;

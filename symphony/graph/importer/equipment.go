@@ -50,7 +50,7 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 		equipmentTypeNameIdx := findIndex(firstLine, "Equipment Type")
 
 		m.populateIndexToLocationTypeMap(ctx, firstLine, false)
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine), true)
+		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine, ImportEntityEquipment), true)
 		ic := getImportContext(ctx)
 		equipmentTypeIDToProperties := ic.equipmentTypeIDToProperties
 		equipmentTypeNameToID := ic.equipmentTypeNameToID
@@ -133,7 +133,12 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			m.getOrCreateEquipment(ctx, m.r.Mutation(), equipName, et, loc, nil, propertyInput)
+			_, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), equipName, et, loc, nil, propertyInput)
+			if err != nil {
+				log.Warn("error while creating equipment", zap.String("equipment name", equipName), zap.Error(err))
+				http.Error(w, fmt.Sprintf("row %d: error while creating equipment (namew=%s): %s", i, equipName, err.Error()), http.StatusInternalServerError)
+				return
+			}
 		}
 	}
 	log.Debug("Equipment- Done")

@@ -39,7 +39,6 @@ type Props = {
   locationId: ?string,
   selectedWorkOrderId: ?string,
   onEquipmentSelected: Equipment => void,
-  onLocationSelected: (locationId: string) => void,
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
@@ -133,7 +132,7 @@ const locationsPropertiesCardQuery = graphql`
             ...DynamicPropertiesGrid_propertyTypes
           }
         }
-        ...LocationBreadcrumbsTitle_location
+        ...LocationBreadcrumbsTitle_locationDetails
         parentLocation {
           id
         }
@@ -158,6 +157,7 @@ const locationsPropertiesCardQuery = graphql`
         }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
+        ...LocationFloorPlansTab_location
       }
     }
   }
@@ -173,13 +173,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
   context: AppContextType;
 
   render() {
-    const {
-      classes,
-      locationId,
-      onLocationRemoved,
-      onLocationSelected,
-      onAddEquipment,
-    } = this.props;
+    const {classes, locationId, onLocationRemoved, onAddEquipment} = this.props;
     if (!locationId) {
       return null;
     }
@@ -213,8 +207,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                 <div className={classes.locationNameHeader}>
                   <div className={classes.breadcrumbs}>
                     <LocationBreadcrumbsTitle
-                      location={location}
-                      onLocationClicked={onLocationSelected}
+                      locationDetails={location}
                       hideTypes={false}
                     />
                   </div>
@@ -308,7 +301,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   <LocationCoverageMapTab location={location} />
                 ) : null}
                 {this.state.selectedTab === 'floor_plans' && (
-                  <LocationFloorPlansTab locationId={location.id} />
+                  <LocationFloorPlansTab location={location} />
                 )}
               </div>
             </div>

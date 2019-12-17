@@ -37,6 +37,7 @@ func (m *MockLogger) LogError(err error) {
 }
 
 func TestExecutor(t *testing.T) {
+	networkIDFilter := core.NewStringFieldFilter("networkID", "a string filter")
 
 	testRule := core.Rule{
 		ID:        "rule1",
@@ -47,15 +48,22 @@ func TestExecutor(t *testing.T) {
 				Data:     "testdata",
 			},
 		},
+		RuleFilters: []*core.ActionsRuleFilter{
+			{
+				FilterID:   networkIDFilter.FilterID(),
+				OperatorID: core.OperatorIsString.OperatorID(),
+				Data:       "network1",
+			},
+		},
 	}
 
 	trigger1 := mocktrigger.New()
 	trigger1.On("ID").Return(testTriggerID1)
-	trigger1.On("Evaluate", testRule).Return(true, nil)
+	trigger1.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
 
 	trigger2 := mocktrigger.New()
 	trigger2.On("ID").Return(testTriggerID2)
-	trigger2.On("Evaluate", testRule).Return(true, nil)
+	trigger1.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
 
 	action := mockaction.New()
 	action.On("ID").Return(testActionID1)
@@ -86,8 +94,59 @@ func TestExecutor(t *testing.T) {
 	action.AssertNumberOfCalls(t, "Execute", 1)
 }
 
-func TestExecutorUnregisteredTrigger(t *testing.T) {
+func TestExecutorRuleFilter(t *testing.T) {
+	networkIDFilter := core.NewStringFieldFilter("networkID", "a string filter")
 
+	testRule := core.Rule{
+		ID:        "rule1",
+		TriggerID: testTriggerID1,
+		RuleActions: []*core.ActionsRuleAction{
+			{
+				ActionID: testActionID1,
+				Data:     "testdata",
+			},
+		},
+		RuleFilters: []*core.ActionsRuleFilter{
+			{
+				FilterID:   networkIDFilter.FilterID(),
+				OperatorID: core.OperatorIsString.OperatorID(),
+				Data:       "anotherNetwork",
+			},
+		},
+	}
+
+	trigger1 := mocktrigger.New()
+	trigger1.On("ID").Return(testTriggerID1)
+	trigger1.On("SupportedFilters").Return([]core.Filter{networkIDFilter})
+
+	action := mockaction.New()
+	action.On("ID").Return(testActionID1)
+	action.On("Execute", mock.Anything).Return(nil)
+
+	registry := NewRegistry()
+	registry.MustRegisterAction(action)
+	registry.MustRegisterTrigger(trigger1)
+
+	exc := Executor{
+		Context:  context.Background(),
+		Registry: registry,
+		DataLoader: BasicDataLoader{
+			Rules: []core.Rule{testRule},
+		},
+		OnError: func(err error) {
+			assert.Fail(t, "error in test when shouldnt be", err)
+		},
+	}
+
+	triggers := map[core.TriggerID]map[string]interface{}{
+		testTriggerID1: payload1,
+	}
+	exc.Execute(context.Background(), "id123", triggers)
+
+	action.AssertNumberOfCalls(t, "Execute", 0)
+}
+
+func TestExecutorUnregisteredTrigger(t *testing.T) {
 	var mockErrorHandler MockLogger
 	mockErrorHandler.On("LogError", mock.Anything).Return()
 

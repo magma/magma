@@ -103,6 +103,7 @@ services:
     command: >
       sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
+        /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         python3 -m magma.pipelined.main"
 
   policydb:

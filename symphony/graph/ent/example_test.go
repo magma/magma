@@ -1493,6 +1493,7 @@ func ExampleService() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetExternalID("string").
+		SetStatus("string").
 		SaveX(ctx)
 	log.Println("service created:", s2)
 	pr3 := client.Property.
@@ -1541,6 +1542,7 @@ func ExampleService() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetExternalID("string").
+		SetStatus("string").
 		SetType(st0).
 		AddUpstream(s2).
 		AddProperties(pr3).

@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type ProjectWorkOrdersList_workOrders$ref = any;
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
@@ -29,18 +30,15 @@ export type ProjectDetails_project = {|
     +id: string,
   |},
   +location: ?{|
-    +name: string,
     +id: string,
+    +name: string,
     +latitude: number,
     +longitude: number,
     +locationType: {|
       +mapType: ?string,
       +mapZoomLevel: ?number,
     |},
-    +locationHierarchy: $ReadOnlyArray<{|
-      +id: string,
-      +name: string,
-    |}>,
+    +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
   |},
   +properties: $ReadOnlyArray<{|
     +id: string,
@@ -198,8 +196,8 @@ return {
       "concreteType": "Location",
       "plural": false,
       "selections": [
-        (v1/*: any*/),
         (v0/*: any*/),
+        (v1/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -240,17 +238,9 @@ return {
           ]
         },
         {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "locationHierarchy",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Location",
-          "plural": true,
-          "selections": [
-            (v0/*: any*/),
-            (v1/*: any*/)
-          ]
+          "kind": "FragmentSpread",
+          "name": "LocationBreadcrumbsTitle_locationDetails",
+          "args": null
         }
       ]
     },
@@ -343,5 +333,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '53419ebd7197ae2072499afc1f0dd17e';
+(node/*: any*/).hash = '5d075b433a2cc3094f34bb101a94ff7c';
 module.exports = node;

@@ -113,18 +113,21 @@ func TestSearchServicesByName(t *testing.T) {
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 2010",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -160,12 +163,14 @@ func TestSearchServicesByType(t *testing.T) {
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -214,6 +219,7 @@ func TestSearchServicesByExternalID(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		ExternalID:    &externalID1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -221,12 +227,14 @@ func TestSearchServicesByExternalID(t *testing.T) {
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
 		ExternalID:    &externalID2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 203",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -270,6 +278,7 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		CustomerID:    &customerA.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -277,12 +286,14 @@ func TestSearchServicesByCustomerName(t *testing.T) {
 		Name:          "Room 202",
 		ServiceTypeID: data.st2,
 		CustomerID:    &customerB.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Lobby",
 		ServiceTypeID: data.st2,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -326,12 +337,14 @@ func TestSearchServicesByProperties(t *testing.T) {
 		Name:          "Room 201",
 		ServiceTypeID: data.st1,
 		Properties:    servicePropInput,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "Room 202",
 		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -391,20 +404,23 @@ func TestSearchServicesByLocations(t *testing.T) {
 		Name:                "Room 201",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
+		Name:                "Room 202",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq2.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Room 201",
+		Name:                "Room 203",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID, eq2.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -492,6 +508,7 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Name:                "Room 201",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
 	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
@@ -500,6 +517,7 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Name:                "Room 202",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
 
@@ -507,6 +525,7 @@ func TestSearchServicesByEquipmentInside(t *testing.T) {
 		Name:                "Room 203",
 		ServiceTypeID:       data.st1,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 
 	limit := 100

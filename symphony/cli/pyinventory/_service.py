@@ -89,6 +89,7 @@ def add_service(
         name=name,
         externalId=external_id,
         serviceTypeId=client.serviceTypes[service_type].id,
+        status="PENDING",
         customerId=customer.id if customer is not None else None,
         properties=properties,
         upstreamServiceIds=[],

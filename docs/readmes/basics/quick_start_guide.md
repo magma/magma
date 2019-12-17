@@ -9,13 +9,13 @@ The quick start guide is for developing on Magma or just trying it out. Follow
 the deployment guides under Orchestrator and Access Gateway if you are
 installing Magma for a production deployment.
 
-With the [prereqs](prerequisites.md) installed, we can now set up a minimal 
-end-to-end system on your development environment. In this guide, we'll start 
+With the [prereqs](prerequisites.md) installed, we can now set up a minimal
+end-to-end system on your development environment. In this guide, we'll start
 by running the LTE access gateway and orchestrator cloud, and then
 register your local access gateway with your local cloud for management.
 
-We will be spinning up a virtual machine and some docker containers for this 
-full setup, so you'll probably want to do this on a system with at least 8GB 
+We will be spinning up a virtual machine and some docker containers for this
+full setup, so you'll probably want to do this on a system with at least 8GB
 of memory. Our development VM's are in the 192.168.80.0/24 address space, so
 make sure that you don't have anything running which hijacks that (e.g. VPN).
 
@@ -83,10 +83,10 @@ cloud for the first time. We'll also use this time to register the local
 client certificate you'll need to access the local API gateway for your
 development stack.
 
-Starting Orchestrator is as simple as:
+To start Orchestrator (without metrics) is as simple as:
 
 ```bash
-HOST [magma/orc8r/cloud/docker]$ docker-compose up -d
+HOST [magma/orc8r/cloud/docker]$ ./run.sh 
 
 Creating orc8r_postgres_1 ... done
 Creating orc8r_test_1     ... done
@@ -96,6 +96,26 @@ Creating fluentd          ... done
 Creating orc8r_kibana_1   ... done
 Creating orc8r_proxy_1      ... done
 Creating orc8r_controller_1 ... done
+```
+
+If you want to run everything, including metrics, run:
+
+```bash
+HOST [magma/orc8r/cloud/docker]$ ./run.sh -all
+
+Creating orc8r_alertmanager_1     ... done
+Creating orc8r_maria_1            ... done
+Creating elasticsearch            ... done
+Creating orc8r_postgres_1         ... done
+Creating orc8r_grafana_1          ... done
+Creating orc8r_config-manager_1   ... done
+Creating orc8r_test_1             ... done
+Creating orc8r_prometheus-cache_1 ... done
+Creating orc8r_prometheus_1       ... done
+Creating orc8r_kibana_1           ... done
+Creating fluentd                  ... done
+Creating orc8r_proxy_1            ... done
+Creating orc8r_controller_1       ... done
 ```
 
 The Orchestrator application containers will bootstrap certificates on startup
@@ -165,7 +185,7 @@ HOST [magma/symphony/app/fbcnms-projects/magmalte] $ docker-compose up -d
 HOST [magma/symphony/app/fbcnms-projects/magmalte] $ ./scripts/dev_setup.sh
 ```
 
-After this, you will be able to access the UI by visiting 
+After this, you will be able to access the UI by visiting
 [https://localhost](https://localhost), and using the email `admin@magma.test`
 and password `password1234`. If you see Gateway Error 502, don't worry, the
 NMS can take upto 60 seconds to finish starting up.

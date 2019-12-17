@@ -15,11 +15,13 @@ import type {
 import type {RuleAction, RuleFilter} from './types';
 
 import ActionRow from './ActionRow';
+import AddActionsRuleMutation from '../../mutations/AddActionsRuleMutation';
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import TriggerFilterRow from './TriggerFilterRow';
@@ -34,6 +36,13 @@ const useStyles = makeStyles(_theme => ({
     width: 100,
     fontWeight: 'bold',
     textAlign: 'right',
+  },
+  divider: {
+    margin: '10px 0',
+    width: '100%',
+  },
+  button: {
+    float: 'right',
   },
 }));
 
@@ -52,6 +61,8 @@ const query = graphql`
   }
 `;
 
+const EMPTY_ITEM = null;
+
 export default function ActionsAddDialog(props: Props) {
   const classes = useStyles();
   const data: ActionsAddDialog_triggerData = useFragment<ActionsAddDialog_triggerData>(
@@ -59,18 +70,23 @@ export default function ActionsAddDialog(props: Props) {
     props.trigger,
   );
 
-  const [filters, setFilters] = useState<RuleFilter[]>([]);
-
-  const [actions, setActions] = useState<RuleAction[]>([]);
+  const [filters, setFilters] = useState<(?RuleFilter)[]>([EMPTY_ITEM]);
+  const [actions, setActions] = useState<(?RuleAction)[]>([EMPTY_ITEM]);
 
   const onSave = () => {
-    const payload = {
+    const input = {
+      name: '',
       triggerID: data.triggerID,
-      filters,
-      actions,
+      ruleActions: actions.filter(Boolean).map(action => ({
+        ...action,
+        data: JSON.stringify(action.data),
+      })),
+      ruleFilters: filters.filter(Boolean).map(filter => ({
+        ...filter,
+        data: JSON.stringify(filter.data),
+      })),
     };
-    console.log('Save', payload);
-    props.onSave();
+    AddActionsRuleMutation({input}, {onCompleted: props.onSave});
   };
 
   const onChangeFilter = (newFilter, i) => {
@@ -86,8 +102,8 @@ export default function ActionsAddDialog(props: Props) {
   };
 
   return (
-    <Dialog open={true} onClose={() => props.onClose()} maxWidth="lg">
-      <DialogTitle>Create new Action</DialogTitle>
+    <Dialog open={true} onClose={() => props.onClose()}>
+      <DialogTitle>Create New Rule</DialogTitle>
       <DialogContent>
         <Grid container spacing={1}>
           <Grid item xs={3} className={classes.control}>
@@ -95,6 +111,14 @@ export default function ActionsAddDialog(props: Props) {
           </Grid>
           <Grid item xs={9}>
             {data.description}
+            <Button
+              className={classes.button}
+              size="small"
+              variant="outlined"
+              color="primary"
+              onClick={() => setFilters([...filters, EMPTY_ITEM])}>
+              Add Condition
+            </Button>
           </Grid>
           {filters.map((filter, i) => (
             <TriggerFilterRow
@@ -104,28 +128,29 @@ export default function ActionsAddDialog(props: Props) {
               onChange={newFilter => onChangeFilter(newFilter, i)}
             />
           ))}
-          {filters.length === 0 ? (
-            <TriggerFilterRow
-              trigger={data}
-              ruleFilter={null}
-              onChange={newFilter => onChangeFilter(newFilter, 0)}
-            />
-          ) : null}
+          <Divider className={classes.divider} />
+          <Grid item xs={3} className={classes.control}>
+            Do
+          </Grid>
+          <Grid item xs={9}>
+            <Button
+              className={classes.button}
+              size="small"
+              variant="outlined"
+              color="primary"
+              onClick={() => setActions([...actions, EMPTY_ITEM])}>
+              Add Action
+            </Button>
+          </Grid>
           {actions.map((action, i) => (
             <ActionRow
               key={i}
+              first={i === 0}
               trigger={data}
               ruleAction={action}
               onChange={newAction => onChangeAction(newAction, i)}
             />
           ))}
-          {actions.length === 0 ? (
-            <ActionRow
-              trigger={data}
-              ruleAction={null}
-              onChange={newAction => onChangeAction(newAction, 0)}
-            />
-          ) : null}
         </Grid>
       </DialogContent>
       <DialogActions>

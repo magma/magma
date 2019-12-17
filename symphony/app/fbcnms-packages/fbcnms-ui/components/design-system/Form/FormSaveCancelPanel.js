@@ -53,8 +53,8 @@ const FormSaveCancelPanel = (props: Props) => {
       <Button
         className={props.classes?.saveButton}
         onClick={props.onSave}
-        tooltip={validationContext.errorMessage}
-        disabled={props.isDisabled || validationContext.hasErrors}>
+        tooltip={validationContext.error.message}
+        disabled={props.isDisabled || validationContext.error.detected}>
         {props.captions?.saveButton || 'Save'}
       </Button>
     </div>

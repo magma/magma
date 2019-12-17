@@ -12,10 +12,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent/location"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 
@@ -81,10 +84,23 @@ func parentHierarchy(ctx context.Context, equipment ent.Equipment) []string {
 	return parents
 }
 
-func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string) ([]string, error) {
-	var parents = make([]string, len(orderedLocTypes))
+func parentHierarchyWithAllPositions(ctx context.Context, equipment ent.Equipment) []string {
+	var parents = make([]string, 2*maxEquipmentParents)
+	pos, _ := equipment.QueryParentPosition().Only(ctx)
+	for i := (2 * maxEquipmentParents) - 1; i >= 1; i -= 2 {
+		if pos == nil {
+			break
+		}
+		parentEquipment := pos.QueryParent().OnlyX(ctx)
+		parents[i] = pos.QueryDefinition().OnlyX(ctx).Name
+		parents[i-1] = parentEquipment.Name
+		pos, _ = parentEquipment.QueryParentPosition().Only(ctx)
+	}
+	return parents
+}
+
+func locationHierarchyForEquipment(ctx context.Context, equipment *ent.Equipment, orderedLocTypes []string) ([]string, error) {
 	firstEquipmentWithLocation := equipment
-	var err error
 	for {
 		exist, err := firstEquipmentWithLocation.QueryLocation().Exist(ctx)
 		if err != nil {
@@ -101,6 +117,13 @@ func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLoc
 		firstEquipmentWithLocation = position.QueryParent().OnlyX(ctx)
 	}
 	currLoc := firstEquipmentWithLocation.QueryLocation().OnlyX(ctx)
+	return locationHierarchy(ctx, currLoc, orderedLocTypes)
+}
+
+func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTypes []string) ([]string, error) {
+	var parents = make([]string, len(orderedLocTypes))
+	var err error
+	currLoc := location
 	for {
 		typeName := currLoc.QueryType().OnlyX(ctx).Name
 		idx := index(orderedLocTypes, typeName)
@@ -119,13 +142,15 @@ func locationHierarchy(ctx context.Context, equipment *ent.Equipment, orderedLoc
 	return parents, nil
 }
 
+// nolint: funlen
 func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity models.PropertyEntity) ([]string, error) {
 	var (
 		propTypes       []string
 		alreadyAppended = map[string]string{}
 	)
 
-	if entity == models.PropertyEntityEquipment {
+	switch entity {
+	case models.PropertyEntityEquipment:
 		var equipTypesWithEquipment []ent.EquipmentType
 		equipTypes, err := resolverutil.EquipmentTypes(ctx, c)
 		if err != nil {
@@ -150,8 +175,32 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
-	}
-	if entity == models.PropertyEntityPort || entity == models.PropertyEntityLink {
+	case models.PropertyEntityLocation:
+		var locTypesWithInstances []ent.LocationType
+		locTypes, err := resolverutil.LocationTypes(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, typ := range locTypes.Edges {
+			locType := typ.Node
+			if locType.QueryLocations().Where(location.IDIn(ids...)).ExistX(ctx) {
+				locTypesWithInstances = append(locTypesWithInstances, *locType)
+			}
+		}
+		for _, locType := range locTypesWithInstances {
+			pts, err := locType.QueryPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "querying property types")
+			}
+			for _, ptype := range pts {
+				if _, ok := alreadyAppended[ptype.Name]; !ok {
+					alreadyAppended[ptype.Name] = ""
+					propTypes = append(propTypes, ptype.Name)
+				}
+			}
+		}
+	case models.PropertyEntityPort, models.PropertyEntityLink:
 		var relevantPortTypes []ent.EquipmentPortType
 		portTypes, err := resolverutil.EquipmentPortTypes(ctx, c)
 		if err != nil {
@@ -187,10 +236,38 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 				}
 			}
 		}
+	case models.PropertyEntityService:
+		var serviceTypesWithServices []ent.ServiceType
+		serviceTypes, err := resolverutil.ServiceTypes(ctx, c)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, typ := range serviceTypes.Edges {
+			serviceType := typ.Node
+			if serviceType.QueryServices().Where(service.IDIn(ids...)).ExistX(ctx) {
+				serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
+			}
+		}
+		for _, serviceType := range serviceTypesWithServices {
+			pts, err := serviceType.QueryPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrap(err, "querying property types")
+			}
+			for _, ptype := range pts {
+				if _, ok := alreadyAppended[ptype.Name]; !ok {
+					alreadyAppended[ptype.Name] = ""
+					propTypes = append(propTypes, ptype.Name)
+				}
+			}
+		}
+	default:
+		return nil, errors.Errorf("entity not supported %s", entity)
 	}
 	return propTypes, nil
 }
 
+// nolint: funlen
 func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []string, entityType models.PropertyEntity) ([]string, error) {
 	var ret = make([]string, len(propertyTypes))
 	var typs []*ent.PropertyType
@@ -205,7 +282,6 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			return nil, errors.Wrapf(err, "can't query property types for equipment %s (id=%s)", entity.Name, entity.ID)
 		}
 		props = entity.QueryProperties().AllX(ctx)
-
 	case models.PropertyEntityPort:
 		entity := instance.(*ent.EquipmentPort)
 		var err error
@@ -229,6 +305,24 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			typs = append(typs, portTypeLinkProperties...)
 		}
 		props = entity.QueryProperties().AllX(ctx)
+	case models.PropertyEntityService:
+		entity := instance.(*ent.Service)
+		var err error
+		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for service (id=%s)", entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	case models.PropertyEntityLocation:
+		entity := instance.(*ent.Location)
+		var err error
+		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "can't query property types for location (id=%s)", entity.ID)
+		}
+		props = entity.QueryProperties().AllX(ctx)
+	default:
+		return nil, errors.Errorf("entityType not supported %s", entityType)
 	}
 
 	for _, typ := range typs {

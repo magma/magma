@@ -10,6 +10,9 @@
 package graphhttp
 
 import (
+	"github.com/facebookincubator/symphony/cloud/actions/action/magmarebootnode"
+	"github.com/facebookincubator/symphony/cloud/actions/executor"
+	"github.com/facebookincubator/symphony/cloud/actions/trigger/magmaalert"
 	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/cloud/oc"
 	"github.com/facebookincubator/symphony/cloud/orc8r"
@@ -27,7 +30,8 @@ func NewServer(cfg Config) (*server.Server, func(), error) {
 	logger := cfg.Logger
 	config := cfg.Orc8r
 	client := newOrc8rClient(config)
-	router, err := newRouter(mySQLTenancy, logger, client)
+	registry := newActionsRegistry(client)
+	router, err := newRouter(mySQLTenancy, logger, client, registry)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -87,4 +91,11 @@ func newHealthChecker(tenancy *viewer.MySQLTenancy) []health.Checker {
 func newOrc8rClient(config orc8r.Config) *http.Client {
 	client, _ := orc8r.NewClient(config)
 	return client
+}
+
+func newActionsRegistry(orc8rClient *http.Client) *executor.Registry {
+	registry := executor.NewRegistry()
+	registry.MustRegisterTrigger(magmaalert.New())
+	registry.MustRegisterAction(magmarebootnode.New(orc8rClient))
+	return registry
 }

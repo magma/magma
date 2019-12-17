@@ -131,7 +131,7 @@ func portToSlice(ctx context.Context, port *ent.EquipmentPort, orderedLocTypes [
 	g := ctxgroup.WithContext(ctx)
 
 	g.Go(func(ctx context.Context) error {
-		lParents, err = locationHierarchy(ctx, parentEquip, orderedLocTypes)
+		lParents, err = locationHierarchyForEquipment(ctx, parentEquip, orderedLocTypes)
 		return err
 	})
 	g.Go(func(ctx context.Context) error {

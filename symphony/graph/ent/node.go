@@ -2330,7 +2330,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Service",
-		Fields: make([]*Field, 4),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
@@ -2364,6 +2364,14 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[3] = &Field{
 		Type:  "string",
 		Name:  "ExternalID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "Status",
 		Value: string(buf),
 	}
 	var ids []string

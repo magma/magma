@@ -86,3 +86,64 @@ func TestAddFloorPlan(t *testing.T) {
 	assert.Equal(t, scale.ReferencePoint2Y, 8)
 	assert.Equal(t, scale.ScaleInMeters, 9.0)
 }
+
+func TestRemoveFloorPlan(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	mr := r.Mutation()
+
+	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
+		Name: "location_type_name_1",
+	})
+	require.NoError(t, err)
+
+	location, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name: "location_name_1",
+		Type: locationType.ID,
+	})
+	require.NoError(t, err)
+
+	imageInput := models.AddImageInput{
+		EntityType:  "floor_plan",
+		EntityID:    "na",
+		ImgKey:      "key1",
+		FileName:    "test_file",
+		FileSize:    100,
+		Modified:    time.Time{},
+		ContentType: "image",
+		Category:    nil,
+	}
+
+	floorPlan, err := mr.AddFloorPlan(ctx, models.AddFloorPlanInput{
+		Name:             "new floor plan",
+		LocationID:       location.ID,
+		Image:            &imageInput,
+		ReferenceX:       1,
+		ReferenceY:       2,
+		Latitude:         3.0,
+		Longitude:        4.0,
+		ReferencePoint1x: 5,
+		ReferencePoint1y: 6,
+		ReferencePoint2x: 7,
+		ReferencePoint2y: 8,
+		ScaleInMeters:    9.0,
+	})
+	require.NoError(t, err)
+
+	floorPlanFromLocation, err := location.QueryFloorPlans().Only(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, floorPlanFromLocation.ID, floorPlan.ID)
+
+	res, err := mr.DeleteFloorPlan(ctx, floorPlan.ID)
+	require.NoError(t, err)
+	assert.True(t, res)
+	floorPlansFromLocation, err := location.QueryFloorPlans().All(ctx)
+	require.NoError(t, err)
+	assert.Empty(t, floorPlansFromLocation)
+
+	_, err = mr.DeleteFloorPlan(ctx, floorPlan.ID)
+	require.Error(t, err)
+}

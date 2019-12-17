@@ -87,7 +87,7 @@ func TestLocationHierarchy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	locHierarchy, err := locationHierarchy(ctx, equipment, locTypeHierarchy)
+	locHierarchy, err := locationHierarchyForEquipment(ctx, equipment, locTypeHierarchy)
 	require.NoError(t, err)
 
 	require.Equal(t, locHierarchy[0], gpLocation.Name)
@@ -156,12 +156,16 @@ func TestParentHierarchy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	hierarchy := parentHierarchy(ctx, *childEquipment)
+	hierarchy := parentHierarchyWithAllPositions(ctx, *childEquipment)
 	require.NoError(t, err)
 
 	require.Equal(t, hierarchy[0], "")
-	require.Equal(t, hierarchy[1], grandParentEquipment.Name)
-	require.Equal(t, hierarchy[2], parentEquipment.Name)
+	require.Equal(t, hierarchy[1], "")
+	require.Equal(t, hierarchy[2], grandParentEquipment.Name)
+	require.Equal(t, hierarchy[3], posDef1.Name)
+	require.Equal(t, hierarchy[4], parentEquipment.Name)
+	require.Equal(t, hierarchy[5], posDef2.Name)
+
 }
 
 func TestPropertiesForCSV(t *testing.T) {

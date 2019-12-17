@@ -52,6 +52,7 @@ export type ServiceDetailsPanel_service = {|
       +type: PropertyKind,
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isMandatory: ?boolean,
       +stringValue: ?string,
     |},
     +stringValue: ?string,
@@ -271,6 +272,13 @@ return {
               "storageKey": null
             },
             (v2/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "isMandatory",
+              "args": null,
+              "storageKey": null
+            },
             (v4/*: any*/)
           ]
         },
@@ -308,5 +316,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b14052e5492dd8814771485f23c2d502';
+(node/*: any*/).hash = '60540300d13ea87b5c48d44a8bf606ae';
 module.exports = node;

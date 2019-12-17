@@ -34,7 +34,7 @@ func (m *importer) processPositionDefinitionsCSV(w http.ResponseWriter, r *http.
 			return
 		}
 
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine), false)
+		_ = m.populateEquipmentTypeNameToIDMapGeneral(ctx, firstLine, false)
 		equipmentTypeNameToID := getImportContext(ctx).equipmentTypeNameToID
 
 		positionNameIndex := findIndex(firstLine, "position_name")

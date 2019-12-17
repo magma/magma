@@ -345,15 +345,7 @@ func (r queryResolver) ServiceType(ctx context.Context, id string) (*ent.Service
 func (r queryResolver) ServiceTypes(
 	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.ServiceTypeConnection, error) {
-	sts, err := r.ClientFrom(ctx).ServiceType.Query().All(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err, "querying service types")
-	}
-	edges := make([]*models.ServiceTypeEdge, len(sts))
-	for i, st := range sts {
-		edges[i] = &models.ServiceTypeEdge{Node: st}
-	}
-	return &models.ServiceTypeConnection{Edges: edges}, nil
+	return resolverutil.ServiceTypes(ctx, r.ClientFrom(ctx))
 }
 
 func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, error) {
@@ -392,12 +384,8 @@ func (r queryResolver) ActionsTriggers(
 
 	ret := make([]*models.ActionsTrigger, len(triggers))
 	for i, trigger := range ac.Triggers() {
-		modelTriggerID := models.TriggerID(trigger.ID())
-		if !modelTriggerID.IsValid() {
-			return nil, errors.Errorf("triggerID %s not in models", trigger.ID())
-		}
 		ret[i] = &models.ActionsTrigger{
-			TriggerID:   modelTriggerID,
+			TriggerID:   trigger.ID(),
 			Description: trigger.Description(),
 		}
 	}
@@ -409,16 +397,15 @@ func (r queryResolver) ActionsTriggers(
 }
 
 func (r queryResolver) ActionsTrigger(
-	ctx context.Context, id models.TriggerID,
+	ctx context.Context, triggerID core.TriggerID,
 ) (*models.ActionsTrigger, error) {
 	ac := actions.FromContext(ctx)
-	actionsTriggerID := core.TriggerID(id)
-	trigger, err := ac.TriggerForID(actionsTriggerID)
+	trigger, err := ac.TriggerForID(triggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting trigger")
 	}
 	return &models.ActionsTrigger{
-		TriggerID:   id,
+		TriggerID:   triggerID,
 		Description: trigger.Description(),
 	}, nil
 }

@@ -1605,9 +1605,14 @@ func (r mutationResolver) MarkSiteSurveyNeeded(ctx context.Context, locationID s
 }
 
 func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCreateData) (*ent.Service, error) {
+	if data.Status == nil {
+		return nil, errors.New("status is a mandatory param")
+	}
+
 	query := r.ClientFrom(ctx).
 		Service.Create().
 		SetName(data.Name).
+		SetStatus(data.Status.String()).
 		SetNillableExternalID(data.ExternalID).
 		SetTypeID(data.ServiceTypeID).
 		AddUpstreamIDs(data.UpstreamServiceIds...).
@@ -1620,6 +1625,9 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	s, err := query.Save(ctx)
 
 	if err != nil {
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A service with the name %v already exists", data.Name)
+		}
 		return nil, errors.Wrap(err, "creating service")
 	}
 	if _, err := r.AddProperties(ctx, data.Properties, func(b *ent.PropertyCreate) { b.SetService(s) }); err != nil {
@@ -1640,31 +1648,38 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
-	addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
-		oldTerminationPointIds, data.TerminationPointIds)
+	query := client.Service.UpdateOne(s).SetNillableExternalID(data.ExternalID)
 
-	oldUpstreamIds := s.QueryDownstream().IDsX(ctx)
-	addedUpstreamIds, deletedUpstreamIds := resolverutil.GetDifferenceBetweenSlices(oldUpstreamIds, data.UpstreamServiceIds)
-
-	oldCustomerIds := s.QueryCustomer().IDsX(ctx)
-	newCustomerIds := make([]string, 0)
-	if data.CustomerID != nil {
-		newCustomerIds = append(newCustomerIds, *data.CustomerID)
+	if data.Name != nil {
+		query.SetName(*data.Name)
 	}
-	addedCustomerIds, deletedCustomerIds := resolverutil.GetDifferenceBetweenSlices(oldCustomerIds, newCustomerIds)
 
-	if s, err = client.Service.
-		UpdateOne(s).
-		SetName(data.Name).
-		SetNillableExternalID(data.ExternalID).
-		RemoveTerminationPointIDs(deletedTerminationPointIds...).
-		AddTerminationPointIDs(addedTerminationPointIds...).
-		RemoveCustomerIDs(deletedCustomerIds...).
-		AddCustomerIDs(addedCustomerIds...).
-		RemoveUpstreamIDs(deletedUpstreamIds...).
-		AddUpstreamIDs(addedUpstreamIds...).
-		Save(ctx); err != nil {
+	if data.Status != nil {
+		query.SetStatus(data.Status.String())
+	}
+
+	if data.TerminationPointIds != nil {
+		oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
+		addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
+			oldTerminationPointIds, data.TerminationPointIds)
+		query.RemoveTerminationPointIDs(deletedTerminationPointIds...).AddTerminationPointIDs(addedTerminationPointIds...)
+	}
+
+	if data.UpstreamServiceIds != nil {
+		oldUpstreamIds := s.QueryDownstream().IDsX(ctx)
+		addedUpstreamIds, deletedUpstreamIds := resolverutil.GetDifferenceBetweenSlices(oldUpstreamIds, data.UpstreamServiceIds)
+		query.RemoveUpstreamIDs(deletedUpstreamIds...).AddUpstreamIDs(addedUpstreamIds...)
+	}
+
+	if data.CustomerID != nil {
+		oldCustomerIds := s.QueryCustomer().IDsX(ctx)
+		newCustomerIds := make([]string, 0)
+		newCustomerIds = append(newCustomerIds, *data.CustomerID)
+		addedCustomerIds, deletedCustomerIds := resolverutil.GetDifferenceBetweenSlices(oldCustomerIds, newCustomerIds)
+		query.RemoveCustomerIDs(deletedCustomerIds...).AddCustomerIDs(addedCustomerIds...)
+	}
+
+	if s, err = query.Save(ctx); err != nil {
 		return nil, errors.Wrapf(err, "updating service: id=%q", data.ID)
 	}
 
@@ -1899,6 +1914,14 @@ func (r mutationResolver) EditEquipment(
 	return e, nil
 }
 
+// TODO T58981969 Add isNewProp to all edit mutations
+func (r mutationResolver) isNewProp(directPropertiesTypes []string, propertyID *string, propertyTypeID string) bool {
+	if propertyID != nil {
+		return false
+	}
+	return !resolverutil.Find(directPropertiesTypes, propertyTypeID)
+}
+
 func (r mutationResolver) EditEquipmentPort(
 	ctx context.Context, input models.EditEquipmentPortInput,
 ) (*ent.EquipmentPort, error) {
@@ -1909,10 +1932,21 @@ func (r mutationResolver) EditEquipmentPort(
 	}
 
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := p.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range input.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := p.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}
@@ -2559,7 +2593,10 @@ func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCusto
 		SetNillableExternalID(input.ExternalID).
 		Save(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "creating custumer")
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A customer with the name %v already exists", input.Name)
+		}
+		return nil, errors.Wrap(err, "creating customer")
 	}
 	return t, nil
 }
@@ -2575,13 +2612,13 @@ func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRul
 	ac := actions.FromContext(ctx)
 	ruleActions := make([]*core.ActionsRuleAction, 0, len(inputActions))
 	for _, ruleAction := range inputActions {
-		_, err := ac.ActionForID(core.ActionID(ruleAction.ActionID))
+		_, err := ac.ActionForID(ruleAction.ActionID)
 		if err != nil {
 			return nil, errors.Wrap(err, "validating action")
 		}
 
 		ruleActions = append(ruleActions, &core.ActionsRuleAction{
-			ActionID: core.ActionID(ruleAction.ActionID),
+			ActionID: ruleAction.ActionID,
 			Data:     ruleAction.Data,
 		})
 	}
@@ -2603,8 +2640,7 @@ func filtersInputToSchema(inputFilters []*models.ActionsRuleFilterInput) []*core
 func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	ac := actions.FromContext(ctx)
 
-	triggerID := core.TriggerID(input.TriggerID)
-	_, err := ac.TriggerForID(triggerID)
+	_, err := ac.TriggerForID(input.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating trigger")
 	}
@@ -2619,7 +2655,7 @@ func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddAc
 	actionsRule, err := r.ClientFrom(ctx).
 		ActionsRule.Create().
 		SetName(input.Name).
-		SetTriggerID(input.TriggerID).
+		SetTriggerID(string(input.TriggerID)).
 		SetRuleActions(ruleActions).
 		SetRuleFilters(ruleFilters).
 		Save(ctx)
@@ -2674,8 +2710,7 @@ func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloo
 func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	ac := actions.FromContext(ctx)
 
-	triggerID := core.TriggerID(input.TriggerID)
-	_, err := ac.TriggerForID(triggerID)
+	_, err := ac.TriggerForID(input.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating trigger")
 	}
@@ -2690,7 +2725,7 @@ func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input 
 	actionsRule, err := r.ClientFrom(ctx).
 		ActionsRule.UpdateOneID(id).
 		SetName(input.Name).
-		SetTriggerID(input.TriggerID).
+		SetTriggerID(string(input.TriggerID)).
 		SetRuleActions(ruleActions).
 		SetRuleFilters(ruleFilters).
 		Save(ctx)
@@ -2704,6 +2739,18 @@ func (r mutationResolver) RemoveActionsRule(ctx context.Context, id string) (boo
 	client := r.ClientFrom(ctx)
 	if err := client.ActionsRule.DeleteOneID(id).Exec(ctx); err != nil {
 		return false, errors.Wrap(err, "removing actionsrule")
+	}
+	return true, nil
+}
+
+func (r mutationResolver) DeleteFloorPlan(ctx context.Context, id string) (bool, error) {
+	client := r.ClientFrom(ctx).FloorPlan
+	f, err := client.Get(ctx, id)
+	if err != nil {
+		return false, errors.Wrapf(err, "querying floorplan: id=%q", id)
+	}
+	if err := client.DeleteOne(f).Exec(ctx); err != nil {
+		return false, errors.Wrapf(err, "deleting floorplan: id=%q", id)
 	}
 	return true, nil
 }

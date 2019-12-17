@@ -121,12 +121,13 @@ void pcef_create_session(
     });
 }
 
-bool pcef_end_session(char *imsi)
+bool pcef_end_session(char *imsi, char *apn)
 {
-  magma::SubscriberID sid;
-  sid.set_id("IMSI" + std::string(imsi));
+  magma::LocalEndSessionRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_apn(apn);
   magma::PCEFClient::end_session(
-    sid, [&](grpc::Status status, magma::LocalEndSessionResponse response) {
+    request, [&](grpc::Status status, magma::LocalEndSessionResponse response) {
       return; // For now, do nothing. TODO: handle errors asynchronously
     });
   return true;

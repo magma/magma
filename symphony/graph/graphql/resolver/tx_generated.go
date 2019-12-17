@@ -807,6 +807,17 @@ func (tr txResolver) AddFloorPlan(ctx context.Context, input models.AddFloorPlan
 	return result, nil
 }
 
+func (tr txResolver) DeleteFloorPlan(ctx context.Context, id string) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.DeleteFloorPlan(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	return result, nil
+}
+
 func (tr txResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	var result, zero *ent.ActionsRule
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {

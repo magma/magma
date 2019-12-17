@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {ActionID} from '../../mutations/__generated__/AddActionsRuleMutation.graphql.js';
+
 export type FilterData = string | string[];
 
 export type ActionData = string | string[] | null;
@@ -21,6 +23,6 @@ export type RuleFilter = {|
 
 // A user-configured action when creating a Rule
 export type RuleAction = {|
-  actionID: string,
+  actionID: ActionID,
   data: ActionData,
 |};

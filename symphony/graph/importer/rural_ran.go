@@ -383,7 +383,7 @@ func (m *importer) ProcessRuralRanCSV(w http.ResponseWriter, r *http.Request) {
 				}
 
 				// create specific BTS Equipment types
-				btsEquipment, _ := m.getOrCreateEquipment(ctx, mr, btsName, BTSEquipmentType, Estacion, nil, btsPropertyInput)
+				btsEquipment, _, _ := m.getOrCreateEquipment(ctx, mr, btsName, BTSEquipmentType, Estacion, nil, btsPropertyInput)
 
 				// create Antenna instance
 				antPropertyInput := []*models.PropertyInput{
@@ -468,7 +468,7 @@ func (m *importer) ProcessRuralRanCSV(w http.ResponseWriter, r *http.Request) {
 					antName = antName + "_0"
 				}
 
-				antennaEquipment, _ := m.getOrCreateEquipment(ctx, mr, antName, AntennaEquipmentType, Estacion, nil, antPropertyInput)
+				antennaEquipment, _, _ := m.getOrCreateEquipment(ctx, mr, antName, AntennaEquipmentType, Estacion, nil, antPropertyInput)
 
 				m.addLinkBetweenEquipments(ctx, mr, *btsEquipment, *antennaEquipment)
 

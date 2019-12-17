@@ -50,42 +50,8 @@ func (r queryResolver) PortSearch(ctx context.Context, filters []*models.PortFil
 	return resolverutil.PortSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
-// nolint: dupl
 func (r queryResolver) LocationSearch(ctx context.Context, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error) {
-	var (
-		query = r.ClientFrom(ctx).Location.Query()
-		err   error
-	)
-	for _, f := range filters {
-		switch {
-		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
-			if query, err = handleLocationFilter(query, f); err != nil {
-				return nil, err
-			}
-		case strings.HasPrefix(f.FilterType.String(), "LOCATION_TYPE"):
-			if query, err = handleLocationTypeFilter(query, f); err != nil {
-				return nil, err
-			}
-		case strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
-			if query, err = handleLocationPropertyFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
-	}
-	count, err := query.Clone().Count(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "Count query failed")
-	}
-	locs, err := query.Limit(*limit).All(ctx)
-
-	if err != nil {
-		return nil, errors.Wrapf(err, "Querying locations failed")
-	}
-
-	return &models.LocationSearchResult{
-		Locations: locs,
-		Count:     count,
-	}, err
+	return resolverutil.LocationSearch(ctx, r.ClientFrom(ctx), filters, limit)
 }
 
 func (r queryResolver) ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {

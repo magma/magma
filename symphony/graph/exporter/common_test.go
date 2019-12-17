@@ -41,7 +41,13 @@ const (
 	portName2           = "port2"
 	portName3           = "port3"
 	propNameStr         = "propNameStr"
+	propNameDate        = "propNameDate"
+	propNameBool        = "propNameBool"
 	propNameInt         = "propNameInts"
+	externalIDL         = "11"
+	externalIDM         = "22"
+	lat                 = 32.109
+	long                = 34.855
 	newPropNameStr      = "newPropNameStr"
 	propDefValue        = "defaultVal"
 	propDefValue2       = "defaultVal2"
@@ -99,7 +105,22 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	require.NoError(t, err)
 	locTypeM, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: locTypeNameM})
 	require.NoError(t, err)
-	locTypeS, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: locTypeNameS})
+	locTypeS, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: locTypeNameS, Properties: []*models.PropertyTypeInput{
+		{
+			Name:        propNameStr,
+			Type:        models.PropertyKindString,
+			StringValue: pointer.ToString("default"),
+		},
+		{
+			Name: propNameBool,
+			Type: models.PropertyKindBool,
+		},
+		{
+			Name:        propNameDate,
+			Type:        models.PropertyKindDate,
+			StringValue: pointer.ToString("1988-03-29"),
+		},
+	}})
 	require.NoError(t, err)
 
 	_, err = mr.EditLocationTypesIndex(ctx, []*models.LocationTypeIndex{
@@ -119,20 +140,39 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	require.NoError(t, err)
 
 	gpLocation, err := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: grandParentLocation,
-		Type: locTypeL.ID,
+		Name:       grandParentLocation,
+		Type:       locTypeL.ID,
+		ExternalID: pointer.ToString(externalIDL),
+		Latitude:   pointer.ToFloat64(lat),
+		Longitude:  pointer.ToFloat64(long),
 	})
+
 	require.NoError(t, err)
 	pLocation, err := mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   parentLocation,
-		Type:   locTypeM.ID,
-		Parent: &gpLocation.ID,
+		Name:       parentLocation,
+		Type:       locTypeM.ID,
+		Parent:     &gpLocation.ID,
+		ExternalID: pointer.ToString(externalIDM),
+		Latitude:   pointer.ToFloat64(lat),
+		Longitude:  pointer.ToFloat64(long),
 	})
 	require.NoError(t, err)
+	strProp := locTypeS.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	boolProp := locTypeS.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindBool.String())).OnlyX(ctx)
 	clocation, err := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   childLocation,
 		Type:   locTypeS.ID,
 		Parent: &pLocation.ID,
+		Properties: []*models.PropertyInput{
+			{
+				PropertyTypeID: strProp.ID,
+				StringValue:    pointer.ToString("override"),
+			},
+			{
+				PropertyTypeID: boolProp.ID,
+				BooleanValue:   pointer.ToBool(true),
+			},
+		},
 	})
 	require.NoError(t, err)
 	position1 := models.EquipmentPositionInput{

@@ -70,12 +70,15 @@ class ArpTableTest(unittest.TestCase):
             apps=[
                 PipelinedController.Arp,
                 PipelinedController.Testing,
+                PipelinedController.StartupFlows
             ],
             references={
                 PipelinedController.Arp:
                     arp_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'LTE',
@@ -85,6 +88,7 @@ class ArpTableTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': cls.BRIDGE,
                 'local_ue_eth_addr': True,
+                'clean_restart': True,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,

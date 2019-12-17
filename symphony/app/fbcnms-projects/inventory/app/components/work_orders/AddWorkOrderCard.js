@@ -145,6 +145,7 @@ const addWorkOrderCard__workOrderTypeQuery = graphql`
         rangeFromValue
         rangeToValue
         isEditable
+        isMandatory
         isInstanceProperty
       }
       checkListDefinitions {
@@ -340,7 +341,7 @@ class AddWorkOrderCard extends React.Component<Props, State> {
                                 lg={4}
                                 xl={4}>
                                 <PropertyValueInput
-                                  required={false}
+                                  required={!!property.propertyType.isMandatory}
                                   disabled={false}
                                   label={property.propertyType.name}
                                   className={classes.gridInput}

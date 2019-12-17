@@ -39,16 +39,32 @@ func (l ImportRecord) Header() ImportHeader {
 	return l.title
 }
 
-func (l ImportRecord) GetPropertyInput(ctx context.Context, et *ent.EquipmentType, proptypeName string) (*models.PropertyInput, error) {
-	ptyp, err := et.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
+	var pTyp *ent.PropertyType
+	var err error
+	switch l.entity() {
+	case ImportEntityEquipment:
+		typ := typ.(*ent.EquipmentType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityPort:
+		typ := typ.(*ent.EquipmentPortType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	default:
+		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
+	}
 	if err != nil {
 		return nil, errors.Wrapf(err, "property type does not exist %q", proptypeName)
 	}
+
 	idx := l.title.Find(proptypeName)
 	if idx == -1 {
 		return nil, nil
 	}
-	return getPropInput(*ptyp, l.line[idx])
+	return getPropInput(*pTyp, l.line[idx])
+}
+
+func (l ImportRecord) entity() ImportEntity {
+	return l.Header().entity
 }
 
 func (l ImportRecord) ID() string {
@@ -63,12 +79,34 @@ func (l ImportRecord) TypeName() string {
 	return l.line[2]
 }
 
+func (l ImportRecord) PortEquipmentName() string {
+	if l.entity() == ImportEntityPort {
+		return l.line[3]
+	}
+	return ""
+}
+
+func (l ImportRecord) PortEquipmentTypeName() string {
+	if l.entity() == ImportEntityPort {
+		return l.line[4]
+	}
+	return ""
+}
+
 func (l ImportRecord) ThirdParent() string {
 	return l.line[l.title.ThirdParentIdx()]
 }
 
+func (l ImportRecord) ThirdPosition() string {
+	return l.line[l.title.ThirdPositionIdx()]
+}
+
 func (l ImportRecord) SecondParent() string {
 	return l.line[l.title.SecondParentIdx()]
+}
+
+func (l ImportRecord) SecondPosition() string {
+	return l.line[l.title.SecondPositionIdx()]
 }
 
 func (l ImportRecord) DirectParent() string {
