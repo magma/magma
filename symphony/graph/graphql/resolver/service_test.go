@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"github.com/AlekSi/pointer"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -328,7 +329,7 @@ func TestEditService(t *testing.T) {
 
 	newService, err := mr.EditService(ctx, models.ServiceEditData{
 		ID:   service.ID,
-		Name: "new_service_name",
+		Name: pointer.ToString("new_service_name"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "new_service_name", newService.Name)
@@ -362,7 +363,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	externalID1 := "externalID1"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
@@ -372,7 +373,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	externalID2 := "externalID2"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
@@ -416,7 +417,7 @@ func TestEditServiceWithCustomer(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		CustomerID: &donald.ID,
 	})
 	require.NoError(t, err)
@@ -426,22 +427,13 @@ func TestEditServiceWithCustomer(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		CustomerID: &dafi.ID,
 	})
 	require.NoError(t, err)
 	fetchedService, _ = qr.Service(ctx, service.ID)
 	fetchedCustomer = fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, dafi.ID, fetchedCustomer.ID)
-
-	_, err = mr.EditService(ctx, models.ServiceEditData{
-		ID:   service.ID,
-		Name: service.Name,
-	})
-	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
-	exist = fetchedService.QueryCustomer().ExistX(ctx)
-	require.Equal(t, false, exist)
 }
 
 func TestEditServiceWithProperties(t *testing.T) {
@@ -498,7 +490,7 @@ func TestEditServiceWithProperties(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       "service_name_1",
+		Name:       pointer.ToString("service_name_1"),
 		Properties: propInputClone,
 	})
 	require.NoError(t, err, "Editing service")
@@ -581,7 +573,7 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:                  service.ID,
-		Name:                service.Name,
+		Name:                pointer.ToString(service.Name),
 		TerminationPointIds: []string{eq2.ID, eq3.ID},
 	})
 	require.NoError(t, err)
@@ -593,7 +585,7 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:                  service.ID,
-		Name:                service.Name,
+		Name:                pointer.ToString(service.Name),
 		TerminationPointIds: []string{},
 	})
 	require.NoError(t, err)

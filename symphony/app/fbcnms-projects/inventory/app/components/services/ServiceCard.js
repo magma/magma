@@ -130,14 +130,8 @@ export default withRouter(
         fragment ServiceCard_service on Service {
           id
           name
-          serviceType {
-            name
-          }
           ...ServiceDetailsPanel_service
-          links {
-            id
-            ...ServiceLinksView_links
-          }
+          ...ServicePanel_service
           terminationPoints {
             ...ServiceEquipmentTopology_terminationPoints
           }

@@ -6567,12 +6567,12 @@ input ServiceCreateData {
 
 input ServiceEditData {
   id: ID!
-  name: String!
+  name: String
   externalId: String
   customerId: ID
-  upstreamServiceIds: [ID!]!
+  upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
+  terminationPointIds: [ID!]
 }
 
 input SurveyCreateData {
@@ -32388,7 +32388,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "name":
 			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32406,7 +32406,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "upstreamServiceIds":
 			var err error
-			it.UpstreamServiceIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			it.UpstreamServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32418,7 +32418,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "terminationPointIds":
 			var err error
-			it.TerminationPointIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			it.TerminationPointIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}

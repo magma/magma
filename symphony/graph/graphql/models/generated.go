@@ -574,7 +574,7 @@ type ServiceCreateData struct {
 
 type ServiceEditData struct {
 	ID                  string           `json:"id"`
-	Name                string           `json:"name"`
+	Name                *string          `json:"name"`
 	ExternalID          *string          `json:"externalId"`
 	CustomerID          *string          `json:"customerId"`
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`

@@ -1643,31 +1643,34 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
-	addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
-		oldTerminationPointIds, data.TerminationPointIds)
+	query := client.Service.UpdateOne(s).SetNillableExternalID(data.ExternalID)
 
-	oldUpstreamIds := s.QueryDownstream().IDsX(ctx)
-	addedUpstreamIds, deletedUpstreamIds := resolverutil.GetDifferenceBetweenSlices(oldUpstreamIds, data.UpstreamServiceIds)
-
-	oldCustomerIds := s.QueryCustomer().IDsX(ctx)
-	newCustomerIds := make([]string, 0)
-	if data.CustomerID != nil {
-		newCustomerIds = append(newCustomerIds, *data.CustomerID)
+	if data.Name != nil {
+		query.SetName(*data.Name)
 	}
-	addedCustomerIds, deletedCustomerIds := resolverutil.GetDifferenceBetweenSlices(oldCustomerIds, newCustomerIds)
 
-	if s, err = client.Service.
-		UpdateOne(s).
-		SetName(data.Name).
-		SetNillableExternalID(data.ExternalID).
-		RemoveTerminationPointIDs(deletedTerminationPointIds...).
-		AddTerminationPointIDs(addedTerminationPointIds...).
-		RemoveCustomerIDs(deletedCustomerIds...).
-		AddCustomerIDs(addedCustomerIds...).
-		RemoveUpstreamIDs(deletedUpstreamIds...).
-		AddUpstreamIDs(addedUpstreamIds...).
-		Save(ctx); err != nil {
+	if data.TerminationPointIds != nil {
+		oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
+		addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
+			oldTerminationPointIds, data.TerminationPointIds)
+		query.RemoveTerminationPointIDs(deletedTerminationPointIds...).AddTerminationPointIDs(addedTerminationPointIds...)
+	}
+
+	if data.UpstreamServiceIds != nil {
+		oldUpstreamIds := s.QueryDownstream().IDsX(ctx)
+		addedUpstreamIds, deletedUpstreamIds := resolverutil.GetDifferenceBetweenSlices(oldUpstreamIds, data.UpstreamServiceIds)
+		query.RemoveUpstreamIDs(deletedUpstreamIds...).AddUpstreamIDs(addedUpstreamIds...)
+	}
+
+	if data.CustomerID != nil {
+		oldCustomerIds := s.QueryCustomer().IDsX(ctx)
+		newCustomerIds := make([]string, 0)
+		newCustomerIds = append(newCustomerIds, *data.CustomerID)
+		addedCustomerIds, deletedCustomerIds := resolverutil.GetDifferenceBetweenSlices(oldCustomerIds, newCustomerIds)
+		query.RemoveCustomerIDs(deletedCustomerIds...).AddCustomerIDs(addedCustomerIds...)
+	}
+
+	if s, err = query.Save(ctx); err != nil {
 		return nil, errors.Wrapf(err, "updating service: id=%q", data.ID)
 	}
 

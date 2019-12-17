@@ -1156,12 +1156,12 @@ input ServiceCreateData {
 
 input ServiceEditData {
   id: ID!
-  name: String!
+  name: String
   externalId: String
   customerId: ID
-  upstreamServiceIds: [ID!]!
+  upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
+  terminationPointIds: [ID!]
 }
 
 input SurveyCreateData {

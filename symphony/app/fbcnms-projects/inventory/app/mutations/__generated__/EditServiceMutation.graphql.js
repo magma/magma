@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3b1cc4b4c02f7c40ef8454ebb70f83e5
+ * @relayHash ec6e4b2eb7752824f734caafce87615b
  */
 
 /* eslint-disable */
@@ -18,12 +18,12 @@ import type { ConcreteRequest } from 'relay-runtime';
 type ServiceCard_service$ref = any;
 export type ServiceEditData = {|
   id: string,
-  name: string,
+  name?: ?string,
   externalId?: ?string,
   customerId?: ?string,
-  upstreamServiceIds: $ReadOnlyArray<string>,
+  upstreamServiceIds?: ?$ReadOnlyArray<string>,
   properties?: ?$ReadOnlyArray<?PropertyInput>,
-  terminationPointIds: $ReadOnlyArray<string>,
+  terminationPointIds?: ?$ReadOnlyArray<string>,
 |};
 export type PropertyInput = {|
   id?: ?string,
@@ -69,15 +69,8 @@ mutation EditServiceMutation(
 fragment ServiceCard_service on Service {
   id
   name
-  serviceType {
-    name
-    id
-  }
   ...ServiceDetailsPanel_service
-  links {
-    id
-    ...ServiceLinksView_links
-  }
+  ...ServicePanel_service
   terminationPoints {
     ...ServiceEquipmentTopology_terminationPoints
     id
@@ -171,6 +164,24 @@ fragment ServiceLinksView_links on Link {
       name
     }
     id
+  }
+}
+
+fragment ServicePanel_service on Service {
+  id
+  name
+  externalId
+  customer {
+    name
+    id
+  }
+  serviceType {
+    name
+    id
+  }
+  links {
+    id
+    ...ServiceLinksView_links
   }
 }
 */
@@ -323,6 +334,26 @@ return {
           (v2/*: any*/),
           (v3/*: any*/),
           {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "externalId",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "customer",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Customer",
+            "plural": false,
+            "selections": [
+              (v3/*: any*/),
+              (v2/*: any*/)
+            ]
+          },
+          {
             "kind": "LinkedField",
             "alias": null,
             "name": "serviceType",
@@ -331,8 +362,8 @@ return {
             "concreteType": "ServiceType",
             "plural": false,
             "selections": [
-              (v3/*: any*/),
               (v2/*: any*/),
+              (v3/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
@@ -363,26 +394,6 @@ return {
                   (v13/*: any*/)
                 ]
               }
-            ]
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "externalId",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "customer",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "Customer",
-            "plural": false,
-            "selections": [
-              (v3/*: any*/),
-              (v2/*: any*/)
             ]
           },
           {
@@ -565,7 +576,7 @@ return {
     "operationKind": "mutation",
     "name": "EditServiceMutation",
     "id": null,
-    "text": "mutation EditServiceMutation(\n  $data: ServiceEditData!\n) {\n  editService(data: $data) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  serviceType {\n    name\n    id\n  }\n  ...ServiceDetailsPanel_service\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n",
+    "text": "mutation EditServiceMutation(\n  $data: ServiceEditData!\n) {\n  editService(data: $data) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    id\n    name\n  }\n  links {\n    source\n    target\n  }\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n}\n",
     "metadata": {}
   }
 };

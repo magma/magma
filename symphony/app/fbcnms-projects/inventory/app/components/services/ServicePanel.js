@@ -18,7 +18,7 @@ import type {
   RemoveServiceLinkMutationResponse,
   RemoveServiceLinkMutationVariables,
 } from '../../mutations/__generated__/RemoveServiceLinkMutation.graphql';
-import type {Service} from '../../common/Service';
+import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
@@ -32,10 +32,11 @@ import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  service: Service,
+  service: ServicePanel_service,
   onOpenDetailsPanel: () => void,
 };
 
@@ -205,7 +206,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
       {showAddMenu ? (
         <ServiceLinksSubservicesMenu
           key={`${service.id}-menu`}
-          service={service}
+          service={{id: service.id, name: service.name}}
           anchorEl={anchorEl}
           onClose={() => setAnchorEl(null)}
           onAddLink={onAddLink}
@@ -215,4 +216,22 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   );
 });
 
-export default ServicePanel;
+export default createFragmentContainer(ServicePanel, {
+  service: graphql`
+    fragment ServicePanel_service on Service {
+      id
+      name
+      externalId
+      customer {
+        name
+      }
+      serviceType {
+        name
+      }
+      links {
+        id
+        ...ServiceLinksView_links
+      }
+    }
+  `,
+});
