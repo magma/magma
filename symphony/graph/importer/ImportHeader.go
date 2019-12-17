@@ -84,10 +84,13 @@ func (l ImportHeader) LocationsRangeIdx() (int, int) {
 }
 
 func (l ImportHeader) PropertyStartIdx() int {
-	if l.entity == ImportEntityEquipment {
+	switch l.entity {
+	case ImportEntityEquipment:
 		return l.PositionIdx() + 1
-	} else if l.entity == ImportEntityPort {
+	case ImportEntityPort:
 		return l.PositionIdx() + 5
+	case ImportEntityService:
+		return findIndex(l.line, "Customer External ID") + 1
 	}
 	return -1
 }

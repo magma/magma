@@ -25,6 +25,8 @@ const (
 	ImportEntityEquipment ImportEntity = "EQUIPMENT"
 	// ImportEntityPort specifies a port for import
 	ImportEntityPort ImportEntity = "PORT"
+	// ImportEntityService specifies a service for import
+	ImportEntityService ImportEntity = "SERVICE"
 )
 
 // nolint: unparam
