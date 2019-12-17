@@ -58,6 +58,11 @@ class PolicyMixin(metaclass=ABCMeta):
             [flow.match for flow in startup_flows])
         self._remove_extra_flows(extra_flows)
 
+        # For now just reinsert redirection rules, this is a bit of a hack but
+        # redirection relies on async dns request to be setup and we can't
+        # currently do this from out synchronous setup request. So just reinsert
+        self._process_redirection_rules(requests)
+
         self.init_finished = True
         return SetupFlowsResult.SUCCESS
 
@@ -86,8 +91,6 @@ class PolicyMixin(metaclass=ABCMeta):
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
 
-            #TODO FIX REDIRECTION RECOVERY
-            #ip_addr = add_flow_req.ip_addr
             for rule_id in static_rule_ids:
                 rule = self._policy_dict[rule_id]
                 if rule is None:
@@ -95,6 +98,8 @@ class PolicyMixin(metaclass=ABCMeta):
                         rule_id)
                     continue
                 try:
+                    if rule.redirect.support == rule.redirect.ENABLED:
+                        continue
                     flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
@@ -102,6 +107,8 @@ class PolicyMixin(metaclass=ABCMeta):
 
             for rule in dynamic_rules:
                 try:
+                    if rule.redirect.support == rule.redirect.ENABLED:
+                        continue
                     flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
@@ -119,6 +126,25 @@ class PolicyMixin(metaclass=ABCMeta):
             self._wait_for_responses(chan, len(msgs_to_send))
 
         return remaining_flows
+
+    def _process_redirection_rules(self, requests):
+        for add_flow_req in requests:
+            imsi = add_flow_req.sid.id
+            ip_addr = add_flow_req.ip_addr
+            static_rule_ids = add_flow_req.rule_ids
+            dynamic_rules = add_flow_req.dynamic_rules
+            for rule_id in static_rule_ids:
+                rule = self._policy_dict[rule_id]
+                if rule is None:
+                    self.logger.error("Could not find rule for rule_id: %s",
+                        rule_id)
+                    continue
+                if rule.redirect.support == rule.redirect.ENABLED:
+                    self._install_redirect_flow(imsi, ip_addr, rule)
+
+            for rule in dynamic_rules:
+                if rule.redirect.support == rule.redirect.ENABLED:
+                    self._install_redirect_flow(imsi, ip_addr, rule)
 
     def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules):
         """
@@ -208,5 +234,30 @@ class PolicyMixin(metaclass=ABCMeta):
 
         Args:
             imsi (string): subscriber id
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _install_redirect_flow(self, imsi, ip_addr, rule):
+        """
+        Install a redirection flow for the subscriber.
+        Subclass should implement this.
+
+        Args:
+            imsi (string): subscriber id
+            ip_addr (string): subscriber ip
+            rule (PolicyRule): policyrule to install
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _install_default_flows_if_not_installed(self, datapath,
+            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+        """
+        Install default flows(if not already installed), if no other flows are
+        matched.
+
+        Returns:
+            The list of flows that remain after inserting default flows
         """
         raise NotImplementedError
