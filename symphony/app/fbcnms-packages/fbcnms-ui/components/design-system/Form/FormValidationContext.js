@@ -41,6 +41,7 @@ type FormIssuesContainer = {
 
 type FormValidationContextType = {
   error: FormIssuesContainer,
+  editLock: FormIssuesContainer,
 };
 
 const emptyFormIssuesContainer = {
@@ -53,6 +54,7 @@ const emptyFormIssuesContainer = {
 
 const FormValidationContext = React.createContext<FormValidationContextType>({
   error: emptyFormIssuesContainer,
+  editLock: emptyFormIssuesContainer,
 });
 
 type Props = {
@@ -189,9 +191,11 @@ const FormValidationMaintainer = function() {
 
 export function FormValidationContextProvider(props: Props) {
   const errorsContext = FormValidationMaintainer();
+  const editLocksContext = FormValidationMaintainer();
 
   const providerValue = {
     error: errorsContext,
+    editLock: editLocksContext,
   };
 
   return (

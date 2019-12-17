@@ -20,10 +20,18 @@ type Props = {
   inputClass?: string,
   title?: string,
   placeholder?: string,
+  disabled?: boolean,
 };
 
 const NameInput = (props: Props) => {
-  const {title = 'Name', onChange, value, inputClass, placeholder} = props;
+  const {
+    title = 'Name',
+    onChange,
+    value,
+    inputClass,
+    placeholder,
+    disabled,
+  } = props;
   const onNameChanded = event => {
     if (!onChange) {
       return;
@@ -53,6 +61,7 @@ const NameInput = (props: Props) => {
         value={value || ''}
         placeholder={placeholder}
         onChange={onNameChanded}
+        disabled={disabled}
       />
     </FormField>
   );
