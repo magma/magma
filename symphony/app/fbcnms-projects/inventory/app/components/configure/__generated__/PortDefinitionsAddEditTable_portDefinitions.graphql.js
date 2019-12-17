@@ -22,7 +22,6 @@ export type PortDefinitionsAddEditTable_portDefinitions = $ReadOnlyArray<{|
   +name: string,
   +index: ?number,
   +visibleLabel: ?string,
-  +type: string,
   +portType: ?{|
     +id: string,
     +name: string,
@@ -78,13 +77,6 @@ return {
       "storageKey": null
     },
     {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "type",
-      "args": null,
-      "storageKey": null
-    },
-    {
       "kind": "LinkedField",
       "alias": null,
       "name": "portType",
@@ -101,5 +93,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'ea9b6cd630a55568f3c9be58c6f7687d';
+(node/*: any*/).hash = '02bde9d17bd7bb5430914f693cdd659b';
 module.exports = node;

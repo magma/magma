@@ -28,7 +28,6 @@ export type EquipmentPortsTable_port = {|
     +name: string,
     +index: ?number,
     +visibleLabel: ?string,
-    +type: string,
     +portType: ?{|
       +id: string,
       +name: string,
@@ -78,7 +77,6 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +id: string,
           +name: string,
@@ -96,7 +94,6 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +linkPropertyTypes: $ReadOnlyArray<?{|
             +id: string,
@@ -128,7 +125,6 @@ export type EquipmentPortsTable_port = {|
             +id: string,
             +name: string,
             +visibleLabel: ?string,
-            +type: string,
             +bandwidth: ?string,
             +portType: ?{|
               +id: string,
@@ -460,7 +456,6 @@ return {
         (v1/*: any*/),
         (v2/*: any*/),
         (v3/*: any*/),
-        (v4/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,
@@ -521,7 +516,6 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 (v19/*: any*/),
                 (v20/*: any*/)
               ]
@@ -563,7 +557,6 @@ return {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -613,7 +606,6 @@ return {
                         (v0/*: any*/),
                         (v1/*: any*/),
                         (v3/*: any*/),
-                        (v4/*: any*/),
                         (v20/*: any*/),
                         (v19/*: any*/)
                       ]
@@ -668,5 +660,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '41c2b295f1cd983e47a6d69f73c841ee';
+(node/*: any*/).hash = '0e65bfca0c169e994ba481bb9bbd4f0f';
 module.exports = node;

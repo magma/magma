@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 135506cf56d431b809c192996bbacf42
+ * @relayHash 6e641dc28f4af871c80dfa0a344ac303
  */
 
 /* eslint-disable */
@@ -45,6 +45,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type LocationViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,

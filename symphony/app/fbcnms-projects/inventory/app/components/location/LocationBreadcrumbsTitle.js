@@ -54,10 +54,7 @@ const LocationBreadcrumbsTitle = (props: Props) => {
         locationId: selectedLocationId,
       });
 
-      props.history.replace({
-        pathname: InventoryAPIUrls.path,
-        search: `${InventoryAPIUrls.locationSearchParam}=${selectedLocationId}`,
-      });
+      props.history.push(InventoryAPIUrls.location(selectedLocationId));
     },
     [props.history],
   );

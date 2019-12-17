@@ -76,6 +76,7 @@ func (Service) Fields() []ent.Field {
 			Nillable().
 			NotEmpty().
 			Unique(),
+		field.String("status"),
 	}
 }
 

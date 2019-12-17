@@ -63,10 +63,12 @@ func Authenticate(ctx context.Context, req *protos.AuthenticationRequest) (*prot
 		UserName:                req.GetUserName(),
 		NumRequestedUmtsVectors: req.GetSipNumAuthVectors(),
 	}
-	if len(req.GetResyncInfo()) >= int(resyncAuthEnd) {
+	if rsLen := len(req.GetResyncInfo()); rsLen > int(resyncRandEnd) {
 		hlrReq.ResyncInfo = &hlr.AuthInfoReq_ResyncInfo{
 			Rand: req.GetResyncInfo()[:resyncRandEnd],
-			Autn: req.GetResyncInfo()[resyncRandEnd:resyncAuthEnd]}
+			Autn: req.GetResyncInfo()[resyncRandEnd:rsLen]}
+	} else if rsLen > 0 {
+		log.Printf("HLR Auth - Invalid ResyncInfo length: %d", rsLen)
 	}
 	hlrAns, err := cli.AuthInfo(ctx, hlrReq)
 

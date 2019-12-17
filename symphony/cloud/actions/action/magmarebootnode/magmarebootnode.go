@@ -33,8 +33,8 @@ func (a *action) Description() string {
 }
 
 // DataType is the expected type for this action
-func (a *action) DataType() string {
-	return "stringArray"
+func (a *action) DataType() core.DataType {
+	return core.DataTypeString
 }
 
 // Execute executes the action

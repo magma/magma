@@ -30,6 +30,10 @@ const intPropTitle = "service_int_prop"
 const boolPropTitle = "service_bool_prop"
 const floatPropTitle = "service_float_prop"
 
+func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
+	return &status
+}
+
 func preparePropertyTypes() []*models.PropertyTypeInput {
 	serviceStrPropType := models.PropertyTypeInput{
 		Name:        strPropTitle,
@@ -85,6 +89,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		Name:          "L2 S1",
 		ExternalID:    pointer.ToString("XS542"),
 		ServiceTypeID: serviceType1.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -112,6 +117,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		ServiceTypeID: serviceType2.ID,
 		CustomerID:    &customer1.ID,
 		Properties:    []*models.PropertyInput{&strProp, &intProp, &boolProp},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -120,6 +126,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r TestExporterResolve
 		ServiceTypeID: serviceType2.ID,
 		CustomerID:    &customer2.ID,
 		Properties:    []*models.PropertyInput{&floatProp},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 }

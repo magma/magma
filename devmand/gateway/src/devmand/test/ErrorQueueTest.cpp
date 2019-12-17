@@ -5,7 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/ErrorQueue.h>
+#include <devmand/error/ErrorQueue.h>
 #include <folly/json.h>
 #include <gtest/gtest.h>
 #include <future>

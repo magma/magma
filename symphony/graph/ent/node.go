@@ -656,7 +656,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	node = &Node{
 		ID:     epd.ID,
 		Type:   "EquipmentPortDefinition",
-		Fields: make([]*Field, 7),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -684,18 +684,10 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 		Name:  "Name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(epd.Type); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "string",
-		Name:  "Type",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(epd.Index); err != nil {
 		return nil, err
 	}
-	node.Fields[4] = &Field{
+	node.Fields[3] = &Field{
 		Type:  "int",
 		Name:  "Index",
 		Value: string(buf),
@@ -703,7 +695,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	if buf, err = json.Marshal(epd.Bandwidth); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[4] = &Field{
 		Type:  "string",
 		Name:  "Bandwidth",
 		Value: string(buf),
@@ -711,7 +703,7 @@ func (epd *EquipmentPortDefinition) Node(ctx context.Context) (node *Node, err e
 	if buf, err = json.Marshal(epd.VisibilityLabel); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[5] = &Field{
 		Type:  "string",
 		Name:  "VisibilityLabel",
 		Value: string(buf),
@@ -2094,7 +2086,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 17),
+		Fields: make([]*Field, 18),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2234,6 +2226,14 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Mandatory",
 		Value: string(buf),
 	}
+	if buf, err = json.Marshal(pt.Deleted); err != nil {
+		return nil, err
+	}
+	node.Fields[17] = &Field{
+		Type:  "bool",
+		Name:  "Deleted",
+		Value: string(buf),
+	}
 	var ids []string
 	ids, err = pt.QueryProperties().
 		Select(property.FieldID).
@@ -2330,7 +2330,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Service",
-		Fields: make([]*Field, 4),
+		Fields: make([]*Field, 5),
 		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
@@ -2364,6 +2364,14 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[3] = &Field{
 		Type:  "string",
 		Name:  "ExternalID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "Status",
 		Value: string(buf),
 	}
 	var ids []string

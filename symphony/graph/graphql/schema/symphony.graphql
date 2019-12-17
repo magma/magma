@@ -10,8 +10,8 @@
 #    %> cd ~/fbsource/xplat/fbc-mobile-app
 #    %> yarn relay
 #  Pyinventory API:
-#    %> sudo python3 setup.py develop
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
+#    %> sudo python3 setup.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
@@ -376,7 +376,6 @@ type EquipmentPortDefinition implements Node {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portType: EquipmentPortType
   bandwidth: String
 }
@@ -394,7 +393,6 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portTypeID: String
   bandwidth: String
 }
@@ -558,6 +556,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -577,6 +576,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {
@@ -629,6 +629,13 @@ enum WorkOrderStatus {
   PENDING
   PLANNED
   DONE
+}
+
+enum ServiceStatus {
+  PENDING
+  IN_SERVICE
+  MAINTENANCE
+  DISCONNECTED
 }
 
 """
@@ -1097,6 +1104,7 @@ type Service implements Node {
   id: ID!
   name: String!
   externalId: String
+  status: ServiceStatus!
   customer: Customer
   serviceType: ServiceType!
   upstream: [Service]!
@@ -1147,6 +1155,7 @@ input ServiceTypeEditData {
 input ServiceCreateData {
   name: String!
   externalId: String
+  status: ServiceStatus = PENDING
   serviceTypeId: ID!
   customerId: ID
   upstreamServiceIds: [ID!]!
@@ -1156,12 +1165,13 @@ input ServiceCreateData {
 
 input ServiceEditData {
   id: ID!
-  name: String!
+  name: String
   externalId: String
+  status: ServiceStatus
   customerId: ID
-  upstreamServiceIds: [ID!]!
+  upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
+  terminationPointIds: [ID!]
 }
 
 input SurveyCreateData {
@@ -1424,19 +1434,28 @@ type LatestPythonPackageResult {
 }
 
 # You will also need to update cloud/actions/core/id
-enum ActionID {
+enum ActionID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+  ) {
   magma_reboot_node
 }
 
 # You will also need to update cloud/actions/core/id
-enum TriggerID {
+enum TriggerID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+  ) {
   magma_alert
 }
 
 # Data type for the input to be
-enum ActionsDataType {
+enum ActionsDataType
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+  ) {
   string
-  arrayString
+  stringArray
 }
 
 # ActionsTrigger defines a trigger itself, along with what actions and filters
@@ -1538,7 +1557,7 @@ input ActionsRuleFilterInput {
 
 input AddActionsRuleInput {
   name: String!
-  triggerID: String!
+  triggerID: TriggerID!
   ruleActions: [ActionsRuleActionInput]!
   ruleFilters: [ActionsRuleFilterInput]!
 }

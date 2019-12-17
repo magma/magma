@@ -367,7 +367,6 @@ graphql`
         id
         name
         visibleLabel
-        type
         bandwidth
       }
     }
@@ -406,7 +405,6 @@ graphql`
     name
     index
     visibleLabel
-    type
     portType {
       id
       name
@@ -436,7 +434,6 @@ graphql`
           id
           name
           visibleLabel
-          type
           portType {
             id
             name
@@ -481,7 +478,6 @@ graphql`
       id
       name
       visibleLabel
-      type
       portType {
         linkPropertyTypes {
           ...PropertyTypeFormField_propertyType @relay(mask: false)
@@ -499,7 +495,6 @@ graphql`
           id
           name
           visibleLabel
-          type
           bandwidth
           portType {
             id

@@ -11,6 +11,14 @@ if [ -z ${BOOTSTRAP_CLOUD_ADDRESS+x} ]; then
   export BOOTSTRAP_CLOUD_ADDRESS="bootstrapper-controller.magma.etagecom.io"
 fi
 
+if [ -z ${LOGS_CLOUD_ADDRESS+x} ]; then
+  export LOGS_CLOUD_ADDRESS="fluentd-staging.magma.etagecom.io"
+fi
+
+if [ -z ${LOGS_CLOUD_PORT+x} ]; then
+  export LOGS_CLOUD_PORT="24224"
+fi
+
 if [ -z ${SNOWFLAKE+x} ]; then
     # shellcheck source=/dev/null
     SNOWFLAKE="$(. scripts/generate_snowflake)"
@@ -35,6 +43,8 @@ services:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+      - LOGS_CLOUD_ADDRESS=${LOGS_CLOUD_ADDRESS}
+      - LOGS_CLOUD_PORT=${LOGS_CLOUD_PORT}
       - HOST_PUBLIC_ADDRESS=${HOST_PUBLIC_ADDRESS}
 EOF
 fi

@@ -344,7 +344,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 	require.NoError(t, err)
 	etyp1, err := q.EquipmentType(ctx, data.equipTypeID)
 	require.NoError(t, err)
-	ptypes, err := importer.validatePropertiesForType(ctx, r1, etyp1)
+	ptypes, err := importer.validatePropertiesForEquipmentType(ctx, r1, etyp1)
 	require.NoError(t, err)
 	require.Len(t, ptypes, 2)
 	require.NotEqual(t, ptypes[0].PropertyTypeID, ptypes[1].PropertyTypeID)
@@ -358,14 +358,14 @@ func TestValidatePropertiesForType(t *testing.T) {
 			require.Equal(t, *value.IntValue, 54)
 			require.Equal(t, ptyp.Type, "int")
 		default:
-			require.Fail(t, "property type name shpuld be one of the two")
+			require.Fail(t, "property type name should be one of the two")
 		}
 	}
 	etyp2, err := q.EquipmentType(ctx, data.equipTypeID2)
 	require.NoError(t, err)
 
 	r2 := NewImportRecord(row2, fl)
-	ptypes2, err := importer.validatePropertiesForType(ctx, r2, etyp2)
+	ptypes2, err := importer.validatePropertiesForEquipmentType(ctx, r2, etyp2)
 	require.NoError(t, err)
 	require.Len(t, ptypes2, 2)
 	for _, value := range ptypes2 {
@@ -378,7 +378,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 			require.Equal(t, *value.BooleanValue, false)
 			require.Equal(t, ptyp.Type, "bool")
 		default:
-			require.Fail(t, "property type name shpuld be one of the two")
+			require.Fail(t, "property type name should be one of the two")
 		}
 	}
 
@@ -386,7 +386,7 @@ func TestValidatePropertiesForType(t *testing.T) {
 	require.NoError(t, err)
 
 	r3 := NewImportRecord(row3, fl)
-	ptypes3, err := importer.validatePropertiesForType(ctx, r3, etyp3)
+	ptypes3, err := importer.validatePropertiesForEquipmentType(ctx, r3, etyp3)
 	require.NoError(t, err)
 	require.Len(t, ptypes3, 2)
 	require.NotEqual(t, ptypes3[0].PropertyTypeID, ptypes3[1].PropertyTypeID)

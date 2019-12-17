@@ -25,7 +25,7 @@ import (
 const minimalEquipmentLineLength = 9
 
 // processExportedEquipment imports equipment csv generated from the export feature
-// nolint: staticcheck
+// nolint: staticcheck, dupl
 func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := m.log.For(ctx)
@@ -108,7 +108,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				}
 				var propInputs []*models.PropertyInput
 				if importLine.Len() > importHeader.PropertyStartIdx() {
-					propInputs, err = m.validatePropertiesForType(ctx, importLine, equipType)
+					propInputs, err = m.validatePropertiesForEquipmentType(ctx, importLine, equipType)
 					if err != nil {
 						log.Warn("validating property for type", zap.Error(err))
 						http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", equipType.Name, numRows, err.Error()), http.StatusBadRequest)
@@ -216,7 +216,7 @@ func (m *importer) inputValidations(ctx context.Context, importHeader ImportHead
 	return err
 }
 
-func (m *importer) validatePropertiesForType(ctx context.Context, line ImportRecord, equipType *ent.EquipmentType) ([]*models.PropertyInput, error) {
+func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line ImportRecord, equipType *ent.EquipmentType) ([]*models.PropertyInput, error) {
 	ic := getImportContext(ctx)
 	var pInputs []*models.PropertyInput
 	propTypeNames := ic.equipmentTypeIDToProperties[equipType.ID]

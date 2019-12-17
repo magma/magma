@@ -21,8 +21,7 @@ func (actionsTriggerResolver) SupportedActions(
 	ctx context.Context, obj *models.ActionsTrigger,
 ) ([]*models.ActionsAction, error) {
 	ac := actions.FromContext(ctx)
-	triggerID := core.TriggerID(obj.TriggerID)
-	trigger, err := ac.TriggerForID(triggerID)
+	trigger, err := ac.TriggerForID(obj.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "supported actions")
 	}
@@ -34,14 +33,10 @@ func (actionsTriggerResolver) SupportedActions(
 		if err != nil {
 			return nil, errors.Wrap(err, "supported actions")
 		}
-		modelActionID := models.ActionID(actionID)
-		if !modelActionID.IsValid() {
-			return nil, errors.Errorf("action %s is not a valid models.ActionID", action.ID())
-		}
 		actions = append(actions, &models.ActionsAction{
-			ActionID:    modelActionID,
+			ActionID:    actionID,
 			Description: action.Description(),
-			DataType:    models.ActionsDataType(action.DataType()),
+			DataType:    action.DataType(),
 		})
 	}
 	return actions, nil
@@ -49,8 +44,7 @@ func (actionsTriggerResolver) SupportedActions(
 
 func (actionsTriggerResolver) SupportedFilters(ctx context.Context, obj *models.ActionsTrigger) ([]*models.ActionsFilter, error) {
 	ac := actions.FromContext(ctx)
-	triggerID := core.TriggerID(obj.TriggerID)
-	trigger, err := ac.TriggerForID(triggerID)
+	trigger, err := ac.TriggerForID(obj.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "supported actions")
 	}
@@ -79,6 +73,6 @@ func newSupportedOperator(operator core.Operator) *models.ActionsOperator {
 	return &models.ActionsOperator{
 		OperatorID:  operator.OperatorID(),
 		Description: operator.Description(),
-		DataType:    models.ActionsDataType(operator.DataType()),
+		DataType:    operator.DataType(),
 	}
 }

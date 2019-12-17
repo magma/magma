@@ -263,7 +263,6 @@ export default withRouter(
             definition {
               id
               name
-              type
             }
             link {
               id
@@ -272,7 +271,6 @@ export default withRouter(
                 definition {
                   id
                   name
-                  type
                 }
                 parentEquipment {
                   id

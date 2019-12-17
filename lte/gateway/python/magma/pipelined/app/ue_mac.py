@@ -58,13 +58,14 @@ class UEMacAddressController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        flows.delete_all_flows_from_table(datapath,
-                                          self._service_manager.get_table_num(
-                                              self.APP_NAME))
+        self.delete_all_flows(datapath)
         self._datapath = datapath
         self._install_default_flows()
 
     def cleanup_on_disconnect(self, datapath):
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
                                               self.APP_NAME))

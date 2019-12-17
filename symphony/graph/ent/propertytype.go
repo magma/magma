@@ -54,6 +54,8 @@ type PropertyType struct {
 	Editable bool `json:"editable,omitempty" gqlgen:"isEditable"`
 	// Mandatory holds the value of the "mandatory" field.
 	Mandatory bool `json:"mandatory,omitempty" gqlgen:"isMandatory"`
+	// Deleted holds the value of the "deleted" field.
+	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
 }
 
 // FromRows scans the sql response data into PropertyType.
@@ -77,6 +79,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 		IsInstanceProperty sql.NullBool
 		Editable           sql.NullBool
 		Mandatory          sql.NullBool
+		Deleted            sql.NullBool
 	}
 	// the order here should be the same as in the `propertytype.Columns`.
 	if err := rows.Scan(
@@ -98,6 +101,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 		&scanpt.IsInstanceProperty,
 		&scanpt.Editable,
 		&scanpt.Mandatory,
+		&scanpt.Deleted,
 	); err != nil {
 		return err
 	}
@@ -119,6 +123,7 @@ func (pt *PropertyType) FromRows(rows *sql.Rows) error {
 	pt.IsInstanceProperty = scanpt.IsInstanceProperty.Bool
 	pt.Editable = scanpt.Editable.Bool
 	pt.Mandatory = scanpt.Mandatory.Bool
+	pt.Deleted = scanpt.Deleted.Bool
 	return nil
 }
 
@@ -219,6 +224,8 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.Editable))
 	builder.WriteString(", mandatory=")
 	builder.WriteString(fmt.Sprintf("%v", pt.Mandatory))
+	builder.WriteString(", deleted=")
+	builder.WriteString(fmt.Sprintf("%v", pt.Deleted))
 	builder.WriteByte(')')
 	return builder.String()
 }

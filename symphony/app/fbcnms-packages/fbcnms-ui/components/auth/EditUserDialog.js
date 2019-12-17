@@ -67,6 +67,7 @@ function getInitialNetworkIDs(userNetworkIds, allNetworkIDs): Set<string> {
 }
 
 export default function EditUserDialog(props: Props) {
+  const {allNetworkIDs} = props;
   const classes = useStyles();
 
   const [error, setError] = useState<string>('');
@@ -77,7 +78,7 @@ export default function EditUserDialog(props: Props) {
     props.editingUser?.role === UserRoles.SUPERUSER,
   );
   const [networkIds, setNetworkIds] = useState<Set<string>>(
-    getInitialNetworkIDs(props.editingUser?.networkIDs, props.allNetworkIDs),
+    getInitialNetworkIDs(props.editingUser?.networkIDs, allNetworkIDs),
   );
 
   const onSave = useCallback(() => {
@@ -159,7 +160,7 @@ export default function EditUserDialog(props: Props) {
           }
           label="Super User"
         />
-        {props.allNetworkIDs && (
+        {allNetworkIDs && (
           <FormControl className={classes.input}>
             <InputLabel htmlFor="network_ids">Accessible Networks</InputLabel>
             <Select
@@ -169,7 +170,7 @@ export default function EditUserDialog(props: Props) {
               onChange={({target}) => setNetworkIds(new Set(target.value))}
               renderValue={renderList}
               input={<Input id="network_ids" />}>
-              {props.allNetworkIDs.map(network => (
+              {allNetworkIDs.map(network => (
                 <MenuItem key={network} value={network}>
                   <Checkbox checked={networkIds.has(network)} />
                   <ListItemText primary={network} />

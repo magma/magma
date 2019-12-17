@@ -142,12 +142,13 @@ class ProjectDetails extends React.Component<Props, State> {
     });
   };
 
-  _propertyChangedHandler = index => property =>
+  _propertyChangedHandler = index => property => {
     this.setState(prevState => {
       return {
         properties: update(prevState.properties, {[index]: {$set: property}}),
       };
     });
+  };
 
   _locationChangedHandler = (locationId: ?string) =>
     this.setState({locationId});

@@ -87,7 +87,7 @@ func TestLocationHierarchy(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	locHierarchy, err := locationHierarchy(ctx, equipment, locTypeHierarchy)
+	locHierarchy, err := locationHierarchyForEquipment(ctx, equipment, locTypeHierarchy)
 	require.NoError(t, err)
 
 	require.Equal(t, locHierarchy[0], gpLocation.Name)

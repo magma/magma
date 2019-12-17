@@ -11,7 +11,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <devmand/Application.h>
 #include <devmand/channels/cli/Cli.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
 #include <devmand/test/cli/utils/Json.h>
 #include <devmand/test/cli/utils/Log.h>
@@ -418,7 +418,7 @@ static const string EXPECTED_OUTPUT =
     "  }"
     "}";
 
-TEST_F(StructuredUbntDeviceTest, DISABLED_getState) {
+TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
   devmand::Application app;
   cartography::DeviceConfig deviceConfig;
   devmand::cartography::ChannelConfig chnlCfg;
@@ -428,10 +428,10 @@ TEST_F(StructuredUbntDeviceTest, DISABLED_getState) {
 
   auto cli = make_shared<UbntFakeCli>();
   auto channel = make_shared<Channel>("ubntTest", cli);
-  std::unique_ptr<devices::Device> dev =
-      std::make_unique<StructuredUbntDevice>(app, deviceConfig.id, channel);
+  std::unique_ptr<devices::Device> dev = std::make_unique<StructuredUbntDevice>(
+      app, deviceConfig.id, false, channel);
 
-  std::shared_ptr<State> state = dev->getState();
+  std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
   const folly::dynamic& stateResult = state->collect().get();
 
   EXPECT_EQ(folly::parseJson(EXPECTED_OUTPUT), stateResult);

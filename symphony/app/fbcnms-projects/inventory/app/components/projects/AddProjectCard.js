@@ -124,6 +124,7 @@ const addProjectCard__projectTypeQuery = graphql`
         rangeToValue
         isEditable
         isInstanceProperty
+        isDeleted
       }
     }
   }
@@ -220,32 +221,32 @@ class AddProjectCard extends React.Component<Props, State> {
                         </FormField>
                       </Grid>
                       {properties &&
-                        properties.map((property, index) => (
-                          <Grid
-                            key={property.id}
-                            item
-                            xs={12}
-                            sm={6}
-                            lg={4}
-                            xl={4}>
-                            <PropertyValueInput
-                              required={
-                                !!property.propertyType.isInstanceProperty
-                              }
-                              disabled={
-                                !property.propertyType.isInstanceProperty
-                              }
-                              headlineVariant="form"
-                              fullWidth={true}
-                              label={property.propertyType.name}
-                              className={classes.gridInput}
-                              margin="dense"
-                              inputType="Property"
-                              property={property}
-                              onChange={this._propertyChangedHandler(index)}
-                            />
-                          </Grid>
-                        ))}
+                        properties
+                          .filter(property => !property.propertyType.isDeleted)
+                          .map((property, index) => (
+                            <Grid
+                              key={property.id}
+                              item
+                              xs={12}
+                              sm={6}
+                              lg={4}
+                              xl={4}>
+                              <PropertyValueInput
+                                required={!!property.propertyType.isMandatory}
+                                disabled={
+                                  !property.propertyType.isInstanceProperty
+                                }
+                                headlineVariant="form"
+                                fullWidth={true}
+                                label={property.propertyType.name}
+                                className={classes.gridInput}
+                                margin="dense"
+                                inputType="Property"
+                                property={property}
+                                onChange={this._propertyChangedHandler(index)}
+                              />
+                            </Grid>
+                          ))}
                     </Grid>
                   </ExpandingPanel>
                 </Grid>
@@ -281,14 +282,14 @@ class AddProjectCard extends React.Component<Props, State> {
 
     let initialProps = [];
     if (projectType.properties) {
-      initialProps = projectType.properties.map(propType =>
-        getInitialPropertyFromType(propType),
-      );
+      initialProps = projectType.properties
+        .filter(propertyType => !propertyType.isDeleted)
+        .map(propType => getInitialPropertyFromType(propType));
       initialProps = initialProps.sort(sortPropertiesByIndex);
     }
 
     return {
-      id: 'project@tmp',
+      id: `project@tmp-${Date.now()}`,
       type: projectType,
       name: projectType.name,
       description: projectType.description,

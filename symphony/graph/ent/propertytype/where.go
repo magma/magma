@@ -275,6 +275,15 @@ func Mandatory(v bool) predicate.PropertyType {
 	)
 }
 
+// Deleted applies equality check predicate on the "deleted" field. It's identical to DeletedEQ.
+func Deleted(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldDeleted), v))
+		},
+	)
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.PropertyType {
 	return predicate.PropertyType(
@@ -1899,6 +1908,24 @@ func MandatoryNEQ(v bool) predicate.PropertyType {
 	return predicate.PropertyType(
 		func(s *sql.Selector) {
 			s.Where(sql.NEQ(s.C(FieldMandatory), v))
+		},
+	)
+}
+
+// DeletedEQ applies the EQ predicate on the "deleted" field.
+func DeletedEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.EQ(s.C(FieldDeleted), v))
+		},
+	)
+}
+
+// DeletedNEQ applies the NEQ predicate on the "deleted" field.
+func DeletedNEQ(v bool) predicate.PropertyType {
+	return predicate.PropertyType(
+		func(s *sql.Selector) {
+			s.Where(sql.NEQ(s.C(FieldDeleted), v))
 		},
 	)
 }
