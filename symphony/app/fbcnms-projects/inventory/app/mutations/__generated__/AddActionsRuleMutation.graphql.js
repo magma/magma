@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a7024e024a509471f65ddc921187fce5
+ * @relayHash b9e7b85ea1ed11827ad41cf8c85445eb
  */
 
 /* eslint-disable */
@@ -16,9 +16,10 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type ActionID = "magma_reboot_node" | "%future added value";
+export type TriggerID = "magma_alert" | "%future added value";
 export type AddActionsRuleInput = {|
   name: string,
-  triggerID: string,
+  triggerID: TriggerID,
   ruleActions: $ReadOnlyArray<?ActionsRuleActionInput>,
   ruleFilters: $ReadOnlyArray<?ActionsRuleFilterInput>,
 |};

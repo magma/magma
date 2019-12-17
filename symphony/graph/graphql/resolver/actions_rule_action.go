@@ -25,14 +25,6 @@ func (actionsRuleActionResolver) Action(ctx context.Context, ar *core.ActionsRul
 
 	return &models.ActionsAction{
 		Description: action.Description(),
-		DataType:    models.ActionsDataType(action.DataType()),
+		DataType:    action.DataType(),
 	}, nil
-}
-
-func (actionsRuleActionResolver) ActionID(ctx context.Context, action *core.ActionsRuleAction) (models.ActionID, error) {
-	value := models.ActionID(action.ActionID)
-	if !value.IsValid() {
-		return "", errors.Errorf("not a valid actionID: %s", action.ActionID)
-	}
-	return value, nil
 }

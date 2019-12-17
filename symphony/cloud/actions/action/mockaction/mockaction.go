@@ -32,9 +32,9 @@ func (m *Action) Description() string {
 }
 
 // DataType implements core.Action.DataType()
-func (m *Action) DataType() string {
+func (m *Action) DataType() core.DataType {
 	args := m.Called()
-	return args.String(0)
+	return args.Get(0).(core.DataType)
 }
 
 // Execute executes the action

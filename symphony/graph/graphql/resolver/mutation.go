@@ -2600,13 +2600,13 @@ func actionsInputToSchema(ctx context.Context, inputActions []*models.ActionsRul
 	ac := actions.FromContext(ctx)
 	ruleActions := make([]*core.ActionsRuleAction, 0, len(inputActions))
 	for _, ruleAction := range inputActions {
-		_, err := ac.ActionForID(core.ActionID(ruleAction.ActionID))
+		_, err := ac.ActionForID(ruleAction.ActionID)
 		if err != nil {
 			return nil, errors.Wrap(err, "validating action")
 		}
 
 		ruleActions = append(ruleActions, &core.ActionsRuleAction{
-			ActionID: core.ActionID(ruleAction.ActionID),
+			ActionID: ruleAction.ActionID,
 			Data:     ruleAction.Data,
 		})
 	}
@@ -2628,8 +2628,7 @@ func filtersInputToSchema(inputFilters []*models.ActionsRuleFilterInput) []*core
 func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	ac := actions.FromContext(ctx)
 
-	triggerID := core.TriggerID(input.TriggerID)
-	_, err := ac.TriggerForID(triggerID)
+	_, err := ac.TriggerForID(input.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating trigger")
 	}
@@ -2644,7 +2643,7 @@ func (r mutationResolver) AddActionsRule(ctx context.Context, input models.AddAc
 	actionsRule, err := r.ClientFrom(ctx).
 		ActionsRule.Create().
 		SetName(input.Name).
-		SetTriggerID(input.TriggerID).
+		SetTriggerID(string(input.TriggerID)).
 		SetRuleActions(ruleActions).
 		SetRuleFilters(ruleFilters).
 		Save(ctx)
@@ -2699,8 +2698,7 @@ func (r mutationResolver) AddFloorPlan(ctx context.Context, input models.AddFloo
 func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input models.AddActionsRuleInput) (*ent.ActionsRule, error) {
 	ac := actions.FromContext(ctx)
 
-	triggerID := core.TriggerID(input.TriggerID)
-	_, err := ac.TriggerForID(triggerID)
+	_, err := ac.TriggerForID(input.TriggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "validating trigger")
 	}
@@ -2715,7 +2713,7 @@ func (r mutationResolver) EditActionsRule(ctx context.Context, id string, input 
 	actionsRule, err := r.ClientFrom(ctx).
 		ActionsRule.UpdateOneID(id).
 		SetName(input.Name).
-		SetTriggerID(input.TriggerID).
+		SetTriggerID(string(input.TriggerID)).
 		SetRuleActions(ruleActions).
 		SetRuleFilters(ruleFilters).
 		Save(ctx)
