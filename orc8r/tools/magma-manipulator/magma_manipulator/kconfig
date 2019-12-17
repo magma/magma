@@ -1,0 +1,19 @@
+Version: v1
+kind: Config
+current-context: snv
+preferences: {}
+clusters:
+- cluster:
+    certificate-authority: /etc/kubernetes/ssl/ca-kubernetes.crt
+    server: https://192.168.20.61:6443
+  name: snv
+contexts:
+- context:
+    cluster: snv
+    user: kubelet-snv
+  name: snv
+users:
+- name: kubelet-snv
+  user:
+    client-certificate: /etc/kubernetes/ssl/kubelet-client.crt
+    client-key: /etc/kubernetes/ssl/kubelet-client.key

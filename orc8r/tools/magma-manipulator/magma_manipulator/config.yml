@@ -1,0 +1,13 @@
+k8s:
+    kubeconfig_path: /root/vkuzmin/test/magma-manipulator/magma_manipulator/kconfig
+    namespace: magma
+orc8r_api_url: https://172.16.98.74:9443
+
+magma_certs_path:
+    - /root/helm/magma/orc8r/charts/secrets/.secrets/certs/admin_operator.pem
+    - /root/helm/magma/orc8r/charts/secrets/.secrets/certs/admin_operator.key.pem
+
+gateways:
+    configs_dir: /root/vkuzmin/test/magma-manipulator/gateways_configs
+    username: testuser1
+    rsa_private_key_path: /root/.ssh/id_rsa
