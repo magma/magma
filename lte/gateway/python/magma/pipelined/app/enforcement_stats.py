@@ -31,7 +31,6 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
-global_epoch = int(time.time())
 
 
 class RelayDisabledException(Exception):
