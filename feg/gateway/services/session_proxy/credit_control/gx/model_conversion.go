@@ -9,9 +9,11 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
+	"strings"
 	"time"
 
 	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -22,6 +24,29 @@ import (
 
 var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
 	RevalidationTimeout: protos.EventTrigger_REVALIDATION_TIMEOUT,
+}
+
+func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
+	ccr.SessionID = update.SessionId
+	ccr.RequestNumber = update.RequestNumber
+	ccr.Type = credit_control.CRTUpdate
+	ccr.IMSI = removeSidPrefix(update.Sid)
+	ccr.IPAddr = update.UeIpv4
+	ccr.HardwareAddr = update.HardwareAddr
+	ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+	ccr.RATType = credit_control.GetRATType(update.RatType)
+	ccr.IPCANType = credit_control.GetIPCANType(update.RatType)
+	return ccr
+}
+
+func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRequestInfo {
+	qos.ApnAggMaxBitRateDL = pQos.GetApnAmbrDl()
+	qos.ApnAggMaxBitRateUL = pQos.GetApnAmbrUl()
+	qos.QosClassIdentifier = pQos.GetQosClassId()
+	qos.PriLevel = pQos.GetPriorityLevel()
+	qos.PreCapability = pQos.GetPreemptionCapability()
+	qos.PreVulnerability = pQos.GetPreemptionVulnerability()
+	return qos
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
@@ -249,7 +274,7 @@ func getUsageMonitoringCredits(usageMonitors []*UsageMonitoringInfo) []*protos.U
 	for _, monitor := range usageMonitors {
 		usageMonitoringCredits = append(
 			usageMonitoringCredits,
-			GetUsageMonitorCreditFromAVP(monitor),
+			monitor.ToUsageMonitoringCredit(),
 		)
 	}
 	return usageMonitoringCredits
@@ -265,10 +290,17 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	}
 }
 
-func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
-		monitor.GrantedServiceUnit.InputOctets == nil &&
-		monitor.GrantedServiceUnit.OutputOctets == nil) {
+func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
+	report.MonitoringKey = string(update.MonitoringKey)
+	report.Level = MonitoringLevel(update.Level)
+	report.InputOctets = update.BytesTx
+	report.OutputOctets = update.BytesRx // receive == output
+	report.TotalOctets = update.BytesTx + update.BytesRx
+	return report
+}
+
+func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonitoringCredit {
+	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: []byte(monitor.MonitoringKey),
@@ -282,4 +314,7 @@ func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMon
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
 	}
+}
+func removeSidPrefix(imsi string) string {
+	return strings.TrimPrefix(imsi, "IMSI")
 }
