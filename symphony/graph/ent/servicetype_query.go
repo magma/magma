@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -27,7 +28,7 @@ type ServiceTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ServiceType
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,24 +59,24 @@ func (stq *ServiceTypeQuery) Order(o ...Order) *ServiceTypeQuery {
 // QueryServices chains the current query on the services edge.
 func (stq *ServiceTypeQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: stq.config}
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
 	)
-	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: stq.config}
-	step := sql.NewStep(
-		sql.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(stq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
 	return query
 }
 
@@ -243,7 +244,7 @@ func (stq *ServiceTypeQuery) Clone() *ServiceTypeQuery {
 		order:      append([]Order{}, stq.order...),
 		unique:     append([]string{}, stq.unique...),
 		predicates: append([]predicate.ServiceType{}, stq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: stq.sql.Clone(),
 	}
 }
@@ -369,7 +370,7 @@ type ServiceTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +491,7 @@ func (stgb *ServiceTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(stgb.fields)+len(stgb.fns))
 	columns = append(columns, stgb.fields...)
 	for _, fn := range stgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(stgb.fields...)
 }

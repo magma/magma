@@ -366,7 +366,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(etu.port_definitions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.port_definitions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.port_definitions))})
 			}
 		}
 	}
@@ -412,7 +412,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(etu.position_definitions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.position_definitions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.position_definitions))})
 			}
 		}
 	}
@@ -458,7 +458,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(etu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etu.property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etu.property_types))})
 			}
 		}
 	}
@@ -504,7 +504,7 @@ func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(etu.equipment) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etu.equipment))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etu.equipment))})
 			}
 		}
 	}
@@ -881,7 +881,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(etuo.port_definitions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.port_definitions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.port_definitions))})
 			}
 		}
 	}
@@ -927,7 +927,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(etuo.position_definitions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.position_definitions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.position_definitions))})
 			}
 		}
 	}
@@ -973,7 +973,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(etuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etuo.property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etuo.property_types))})
 			}
 		}
 	}
@@ -1019,7 +1019,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(etuo.equipment) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etuo.equipment))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etuo.equipment))})
 			}
 		}
 	}

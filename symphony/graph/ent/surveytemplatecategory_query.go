@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -26,7 +27,7 @@ type SurveyTemplateCategoryQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyTemplateCategory
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (stcq *SurveyTemplateCategoryQuery) Order(o ...Order) *SurveyTemplateCatego
 // QuerySurveyTemplateQuestions chains the current query on the survey_template_questions edge.
 func (stcq *SurveyTemplateCategoryQuery) QuerySurveyTemplateQuestions() *SurveyTemplateQuestionQuery {
 	query := &SurveyTemplateQuestionQuery{config: stcq.config}
-	step := sql.NewStep(
-		sql.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
-		sql.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
-		sql.Edge(sql.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveytemplatecategory.Table, surveytemplatecategory.FieldID, stcq.sqlQuery()),
+		sqlgraph.To(surveytemplatequestion.Table, surveytemplatequestion.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, surveytemplatecategory.SurveyTemplateQuestionsTable, surveytemplatecategory.SurveyTemplateQuestionsColumn),
 	)
-	query.sql = sql.SetNeighbors(stcq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(stcq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (stcq *SurveyTemplateCategoryQuery) Clone() *SurveyTemplateCategoryQuery {
 		order:      append([]Order{}, stcq.order...),
 		unique:     append([]string{}, stcq.unique...),
 		predicates: append([]predicate.SurveyTemplateCategory{}, stcq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: stcq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type SurveyTemplateCategoryGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (stcgb *SurveyTemplateCategoryGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(stcgb.fields)+len(stcgb.fns))
 	columns = append(columns, stcgb.fields...)
 	for _, fn := range stcgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(stcgb.fields...)
 }

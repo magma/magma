@@ -25,7 +25,7 @@ type CommentQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Comment
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (cq *CommentQuery) Clone() *CommentQuery {
 		order:      append([]Order{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Comment{}, cq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: cq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type CommentGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (cgb *CommentGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 	columns = append(columns, cgb.fields...)
 	for _, fn := range cgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(cgb.fields...)
 }

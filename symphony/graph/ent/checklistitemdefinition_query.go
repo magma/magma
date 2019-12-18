@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -26,7 +27,7 @@ type CheckListItemDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.CheckListItemDefinition
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (clidq *CheckListItemDefinitionQuery) Order(o ...Order) *CheckListItemDefin
 // QueryWorkOrderType chains the current query on the work_order_type edge.
 func (clidq *CheckListItemDefinitionQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: clidq.config}
-	step := sql.NewStep(
-		sql.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, clidq.sqlQuery()),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitemdefinition.Table, checklistitemdefinition.FieldID, clidq.sqlQuery()),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, checklistitemdefinition.WorkOrderTypeTable, checklistitemdefinition.WorkOrderTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(clidq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(clidq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (clidq *CheckListItemDefinitionQuery) Clone() *CheckListItemDefinitionQuery
 		order:      append([]Order{}, clidq.order...),
 		unique:     append([]string{}, clidq.unique...),
 		predicates: append([]predicate.CheckListItemDefinition{}, clidq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: clidq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type CheckListItemDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (clidgb *CheckListItemDefinitionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(clidgb.fields)+len(clidgb.fns))
 	columns = append(columns, clidgb.fields...)
 	for _, fn := range clidgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(clidgb.fields...)
 }

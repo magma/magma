@@ -602,7 +602,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eu.parent_position) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"parent_position\" %v already connected to a different \"Equipment\"", keys(eu.parent_position))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"parent_position\" %v already connected to a different \"Equipment\"", keys(eu.parent_position))})
 			}
 		}
 	}
@@ -648,7 +648,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eu.positions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"Equipment\"", keys(eu.positions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"Equipment\"", keys(eu.positions))})
 			}
 		}
 	}
@@ -694,7 +694,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eu.ports) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Equipment\"", keys(eu.ports))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Equipment\"", keys(eu.ports))})
 			}
 		}
 	}
@@ -765,7 +765,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Equipment\"", keys(eu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Equipment\"", keys(eu.properties))})
 			}
 		}
 	}
@@ -851,7 +851,7 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eu.files) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Equipment\"", keys(eu.files))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Equipment\"", keys(eu.files))})
 			}
 		}
 	}
@@ -1443,7 +1443,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(euo.parent_position) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"parent_position\" %v already connected to a different \"Equipment\"", keys(euo.parent_position))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"parent_position\" %v already connected to a different \"Equipment\"", keys(euo.parent_position))})
 			}
 		}
 	}
@@ -1489,7 +1489,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(euo.positions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"Equipment\"", keys(euo.positions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"Equipment\"", keys(euo.positions))})
 			}
 		}
 	}
@@ -1535,7 +1535,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(euo.ports) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Equipment\"", keys(euo.ports))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Equipment\"", keys(euo.ports))})
 			}
 		}
 	}
@@ -1606,7 +1606,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(euo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Equipment\"", keys(euo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Equipment\"", keys(euo.properties))})
 			}
 		}
 	}
@@ -1692,7 +1692,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(euo.files) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Equipment\"", keys(euo.files))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Equipment\"", keys(euo.files))})
 			}
 		}
 	}

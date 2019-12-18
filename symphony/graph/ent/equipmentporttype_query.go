@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -27,7 +28,7 @@ type EquipmentPortTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPortType
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,36 +59,36 @@ func (eptq *EquipmentPortTypeQuery) Order(o ...Order) *EquipmentPortTypeQuery {
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.PropertyTypesTable, equipmentporttype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinkPropertyTypes chains the current query on the link_property_types edge.
 func (eptq *EquipmentPortTypeQuery) QueryLinkPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmentporttype.LinkPropertyTypesTable, equipmentporttype.LinkPropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPortDefinitions chains the current query on the port_definitions edge.
 func (eptq *EquipmentPortTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: eptq.config}
-	step := sql.NewStep(
-		sql.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentporttype.Table, equipmentporttype.FieldID, eptq.sqlQuery()),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentporttype.PortDefinitionsTable, equipmentporttype.PortDefinitionsColumn),
 	)
-	query.sql = sql.SetNeighbors(eptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eptq.driver.Dialect(), step)
 	return query
 }
 
@@ -255,7 +256,7 @@ func (eptq *EquipmentPortTypeQuery) Clone() *EquipmentPortTypeQuery {
 		order:      append([]Order{}, eptq.order...),
 		unique:     append([]string{}, eptq.unique...),
 		predicates: append([]predicate.EquipmentPortType{}, eptq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: eptq.sql.Clone(),
 	}
 }
@@ -381,7 +382,7 @@ type EquipmentPortTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -502,7 +503,7 @@ func (eptgb *EquipmentPortTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(eptgb.fields)+len(eptgb.fns))
 	columns = append(columns, eptgb.fields...)
 	for _, fn := range eptgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(eptgb.fields...)
 }

@@ -25,7 +25,7 @@ type FloorPlanReferencePointQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlanReferencePoint
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (fprpq *FloorPlanReferencePointQuery) Clone() *FloorPlanReferencePointQuery
 		order:      append([]Order{}, fprpq.order...),
 		unique:     append([]string{}, fprpq.unique...),
 		predicates: append([]predicate.FloorPlanReferencePoint{}, fprpq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: fprpq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type FloorPlanReferencePointGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (fprpgb *FloorPlanReferencePointGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(fprpgb.fields)+len(fprpgb.fns))
 	columns = append(columns, fprpgb.fields...)
 	for _, fn := range fprpgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(fprpgb.fields...)
 }

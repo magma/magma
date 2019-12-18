@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -26,7 +27,7 @@ type CustomerQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Customer
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (cq *CustomerQuery) Order(o ...Order) *CustomerQuery {
 // QueryServices chains the current query on the services edge.
 func (cq *CustomerQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: cq.config}
-	step := sql.NewStep(
-		sql.From(customer.Table, customer.FieldID, cq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(customer.Table, customer.FieldID, cq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, customer.ServicesTable, customer.ServicesPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(cq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (cq *CustomerQuery) Clone() *CustomerQuery {
 		order:      append([]Order{}, cq.order...),
 		unique:     append([]string{}, cq.unique...),
 		predicates: append([]predicate.Customer{}, cq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: cq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type CustomerGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (cgb *CustomerGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 	columns = append(columns, cgb.fields...)
 	for _, fn := range cgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(cgb.fields...)
 }

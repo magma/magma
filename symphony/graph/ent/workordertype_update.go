@@ -360,7 +360,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wotu.work_orders) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotu.work_orders))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotu.work_orders))})
 			}
 		}
 	}
@@ -406,7 +406,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wotu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotu.property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotu.property_types))})
 			}
 		}
 	}
@@ -452,7 +452,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wotu.definitions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.definitions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.definitions))})
 			}
 		}
 	}
@@ -498,7 +498,7 @@ func (wotu *WorkOrderTypeUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wotu.check_list_definitions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.check_list_definitions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotu.check_list_definitions))})
 			}
 		}
 	}
@@ -849,7 +849,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wotuo.work_orders) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.work_orders))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.work_orders))})
 			}
 		}
 	}
@@ -895,7 +895,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wotuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.property_types))})
 			}
 		}
 	}
@@ -941,7 +941,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wotuo.definitions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.definitions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.definitions))})
 			}
 		}
 	}
@@ -987,7 +987,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wotuo.check_list_definitions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.check_list_definitions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_definitions\" %v already connected to a different \"WorkOrderType\"", keys(wotuo.check_list_definitions))})
 			}
 		}
 	}

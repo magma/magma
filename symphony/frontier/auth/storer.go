@@ -85,7 +85,7 @@ func (s *UserStorer) Save(ctx context.Context, user authboss.User) error {
 		return nil
 	}
 	logger.Error("cannot save user", zap.Error(err))
-	var e *ent.ErrConstraintFailed
+	var e *ent.ConstraintError
 	if errors.As(err, &e) {
 		return authboss.ErrUserFound
 	}
@@ -135,7 +135,7 @@ func (s *UserStorer) AddRememberToken(ctx context.Context, pid, value string) er
 	case nil:
 		logger.Debug("saved remember token")
 		return nil
-	case *ent.ErrConstraintFailed:
+	case *ent.ConstraintError:
 		logger.Warn("remember token already exists")
 		return nil
 	default:

@@ -25,7 +25,7 @@ type AuditLogQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.AuditLog
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (alq *AuditLogQuery) Clone() *AuditLogQuery {
 		order:      append([]Order{}, alq.order...),
 		unique:     append([]string{}, alq.unique...),
 		predicates: append([]predicate.AuditLog{}, alq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: alq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type AuditLogGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (algb *AuditLogGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(algb.fields)+len(algb.fns))
 	columns = append(columns, algb.fields...)
 	for _, fn := range algb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(algb.fields...)
 }
