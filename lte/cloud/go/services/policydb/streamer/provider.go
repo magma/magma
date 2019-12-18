@@ -20,11 +20,14 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 )
 
 const (
 	policyStreamName   = "policydb"
 	baseNameStreamName = "base_names"
+
+	mappingsStreamName = "rule_mappings"
 )
 
 type PoliciesProvider struct{}
@@ -126,7 +129,7 @@ func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error)
 		}
 		ret = append(ret, &protos.DataUpdate{Key: policy.Id, Value: marshaledPolicy})
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
+	sortUpdates(ret)
 	return ret, nil
 }
 
@@ -173,6 +176,93 @@ func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUp
 		}
 		ret = append(ret, &protos.DataUpdate{Key: bn.Name, Value: marshaledBN})
 	}
-	sort.Slice(ret, func(i, j int) bool { return ret[i].Key < ret[j].Key })
+	sortUpdates(ret)
 	return ret, nil
+}
+
+type RuleMappingsProvider struct {
+	// Set DeterministicReturn to true to sort all returned collections (to
+	// make testing easier for e.g.)
+	DeterministicReturn bool
+}
+
+func (r *RuleMappingsProvider) GetStreamName() string {
+	return mappingsStreamName
+}
+
+func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
+	}
+
+	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
+	ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, loadCrit)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load policy rules")
+	}
+	bnEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.BaseNameEntityType, loadCrit)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load base names")
+	}
+
+	policiesBySid, err := r.getActivePoliciesBySid(ruleEnts, bnEnts)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := make([]*protos.DataUpdate, 0, len(policiesBySid))
+	for sid, policies := range policiesBySid {
+		marshaledPolicies, err := proto.Marshal(policies)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal active policies")
+		}
+		ret = append(ret, &protos.DataUpdate{Key: sid, Value: marshaledPolicies})
+	}
+	if r.DeterministicReturn {
+		sortUpdates(ret)
+	}
+	return ret, nil
+}
+
+func (r *RuleMappingsProvider) getActivePoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.ActivePolicies, error) {
+	allEnts := make([]configurator.NetworkEntity, 0, len(policyRules)+len(baseNames))
+	allEnts = append(allEnts, policyRules...)
+	allEnts = append(allEnts, baseNames...)
+
+	policiesBySid := map[string]*lteProtos.ActivePolicies{}
+	for _, ent := range allEnts {
+		for _, tk := range ent.Associations {
+			switch tk.Type {
+			case lte.SubscriberEntityType:
+				policies, found := policiesBySid[tk.Key]
+				if !found {
+					policies = &lteProtos.ActivePolicies{}
+					policiesBySid[tk.Key] = policies
+				}
+
+				switch ent.Type {
+				case lte.PolicyRuleEntityType:
+					policies.AssignedPolicies = append(policies.AssignedPolicies, ent.Key)
+				case lte.BaseNameEntityType:
+					policies.AssignedBaseNames = append(policies.AssignedBaseNames, ent.Key)
+				default:
+					return nil, errors.Errorf("loaded unexpected entity of type %s", ent.Type)
+				}
+			}
+		}
+	}
+
+	if r.DeterministicReturn {
+		for _, policies := range policiesBySid {
+			sort.Strings(policies.AssignedBaseNames)
+			sort.Strings(policies.AssignedPolicies)
+		}
+	}
+
+	return policiesBySid, nil
+}
+
+func sortUpdates(updates []*protos.DataUpdate) {
+	sort.Slice(updates, func(i, j int) bool { return updates[i].Key < updates[j].Key })
 }
