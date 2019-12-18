@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9cd96d28dbbc50cb21b5ee73af94845b
+ * @relayHash 8019c4fa9de47b4303e9474391a27c0a
  */
 
 /* eslint-disable */
@@ -42,6 +42,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type CheckListDefinitionInput = {|
   id?: ?string,
@@ -100,6 +101,7 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isEditable
     isMandatory
     isInstanceProperty
+    isDeleted
   }
   checkListDefinitions {
     id
@@ -304,6 +306,13 @@ return {
                 "name": "isInstanceProperty",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "isDeleted",
+                "args": null,
+                "storageKey": null
               }
             ]
           },
@@ -350,7 +359,7 @@ return {
     "operationKind": "mutation",
     "name": "EditWorkOrderTypeMutation",
     "id": null,
-    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
+    "text": "mutation EditWorkOrderTypeMutation(\n  $input: EditWorkOrderTypeInput!\n) {\n  editWorkOrderType(input: $input) {\n    id\n    name\n    ...AddEditWorkOrderTypeCard_editingWorkOrderType\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {}
   }
 };

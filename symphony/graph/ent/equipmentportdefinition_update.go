@@ -27,7 +27,6 @@ type EquipmentPortDefinitionUpdate struct {
 
 	update_time              *time.Time
 	name                     *string
-	_type                    *string
 	index                    *int
 	addindex                 *int
 	clearindex               bool
@@ -53,12 +52,6 @@ func (epdu *EquipmentPortDefinitionUpdate) Where(ps ...predicate.EquipmentPortDe
 // SetName sets the name field.
 func (epdu *EquipmentPortDefinitionUpdate) SetName(s string) *EquipmentPortDefinitionUpdate {
 	epdu.name = &s
-	return epdu
-}
-
-// SetType sets the type field.
-func (epdu *EquipmentPortDefinitionUpdate) SetType(s string) *EquipmentPortDefinitionUpdate {
-	epdu._type = &s
 	return epdu
 }
 
@@ -311,9 +304,6 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 	if value := epdu.name; value != nil {
 		updater.Set(equipmentportdefinition.FieldName, *value)
 	}
-	if value := epdu._type; value != nil {
-		updater.Set(equipmentportdefinition.FieldType, *value)
-	}
 	if value := epdu.index; value != nil {
 		updater.Set(equipmentportdefinition.FieldIndex, *value)
 	}
@@ -450,7 +440,6 @@ type EquipmentPortDefinitionUpdateOne struct {
 
 	update_time              *time.Time
 	name                     *string
-	_type                    *string
 	index                    *int
 	addindex                 *int
 	clearindex               bool
@@ -469,12 +458,6 @@ type EquipmentPortDefinitionUpdateOne struct {
 // SetName sets the name field.
 func (epduo *EquipmentPortDefinitionUpdateOne) SetName(s string) *EquipmentPortDefinitionUpdateOne {
 	epduo.name = &s
-	return epduo
-}
-
-// SetType sets the type field.
-func (epduo *EquipmentPortDefinitionUpdateOne) SetType(s string) *EquipmentPortDefinitionUpdateOne {
-	epduo._type = &s
 	return epduo
 }
 
@@ -731,10 +714,6 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 	if value := epduo.name; value != nil {
 		updater.Set(equipmentportdefinition.FieldName, *value)
 		epd.Name = *value
-	}
-	if value := epduo._type; value != nil {
-		updater.Set(equipmentportdefinition.FieldType, *value)
-		epd.Type = *value
 	}
 	if value := epduo.index; value != nil {
 		updater.Set(equipmentportdefinition.FieldIndex, *value)

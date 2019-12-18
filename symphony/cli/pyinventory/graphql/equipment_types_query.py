@@ -91,7 +91,6 @@ class EquipmentTypesQuery:
           name
           index
           visibleLabel
-          type
         }
       }
     }
@@ -141,7 +140,6 @@ class EquipmentTypesQuery:
                     class EquipmentPortDefinition:
                         id: str
                         name: str
-                        type: str
                         index: Optional[int] = None
                         visibleLabel: Optional[str] = None
 

@@ -42,7 +42,6 @@ type EquipmentPortDefinition struct {
 func (EquipmentPortDefinition) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
-		field.String("type"),
 		field.Int("index").
 			Optional(),
 		field.String("bandwidth").

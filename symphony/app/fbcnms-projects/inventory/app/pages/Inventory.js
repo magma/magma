@@ -113,7 +113,11 @@ class Inventory extends React.Component<Props, State> {
     });
 
     if (selectedLocationId != null) {
-      this.props.history.push(InventoryAPIUrls.location(selectedLocationId));
+      if (selectedLocationId != this.state.selectedLocationId) {
+        this.props.history.push(InventoryAPIUrls.location(selectedLocationId));
+      } else {
+        this.setLocationCardState(selectedLocationId);
+      }
     }
   }
 
@@ -134,6 +138,15 @@ class Inventory extends React.Component<Props, State> {
     }
   }
 
+  setLocationCardState(locationId) {
+    this.setState({
+      card: SHOW_LOCATION_CARD,
+      selectedLocationId: locationId,
+      selectedEquipmentId: null,
+      selectedEquipmentPosition: null,
+    });
+  }
+
   render() {
     const {classes} = this.props;
     const {card} = this.state;
@@ -143,12 +156,7 @@ class Inventory extends React.Component<Props, State> {
       this.props.location.search,
     );
     if (queryLocationId !== this.state.selectedLocationId) {
-      this.setState({
-        card: SHOW_LOCATION_CARD,
-        selectedLocationId: queryLocationId,
-        selectedEquipmentId: null,
-        selectedEquipmentPosition: null,
-      });
+      this.setLocationCardState(queryLocationId);
     } else {
       const queryEquipmentId = extractEntityIdFromUrl(
         'equipment',

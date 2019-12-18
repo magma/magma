@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"strings"
 	"time"
 
@@ -166,6 +167,7 @@ func (r mutationResolver) AddPropertyTypes(
 			SetNillableRangeToVal(input.RangeToValue).
 			SetNillableEditable(input.IsEditable).
 			SetNillableMandatory(input.IsMandatory).
+			SetNillableDeleted(input.IsDeleted).
 			Save(ctx); err != nil {
 			return nil, errors.Wrap(err, "creating property type")
 		}
@@ -705,7 +707,6 @@ func (r mutationResolver) AddEquipmentPortDefinitions(
 		if defs[i], err = client.Create().
 			SetName(input.Name).
 			SetNillableIndex(input.Index).
-			SetType(input.Type).
 			SetNillableBandwidth(input.Bandwidth).
 			SetNillableVisibilityLabel(input.VisibleLabel).
 			SetNillableEquipmentPortTypeID(input.PortTypeID).
@@ -1609,8 +1610,19 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 		return nil, errors.New("status is a mandatory param")
 	}
 
-	query := r.ClientFrom(ctx).
-		Service.Create().
+	client := r.ClientFrom(ctx)
+	err := resolverutil.CheckServiceNameNotExist(ctx, client, data.Name)
+	if err != nil {
+		return nil, err
+	}
+	if data.ExternalID != nil {
+		err := resolverutil.CheckServiceExternalIDNotExist(ctx, client, *data.ExternalID)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	query := client.Service.Create().
 		SetName(data.Name).
 		SetStatus(data.Status.String()).
 		SetNillableExternalID(data.ExternalID).
@@ -1625,9 +1637,6 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	s, err := query.Save(ctx)
 
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
-			return nil, gqlerror.Errorf("A service with the name %v already exists", data.Name)
-		}
 		return nil, errors.Wrap(err, "creating service")
 	}
 	if _, err := r.AddProperties(ctx, data.Properties, func(b *ent.PropertyCreate) { b.SetService(s) }); err != nil {
@@ -1636,6 +1645,7 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	return s, nil
 }
 
+// nolint: funlen
 func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEditData) (*ent.Service, error) {
 	client := r.ClientFrom(ctx)
 	s, err := client.Service.Get(ctx, data.ID)
@@ -1648,9 +1658,21 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 		return nil, errors.Wrap(err, "querying service type id")
 	}
 
-	query := client.Service.UpdateOne(s).SetNillableExternalID(data.ExternalID)
+	query := client.Service.UpdateOne(s)
 
-	if data.Name != nil {
+	if data.ExternalID != nil && (s.ExternalID == nil || *s.ExternalID != *data.ExternalID) {
+		err := resolverutil.CheckServiceExternalIDNotExist(ctx, client, *data.ExternalID)
+		if err != nil {
+			return nil, err
+		}
+		query.SetExternalID(*data.ExternalID)
+	}
+
+	if data.Name != nil && s.Name != *data.Name {
+		err := resolverutil.CheckServiceNameNotExist(ctx, client, *data.Name)
+		if err != nil {
+			return nil, err
+		}
 		query.SetName(*data.Name)
 	}
 
@@ -1765,6 +1787,9 @@ func (r mutationResolver) AddServiceType(ctx context.Context, data models.Servic
 		AddPropertyTypes(types...).
 		Save(ctx)
 	if err != nil {
+		if ent.IsConstraintFailure(err) {
+			return nil, gqlerror.Errorf("A service type with the name %v already exists", data.Name)
+		}
 		return nil, errors.Wrap(err, "creating service type")
 	}
 	return st, nil
@@ -2245,7 +2270,6 @@ func (r mutationResolver) EditEquipmentType(
 				UpdateOneID(*input.ID).
 				SetName(input.Name).
 				SetNillableIndex(input.Index).
-				SetType(input.Type).
 				SetNillableBandwidth(input.Bandwidth).
 				SetNillableVisibilityLabel(input.VisibleLabel).
 				Exec(ctx); err != nil {
@@ -2412,6 +2436,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 		SetNillableIsInstanceProperty(input.IsInstanceProperty).
 		SetNillableEditable(input.IsEditable).
 		SetNillableMandatory(input.IsMandatory).
+		SetNillableDeleted(input.IsDeleted).
 		Exec(ctx); err != nil {
 		return errors.Wrap(err, "updating property type")
 	}
@@ -2587,15 +2612,24 @@ func (r mutationResolver) AddTechnician(
 }
 
 func (r mutationResolver) AddCustomer(ctx context.Context, input models.AddCustomerInput) (*ent.Customer, error) {
+	exist, _ := r.ClientFrom(ctx).Customer.Query().Where(customer.Name(input.Name)).Exist(ctx)
+	if exist {
+		return nil, gqlerror.Errorf("A customer with the name %v already exists", input.Name)
+	}
+
+	if input.ExternalID != nil {
+		exist, _ = r.ClientFrom(ctx).Customer.Query().Where(customer.ExternalID(*input.ExternalID)).Exist(ctx)
+		if exist {
+			return nil, gqlerror.Errorf("A customer with the external id %v already exists", *input.ExternalID)
+		}
+	}
+
 	t, err := r.ClientFrom(ctx).
 		Customer.Create().
 		SetName(input.Name).
 		SetNillableExternalID(input.ExternalID).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
-			return nil, gqlerror.Errorf("A customer with the name %v already exists", input.Name)
-		}
 		return nil, errors.Wrap(err, "creating customer")
 	}
 	return t, nil

@@ -86,6 +86,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 				portType, _ := definition.QueryEquipmentPortType().Only(ctx)
 				if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
 					propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType)
+					// TODO: Set ID of the existing property to edit properties and not re-create them
 					if err != nil {
 						log.Warn("validating property for type", zap.Error(err))
 						http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", portType.Name, numRows, err.Error()), http.StatusBadRequest)

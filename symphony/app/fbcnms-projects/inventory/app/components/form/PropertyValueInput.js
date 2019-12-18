@@ -142,9 +142,6 @@ class PropertyValueInput extends React.Component<Props> {
                 }),
               )
             }
-            InputLabelProps={{
-              shrink: !!(propInputType === 'date' || property.stringValue),
-            }}
             inputProps={{className: inputClassName}}
             type={coercedInputType}
           />

@@ -31,7 +31,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -81,7 +80,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -99,7 +97,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +linkPropertyTypes: $ReadOnlyArray<?{|
               +id: string,
@@ -131,7 +128,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
               +portType: ?{|
                 +id: string,
@@ -212,7 +208,6 @@ export type EquipmentPortsTable_positionAttachedEquipment = {|
       +id: string,
       +name: string,
       +visibleLabel: ?string,
-      +type: string,
       +bandwidth: ?string,
     |}>
   |},
@@ -484,7 +479,6 @@ return {
             (v1/*: any*/),
             (v2/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             {
               "kind": "LinkedField",
               "alias": null,
@@ -545,7 +539,6 @@ return {
                     (v0/*: any*/),
                     (v1/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     (v19/*: any*/),
                     (v20/*: any*/)
                   ]
@@ -587,7 +580,6 @@ return {
                     (v0/*: any*/),
                     (v1/*: any*/),
                     (v3/*: any*/),
-                    (v4/*: any*/),
                     {
                       "kind": "LinkedField",
                       "alias": null,
@@ -637,7 +629,6 @@ return {
                             (v0/*: any*/),
                             (v1/*: any*/),
                             (v3/*: any*/),
-                            (v4/*: any*/),
                             (v20/*: any*/),
                             (v19/*: any*/)
                           ]
@@ -711,7 +702,6 @@ return {
             (v0/*: any*/),
             (v1/*: any*/),
             (v3/*: any*/),
-            (v4/*: any*/),
             (v20/*: any*/)
           ]
         }
@@ -721,5 +711,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e273a707bab99a09a4e85c27c17bc387';
+(node/*: any*/).hash = '2b141397ce0b3ae9eba21ce5f801f010';
 module.exports = node;

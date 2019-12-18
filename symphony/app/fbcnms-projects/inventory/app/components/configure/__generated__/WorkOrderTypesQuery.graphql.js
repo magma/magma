@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6cbbade0a3a5414d6cba9a629f1d6647
+ * @relayHash cff3b09fa06859273a1a93beaddc8397
  */
 
 /* eslint-disable */
@@ -77,6 +77,7 @@ fragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {
     isEditable
     isMandatory
     isInstanceProperty
+    isDeleted
   }
   checkListDefinitions {
     id
@@ -357,6 +358,13 @@ return {
                         "name": "isInstanceProperty",
                         "args": null,
                         "storageKey": null
+                      },
+                      {
+                        "kind": "ScalarField",
+                        "alias": null,
+                        "name": "isDeleted",
+                        "args": null,
+                        "storageKey": null
                       }
                     ]
                   },
@@ -419,7 +427,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypesQuery",
     "id": null,
-    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
+    "text": "query WorkOrderTypesQuery {\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        id\n        name\n        description\n        ...AddEditWorkOrderTypeCard_editingWorkOrderType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n\nfragment AddEditWorkOrderTypeCard_editingWorkOrderType on WorkOrderType {\n  id\n  name\n  description\n  numberOfWorkOrders\n  propertyTypes {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n  checkListDefinitions {\n    id\n    title\n    type\n    index\n    helpText\n    enumValues\n  }\n}\n",
     "metadata": {
       "connection": [
         {

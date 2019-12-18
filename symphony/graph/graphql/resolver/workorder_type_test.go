@@ -308,3 +308,45 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	})
 	require.Error(t, err, "duplicate property type names")
 }
+
+func TestDeleteWorkOrderTypeProperty(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+	mr := r.Mutation()
+
+	strValue := "Foo"
+	strPropType := models.PropertyTypeInput{
+		Name:        "str_prop",
+		Type:        "string",
+		StringValue: &strValue,
+	}
+	propTypeInput := []*models.PropertyTypeInput{&strPropType}
+	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a", Properties: propTypeInput})
+	require.NoError(t, err)
+
+	strProp := woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	strPropType = models.PropertyTypeInput{
+		ID:          &strProp.ID,
+		Name:        "str_prop",
+		Type:        "string",
+		StringValue: &strValue,
+		IsDeleted:   pointer.ToBool(true),
+	}
+
+	strProp = woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	require.False(t, strProp.Deleted, "successfully edited prop type name")
+
+	editedPropTypeInput := []*models.PropertyTypeInput{&strPropType}
+	newType, err := mr.EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
+		ID:         woType.ID,
+		Name:       "example_type_a",
+		Properties: editedPropTypeInput,
+	})
+	require.NoError(t, err)
+	require.Equal(t, woType.Name, newType.Name, "successfully edited work order type name")
+
+	strProp = woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	require.True(t, strProp.Deleted, "successfully edited prop type name")
+}

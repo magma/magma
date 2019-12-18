@@ -31,12 +31,19 @@ extern "C" {
 using namespace fluid_msg;
 namespace openflow {
 
+BaseApplication::BaseApplication(bool persist_state):
+  persist_state_(persist_state)
+{
+}
+
 void BaseApplication::event_callback(
   const ControllerEvent &ev,
   const OpenflowMessenger &messenger)
 {
   if (ev.get_type() == EVENT_SWITCH_UP) {
-    remove_all_flows(ev.get_connection(), messenger);
+    if (!persist_state_) {
+      remove_all_flows(ev.get_connection(), messenger);
+    }
     install_default_flow(ev.get_connection(), messenger);
   } else if (ev.get_type() == EVENT_ERROR) {
     handle_error_message(static_cast<const ErrorEvent &>(ev));

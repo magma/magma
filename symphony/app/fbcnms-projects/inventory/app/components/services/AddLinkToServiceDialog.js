@@ -90,7 +90,6 @@ const addLinkToServiceDialogQuery = graphql`
           definition {
             id
             name
-            type
           }
         }
         ...AvailableLinksTable_links

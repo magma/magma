@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 92772ef29c8e7fb001e800325a5638c1
+ * @relayHash b8dfe1ce5fc1d9501e7fcbf89db91fcb
  */
 
 /* eslint-disable */
@@ -44,6 +44,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type SurveyTemplateCategoryInput = {|
   id?: ?string,

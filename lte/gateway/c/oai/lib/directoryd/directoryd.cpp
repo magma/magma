@@ -23,18 +23,17 @@
 #include <string>
 #include <iostream>
 
-#include "DirectorydClient.h"
+#include "GatewayDirectorydClient.h"
 #include "directoryd.h"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 
-static void directoryd_rpc_call_done(const grpc::Status &status);
+static void directoryd_rpc_call_done(const grpc::Status& status);
 
-bool directoryd_report_location(table_id_t table, char *imsi)
+bool directoryd_report_location(char* imsi)
 {
   // Actual GW_ID will be filled in the cloud
-  magma::DirectoryServiceClient::UpdateLocation(
-    static_cast<magma::TableID>(table),
+  magma::GatewayDirectoryServiceClient::UpdateRecord(
     "IMSI" + std::string(imsi),
     std::string("GW_ID"),
     [&](grpc::Status status, magma::Void response) {
@@ -43,21 +42,18 @@ bool directoryd_report_location(table_id_t table, char *imsi)
   return true;
 }
 
-bool directoryd_remove_location(table_id_t table, char *imsi)
+bool directoryd_remove_location(char* imsi)
 {
-  magma::DirectoryServiceClient::DeleteLocation(
-    static_cast<magma::TableID>(table),
-    "IMSI" + std::string(imsi),
-    [&](grpc::Status status, magma::Void response) {
+  magma::GatewayDirectoryServiceClient::DeleteRecord(
+    "IMSI" + std::string(imsi), [&](grpc::Status status, magma::Void response) {
       directoryd_rpc_call_done(status);
     });
   return true;
 }
 
-bool directoryd_update_location(table_id_t table, char *imsi, char *location)
+bool directoryd_update_location(char* imsi, char* location)
 {
-  magma::DirectoryServiceClient::UpdateLocation(
-    static_cast<magma::TableID>(table),
+  magma::GatewayDirectoryServiceClient::UpdateRecord(
     "IMSI" + std::string(imsi),
     std::string(location),
     [&](grpc::Status status, magma::Void response) {
@@ -66,7 +62,7 @@ bool directoryd_update_location(table_id_t table, char *imsi, char *location)
   return true;
 }
 
-void directoryd_rpc_call_done(const grpc::Status &status)
+void directoryd_rpc_call_done(const grpc::Status& status)
 {
   if (!status.ok()) {
     std::cerr << "Directoryd RPC failed with code " << status.error_code()

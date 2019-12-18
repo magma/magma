@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 911fc21ab390ecc0897eca5fa6d94207
+ * @relayHash 2a20f9b524ebc18a781fc61362dd2a23
  */
 
 /* eslint-disable */
@@ -44,6 +44,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type LinkViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,
@@ -120,7 +121,6 @@ fragment PowerSearchLinksResultsTable_links on Link {
       id
       name
       visibleLabel
-      type
       portType {
         linkPropertyTypes {
           id
@@ -153,7 +153,6 @@ fragment PowerSearchLinksResultsTable_links on Link {
           id
           name
           visibleLabel
-          type
           bandwidth
           portType {
             id
@@ -426,7 +425,6 @@ return {
                       (v3/*: any*/),
                       (v5/*: any*/),
                       (v6/*: any*/),
-                      (v7/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
@@ -514,7 +512,6 @@ return {
                               (v3/*: any*/),
                               (v5/*: any*/),
                               (v6/*: any*/),
-                              (v7/*: any*/),
                               {
                                 "kind": "ScalarField",
                                 "alias": null,
@@ -689,7 +686,7 @@ return {
     "operationKind": "query",
     "name": "LinkViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query LinkViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LinkFilterInput!]!\n) {\n  linkSearch(limit: $limit, filters: $filters) {\n    links {\n      ...PowerSearchLinksResultsTable_links\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchLinksResultsTable_links on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      type\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          type\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n}\n",
+    "text": "query LinkViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LinkFilterInput!]!\n) {\n  linkSearch(limit: $limit, filters: $filters) {\n    links {\n      ...PowerSearchLinksResultsTable_links\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchLinksResultsTable_links on Link {\n  id\n  futureState\n  ports {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n      portType {\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        id\n      }\n    }\n    parentEquipment {\n      id\n      name\n      futureState\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          bandwidth\n          portType {\n            id\n            name\n          }\n        }\n      }\n      ...EquipmentBreadcrumbs_equipment\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrder {\n    id\n    status\n  }\n}\n",
     "metadata": {}
   }
 };

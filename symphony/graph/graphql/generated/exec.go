@@ -236,7 +236,6 @@ type ComplexityRoot struct {
 		Index           func(childComplexity int) int
 		Name            func(childComplexity int) int
 		PortType        func(childComplexity int) int
-		Type            func(childComplexity int) int
 		VisibilityLabel func(childComplexity int) int
 	}
 
@@ -563,6 +562,7 @@ type ComplexityRoot struct {
 	PropertyType struct {
 		BoolVal            func(childComplexity int) int
 		Category           func(childComplexity int) int
+		Deleted            func(childComplexity int) int
 		Editable           func(childComplexity int) int
 		FloatVal           func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -1812,13 +1812,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortDefinition.PortType(childComplexity), true
-
-	case "EquipmentPortDefinition.type":
-		if e.complexity.EquipmentPortDefinition.Type == nil {
-			break
-		}
-
-		return e.complexity.EquipmentPortDefinition.Type(childComplexity), true
 
 	case "EquipmentPortDefinition.visibleLabel":
 		if e.complexity.EquipmentPortDefinition.VisibilityLabel == nil {
@@ -3671,6 +3664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.Category(childComplexity), true
 
+	case "PropertyType.isDeleted":
+		if e.complexity.PropertyType.Deleted == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.Deleted(childComplexity), true
+
 	case "PropertyType.isEditable":
 		if e.complexity.PropertyType.Editable == nil {
 			break
@@ -5430,8 +5430,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> cd ~/fbsource/xplat/fbc-mobile-app
 #    %> yarn relay
 #  Pyinventory API:
-#    %> sudo python3 setup.py develop
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
+#    %> sudo python3 setup.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
@@ -5796,7 +5796,6 @@ type EquipmentPortDefinition implements Node {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portType: EquipmentPortType
   bandwidth: String
 }
@@ -5814,7 +5813,6 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portTypeID: String
   bandwidth: String
 }
@@ -5978,6 +5976,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -5997,6 +5996,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {
@@ -12524,43 +12524,6 @@ func (ec *executionContext) _EquipmentPortDefinition_visibleLabel(ctx context.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EquipmentPortDefinition_type(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EquipmentPortDefinition",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinition_portType(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
@@ -21337,6 +21300,40 @@ func (ec *executionContext) _PropertyType_isMandatory(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Mandatory, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PropertyType_isDeleted(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deleted, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31812,12 +31809,6 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "type":
-			var err error
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "portTypeID":
 			var err error
 			it.PortTypeID, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -32367,6 +32358,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 		case "isMandatory":
 			var err error
 			it.IsMandatory, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "isDeleted":
+			var err error
+			it.IsDeleted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34445,11 +34442,6 @@ func (ec *executionContext) _EquipmentPortDefinition(ctx context.Context, sel as
 			out.Values[i] = ec._EquipmentPortDefinition_index(ctx, field, obj)
 		case "visibleLabel":
 			out.Values[i] = ec._EquipmentPortDefinition_visibleLabel(ctx, field, obj)
-		case "type":
-			out.Values[i] = ec._EquipmentPortDefinition_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "portType":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -36588,6 +36580,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_isInstanceProperty(ctx, field, obj)
 		case "isMandatory":
 			out.Values[i] = ec._PropertyType_isMandatory(ctx, field, obj)
+		case "isDeleted":
+			out.Values[i] = ec._PropertyType_isDeleted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38966,18 +38960,12 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // region    ***************************** type.gotpl *****************************
 
 func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return core.ActionID(tmp), err
+	var res core.ActionID
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNActionsAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsAction(ctx context.Context, sel ast.SelectionSet, v models.ActionsAction) graphql.Marshaler {
@@ -39032,18 +39020,12 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 }
 
 func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return core.DataType(tmp), err
+	var res core.DataType
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {

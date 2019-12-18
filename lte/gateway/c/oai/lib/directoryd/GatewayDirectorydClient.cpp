@@ -25,84 +25,80 @@
 #include <utility>
 
 #include "orc8r/protos/common.pb.h"
-#include "DirectorydClient.h"
+#include "GatewayDirectorydClient.h"
 #include "ServiceRegistrySingleton.h"
 
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using magma::DirectoryService;
-using magma::DirectoryServiceClient;
-using magma::UpdateDirectoryLocationRequest;
+using magma::GatewayDirectoryService;
+using magma::GatewayDirectoryServiceClient;
+using magma::UpdateRecordRequest;
 using magma::orc8r::Void;
 
-DirectoryServiceClient &DirectoryServiceClient::get_instance()
+GatewayDirectoryServiceClient& GatewayDirectoryServiceClient::get_instance()
 {
-  static DirectoryServiceClient client_instance;
+  static GatewayDirectoryServiceClient client_instance;
   return client_instance;
 }
 
-DirectoryServiceClient::DirectoryServiceClient()
+GatewayDirectoryServiceClient::GatewayDirectoryServiceClient()
 {
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
     "directoryd", ServiceRegistrySingleton::LOCAL);
-  stub_ = DirectoryService::NewStub(channel);
+  stub_ = GatewayDirectoryService::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
   resp_loop_thread.detach();
 }
 
-bool DirectoryServiceClient::UpdateLocation(
-  TableID table,
-  const std::string &id,
-  const std::string &location,
+bool GatewayDirectoryServiceClient::UpdateRecord(
+  const std::string& id,
+  const std::string& location,
   std::function<void(Status, Void)> callback)
 {
-  DirectoryServiceClient &client = get_instance();
+  GatewayDirectoryServiceClient& client = get_instance();
 
-  UpdateDirectoryLocationRequest request;
+  UpdateRecordRequest request;
   Void response;
 
-  request.set_table(table);
   request.set_id(id);
-  request.mutable_record()->set_location(location);
+  request.set_location(location);
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto local_response =
     new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
-  // Create a response reader for the `UpdateLocation` RPC call. This reader
+  // Create a response reader for the `UpdateRecord` RPC call. This reader
   // stores the client context, the request to pass in, and the queue to add
   // the response to when done
-  auto response_reader = client.stub_->AsyncUpdateLocation(
+  auto response_reader = client.stub_->AsyncUpdateRecord(
     local_response->get_context(), request, &client.queue_);
-  // Set the reader for the local response. This executes the `UpdateLocation`
+  // Set the reader for the local response. This executes the `UpdateRecord`
   // response using the response reader. When it is done, the callback stored in
   // `local_response` will be called
   local_response->set_response_reader(std::move(response_reader));
   return true;
 }
 
-bool DirectoryServiceClient::DeleteLocation(
-  TableID table,
-  const std::string &id,
+bool GatewayDirectoryServiceClient::DeleteRecord(
+  const std::string& id,
   std::function<void(Status, Void)> callback)
 {
-  DeleteLocationRequest request;
+  DeleteRecordRequest request;
   Void response;
 
-  request.set_table(table);
   request.set_id(id);
 
   auto local_response =
     new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
-  DirectoryServiceClient &client = get_instance();
-  auto response_reader = client.stub_->AsyncDeleteLocation(
+  GatewayDirectoryServiceClient& client = get_instance();
+  auto response_reader = client.stub_->AsyncDeleteRecord(
     local_response->get_context(), request, &client.queue_);
   local_response->set_response_reader(std::move(response_reader));
   return true;

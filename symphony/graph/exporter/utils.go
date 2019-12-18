@@ -122,13 +122,16 @@ func locationHierarchyForEquipment(ctx context.Context, equipment *ent.Equipment
 
 func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTypes []string) ([]string, error) {
 	var parents = make([]string, len(orderedLocTypes))
-	var err error
 	currLoc := location
 	for {
-		typeName := currLoc.QueryType().OnlyX(ctx).Name
+		typ, err := currLoc.QueryType().Only(ctx)
+		if err != nil {
+			return nil, errors.Errorf("getting location type for location : %s (id:%s)", currLoc.Name, currLoc.ID)
+		}
+		typeName := typ.Name
 		idx := index(orderedLocTypes, typeName)
 		if idx == -1 {
-			return nil, errors.Errorf("Location  type does not exist : %s", typeName)
+			return nil, errors.Errorf("location type does not exist : %s", typeName)
 		}
 		parents[idx] = currLoc.Name
 		currLoc, err = currLoc.QueryParent().Only(ctx)
@@ -159,7 +162,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range equipTypes.Edges {
 			equipType := typ.Node
-			if equipType.QueryEquipment().Where(equipment.IDIn(ids...)).ExistX(ctx) {
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := equipType.QueryEquipment().Where(equipment.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking equipment instance existence for type: %s", equipType.Name)
+				case exist:
+					equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
+				}
+			} else {
 				equipTypesWithEquipment = append(equipTypesWithEquipment, *equipType)
 			}
 		}
@@ -184,7 +195,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range locTypes.Edges {
 			locType := typ.Node
-			if locType.QueryLocations().Where(location.IDIn(ids...)).ExistX(ctx) {
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := locType.QueryLocations().Where(location.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking location instance existence for type: %s", locType.Name)
+				case exist:
+					locTypesWithInstances = append(locTypesWithInstances, *locType)
+				}
+			} else {
 				locTypesWithInstances = append(locTypesWithInstances, *locType)
 			}
 		}
@@ -210,11 +229,28 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		for _, typ := range portTypes.Edges {
 			portType := typ.Node
 			if entity == models.PropertyEntityLink {
-				if portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).ExistX(ctx) {
+				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+				if len(ids) < 50 {
+					switch exist, err := portType.QueryPortDefinitions().QueryPorts().QueryLink().Where(link.IDIn(ids...)).Exist(ctx); {
+					case err != nil:
+						return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+					case exist:
+						relevantPortTypes = append(relevantPortTypes, *portType)
+					}
+				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
+
 			} else if entity == models.PropertyEntityPort {
-				if portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).ExistX(ctx) {
+				// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+				if len(ids) < 50 {
+					switch exist, err := portType.QueryPortDefinitions().QueryPorts().Where(equipmentport.IDIn(ids...)).Exist(ctx); {
+					case err != nil:
+						return nil, errors.Wrapf(err, "checking port instance existence for type: %s", portType.Name)
+					case exist:
+						relevantPortTypes = append(relevantPortTypes, *portType)
+					}
+				} else {
 					relevantPortTypes = append(relevantPortTypes, *portType)
 				}
 			}
@@ -245,7 +281,15 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 
 		for _, typ := range serviceTypes.Edges {
 			serviceType := typ.Node
-			if serviceType.QueryServices().Where(service.IDIn(ids...)).ExistX(ctx) {
+			// TODO (T59268484) solve the case where there are too many IDs to check (trying to optimize)
+			if len(ids) < 50 {
+				switch exist, err := serviceType.QueryServices().Where(service.IDIn(ids...)).Exist(ctx); {
+				case err != nil:
+					return nil, errors.Wrapf(err, "checking service instance existence for type: %s", serviceType.Name)
+				case exist:
+					serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
+				}
+			} else {
 				serviceTypesWithServices = append(serviceTypesWithServices, *serviceType)
 			}
 		}
@@ -279,17 +323,23 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "can't query property types for equipment %s (id=%s)", entity.Name, entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for equipment %s (id=%s)", entity.Name, entity.ID)
 		}
-		props = entity.QueryProperties().AllX(ctx)
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying equipment properties (id=%s)", entity.ID)
+		}
 	case models.PropertyEntityPort:
 		entity := instance.(*ent.EquipmentPort)
 		var err error
 		typs, err = entity.QueryDefinition().QueryEquipmentPortType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for port (id=%s)", entity.ID)
 		}
-		props = entity.QueryProperties().AllX(ctx)
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying port properties (id=%s)", entity.ID)
+		}
 	case models.PropertyEntityLink:
 		entity := instance.(*ent.Link)
 		ports, err := entity.QueryPorts().All(ctx)
@@ -300,19 +350,25 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 			var err error
 			portTypeLinkProperties, err := port.QueryDefinition().QueryEquipmentPortType().QueryLinkPropertyTypes().All(ctx)
 			if err != nil {
-				return nil, errors.Wrapf(err, "can't query property types for port (id=%s)", entity.ID)
+				return nil, errors.Wrapf(err, "querying property types for port (id=%s)", entity.ID)
 			}
 			typs = append(typs, portTypeLinkProperties...)
 		}
-		props = entity.QueryProperties().AllX(ctx)
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying link properties (id=%s)", entity.ID)
+		}
 	case models.PropertyEntityService:
 		entity := instance.(*ent.Service)
 		var err error
 		typs, err = entity.QueryType().QueryPropertyTypes().All(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "can't query property types for service (id=%s)", entity.ID)
+			return nil, errors.Wrapf(err, "querying property types for service (id=%s)", entity.ID)
 		}
-		props = entity.QueryProperties().AllX(ctx)
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying services properties (id=%s)", entity.ID)
+		}
 	case models.PropertyEntityLocation:
 		entity := instance.(*ent.Location)
 		var err error
@@ -320,7 +376,10 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if err != nil {
 			return nil, errors.Wrapf(err, "can't query property types for location (id=%s)", entity.ID)
 		}
-		props = entity.QueryProperties().AllX(ctx)
+		props, err = entity.QueryProperties().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying location properties (id=%s)", entity.ID)
+		}
 	default:
 		return nil, errors.Errorf("entityType not supported %s", entityType)
 	}
@@ -338,12 +397,16 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 	}
 
 	for _, p := range props {
-		propTypeName := p.QueryType().OnlyX(ctx).Name
+		propTyp, err := p.QueryType().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying type of property (id=%s)", p.ID)
+		}
+		propTypeName := propTyp.Name
 		idx := index(propertyTypes, propTypeName)
 		if idx == -1 {
 			return nil, errors.Errorf("Property type does not exist in header: %s", propTypeName)
 		}
-		typ := p.QueryType().OnlyX(ctx).Type
+		typ := propTyp.Type
 		val, err := propertyValue(ctx, typ, p)
 		if err != nil {
 			return nil, err

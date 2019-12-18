@@ -640,13 +640,13 @@ class WorkOrderDetails extends React.Component<Props, State> {
   _locationChangedHandler = (locationId: ?string) =>
     this.setState({locationId});
 
-  _propertyChangedHandler = index => property =>
+  _propertyChangedHandler = index => property => {
     this.setState(prevState => {
       return {
         properties: update(prevState.properties, {[index]: {$set: property}}),
       };
     });
-
+  };
   _enqueueError = (message: string) => {
     this.props.enqueueSnackbar(message, {
       children: key => (

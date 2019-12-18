@@ -49,6 +49,9 @@ func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, pro
 	case ImportEntityPort:
 		typ := typ.(*ent.EquipmentPortType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityService:
+		typ := typ.(*ent.ServiceType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
 		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
 	}
