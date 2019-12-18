@@ -172,5 +172,5 @@ func newTestClient() (AlertmanagerClient, *mocks.FSClient) {
 	fsClient := &mocks.FSClient{}
 	fsClient.On("ReadFile", mock.Anything).Return([]byte(testAlertmanagerFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return NewClient("test/alertmanager.yml", fsClient), fsClient
+	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", fsClient), fsClient
 }

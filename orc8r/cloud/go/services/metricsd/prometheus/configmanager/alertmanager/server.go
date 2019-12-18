@@ -36,13 +36,13 @@ func main() {
 
 	e.GET("/", statusHandler)
 
-	receiverClient := receivers.NewClient(*alertmanagerConfPath, fsclient.NewFSClient())
-	e.POST(ReceiverPath, GetReceiverPostHandler(receiverClient, *alertmanagerURL))
+	receiverClient := receivers.NewClient(*alertmanagerConfPath, *alertmanagerURL, fsclient.NewFSClient())
+	e.POST(ReceiverPath, GetReceiverPostHandler(receiverClient))
 	e.GET(ReceiverPath, GetGetReceiversHandler(receiverClient))
-	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(receiverClient, *alertmanagerURL))
-	e.PUT(ReceiverPath+"/:"+ReceiverNamePathParam, GetUpdateReceiverHandler(receiverClient, *alertmanagerURL))
+	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(receiverClient))
+	e.PUT(ReceiverPath+"/:"+ReceiverNamePathParam, GetUpdateReceiverHandler(receiverClient))
 
-	e.POST(RoutePath, GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
+	e.POST(RoutePath, GetUpdateRouteHandler(receiverClient))
 	e.GET(RoutePath, GetGetRouteHandler(receiverClient))
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)

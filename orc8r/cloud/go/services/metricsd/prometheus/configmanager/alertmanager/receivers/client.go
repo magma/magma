@@ -9,7 +9,10 @@
 package receivers
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
 	"sync"
 
@@ -38,19 +41,25 @@ type AlertmanagerClient interface {
 
 	// GetRoute returns the routing tree for the given networkID
 	GetRoute(networkID string) (*config.Route, error)
+
+	// ReloadAlertmanager triggers the alertmanager process to reload the
+	// configuration file(s)
+	ReloadAlertmanager() error
 }
 
 // Client provides methods to create and read receiver configurations
 type client struct {
-	configPath string
-	fsClient   fsclient.FSClient
+	configPath      string
+	alertmanagerURL string
+	fsClient        fsclient.FSClient
 	sync.RWMutex
 }
 
-func NewClient(configPath string, fsClient fsclient.FSClient) AlertmanagerClient {
+func NewClient(configPath, alertmanagerURL string, fsClient fsclient.FSClient) AlertmanagerClient {
 	return &client{
-		configPath: configPath,
-		fsClient:   fsClient,
+		configPath:      configPath,
+		alertmanagerURL: alertmanagerURL,
+		fsClient:        fsClient,
 	}
 }
 
@@ -199,6 +208,18 @@ func (c *client) GetRoute(networkID string) (*config.Route, error) {
 		return route, nil
 	}
 	return nil, fmt.Errorf("Route for network %s does not exist", networkID)
+}
+
+func (c *client) ReloadAlertmanager() error {
+	resp, err := http.Post(fmt.Sprintf("http://%s%s", c.alertmanagerURL, "/-/reload"), "text/plain", &bytes.Buffer{})
+	if err != nil {
+		return fmt.Errorf("error reloading alertmanager: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		msg, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("code: %d error reloading alertmanager: %s", resp.StatusCode, msg)
+	}
+	return nil
 }
 
 func (c *client) readConfigFile() (*Config, error) {
