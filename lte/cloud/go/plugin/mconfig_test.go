@@ -57,8 +57,24 @@ func TestBuilder_Build(t *testing.T) {
 		Config:             newDefaultEnodebConfig(),
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
+	rating1 := configurator.NetworkEntity{
+		Type: lte.RatingGroupEntityType,
+		Key:  "1",
+		Config: &models2.RatingGroup{
+			ID:        models2.RatingGroupID(uint32(1)),
+			LimitType: swag.String("INFINITE_UNMETERED"),
+		},
+	}
+	rating2 := configurator.NetworkEntity{
+		Type: lte.RatingGroupEntityType,
+		Key:  "2",
+		Config: &models2.RatingGroup{
+			ID:        models2.RatingGroupID(uint32(2)),
+			LimitType: swag.String("INFINITE_METERED"),
+		},
+	}
 	graph := configurator.EntityGraph{
-		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw, rating1, rating2},
 		Edges: []configurator.GraphEdge{
 			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
 			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
@@ -134,7 +150,9 @@ func TestBuilder_Build(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
+			LogLevel:                      protos.LogLevel_INFO,
+			InfiniteMeteredChargingKeys:   []uint32{uint32(2)},
+			InfiniteUnmeteredChargingKeys: []uint32{uint32(1)},
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
@@ -230,7 +248,9 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
+			LogLevel:                      protos.LogLevel_INFO,
+			InfiniteMeteredChargingKeys:   []uint32{},
+			InfiniteUnmeteredChargingKeys: []uint32{},
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
@@ -355,7 +375,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel: protos.LogLevel_INFO,
+			LogLevel:                      protos.LogLevel_INFO,
+			InfiniteMeteredChargingKeys:   []uint32{},
+			InfiniteUnmeteredChargingKeys: []uint32{},
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,

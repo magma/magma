@@ -384,12 +384,8 @@ func (r queryResolver) ActionsTriggers(
 
 	ret := make([]*models.ActionsTrigger, len(triggers))
 	for i, trigger := range ac.Triggers() {
-		modelTriggerID := models.TriggerID(trigger.ID())
-		if !modelTriggerID.IsValid() {
-			return nil, errors.Errorf("triggerID %s not in models", trigger.ID())
-		}
 		ret[i] = &models.ActionsTrigger{
-			TriggerID:   modelTriggerID,
+			TriggerID:   trigger.ID(),
 			Description: trigger.Description(),
 		}
 	}
@@ -401,16 +397,15 @@ func (r queryResolver) ActionsTriggers(
 }
 
 func (r queryResolver) ActionsTrigger(
-	ctx context.Context, id models.TriggerID,
+	ctx context.Context, triggerID core.TriggerID,
 ) (*models.ActionsTrigger, error) {
 	ac := actions.FromContext(ctx)
-	actionsTriggerID := core.TriggerID(id)
-	trigger, err := ac.TriggerForID(actionsTriggerID)
+	trigger, err := ac.TriggerForID(triggerID)
 	if err != nil {
 		return nil, errors.Wrap(err, "getting trigger")
 	}
 	return &models.ActionsTrigger{
-		TriggerID:   id,
+		TriggerID:   triggerID,
 		Description: trigger.Description(),
 	}, nil
 }

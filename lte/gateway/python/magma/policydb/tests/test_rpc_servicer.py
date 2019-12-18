@@ -9,8 +9,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import unittest
 from typing import Any, Dict, List
+from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
-    UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest
+    UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
+    CreditUpdateResponse
 from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
 from orc8r.protos.common_pb2 import NetworkID
 from magma.policydb.rpc_servicer import SessionRpcServicer
@@ -24,25 +26,8 @@ USR = '''
     success: true
     sid: "abc"
     charging_key: 1
-    credit {
-      type: SECONDS
-      validity_time: 86400
-      granted_units {
-        total {
-          is_valid: true
-          volume: 107374182400
-        }
-        tx {
-          is_valid: true
-          volume: 53687091200
-        }
-        rx {
-          is_valid: true
-          volume: 53687091200
-        }
-      }
-    }
     result_code: 1
+    limit_type: INFINITE_UNMETERED
   }'''
 
 
@@ -63,16 +48,15 @@ class MockSubscriberDBStub:
 
 class SessionRpcServicerTest(unittest.TestCase):
     def setUp(self):
-        self.servicer = SessionRpcServicer(self._get_config(),
+        self.servicer = SessionRpcServicer(self._get_mconfig(),
                                            MockSubscriberDBStub())
 
-    def _get_config(self) -> Dict[str, Any]:
-        return {
-            'redirect_rule_name': 'redirect',
-            'whitelisted_ips': {
-                'local': [80, 443],
-            },
-        }
+    def _get_mconfig(self) -> mconfigs_pb2.PolicyDB:
+        return mconfigs_pb2.PolicyDB(
+            log_level=1,
+            infinite_unmetered_charging_keys=[1],
+            infinite_metered_charging_keys=[2],
+        )
 
     def tearDown(self):
         # TODO: not sure if this is actually needed
@@ -100,6 +84,14 @@ class SessionRpcServicerTest(unittest.TestCase):
         self.assertEqual(static_rules, expected, 'There should be one static '
                          'rule installed for redirection.')
 
+        # Credit granted should be unlimited and un-metered
+        credit_limit_type = resp.credits[0].limit_type
+        expected = CreditUpdateResponse.CreditLimitType.Value(
+            "INFINITE_UNMETERED",
+        )
+        self.assertEqual(credit_limit_type, expected, 'There should be an '
+                         'infinite, unmetered credit grant')
+
     def test_UpdateSession(self):
         """
         Update a session
@@ -114,8 +106,8 @@ class SessionRpcServicerTest(unittest.TestCase):
         resp = self.servicer.UpdateSession(msg, None)
         session_response = self._rm_whitespace(str(resp))
         expected = self._rm_whitespace(USR)
-        self.assertEqual(session_response, expected, 'There should be a large '
-                         'amount of additional credit granted')
+        self.assertEqual(session_response, expected, 'There should be an '
+                         'infinite, unmetered credit grant')
 
     def test_TerminateSession(self):
         """

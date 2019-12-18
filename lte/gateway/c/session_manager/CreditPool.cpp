@@ -188,7 +188,15 @@ bool ChargingCreditPool::init_new_credit(const CreditUpdateResponse &update)
    * in no GSUs present in Gy:CCA-I
    */
   uint64_t default_volume = 0;
-  auto credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
+  std::unique_ptr<SessionCredit> credit;
+  if (update.limit_type() == CreditUpdateResponse::FINITE) {
+    credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
+  } else {
+    credit = std::make_unique<SessionCredit>(
+      CreditType::CHARGING,
+      SERVICE_ENABLED,
+      true);
+  }
   receive_charging_credit_with_default(
     *credit,
     update.credit().granted_units(),

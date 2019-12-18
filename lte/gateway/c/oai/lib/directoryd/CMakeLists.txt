@@ -16,7 +16,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(LIB_DIRECTORYD
   directoryd.cpp
-  DirectorydClient.cpp
+  GatewayDirectorydClient.cpp
   ${PROTO_SRCS}
   ${PROTO_HDRS}
   )

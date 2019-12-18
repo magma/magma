@@ -70,7 +70,6 @@ class EditEquipmentTypeInput:
     @dataclass
     class EquipmentPortInput:
         name: str
-        type: str
         id: Optional[str] = None
         index: Optional[int] = None
         visibleLabel: Optional[str] = None
@@ -96,6 +95,7 @@ class EditEquipmentTypeInput:
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
         isMandatory: Optional[bool] = None
+        isDeleted: Optional[bool] = None
 
     id: str
     name: str
@@ -139,7 +139,6 @@ class EditEquipmentTypeMutation:
       name
       index
       visibleLabel
-      type
     }
   }
 }
@@ -181,7 +180,6 @@ class EditEquipmentTypeMutation:
             class EquipmentPortDefinition:
                 id: str
                 name: str
-                type: str
                 index: Optional[int] = None
                 visibleLabel: Optional[str] = None
 

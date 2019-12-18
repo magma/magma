@@ -26,8 +26,6 @@ type EquipmentPortDefinition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
-	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
 	// Index holds the value of the "index" field.
 	Index int `json:"index,omitempty"`
 	// Bandwidth holds the value of the "bandwidth" field.
@@ -43,7 +41,6 @@ func (epd *EquipmentPortDefinition) FromRows(rows *sql.Rows) error {
 		CreateTime      sql.NullTime
 		UpdateTime      sql.NullTime
 		Name            sql.NullString
-		Type            sql.NullString
 		Index           sql.NullInt64
 		Bandwidth       sql.NullString
 		VisibilityLabel sql.NullString
@@ -54,7 +51,6 @@ func (epd *EquipmentPortDefinition) FromRows(rows *sql.Rows) error {
 		&scanepd.CreateTime,
 		&scanepd.UpdateTime,
 		&scanepd.Name,
-		&scanepd.Type,
 		&scanepd.Index,
 		&scanepd.Bandwidth,
 		&scanepd.VisibilityLabel,
@@ -65,7 +61,6 @@ func (epd *EquipmentPortDefinition) FromRows(rows *sql.Rows) error {
 	epd.CreateTime = scanepd.CreateTime.Time
 	epd.UpdateTime = scanepd.UpdateTime.Time
 	epd.Name = scanepd.Name.String
-	epd.Type = scanepd.Type.String
 	epd.Index = int(scanepd.Index.Int64)
 	epd.Bandwidth = scanepd.Bandwidth.String
 	epd.VisibilityLabel = scanepd.VisibilityLabel.String
@@ -116,8 +111,6 @@ func (epd *EquipmentPortDefinition) String() string {
 	builder.WriteString(epd.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", name=")
 	builder.WriteString(epd.Name)
-	builder.WriteString(", type=")
-	builder.WriteString(epd.Type)
 	builder.WriteString(", index=")
 	builder.WriteString(fmt.Sprintf("%v", epd.Index))
 	builder.WriteString(", bandwidth=")

@@ -38,6 +38,7 @@ type PropertyTypeCreate struct {
 	is_instance_property     *bool
 	editable                 *bool
 	mandatory                *bool
+	deleted                  *bool
 	properties               map[string]struct{}
 	location_type            map[string]struct{}
 	equipment_port_type      map[string]struct{}
@@ -270,6 +271,20 @@ func (ptc *PropertyTypeCreate) SetNillableMandatory(b *bool) *PropertyTypeCreate
 	return ptc
 }
 
+// SetDeleted sets the deleted field.
+func (ptc *PropertyTypeCreate) SetDeleted(b bool) *PropertyTypeCreate {
+	ptc.deleted = &b
+	return ptc
+}
+
+// SetNillableDeleted sets the deleted field if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableDeleted(b *bool) *PropertyTypeCreate {
+	if b != nil {
+		ptc.SetDeleted(*b)
+	}
+	return ptc
+}
+
 // AddPropertyIDs adds the properties edge to Property by ids.
 func (ptc *PropertyTypeCreate) AddPropertyIDs(ids ...string) *PropertyTypeCreate {
 	if ptc.properties == nil {
@@ -472,6 +487,10 @@ func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) 
 		v := propertytype.DefaultMandatory
 		ptc.mandatory = &v
 	}
+	if ptc.deleted == nil {
+		v := propertytype.DefaultDeleted
+		ptc.deleted = &v
+	}
 	if len(ptc.location_type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"location_type\"")
 	}
@@ -583,6 +602,10 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 	if value := ptc.mandatory; value != nil {
 		insert.Set(propertytype.FieldMandatory, *value)
 		pt.Mandatory = *value
+	}
+	if value := ptc.deleted; value != nil {
+		insert.Set(propertytype.FieldDeleted, *value)
+		pt.Deleted = *value
 	}
 
 	id, err := insertLastID(ctx, tx, insert.Returning(propertytype.FieldID))

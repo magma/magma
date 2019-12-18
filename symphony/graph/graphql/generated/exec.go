@@ -102,7 +102,7 @@ type ComplexityRoot struct {
 	}
 
 	ActionsOperator struct {
-		DataInput   func(childComplexity int) int
+		DataType    func(childComplexity int) int
 		Description func(childComplexity int) int
 		OperatorID  func(childComplexity int) int
 	}
@@ -236,7 +236,6 @@ type ComplexityRoot struct {
 		Index           func(childComplexity int) int
 		Name            func(childComplexity int) int
 		PortType        func(childComplexity int) int
-		Type            func(childComplexity int) int
 		VisibilityLabel func(childComplexity int) int
 	}
 
@@ -563,6 +562,7 @@ type ComplexityRoot struct {
 	PropertyType struct {
 		BoolVal            func(childComplexity int) int
 		Category           func(childComplexity int) int
+		Deleted            func(childComplexity int) int
 		Editable           func(childComplexity int) int
 		FloatVal           func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -655,6 +655,7 @@ type ComplexityRoot struct {
 		Name              func(childComplexity int) int
 		Properties        func(childComplexity int) int
 		ServiceType       func(childComplexity int) int
+		Status            func(childComplexity int) int
 		TerminationPoints func(childComplexity int) int
 		Topology          func(childComplexity int) int
 		Upstream          func(childComplexity int) int
@@ -866,11 +867,10 @@ type ComplexityRoot struct {
 
 type ActionsRuleResolver interface {
 	Trigger(ctx context.Context, obj *ent.ActionsRule) (*models.ActionsTrigger, error)
-	TriggerID(ctx context.Context, obj *ent.ActionsRule) (models.TriggerID, error)
+	TriggerID(ctx context.Context, obj *ent.ActionsRule) (core.TriggerID, error)
 }
 type ActionsRuleActionResolver interface {
 	Action(ctx context.Context, obj *core.ActionsRuleAction) (*models.ActionsAction, error)
-	ActionID(ctx context.Context, obj *core.ActionsRuleAction) (models.ActionID, error)
 }
 type ActionsRuleFilterResolver interface {
 	Operator(ctx context.Context, obj *core.ActionsRuleFilter) (*models.ActionsOperator, error)
@@ -1106,6 +1106,7 @@ type QueryResolver interface {
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
 }
 type ServiceResolver interface {
+	Status(ctx context.Context, obj *ent.Service) (models.ServiceStatus, error)
 	Customer(ctx context.Context, obj *ent.Service) (*ent.Customer, error)
 	ServiceType(ctx context.Context, obj *ent.Service) (*ent.ServiceType, error)
 	Upstream(ctx context.Context, obj *ent.Service) ([]*ent.Service, error)
@@ -1231,12 +1232,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ActionsFilter.SupportedOperators(childComplexity), true
 
-	case "ActionsOperator.dataInput":
-		if e.complexity.ActionsOperator.DataInput == nil {
+	case "ActionsOperator.dataType":
+		if e.complexity.ActionsOperator.DataType == nil {
 			break
 		}
 
-		return e.complexity.ActionsOperator.DataInput(childComplexity), true
+		return e.complexity.ActionsOperator.DataType(childComplexity), true
 
 	case "ActionsOperator.description":
 		if e.complexity.ActionsOperator.Description == nil {
@@ -1811,13 +1812,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortDefinition.PortType(childComplexity), true
-
-	case "EquipmentPortDefinition.type":
-		if e.complexity.EquipmentPortDefinition.Type == nil {
-			break
-		}
-
-		return e.complexity.EquipmentPortDefinition.Type(childComplexity), true
 
 	case "EquipmentPortDefinition.visibleLabel":
 		if e.complexity.EquipmentPortDefinition.VisibilityLabel == nil {
@@ -3670,6 +3664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PropertyType.Category(childComplexity), true
 
+	case "PropertyType.isDeleted":
+		if e.complexity.PropertyType.Deleted == nil {
+			break
+		}
+
+		return e.complexity.PropertyType.Deleted(childComplexity), true
+
 	case "PropertyType.isEditable":
 		if e.complexity.PropertyType.Editable == nil {
 			break
@@ -4367,6 +4368,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.ServiceType(childComplexity), true
+
+	case "Service.status":
+		if e.complexity.Service.Status == nil {
+			break
+		}
+
+		return e.complexity.Service.Status(childComplexity), true
 
 	case "Service.terminationPoints":
 		if e.complexity.Service.TerminationPoints == nil {
@@ -5422,8 +5430,8 @@ var parsedSchema = gqlparser.MustLoadSchema(
 #    %> cd ~/fbsource/xplat/fbc-mobile-app
 #    %> yarn relay
 #  Pyinventory API:
-#    %> sudo python3 setup.py develop
 #    %> cd ~/fbsource/fbcode/fbc/symphony/cli
+#    %> sudo python3 setup.py develop
 #    %> ./compile_graphql.sh
 
 type Viewer
@@ -5788,7 +5796,6 @@ type EquipmentPortDefinition implements Node {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portType: EquipmentPortType
   bandwidth: String
 }
@@ -5806,7 +5813,6 @@ input EquipmentPortInput {
   name: String!
   index: Int
   visibleLabel: String
-  type: String!
   portTypeID: String
   bandwidth: String
 }
@@ -5970,6 +5976,7 @@ type PropertyType implements Node {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 input PropertyTypeInput {
@@ -5989,6 +5996,7 @@ input PropertyTypeInput {
   isEditable: Boolean
   isInstanceProperty: Boolean
   isMandatory: Boolean
+  isDeleted: Boolean
 }
 
 type Property implements Node {
@@ -6041,6 +6049,13 @@ enum WorkOrderStatus {
   PENDING
   PLANNED
   DONE
+}
+
+enum ServiceStatus {
+  PENDING
+  IN_SERVICE
+  MAINTENANCE
+  DISCONNECTED
 }
 
 """
@@ -6509,6 +6524,7 @@ type Service implements Node {
   id: ID!
   name: String!
   externalId: String
+  status: ServiceStatus!
   customer: Customer
   serviceType: ServiceType!
   upstream: [Service]!
@@ -6559,6 +6575,7 @@ input ServiceTypeEditData {
 input ServiceCreateData {
   name: String!
   externalId: String
+  status: ServiceStatus = PENDING
   serviceTypeId: ID!
   customerId: ID
   upstreamServiceIds: [ID!]!
@@ -6568,12 +6585,13 @@ input ServiceCreateData {
 
 input ServiceEditData {
   id: ID!
-  name: String!
+  name: String
   externalId: String
+  status: ServiceStatus
   customerId: ID
-  upstreamServiceIds: [ID!]!
+  upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
+  terminationPointIds: [ID!]
 }
 
 input SurveyCreateData {
@@ -6836,13 +6854,28 @@ type LatestPythonPackageResult {
 }
 
 # You will also need to update cloud/actions/core/id
-enum ActionID {
+enum ActionID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+  ) {
   magma_reboot_node
 }
 
 # You will also need to update cloud/actions/core/id
-enum TriggerID {
+enum TriggerID
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+  ) {
   magma_alert
+}
+
+# Data type for the input to be
+enum ActionsDataType
+  @goModel(
+    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+  ) {
+  string
+  stringArray
 }
 
 # ActionsTrigger defines a trigger itself, along with what actions and filters
@@ -6861,8 +6894,8 @@ type ActionsOperator {
   operatorID: String!
   # Name displayed to the user. Ex: "is", "is not"
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataInput: String!
+  # Data type that's expected for this operator Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsAction defines an action that can be executed
@@ -6870,8 +6903,8 @@ type ActionsOperator {
 type ActionsAction {
   actionID: ActionID!
   description: String!
-  # Data type for the input to be (e.g. "text", "string", "arrayString", etc)
-  dataType: String!
+  # Data type expected for this action. Ex. "string", "arrayString"
+  dataType: ActionsDataType!
 }
 
 # ActionsFilter is a definition for how you can filter a trigger.
@@ -6944,7 +6977,7 @@ input ActionsRuleFilterInput {
 
 input AddActionsRuleInput {
   name: String!
-  triggerID: String!
+  triggerID: TriggerID!
   ruleActions: [ActionsRuleActionInput]!
   ruleFilters: [ActionsRuleFilterInput]!
 }
@@ -9334,10 +9367,10 @@ func (ec *executionContext) _ActionsAction_actionID(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionID)
+	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsAction_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
@@ -9408,10 +9441,10 @@ func (ec *executionContext) _ActionsAction_dataType(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
@@ -9599,7 +9632,7 @@ func (ec *executionContext) _ActionsOperator_description(ctx context.Context, fi
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
+func (ec *executionContext) _ActionsOperator_dataType(ctx context.Context, field graphql.CollectedField, obj *models.ActionsOperator) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -9618,7 +9651,7 @@ func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, fiel
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DataInput, nil
+		return obj.DataType, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9630,10 +9663,10 @@ func (ec *executionContext) _ActionsOperator_dataInput(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_id(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9778,10 +9811,10 @@ func (ec *executionContext) _ActionsRule_triggerID(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.TriggerID)
+	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9908,13 +9941,13 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 		Object:   "ActionsRuleAction",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ActionsRuleAction().ActionID(rctx, obj)
+		return obj.ActionID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9926,10 +9959,10 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.ActionID)
+	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
@@ -10253,10 +10286,10 @@ func (ec *executionContext) _ActionsTrigger_triggerID(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.TriggerID)
+	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsTrigger_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
@@ -12491,43 +12524,6 @@ func (ec *executionContext) _EquipmentPortDefinition_visibleLabel(ctx context.Co
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EquipmentPortDefinition_type(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EquipmentPortDefinition",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinition_portType(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinition) (ret graphql.Marshaler) {
@@ -21318,6 +21314,40 @@ func (ec *executionContext) _PropertyType_isMandatory(ctx context.Context, field
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PropertyType_isDeleted(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "PropertyType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deleted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PythonPackage_version(ctx context.Context, field graphql.CollectedField, obj *models.PythonPackage) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -23597,6 +23627,43 @@ func (ec *executionContext) _Service_externalId(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Service_status(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Service",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Service().Status(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.ServiceStatus)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Service_customer(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
@@ -29940,7 +30007,7 @@ func (ec *executionContext) unmarshalInputActionsRuleActionInput(ctx context.Con
 		switch k {
 		case "actionID":
 			var err error
-			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx, v)
+			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30000,7 +30067,7 @@ func (ec *executionContext) unmarshalInputAddActionsRuleInput(ctx context.Contex
 			}
 		case "triggerID":
 			var err error
-			it.TriggerID, err = ec.unmarshalNString2string(ctx, v)
+			it.TriggerID, err = ec.unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -31742,12 +31809,6 @@ func (ec *executionContext) unmarshalInputEquipmentPortInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "type":
-			var err error
-			it.Type, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "portTypeID":
 			var err error
 			it.PortTypeID, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -32300,6 +32361,12 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "isDeleted":
+			var err error
+			it.IsDeleted, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -32309,6 +32376,10 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context, obj interface{}) (models.ServiceCreateData, error) {
 	var it models.ServiceCreateData
 	var asMap = obj.(map[string]interface{})
+
+	if _, present := asMap["status"]; !present {
+		asMap["status"] = "PENDING"
+	}
 
 	for k, v := range asMap {
 		switch k {
@@ -32321,6 +32392,12 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 		case "externalId":
 			var err error
 			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32374,13 +32451,19 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "name":
 			var err error
-			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "externalId":
 			var err error
 			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32392,7 +32475,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "upstreamServiceIds":
 			var err error
-			it.UpstreamServiceIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			it.UpstreamServiceIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -32404,7 +32487,7 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 			}
 		case "terminationPointIds":
 			var err error
-			it.TerminationPointIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
+			it.TerminationPointIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -33408,8 +33491,8 @@ func (ec *executionContext) _ActionsOperator(ctx context.Context, sel ast.Select
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "dataInput":
-			out.Values[i] = ec._ActionsOperator_dataInput(ctx, field, obj)
+		case "dataType":
+			out.Values[i] = ec._ActionsOperator_dataType(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -33520,19 +33603,10 @@ func (ec *executionContext) _ActionsRuleAction(ctx context.Context, sel ast.Sele
 				return res
 			})
 		case "actionID":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ActionsRuleAction_actionID(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._ActionsRuleAction_actionID(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "data":
 			out.Values[i] = ec._ActionsRuleAction_data(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -34368,11 +34442,6 @@ func (ec *executionContext) _EquipmentPortDefinition(ctx context.Context, sel as
 			out.Values[i] = ec._EquipmentPortDefinition_index(ctx, field, obj)
 		case "visibleLabel":
 			out.Values[i] = ec._EquipmentPortDefinition_visibleLabel(ctx, field, obj)
-		case "type":
-			out.Values[i] = ec._EquipmentPortDefinition_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
 		case "portType":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -36511,6 +36580,8 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._PropertyType_isInstanceProperty(ctx, field, obj)
 		case "isMandatory":
 			out.Values[i] = ec._PropertyType_isMandatory(ctx, field, obj)
+		case "isDeleted":
+			out.Values[i] = ec._PropertyType_isDeleted(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -37205,6 +37276,20 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "externalId":
 			out.Values[i] = ec._Service_externalId(ctx, field, obj)
+		case "status":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Service_status(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "customer":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -38874,12 +38959,12 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, v interface{}) (models.ActionID, error) {
-	var res models.ActionID
+func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
+	var res core.ActionID
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionID(ctx context.Context, sel ast.SelectionSet, v models.ActionID) graphql.Marshaler {
+func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
 	return v
 }
 
@@ -38932,6 +39017,15 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._ActionsAction(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
+	var res core.DataType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNActionsFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐActionsFilter(ctx context.Context, sel ast.SelectionSet, v []*models.ActionsFilter) graphql.Marshaler {
@@ -41255,6 +41349,15 @@ func (ec *executionContext) marshalNServiceSearchResult2ᚖgithubᚗcomᚋfacebo
 	return ec._ServiceSearchResult(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
+	var res models.ServiceStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v models.ServiceStatus) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNServiceType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx context.Context, sel ast.SelectionSet, v ent.ServiceType) graphql.Marshaler {
 	return ec._ServiceType(ctx, sel, &v)
 }
@@ -41663,12 +41766,12 @@ func (ec *executionContext) marshalNTopologyLink2ᚖgithubᚗcomᚋfacebookincub
 	return ec._TopologyLink(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, v interface{}) (models.TriggerID, error) {
-	var res models.TriggerID
+func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, v interface{}) (core.TriggerID, error) {
+	var res core.TriggerID
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v models.TriggerID) graphql.Marshaler {
+func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v core.TriggerID) graphql.Marshaler {
 	return v
 }
 
@@ -43422,6 +43525,30 @@ func (ec *executionContext) marshalOService2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Service(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
+	var res models.ServiceStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v models.ServiceStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (*models.ServiceStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOServiceStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, sel ast.SelectionSet, v *models.ServiceStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) marshalOServiceType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx context.Context, sel ast.SelectionSet, v ent.ServiceType) graphql.Marshaler {

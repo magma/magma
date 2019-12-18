@@ -49,6 +49,9 @@ func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, pro
 	case ImportEntityPort:
 		typ := typ.(*ent.EquipmentPortType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityService:
+		typ := typ.(*ent.ServiceType)
+		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	default:
 		return nil, errors.Wrapf(err, "entity is not supported %s", l.entity())
 	}
@@ -97,8 +100,16 @@ func (l ImportRecord) ThirdParent() string {
 	return l.line[l.title.ThirdParentIdx()]
 }
 
+func (l ImportRecord) ThirdPosition() string {
+	return l.line[l.title.ThirdPositionIdx()]
+}
+
 func (l ImportRecord) SecondParent() string {
 	return l.line[l.title.SecondParentIdx()]
+}
+
+func (l ImportRecord) SecondPosition() string {
+	return l.line[l.title.SecondPositionIdx()]
 }
 
 func (l ImportRecord) DirectParent() string {

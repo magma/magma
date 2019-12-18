@@ -23,7 +23,6 @@ export type EquipmentPortsTable_portDefinition = {|
   +name: string,
   +index: ?number,
   +visibleLabel: ?string,
-  +type: string,
   +portType: ?{|
     +id: string,
     +name: string,
@@ -94,17 +93,16 @@ v2 = {
   "args": null,
   "storageKey": null
 },
-v3 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
-v4 = [
+v3 = [
   (v0/*: any*/),
   (v1/*: any*/),
-  (v3/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "type",
+    "args": null,
+    "storageKey": null
+  },
   (v2/*: any*/),
   {
     "kind": "ScalarField",
@@ -201,7 +199,6 @@ return {
       "args": null,
       "storageKey": null
     },
-    (v3/*: any*/),
     {
       "kind": "LinkedField",
       "alias": null,
@@ -221,7 +218,7 @@ return {
           "args": null,
           "concreteType": "PropertyType",
           "plural": true,
-          "selections": (v4/*: any*/)
+          "selections": (v3/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -231,7 +228,7 @@ return {
           "args": null,
           "concreteType": "PropertyType",
           "plural": true,
-          "selections": (v4/*: any*/)
+          "selections": (v3/*: any*/)
         }
       ]
     }
@@ -239,5 +236,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fa06c2ecc41b7a851133eff804720ca0';
+(node/*: any*/).hash = 'c3402192a79fc61b03fc615e09549a3e';
 module.exports = node;

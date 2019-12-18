@@ -45,6 +45,7 @@ export type AddEditProjectTypeCard_editingProjectType = {|
     +isEditable: ?boolean,
     +isMandatory: ?boolean,
     +isInstanceProperty: ?boolean,
+    +isDeleted: ?boolean,
   |}>,
   +$refType: AddEditProjectTypeCard_editingProjectType$ref,
 |};
@@ -213,6 +214,13 @@ return {
           "name": "isInstanceProperty",
           "args": null,
           "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "isDeleted",
+          "args": null,
+          "storageKey": null
         }
       ]
     }
@@ -220,5 +228,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '9710f142f15a209678b783c2d6c899ce';
+(node/*: any*/).hash = 'ecb60086412cf0370cc2df7165fa448e';
 module.exports = node;

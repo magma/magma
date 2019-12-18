@@ -53,9 +53,9 @@ s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
 s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
-s1aptests/test_sctp_shutdown_after_smc.py
-#s1aptests/test_attach_ul_udp_data.py \
-#s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_sctp_shutdown_after_smc.py \
+s1aptests/test_attach_ul_udp_data.py \
+s1aptests/test_attach_ul_tcp_data.py
 #s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
 #s1aptests/test_attach_dl_udp_data.py \
 #s1aptests/test_attach_dl_tcp_data.py

@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ButtonProps} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
@@ -40,6 +41,7 @@ type Props<TValue> = {
   options: Array<OptionProps<TValue>>,
   onChange: (value: TValue) => void | (() => void),
   selectedValue: ?TValue,
+  ...ButtonProps,
 };
 
 const Select = <TValue>({
@@ -48,7 +50,7 @@ const Select = <TValue>({
   ...selectMenuProps
 }: Props<TValue>) => {
   const classes = useStyles();
-  const {options, selectedValue} = selectMenuProps;
+  const {options, selectedValue, skin, variant, disabled} = selectMenuProps;
   return (
     <BasePopoverTrigger
       popover={<SelectMenu {...selectMenuProps} className={classes.menu} />}>
@@ -57,7 +59,9 @@ const Select = <TValue>({
           className={classNames(classes.root, className)}
           ref={contextRef}
           onClick={onShow}
-          skin="regular"
+          skin={skin ?? 'regular'}
+          variant={variant}
+          disabled={disabled}
           rightIcon={ArrowDropDownIcon}>
           <span className={classes.label}>{label}</span>
           {selectedValue ? ': ' : null}

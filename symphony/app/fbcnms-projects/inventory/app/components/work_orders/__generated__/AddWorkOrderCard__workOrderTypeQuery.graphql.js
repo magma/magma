@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0da7f49810ab4d170edfb7ec67a3e569
+ * @relayHash 3714052a183f122778b503992bde7ed1
  */
 
 /* eslint-disable */
@@ -39,7 +39,9 @@ export type AddWorkOrderCard__workOrderTypeQueryResponse = {|
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
       +isEditable: ?boolean,
+      +isMandatory: ?boolean,
       +isInstanceProperty: ?boolean,
+      +isDeleted: ?boolean,
     |}>,
     +checkListDefinitions: $ReadOnlyArray<?{|
       +id: string,
@@ -80,7 +82,9 @@ query AddWorkOrderCard__workOrderTypeQuery(
       rangeFromValue
       rangeToValue
       isEditable
+      isMandatory
       isInstanceProperty
+      isDeleted
     }
     checkListDefinitions {
       id
@@ -235,7 +239,21 @@ v5 = [
           {
             "kind": "ScalarField",
             "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
             "name": "isInstanceProperty",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
             "args": null,
             "storageKey": null
           }
@@ -299,11 +317,11 @@ return {
     "operationKind": "query",
     "name": "AddWorkOrderCard__workOrderTypeQuery",
     "id": null,
-    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n    }\n    checkListDefinitions {\n      id\n      title\n      type\n      index\n      helpText\n      enumValues\n    }\n  }\n}\n",
+    "text": "query AddWorkOrderCard__workOrderTypeQuery(\n  $workOrderTypeId: ID!\n) {\n  workOrderType(id: $workOrderTypeId) {\n    id\n    name\n    description\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isMandatory\n      isInstanceProperty\n      isDeleted\n    }\n    checkListDefinitions {\n      id\n      title\n      type\n      index\n      helpText\n      enumValues\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '044e32342062080ad81bb49989f4cc14';
+(node/*: any*/).hash = 'd4667158cd01b7d3eb0e6b3a839c4601';
 module.exports = node;

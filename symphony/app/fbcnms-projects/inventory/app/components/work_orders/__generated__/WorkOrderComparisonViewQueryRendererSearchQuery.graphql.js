@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b80939c890ab484c1bf8cc241b8dbd6c
+ * @relayHash bdb5fdbe24520836141860afc6fea02f
  */
 
 /* eslint-disable */
@@ -45,6 +45,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type WorkOrderComparisonViewQueryRendererSearchQueryVariables = {|
   limit?: ?number,

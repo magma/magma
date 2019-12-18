@@ -55,12 +55,36 @@ func (q *QueryRestrictor) addRestrictorLabels() func(n promql.Node, path []promq
 			}
 			switch n := n.(type) {
 			case *promql.VectorSelector:
-				n.LabelMatchers = append(n.LabelMatchers, injectedLabelMatcher)
+				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, *injectedLabelMatcher)
 			case *promql.MatrixSelector:
-				n.LabelMatchers = append(n.LabelMatchers, injectedLabelMatcher)
+				n.LabelMatchers = appendOrReplaceMatcher(n.LabelMatchers, *injectedLabelMatcher)
 			}
 		}
 		return nil
 	}
+}
 
+func appendOrReplaceMatcher(matchers []*labels.Matcher, newMatcher labels.Matcher) []*labels.Matcher {
+	if getMatcherIndex(matchers, newMatcher.Name) >= 0 {
+		return replaceLabelValue(matchers, newMatcher.Name, newMatcher.Value)
+	} else {
+		return append(matchers, &newMatcher)
+	}
+}
+
+func getMatcherIndex(matchers []*labels.Matcher, name string) int {
+	for idx, match := range matchers {
+		if match.Name == name {
+			return idx
+		}
+	}
+	return -1
+}
+
+func replaceLabelValue(matchers []*labels.Matcher, name, value string) []*labels.Matcher {
+	idx := getMatcherIndex(matchers, name)
+	if idx >= -1 {
+		matchers[idx].Value = value
+	}
+	return matchers
 }

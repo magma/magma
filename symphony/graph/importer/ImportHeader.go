@@ -28,12 +28,45 @@ func (l ImportHeader) ThirdParentIdx() int {
 	return l.prnt3Idx
 }
 
+func (l ImportHeader) ThirdPositionIdx() int {
+	if l.entity == ImportEntityEquipment {
+		return l.prnt3Idx + 1
+	}
+	return -1
+}
+
 func (l ImportHeader) SecondParentIdx() int {
-	return l.prnt3Idx + 1
+	if l.entity == ImportEntityEquipment {
+		return l.prnt3Idx + 2
+	} else if l.entity == ImportEntityPort {
+		return l.prnt3Idx + 1
+	}
+	return -1
+}
+
+func (l ImportHeader) SecondPositionIdx() int {
+	if l.entity == ImportEntityEquipment {
+		return l.prnt3Idx + 3
+	}
+	return -1
 }
 
 func (l ImportHeader) DirectParentIdx() int {
-	return l.prnt3Idx + 2
+	if l.entity == ImportEntityEquipment {
+		return l.prnt3Idx + 4
+	} else if l.entity == ImportEntityPort {
+		return l.prnt3Idx + 2
+	}
+	return -1
+}
+
+func (l ImportHeader) PositionIdx() int {
+	if l.entity == ImportEntityEquipment {
+		return l.prnt3Idx + 5
+	} else if l.entity == ImportEntityPort {
+		return l.prnt3Idx + 3
+	}
+	return -1
 }
 
 func (l ImportHeader) LocationTypesRangeArr() []string {
@@ -50,15 +83,14 @@ func (l ImportHeader) LocationsRangeIdx() (int, int) {
 	return -1, -1
 }
 
-func (l ImportHeader) PositionIdx() int {
-	return l.prnt3Idx + 3
-}
-
 func (l ImportHeader) PropertyStartIdx() int {
-	if l.entity == ImportEntityEquipment {
+	switch l.entity {
+	case ImportEntityEquipment:
 		return l.PositionIdx() + 1
-	} else if l.entity == ImportEntityPort {
+	case ImportEntityPort:
 		return l.PositionIdx() + 5
+	case ImportEntityService:
+		return findIndex(l.line, "Customer External ID") + 1
 	}
 	return -1
 }

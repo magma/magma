@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package resolver
+package resolverutil
 
 import (
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -12,14 +12,12 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
 	"github.com/pkg/errors"
 )
 
 func handleLocationFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
 	if filter.FilterType == models.LocationFilterTypeLocationInst {
-		return resolverutil.LocationFilterPredicate(q, filter)
+		return LocationFilterPredicate(q, filter)
 	} else if filter.FilterType == models.LocationFilterTypeLocationInstHasEquipment {
 		return locationHasEquipmentFilter(q, filter)
 	}
@@ -53,28 +51,46 @@ func locationLocationTypeFilter(q *ent.LocationQuery, filter *models.LocationFil
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
+// nolint: dupl
 func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
 	p := filter.PropertyValue
 	switch filter.Operator {
 	case models.FilterOperatorIs:
-		q = q.Where(
-			location.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-				),
-			),
-		)
-		pred, err := resolverutil.GetPropertyPredicate(*p)
+		pred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
-		if pred != nil {
-			q = q.Where(location.HasPropertiesWith(pred))
+		typePred, err := GetPropertyTypePredicate(*p)
+		if err != nil {
+			return nil, err
 		}
+
+		q = q.Where(location.Or(
+			location.HasPropertiesWith(
+				property.And(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					),
+					pred,
+				),
+			),
+			location.And(
+				location.HasTypeWith(locationtype.HasPropertyTypesWith(
+					propertytype.Name(p.Name),
+					propertytype.Type(p.Type.String()),
+					typePred,
+				)),
+				location.Not(location.HasPropertiesWith(
+					property.HasTypeWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+					)),
+				))))
+
 		return q, nil
 	case models.FilterOperatorDateLessThan, models.FilterOperatorDateGreaterThan:
-		propPred, propTypePred, err := resolverutil.GetDatePropertyPred(*p, filter.Operator)
+		propPred, propTypePred, err := GetDatePropertyPred(*p, filter.Operator)
 		if err != nil {
 			return nil, err
 		}

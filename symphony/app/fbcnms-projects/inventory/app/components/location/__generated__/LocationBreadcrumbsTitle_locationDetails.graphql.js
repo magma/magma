@@ -15,9 +15,9 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type LocationBreadcrumbsTitle_location$ref: FragmentReference;
-declare export opaque type LocationBreadcrumbsTitle_location$fragmentType: LocationBreadcrumbsTitle_location$ref;
-export type LocationBreadcrumbsTitle_location = {|
+declare export opaque type LocationBreadcrumbsTitle_locationDetails$ref: FragmentReference;
+declare export opaque type LocationBreadcrumbsTitle_locationDetails$fragmentType: LocationBreadcrumbsTitle_locationDetails$ref;
+export type LocationBreadcrumbsTitle_locationDetails = {|
   +id: string,
   +name: string,
   +locationType: {|
@@ -30,12 +30,12 @@ export type LocationBreadcrumbsTitle_location = {|
       +name: string
     |},
   |}>,
-  +$refType: LocationBreadcrumbsTitle_location$ref,
+  +$refType: LocationBreadcrumbsTitle_locationDetails$ref,
 |};
-export type LocationBreadcrumbsTitle_location$data = LocationBreadcrumbsTitle_location;
-export type LocationBreadcrumbsTitle_location$key = {
-  +$data?: LocationBreadcrumbsTitle_location$data,
-  +$fragmentRefs: LocationBreadcrumbsTitle_location$ref,
+export type LocationBreadcrumbsTitle_locationDetails$data = LocationBreadcrumbsTitle_locationDetails;
+export type LocationBreadcrumbsTitle_locationDetails$key = {
+  +$data?: LocationBreadcrumbsTitle_locationDetails$data,
+  +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
 };
 */
 
@@ -69,7 +69,7 @@ v2 = {
 };
 return {
   "kind": "Fragment",
-  "name": "LocationBreadcrumbsTitle_location",
+  "name": "LocationBreadcrumbsTitle_locationDetails",
   "type": "Location",
   "metadata": null,
   "argumentDefinitions": [],
@@ -95,5 +95,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c642e01f89689b4dc8ba25d18d5ec3c4';
+(node/*: any*/).hash = '807c6b11117d3143cb9babd7a3239785';
 module.exports = node;

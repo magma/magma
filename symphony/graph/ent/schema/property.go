@@ -58,6 +58,9 @@ func (PropertyType) Fields() []ent.Field {
 		field.Bool("mandatory").
 			StructTag(`gqlgen:"isMandatory"`).
 			Default(false),
+		field.Bool("deleted").
+			StructTag(`gqlgen:"isDeleted"`).
+			Default(false),
 	}
 }
 

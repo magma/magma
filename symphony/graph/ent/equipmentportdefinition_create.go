@@ -24,7 +24,6 @@ type EquipmentPortDefinitionCreate struct {
 	create_time         *time.Time
 	update_time         *time.Time
 	name                *string
-	_type               *string
 	index               *int
 	bandwidth           *string
 	visibility_label    *string
@@ -64,12 +63,6 @@ func (epdc *EquipmentPortDefinitionCreate) SetNillableUpdateTime(t *time.Time) *
 // SetName sets the name field.
 func (epdc *EquipmentPortDefinitionCreate) SetName(s string) *EquipmentPortDefinitionCreate {
 	epdc.name = &s
-	return epdc
-}
-
-// SetType sets the type field.
-func (epdc *EquipmentPortDefinitionCreate) SetType(s string) *EquipmentPortDefinitionCreate {
-	epdc._type = &s
 	return epdc
 }
 
@@ -192,9 +185,6 @@ func (epdc *EquipmentPortDefinitionCreate) Save(ctx context.Context) (*Equipment
 	if epdc.name == nil {
 		return nil, errors.New("ent: missing required field \"name\"")
 	}
-	if epdc._type == nil {
-		return nil, errors.New("ent: missing required field \"type\"")
-	}
 	if len(epdc.equipment_port_type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"equipment_port_type\"")
 	}
@@ -235,10 +225,6 @@ func (epdc *EquipmentPortDefinitionCreate) sqlSave(ctx context.Context) (*Equipm
 	if value := epdc.name; value != nil {
 		insert.Set(equipmentportdefinition.FieldName, *value)
 		epd.Name = *value
-	}
-	if value := epdc._type; value != nil {
-		insert.Set(equipmentportdefinition.FieldType, *value)
-		epd.Type = *value
 	}
 	if value := epdc.index; value != nil {
 		insert.Set(equipmentportdefinition.FieldIndex, *value)

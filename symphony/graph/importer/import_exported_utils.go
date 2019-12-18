@@ -9,11 +9,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/pkg/errors"
 )
@@ -26,6 +25,8 @@ const (
 	ImportEntityEquipment ImportEntity = "EQUIPMENT"
 	// ImportEntityPort specifies a port for import
 	ImportEntityPort ImportEntity = "PORT"
+	// ImportEntityService specifies a service for import
+	ImportEntityService ImportEntity = "SERVICE"
 )
 
 // nolint: unparam
@@ -126,24 +127,29 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 		return nil, nil, nil
 	}
 	var (
-		equip  *ent.Equipment
-		err    error
-		errMsg string
+		equip        *ent.Equipment
+		err          error
+		errMsg       error
+		positionName string
 	)
-	for idx := title.prnt3Idx; idx < title.PositionIdx(); idx++ {
+	for idx := title.prnt3Idx; idx < title.PositionIdx(); idx += 2 {
 		if l[idx] == "" {
 			continue
 		}
 		if equip == nil {
 			equip, err = parentLoc.QueryEquipment().Where(equipment.Name(l[idx])).Only(ctx)
-			errMsg = fmt.Sprintf("equipment %q not found under location %q", l[idx], parentLoc.Name)
+			errMsg = fmt.Errorf("equipment %q not found under location %q", l[idx], parentLoc.Name)
 		} else {
-			equip, err = equip.QueryPositions().QueryAttachment().Where(equipment.Name(l[idx])).Only(ctx)
-			errMsg = fmt.Sprintf("empty position %q not found under equipment %q", l[idx], l[idx-1])
+			equip, err = equip.QueryPositions().
+				Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.Name(positionName))).
+				QueryAttachment().
+				Where(equipment.Name(l[idx])).Only(ctx)
+			errMsg = fmt.Errorf("position %q not found under equipment %q", positionName, l[idx])
 		}
+		positionName = l[idx+1]
 		if err != nil {
 			if ent.IsNotFound(err) {
-				return nil, nil, errors.New(errMsg)
+				return nil, nil, errMsg
 			}
 			return nil, nil, err
 		}

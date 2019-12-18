@@ -5,6 +5,7 @@
 package resolver
 
 import (
+	"github.com/AlekSi/pointer"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -14,6 +15,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
+	return &status
+}
 
 func TestAddServiceWithProperties(t *testing.T) {
 	r, err := newTestResolver(t)
@@ -47,6 +52,7 @@ func TestAddServiceWithProperties(t *testing.T) {
 		Name:          "Kent building, room 201",
 		ServiceTypeID: serviceType.ID,
 		Properties:    servicePropInput,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -79,6 +85,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 		ServiceTypeID: serviceType.ID,
 		ExternalID:    &externalID1,
 		Properties:    []*models.PropertyInput{},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	assert.Equal(t, *s1.ExternalID, externalID1)
@@ -88,6 +95,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 		ServiceTypeID: serviceType.ID,
 		ExternalID:    &externalID1,
 		Properties:    []*models.PropertyInput{},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.Error(t, err)
 
@@ -96,6 +104,7 @@ func TestAddServiceWithExternalIdUnique(t *testing.T) {
 		ServiceTypeID: serviceType.ID,
 		ExternalID:    &externalID2,
 		Properties:    []*models.PropertyInput{},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	assert.Equal(t, *s2.ExternalID, externalID2)
@@ -123,6 +132,7 @@ func TestAddServiceWithCustomer(t *testing.T) {
 		Name:          "Kent building, room 201",
 		ServiceTypeID: serviceType.ID,
 		CustomerID:    &customer.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -201,6 +211,7 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 		Name:                "Internet Access Room 2",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l1.ID)
@@ -291,6 +302,7 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 		Name:                "Internet Access Room 2",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{router1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l.ID)
@@ -323,12 +335,13 @@ func TestEditService(t *testing.T) {
 	service, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "service_name",
 		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
 	newService, err := mr.EditService(ctx, models.ServiceEditData{
 		ID:   service.ID,
-		Name: "new_service_name",
+		Name: pointer.ToString("new_service_name"),
 	})
 	require.NoError(t, err)
 	require.Equal(t, "new_service_name", newService.Name)
@@ -354,6 +367,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	service, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "service_name",
 		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	fetchedService, _ := qr.Service(ctx, service.ID)
@@ -362,7 +376,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	externalID1 := "externalID1"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		ExternalID: &externalID1,
 	})
 	require.NoError(t, err)
@@ -372,7 +386,7 @@ func TestEditServiceWithExternalID(t *testing.T) {
 	externalID2 := "externalID2"
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		ExternalID: &externalID2,
 	})
 	require.NoError(t, err)
@@ -397,6 +411,7 @@ func TestEditServiceWithCustomer(t *testing.T) {
 	service, err := mr.AddService(ctx, models.ServiceCreateData{
 		Name:          "service_name",
 		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -416,7 +431,7 @@ func TestEditServiceWithCustomer(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		CustomerID: &donald.ID,
 	})
 	require.NoError(t, err)
@@ -426,22 +441,13 @@ func TestEditServiceWithCustomer(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       service.Name,
+		Name:       pointer.ToString(service.Name),
 		CustomerID: &dafi.ID,
 	})
 	require.NoError(t, err)
 	fetchedService, _ = qr.Service(ctx, service.ID)
 	fetchedCustomer = fetchedService.QueryCustomer().OnlyX(ctx)
 	require.Equal(t, dafi.ID, fetchedCustomer.ID)
-
-	_, err = mr.EditService(ctx, models.ServiceEditData{
-		ID:   service.ID,
-		Name: service.Name,
-	})
-	require.NoError(t, err)
-	fetchedService, _ = qr.Service(ctx, service.ID)
-	exist = fetchedService.QueryCustomer().ExistX(ctx)
-	require.Equal(t, false, exist)
 }
 
 func TestEditServiceWithProperties(t *testing.T) {
@@ -479,6 +485,7 @@ func TestEditServiceWithProperties(t *testing.T) {
 		Name:          "inst_name_1",
 		ServiceTypeID: serviceType.ID,
 		Properties:    []*models.PropertyInput{&strProp, &strProp2},
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	fetchedService, _ := qr.Service(ctx, service.ID)
@@ -498,7 +505,7 @@ func TestEditServiceWithProperties(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:         service.ID,
-		Name:       "service_name_1",
+		Name:       pointer.ToString("service_name_1"),
 		Properties: propInputClone,
 	})
 	require.NoError(t, err, "Editing service")
@@ -571,6 +578,7 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 		Name:                "service_name",
 		ServiceTypeID:       serviceType.ID,
 		TerminationPointIds: []string{eq1.ID, eq2.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -581,7 +589,7 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:                  service.ID,
-		Name:                service.Name,
+		Name:                pointer.ToString(service.Name),
 		TerminationPointIds: []string{eq2.ID, eq3.ID},
 	})
 	require.NoError(t, err)
@@ -593,7 +601,7 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 
 	_, err = mr.EditService(ctx, models.ServiceEditData{
 		ID:                  service.ID,
-		Name:                service.Name,
+		Name:                pointer.ToString(service.Name),
 		TerminationPointIds: []string{},
 	})
 	require.NoError(t, err)
@@ -667,6 +675,7 @@ func TestServicesOfEquipment(t *testing.T) {
 		Name:                "Internet Access Room 2a",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 
@@ -674,6 +683,7 @@ func TestServicesOfEquipment(t *testing.T) {
 		Name:                "Internet Access Room 2b",
 		ServiceTypeID:       st.ID,
 		TerminationPointIds: []string{eq1.ID},
+		Status:              pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, l1.ID)

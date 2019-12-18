@@ -32,7 +32,6 @@ export type EquipmentPortsTable_equipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -80,7 +79,6 @@ export type EquipmentPortsTable_equipment = {|
       +name: string,
       +index: ?number,
       +visibleLabel: ?string,
-      +type: string,
       +portType: ?{|
         +id: string,
         +name: string,
@@ -130,7 +128,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -148,7 +145,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +linkPropertyTypes: $ReadOnlyArray<?{|
               +id: string,
@@ -180,7 +176,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
               +portType: ?{|
                 +id: string,
@@ -267,7 +262,6 @@ export type EquipmentPortsTable_equipment = {|
           +name: string,
           +index: ?number,
           +visibleLabel: ?string,
-          +type: string,
           +portType: ?{|
             +id: string,
             +name: string,
@@ -317,7 +311,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +id: string,
                 +name: string,
@@ -335,7 +328,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +linkPropertyTypes: $ReadOnlyArray<?{|
                   +id: string,
@@ -367,7 +359,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +bandwidth: ?string,
                   +portType: ?{|
                     +id: string,
@@ -448,7 +439,6 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
           +visibleLabel: ?string,
-          +type: string,
           +bandwidth: ?string,
         |}>
       |},
@@ -463,7 +453,6 @@ export type EquipmentPortsTable_equipment = {|
               +name: string,
               +index: ?number,
               +visibleLabel: ?string,
-              +type: string,
               +portType: ?{|
                 +id: string,
                 +name: string,
@@ -513,7 +502,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +id: string,
                     +name: string,
@@ -531,7 +519,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +linkPropertyTypes: $ReadOnlyArray<?{|
                       +id: string,
@@ -563,7 +550,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +bandwidth: ?string,
                       +portType: ?{|
                         +id: string,
@@ -644,7 +630,6 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
               +visibleLabel: ?string,
-              +type: string,
               +bandwidth: ?string,
             |}>
           |},
@@ -659,7 +644,6 @@ export type EquipmentPortsTable_equipment = {|
                   +name: string,
                   +index: ?number,
                   +visibleLabel: ?string,
-                  +type: string,
                   +portType: ?{|
                     +id: string,
                     +name: string,
@@ -709,7 +693,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +id: string,
                         +name: string,
@@ -727,7 +710,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +linkPropertyTypes: $ReadOnlyArray<?{|
                           +id: string,
@@ -759,7 +741,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +bandwidth: ?string,
                           +portType: ?{|
                             +id: string,
@@ -840,7 +821,6 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                   +visibleLabel: ?string,
-                  +type: string,
                   +bandwidth: ?string,
                 |}>
               |},
@@ -855,7 +835,6 @@ export type EquipmentPortsTable_equipment = {|
                       +name: string,
                       +index: ?number,
                       +visibleLabel: ?string,
-                      +type: string,
                       +portType: ?{|
                         +id: string,
                         +name: string,
@@ -905,7 +884,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +portType: ?{|
                             +id: string,
                             +name: string,
@@ -923,7 +901,6 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                           +visibleLabel: ?string,
-                          +type: string,
                           +portType: ?{|
                             +linkPropertyTypes: $ReadOnlyArray<?{|
                               +id: string,
@@ -955,7 +932,6 @@ export type EquipmentPortsTable_equipment = {|
                               +id: string,
                               +name: string,
                               +visibleLabel: ?string,
-                              +type: string,
                               +bandwidth: ?string,
                               +portType: ?{|
                                 +id: string,
@@ -1036,7 +1012,6 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                       +visibleLabel: ?string,
-                      +type: string,
                       +bandwidth: ?string,
                     |}>
                   |},
@@ -1203,7 +1178,6 @@ v18 = [
   (v1/*: any*/),
   (v2/*: any*/),
   (v3/*: any*/),
-  (v4/*: any*/),
   {
     "kind": "LinkedField",
     "alias": null,
@@ -1369,7 +1343,6 @@ v24 = {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 (v20/*: any*/),
                 (v21/*: any*/)
               ]
@@ -1411,7 +1384,6 @@ v24 = {
                 (v0/*: any*/),
                 (v1/*: any*/),
                 (v3/*: any*/),
-                (v4/*: any*/),
                 {
                   "kind": "LinkedField",
                   "alias": null,
@@ -1461,7 +1433,6 @@ v24 = {
                         (v0/*: any*/),
                         (v1/*: any*/),
                         (v3/*: any*/),
-                        (v4/*: any*/),
                         (v21/*: any*/),
                         (v20/*: any*/)
                       ]
@@ -1535,7 +1506,6 @@ v25 = {
         (v0/*: any*/),
         (v1/*: any*/),
         (v3/*: any*/),
-        (v4/*: any*/),
         (v21/*: any*/)
       ]
     }

@@ -28,6 +28,8 @@ type Service struct {
 	Name string `json:"name,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID *string `json:"external_id,omitempty"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty"`
 }
 
 // FromRows scans the sql response data into Service.
@@ -38,6 +40,7 @@ func (s *Service) FromRows(rows *sql.Rows) error {
 		UpdateTime sql.NullTime
 		Name       sql.NullString
 		ExternalID sql.NullString
+		Status     sql.NullString
 	}
 	// the order here should be the same as in the `service.Columns`.
 	if err := rows.Scan(
@@ -46,6 +49,7 @@ func (s *Service) FromRows(rows *sql.Rows) error {
 		&scans.UpdateTime,
 		&scans.Name,
 		&scans.ExternalID,
+		&scans.Status,
 	); err != nil {
 		return err
 	}
@@ -57,6 +61,7 @@ func (s *Service) FromRows(rows *sql.Rows) error {
 		s.ExternalID = new(string)
 		*s.ExternalID = scans.ExternalID.String
 	}
+	s.Status = scans.Status.String
 	return nil
 }
 
@@ -128,6 +133,8 @@ func (s *Service) String() string {
 		builder.WriteString(", external_id=")
 		builder.WriteString(*v)
 	}
+	builder.WriteString(", status=")
+	builder.WriteString(s.Status)
 	builder.WriteByte(')')
 	return builder.String()
 }

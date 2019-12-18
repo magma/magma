@@ -335,7 +335,6 @@ func ExampleEquipmentPort() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").
@@ -421,7 +420,6 @@ func ExampleEquipmentPortDefinition() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").
@@ -469,6 +467,7 @@ func ExampleEquipmentPortType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt0)
 	pt1 := client.PropertyType.
@@ -490,6 +489,7 @@ func ExampleEquipmentPortType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 
@@ -620,7 +620,6 @@ func ExampleEquipmentType() {
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
-		SetType("string").
 		SetIndex(1).
 		SetBandwidth("string").
 		SetVisibilityLabel("string").
@@ -654,6 +653,7 @@ func ExampleEquipmentType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt2)
 	ec4 := client.EquipmentCategory.
@@ -1118,6 +1118,7 @@ func ExampleLocationType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	stc2 := client.SurveyTemplateCategory.
@@ -1289,6 +1290,7 @@ func ExampleProjectType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	wod2 := client.WorkOrderDefinition.
@@ -1364,6 +1366,7 @@ func ExampleProperty() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt0)
 	e8 := client.Equipment.
@@ -1460,6 +1463,7 @@ func ExamplePropertyType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt)
 
@@ -1493,6 +1497,7 @@ func ExampleService() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetExternalID("string").
+		SetStatus("string").
 		SaveX(ctx)
 	log.Println("service created:", s2)
 	pr3 := client.Property.
@@ -1541,6 +1546,7 @@ func ExampleService() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetExternalID("string").
+		SetStatus("string").
 		SetType(st0).
 		AddUpstream(s2).
 		AddProperties(pr3).
@@ -1620,6 +1626,7 @@ func ExampleServiceType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 
@@ -2292,6 +2299,7 @@ func ExampleWorkOrderType() {
 		SetIsInstanceProperty(true).
 		SetEditable(true).
 		SetMandatory(true).
+		SetDeleted(true).
 		SaveX(ctx)
 	log.Println("propertytype created:", pt1)
 	clid3 := client.CheckListItemDefinition.

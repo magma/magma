@@ -4,4 +4,7 @@
     "eslint.packageManager": "yarn",
     "flow.useBundledFlow": false,
     "flow.useLSP": false,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
 }

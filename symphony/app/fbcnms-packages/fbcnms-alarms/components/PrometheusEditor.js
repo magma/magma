@@ -8,6 +8,7 @@
  * @format
  */
 
+import * as PromQL from './prometheus/PromQL';
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
@@ -19,7 +20,9 @@ import ToggleableExpressionEditor, {
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
+import {BINARY_COMPARATORS} from './prometheus/PromQLTypes';
 import {Labels} from './prometheus/PromQL';
+import {Parse} from './prometheus/PromQLParser';
 import {SEVERITY} from './Severity';
 
 import {makeStyles} from '@material-ui/styles';
@@ -27,6 +30,7 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertConfig} from './AlarmAPIType';
+import type {BinaryComparator} from './prometheus/PromQLTypes';
 import type {GenericRule, RuleEditorProps} from './RuleInterface';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
@@ -86,7 +90,6 @@ export type InputChangeFunc = (
 function RuleNameEditor(props: {onChange: InputChangeFunc, ruleName: string}) {
   return (
     <TextField
-      {...props}
       required
       label="Rule Name"
       placeholder="Ex: Service Down"
@@ -223,6 +226,31 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     filters: new Labels(),
   });
 
+  const [advancedEditorMode, setAdvancedEditorMode] = React.useState<boolean>(
+    !props.thresholdEditorEnabled,
+  );
+
+  const parsedExpression = React.useMemo(() => {
+    return Parse(props.rule?.expression);
+    // We only want to parse the expression on the first
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  React.useEffect(() => {
+    if (parsedExpression) {
+      const newThresholdExpression = getThresholdExpression(parsedExpression);
+      if (newThresholdExpression) {
+        setAdvancedEditorMode(false);
+        setThresholdExpression(newThresholdExpression);
+      } else {
+        setAdvancedEditorMode(true);
+      }
+    } else {
+      enqueueSnackbar(
+        "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
+      );
+    }
+  }, [enqueueSnackbar, parsedExpression]);
+
   const saveAlert = async () => {
     try {
       if (!rule) {
@@ -324,6 +352,8 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
             onThresholdExpressionChange={updateThresholdExpression}
             expression={thresholdExpression}
             stringExpression={formState.expression}
+            toggleOn={advancedEditorMode}
+            onToggleChange={val => setAdvancedEditorMode(val)}
           />
         ) : (
           <Grid item xs={4}>
@@ -436,4 +466,38 @@ function parseTimeString(
     timeNumber: duration,
     timeUnit: unit,
   };
+}
+
+function getThresholdExpression(exp: PromQL.Expression): ?ThresholdExpression {
+  if (
+    !(
+      exp instanceof PromQL.BinaryOperation &&
+      exp.lh instanceof PromQL.InstantSelector &&
+      exp.rh instanceof PromQL.Scalar
+    )
+  ) {
+    return null;
+  }
+
+  const metricName = exp.lh.selectorName || '';
+  const threshold = exp.rh.value;
+  const filters = exp.lh.labels || new PromQL.Labels();
+  filters.removeByName('networkID');
+  const comparator = getBinaryComparator(exp.operator);
+  if (!comparator) {
+    return null;
+  }
+  return {
+    metricName,
+    filters,
+    comparator,
+    value: threshold,
+  };
+}
+
+function getBinaryComparator(str: string): ?BinaryComparator {
+  if (BINARY_COMPARATORS.includes(str)) {
+    return BINARY_COMPARATORS[BINARY_COMPARATORS.indexOf(str)];
+  }
+  return null;
 }

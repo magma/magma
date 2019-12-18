@@ -1467,9 +1467,6 @@ void mme_app_handle_e_rab_setup_rsp(
     bearer_context_t* bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      /* S1ap_Cause_t cause =
-       * e_rab_setup_rsp->e_rab_failed_to_setup_list.item[i].cause;
-       */
       AssertFatal(
         bc->bearer_state & BEARER_STATE_MME_CREATED,
         "TO DO check bearer state");

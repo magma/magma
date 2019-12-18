@@ -227,7 +227,7 @@ Use Google Play to install a root file explorer app. The example we use is `File
 
 Use any text editor to add the following lines right above the last line in `privapp-permissions-platform.xml`:
 ```
-<privapp-permissions package="com.fbc.platform">
+<privapp-permissions package="cloud.thesymphony">
     <permission name="android.permission.MODIFY_PHONE_STATE"/>
 </privapp-permissions>
 ```
@@ -259,7 +259,7 @@ This section needs to be performed _every time a new version of the app is insta
 
 ### 1. Transfer app to system space
 
-1. Use root file explorer to navigate to `/data/app` and locate a folder starting with `com.fbc.platform`.
+1. Use root file explorer to navigate to `/data/app` and locate a folder starting with `cloud.thesymphony`.
 2. Cut and paste the folder to `/system/priv-app`
 
 ### 2. Reboot the phone

@@ -10,7 +10,8 @@
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
-import React, {useCallback} from 'react';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import React, {useCallback, useContext} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -117,8 +118,13 @@ const WorkOrderSaveButton = (props: Props) => {
     match.url,
   ]);
 
+  const validationContext = useContext(FormValidationContext);
+
   return (
-    <Button disabled={!workOrder.name} onClick={saveWorkOrder}>
+    <Button
+      disabled={validationContext.error.detected}
+      tooltip={validationContext.error.message}
+      onClick={saveWorkOrder}>
       Save
     </Button>
   );

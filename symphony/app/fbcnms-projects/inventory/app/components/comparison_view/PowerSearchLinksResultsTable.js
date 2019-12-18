@@ -289,7 +289,6 @@ export default withRouter(
                 id
                 name
                 visibleLabel
-                type
                 portType {
                   linkPropertyTypes {
                     ...PropertyTypeFormField_propertyType @relay(mask: false)
@@ -307,7 +306,6 @@ export default withRouter(
                     id
                     name
                     visibleLabel
-                    type
                     bandwidth
                     portType {
                       id

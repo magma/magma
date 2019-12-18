@@ -32,6 +32,11 @@ func (a *action) Description() string {
 	return "reboot a magma node"
 }
 
+// DataType is the expected type for this action
+func (a *action) DataType() core.DataType {
+	return core.DataTypeString
+}
+
 // Execute executes the action
 func (a *action) Execute(ctx core.ActionContext) error {
 	p := ctx.TriggerPayload

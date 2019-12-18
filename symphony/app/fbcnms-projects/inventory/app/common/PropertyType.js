@@ -30,6 +30,7 @@ export type PropertyType = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 
 export const getPropertyDefaultValue = (propertyType: PropertyType) => {

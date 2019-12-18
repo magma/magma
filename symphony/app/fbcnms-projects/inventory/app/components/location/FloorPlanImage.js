@@ -14,13 +14,13 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormGroup from '@material-ui/core/FormGroup';
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import TextField from '@material-ui/core/TextField';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import useSnackbar from '@fbcnms/ui/hooks/useSnackbar';
-import {uploadFile} from '../FileUpload';
 import {makeStyles} from '@material-ui/styles';
+import {uploadFile} from '../FileUpload';
 
 const useStyles = makeStyles({
   img: {
@@ -117,8 +117,8 @@ export default function LocationFloorPlansTab(props: Props) {
         className={classes.img}
         onClick={e => {
           const box = e.target.getBoundingClientRect();
-          const x = e.pageX - box.x;
-          const y = e.pageY - box.y;
+          const x = Math.round(e.pageX - box.x);
+          const y = Math.round(e.pageY - box.y);
           if (!referencePoint) {
             setReferencePointDialogShown(true);
             setReferencePoint({x, y});

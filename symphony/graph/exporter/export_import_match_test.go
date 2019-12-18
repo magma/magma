@@ -61,10 +61,10 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer
 			case MethodEdit:
 				newLine = line
 				if line[1] == currEquip {
-					newLine[10] = "str-prop-value" + strconv.FormatInt(int64(i), 10)
+					newLine[12] = "str-prop-value" + strconv.FormatInt(int64(i), 10)
 					newLine[1] = "newName" + strconv.FormatInt(int64(i), 10)
-					newLine[11] = "10" + strconv.FormatInt(int64(i), 10)
-					newLine[12] = "new-prop-value" + strconv.FormatInt(int64(i), 10)
+					newLine[13] = "10" + strconv.FormatInt(int64(i), 10)
+					newLine[14] = "new-prop-value" + strconv.FormatInt(int64(i), 10)
 				}
 			default:
 				require.Fail(t, "method should be add or edit")

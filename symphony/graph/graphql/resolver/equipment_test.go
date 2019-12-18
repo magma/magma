@@ -731,7 +731,6 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 		Index:        &index,
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -754,7 +753,6 @@ func TestEquipmentPortsAreCreatedFromType(t *testing.T) {
 	assert.Equal(t, def.Index, index)
 	assert.Equal(t, def.VisibilityLabel, visibleLabel)
 	assert.Equal(t, def.Bandwidth, bandwidth)
-	assert.Equal(t, def.Type, portInput.Type)
 }
 
 func TestEquipmentParentLocation(t *testing.T) {
@@ -977,7 +975,6 @@ func TestEditEquipmentPort(t *testing.T) {
 
 	portInput := models.EquipmentPortInput{
 		Name:       "Port 1",
-		Type:       "Eth",
 		PortTypeID: &portType.ID,
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -1051,7 +1048,6 @@ func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
 	bandwidth := "10/100/1000BASE-T"
 	portInput := models.EquipmentPortInput{
 		Name:         "Port 1",
-		Type:         "Eth",
 		PortTypeID:   &portType.ID,
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
@@ -1073,11 +1069,9 @@ func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
 	editedPort := models.EquipmentPortInput{
 		ID:   &portDefID,
 		Name: "Port 1 - edited",
-		Type: "Eth - edited",
 	}
 	newPort := models.EquipmentPortInput{
 		Name: "Port - new",
-		Type: "Eth - new",
 	}
 	editedPortDefInput := []*models.EquipmentPortInput{&editedPort, &newPort}
 	_, err = mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{

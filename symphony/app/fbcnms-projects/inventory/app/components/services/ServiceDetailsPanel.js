@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {EditServiceMutationResponse} from '../../mutations/__generated__/EditServiceMutation.graphql';
+import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {Property} from '../../common/Property';
 import type {Service} from '../../common/Service';
 
@@ -20,10 +22,12 @@ import IconButton from '@material-ui/core/IconButton';
 import PropertyValueInput from '../form/PropertyValueInput';
 import React, {useRef, useState} from 'react';
 import SideBar from '@fbcnms/ui/components/layout/SideBar';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
+import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {
@@ -32,6 +36,7 @@ import {
   toPropertyInput,
 } from '../../common/Property';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   shown: boolean,
@@ -41,11 +46,15 @@ type Props = {
 };
 
 const useStyles = makeStyles({
+  root: {
+    height: '100%',
+  },
   sideBar: {
     border: 'none',
     boxShadow: 'none',
     borderRadius: '0px',
     padding: '0px',
+    overflowY: 'auto',
   },
   separator: {
     borderBottom: `1px solid ${symphony.palette.separator}`,
@@ -61,9 +70,6 @@ const useStyles = makeStyles({
     boxShadow: 'none',
     padding: '0px',
     background: 'transparent',
-  },
-  scroller: {
-    overflowY: 'auto',
   },
   closeButton: {
     '&&': {
@@ -99,6 +105,7 @@ const ServiceDetailsPanel = (props: Props) => {
   const thisElement = useRef(null);
   const [isDirty, setIsDirty] = useState(false);
   useVerticalScrollingEffect(thisElement);
+  const enqueueSnackbar = useEnqueueSnackbar();
   let properties = service?.properties ?? [];
   if (service.serviceType.propertyTypes) {
     properties = [
@@ -126,9 +133,9 @@ const ServiceDetailsPanel = (props: Props) => {
         name: editableService.name,
         externalId: editableService.externalId,
         customerId: editableService.customer?.id,
-        upstreamServiceIds: [],
         properties: toPropertyInput(editableService.properties),
         terminationPointIds: [],
+        upstreamServiceIds: [],
       },
     };
   };
@@ -149,9 +156,28 @@ const ServiceDetailsPanel = (props: Props) => {
     setIsDirty(true);
   };
 
+  const enqueueError = (message: string) => {
+    enqueueSnackbar(message, {
+      children: key => (
+        <SnackbarItem id={key} message={message} variant="error" />
+      ),
+    });
+  };
+
   const onBlur = () => {
     if (isDirty) {
-      EditServiceMutation(getServiceInput());
+      const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
+        onCompleted: (response, errors) => {
+          if (errors && errors[0]) {
+            enqueueError(errors[0].message);
+          }
+        },
+        onError: () => {
+          enqueueError('Error saving service');
+        },
+      };
+
+      EditServiceMutation(getServiceInput(), callbacks);
     }
   };
 
@@ -237,22 +263,24 @@ const ServiceDetailsPanel = (props: Props) => {
           expansionPanelSummaryClassName={classes.expansionPanel}
           detailsPaneClass={classes.detailPane}
           className={classes.panel}>
-          {editableService.properties.map((property, index) => (
-            <PropertyValueInput
-              fullWidth
-              required={!!property.propertyType.isInstanceProperty}
-              disabled={!property.propertyType.isInstanceProperty}
-              label={property.propertyType.name}
-              className={classes.input}
-              margin="dense"
-              inputType="Property"
-              property={property}
-              // $FlowFixMe pass property and not property type
-              onChange={onChangeProperty(index)}
-              onBlur={onBlur}
-              headlineVariant="form"
-            />
-          ))}
+          <FormValidationContextProvider>
+            {editableService.properties.map((property, index) => (
+              <PropertyValueInput
+                fullWidth
+                required={!!property.propertyType.isMandatory}
+                disabled={!property.propertyType.isInstanceProperty}
+                label={property.propertyType.name}
+                className={classes.input}
+                margin="dense"
+                inputType="Property"
+                property={property}
+                // $FlowFixMe pass property and not property type
+                onChange={onChangeProperty(index)}
+                onBlur={onBlur}
+                headlineVariant="form"
+              />
+            ))}
+          </FormValidationContextProvider>
         </ExpandingPanel>
       </div>
     </SideBar>
@@ -295,6 +323,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           type
           isEditable
           isInstanceProperty
+          isMandatory
           stringValue
         }
         stringValue

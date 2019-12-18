@@ -31,20 +31,30 @@ export type FormInputValueValidation = {
   checkCallbalck?: (value?: ?any) => string,
 };
 
-export type FormValidationContextType = {
-  hasErrors: boolean,
-  errorMessage: string,
-  errorCheck: (validationInfo: FormInputValueValidation) => ?string,
-  setError: (id: string, error: ?string) => ?string,
-  clearError: (id: string) => void,
+type FormIssuesContainer = {
+  detected: boolean,
+  message: string,
+  check: (validationInfo: FormInputValueValidation) => ?string,
+  set: (id: string, error: ?string) => ?string,
+  clear: (id: string) => void,
+};
+
+type FormValidationContextType = {
+  error: FormIssuesContainer,
+  editLock: FormIssuesContainer,
+};
+
+const emptyFormIssuesContainer = {
+  detected: false,
+  message: '',
+  check: emptyFunction,
+  set: emptyFunction,
+  clear: emptyFunction,
 };
 
 const FormValidationContext = React.createContext<FormValidationContextType>({
-  hasErrors: false,
-  errorMessage: '',
-  errorCheck: emptyFunction,
-  setError: emptyFunction,
-  clearError: emptyFunction,
+  error: emptyFormIssuesContainer,
+  editLock: emptyFormIssuesContainer,
 });
 
 type Props = {
@@ -53,7 +63,7 @@ type Props = {
 
 type ErrorsMap = imm.Map<string, string>;
 
-export function FormValidationContextProvider(props: Props) {
+const FormValidationMaintainer = function() {
   const [errorsMap, setErrorsMap] = useState<ErrorsMap>(
     new imm.Map<string, string>(),
   );
@@ -150,10 +160,10 @@ export function FormValidationContextProvider(props: Props) {
       checkNumberInRange,
     ],
     [
-      checkNumberInRange,
-      checkOuterCallback,
       checkOuterErrorMessage,
+      checkOuterCallback,
       checkRequired,
+      checkNumberInRange,
     ],
   );
 
@@ -170,15 +180,23 @@ export function FormValidationContextProvider(props: Props) {
     [errorChecks, setError],
   );
 
-  const providerValue = useMemo(() => {
-    return {
-      hasErrors,
-      errorMessage,
-      setError,
-      clearError,
-      errorCheck,
-    };
-  }, [clearError, errorCheck, errorMessage, hasErrors, setError]);
+  return {
+    detected: hasErrors,
+    message: errorMessage,
+    check: errorCheck,
+    set: setError,
+    clear: clearError,
+  };
+};
+
+export function FormValidationContextProvider(props: Props) {
+  const errorsContext = FormValidationMaintainer();
+  const editLocksContext = FormValidationMaintainer();
+
+  const providerValue = {
+    error: errorsContext,
+    editLock: editLocksContext,
+  };
 
   return (
     <FormValidationContext.Provider value={providerValue}>
