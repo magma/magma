@@ -97,6 +97,12 @@ void Application::pollDevices() {
   }
 }
 
+void Application::tryToApplyRunningDatastoreToDevices() {
+  for (auto& device : devices) {
+    device.second->tryToApplyRunningDatastore();
+  }
+}
+
 void Application::doDebug() {
   LOG(INFO) << "Debug Information";
 
@@ -174,6 +180,9 @@ void Application::run() {
     // TODO move this to devices
     scheduleEvery(
         [this]() { pollDevices(); }, std::chrono::seconds(FLAGS_poll_interval));
+    scheduleEvery(
+        [this]() { tryToApplyRunningDatastoreToDevices(); },
+        std::chrono::seconds(FLAGS_poll_interval));
 
     if (FLAGS_debug_print_interval != 0) {
       scheduleEvery(
@@ -206,7 +215,7 @@ int Application::status() const {
 void Application::add(const cartography::DeviceConfig& deviceConfig) {
   ErrorHandler::executeWithCatch([this, &deviceConfig]() {
     addDevice(deviceFactory.createDevice(deviceConfig));
-    devices[deviceConfig.id]->applyConfig(deviceConfig.yangConfig);
+    devices[deviceConfig.id]->setRunningDatastore(deviceConfig.yangConfig);
   });
 }
 

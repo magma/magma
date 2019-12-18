@@ -47,7 +47,7 @@ class Device : public snmpv2::Device {
   std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override;
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   std::shared_ptr<channels::mikrotik::Channel> mikrotikCh;

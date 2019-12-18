@@ -48,7 +48,7 @@ class Device : public ping::Device {
       const devmand::channels::snmp::InterfaceIndicies& interfaceIndices);
 
  protected:
-  void setConfig(const folly::dynamic& config) override {
+  void setIntendedDatastore(const folly::dynamic& config) override {
     (void)config;
     LOG(ERROR) << "set config on unconfigurable device";
   }

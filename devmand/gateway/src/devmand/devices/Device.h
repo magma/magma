@@ -54,14 +54,15 @@ class Device : public std::enable_shared_from_this<Device> {
   Id getId() const;
 
   /*
-   * Given a string config this method parses the config and passing it on
-   * to the correct handler to apply the config.
+   * Save the config to the running datastore..
    *
    * TODO provide a path to signal errors
    */
-  void applyConfig(const std::string& config);
+  void setRunningDatastore(const std::string& config);
 
   virtual DeviceConfigType getDeviceConfigType() const;
+
+  void tryToApplyRunningDatastore();
 
  protected:
   /*
@@ -69,7 +70,7 @@ class Device : public std::enable_shared_from_this<Device> {
    * by the json overload of apply config. This is normally what users will
    * implement.
    */
-  virtual void setConfig(const folly::dynamic& config) = 0;
+  virtual void setIntendedDatastore(const folly::dynamic& config) = 0;
 
   /*
    * Inherited method to override in device instances. This is called by the
@@ -81,9 +82,7 @@ class Device : public std::enable_shared_from_this<Device> {
 
   folly::dynamic lookup(const YangPath& path) const;
 
-  folly::dynamic getLastConfig() {
-    return lastConfig;
-  }
+  folly::dynamic getIntendedDatastore() const;
 
  private:
   bool isReadonly() const;
@@ -92,8 +91,9 @@ class Device : public std::enable_shared_from_this<Device> {
   Application& app;
   Id id;
   const bool readonly;
-  folly::dynamic lastConfig;
-  folly::dynamic lastState;
+  folly::dynamic runningDatastore;
+  folly::dynamic intendedDatastore;
+  folly::dynamic operationalDatastore;
   // TODO std::map<std::string, Platform> platforms;
 };
 

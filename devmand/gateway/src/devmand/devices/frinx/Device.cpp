@@ -37,7 +37,7 @@ constexpr const char* getOperationalDatastoreEpTemplate =
     "/restconf/config/"
     "network-topology:network-topology/topology/"
     "unified/node/{}/yang-ext:mount";
-constexpr const char* setConfigEpTemplate =
+constexpr const char* setRunningDatastoreEpTemplate =
     "/restconf/config/"
     "network-topology:network-topology/topology/"
     "unified/node/{}/yang-ext:mount";
@@ -160,8 +160,8 @@ void Device::checkConnection() {
       }));
 }
 
-void Device::setConfig(const folly::dynamic& config) {
-  auto ep = folly::sformat(setConfigEpTemplate, deviceId);
+void Device::setIntendedDatastore(const folly::dynamic& config) {
+  auto ep = folly::sformat(setRunningDatastoreEpTemplate, deviceId);
   folly::dynamic yang{folly::dynamic::object};
   const folly::dynamic* ints{nullptr};
   if (config != nullptr and config.isObject() and

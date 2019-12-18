@@ -21,7 +21,7 @@ std::shared_ptr<devices::Device> Device::createDevice(
 Device::Device(Application& application, const Id& id_, bool readonly_)
     : devices::Device(application, id_, readonly_) {}
 
-void Device::setConfig(const folly::dynamic& config) {
+void Device::setIntendedDatastore(const folly::dynamic& config) {
   state = config;
 }
 

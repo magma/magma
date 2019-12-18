@@ -54,7 +54,7 @@ class StructuredUbntDevice : public Device {
   Command createInterfaceCommand(string name, bool enabled);
 
  protected:
-  void setConfig(const folly::dynamic& config) override;
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   std::shared_ptr<Channel> channel;
