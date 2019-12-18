@@ -12,8 +12,8 @@
 #include <devmand/Application.h>
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/channels/cli/CliFlavour.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/Device.h>
-#include <devmand/devices/State.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
@@ -31,8 +31,8 @@ using devmand::Application;
 using devmand::cartography::ChannelConfig;
 using devmand::cartography::DeviceConfig;
 using devmand::channels::cli::UBIQUITI;
+using devmand::devices::Datastore;
 using devmand::devices::Device;
-using devmand::devices::State;
 using devmand::devices::cli::PlaintextCliDevice;
 
 class RealCliDeviceTest : public ::testing::Test {
@@ -71,7 +71,7 @@ TEST_F(RealCliDeviceTest, DISABLED_ubiquiti) {
 
     i++;
 
-    std::shared_ptr<State> state = dev->getState();
+    std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
     const folly::dynamic& stateResult = state->collect().get();
 
     output = stateResult.getDefault(kvPairs.at("stateCommand"), "").asString();

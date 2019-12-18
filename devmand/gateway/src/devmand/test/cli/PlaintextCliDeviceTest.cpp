@@ -10,7 +10,7 @@
 
 #include <boost/algorithm/string/trim.hpp>
 #include <devmand/Application.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/PlaintextCliDevice.h>
 #include <devmand/test/cli/utils/Log.h>
 #include <devmand/test/cli/utils/MockCli.h>
@@ -62,7 +62,7 @@ TEST_F(PlaintextCliDeviceTest, checkEcho) {
   unique_ptr<devices::Device> dev = make_unique<PlaintextCliDevice>(
       app, *cliEngine, deviceConfig.id, "show interfaces brief", channel);
 
-  shared_ptr<State> state = dev->getState();
+  std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
   const folly::dynamic& stateResult = state->collect().get();
 
   stringstream buffer;
@@ -110,7 +110,7 @@ TEST_F(PlaintextCliDeviceTest, plaintextCliDevice) {
 
     i++;
 
-    shared_ptr<State> state = dev->getState();
+    std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
     auto t1 = chrono::high_resolution_clock::now();
     const folly::dynamic& stateResult = state->collect().get();
     auto t2 = chrono::high_resolution_clock::now();

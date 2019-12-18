@@ -12,27 +12,28 @@
 
 namespace devmand {
 namespace devices {
+namespace ping {
 
-class PingDevice : public Device {
+class Device : public devices::Device {
  public:
-  PingDevice(
+  Device(
       Application& application,
       const Id& id,
       bool readonly_,
       const folly::IPAddress& ip_);
-  PingDevice() = delete;
-  virtual ~PingDevice() = default;
-  PingDevice(const PingDevice&) = delete;
-  PingDevice& operator=(const PingDevice&) = delete;
-  PingDevice(PingDevice&&) = delete;
-  PingDevice& operator=(PingDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device() = default;
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
   void setConfig(const folly::dynamic& config) override {
@@ -44,5 +45,6 @@ class PingDevice : public Device {
   channels::ping::Channel channel;
 };
 
+} // namespace ping
 } // namespace devices
 } // namespace devmand

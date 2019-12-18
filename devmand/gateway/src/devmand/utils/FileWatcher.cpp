@@ -7,7 +7,7 @@
 
 #include <system_error>
 
-#include <devmand/FileWatcher.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 

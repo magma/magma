@@ -11,14 +11,15 @@
 #include <folly/Format.h>
 
 #include <devmand/Application.h>
-#include <devmand/ErrorHandler.h>
 #include <devmand/channels/snmp/IfMib.h>
-#include <devmand/devices/Snmpv2Device.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
+#include <devmand/devices/snmpv2/Device.h>
+#include <devmand/error/ErrorHandler.h>
 #include <devmand/models/interface/Model.h>
 
 namespace devmand {
 namespace devices {
+namespace snmpv2 {
 
 // TODO autogen this from:
 //   https://www.iana.org/assignments/ianaiftype-mib/ianaiftype-mib
@@ -59,12 +60,12 @@ static std::string getTypeString(int ifMibType) {
   return folly::sformat("iana-if-type:{}", ts);
 }
 
-std::shared_ptr<devices::Device> Snmpv2Device::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
   const auto& snmpKv = channelConfigs.at("snmp").kvPairs;
-  return std::make_unique<devices::Snmpv2Device>(
+  return std::make_unique<devices::snmpv2::Device>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
@@ -73,7 +74,7 @@ std::shared_ptr<devices::Device> Snmpv2Device::createDevice(
       snmpKv.at("version"));
 }
 
-Snmpv2Device::Snmpv2Device(
+Device::Device(
     Application& application,
     const Id& id_,
     bool readonly_,
@@ -84,7 +85,7 @@ Snmpv2Device::Snmpv2Device(
     const std::string& securityName,
     const channels::snmp::SecurityLevel& securityLevel,
     oid proto[])
-    : PingDevice(application, id_, readonly_, folly::IPAddress(peer)),
+    : ping::Device(application, id_, readonly_, folly::IPAddress(peer)),
       snmpChannel(
           application.getSnmpEngine(),
           peer,
@@ -95,11 +96,11 @@ Snmpv2Device::Snmpv2Device(
           securityLevel,
           proto) {}
 
-std::shared_ptr<State> Snmpv2Device::getState() {
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
   using IfMib = devmand::channels::snmp::IfMib;
   using IModel = devmand::models::interface::Model;
 
-  std::shared_ptr<State> state = PingDevice::getState();
+  std::shared_ptr<Datastore> state = ping::Device::getOperationalDatastore();
 
   state->update([](auto& lockedState) {
     IModel::init(lockedState);
@@ -125,8 +126,7 @@ std::shared_ptr<State> Snmpv2Device::getState() {
           lockedState["ietf-system:system"]["location"] = v;
         });
       }));
-
-  std::weak_ptr<Device> weak(this->shared_from_this());
+  std::weak_ptr<devices::Device> weak(this->shared_from_this());
   // TODO: state::addRequest is for individual requests. We use it here so that
   // State::collect doesn't miss any requests, since they're nested. Figure out
   // a way to track individual requests again.
@@ -148,8 +148,8 @@ std::shared_ptr<State> Snmpv2Device::getState() {
   return state;
 }
 
-folly::Future<folly::Unit> Snmpv2Device::addToStateWithInterfaceIndices(
-    std::shared_ptr<State> state,
+folly::Future<folly::Unit> Device::addToStateWithInterfaceIndices(
+    std::shared_ptr<Datastore> state,
     const devmand::channels::snmp::InterfaceIndicies& interfaceIndices) {
   using IfMib = devmand::channels::snmp::IfMib;
   using IModel = devmand::models::interface::Model;
@@ -327,9 +327,9 @@ folly::Future<folly::Unit> Snmpv2Device::addToStateWithInterfaceIndices(
       |     +--ro carrier-transitions?   oc-yang:counter64
       |     +--ro last-clear?            oc-types:timeticks64
    */
-
   return folly::collect(std::move(allFutures)).unit();
 }
 
+} // namespace snmpv2
 } // namespace devices
 } // namespace devmand

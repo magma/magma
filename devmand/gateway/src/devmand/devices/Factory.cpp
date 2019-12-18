@@ -7,9 +7,9 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <devmand/ErrorHandler.h>
-#include <devmand/StringUtils.h>
 #include <devmand/devices/Factory.h>
+#include <devmand/error/ErrorHandler.h>
+#include <devmand/utils/StringUtils.h>
 
 namespace devmand {
 namespace devices {

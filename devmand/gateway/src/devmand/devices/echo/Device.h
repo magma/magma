@@ -7,43 +7,37 @@
 
 #pragma once
 
-#include <devmand/DhcpdConfig.h>
 #include <devmand/devices/Device.h>
 
 namespace devmand {
 namespace devices {
+namespace echo {
 
-class DcsgDevice : public Device {
+class Device : public devices::Device {
  public:
-  DcsgDevice(
-      Application& application,
-      const Id& id_,
-      bool readonly_,
-      Host& host_);
+  Device(Application& application, const Id& id, bool readonly_);
 
-  DcsgDevice() = delete;
-  virtual ~DcsgDevice();
-  DcsgDevice(const DcsgDevice&) = delete;
-  DcsgDevice& operator=(const DcsgDevice&) = delete;
-  DcsgDevice(DcsgDevice&&) = delete;
-  DcsgDevice& operator=(DcsgDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device() = default;
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
-
-  DeviceConfigType getDeviceConfigType() const override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
   void setConfig(const folly::dynamic& config) override;
-  void setNativeConfig(const std::string& config) override;
 
  private:
-  Host host;
+  folly::dynamic state;
 };
 
+} // namespace echo
 } // namespace devices
 } // namespace devmand

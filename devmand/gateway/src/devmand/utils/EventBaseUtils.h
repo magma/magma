@@ -9,7 +9,7 @@
 
 #include <folly/io/async/EventBase.h>
 
-#include <devmand/ErrorHandler.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 

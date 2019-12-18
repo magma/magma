@@ -28,6 +28,7 @@ class YangUtils final {
   YangUtils& operator=(YangUtils&&) = delete;
 
  public:
+  // TODO convert lookup to return a ptr so we dont need to copy
   // Looks up the value in the yang given as specified by the path.
   static folly::dynamic lookup(
       const folly::dynamic& yang,

@@ -5,7 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/devices/CambiumDevice.h>
+#include <devmand/devices/cambium/Device.h>
 
 #include <iostream>
 
@@ -13,17 +13,18 @@
 #include <folly/json.h>
 
 #include <devmand/Application.h>
-#include <devmand/ErrorHandler.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 namespace devices {
+namespace cambium {
 
-std::shared_ptr<devices::Device> CambiumDevice::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
   const auto& cambiumKv = channelConfigs.at("cambium").kvPairs;
-  return std::make_unique<devices::CambiumDevice>(
+  return std::make_unique<devices::cambium::Device>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
@@ -33,7 +34,7 @@ std::shared_ptr<devices::Device> CambiumDevice::createDevice(
       cambiumKv.at("client-secret"));
 }
 
-CambiumDevice::CambiumDevice(
+Device::Device(
     Application& application,
     const Id& id_,
     bool readonly_,
@@ -41,7 +42,7 @@ CambiumDevice::CambiumDevice(
     const std::string& clientMac_,
     const std::string& clientId_,
     const std::string& clientSecret_)
-    : Device(application, id_, readonly_),
+    : devices::Device(application, id_, readonly_),
       channel(deviceIp_.str(), clientId_, clientSecret_),
       deviceIp(deviceIp_),
       clientMac(clientMac_) {
@@ -52,15 +53,15 @@ CambiumDevice::CambiumDevice(
   connect();
 }
 
-CambiumDevice::~CambiumDevice() {
+Device::~Device() {
   // TODO disconnect();
 }
 
-void CambiumDevice::connect() {
+void Device::connect() {
   auto retval = channel.setupChannel();
 }
 
-folly::dynamic CambiumDevice::setupReturnData() {
+folly::dynamic Device::setupReturnData() {
   folly::dynamic data = folly::dynamic::object;
   data["ietf-system:system"] = folly::dynamic::object;
 
@@ -71,7 +72,7 @@ folly::dynamic CambiumDevice::setupReturnData() {
   return data;
 }
 
-void CambiumDevice::setupOpenconfig(folly::dynamic& data) {
+void Device::setupOpenconfig(folly::dynamic& data) {
   // TODO: This could also be scripted in for loops
   // TODO: Break up all array populations into separate functions.
   data["openconfig-wifi-mac:ssids"] = folly::dynamic::object;
@@ -132,13 +133,13 @@ void CambiumDevice::setupOpenconfig(folly::dynamic& data) {
   ssidArray[0]["band-steering"]["state"] = folly::dynamic::object;
 }
 
-void CambiumDevice::setupOpenconfigInterfaces(folly::dynamic& data) {
+void Device::setupOpenconfigInterfaces(folly::dynamic& data) {
   data["openconfig-interfaces:interfaces"] = folly::dynamic::object;
   data["openconfig-interfaces:interfaces"]["interface"] = folly::dynamic::array;
   addOpenconfigInterface(data);
 }
 
-void CambiumDevice::addOpenconfigInterface(folly::dynamic& data) {
+void Device::addOpenconfigInterface(folly::dynamic& data) {
   auto& interfaces = data["openconfig-interfaces:interfaces"]["interface"];
   int index = static_cast<int>(interfaces.size());
   interfaces.push_back(folly::dynamic::object);
@@ -161,7 +162,7 @@ void CambiumDevice::addOpenconfigInterface(folly::dynamic& data) {
   interfaces[index]["hold-time"]["state"] = folly::dynamic::object;
 }
 
-void CambiumDevice::setupIpv4(folly::dynamic& data, int interfaceNum) {
+void Device::setupIpv4(folly::dynamic& data, int interfaceNum) {
   // TODO: pull all lists' populations out into separate functions
 
   int index =
@@ -219,13 +220,13 @@ void CambiumDevice::setupIpv4(folly::dynamic& data, int interfaceNum) {
   subinterface["state"]["counters"] = folly::dynamic::object;
 }
 
-std::shared_ptr<State> CambiumDevice::getState() {
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
   // TODO: Improve error handling
   folly::dynamic data = setupReturnData();
   folly::dynamic returnedData = channel.getDeviceInfo(clientMac);
 
   if (returnedData.isNull()) {
-    auto state = State::make(app, getId());
+    auto state = Datastore::make(app, getId());
     state->update(
         [&data](auto& lockedState) { lockedState = std::move(data); });
     return state;
@@ -269,12 +270,12 @@ std::shared_ptr<State> CambiumDevice::getState() {
            ["addresses"]["address"][0]["ip"] =
                parsed["data"][0]["config"]["variables"]["VLAN_1_IP"];
 
-  auto state = State::make(app, getId());
+  auto state = Datastore::make(app, getId());
   state->update([&data](auto& lockedState) { lockedState = std::move(data); });
   return state;
 }
 
-void CambiumDevice::updateYang(
+void Device::updateYang(
     const folly::dynamic& config,
     std::vector<std::string>& path,
     long unsigned int index,
@@ -314,7 +315,7 @@ void CambiumDevice::updateYang(
   }
 }
 
-void CambiumDevice::setConfig(const folly::dynamic& config) {
+void Device::setConfig(const folly::dynamic& config) {
   // TODO: Break out successfully so we don't waste lots of for looping
   // TODO: Figure why we couldn't declare the vector in one line.
   folly::dynamic updateJson = folly::dynamic::object;
@@ -342,7 +343,7 @@ void CambiumDevice::setConfig(const folly::dynamic& config) {
   // LOG(ERROR) << "Output of setConfig is: " << output;
 }
 
-void CambiumDevice::updateDevice(
+void Device::updateDevice(
     const folly::dynamic& yangIn,
     std::vector<std::string>& path,
     folly::dynamic& updateJson) {
@@ -379,5 +380,6 @@ void CambiumDevice::updateDevice(
   }
 }
 
+} // namespace cambium
 } // namespace devices
 } // namespace devmand

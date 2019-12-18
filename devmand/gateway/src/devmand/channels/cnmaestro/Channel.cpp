@@ -13,8 +13,8 @@
 #include <folly/executors/Async.h>
 #include <folly/json.h>
 
-#include <devmand/ErrorHandler.h>
 #include <devmand/channels/cnmaestro/Channel.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 namespace channels {
