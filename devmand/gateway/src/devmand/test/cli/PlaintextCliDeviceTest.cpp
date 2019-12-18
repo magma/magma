@@ -90,7 +90,7 @@ static DeviceConfig getConfig(string port) {
 TEST_F(PlaintextCliDeviceTest, plaintextCliDevicesError) {
   auto plaintextDevice = PlaintextCliDevice::createDeviceWithEngine(
       app, getConfig("9998"), *cliEngine);
-  const shared_ptr<State>& ptr = plaintextDevice->getState();
+  const shared_ptr<Datastore>& ptr = plaintextDevice->getOperationalDatastore();
   auto state = ptr->collect().get();
 
   EXPECT_EQ(state["fbc-symphony-device:system"]["status"], "DOWN");

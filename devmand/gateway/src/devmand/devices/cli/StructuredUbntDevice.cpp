@@ -52,7 +52,7 @@ using folly::dynamic;
 static WriteCommand createInterfaceCommand(string name, bool enabled) {
   string shutdownCmd = enabled ? "no shutdown" : "shutdown";
   return WriteCommand::create(
-      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend");
+      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend\n");
 }
 
 static const auto shutdown = regex("shutdown");
@@ -303,16 +303,19 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
   const std::shared_ptr<Channel>& channel = std::make_shared<Channel>(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
-  return unique_ptr<StructuredUbntDevice>(
-      new StructuredUbntDevice(app, deviceConfig.id, channel, cmdCache));
+  return unique_ptr<StructuredUbntDevice>(new StructuredUbntDevice(
+      app, deviceConfig.id, deviceConfig.readonly, channel, cmdCache));
 }
 
 StructuredUbntDevice::StructuredUbntDevice(
     Application& application,
     const Id id_,
+    bool readonly_,
     const shared_ptr<Channel> _channel,
     const shared_ptr<CliCache> _cmdCache)
-    : Device(application, id_, true), channel(_channel), cmdCache(_cmdCache) {}
+    : Device(application, id_, readonly_),
+      channel(_channel),
+      cmdCache(_cmdCache) {}
 
 void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
@@ -334,7 +337,6 @@ void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
         openConfig->enabled.get(); // TODO YLeaf does not support bool
     string name = openConfig->name;
     channel->executeWrite(createInterfaceCommand(name, enabled == "true"));
-    return;
   }
 }
 
@@ -367,14 +369,6 @@ shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   });
 
   return state;
-}
-
-Command StructuredUbntDevice::createInterfaceCommand(
-    string name,
-    bool enabled) {
-  string shutdownCmd = enabled ? "no shutdown" : "shutdown";
-  return Command::makeReadCommand(
-      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend");
 }
 
 } // namespace cli

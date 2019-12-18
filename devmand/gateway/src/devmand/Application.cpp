@@ -99,6 +99,7 @@ void Application::pollDevices() {
 
 void Application::tryToApplyRunningDatastoreToDevices() {
   for (auto& device : devices) {
+    LOG(INFO) << "About to apply running datastore to device " << device.first;
     device.second->tryToApplyRunningDatastore();
   }
 }
@@ -220,6 +221,7 @@ void Application::add(const cartography::DeviceConfig& deviceConfig) {
 }
 
 void Application::del(const cartography::DeviceConfig& deviceConfig) {
+  LOG(INFO) << "deleting " << deviceConfig.id;
   if (devices.erase(deviceConfig.id) != 1) {
     LOG(ERROR) << "Failed to delete device " << deviceConfig.id;
   }

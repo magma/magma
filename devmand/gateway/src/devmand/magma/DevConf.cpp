@@ -219,9 +219,9 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
         deviceConfig.platform = device.second["platform"].asString();
         deviceConfig.ip = device.second["host"].asString();
         if (device.second.get_ptr("readonly") != nullptr) {
+          // TODO make this term configurable
           deviceConfig.readonly = device.second["readonly"].asBool();
         }
-
         if (device.second.get_ptr("deviceConfig") != nullptr) {
           deviceConfig.yangConfig = device.second["deviceConfig"].asString();
         }

@@ -34,7 +34,7 @@ void Factory::setDefaultPlatform(PlatformBuilder defaultPlatformBuilder_) {
 std::shared_ptr<devices::Device> Factory::createDevice(
     const cartography::DeviceConfig& deviceConfig) {
   LOG(INFO) << "Loading device " << deviceConfig.id << " on platform "
-            << deviceConfig.platform << " ip " << deviceConfig.ip;
+            << deviceConfig.platform << " with ip " << deviceConfig.ip;
 
   std::string platformLowerCase = deviceConfig.platform;
   boost::algorithm::to_lower(platformLowerCase);

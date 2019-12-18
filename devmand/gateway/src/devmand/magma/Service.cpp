@@ -31,7 +31,6 @@ std::list<std::map<std::string, std::string>> Service::getOperationalStates() {
   auto unifiedView = app.getUnifiedView();
   std::list<std::map<std::string, std::string>> states;
 
-  LOG(INFO) << "Publishing op-state :=\n";
   for (auto& device : unifiedView) {
     std::string deviceId = device.first;
     folly::dynamic deviceState = folly::dynamic::object;
@@ -41,7 +40,6 @@ std::list<std::map<std::string, std::string>> Service::getOperationalStates() {
         {"type", orc8rDeviceType},
         {"device_id", deviceId},
         {"value", folly::toJson(deviceState)}};
-    LOG(INFO) << deviceId << " : " << folly::toJson(deviceState) << "\n";
     states.push_back(state);
   }
   return states;
