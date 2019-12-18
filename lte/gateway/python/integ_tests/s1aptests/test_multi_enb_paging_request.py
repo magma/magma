@@ -16,7 +16,7 @@ import s1ap_wrapper
 import time
 
 
-class TestPaging(unittest.TestCase):
+class TestMultiEnbPagingRequest(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
