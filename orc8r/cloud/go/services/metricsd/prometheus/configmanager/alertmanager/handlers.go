@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package main
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -178,4 +178,8 @@ func reloadAlertmanager(url string) error {
 		return fmt.Errorf("code: %d error reloading alertmanager: %s", resp.StatusCode, msg)
 	}
 	return nil
+}
+
+func getFilePrefix(c echo.Context) string {
+	return c.Param("file_prefix")
 }

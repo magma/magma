@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
@@ -37,11 +37,11 @@ type PrometheusAlertClient interface {
 type client struct {
 	fileLocks    *FileLocker
 	rulesDir     string
-	fsClient     files.FSClient
+	fsClient     fsclient.FSClient
 	multitenancy bool
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient, multitenant bool) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir string, fsClient fsclient.FSClient, multitenant bool) PrometheusAlertClient {
 	return &client{
 		fileLocks:    fileLocks,
 		rulesDir:     rulesDir,

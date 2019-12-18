@@ -1,12 +1,12 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ * All rights reserved.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-*/
-
-package handlers
+package main
 
 import (
 	"bytes"
@@ -16,7 +16,7 @@ import (
 	"net/http"
 	"time"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -24,6 +24,7 @@ import (
 )
 
 const (
+	rootPath        = "/:file_prefix"
 	AlertPath       = rootPath + "/alert"
 	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
 	AlertBulkPath   = AlertPath + "/bulk"
