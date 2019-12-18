@@ -771,7 +771,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.equipment) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"WorkOrder\"", keys(wou.equipment))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"WorkOrder\"", keys(wou.equipment))})
 			}
 		}
 	}
@@ -817,7 +817,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.links) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"links\" %v already connected to a different \"WorkOrder\"", keys(wou.links))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"links\" %v already connected to a different \"WorkOrder\"", keys(wou.links))})
 			}
 		}
 	}
@@ -863,7 +863,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.files) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"WorkOrder\"", keys(wou.files))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"WorkOrder\"", keys(wou.files))})
 			}
 		}
 	}
@@ -934,7 +934,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.comments) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"WorkOrder\"", keys(wou.comments))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"WorkOrder\"", keys(wou.comments))})
 			}
 		}
 	}
@@ -980,7 +980,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"WorkOrder\"", keys(wou.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"WorkOrder\"", keys(wou.properties))})
 			}
 		}
 	}
@@ -1026,7 +1026,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(wou.check_list_items) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"check_list_items\" %v already connected to a different \"WorkOrder\"", keys(wou.check_list_items))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_items\" %v already connected to a different \"WorkOrder\"", keys(wou.check_list_items))})
 			}
 		}
 	}
@@ -1845,7 +1845,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.equipment) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"WorkOrder\"", keys(wouo.equipment))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"WorkOrder\"", keys(wouo.equipment))})
 			}
 		}
 	}
@@ -1891,7 +1891,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.links) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"links\" %v already connected to a different \"WorkOrder\"", keys(wouo.links))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"links\" %v already connected to a different \"WorkOrder\"", keys(wouo.links))})
 			}
 		}
 	}
@@ -1937,7 +1937,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.files) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"WorkOrder\"", keys(wouo.files))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"WorkOrder\"", keys(wouo.files))})
 			}
 		}
 	}
@@ -2008,7 +2008,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.comments) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"WorkOrder\"", keys(wouo.comments))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"WorkOrder\"", keys(wouo.comments))})
 			}
 		}
 	}
@@ -2054,7 +2054,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"WorkOrder\"", keys(wouo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"WorkOrder\"", keys(wouo.properties))})
 			}
 		}
 	}
@@ -2100,7 +2100,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(wouo.check_list_items) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"check_list_items\" %v already connected to a different \"WorkOrder\"", keys(wouo.check_list_items))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"check_list_items\" %v already connected to a different \"WorkOrder\"", keys(wouo.check_list_items))})
 			}
 		}
 	}

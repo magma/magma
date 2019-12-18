@@ -412,7 +412,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ltu.locations) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltu.locations))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltu.locations))})
 			}
 		}
 	}
@@ -458,7 +458,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ltu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltu.property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltu.property_types))})
 			}
 		}
 	}
@@ -504,7 +504,7 @@ func (ltu *LocationTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ltu.survey_template_categories) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltu.survey_template_categories))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltu.survey_template_categories))})
 			}
 		}
 	}
@@ -915,7 +915,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ltuo.locations) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltuo.locations))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"locations\" %v already connected to a different \"LocationType\"", keys(ltuo.locations))})
 			}
 		}
 	}
@@ -961,7 +961,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ltuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltuo.property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"LocationType\"", keys(ltuo.property_types))})
 			}
 		}
 	}
@@ -1007,7 +1007,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ltuo.survey_template_categories) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltuo.survey_template_categories))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_categories\" %v already connected to a different \"LocationType\"", keys(ltuo.survey_template_categories))})
 			}
 		}
 	}

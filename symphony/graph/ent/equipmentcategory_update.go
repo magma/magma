@@ -202,7 +202,7 @@ func (ecu *EquipmentCategoryUpdate) sqlSave(ctx context.Context) (n int, err err
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ecu.types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"types\" %v already connected to a different \"EquipmentCategory\"", keys(ecu.types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"types\" %v already connected to a different \"EquipmentCategory\"", keys(ecu.types))})
 			}
 		}
 	}
@@ -395,7 +395,7 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ecuo.types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"types\" %v already connected to a different \"EquipmentCategory\"", keys(ecuo.types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"types\" %v already connected to a different \"EquipmentCategory\"", keys(ecuo.types))})
 			}
 		}
 	}

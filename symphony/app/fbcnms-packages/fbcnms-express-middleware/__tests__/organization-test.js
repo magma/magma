@@ -8,7 +8,9 @@
  * @format
  */
 
-import {Organization, sequelize} from '@fbcnms/sequelize-models';
+jest.mock('@fbcnms/sequelize-models');
+
+import {Organization} from '@fbcnms/sequelize-models';
 import {getOrganization} from '@fbcnms/express-middleware/organizationMiddleware';
 
 const ORGS = [
@@ -35,8 +37,7 @@ const ORGS = [
 ];
 
 describe('organization tests', () => {
-  beforeEach(async () => {
-    await sequelize.sync({force: true});
+  beforeAll(async () => {
     ORGS.forEach(async organization => await Organization.create(organization));
   });
 

@@ -17,7 +17,6 @@
     - dnsd
     # Magma OAI services
     - mme
-    - sctpd
     # Magma third-party services
     - redis
     - pipelined
@@ -25,6 +24,12 @@
     # Manhattan services
     - lighttpd
     - sessiond
+  when: full_provision
+
+- name: Copy sctpd service file
+  copy:
+    src: systemd/sctpd.service
+    dest: /etc/systemd/system/sctpd.service
   when: full_provision
 
 - name: Copy logrotate config file
@@ -57,19 +62,19 @@
   when: full_provision
 
 - name: Create symlink for sctpd binary
-  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/bin/sctpd state=link force=yes
+  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for OAI mme binary
-  file: src='{{ oai_build }}/oai_mme/mme' path=/usr/local/bin/mme state=link force=yes
+  file: src='{{ oai_build }}/oai_mme/mme' path=/usr/local/bin/mme state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for session_manager binary
-  file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes
+  file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
-  file: src='{{ magma_root }}/lte/gateway/deploy/roles/magma/files/coredump' path=/usr/local/bin/coredump state=link force=yes
+  file: src='{{ magma_root }}/lte/gateway/deploy/roles/magma/files/coredump' path=/usr/local/bin/coredump state=link force=yes follow=no
   when: full_provision
 
 - name: Create the /var/www/local-cdn directory

@@ -13,9 +13,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -37,14 +36,14 @@ func main() {
 
 	e.GET("/", statusHandler)
 
-	receiverClient := receivers.NewClient(*alertmanagerConfPath, files.NewFSClient())
-	e.POST(handlers.ReceiverPath, handlers.GetReceiverPostHandler(receiverClient, *alertmanagerURL))
-	e.GET(handlers.ReceiverPath, handlers.GetGetReceiversHandler(receiverClient))
-	e.DELETE(handlers.ReceiverPath, handlers.GetDeleteReceiverHandler(receiverClient, *alertmanagerURL))
-	e.PUT(handlers.ReceiverPath+"/:"+handlers.ReceiverNamePathParam, handlers.GetUpdateReceiverHandler(receiverClient, *alertmanagerURL))
+	receiverClient := receivers.NewClient(*alertmanagerConfPath, *alertmanagerURL, fsclient.NewFSClient())
+	e.POST(ReceiverPath, GetReceiverPostHandler(receiverClient))
+	e.GET(ReceiverPath, GetGetReceiversHandler(receiverClient))
+	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(receiverClient))
+	e.PUT(ReceiverPath+"/:"+ReceiverNamePathParam, GetUpdateReceiverHandler(receiverClient))
 
-	e.POST(handlers.RoutePath, handlers.GetUpdateRouteHandler(receiverClient, *alertmanagerURL))
-	e.GET(handlers.RoutePath, handlers.GetGetRouteHandler(receiverClient))
+	e.POST(RoutePath, GetUpdateRouteHandler(receiverClient))
+	e.GET(RoutePath, GetGetRouteHandler(receiverClient))
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))

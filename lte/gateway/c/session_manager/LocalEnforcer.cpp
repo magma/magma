@@ -201,22 +201,10 @@ void LocalEnforcer::terminate_service(
   for (const auto &session : it->second) {
     session->start_termination([this](SessionTerminateRequest term_req) {
       // report to cloud
-      reporter_->report_terminate_session(
-        term_req,
-        [&term_req](Status status, SessionTerminateResponse response) {
-          if (!status.ok()) {
-            MLOG(MERROR)
-              << "Failed to terminate service in controller for subscriber "
-              << term_req.sid() << ": " << status.error_message();
-          } else {
-            MLOG(MDEBUG)
-              << "Termination successful in controller for subscriber "
-              << term_req.sid();
-         }
-        }
-      );
+      auto logging_cb =
+        SessionReporter::get_terminate_logging_cb(term_req);
+      reporter_->report_terminate_session(term_req, logging_cb);
     });
-
 
     // tell AAA service to terminate radius session if necessary
     if (session->is_radius_cwf_session()) {

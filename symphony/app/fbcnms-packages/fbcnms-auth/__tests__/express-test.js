@@ -8,6 +8,8 @@
  * @format
  */
 
+jest.mock('@fbcnms/sequelize-models');
+
 import OrganizationLocalStrategy from '@fbcnms/auth/strategies/OrganizationLocalStrategy';
 
 import bodyParser from 'body-parser';
@@ -18,7 +20,7 @@ import request from 'supertest';
 import userMiddleware from '../express';
 import {ErrorCodes} from '../errorCodes';
 import {USERS, USERS_EXPECTED} from '../test/UserModel';
-import {User, sequelize} from '@fbcnms/sequelize-models';
+import {User} from '@fbcnms/sequelize-models';
 
 import {configureAccess} from '../access';
 
@@ -84,10 +86,6 @@ function getApp(orgName: string, loggedInEmail: ?string) {
 }
 
 describe('user tests', () => {
-  beforeAll(async () => {
-    await sequelize.sync({force: true});
-  });
-
   beforeEach(async () => {
     USERS.forEach(async user => await User.create(user));
   });

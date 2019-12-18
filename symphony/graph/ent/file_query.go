@@ -25,7 +25,7 @@ type FileQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.File
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 		order:      append([]Order{}, fq.order...),
 		unique:     append([]string{}, fq.unique...),
 		predicates: append([]predicate.File{}, fq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: fq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type FileGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (fgb *FileGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(fgb.fields)+len(fgb.fns))
 	columns = append(columns, fgb.fields...)
 	for _, fn := range fgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(fgb.fields...)
 }

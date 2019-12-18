@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -35,7 +36,7 @@ type WorkOrderQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.WorkOrder
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -66,120 +67,120 @@ func (woq *WorkOrderQuery) Order(o ...Order) *WorkOrderQuery {
 // QueryType chains the current query on the type edge.
 func (woq *WorkOrderQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, false, workorder.TypeTable, workorder.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.TypeTable, workorder.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (woq *WorkOrderQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workorder.EquipmentTable, workorder.EquipmentColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinks chains the current query on the links edge.
 func (woq *WorkOrderQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.O2M, true, workorder.LinksTable, workorder.LinksColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, workorder.LinksTable, workorder.LinksColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (woq *WorkOrderQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, workorder.FilesTable, workorder.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.FilesTable, workorder.FilesColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (woq *WorkOrderQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, workorder.LocationTable, workorder.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.LocationTable, workorder.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryComments chains the current query on the comments edge.
 func (woq *WorkOrderQuery) QueryComments() *CommentQuery {
 	query := &CommentQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(comment.Table, comment.FieldID),
-		sql.Edge(sql.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.CommentsTable, workorder.CommentsColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (woq *WorkOrderQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.PropertiesTable, workorder.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCheckListItems chains the current query on the check_list_items edge.
 func (woq *WorkOrderQuery) QueryCheckListItems() *CheckListItemQuery {
 	query := &CheckListItemQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(checklistitem.Table, checklistitem.FieldID),
-		sql.Edge(sql.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(checklistitem.Table, checklistitem.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, workorder.CheckListItemsTable, workorder.CheckListItemsColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryTechnician chains the current query on the technician edge.
 func (woq *WorkOrderQuery) QueryTechnician() *TechnicianQuery {
 	query := &TechnicianQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(technician.Table, technician.FieldID),
-		sql.Edge(sql.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(technician.Table, technician.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorder.TechnicianTable, workorder.TechnicianColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProject chains the current query on the project edge.
 func (woq *WorkOrderQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: woq.config}
-	step := sql.NewStep(
-		sql.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
-		sql.To(project.Table, project.FieldID),
-		sql.Edge(sql.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+		sqlgraph.To(project.Table, project.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, workorder.ProjectTable, workorder.ProjectColumn),
 	)
-	query.sql = sql.SetNeighbors(woq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 	return query
 }
 
@@ -347,7 +348,7 @@ func (woq *WorkOrderQuery) Clone() *WorkOrderQuery {
 		order:      append([]Order{}, woq.order...),
 		unique:     append([]string{}, woq.unique...),
 		predicates: append([]predicate.WorkOrder{}, woq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: woq.sql.Clone(),
 	}
 }
@@ -473,7 +474,7 @@ type WorkOrderGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -594,7 +595,7 @@ func (wogb *WorkOrderGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wogb.fields)+len(wogb.fns))
 	columns = append(columns, wogb.fields...)
 	for _, fn := range wogb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wogb.fields...)
 }

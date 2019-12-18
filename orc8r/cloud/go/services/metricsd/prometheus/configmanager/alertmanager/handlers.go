@@ -6,18 +6,16 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
 )
@@ -29,13 +27,11 @@ const (
 
 	ReceiverNamePathParam  = "receiver"
 	ReceiverNameQueryParam = "receiver"
-
-	alertmanagerReloadPath = "/-/reload"
 )
 
 // GetReceiverPostHandler returns a handler function that creates a new
 // receiver and then reloads alertmanager
-func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		receiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
@@ -46,7 +42,7 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient, alertmanagerURL
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = reloadAlertmanager(alertmanagerURL)
+		err = client.ReloadAlertmanager()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -68,7 +64,7 @@ func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Con
 }
 
 // GetUpdateReceiverHandler returns a handler function to update a receivers
-func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+func GetUpdateReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		getFilePrefix := getFilePrefix(c)
 		newReceiver, err := decodeReceiverPostRequest(c)
@@ -81,7 +77,7 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = reloadAlertmanager(alertmanagerURL)
+		err = client.ReloadAlertmanager()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -89,7 +85,7 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 	}
 }
 
-func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+func GetDeleteReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		getFilePrefix := getFilePrefix(c)
 		receiverName := c.QueryParam(ReceiverNameQueryParam)
@@ -99,7 +95,7 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient, alertmanagerU
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = reloadAlertmanager(alertmanagerURL)
+		err = client.ReloadAlertmanager()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -118,7 +114,7 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 	}
 }
 
-func GetUpdateRouteHandler(client receivers.AlertmanagerClient, alertmanagerURL string) func(c echo.Context) error {
+func GetUpdateRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		getFilePrefix := getFilePrefix(c)
 		newRoute, err := decodeRoutePostRequest(c)
@@ -130,7 +126,7 @@ func GetUpdateRouteHandler(client receivers.AlertmanagerClient, alertmanagerURL 
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = reloadAlertmanager(alertmanagerURL)
+		err = client.ReloadAlertmanager()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -164,18 +160,6 @@ func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 	return route, nil
 }
 
-func reloadAlertmanager(url string) error {
-	if url == "" {
-		glog.Info("Not reloading alertmanager: No url given")
-		return nil
-	}
-	resp, err := http.Post(fmt.Sprintf("http://%s%s", url, alertmanagerReloadPath), "text/plain", &bytes.Buffer{})
-	if err != nil {
-		return fmt.Errorf("error reloading alertmanager: %v", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		msg, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("code: %d error reloading alertmanager: %s", resp.StatusCode, msg)
-	}
-	return nil
+func getFilePrefix(c echo.Context) string {
+	return c.Param("file_prefix")
 }

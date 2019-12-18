@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package handlers
+package main
 
 import (
 	"encoding/json"
@@ -17,8 +17,8 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
@@ -59,39 +59,49 @@ var (
 )
 
 func TestGetReceiverPostHandler(t *testing.T) {
+	// Successful Post
 	client := &mocks.AlertmanagerClient{}
-	postReceiver := GetReceiverPostHandler(client, "")
 	client.On("CreateReceiver", testNID, sampleReceiver).Return(nil)
-
+	client.On("ReloadAlertmanager").Return(nil)
 	c, rec := buildContext(sampleReceiver, http.MethodPost, "/", ReceiverPath, testNID)
 
-	err := postReceiver(c)
+	err := GetReceiverPostHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "CreateReceiver", testNID, sampleReceiver)
+	client.AssertExpectations(t)
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(echo.NewHTTPError(http.StatusBadRequest, "error"))
-	postReceiver = GetReceiverPostHandler(client, "")
+	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(errors.New("error"))
 	c, _ = buildContext(nil, http.MethodPost, "/", ReceiverPath, testNID)
-	err = postReceiver(c)
-	assert.Error(t, err)
+
+	err = GetReceiverPostHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "CreateReceiver", testNID, receivers.Receiver{})
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	client.On("CreateReceiver", testNID, receivers.Receiver{}).Return(nil)
+	c, _ = buildContext(nil, http.MethodPut, "/", ReceiverPath, testNID)
+
+	err = GetReceiverPostHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetGetReceiversHandler(t *testing.T) {
+	// Successful Get
 	client := &mocks.AlertmanagerClient{}
 	client.On("GetReceivers", testNID).Return([]receivers.Receiver{sampleReceiver}, nil)
-	getReceivers := GetGetReceiversHandler(client)
-
 	c, rec := buildContext(nil, http.MethodGet, "/", ReceiverPath, testNID)
 
-	err := getReceivers(c)
+	err := GetGetReceiversHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "GetReceivers", testNID)
+	client.AssertExpectations(t)
 
 	var receiver []receivers.Receiver
 	err = json.Unmarshal(rec.Body.Bytes(), &receiver)
@@ -101,128 +111,170 @@ func TestGetGetReceiversHandler(t *testing.T) {
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("GetReceivers", testNID).Return([]receivers.Receiver{}, errors.New("error"))
-	getReceivers = GetGetReceiversHandler(client)
 	c, _ = buildContext(nil, http.MethodGet, "/", ReceiverPath, testNID)
-	err = getReceivers(c)
-	assert.Error(t, err)
+
+	err = GetGetReceiversHandler(client)(c)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "GetReceivers", testNID)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetUpdateReceiverHandler(t *testing.T) {
+	// Successful Update
 	client := &mocks.AlertmanagerClient{}
 	client.On("UpdateReceiver", testNID, &sampleReceiver).Return(nil)
-	updateReceiver := GetUpdateReceiverHandler(client, "")
+	client.On("ReloadAlertmanager").Return(nil)
 
 	c, rec := buildContext(sampleReceiver, http.MethodPut, "/", ReceiverPath, testNID)
 
-	err := updateReceiver(c)
+	err := GetUpdateReceiverHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "UpdateReceiver", testNID, &sampleReceiver)
+	client.AssertExpectations(t)
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("UpdateReceiver", testNID, &receivers.Receiver{}).Return(errors.New("error"))
-	updateReceiver = GetUpdateReceiverHandler(client, "")
 	c, _ = buildContext(nil, http.MethodPut, "/", ReceiverPath, testNID)
 
-	err = updateReceiver(c)
-	assert.Error(t, err)
+	err = GetUpdateReceiverHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "UpdateReceiver", testNID, &receivers.Receiver{})
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("UpdateReceiver", testNID, &receivers.Receiver{}).Return(nil)
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	c, _ = buildContext(nil, http.MethodPut, "/", ReceiverPath, testNID)
+
+	err = GetUpdateReceiverHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetDeleteReceiverHandler(t *testing.T) {
+	// Successful Delete
 	client := &mocks.AlertmanagerClient{}
 	client.On("DeleteReceiver", testNID, sampleReceiver.Name).Return(nil)
-
-	deleteReceiver := GetDeleteReceiverHandler(client, "")
+	client.On("ReloadAlertmanager").Return(nil)
 
 	q := make(url.Values)
 	q.Set(ReceiverNameQueryParam, sampleReceiver.Name)
 	c, rec := buildContext(nil, http.MethodGet, "/?"+q.Encode(), ReceiverPath, testNID)
 
-	err := deleteReceiver(c)
+	err := GetDeleteReceiverHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "DeleteReceiver", testNID, sampleReceiver.Name)
+	client.AssertExpectations(t)
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("DeleteReceiver", testNID, sampleReceiver.Name).Return(errors.New("error"))
-	deleteReceiver = GetDeleteReceiverHandler(client, "")
-
 	c, _ = buildContext(nil, http.MethodGet, "/?"+q.Encode(), ReceiverPath, testNID)
 
-	err = deleteReceiver(c)
-	assert.Error(t, err)
+	err = GetDeleteReceiverHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "DeleteReceiver", testNID, sampleReceiver.Name)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("DeleteReceiver", testNID, sampleReceiver.Name).Return(nil)
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	c, _ = buildContext(nil, http.MethodGet, "/?"+q.Encode(), ReceiverPath, testNID)
+
+	err = GetDeleteReceiverHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetGetRouteHandler(t *testing.T) {
+	// Successful Get
 	client := &mocks.AlertmanagerClient{}
 	client.On("GetRoute", testNID).Return(&sampleRoute, nil)
-	getRoute := GetGetRouteHandler(client)
-
 	c, rec := buildContext(nil, http.MethodGet, "/", RoutePath, testNID)
 
-	err := getRoute(c)
+	err := GetGetRouteHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "GetRoute", testNID)
+	client.AssertExpectations(t)
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("GetRoute", testNID).Return(nil, errors.New("error"))
-	getRoute = GetGetRouteHandler(client)
 	c, _ = buildContext(nil, http.MethodGet, "/", RoutePath, testNID)
 
-	err = getRoute(c)
-	assert.Error(t, err)
+	err = GetGetRouteHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "GetRoute", testNID)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetUpdateRouteHandler(t *testing.T) {
+	// Successful Update
 	client := &mocks.AlertmanagerClient{}
 	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(nil)
-	updateRoute := GetUpdateRouteHandler(client, "")
-
+	client.On("ReloadAlertmanager").Return(nil)
 	c, rec := buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
 
-	err := updateRoute(c)
+	err := GetUpdateRouteHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "ModifyNetworkRoute", testNID, &sampleRoute)
+	client.AssertExpectations(t)
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
 	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(errors.New("error"))
-	updateRoute = GetUpdateRouteHandler(client, "")
 	c, _ = buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
 
-	err = updateRoute(c)
-	assert.Error(t, err)
+	err = GetUpdateRouteHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	client.AssertCalled(t, "ModifyNetworkRoute", testNID, &sampleRoute)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Alertmanager Error
+	client = &mocks.AlertmanagerClient{}
+	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(nil)
+	client.On("ReloadAlertmanager").Return(errors.New("error"))
+	c, _ = buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
+
+	err = GetUpdateRouteHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestDecodeReceiverPostRequest(t *testing.T) {
+	// Successful Decode
 	c, _ := buildContext(sampleReceiver, http.MethodPost, "/", ReceiverPath, testNID)
-
 	conf, err := decodeReceiverPostRequest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleReceiver, conf)
+
+	// error decoding route
+	c, _ = buildContext(struct {
+		Name bool `json:"name"`
+	}{false}, http.MethodPost, "/", ReceiverPath, testNID)
+	conf, err = decodeReceiverPostRequest(c)
+	assert.EqualError(t, err, `error unmarshalling payload: json: cannot unmarshal bool into Go struct field Receiver.name of type string`)
 }
 
 func TestDecodeRoutePostRequest(t *testing.T) {
+	// Successful Decode
 	c, _ := buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
-
 	conf, err := decodeRoutePostRequest(c)
 	assert.NoError(t, err)
 	assert.Equal(t, sampleRoute, conf)
+
+	// error decoding route
+	c, _ = buildContext(struct {
+		Receiver bool `json:"receiver"`
+	}{false}, http.MethodPost, "/", ReceiverPath, testNID)
+	conf, err = decodeRoutePostRequest(c)
+	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field Route.receiver of type string`)
 }
 
 func buildContext(body interface{}, method, target, path, networkID string) (echo.Context, *httptest.ResponseRecorder) {

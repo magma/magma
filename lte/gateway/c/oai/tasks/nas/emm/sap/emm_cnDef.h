@@ -133,14 +133,28 @@ typedef struct emm_cn_cs_response_success_s {
   fteid_t sgw_s1u_fteid;
 } emm_cn_cs_response_success_t;
 
-struct itti_mme_app_create_dedicated_bearer_req_s;
-typedef struct itti_mme_app_create_dedicated_bearer_req_s
-  emm_cn_activate_dedicated_bearer_req_t;
+typedef struct emm_cn_activate_dedicated_bearer_req_s {
+  mme_ue_s1ap_id_t ue_id;
+  pdn_cid_t cid;
+  ebi_t ebi;
+  ebi_t linked_ebi;
+  bearer_qos_t bearer_qos;
+  traffic_flow_template_t* tft;
+  protocol_configuration_options_t* pco;
+  fteid_t sgw_fteid;
+} emm_cn_activate_dedicated_bearer_req_t;
 
-typedef struct itti_mme_app_delete_dedicated_bearer_req_s
-  emm_cn_deactivate_dedicated_bearer_req_t;
+typedef struct emm_cn_deactivate_dedicated_bearer_req_s {
+  uint32_t no_of_bearers;
+  ebi_t ebi[BEARERS_PER_UE]; //EPS Bearer ID
+  mme_ue_s1ap_id_t ue_id;
+} emm_cn_deactivate_dedicated_bearer_req_t;
 
-typedef struct itti_mme_app_pdn_disconnect_rsp_s emm_cn_pdn_disconnect_rsp_t;
+typedef struct emm_cn_pdn_disconnect_rsp_s {
+  /* UE identifier */
+  mme_ue_s1ap_id_t ue_id;
+  ebi_t lbi; //Default EPS Bearer ID
+} emm_cn_pdn_disconnect_rsp_t;
 
 typedef struct emm_cn_deregister_ue_s {
   uint32_t ue_id;
@@ -178,15 +192,15 @@ typedef struct emm_mme_ul_s {
     emm_cn_ula_success_t* emm_cn_ula_success;
     emm_cn_cs_response_success_t* emm_cn_cs_response_success;
     emm_cn_ula_or_csrsp_fail_t* emm_cn_ula_or_csrsp_fail;
-    emm_cn_activate_dedicated_bearer_req_t *activate_dedicated_bearer_req;
-    emm_cn_deactivate_dedicated_bearer_req_t *deactivate_dedicated_bearer_req;
+    emm_cn_activate_dedicated_bearer_req_t* activate_dedicated_bearer_req;
+    emm_cn_deactivate_dedicated_bearer_req_t* deactivate_dedicated_bearer_req;
     emm_cn_implicit_detach_ue_t emm_cn_implicit_detach;
     emm_cn_smc_fail_t* smc_fail;
     emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach;
     emm_cn_cs_domain_location_updt_acc_t emm_cn_cs_domain_location_updt_acc;
     emm_cn_cs_domain_location_updt_fail_t emm_cn_cs_domain_location_updt_fail;
-    emm_cn_cs_domain_mm_information_req_t *emm_cn_cs_domain_mm_information_req;
-    emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp;
+    emm_cn_cs_domain_mm_information_req_t* emm_cn_cs_domain_mm_information_req;
+    emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp;
   } u;
 } emm_cn_t;
 

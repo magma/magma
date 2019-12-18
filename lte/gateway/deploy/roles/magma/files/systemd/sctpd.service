@@ -6,14 +6,15 @@
 #
 [Unit]
 Description=Magma sctpd service
-PartOf=magma@mme.service
 Before=magma@mme.service
 
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/usr/local/bin/sctpd
+ExecStartPre=-/bin/cp -f /usr/local/share/sctpd/version /var/run/sctpd.version
+ExecStart=/usr/local/sbin/sctpd
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sctpd
+ExecStopPost=-/bin/rm -f /var/run/sctpd.version
 MemoryAccounting=yes
 MemoryLimit=512M
 StandardOutput=syslog

@@ -23,17 +23,9 @@ import (
 )
 
 func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
-
 	var qos *gx.QosRequestInfo
 	if pReq.GetQosInfo() != nil {
-		qos = &gx.QosRequestInfo{
-			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
-			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
-			QosClassIdentifier: pReq.GetQosInfo().GetQosClassId(),
-			PriLevel:           pReq.GetQosInfo().GetPriorityLevel(),
-			PreCapability:      pReq.GetQosInfo().GetPreemptionCapability(),
-			PreVulnerability:   pReq.GetQosInfo().GetPreemptionVulnerability(),
-		}
+		qos = (&gx.QosRequestInfo{}).FromProtos(pReq.GetQosInfo())
 	}
 
 	request := &gx.CreditControlRequest{
@@ -51,41 +43,17 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		HardwareAddr:  pReq.HardwareAddr,
-		RATType:       getRATType(pReq.RatType),
-		IPCANType:     getIPCANType(pReq.RatType),
+		RATType:       credit_control.GetRATType(pReq.RatType),
+		IPCANType:     credit_control.GetIPCANType(pReq.RatType),
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
 
-func getRATType(pRATType protos.RATType) credit_control.RATType {
-	switch pRATType {
-	case protos.RATType_TGPP_LTE:
-		return credit_control.RAT_EUTRAN
-	case protos.RATType_TGPP_WLAN:
-		return credit_control.RAT_WLAN
-	default:
-		return credit_control.RAT_EUTRAN
-	}
-}
-
-// Since we don't specify the IP CAN type at session initialization, and we
-// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
-func getIPCANType(pRATType protos.RATType) credit_control.IPCANType {
-	switch pRATType {
-	case protos.RATType_TGPP_LTE:
-		return credit_control.IPCAN_3GPP
-	case protos.RATType_TGPP_WLAN:
-		return credit_control.IPCAN_Non3GPP
-	default:
-		return credit_control.IPCAN_Non3GPP
-	}
-}
-
 func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.SessionTerminateRequest) (*gx.CreditControlAnswer, error) {
 	reports := make([]*gx.UsageReport, 0, len(pRequest.MonitorUsages))
 	for _, update := range pRequest.MonitorUsages {
-		reports = append(reports, getGxUsageReportFromUsageUpdate(update))
+		reports = append(reports, (&gx.UsageReport{}).FromUsageMonitorUpdate(update))
 	}
 	request := &gx.CreditControlRequest{
 		SessionID:     pRequest.SessionId,
@@ -94,8 +62,8 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 		RequestNumber: pRequest.RequestNumber,
 		IPAddr:        pRequest.UeIpv4,
 		UsageReports:  reports,
-		RATType:       getRATType(pRequest.RatType),
-		IPCANType:     getIPCANType(pRequest.RatType),
+		RATType:       credit_control.GetRATType(pRequest.RatType),
+		IPCANType:     credit_control.GetIPCANType(pRequest.RatType),
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -142,7 +110,7 @@ func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.Cred
 	triggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 	for _, monitor := range gxCCAInit.UsageMonitors {
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
-			Credit:           gx.GetUsageMonitorCreditFromAVP(monitor),
+			Credit:           monitor.ToUsageMonitoringCredit(),
 			SessionId:        sessionID,
 			Sid:              addSidPrefix(imsi),
 			Success:          true,
@@ -157,29 +125,9 @@ func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.Cred
 func getGxUpdateRequestsFromUsage(updates []*protos.UsageMonitoringUpdateRequest) []*gx.CreditControlRequest {
 	requests := []*gx.CreditControlRequest{}
 	for _, update := range updates {
-		requests = append(requests, &gx.CreditControlRequest{
-			SessionID:     update.SessionId,
-			RequestNumber: update.RequestNumber,
-			Type:          credit_control.CRTUpdate,
-			IMSI:          removeSidPrefix(update.Sid),
-			IPAddr:        update.UeIpv4,
-			HardwareAddr:  update.HardwareAddr,
-			UsageReports:  []*gx.UsageReport{getGxUsageReportFromUsageUpdate(update.Update)},
-			RATType:       getRATType(update.RatType),
-			IPCANType:     getIPCANType(update.RatType),
-		})
+		requests = append(requests, (&gx.CreditControlRequest{}).FromUsageMonitorUpdate(update))
 	}
 	return requests
-}
-
-func getGxUsageReportFromUsageUpdate(update *protos.UsageMonitorUpdate) *gx.UsageReport {
-	return &gx.UsageReport{
-		MonitoringKey: string(update.MonitoringKey),
-		Level:         gx.MonitoringLevel(update.Level),
-		InputOctets:   update.BytesTx,
-		OutputOctets:  update.BytesRx, // receive == output
-		TotalOctets:   update.BytesTx + update.BytesRx,
-	}
 }
 
 // sendMultipleGxRequestsWithTimeout sends a batch of update requests to the PCRF
@@ -332,7 +280,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 				MonitoringKey: []byte(request.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
 	} else {
-		res.Credit = gx.GetUsageMonitorCreditFromAVP(answer.UsageMonitors[0])
+		res.Credit = answer.UsageMonitors[0].ToUsageMonitoringCredit()
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(

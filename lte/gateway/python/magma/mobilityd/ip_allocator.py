@@ -29,28 +29,26 @@ during it's life cycle in the IP allocator:
         to age IPs for a certain period of time before freeing.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
 import logging
 import threading
 from collections import defaultdict
-from copy import deepcopy
-from ipaddress import ip_address
-from random import choice
+from ipaddress import ip_address, ip_network
+from typing import List, Optional, Set, Tuple
 
 import redis
-
+from copy import deepcopy
+from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-from magma.mobilityd import mobility_store as store
+from random import choice
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 
-class IPAllocator():
+class IPAllocator:
     """ A thread-safe IP allocator: all mutating functions are protected by a
     re-entrant lock.
 
@@ -100,9 +98,9 @@ class IPAllocator():
 
     def __init__(self,
                  *,
-                 recycling_interval=DEFAULT_IP_RECYCLE_INTERVAL,
-                 persist_to_redis=True,
-                 redis_port=6379):
+                 recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL,
+                 persist_to_redis: bool = True,
+                 redis_port: int = 6379):
         """ Initializes a new IP allocator
 
         Args:
@@ -140,7 +138,7 @@ class IPAllocator():
         self._assigned_ip_blocks.clear()
         self._sid_ips_map.clear()
 
-    def add_ip_block(self, ipblock):
+    def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
 
         IP blocks should not overlap.
@@ -172,7 +170,8 @@ class IPAllocator():
                 if num_reserved_addresses > 0:
                     num_reserved_addresses -= 1
 
-    def remove_ip_blocks(self, *ipblocks, force=False):
+    def remove_ip_blocks(self, *ipblocks: List[ip_network],
+                         force: bool = False) -> List[ip_network]:
         """ Makes the indicated block(s) unavailable for allocation
 
         If force is False, blocks that have any addresses currently allocated
@@ -242,7 +241,7 @@ class IPAllocator():
 
             return remove_blocks
 
-    def list_added_ip_blocks(self):
+    def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator
 
         Return:
@@ -252,7 +251,7 @@ class IPAllocator():
             ip_blocks = list(deepcopy(self._assigned_ip_blocks))
         return ip_blocks
 
-    def list_allocated_ips(self, ipblock):
+    def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
         """ List IP addresses allocated from a given IP block
 
         Args:
@@ -275,7 +274,7 @@ class IPAllocator():
                    if self._test_ip_state(ip, IPState.ALLOCATED)]
         return res
 
-    def alloc_ip_address(self, sid):
+    def alloc_ip_address(self, sid: str) -> ip_address:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.
@@ -345,7 +344,7 @@ class IPAllocator():
                 logging.error("Run out of available IP addresses")
                 raise NoAvailableIPError("No available IP addresses")
 
-    def get_sid_ip_table(self):
+    def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
         with self._lock:
             res = [(sid, ip_desc.ip) for sid, ips_desc in
@@ -353,7 +352,7 @@ class IPAllocator():
                    for ip_desc in ips_desc]
             return res
 
-    def get_ip_for_sid(self, sid):
+    def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
         """ if ip is mapped to sid, return it, else return None """
         with self._lock:
             if sid in self._sid_ips_map:
@@ -363,7 +362,7 @@ class IPAllocator():
                     return self._sid_ips_map[sid][0].ip
             return None
 
-    def get_sid_for_ip(self, requested_ip):
+    def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
         with self._lock:
             for sid, ips_desc in self._sid_ips_map.items():
@@ -371,7 +370,7 @@ class IPAllocator():
                     return sid
             return None
 
-    def release_ip_address(self, sid, ip):
+    def release_ip_address(self, sid: str, ip: ip_address):
         """ Release an IP address.
 
         A released IP is moved to a released list. Released IPs are recycled
@@ -456,7 +455,8 @@ class IPAllocator():
                 else:
                     self._recycle_reaped_ips()
 
-    def _add_ip_to_state(self, ip, ip_desc, state):
+    def _add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
+                         state: IPState):
         """ Add ip=>ip_desc pairs to a internal dict """
         assert ip_desc.state == state, \
             "ip_desc.state %s does not match with state %s" \
@@ -466,7 +466,7 @@ class IPAllocator():
         with self._lock:
             self._ip_states[state][ip.exploded] = ip_desc
 
-    def _remove_ip_from_state(self, ip, state):
+    def _remove_ip_from_state(self, ip: ip_address, state: IPState) -> IPDesc:
         """ Remove an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 
@@ -474,7 +474,7 @@ class IPAllocator():
             ip_desc = self._ip_states[state].pop(ip.exploded, None)
         return ip_desc
 
-    def _pop_ip_from_state(self, state):
+    def _pop_ip_from_state(self, state: IPState) -> IPDesc:
         """ Pop an IP from a internal dict """
         assert state in IPState, "unknown state %s" % state
 
@@ -493,35 +493,35 @@ class IPAllocator():
                 ip_desc_list.remove(sid_ip_desc)
         self._sid_ips_map[sid] = ip_desc_list
 
-    def _get_ip_count(self, state):
+    def _get_ip_count(self, state: IPState) -> int:
         """ Return number of IPs in a state """
         assert state in IPState, "unknown state %s" % state
 
         with self._lock:
             return len(self._ip_states[state])
 
-    def _test_ip_state(self, ip, state):
+    def _test_ip_state(self, ip: ip_address, state: IPState) -> bool:
         """ check if IP is in state X """
         assert state in IPState, "unknown state %s" % state
 
         with self._lock:
             return ip.exploded in self._ip_states[state]
 
-    def _get_ip_state(self, ip):
+    def _get_ip_state(self, ip: ip_address) -> IPState:
         """ return the state of an IP """
         for state in IPState:
             if self._test_ip_state(ip, state):
                 return state
         raise AssertionError("IP %s not found in any states" % ip)
 
-    def _list_ips(self, state):
+    def _list_ips(self, state: IPState) -> List[ip_address]:
         """ return a list of IPs in state X """
         assert state in IPState, "unknown state %s" % state
 
         with self._lock:
             return [ip_address(ip) for ip in self._ip_states[state]]
 
-    def _mark_ip_state(self, ip, state):
+    def _mark_ip_state(self, ip: ip_address, state: IPState) -> IPDesc:
         """ Remove, mark, add: move IP to a new state """
         assert state in IPState, "unknown state %s" % state
 
@@ -545,7 +545,7 @@ class IPAllocator():
             self._add_ip_to_state(ip, ip_desc, state)
         return ip_desc
 
-    def _get_allocated_ip_block_set(self):
+    def _get_allocated_ip_block_set(self) -> Set[ip_network]:
         """ A IP block is allocated if ANY IP is allocated from it """
         with self._lock:
             allocated_ips = self._ip_states[IPState.ALLOCATED]

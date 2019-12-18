@@ -8,12 +8,12 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
 )
@@ -117,54 +117,70 @@ func (arc *ActionsRuleCreate) SaveX(ctx context.Context) *ActionsRule {
 
 func (arc *ActionsRuleCreate) sqlSave(ctx context.Context) (*ActionsRule, error) {
 	var (
-		builder = sql.Dialect(arc.driver.Dialect())
-		ar      = &ActionsRule{config: arc.config}
+		ar   = &ActionsRule{config: arc.config}
+		spec = &sqlgraph.CreateSpec{
+			Table: actionsrule.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: actionsrule.FieldID,
+			},
+		}
 	)
-	tx, err := arc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(actionsrule.Table).Default()
 	if value := arc.create_time; value != nil {
-		insert.Set(actionsrule.FieldCreateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: actionsrule.FieldCreateTime,
+		})
 		ar.CreateTime = *value
 	}
 	if value := arc.update_time; value != nil {
-		insert.Set(actionsrule.FieldUpdateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: actionsrule.FieldUpdateTime,
+		})
 		ar.UpdateTime = *value
 	}
 	if value := arc.name; value != nil {
-		insert.Set(actionsrule.FieldName, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldName,
+		})
 		ar.Name = *value
 	}
 	if value := arc.triggerID; value != nil {
-		insert.Set(actionsrule.FieldTriggerID, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: actionsrule.FieldTriggerID,
+		})
 		ar.TriggerID = *value
 	}
 	if value := arc.ruleFilters; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(actionsrule.FieldRuleFilters, buf)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleFilters,
+		})
 		ar.RuleFilters = *value
 	}
 	if value := arc.ruleActions; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		insert.Set(actionsrule.FieldRuleActions, buf)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: actionsrule.FieldRuleActions,
+		})
 		ar.RuleActions = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(actionsrule.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	ar.ID = strconv.FormatInt(id, 10)
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, arc.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := spec.ID.Value.(int64)
+	ar.ID = strconv.FormatInt(id, 10)
 	return ar, nil
 }

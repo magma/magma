@@ -113,6 +113,7 @@ class PropertyValueInput extends React.Component<Props> {
             property={property}
             onChange={onChange}
             autoFocus={autoFocus}
+            disabled={disabled}
           />
         ) : (
           <EnumPropertyValueInput property={property} onChange={onChange} />
@@ -236,6 +237,7 @@ class PropertyValueInput extends React.Component<Props> {
             className={classNames(classes.input, className)}
             onBlur={e => onBlur && onBlur(e)}
             label={label}
+            disabled={disabled}
             margin={margin}
             value={!!property.booleanValue ? 'True' : 'False'}
             onChange={event =>

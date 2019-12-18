@@ -9,10 +9,13 @@
 package alert
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 	"gopkg.in/yaml.v2"
@@ -32,21 +35,24 @@ type PrometheusAlertClient interface {
 	ReadRules(filePrefix, ruleName string) ([]rulefmt.Rule, error)
 	DeleteRule(filePrefix, ruleName string) error
 	BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error)
+	ReloadPrometheus() error
 }
 
 type client struct {
-	fileLocks    *FileLocker
-	rulesDir     string
-	fsClient     files.FSClient
-	multitenancy bool
+	fileLocks     *FileLocker
+	rulesDir      string
+	prometheusURL string
+	fsClient      fsclient.FSClient
+	multitenancy  bool
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir string, fsClient files.FSClient, multitenant bool) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, multitenant bool) PrometheusAlertClient {
 	return &client{
-		fileLocks:    fileLocks,
-		rulesDir:     rulesDir,
-		fsClient:     fsClient,
-		multitenancy: multitenant,
+		fileLocks:     fileLocks,
+		rulesDir:      rulesDir,
+		prometheusURL: prometheusURL,
+		fsClient:      fsClient,
+		multitenancy:  multitenant,
 	}
 }
 
@@ -207,6 +213,18 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 		return results, err
 	}
 	return results, nil
+}
+
+func (c *client) ReloadPrometheus() error {
+	resp, err := http.Post(fmt.Sprintf("http://%s%s", c.prometheusURL, "/-/reload"), "text/plain", &bytes.Buffer{})
+	if err != nil {
+		return fmt.Errorf("error reloading prometheus: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("error reloading prometheus (status %d): %s", resp.StatusCode, string(body))
+	}
+	return nil
 }
 
 func (c *client) writeRuleFile(ruleFile *File, filename string) error {

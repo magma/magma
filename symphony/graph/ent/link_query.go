@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -29,7 +30,7 @@ type LinkQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Link
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -60,48 +61,48 @@ func (lq *LinkQuery) Order(o ...Order) *LinkQuery {
 // QueryPorts chains the current query on the ports edge.
 func (lq *LinkQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, true, link.PortsTable, link.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, link.PortsTable, link.PortsColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (lq *LinkQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, link.WorkOrderTable, link.WorkOrderColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LinkQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, link.PropertiesTable, link.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, link.PropertiesTable, link.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (lq *LinkQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(link.Table, link.FieldID, lq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(link.Table, link.FieldID, lq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, link.ServiceTable, link.ServicePrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
@@ -269,7 +270,7 @@ func (lq *LinkQuery) Clone() *LinkQuery {
 		order:      append([]Order{}, lq.order...),
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Link{}, lq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: lq.sql.Clone(),
 	}
 }
@@ -395,7 +396,7 @@ type LinkGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -516,7 +517,7 @@ func (lgb *LinkGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(lgb.fields)+len(lgb.fns))
 	columns = append(columns, lgb.fields...)
 	for _, fn := range lgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(lgb.fields...)
 }

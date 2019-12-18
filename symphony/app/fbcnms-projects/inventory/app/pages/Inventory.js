@@ -139,8 +139,25 @@ class Inventory extends React.Component<Props, State> {
   }
 
   setLocationCardState(locationId) {
+    const {
+      card,
+      selectedLocationId,
+      selectedEquipmentId,
+      selectedEquipmentPosition,
+    } = this.state;
+
+    if (
+      card === SHOW_LOCATION_CARD &&
+      selectedLocationId === locationId &&
+      selectedEquipmentId === null &&
+      selectedEquipmentPosition === null
+    ) {
+      return;
+    }
+
     this.setState({
       card: SHOW_LOCATION_CARD,
+      selectedLocationType: null,
       selectedLocationId: locationId,
       selectedEquipmentId: null,
       selectedEquipmentPosition: null,
@@ -157,7 +174,7 @@ class Inventory extends React.Component<Props, State> {
     );
     if (queryLocationId !== this.state.selectedLocationId) {
       this.setLocationCardState(queryLocationId);
-    } else {
+    } else if (queryLocationId === null) {
       const queryEquipmentId = extractEntityIdFromUrl(
         'equipment',
         this.props.location.search,
@@ -169,6 +186,12 @@ class Inventory extends React.Component<Props, State> {
           selectedLocationId: null,
           selectedEquipmentPosition: null,
         });
+      } else if (
+        (queryEquipmentId === null &&
+          this.state.selectedLocationType === null) ||
+        this.state.card === null
+      ) {
+        this.setLocationCardState(null);
       }
     }
 
@@ -316,7 +339,9 @@ class Inventory extends React.Component<Props, State> {
   onEquipmentSave = () => {
     ServerLogger.info(LogEvents.SAVE_EQUIPMENT_BUTTON_CLICKED);
     if (this.state.selectedEquipmentId) {
-      this.navigateToEquipment(this.state.selectedEquipmentId);
+      this.setState({
+        card: SHOW_EQUIPMENT_CARD,
+      });
     } else if (this.state.selectedEquipmentPosition) {
       this.navigateToEquipment(
         this.state.selectedEquipmentPosition.parentEquipment.id,
@@ -351,16 +376,15 @@ class Inventory extends React.Component<Props, State> {
 
   onLocationSave = (newLocationId: string) => {
     ServerLogger.info(LogEvents.SAVE_LOCATION_BUTTON_CLICKED);
-    this.setState({
-      selectedLocationId: newLocationId,
-      card: SHOW_LOCATION_CARD,
-    });
+    this.navigateToLocation(newLocationId);
   };
 
-  onDeleteLocation = () => {
+  onDeleteLocation = (deletedLocation: Location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
-    this.navigateToLocation(null);
     this.props.alert('Location removed successfuly');
+    this.navigateToLocation(
+      deletedLocation?.parentLocation?.id || this.state.parentLocationId || '',
+    );
   };
 }
 

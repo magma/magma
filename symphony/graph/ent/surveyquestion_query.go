@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
@@ -29,7 +30,7 @@ type SurveyQuestionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyQuestion
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -60,48 +61,48 @@ func (sqq *SurveyQuestionQuery) Order(o ...Order) *SurveyQuestionQuery {
 // QuerySurvey chains the current query on the survey edge.
 func (sqq *SurveyQuestionQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: sqq.config}
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sql.To(survey.Table, survey.FieldID),
-		sql.Edge(sql.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveyquestion.SurveyTable, surveyquestion.SurveyColumn),
 	)
-	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (sqq *SurveyQuestionQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: sqq.config}
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sql.Edge(sql.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.WifiScanTable, surveyquestion.WifiScanColumn),
 	)
-	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (sqq *SurveyQuestionQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: sqq.config}
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sql.To(surveycellscan.Table, surveycellscan.FieldID),
-		sql.Edge(sql.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, surveyquestion.CellScanTable, surveyquestion.CellScanColumn),
 	)
-	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPhotoData chains the current query on the photo_data edge.
 func (sqq *SurveyQuestionQuery) QueryPhotoData() *FileQuery {
 	query := &FileQuery{config: sqq.config}
-	step := sql.NewStep(
-		sql.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveyquestion.Table, surveyquestion.FieldID, sqq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, surveyquestion.PhotoDataTable, surveyquestion.PhotoDataColumn),
 	)
-	query.sql = sql.SetNeighbors(sqq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sqq.driver.Dialect(), step)
 	return query
 }
 
@@ -269,7 +270,7 @@ func (sqq *SurveyQuestionQuery) Clone() *SurveyQuestionQuery {
 		order:      append([]Order{}, sqq.order...),
 		unique:     append([]string{}, sqq.unique...),
 		predicates: append([]predicate.SurveyQuestion{}, sqq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: sqq.sql.Clone(),
 	}
 }
@@ -395,7 +396,7 @@ type SurveyQuestionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -516,7 +517,7 @@ func (sqgb *SurveyQuestionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(sqgb.fields)+len(sqgb.fns))
 	columns = append(columns, sqgb.fields...)
 	for _, fn := range sqgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(sqgb.fields...)
 }

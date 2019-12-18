@@ -9,12 +9,15 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 )
 
@@ -171,100 +174,130 @@ func (epc *EquipmentPortCreate) SaveX(ctx context.Context) *EquipmentPort {
 
 func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(epc.driver.Dialect())
-		ep      = &EquipmentPort{config: epc.config}
+		ep   = &EquipmentPort{config: epc.config}
+		spec = &sqlgraph.CreateSpec{
+			Table: equipmentport.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentport.FieldID,
+			},
+		}
 	)
-	tx, err := epc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(equipmentport.Table).Default()
 	if value := epc.create_time; value != nil {
-		insert.Set(equipmentport.FieldCreateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentport.FieldCreateTime,
+		})
 		ep.CreateTime = *value
 	}
 	if value := epc.update_time; value != nil {
-		insert.Set(equipmentport.FieldUpdateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentport.FieldUpdateTime,
+		})
 		ep.UpdateTime = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(equipmentport.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	ep.ID = strconv.FormatInt(id, 10)
-	if len(epc.definition) > 0 {
-		for eid := range epc.definition {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epc.definition; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentport.DefinitionTable,
+			Columns: []string{equipmentport.DefinitionColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentportdefinition.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(equipmentport.DefinitionTable).
-				Set(equipmentport.DefinitionColumn, eid).
-				Where(sql.EQ(equipmentport.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(epc.parent) > 0 {
-		for eid := range epc.parent {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epc.parent; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentport.ParentTable,
+			Columns: []string{equipmentport.ParentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(equipmentport.ParentTable).
-				Set(equipmentport.ParentColumn, eid).
-				Where(sql.EQ(equipmentport.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(epc.link) > 0 {
-		for eid := range epc.link {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epc.link; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentport.LinkTable,
+			Columns: []string{equipmentport.LinkColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(equipmentport.LinkTable).
-				Set(equipmentport.LinkColumn, eid).
-				Where(sql.EQ(equipmentport.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(epc.properties) > 0 {
-		p := sql.P()
-		for eid := range epc.properties {
-			eid, err := strconv.Atoi(eid)
+	if nodes := epc.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmentport.PropertiesTable,
+			Columns: []string{equipmentport.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(property.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(equipmentport.PropertiesTable).
-			Set(equipmentport.PropertiesColumn, id).
-			Where(sql.And(p, sql.IsNull(equipmentport.PropertiesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(epc.properties) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epc.properties))})
-		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, epc.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := spec.ID.Value.(int64)
+	ep.ID = strconv.FormatInt(id, 10)
 	return ep, nil
 }

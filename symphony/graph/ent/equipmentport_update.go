@@ -365,7 +365,7 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(epu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epu.properties))})
 			}
 		}
 	}
@@ -716,7 +716,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(epuo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epuo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epuo.properties))})
 			}
 		}
 	}

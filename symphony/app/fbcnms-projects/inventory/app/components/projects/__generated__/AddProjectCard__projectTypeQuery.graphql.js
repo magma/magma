@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 582593f90f2dfd3d80bb828f10c1808f
+ * @relayHash bde83079db2d91d3b335e02dcc3d2e1b
  */
 
 /* eslint-disable */
@@ -40,6 +40,7 @@ export type AddProjectCard__projectTypeQueryResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isDeleted: ?boolean,
+      +isMandatory: ?boolean,
     |}>,
   |}
 |};
@@ -74,6 +75,7 @@ query AddProjectCard__projectTypeQuery(
       isEditable
       isInstanceProperty
       isDeleted
+      isMandatory
     }
   }
 }
@@ -228,6 +230,13 @@ v3 = [
             "name": "isDeleted",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
           }
         ]
       }
@@ -254,11 +263,11 @@ return {
     "operationKind": "query",
     "name": "AddProjectCard__projectTypeQuery",
     "id": null,
-    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType(id: $projectTypeId) {\n    id\n    name\n    description\n    properties {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isDeleted\n    }\n  }\n}\n",
+    "text": "query AddProjectCard__projectTypeQuery(\n  $projectTypeId: ID!\n) {\n  projectType(id: $projectTypeId) {\n    id\n    name\n    description\n    properties {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isDeleted\n      isMandatory\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '4e64fbb4bcd4b08fd18f47abf0bc55d5';
+(node/*: any*/).hash = '258adf665d9db96eaa9a04aad5d8645d';
 module.exports = node;

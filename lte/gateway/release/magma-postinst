@@ -6,19 +6,6 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-# update systemd for production environment
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@control_proxy.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@magmad.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mobilityd.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@mme.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@sctpd.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@dnsd.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@pipelined.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@redirectd.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@lighttpd.service
-sed -i "s/home.*build\/python/usr/" /etc/systemd/system/magma@redis.service
-
 # Delete OVS bridge on boot
 sed -i "s/.*OVS_CTL_OPTS.*/OVS_CTL_OPTS='--delete-bridges'/" /etc/default/openvswitch-switch
 
@@ -48,4 +35,9 @@ systemctl restart rsyslog
 mkdir -p /var/opt/magma/fluent-bit
 
 # Restart all services on package install
+if [ -f /var/run/sctpd.version ]; then
+    /usr/bin/env python3 -c 'from distutils.version import LooseVersion; import sys; ver = lambda n: LooseVersion(open(n).read()); sys.exit(1) if ver("/var/run/sctpd.version") < ver("/usr/local/share/magma/sctpd_min_version") else sys.exit(0)' || systemctl restart sctpd
+else
+    killall -9 sctpd || true
+fi
 systemctl restart magma@* || true

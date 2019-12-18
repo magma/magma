@@ -27,7 +27,7 @@ import {withSnackbar} from 'notistack';
 
 type Props = {
   location: Location,
-  onLocationRemoved: () => void,
+  onLocationRemoved: (removedLocation: Location) => void,
 } & WithAlert &
   WithSnackbarProps;
 
@@ -98,7 +98,7 @@ class LocationMoreActionsButton extends React.Component<Props> {
             ConnectionHandler.deleteNode(locations, location.id);
           }
 
-          this.props.onLocationRemoved();
+          this.props.onLocationRemoved(location);
           store.delete(location.id);
         };
 

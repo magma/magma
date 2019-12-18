@@ -25,7 +25,7 @@ type TenantQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Tenant
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (tq *TenantQuery) Clone() *TenantQuery {
 		order:      append([]Order{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Tenant{}, tq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: tq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type TenantGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (tgb *TenantGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }

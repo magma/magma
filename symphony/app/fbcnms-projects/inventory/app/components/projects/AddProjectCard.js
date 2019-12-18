@@ -125,6 +125,7 @@ const addProjectCard__projectTypeQuery = graphql`
         isEditable
         isInstanceProperty
         isDeleted
+        isMandatory
       }
     }
   }

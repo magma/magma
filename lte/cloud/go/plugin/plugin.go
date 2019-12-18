@@ -90,5 +90,6 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		&subscriberdbstreamer.SubscribersProvider{},
 		&policydbstreamer.PoliciesProvider{},
 		&policydbstreamer.BaseNamesProvider{},
+		&policydbstreamer.RuleMappingsProvider{},
 	}
 }
