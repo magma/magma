@@ -10,6 +10,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -49,82 +50,215 @@ const (
 )
 
 func TestGetConfigureAlertHandler(t *testing.T) {
+	// Successful Post
 	client := &mocks.PrometheusAlertClient{}
 	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
 	client.On("WriteRule", testNID, sampleAlert1).Return(nil)
-
-	configureAlert := GetConfigureAlertHandler(client, "")
-
+	client.On("ReloadPrometheus").Return(nil)
 	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
 
-	err := configureAlert(c)
+	err := GetConfigureAlertHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "ValidateRule", sampleAlert1)
-	client.AssertCalled(t, "RuleExists", testNID, sampleAlert1.Alert)
-	client.AssertCalled(t, "WriteRule", testNID, sampleAlert1)
+	client.AssertExpectations(t)
+
+	// Rule validation fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("ValidateRule", sampleAlert1).Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
+
+	err = GetConfigureAlertHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Rule already exists
+	client = &mocks.PrometheusAlertClient{}
+	client.On("ValidateRule", sampleAlert1).Return(nil)
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
+	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
+
+	err = GetConfigureAlertHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=Rule 'testAlert1' already exists`)
+	client.AssertExpectations(t)
+
+	// Write fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("ValidateRule", sampleAlert1).Return(nil)
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
+	client.On("WriteRule", testNID, sampleAlert1).Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
+
+	err = GetConfigureAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+
+	// Reload Prometheus fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("ValidateRule", sampleAlert1).Return(nil)
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
+	client.On("WriteRule", testNID, sampleAlert1).Return(nil)
+	client.On("ReloadPrometheus").Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
+
+	err = GetConfigureAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetRetrieveAlertHandler(t *testing.T) {
+	// Successful Get
 	client := &mocks.PrometheusAlertClient{}
 	client.On("ReadRules", testNID, "").Return([]rulefmt.Rule{sampleAlert1}, nil)
-
-	retrieveAlert := GetRetrieveAlertHandler(client)
-
 	c, rec := buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
 
-	err := retrieveAlert(c)
+	err := GetRetrieveAlertHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "ReadRules", testNID, "")
+	client.AssertExpectations(t)
+
+	// Error reading rules
+	client = &mocks.PrometheusAlertClient{}
+	client.On("ReadRules", testNID, "").Return(nil, errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPost, "/", AlertPath, testNID)
+
+	err = GetRetrieveAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetDeleteAlertHandler(t *testing.T) {
+	// Successful Delete
 	client := &mocks.PrometheusAlertClient{}
 	client.On("DeleteRule", testNID, sampleAlert1.Alert).Return(nil)
-
-	deleteAlert := GetDeleteAlertHandler(client, "")
+	client.On("ReloadPrometheus").Return(nil)
 
 	q := make(url.Values)
 	q.Set(ruleNameQueryParam, sampleAlert1.Alert)
 	c, rec := buildContext(nil, http.MethodDelete, "/?"+q.Encode(), AlertPath, testNID)
 
-	err := deleteAlert(c)
+	err := GetDeleteAlertHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "DeleteRule", testNID, sampleAlert1.Alert)
+	client.AssertExpectations(t)
 
 	// No alert name given
+	client = &mocks.PrometheusAlertClient{}
 	c, _ = buildContext(nil, http.MethodDelete, "/", AlertPath, testNID)
-	err = deleteAlert(c)
-	assert.Error(t, err)
+
+	err = GetDeleteAlertHandler(client)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
-	// assert DeleteRule hasn't been called again
-	client.AssertNumberOfCalls(t, "DeleteRule", 1)
+	client.AssertExpectations(t)
+
+	// Delete failed in client
+	client = &mocks.PrometheusAlertClient{}
+	client.On("DeleteRule", testNID, sampleAlert1.Alert).Return(errors.New("error"))
+	c, rec = buildContext(nil, http.MethodDelete, "/?"+q.Encode(), AlertPath, testNID)
+
+	err = GetDeleteAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+
+	// Prometheus reload failed
+	client = &mocks.PrometheusAlertClient{}
+	client.On("DeleteRule", testNID, sampleAlert1.Alert).Return(nil)
+	client.On("ReloadPrometheus").Return(errors.New("error"))
+	c, rec = buildContext(nil, http.MethodDelete, "/?"+q.Encode(), AlertPath, testNID)
+
+	err = GetDeleteAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestUpdateAlertHandler(t *testing.T) {
+	// Successful Update
 	client := &mocks.PrometheusAlertClient{}
 	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
 	client.On("ValidateRule", sampleAlert1).Return(nil)
 	client.On("UpdateRule", testNID, sampleAlert1).Return(nil)
-
-	updateAlert := GetUpdateAlertHandler(client, "")
-
+	client.On("ReloadPrometheus").Return(nil)
 	c, rec := buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err := updateAlert(c)
+	err := GetUpdateAlertHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	client.AssertCalled(t, "RuleExists", testNID, sampleAlert1.Alert)
-	client.AssertCalled(t, "ValidateRule", sampleAlert1)
-	client.AssertCalled(t, "UpdateRule", testNID, sampleAlert1)
+	client.AssertExpectations(t)
+
+	// No rule name provided
+	client = &mocks.PrometheusAlertClient{}
+	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
+
+	err = GetUpdateAlertHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=No rule name provided`)
+	client.AssertExpectations(t)
+
+	// Rule does not exist
+	client = &mocks.PrometheusAlertClient{}
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(false)
+	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
+	c.SetParamNames("file_prefix", RuleNamePathParam)
+	c.SetParamValues(testNID, sampleAlert1.Alert)
+
+	err = GetUpdateAlertHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=Rule 'testAlert1' does not exist`)
+	client.AssertExpectations(t)
+
+	// Validate rule fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
+	client.On("ValidateRule", sampleAlert1).Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
+	c.SetParamNames("file_prefix", RuleNamePathParam)
+	c.SetParamValues(testNID, sampleAlert1.Alert)
+
+	err = GetUpdateAlertHandler(client)(c)
+	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=400, message=error`)
+	client.AssertExpectations(t)
+
+	// Update rule fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
+	client.On("ValidateRule", sampleAlert1).Return(nil)
+	client.On("UpdateRule", testNID, sampleAlert1).Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
+	c.SetParamNames("file_prefix", RuleNamePathParam)
+	c.SetParamValues(testNID, sampleAlert1.Alert)
+
+	err = GetUpdateAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
+
+	// Reload Prometheus fails
+	client = &mocks.PrometheusAlertClient{}
+	client.On("RuleExists", testNID, sampleAlert1.Alert).Return(true)
+	client.On("ValidateRule", sampleAlert1).Return(nil)
+	client.On("UpdateRule", testNID, sampleAlert1).Return(nil)
+	client.On("ReloadPrometheus").Return(errors.New("error"))
+	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
+	c.SetParamNames("file_prefix", RuleNamePathParam)
+	c.SetParamValues(testNID, sampleAlert1.Alert)
+
+	err = GetUpdateAlertHandler(client)(c)
+	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
+	assert.EqualError(t, err, `code=500, message=error`)
+	client.AssertExpectations(t)
 }
 
 func TestGetBulkAlertUpdateHandler(t *testing.T) {
+	// Successful Bulk Update
 	client := &mocks.PrometheusAlertClient{}
 	bulkAlerts := []rulefmt.Rule{sampleAlert1, sampleAlert2}
 	sampleUpdateResult := alert.BulkUpdateResults{
@@ -133,8 +267,7 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	}
 	client.On("BulkUpdateRules", testNID, bulkAlerts).Return(sampleUpdateResult, nil)
 	client.On("ValidateRule", mock.Anything).Return(nil)
-
-	bulkUpdateFunc := GetBulkAlertUpdateHandler(client, "")
+	client.On("ReloadPrometheus").Return(nil)
 
 	bytes, err := json.Marshal([]rulefmt.Rule{sampleAlert1, sampleAlert2})
 	assert.NoError(t, err)
@@ -147,10 +280,9 @@ func TestGetBulkAlertUpdateHandler(t *testing.T) {
 	c.SetParamNames("file_prefix")
 	c.SetParamValues(testNID)
 
-	err = bulkUpdateFunc(c)
+	err = GetBulkAlertUpdateHandler(client)(c)
 	assert.NoError(t, err)
-	client.AssertCalled(t, "BulkUpdateRules", testNID, bulkAlerts)
-	client.AssertCalled(t, "ValidateRule", mock.Anything)
+	client.AssertExpectations(t)
 	assert.Equal(t, http.StatusOK, rec.Code)
 
 	var results alert.BulkUpdateResults

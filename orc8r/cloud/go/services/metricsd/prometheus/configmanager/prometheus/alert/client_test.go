@@ -173,5 +173,5 @@ func newTestClient(multitenant bool) alert.PrometheusAlertClient {
 	fsClient.On("ReadFile", "test_rules/test_rules.yml").Return([]byte(testRuleFile), nil)
 	fsClient.On("ReadFile", "test_rules/other_rules.yml").Return([]byte(otherRuleFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return alert.NewClient(fileLocks, "test_rules", fsClient, multitenant)
+	return alert.NewClient(fileLocks, "test_rules", "prometheus-host.com", fsClient, multitenant)
 }

@@ -9,7 +9,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -18,7 +17,6 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
@@ -29,14 +27,13 @@ const (
 	AlertUpdatePath = AlertPath + "/:" + RuleNamePathParam
 	AlertBulkPath   = AlertPath + "/bulk"
 
-	prometheusReloadPath = "/-/reload"
-	ruleNameQueryParam   = "alert_name"
-	RuleNamePathParam    = "alert_name"
+	ruleNameQueryParam = "alert_name"
+	RuleNamePathParam  = "alert_name"
 )
 
 // GetConfigureAlertHandler returns a handler that calls the client method WriteAlert() to
 // write the alert configuration from the body of this request
-func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetConfigureAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		rule, err := decodeRulePostRequest(c)
 		if err != nil {
@@ -58,7 +55,7 @@ func GetConfigureAlertHandler(client alert.PrometheusAlertClient, prometheusURL 
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		err = reloadPrometheus(prometheusURL)
+		err = client.ReloadPrometheus()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -83,7 +80,7 @@ func GetRetrieveAlertHandler(client alert.PrometheusAlertClient) func(c echo.Con
 	}
 }
 
-func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetDeleteAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.QueryParam(ruleNameQueryParam)
 		filePrefix := getFilePrefix(c)
@@ -94,7 +91,7 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		err = reloadPrometheus(prometheusURL)
+		err = client.ReloadPrometheus()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -102,7 +99,7 @@ func GetDeleteAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 	}
 }
 
-func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetUpdateAlertHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		ruleName := c.Param(RuleNamePathParam)
 		filePrefix := getFilePrefix(c)
@@ -129,7 +126,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 
-		err = reloadPrometheus(prometheusURL)
+		err = client.ReloadPrometheus()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -137,7 +134,7 @@ func GetUpdateAlertHandler(client alert.PrometheusAlertClient, prometheusURL str
 	}
 }
 
-func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient, prometheusURL string) func(c echo.Context) error {
+func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
 		filePrefix := getFilePrefix(c)
 
@@ -158,7 +155,7 @@ func GetBulkAlertUpdateHandler(client alert.PrometheusAlertClient, prometheusURL
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = reloadPrometheus(prometheusURL)
+		err = client.ReloadPrometheus()
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -197,22 +194,6 @@ func decodeBulkRulesPostRequest(c echo.Context) ([]rulefmt.Rule, error) {
 		return payload, fmt.Errorf("error unmarshalling payload: %v", err)
 	}
 	return payload, nil
-}
-
-func reloadPrometheus(url string) error {
-	if url == "" {
-		glog.Info("Not reloading prometheus. No url given.")
-		return nil
-	}
-	resp, err := http.Post(fmt.Sprintf("http://%s%s", url, prometheusReloadPath), "text/plain", &bytes.Buffer{})
-	if err != nil {
-		return fmt.Errorf("error reloading prometheus: %v", err)
-	}
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("error reloading prometheus (status %d): %s", resp.StatusCode, string(body))
-	}
-	return nil
 }
 
 func getFilePrefix(c echo.Context) string {

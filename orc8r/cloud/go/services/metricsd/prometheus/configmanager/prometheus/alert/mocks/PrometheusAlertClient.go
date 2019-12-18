@@ -73,6 +73,20 @@ func (_m *PrometheusAlertClient) ReadRules(filePrefix string, ruleName string) (
 	return r0, r1
 }
 
+// ReloadPrometheus provides a mock function with given fields:
+func (_m *PrometheusAlertClient) ReloadPrometheus() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RuleExists provides a mock function with given fields: filePrefix, rulename
 func (_m *PrometheusAlertClient) RuleExists(filePrefix string, rulename string) bool {
 	ret := _m.Called(filePrefix, rulename)

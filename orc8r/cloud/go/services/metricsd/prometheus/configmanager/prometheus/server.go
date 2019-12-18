@@ -35,19 +35,19 @@ func main() {
 	e := echo.New()
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
-	alertClient := alert.NewClient(fileLocks, *rulesDir, fsclient.NewFSClient(), *multitenancy)
+	alertClient := alert.NewClient(fileLocks, *rulesDir, *prometheusURL, fsclient.NewFSClient(), *multitenancy)
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return
 	}
 	e.GET("/", statusHandler)
 
-	e.POST(AlertPath, GetConfigureAlertHandler(alertClient, *prometheusURL))
+	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
 	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
-	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient, *prometheusURL))
-	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient, *prometheusURL))
+	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
+	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
 
-	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient, *prometheusURL))
+	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
