@@ -8,11 +8,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
-from typing import Any
+from typing import Any, List
 
-from lte.protos.policydb_pb2 import PolicyRule
-
+from lte.protos.policydb_pb2 import ActivePolicies, PolicyRule
 from magma.common.streamer import StreamerClient
+from orc8r.protos.streamer_pb2 import DataUpdate
+
 from .rule_store import PolicyRuleDict
 
 
@@ -21,9 +22,8 @@ class PolicyDBStreamerCallback(StreamerClient.Callback):
     Callback implementation for the PolicyDB StreamerClient instance.
     """
 
-    def __init__(self, loop):
+    def __init__(self):
         self._policy_dict = PolicyRuleDict()
-        self._loop = loop
 
     def get_request_args(self, stream_name: str) -> Any:
         return None
@@ -55,3 +55,26 @@ class PolicyDBStreamerCallback(StreamerClient.Callback):
         missing_rules = set(self._policy_dict.keys()) - id_set
         for rule in missing_rules:
             del self._policy_dict[rule]
+
+
+class RuleMappingsStreamerCallback(StreamerClient.Callback):
+    """
+    Callback for the rule mapping streamer policy which persists the policies
+    and basenames active for a subscriber.
+    """
+    def __init__(self):
+        pass
+
+    def get_request_args(self, stream_name: str) -> Any:
+        return None
+
+    def process_update(self, stream_name: str, updates: List[DataUpdate],
+                       resync: bool):
+        logging.info('Processing %d SID -> policy updates', len(updates))
+        policies_by_sid = {}
+        for update in updates:
+            policies = ActivePolicies()
+            policies.ParseFromString(update.value)
+            policies_by_sid[update.key] = policies
+
+        # TODO: delta with state in Redis, send RARs, persist new state
