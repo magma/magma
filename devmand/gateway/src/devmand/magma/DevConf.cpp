@@ -70,9 +70,9 @@ bool DevConf::isDeviceConfFileModifyEvent(FileWatchEvent watchEvent) const {
 
 void DevConf::handleFileWatchEvent(FileWatchEvent watchEvent) {
   // TODO make this debug level
-  LOG(INFO) << "Handling file watch event "
-            << static_cast<int>(watchEvent.event) << " on '"
-            << watchEvent.filename << "'";
+  // LOG(INFO) << "Handling file watch event "
+  //          << static_cast<int>(watchEvent.event) << " on '"
+  //          << watchEvent.filename << "'";
 
   if (isDeviceConfDirModifyEvent(watchEvent) or
       isDeviceConfFileModifyEvent(watchEvent)) {

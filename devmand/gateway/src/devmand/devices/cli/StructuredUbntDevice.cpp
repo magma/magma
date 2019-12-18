@@ -314,7 +314,7 @@ StructuredUbntDevice::StructuredUbntDevice(
     const shared_ptr<CliCache> _cmdCache)
     : Device(application, id_, true), channel(_channel), cmdCache(_cmdCache) {}
 
-void StructuredUbntDevice::setConfig(const dynamic& config) {
+void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
   auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
   const shared_ptr<OpenconfigInterfaces>& ydkModel =

@@ -43,7 +43,7 @@ class Device : public devices::Device {
 
  public:
   std::shared_ptr<Datastore> getOperationalDatastore() override;
-  void setConfig(const folly::dynamic& config) override;
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   void connect();

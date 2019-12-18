@@ -34,7 +34,7 @@ class Device : public devices::Device {
   static folly::dynamic getDemoDatastore();
 
  protected:
-  void setConfig(const folly::dynamic& config) override {
+  void setIntendedDatastore(const folly::dynamic& config) override {
     (void)config;
     LOG(ERROR) << "set config on unconfigurable device";
   }

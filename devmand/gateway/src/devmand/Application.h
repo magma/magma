@@ -93,6 +93,7 @@ class Application : public MetricSink {
 
  private:
   void pollDevices();
+  void tryToApplyRunningDatastoreToDevices();
   void doDebug();
 
   template <class EngineType, class... Args>

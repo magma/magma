@@ -315,7 +315,7 @@ void Device::updateYang(
   }
 }
 
-void Device::setConfig(const folly::dynamic& config) {
+void Device::setIntendedDatastore(const folly::dynamic& config) {
   // TODO: Break out successfully so we don't waste lots of for looping
   // TODO: Figure why we couldn't declare the vector in one line.
   folly::dynamic updateJson = folly::dynamic::object;
@@ -340,7 +340,7 @@ void Device::setConfig(const folly::dynamic& config) {
   // TODO: when this is converted to a response class we may want to do
   // something with the response.
   channel.updateDevice(updateJson, clientMac);
-  // LOG(ERROR) << "Output of setConfig is: " << output;
+  // LOG(ERROR) << "Output of setRunningDatastore is: " << output;
 }
 
 void Device::updateDevice(

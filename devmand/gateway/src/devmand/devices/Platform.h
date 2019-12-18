@@ -68,7 +68,7 @@ class Device : public std::enable_shared_from_this<Device> {
    * by the json overload of apply config. This is normally what users will
    * implement.
    */
-  virtual void setConfig(const folly::dynamic& config) = 0;
+  virtual void setRunningDatastore(const folly::dynamic& config) = 0;
 
   /*
    * Inherited method to override in device instances. This is called by the
@@ -88,7 +88,7 @@ class Device : public std::enable_shared_from_this<Device> {
   Id id;
   const bool readonly;
   folly::dynamic lastConfig;
-  folly::dynamic lastState;
+  folly::dynamic operationalDatastore;
 };
 
 } // namespace devices

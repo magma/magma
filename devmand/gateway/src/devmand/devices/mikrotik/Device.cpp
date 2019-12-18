@@ -23,9 +23,7 @@ std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
-  LOG(INFO) << __FUNCTION__ << " " << __LINE__ << std::endl;
   const auto& otherKv = channelConfigs.at("other").kvPairs;
-  LOG(INFO) << __FUNCTION__ << " " << __LINE__ << std::endl;
   const auto& snmpKv = channelConfigs.at("snmp").kvPairs;
   return std::make_unique<devices::mikrotik::Device>(
       app,
@@ -313,9 +311,9 @@ std::shared_ptr<Datastore> Device::getOperationalDatastore() {
 }
 
 // TODO convert the device to have the concept of an intended config
-void Device::setConfig(const folly::dynamic& config) {
+void Device::setIntendedDatastore(const folly::dynamic& config) {
   auto oldInterfaces = YangUtils::lookup(
-      lastState, "openconfig-interfaces:interfaces/interface");
+      operationalDatastore, "openconfig-interfaces:interfaces/interface");
   auto newInterfaces =
       YangUtils::lookup(config, "openconfig-interfaces:interfaces/interface");
 
@@ -324,6 +322,7 @@ void Device::setConfig(const folly::dynamic& config) {
   if (newInterfaces == nullptr) {
     return;
   }
+
   for (auto& interface : newInterfaces) {
     folly::dynamic state;
     if (oldInterfaces != nullptr) {
@@ -340,25 +339,23 @@ void Device::setConfig(const folly::dynamic& config) {
         ? YangUtils::lookup(state, "state/admin-status")
         : "DNE";
 
-    /*bool isUp{false};
+    bool isUp{false};
     if (adminStatus != nullptr and adminStatus.isString()) {
       if (adminStatus.asString() == "UP") {
         isUp = true;
       }
-    }*/
+    }
 
     if (enabled != nullptr and enabled.isBool()) {
       bool isEnabled = enabled.asBool();
-      if (isEnabled) {
+      if (isEnabled and not isUp) {
         mikrotikCh->writeSentence(
             {"/interface/enable", "=numbers=" + interface["name"].asString()});
         LOG(INFO) << "Interface up " << interface["name"];
-        // SEND UP
-      } else if (not isEnabled) {
+      } else if (not isEnabled and isUp) {
         mikrotikCh->writeSentence(
             {"/interface/disable", "=numbers=" + interface["name"].asString()});
         LOG(INFO) << "Interface down " << interface["name"];
-        // SEND DOWN
       }
     }
   }
