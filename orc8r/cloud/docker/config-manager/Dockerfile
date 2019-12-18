@@ -16,18 +16,18 @@ RUN go mod download
 COPY go/ /go/src/magma/orc8r/cloud/go/
 
 # Build prom_alertconfig service
-WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/prom_alertconfig
-RUN go install .
-WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alertmanager_config
-RUN go install .
+WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/
+RUN go build -i -o $GOBIN/prometheus_configmanager
+WORKDIR /go/src/magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/
+RUN go build -i -o $GOBIN/alertmanager_configmanager
 
 FROM ubuntu:xenial
 
 RUN apt-get update && \
     apt-get install -y supervisor
 
-COPY --from=go /build/bin/prom_alertconfig /bin/prom_alertconfig
-COPY --from=go /build/bin/alertmanager_config /bin/alertmanager_config
+COPY --from=go /build/bin/prometheus_configmanager /bin/prometheus_configmanager
+COPY --from=go /build/bin/alertmanager_configmanager /bin/alertmanager_configmanager
 
 # Copy config files
 COPY docker/config-manager/configs /etc/configs

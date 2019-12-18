@@ -14,7 +14,7 @@ import (
 	"sync"
 
 	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
 	"github.com/prometheus/alertmanager/config"
 
@@ -43,11 +43,11 @@ type AlertmanagerClient interface {
 // Client provides methods to create and read receiver configurations
 type client struct {
 	configPath string
-	fsClient   files.FSClient
+	fsClient   fsclient.FSClient
 	sync.RWMutex
 }
 
-func NewClient(configPath string, fsClient files.FSClient) AlertmanagerClient {
+func NewClient(configPath string, fsClient fsclient.FSClient) AlertmanagerClient {
 	return &client{
 		configPath: configPath,
 		fsClient:   fsClient,
