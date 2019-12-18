@@ -17,6 +17,7 @@ import type { ReaderFragment } from 'relay-runtime';
 type CheckListTable_list$ref = any;
 type CommentsBox_comments$ref = any;
 type EntityDocumentsTable_files$ref = any;
+type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
 export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
@@ -41,10 +42,7 @@ export type WorkOrderDetails_workOrder = {|
       +mapType: ?string,
       +mapZoomLevel: ?number,
     |},
-    +locationHierarchy: $ReadOnlyArray<{|
-      +id: string,
-      +name: string,
-    |}>,
+    +$fragmentRefs: LocationBreadcrumbsTitle_locationDetails$ref,
   |},
   +ownerName: string,
   +assignee: ?string,
@@ -126,17 +124,17 @@ v2 = [
   (v1/*: any*/),
   (v0/*: any*/)
 ],
-v3 = [
-  (v0/*: any*/),
-  (v1/*: any*/)
-],
-v4 = {
+v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "stringValue",
   "args": null,
   "storageKey": null
 },
+v4 = [
+  (v0/*: any*/),
+  (v1/*: any*/)
+],
 v5 = [
   {
     "kind": "FragmentSpread",
@@ -221,14 +219,9 @@ return {
           ]
         },
         {
-          "kind": "LinkedField",
-          "alias": null,
-          "name": "locationHierarchy",
-          "storageKey": null,
-          "args": null,
-          "concreteType": "Location",
-          "plural": true,
-          "selections": (v3/*: any*/)
+          "kind": "FragmentSpread",
+          "name": "LocationBreadcrumbsTitle_locationDetails",
+          "args": null
         }
       ]
     },
@@ -323,10 +316,10 @@ return {
               "args": null,
               "storageKey": null
             },
-            (v4/*: any*/)
+            (v3/*: any*/)
           ]
         },
-        (v4/*: any*/),
+        (v3/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -384,7 +377,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v3/*: any*/)
+          "selections": (v4/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -394,7 +387,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v3/*: any*/)
+          "selections": (v4/*: any*/)
         }
       ]
     },
@@ -469,5 +462,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fa74d8937a8783a5d403eec21e852009';
+(node/*: any*/).hash = '9b380c20d6e50dd6c1295227b9704228';
 module.exports = node;

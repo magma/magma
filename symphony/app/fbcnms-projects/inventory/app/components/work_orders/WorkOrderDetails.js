@@ -28,7 +28,6 @@ import type {WithSnackbarProps} from 'notistack';
 
 import AddImageMutation from '../../mutations/AddImageMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
-import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import CheckListTable from '../checklist/CheckListTable';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import CloudUploadOutlinedIcon from '@material-ui/icons/CloudUploadOutlined';
@@ -43,6 +42,7 @@ import FormValidationContext, {
   FormValidationContextProvider,
 } from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
+import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
 import LocationMapSnippet from '../location/LocationMapSnippet';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -409,16 +409,8 @@ class WorkOrderDetails extends React.Component<Props, State> {
                               <Text weight="regular" variant="subtitle2">
                                 Location
                               </Text>
-                              <Breadcrumbs
-                                className={classes.breadcrumbs}
-                                breadcrumbs={location.locationHierarchy
-                                  .map(b => ({
-                                    id: b.id,
-                                    name: b.name,
-                                  }))
-                                  .concat([
-                                    {id: location.id, name: location.name},
-                                  ])}
+                              <LocationBreadcrumbsTitle
+                                locationDetails={location}
                                 size="small"
                               />
                               <Grid container spacing={2}>
@@ -679,10 +671,7 @@ export default withRouter(
                   mapType
                   mapZoomLevel
                 }
-                locationHierarchy {
-                  id
-                  name
-                }
+                ...LocationBreadcrumbsTitle_locationDetails
               }
               ownerName
               assignee
