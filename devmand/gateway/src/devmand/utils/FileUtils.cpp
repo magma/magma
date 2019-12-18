@@ -16,7 +16,7 @@
 
 #include <folly/GLog.h>
 
-#include <devmand/FileUtils.h>
+#include <devmand/utils/FileUtils.h>
 
 namespace devmand {
 

@@ -48,7 +48,10 @@ class StructuredUbntDevice : public Device {
       Engine& engine);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
+
+ private:
+  Command createInterfaceCommand(string name, bool enabled);
 
  protected:
   void setConfig(const folly::dynamic& config) override;

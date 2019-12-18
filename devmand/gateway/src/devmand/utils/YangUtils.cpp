@@ -7,7 +7,7 @@
 
 #include <folly/GLog.h>
 
-#include <devmand/YangUtils.h>
+#include <devmand/utils/YangUtils.h>
 
 namespace devmand {
 

@@ -18,11 +18,12 @@ namespace devmand {
 class Application;
 
 namespace devices {
+namespace frinx {
 
-class FrinxDevice : public Device {
+class Device : public devices::Device {
  public:
   // TODO object
-  FrinxDevice(
+  Device(
       Application& application,
       const Id& id_,
       bool readonly_,
@@ -37,19 +38,19 @@ class FrinxDevice : public Device {
       const std::string& deviceVersion_,
       const std::string& deviceUsername_,
       const std::string& devicePassword_);
-  FrinxDevice() = delete;
-  virtual ~FrinxDevice();
-  FrinxDevice(const FrinxDevice&) = delete;
-  FrinxDevice& operator=(const FrinxDevice&) = delete;
-  FrinxDevice(FrinxDevice&&) = delete;
-  FrinxDevice& operator=(FrinxDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device();
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
   void setConfig(const folly::dynamic& config) override;
@@ -73,5 +74,6 @@ class FrinxDevice : public Device {
   std::string devicePassword;
 };
 
+} // namespace frinx
 } // namespace devices
 } // namespace devmand

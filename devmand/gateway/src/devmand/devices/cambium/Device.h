@@ -18,10 +18,11 @@ namespace devmand {
 class Application;
 
 namespace devices {
+namespace cambium {
 
-class CambiumDevice : public Device {
+class Device : public devices::Device {
  public:
-  CambiumDevice(
+  Device(
       Application& application,
       const Id& id_,
       bool readonly_,
@@ -29,19 +30,19 @@ class CambiumDevice : public Device {
       const std::string& clientMac_,
       const std::string& clientId_,
       const std::string& clientSecret_);
-  CambiumDevice() = delete;
-  virtual ~CambiumDevice();
-  CambiumDevice(const CambiumDevice&) = delete;
-  CambiumDevice& operator=(const CambiumDevice&) = delete;
-  CambiumDevice(CambiumDevice&&) = delete;
-  CambiumDevice& operator=(CambiumDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device();
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
   void setConfig(const folly::dynamic& config) override;
 
  private:
@@ -74,5 +75,6 @@ class CambiumDevice : public Device {
   folly::dynamic lastUpdate;
 };
 
+} // namespace cambium
 } // namespace devices
 } // namespace devmand

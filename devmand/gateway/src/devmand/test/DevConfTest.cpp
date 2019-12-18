@@ -7,11 +7,11 @@
 
 #include <list>
 
-#include <devmand/FileWatcher.h>
 #include <devmand/cartography/Cartographer.h>
 #include <devmand/magma/DevConf.h>
 #include <devmand/test/EventBaseTest.h>
 #include <devmand/test/Notifier.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 namespace test {

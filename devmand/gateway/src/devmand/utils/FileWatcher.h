@@ -19,7 +19,7 @@
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventHandler.h>
 
-#include <devmand/FileUtils.h>
+#include <devmand/utils/FileUtils.h>
 
 namespace devmand {
 

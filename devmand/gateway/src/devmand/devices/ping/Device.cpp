@@ -11,34 +11,35 @@
 #include <folly/Format.h>
 
 #include <devmand/Application.h>
-#include <devmand/ErrorHandler.h>
-#include <devmand/devices/PingDevice.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
+#include <devmand/devices/ping/Device.h>
+#include <devmand/error/ErrorHandler.h>
 #include <devmand/models/device/Model.h>
 
 namespace devmand {
 namespace devices {
+namespace ping {
 
-std::shared_ptr<devices::Device> PingDevice::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
-  return std::make_unique<devices::PingDevice>(
+  return std::make_unique<devices::ping::Device>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
       folly::IPAddress(deviceConfig.ip));
 }
 
-PingDevice::PingDevice(
+Device::Device(
     Application& application,
     const Id& id_,
     bool readonly_,
     const folly::IPAddress& ip_)
-    : Device(application, id_, readonly_),
+    : devices::Device(application, id_, readonly_),
       channel(application.getPingEngine(ip_), ip_) {}
 
-std::shared_ptr<State> PingDevice::getState() {
-  auto state = State::make(app, getId());
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
+  auto state = Datastore::make(app, getId());
   state->setStatus(false);
   state->update([](auto& lockedState) {
     devmand::models::device::Model::init(lockedState);
@@ -50,10 +51,6 @@ std::shared_ptr<State> PingDevice::getState() {
           lockedState, "ping", "agent", "device", rtt);
     });
 
-    if (rtt != 0) {
-      state->setStatus(true);
-    }
-
     state->setGauge<unsigned long int>(
         "/fbc-symphony-device:system/latencies/"
         "latency[type=ping and src=agent and dst=device]/rtt",
@@ -62,5 +59,6 @@ std::shared_ptr<State> PingDevice::getState() {
   return state;
 }
 
+} // namespace ping
 } // namespace devices
 } // namespace devmand

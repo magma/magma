@@ -13,7 +13,7 @@
 
 #include <devmand/Application.h>
 #include <devmand/Config.h>
-#include <devmand/ErrorHandler.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 namespace devices {
@@ -51,7 +51,7 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
 
   std::weak_ptr<Device> weak(shared_from_this());
   ErrorHandler::thenError(
-      getState()
+      getOperationalDatastore()
           ->collect()
           .thenValue([weak](auto data) {
             if (auto shared = weak.lock()) {
@@ -83,15 +83,8 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
             sharedUnifiedView.withULockPtr([&idL, &data](auto uUnifiedView) {
               auto unifiedView = uUnifiedView.moveFromUpgradeToWrite();
 
-              // TODO this is an expensive hack... fix later. Prob. just store
-              // in dyn and have the magma service convert it.
-              folly::dynamic dyn =
-                  unifiedView->find("devmand") != unifiedView->end()
-                  ? folly::parseJson((*unifiedView)["devmand"])
-                  : folly::dynamic::object;
-              dyn[idL] = data;
-              (*unifiedView)["devmand"] = folly::toJson(dyn);
-              LOG(INFO) << "state for " << idL << " is " << folly::toJson(dyn);
+              unifiedView->emplace(idL, data);
+              LOG(INFO) << "state for " << idL << " is " << folly::toJson(data);
             });
           }));
 }

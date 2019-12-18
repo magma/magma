@@ -29,7 +29,6 @@ namespace devices {
 
 enum class DeviceConfigType { YangJson, NativeConfigJson };
 
-// Loosely modeled on RFC 8342
 class Device : public std::enable_shared_from_this<Device> {
  public:
   Device(Application& application, const Id& id_, bool readonly_);
@@ -81,10 +80,6 @@ class Device : public std::enable_shared_from_this<Device> {
 
   folly::dynamic lookup(const YangPath& path) const;
 
-  folly::dynamic getLastConfig() {
-    return lastConfig;
-  }
-
  private:
   bool isReadonly() const;
 
@@ -94,7 +89,6 @@ class Device : public std::enable_shared_from_this<Device> {
   const bool readonly;
   folly::dynamic lastConfig;
   folly::dynamic lastState;
-  // TODO std::map<std::string, Platform> platforms;
 };
 
 } // namespace devices

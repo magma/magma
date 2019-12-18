@@ -7,7 +7,7 @@
 
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
-#include <devmand/devices/State.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/cli/ModelRegistry.h>
 #include <devmand/devices/cli/ParsingUtils.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
@@ -338,14 +338,14 @@ void StructuredUbntDevice::setConfig(const dynamic& config) {
   }
 }
 
-shared_ptr<State> StructuredUbntDevice::getState() {
+shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   MLOG(MINFO) << "[" << id << "] "
               << "Retrieving state";
 
   // Reset cache
   cmdCache->wlock()->clear();
 
-  auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
+  auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
   state->setStatus(true);
 
   auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
@@ -367,6 +367,14 @@ shared_ptr<State> StructuredUbntDevice::getState() {
   });
 
   return state;
+}
+
+Command StructuredUbntDevice::createInterfaceCommand(
+    string name,
+    bool enabled) {
+  string shutdownCmd = enabled ? "no shutdown" : "shutdown";
+  return Command::makeReadCommand(
+      "configure\ninterface " + name + "\n" + shutdownCmd + "\nend");
 }
 
 } // namespace cli

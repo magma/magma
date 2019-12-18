@@ -11,26 +11,27 @@
 
 namespace devmand {
 namespace devices {
+namespace demo {
 
-class DemoDevice : public Device {
+class Device : public devices::Device {
  public:
-  DemoDevice(Application& application, const Id& id, bool readonly_);
+  Device(Application& application, const Id& id, bool readonly_);
 
-  DemoDevice() = delete;
-  virtual ~DemoDevice() = default;
-  DemoDevice(const DemoDevice&) = delete;
-  DemoDevice& operator=(const DemoDevice&) = delete;
-  DemoDevice(DemoDevice&&) = delete;
-  DemoDevice& operator=(DemoDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device() = default;
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
-  static folly::dynamic getDemoState();
+  static folly::dynamic getDemoDatastore();
 
  protected:
   void setConfig(const folly::dynamic& config) override {
@@ -39,5 +40,6 @@ class DemoDevice : public Device {
   }
 };
 
+} // namespace demo
 } // namespace devices
 } // namespace devmand

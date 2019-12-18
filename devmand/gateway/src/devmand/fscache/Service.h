@@ -9,10 +9,8 @@
 
 #include <devmand/Service.h>
 
-#include <MagmaService.h>
-
 namespace devmand {
-namespace magma {
+namespace fscache {
 
 class Service : public ::devmand::Service {
  public:
@@ -35,17 +33,7 @@ class Service : public ::devmand::Service {
       const std::string& labelValue) override;
 
  private:
-  void setGaugeVA(const std::string& key, double value, size_t labelCount, ...);
-
-  std::list<std::map<std::string, std::string>> getOperationalStates();
-  std::map<std::string, std::string> getServiceInfo();
-
-  // The key that will tell orc8r how to store these states
-  static constexpr auto orc8rDeviceType = "symphony_device";
-
- private:
-  ::magma::service303::MagmaService magmaService;
 };
 
-} // namespace magma
+} // namespace fscache
 } // namespace devmand

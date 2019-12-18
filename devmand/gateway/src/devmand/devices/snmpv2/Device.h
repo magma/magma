@@ -9,32 +9,15 @@
 
 #include <devmand/channels/snmp/Channel.h>
 #include <devmand/channels/snmp/IfMib.h>
-#include <devmand/devices/PingDevice.h>
-
-/* TODO use this
-#include <ydk/netconf_provider.hpp>
-#include <ydk/path_api.hpp>
-#include <ydk_openconfig/openconfig_interfaces.hpp>
-
-  ydk::path::Repository repo{};
-  ydk::path::NetconfSession session{repo,"127.0.0.1", "admin", "admin",  12022};
-  ydk::path::RootSchemaNode schema;
-
-  auto interfaces =
-      std::make_shared<openconfig::openconfig_interfaces::Interfaces>();
-  auto& interface =
-      interfaces.create_datanode("interfaces/interface[ifindex=1]", "");
-  ydk::path::Codec s{};
-  auto             json = s.encode(bgp, ydk::EncodingFormat::JSON, true);
-  std::cerr << json << std::endl;
-*/
+#include <devmand/devices/ping/Device.h>
 
 namespace devmand {
 namespace devices {
+namespace snmpv2 {
 
-class Snmpv2Device : public PingDevice {
+class Device : public ping::Device {
  public:
-  Snmpv2Device(
+  Device(
       Application& application,
       const Id& id,
       bool readonly_,
@@ -45,23 +28,23 @@ class Snmpv2Device : public PingDevice {
       const std::string& securityName = "",
       const channels::snmp::SecurityLevel& securityLevel = "",
       oid proto[] = {});
-  Snmpv2Device() = delete;
-  virtual ~Snmpv2Device() = default;
-  Snmpv2Device(const Snmpv2Device&) = delete;
-  Snmpv2Device& operator=(const Snmpv2Device&) = delete;
-  Snmpv2Device(Snmpv2Device&&) = delete;
-  Snmpv2Device& operator=(Snmpv2Device&&) = delete;
+  Device() = delete;
+  virtual ~Device() = default;
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  private:
   folly::Future<folly::Unit> addToStateWithInterfaceIndices(
-      std::shared_ptr<State> state,
+      std::shared_ptr<Datastore> state,
       const devmand::channels::snmp::InterfaceIndicies& interfaceIndices);
 
  protected:
@@ -74,5 +57,6 @@ class Snmpv2Device : public PingDevice {
   channels::snmp::Channel snmpChannel;
 };
 
+} // namespace snmpv2
 } // namespace devices
 } // namespace devmand

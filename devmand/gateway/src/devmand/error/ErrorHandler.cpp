@@ -5,7 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/ErrorHandler.h>
+#include <devmand/error/ErrorHandler.h>
 
 //#include <folly/experimental/exception_tracer/ExceptionTracer.h>
 
