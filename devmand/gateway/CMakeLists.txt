@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 set(MGM_COM_DIR /usr/lib/)
 # Pass libyang plugins dir
-add_definitions(-DLIBYANG_PLUGINS_DIR="/lib/libyang/")
+add_definitions(-DLIBYANG_PLUGINS_DIR="/usr/lib/libyang/")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
