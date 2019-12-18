@@ -11,7 +11,7 @@ package receivers
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
 
 	"github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"

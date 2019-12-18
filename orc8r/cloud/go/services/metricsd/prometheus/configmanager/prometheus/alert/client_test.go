@@ -11,8 +11,8 @@ package alert_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
