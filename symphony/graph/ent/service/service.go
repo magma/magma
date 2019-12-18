@@ -26,6 +26,8 @@ const (
 	FieldName = "name"
 	// FieldExternalID holds the string denoting the external_id vertex property in the database.
 	FieldExternalID = "external_id"
+	// FieldStatus holds the string denoting the status vertex property in the database.
+	FieldStatus = "status"
 
 	// Table holds the table name of the service in the database.
 	Table = "services"
@@ -71,6 +73,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldExternalID,
+	FieldStatus,
 }
 
 var (

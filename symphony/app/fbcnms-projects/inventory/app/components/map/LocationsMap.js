@@ -17,11 +17,9 @@ import MapLayerLegend from './MapLayerLegend';
 import MapView from './MapView';
 import React, {useEffect, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {fetchQuery, graphql} from 'relay-runtime';
 import {locationsToGeoJSONSource} from './MapUtil';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -84,7 +82,6 @@ type Props = {};
 
 const LocationsMap = (_props: Props) => {
   const classes = useStyles();
-  const router = useRouter();
   const [locationTypes, setLocationsTypes] = useState([]);
   const [selectedTypeIds, setSelectedTypeIds] = useState([]);
   const [error, setError] = useState(null);
@@ -155,12 +152,7 @@ const LocationsMap = (_props: Props) => {
             mode="streets"
             layers={layers.filter(l => selectedTypeIds.includes(l.source.key))}
             getFeaturePopoutContent={feature => (
-              <LocationPopout
-                locationId={feature.properties.id}
-                onLocationClicked={locationId =>
-                  router.history.push(InventoryAPIUrls.location(locationId))
-                }
-              />
+              <LocationPopout locationId={feature.properties.id} />
             )}
             showGeocoder={true}
             showMapSatelliteToggle={true}

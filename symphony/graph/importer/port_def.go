@@ -36,7 +36,7 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 			http.Error(w, fmt.Sprintf("cannot handle file %q", fileName), http.StatusUnprocessableEntity)
 			return
 		}
-		_ = m.populateEquipmentTypeNameToIDMap(ctx, NewImportHeader(firstLine), false)
+		_ = m.populateEquipmentTypeNameToIDMapGeneral(ctx, firstLine, false)
 		equipmentTypeNameToID := getImportContext(ctx).equipmentTypeNameToID
 
 		portNameIndex := findIndex(firstLine, "Port_ID")
@@ -102,7 +102,6 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 				if _, err := m.ClientFrom(ctx).EquipmentPortDefinition.
 					Create().
 					SetName(name).
-					SetType(portType).
 					SetEquipmentPortType(potyTypeObj).
 					SetVisibilityLabel(line[portLabelIndex]).
 					SetBandwidth(line[portBWIndex]).

@@ -27,6 +27,7 @@ class StructuredUbntDevice : public Device {
   StructuredUbntDevice(
       Application& application,
       const Id _id,
+      bool readonly_,
       const std::shared_ptr<Channel> _channel,
       const std::shared_ptr<CliCache> _cmdCache =
           ReadCachingCli::createCache());
@@ -48,10 +49,10 @@ class StructuredUbntDevice : public Device {
       Engine& engine);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override;
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   std::shared_ptr<Channel> channel;

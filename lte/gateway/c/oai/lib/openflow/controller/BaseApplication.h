@@ -32,7 +32,11 @@ namespace openflow {
  * on connection
  */
 class BaseApplication : public Application {
+ public:
+  BaseApplication(bool persist_state);
+
  private:
+  bool persist_state_ = false;
   static const uint32_t LOW_PRIORITY = 0;
   static const uint16_t NEXT_TABLE = 1;
   /**

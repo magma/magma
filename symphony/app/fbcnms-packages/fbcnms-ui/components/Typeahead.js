@@ -10,8 +10,9 @@
 
 import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
+import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -103,6 +104,7 @@ type Props = {
   onSuggestionsClearRequested?: () => void,
   placeholder?: ?string,
   value?: ?Suggestion,
+  disabled?: boolean,
 };
 
 export type Suggestion = {
@@ -127,6 +129,9 @@ const Typeahead = (props: Props) => {
   const [selectedSuggestion, setSelectedSuggestion] = useState(value);
   const classes = useStyles();
   const theme = useTheme();
+
+  const validationContext = useContext(FormValidationContext);
+  const disabled = props.disabled || validationContext.editLock.detected;
   return (
     <div className={classes.container}>
       {selectedSuggestion && onSuggestionsClearRequested ? (
@@ -150,7 +155,7 @@ const Typeahead = (props: Props) => {
               value={selectedSuggestion ? selectedSuggestion.name : ''}
               onChange={emptyFunction}
               suffix={
-                searchTerm === '' ? (
+                searchTerm === '' && !disabled ? (
                   <InputAffix
                     onClick={() => {
                       setSearchTerm('');
@@ -200,6 +205,7 @@ const Typeahead = (props: Props) => {
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),
+            disabled,
           }}
           highlightFirstSuggestion={true}
         />

@@ -100,6 +100,17 @@ func TestSecureRule(t *testing.T) {
 	assert.Equal(t, expectedExpr, rule.Expr)
 	assert.Equal(t, 2, len(rule.Labels))
 	assert.Equal(t, "test", rule.Labels[metrics.NetworkLabelName])
+
+	existingNetworkIDRule := rulefmt.Rule{
+		Alert:  alertName2,
+		Expr:   `up{networkID="test"} == 0`,
+		Labels: map[string]string{"name": "value", "networkID": "test"},
+	}
+	restricted, _ := restrictor.RestrictQuery(existingNetworkIDRule.Expr)
+	// assert networkID isn't appended twice
+	assert.Equal(t, expectedExpr, restricted)
+	assert.Equal(t, 2, len(rule.Labels))
+
 }
 
 func TestRuleJSONWrapper_ToRuleFmt(t *testing.T) {

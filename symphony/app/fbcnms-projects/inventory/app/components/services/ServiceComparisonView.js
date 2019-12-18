@@ -21,10 +21,8 @@ import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
-import SearchIcon from '@material-ui/icons/Search';
 import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
-import ServicesView from './ServicesView';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
@@ -40,7 +38,7 @@ import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useGraphQL} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   cardRoot: {
     height: '100%',
     display: 'flex',
@@ -72,21 +70,6 @@ const useStyles = makeStyles(theme => ({
   searchBar: {
     flexGrow: 1,
   },
-  noResultsRoot: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: '100px',
-  },
-  noResultsLabel: {
-    color: theme.palette.grey[600],
-  },
-  searchIcon: {
-    color: theme.palette.grey[600],
-    marginBottom: '6px',
-    fontSize: '36px',
-  },
 }));
 
 const servicePropertiesQuery = graphql`
@@ -95,20 +78,6 @@ const servicePropertiesQuery = graphql`
       name
       type
       stringValue
-    }
-  }
-`;
-
-const serviceQuery = graphql`
-  query ServiceComparisonViewServiceQuery(
-    $limit: Int
-    $filters: [ServiceFilterInput!]!
-  ) {
-    serviceSearch(limit: $limit, filters: $filters) {
-      services {
-        ...ServicesView_service
-      }
-      count
     }
   }
 `;
@@ -145,6 +114,7 @@ const ServiceComparisonView = () => {
   const [dialogKey, setDialogKey] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [serviceKey, setServiceKey] = useState(1);
+  const [count, setCount] = useState(0);
   const [filters, setFilters] = useState([]);
   const classes = useStyles();
 
@@ -153,30 +123,17 @@ const ServiceComparisonView = () => {
     [location],
   );
 
-  const servicePropertiesDataResponse = useGraphQL(
+  const serviceDataResponse = useGraphQL(
     RelayEnvironment,
     servicePropertiesQuery,
     {},
   );
-
   const possibleProperties = getPossibleProperties(
-    servicePropertiesDataResponse.response,
+    serviceDataResponse.response,
   );
   const servicePropertiesFilterConfigs = buildServicePropertyFilterConfigs(
     possibleProperties,
   );
-
-  const serviceDataResponse = useGraphQL(RelayEnvironment, serviceQuery, {
-    limit: 50,
-    filters: filters.map(f => ({
-      filterType: f.name.toUpperCase(),
-      operator: f.operator.toUpperCase(),
-      stringValue: f.stringValue,
-      propertyValue: f.propertyValue,
-      idSet: f.idSet,
-    })),
-    serviceKey: serviceKey,
-  });
 
   const locationTypesFilterConfigs = useLocationTypes();
 
@@ -206,22 +163,6 @@ const ServiceComparisonView = () => {
       </InventoryErrorBoundary>
     );
   }
-
-  if (
-    serviceDataResponse.response == null ||
-    serviceDataResponse.response.serviceSearch.length === 0
-  ) {
-    return (
-      <div className={classes.noResultsRoot}>
-        <SearchIcon className={classes.searchIcon} />
-        <Text variant="h6" className={classes.noResultsLabel}>
-          No results found
-        </Text>
-      </div>
-    );
-  }
-
-  const {count, services} = serviceDataResponse.response.serviceSearch;
 
   return (
     <InventoryErrorBoundary>
@@ -261,11 +202,14 @@ const ServiceComparisonView = () => {
               </div>
             </div>
             <div className={classes.searchResults}>
-              <ServicesView
-                service={services}
+              <ServiceComparisonViewQueryRenderer
+                limit={50}
+                filters={filters}
                 onServiceSelected={selectedServiceCardId =>
                   navigateToService(selectedServiceCardId)
                 }
+                serviceKey={serviceKey}
+                onQueryReturn={x => setCount(x)}
               />
             </div>
           </div>

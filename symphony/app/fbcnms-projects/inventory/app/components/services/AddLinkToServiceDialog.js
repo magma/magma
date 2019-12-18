@@ -10,7 +10,6 @@
 
 import type {Equipment, Link} from '../../common/Equipment';
 import type {PowerSearchLinkFirstEquipmentResultsTable_equipment} from './__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
-import type {Service} from '../../common/Service';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailableLinksTable from './AvailableLinksTable';
@@ -65,7 +64,7 @@ const styles = theme => ({
 });
 
 type Props = {
-  service: Service,
+  service: {id: string, name: string},
   onClose: () => void,
   onAddLink: (link: Link) => void,
 } & WithStyles<typeof styles>;
@@ -91,7 +90,6 @@ const addLinkToServiceDialogQuery = graphql`
           definition {
             id
             name
-            type
           }
         }
         ...AvailableLinksTable_links
@@ -123,7 +121,7 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
   };
 
   getStepContent = () => {
-    const {classes, service} = this.props;
+    const {classes} = this.props;
     const EquipmentTable = (props: {
       equipment: PowerSearchLinkFirstEquipmentResultsTable_equipment,
     }) => {
@@ -166,15 +164,10 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
             }}
             render={props => {
               const {linkSearch} = props;
-              // TODO: Remove this filtering after commiting links change
-              //       on every link add
-              const links = linkSearch.links.filter(
-                link => !(service.links.map(l => l.id) || []).includes(link.id),
-              );
               return (
                 <AvailableLinksTable
                   equipment={nullthrows(this.state.activeEquipement)}
-                  links={links}
+                  links={linkSearch.links}
                   selectedLink={this.state.activeLink}
                   onLinkSelected={this.handleLinkSelected}
                 />

@@ -17,6 +17,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
@@ -24,6 +26,10 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
+
+func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
+	return &status
+}
 
 func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, positionsCount int, positionPrefix string, portsCount int, props []*models.PropertyTypeInput) *ent.EquipmentType {
 	log := m.log.For(ctx)
@@ -65,7 +71,6 @@ func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, po
 	for i := 1; i <= portsCount; i++ {
 		p := client.EquipmentPortDefinition.Create().
 			SetName(strconv.Itoa(i)).
-			SetType("").
 			SaveX(ctx)
 		wq.AddPortDefinitions(p)
 	}
@@ -86,16 +91,16 @@ func (m *importer) ensureSplitterType(ctx context.Context, name string, inPortsC
 	}
 	q := client.EquipmentType.Create().SetName(name)
 	if inPortsCount == 1 {
-		inP := client.EquipmentPortDefinition.Create().SetName("in").SetType("in").SaveX(ctx)
+		inP := client.EquipmentPortDefinition.Create().SetName("in").SaveX(ctx)
 		q.AddPortDefinitions(inP)
 	} else {
 		for i := 1; i <= inPortsCount; i++ {
-			inP := client.EquipmentPortDefinition.Create().SetName("in" + strconv.Itoa(i)).SetType("in").SaveX(ctx)
+			inP := client.EquipmentPortDefinition.Create().SetName("in" + strconv.Itoa(i)).SaveX(ctx)
 			q.AddPortDefinitions(inP)
 		}
 	}
 	for i := 1; i <= outPortsCount; i++ {
-		outP := client.EquipmentPortDefinition.Create().SetName("out" + strconv.Itoa(i)).SetType("out").SaveX(ctx)
+		outP := client.EquipmentPortDefinition.Create().SetName("out" + strconv.Itoa(i)).SaveX(ctx)
 		q.AddPortDefinitions(outP)
 	}
 	log.Debug("Creating new spliter type", zap.String("name", name))
@@ -166,7 +171,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool) {
+func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -184,12 +189,15 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		)
 	}
 	equip, err := rq.First(ctx)
+	if ent.MaskNotFound(err) != nil {
+		return nil, false, err
+	}
 	if equip != nil {
 		log.Debug("equipment exists",
 			zap.String("name", name),
 			zap.String("type", equipType.ID),
 		)
-		return equip, false
+		return equip, false, nil
 	}
 	if !ent.IsNotFound(err) {
 		panic(err)
@@ -218,11 +226,47 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 	})
 	if err != nil {
 		log.Error("add equipment", zap.String("name", name), zap.Error(err))
-		return nil, false
+		return nil, false, err
 	}
 	log.Debug("Creating new equipment", zap.String("equip.Name", equip.Name), zap.String("equip.ID", equip.ID))
 
-	return equip, true
+	return equip, true, nil
+}
+
+func (m *importer) getOrCreateService(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput) (*ent.Service, bool) {
+	log := m.log.For(ctx)
+	client := m.ClientFrom(ctx)
+	rq := client.ServiceType.Query().
+		Where(servicetype.ID(serviceType.ID)).
+		QueryServices().
+		Where(
+			service.Name(name),
+		)
+	service, err := rq.First(ctx)
+	if service != nil {
+		log.Debug("service exists",
+			zap.String("name", name),
+			zap.String("type", serviceType.ID),
+		)
+		return service, false
+	}
+	if !ent.IsNotFound(err) {
+		panic(err)
+	}
+
+	service, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          name,
+		ServiceTypeID: serviceType.ID,
+		Properties:    props,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	if err != nil {
+		log.Error("add service", zap.String("name", name), zap.Error(err))
+		return nil, false
+	}
+	log.Debug("Creating new service", zap.String("service.Name", service.Name), zap.String("service.ID", service.ID))
+
+	return service, true
 }
 
 func (m *importer) deleteEquipmentIfExists(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, pos *ent.EquipmentPosition) error {

@@ -29,7 +29,6 @@ func createPort() models.EquipmentPortInput {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 	return portInput
 }

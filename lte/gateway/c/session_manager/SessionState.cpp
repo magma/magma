@@ -179,6 +179,7 @@ void SessionState::complete_termination()
   termination.set_imsi_plmn_id(config_.imsi_plmn_id);
   termination.set_user_location(config_.user_location);
   termination.set_hardware_addr(config_.hardware_addr);
+  termination.set_rat_type(config_.rat_type);
   monitor_pool_.get_termination_updates(&termination);
   charging_pool_.get_termination_updates(&termination);
   try {

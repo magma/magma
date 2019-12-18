@@ -12,13 +12,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 )
 
 type ActionsAction struct {
-	ActionID    ActionID `json:"actionID"`
-	Description string   `json:"description"`
-	DataType    string   `json:"dataType"`
+	ActionID    core.ActionID `json:"actionID"`
+	Description string        `json:"description"`
+	DataType    core.DataType `json:"dataType"`
 }
 
 type ActionsFilter struct {
@@ -28,14 +29,14 @@ type ActionsFilter struct {
 }
 
 type ActionsOperator struct {
-	OperatorID  string `json:"operatorID"`
-	Description string `json:"description"`
-	DataInput   string `json:"dataInput"`
+	OperatorID  string        `json:"operatorID"`
+	Description string        `json:"description"`
+	DataType    core.DataType `json:"dataType"`
 }
 
 type ActionsRuleActionInput struct {
-	ActionID ActionID `json:"actionID"`
-	Data     string   `json:"data"`
+	ActionID core.ActionID `json:"actionID"`
+	Data     string        `json:"data"`
 }
 
 type ActionsRuleFilterInput struct {
@@ -51,7 +52,7 @@ type ActionsRulesSearchResult struct {
 
 type ActionsTrigger struct {
 	ID               string           `json:"id"`
-	TriggerID        TriggerID        `json:"triggerID"`
+	TriggerID        core.TriggerID   `json:"triggerID"`
 	Description      string           `json:"description"`
 	SupportedActions []*ActionsAction `json:"supportedActions"`
 	SupportedFilters []*ActionsFilter `json:"supportedFilters"`
@@ -64,7 +65,7 @@ type ActionsTriggersSearchResult struct {
 
 type AddActionsRuleInput struct {
 	Name        string                    `json:"name"`
-	TriggerID   string                    `json:"triggerID"`
+	TriggerID   core.TriggerID            `json:"triggerID"`
 	RuleActions []*ActionsRuleActionInput `json:"ruleActions"`
 	RuleFilters []*ActionsRuleFilterInput `json:"ruleFilters"`
 }
@@ -346,7 +347,6 @@ type EquipmentPortInput struct {
 	Name         string  `json:"name"`
 	Index        *int    `json:"index"`
 	VisibleLabel *string `json:"visibleLabel"`
-	Type         string  `json:"type"`
 	PortTypeID   *string `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
 }
@@ -535,6 +535,7 @@ type PropertyTypeInput struct {
 	IsEditable         *bool        `json:"isEditable"`
 	IsInstanceProperty *bool        `json:"isInstanceProperty"`
 	IsMandatory        *bool        `json:"isMandatory"`
+	IsDeleted          *bool        `json:"isDeleted"`
 }
 
 type PythonPackage struct {
@@ -564,6 +565,7 @@ type SearchEntryEdge struct {
 type ServiceCreateData struct {
 	Name                string           `json:"name"`
 	ExternalID          *string          `json:"externalId"`
+	Status              *ServiceStatus   `json:"status"`
 	ServiceTypeID       string           `json:"serviceTypeId"`
 	CustomerID          *string          `json:"customerId"`
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
@@ -573,8 +575,9 @@ type ServiceCreateData struct {
 
 type ServiceEditData struct {
 	ID                  string           `json:"id"`
-	Name                string           `json:"name"`
+	Name                *string          `json:"name"`
 	ExternalID          *string          `json:"externalId"`
+	Status              *ServiceStatus   `json:"status"`
 	CustomerID          *string          `json:"customerId"`
 	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
 	Properties          []*PropertyInput `json:"properties"`
@@ -753,45 +756,6 @@ type WorkOrderTypeConnection struct {
 type WorkOrderTypeEdge struct {
 	Node   *ent.WorkOrderType `json:"node"`
 	Cursor Cursor             `json:"cursor"`
-}
-
-type ActionID string
-
-const (
-	ActionIDMagmaRebootNode ActionID = "magma_reboot_node"
-)
-
-var AllActionID = []ActionID{
-	ActionIDMagmaRebootNode,
-}
-
-func (e ActionID) IsValid() bool {
-	switch e {
-	case ActionIDMagmaRebootNode:
-		return true
-	}
-	return false
-}
-
-func (e ActionID) String() string {
-	return string(e)
-}
-
-func (e *ActionID) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = ActionID(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid ActionID", str)
-	}
-	return nil
-}
-
-func (e ActionID) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type CellularNetworkType string
@@ -1486,6 +1450,51 @@ func (e ServiceFilterType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ServiceStatus string
+
+const (
+	ServiceStatusPending      ServiceStatus = "PENDING"
+	ServiceStatusInService    ServiceStatus = "IN_SERVICE"
+	ServiceStatusMaintenance  ServiceStatus = "MAINTENANCE"
+	ServiceStatusDisconnected ServiceStatus = "DISCONNECTED"
+)
+
+var AllServiceStatus = []ServiceStatus{
+	ServiceStatusPending,
+	ServiceStatusInService,
+	ServiceStatusMaintenance,
+	ServiceStatusDisconnected,
+}
+
+func (e ServiceStatus) IsValid() bool {
+	switch e {
+	case ServiceStatusPending, ServiceStatusInService, ServiceStatusMaintenance, ServiceStatusDisconnected:
+		return true
+	}
+	return false
+}
+
+func (e ServiceStatus) String() string {
+	return string(e)
+}
+
+func (e *ServiceStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceStatus", str)
+	}
+	return nil
+}
+
+func (e ServiceStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type SurveyQuestionType string
 
 const (
@@ -1544,45 +1553,6 @@ func (e *SurveyQuestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type TriggerID string
-
-const (
-	TriggerIDMagmaAlert TriggerID = "magma_alert"
-)
-
-var AllTriggerID = []TriggerID{
-	TriggerIDMagmaAlert,
-}
-
-func (e TriggerID) IsValid() bool {
-	switch e {
-	case TriggerIDMagmaAlert:
-		return true
-	}
-	return false
-}
-
-func (e TriggerID) String() string {
-	return string(e)
-}
-
-func (e *TriggerID) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = TriggerID(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid TriggerID", str)
-	}
-	return nil
-}
-
-func (e TriggerID) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -116,13 +116,21 @@ func (m *importer) processLocationsCSV(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 					}
-					q := client.LocationType.Query().
-						QueryLocations().
+
+					q := client.Location.Query().
+						Where(location.HasTypeWith(locationtype.ID(locationTypeID))).
 						Where(location.Name(name))
 					if parentID != nil {
 						q = q.Where(location.HasParentWith(location.ID(*parentID)))
+					} else {
+						q = q.Where(location.Not(location.HasParent()))
 					}
-					id, _ := q.FirstID(ctx)
+					id, err := q.FirstID(ctx)
+					if ent.MaskNotFound(err) != nil {
+						log.Warn("query location", zap.Error(err))
+						http.Error(w, fmt.Sprintf("query location. name=%q. row=%d", name, i), http.StatusInternalServerError)
+						return
+					}
 					if id == "" {
 						ltyp := client.LocationType.Query().Where(locationtype.ID(locationTypeID)).OnlyX(ctx)
 						l, _ := m.getOrCreateLocation(ctx, name, lat, long, ltyp, parentID, propertyInput, &externalID)

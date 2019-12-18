@@ -326,8 +326,8 @@ TEST_F(SessiondTest, end_to_end_success)
 
   LocalEndSessionResponse update_resp;
   grpc::ClientContext end_context;
-  SubscriberID end_request;
-  end_request.set_id("IMSI1");
+  LocalEndSessionRequest end_request;
+  end_request.mutable_sid()->set_id("IMSI1");
   stub->EndSession(&end_context, end_request, &update_resp);
 
   set_timeout(5000, &end_promise);

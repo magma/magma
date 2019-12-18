@@ -25,6 +25,6 @@ class MsgCounterHandler(logging.Handler):
         self.count_by_level[level] += 1
 
     def pop_error_count(self) -> int:
-        error_count = self.count_by_level['ERROR']
+        error_count = self.count_by_level.get('ERROR', 0)
         self.count_by_level['ERROR'] = 0
         return error_count

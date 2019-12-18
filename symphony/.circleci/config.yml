@@ -42,7 +42,7 @@ executors:
   terraform:
     parameters:
       tag:
-        default: 0.12.17
+        default: 0.12.18
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -560,6 +560,7 @@ workflows:
                 command: test -z $TESTIMIO_SKIP || circleci step halt
             - tfathalt:
                 <<: *tfvardir
+          options: "--suite Sanity"
           requires:
             - staging/deploy
       - tfapply:

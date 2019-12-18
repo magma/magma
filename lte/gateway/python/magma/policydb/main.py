@@ -25,7 +25,7 @@ def main():
     chan = ServiceRegistry.get_rpc_channel('subscriberdb',
                                            ServiceRegistry.LOCAL)
     subscriberdb_stub = SubscriberDBStub(chan)
-    session_servicer = SessionRpcServicer(service.config, subscriberdb_stub)
+    session_servicer = SessionRpcServicer(service.mconfig, subscriberdb_stub)
     session_servicer.add_to_server(service.rpc_server)
 
     # Start a background thread to stream updates from the cloud

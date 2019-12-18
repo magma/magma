@@ -9,7 +9,7 @@
 
 #include <folly/dynamic.h>
 
-#include <devmand/YangUtils.h>
+#include <devmand/utils/YangUtils.h>
 
 namespace devmand {
 namespace models {

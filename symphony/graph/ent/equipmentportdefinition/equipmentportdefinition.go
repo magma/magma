@@ -24,8 +24,6 @@ const (
 	FieldUpdateTime = "update_time"
 	// FieldName holds the string denoting the name vertex property in the database.
 	FieldName = "name"
-	// FieldType holds the string denoting the type vertex property in the database.
-	FieldType = "type"
 	// FieldIndex holds the string denoting the index vertex property in the database.
 	FieldIndex = "index"
 	// FieldBandwidth holds the string denoting the bandwidth vertex property in the database.
@@ -64,7 +62,6 @@ var Columns = []string{
 	FieldCreateTime,
 	FieldUpdateTime,
 	FieldName,
-	FieldType,
 	FieldIndex,
 	FieldBandwidth,
 	FieldVisibilityLabel,

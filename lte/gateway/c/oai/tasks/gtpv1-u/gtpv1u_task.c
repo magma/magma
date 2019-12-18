@@ -14,7 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
+ *------------------------------------------------------------------------------
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
@@ -40,13 +40,13 @@
 #include "pgw_config.h"
 #include "spgw_config.h"
 
-const struct gtp_tunnel_ops *gtp_tunnel_ops;
+const struct gtp_tunnel_ops* gtp_tunnel_ops;
 
-static void *gtpv1u_thread(void *args)
+static void* gtpv1u_thread(void* args)
 {
   itti_mark_task_ready(TASK_GTPV1_U);
 
-  gtpv1u_data_t *gtpv1u_data = (gtpv1u_data_t *) args;
+  gtpv1u_data_t* gtpv1u_data = (gtpv1u_data_t*) args;
 
   while (1) {
     /*
@@ -54,7 +54,7 @@ static void *gtpv1u_thread(void *args)
      * * * * If the queue is empty, this function will block till a
      * * * * message is sent to the task.
      */
-    MessageDef *received_message_p = NULL;
+    MessageDef* received_message_p = NULL;
 
     itti_receive_msg(TASK_GTPV1_U, &received_message_p);
     DevAssert(received_message_p != NULL);
@@ -81,7 +81,10 @@ static void *gtpv1u_thread(void *args)
 }
 
 //------------------------------------------------------------------------------
-int gtpv1u_init(spgw_state_t *spgw_state_p, spgw_config_t *spgw_config)
+int gtpv1u_init(
+  spgw_state_t* spgw_state_p,
+  spgw_config_t* spgw_config,
+  bool persist_state)
 {
   int rv = 0;
   struct in_addr netaddr;
@@ -123,7 +126,8 @@ int gtpv1u_init(spgw_state_t *spgw_state_p, spgw_config_t *spgw_config)
     netmask,
     spgw_config->pgw_config.ipv4.mtu_SGI,
     &spgw_state_p->sgw_state.gtpv1u_data.fd0,
-    &spgw_state_p->sgw_state.gtpv1u_data.fd1u);
+    &spgw_state_p->sgw_state.gtpv1u_data.fd1u,
+    persist_state);
 
   // END-GTP quick integration only for evaluation purpose
 
@@ -140,7 +144,7 @@ int gtpv1u_init(spgw_state_t *spgw_state_p, spgw_config_t *spgw_config)
 }
 
 //------------------------------------------------------------------------------
-void gtpv1u_exit(gtpv1u_data_t *const gtpv1u_data)
+void gtpv1u_exit(gtpv1u_data_t* const gtpv1u_data)
 {
   gtp_tunnel_ops->uninit();
   itti_exit_task();

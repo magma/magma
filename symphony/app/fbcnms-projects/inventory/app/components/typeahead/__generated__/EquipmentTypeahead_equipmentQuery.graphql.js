@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5eba6ea0eb4c8f8c2f79e14244e6966f
+ * @relayHash 69e7e06dad66591397aeaab9339db037
  */
 
 /* eslint-disable */
@@ -43,6 +43,7 @@ export type PropertyTypeInput = {|
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
   isMandatory?: ?boolean,
+  isDeleted?: ?boolean,
 |};
 export type EquipmentTypeahead_equipmentQueryVariables = {|
   filters: $ReadOnlyArray<EquipmentFilterInput>

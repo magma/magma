@@ -65,7 +65,7 @@ class PCEFClient : public GRPCReceiver {
    * Proxy a EndSession gRPC call to sessiond
    */
   static void end_session(
-    const SubscriberID &request,
+    const LocalEndSessionRequest &request,
     std::function<void(Status, LocalEndSessionResponse)> callback);
 
  public:

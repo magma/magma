@@ -106,7 +106,7 @@ static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_report_location(IMSI_TO_HWID, imsi_str);
+  directoryd_report_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Reported UE location to directoryd, IMSI: " IMSI_64_FMT "\n",
@@ -117,7 +117,7 @@ static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_remove_location(IMSI_TO_HWID, imsi_str);
+  directoryd_remove_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Deleted UE location from directoryd, IMSI: " IMSI_64_FMT "\n",
@@ -392,8 +392,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
       ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
   }
-  // Release emm and esm context
-  _clear_emm_ctxt(&ue_context_p->emm_context);
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
 
   ue_context_p->send_ue_purge_request = false;
@@ -969,7 +967,8 @@ void mme_remove_ue_context(
 
   if (!lock_ue_contexts(ue_context_p)) {
     mme_app_ue_context_free_content(ue_context_p);
-
+    // Release emm and esm context
+    _clear_emm_ctxt(&ue_context_p->emm_context);
     // IMSI
     if (ue_context_p->emm_context._imsi64) {
       hash_rc = hashtable_uint64_ts_remove(

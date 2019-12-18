@@ -14,12 +14,12 @@ package hlr_proxy
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/hlr"
 	"magma/feg/gateway/registry"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -39,7 +39,7 @@ func getHlrProxyClient() (*hlrProxyClient, error) {
 	conn, err = registry.GetConnection(registry.HLR_PROXY)
 	if err != nil {
 		errMsg := fmt.Sprintf("HLR Proxy client initialization error: %s", err)
-		glog.Error(errMsg)
+		log.Printf(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &hlrProxyClient{
@@ -59,21 +59,30 @@ func Authenticate(ctx context.Context, req *protos.AuthenticationRequest) (*prot
 	if err != nil {
 		return nil, err
 	}
-	hlrAns, err := cli.AuthInfo(ctx, &hlr.AuthInfoReq{
+	hlrReq := &hlr.AuthInfoReq{
 		UserName:                req.GetUserName(),
 		NumRequestedUmtsVectors: req.GetSipNumAuthVectors(),
-		ResyncInfo: &hlr.AuthInfoReq_ResyncInfo{
+	}
+	if rsLen := len(req.GetResyncInfo()); rsLen > int(resyncRandEnd) {
+		hlrReq.ResyncInfo = &hlr.AuthInfoReq_ResyncInfo{
 			Rand: req.GetResyncInfo()[:resyncRandEnd],
-			Autn: req.GetResyncInfo()[resyncRandEnd:resyncAuthEnd]},
-	})
+			Autn: req.GetResyncInfo()[resyncRandEnd:rsLen]}
+	} else if rsLen > 0 {
+		log.Printf("HLR Auth - Invalid ResyncInfo length: %d", rsLen)
+	}
+	hlrAns, err := cli.AuthInfo(ctx, hlrReq)
+
 	res := &protos.AuthenticationAnswer{
 		UserName:       req.GetUserName(),
 		SipAuthVectors: []*protos.AuthenticationAnswer_SIPAuthVector{}}
 	if err != nil {
+		log.Printf("HLR RPC Error: %v", err)
 		return res, err
 	}
 	if hlrAns.GetErrorCode() != hlr.ErrorCode_SUCCESS {
-		return res, fmt.Errorf("HLR Error: %s for User: %s", hlrAns.GetErrorCode().String(), req.GetUserName())
+		msg := fmt.Sprintf("HLR Error: %s for User: %s", hlrAns.GetErrorCode().String(), req.GetUserName())
+		log.Print(msg)
+		return res, errors.New(msg)
 	}
 	for _, v := range hlrAns.GetUmtsVectors() {
 		res.SipAuthVectors = append(res.SipAuthVectors, &protos.AuthenticationAnswer_SIPAuthVector{

@@ -41,6 +41,19 @@ func EquipmentTypes(ctx context.Context, client *ent.Client) (*models.EquipmentT
 	return &models.EquipmentTypeConnection{Edges: edges}, err
 }
 
+// ServiceTypes is a helper to bring service types
+func ServiceTypes(ctx context.Context, client *ent.Client) (*models.ServiceTypeConnection, error) {
+	sts, err := client.ServiceType.Query().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "querying service types")
+	}
+	edges := make([]*models.ServiceTypeEdge, len(sts))
+	for i, et := range sts {
+		edges[i] = &models.ServiceTypeEdge{Node: et}
+	}
+	return &models.ServiceTypeConnection{Edges: edges}, err
+}
+
 // EquipmentPortTypes is a helper to bring equipment port types
 func EquipmentPortTypes(ctx context.Context, client *ent.Client) (*models.EquipmentPortTypeConnection, error) {
 	ets, err := client.EquipmentPortType.Query().All(ctx)
@@ -146,6 +159,48 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 	}, err
 }
 
+// nolint: dupl
+func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error) {
+	var (
+		query = client.Location.Query()
+		err   error
+	)
+	for _, f := range filters {
+		switch {
+		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
+			if query, err = handleLocationFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "LOCATION_TYPE"):
+			if query, err = handleLocationTypeFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
+			if query, err = handleLocationPropertyFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+	count, err := query.Clone().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Count query failed")
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	locs, err := query.All(ctx)
+
+	if err != nil {
+		return nil, errors.Wrapf(err, "Querying locations failed")
+	}
+
+	return &models.LocationSearchResult{
+		Locations: locs,
+		Count:     count,
+	}, err
+}
+
+// nolint: dupl
 func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error) {
 	var (
 		query = client.Link.Query()
@@ -195,6 +250,7 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	}, nil
 }
 
+// nolint: dupl
 func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
 	var (
 		query = client.Service.Query()

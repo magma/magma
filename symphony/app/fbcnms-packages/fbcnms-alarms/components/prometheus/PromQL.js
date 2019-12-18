@@ -40,16 +40,25 @@ export class Function implements Expression {
 export class InstantSelector implements Expression {
   selectorName: ?string;
   labels: ?Labels;
+  offset: ?Range;
 
-  constructor(selectorName: ?string, labels: ?Labels) {
+  constructor(selectorName: ?string, labels: ?Labels, offset: ?Range) {
     this.selectorName = selectorName;
     this.labels = labels || new Labels();
+    this.offset = offset;
   }
 
   toPromQL(): string {
     return (
-      (this.selectorName || '') + (this.labels ? this.labels.toPromQL() : '')
+      (this.selectorName || '') +
+      (this.labels ? this.labels.toPromQL() : '') +
+      (this.offset ? ' offset ' + this.offset.toString() : '')
     );
+  }
+
+  setOffset(offset: Range) {
+    this.offset = offset;
+    return this;
   }
 }
 
@@ -142,6 +151,11 @@ export class Labels {
     return this;
   }
 
+  removeByName(name: string): Labels {
+    this.labels = this.labels.filter(label => label.name !== name);
+    return this;
+  }
+
   len(): number {
     return this.labels.length;
   }
@@ -187,13 +201,13 @@ export class BinaryOperation implements Expression {
   lh: Expression;
   rh: Expression;
   operator: BinaryOperator;
-  clause: ?Clause;
+  clause: ?VectorMatchClause;
 
   constructor(
     lh: Expression,
     rh: Expression,
     operator: BinaryOperator,
-    clause: ?Clause,
+    clause: ?VectorMatchClause,
   ) {
     this.lh = lh;
     this.rh = rh;
@@ -206,6 +220,23 @@ export class BinaryOperation implements Expression {
       `${this.lh.toPromQL()} ${this.operator} ` +
       (this.clause ? this.clause.toString() + ' ' : '') +
       `${this.rh.toPromQL()}`
+    );
+  }
+}
+
+export class VectorMatchClause {
+  matchClause: Clause;
+  groupClause: ?Clause;
+
+  constructor(matchClause: Clause, groupClause: ?Clause) {
+    this.matchClause = matchClause;
+    this.groupClause = groupClause;
+  }
+
+  toString(): string {
+    return (
+      this.matchClause.toString() +
+      (this.groupClause ? ' ' + this.groupClause.toString() : '')
     );
   }
 }
@@ -235,7 +266,8 @@ export class AggregationOperation implements Expression {
     clause: ?Clause,
   ) {
     this.name = name;
-    (this.parameters = parameters), (this.clause = clause);
+    this.parameters = parameters;
+    this.clause = clause;
   }
 
   toPromQL(): string {
@@ -245,5 +277,17 @@ export class AggregationOperation implements Expression {
       ')' +
       (this.clause ? ' ' + this.clause.toString() : '')
     );
+  }
+}
+
+export class String implements Expression {
+  value: string;
+
+  constructor(value: string) {
+    this.value = value;
+  }
+
+  toPromQL(): string {
+    return `"${this.value}"`;
   }
 }

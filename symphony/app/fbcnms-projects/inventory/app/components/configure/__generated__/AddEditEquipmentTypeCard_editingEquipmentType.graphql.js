@@ -47,7 +47,6 @@ export type AddEditEquipmentTypeCard_editingEquipmentType = {|
     +name: string,
     +index: ?number,
     +visibleLabel: ?string,
-    +type: string,
     +portType: ?{|
       +id: string,
       +name: string,
@@ -82,18 +81,11 @@ v1 = {
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "type",
-  "args": null,
-  "storageKey": null
-},
-v3 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "index",
   "args": null,
   "storageKey": null
 },
-v4 = {
+v3 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "visibleLabel",
@@ -120,8 +112,14 @@ return {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "type",
+          "args": null,
+          "storageKey": null
+        },
         (v2/*: any*/),
-        (v3/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -198,8 +196,8 @@ return {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
-        (v3/*: any*/),
-        (v4/*: any*/)
+        (v2/*: any*/),
+        (v3/*: any*/)
       ]
     },
     {
@@ -213,9 +211,8 @@ return {
       "selections": [
         (v0/*: any*/),
         (v1/*: any*/),
-        (v3/*: any*/),
-        (v4/*: any*/),
         (v2/*: any*/),
+        (v3/*: any*/),
         {
           "kind": "LinkedField",
           "alias": null,

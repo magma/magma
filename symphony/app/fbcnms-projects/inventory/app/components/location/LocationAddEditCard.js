@@ -255,7 +255,6 @@ class LocationAddEditCard extends React.Component<Props, State> {
                 <GPSPropertyValueInput
                   label="Location"
                   margin="normal"
-                  required={true}
                   fullWidth
                   className={classes.input}
                   value={{

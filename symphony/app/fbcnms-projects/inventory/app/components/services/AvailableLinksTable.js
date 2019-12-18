@@ -265,7 +265,6 @@ export default withStyles(styles)(
           definition {
             id
             name
-            type
           }
         }
       }

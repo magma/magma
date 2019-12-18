@@ -44,7 +44,7 @@ func (m *Trigger) SupportedFilters() []core.Filter {
 }
 
 // Evaluate runs evaluations of this trigger
-func (m *Trigger) Evaluate(r core.Rule) (bool, error) {
+func (m *Trigger) Evaluate(r core.Rule, inputParams map[string]interface{}) (bool, error) {
 	args := m.Called(r)
 	return args.Bool(0), args.Error(1)
 }

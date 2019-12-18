@@ -24,6 +24,7 @@ import LocationCard from '../components/LocationCard';
 import LocationsTree from '../components/LocationsTree';
 import React from 'react';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {InventoryAPIUrls} from '../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../common/RouterUtils';
 import {withRouter} from 'react-router-dom';
@@ -90,27 +91,15 @@ class Inventory extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    const selectedLocationId = extractEntityIdFromUrl(
-      'location',
-      props.location.search,
-    );
-    const selectedEquipmentId = extractEntityIdFromUrl(
-      'equipment',
-      props.location.search,
-    );
-    let card = SHOW_LOCATION_CARD;
-    if (selectedEquipmentId) {
-      card = SHOW_EQUIPMENT_CARD;
-    }
     this.state = {
-      card: card,
+      card: SHOW_LOCATION_CARD,
       dialogMode: 'hidden',
       errorMessage: null,
       parentLocationId: null,
-      selectedEquipmentId,
+      selectedEquipmentId: null,
       selectedEquipmentPosition: null,
       selectedEquipmentType: null,
-      selectedLocationId,
+      selectedLocationId: null,
       selectedLocationType: null,
       selectedWorkOrderId: null,
       openLocationHierarchy: [],
@@ -123,17 +112,13 @@ class Inventory extends React.Component<Props, State> {
       source,
     });
 
-    const {match} = this.props;
-    this.props.history.push(
-      `${match.url}` +
-        (selectedLocationId ? `?location=${selectedLocationId}` : ''),
-    );
-    this.setState({
-      card: SHOW_LOCATION_CARD,
-      selectedLocationId,
-      selectedEquipmentId: null,
-      selectedEquipmentPosition: null,
-    });
+    if (selectedLocationId != null) {
+      if (selectedLocationId != this.state.selectedLocationId) {
+        this.props.history.push(InventoryAPIUrls.location(selectedLocationId));
+      } else {
+        this.setLocationCardState(selectedLocationId);
+      }
+    }
   }
 
   navigateToEquipment(selectedEquipmentId: ?string, source: ?string) {
@@ -141,17 +126,9 @@ class Inventory extends React.Component<Props, State> {
       equipmentId: selectedEquipmentId,
       source,
     });
-    const {match} = this.props;
-    this.props.history.push(
-      `${match.url}` +
-        (selectedEquipmentId ? `?equipment=${selectedEquipmentId}` : ''),
-    );
-    this.setState({
-      card: SHOW_EQUIPMENT_CARD,
-      selectedEquipmentId,
-      selectedLocationId: null,
-      selectedEquipmentPosition: null,
-    });
+    if (selectedEquipmentId != null) {
+      this.props.history.push(InventoryAPIUrls.equipment(selectedEquipmentId));
+    }
   }
 
   navigateToWorkOrder(selectedWorkOrderCardId: ?string) {
@@ -161,9 +138,58 @@ class Inventory extends React.Component<Props, State> {
     }
   }
 
+  setLocationCardState(locationId) {
+    const {
+      card,
+      selectedLocationId,
+      selectedEquipmentId,
+      selectedEquipmentPosition,
+    } = this.state;
+
+    if (
+      card === SHOW_LOCATION_CARD &&
+      selectedLocationId === locationId &&
+      selectedEquipmentId === null &&
+      selectedEquipmentPosition === null
+    ) {
+      return;
+    }
+
+    this.setState({
+      card: SHOW_LOCATION_CARD,
+      selectedLocationId: locationId,
+      selectedEquipmentId: null,
+      selectedEquipmentPosition: null,
+    });
+  }
+
   render() {
     const {classes} = this.props;
     const {card} = this.state;
+
+    const queryLocationId = extractEntityIdFromUrl(
+      'location',
+      this.props.location.search,
+    );
+    if (queryLocationId !== this.state.selectedLocationId) {
+      this.setLocationCardState(queryLocationId);
+    } else if (queryLocationId === null) {
+      const queryEquipmentId = extractEntityIdFromUrl(
+        'equipment',
+        this.props.location.search,
+      );
+      if (queryEquipmentId !== this.state.selectedEquipmentId) {
+        this.setState({
+          card: SHOW_EQUIPMENT_CARD,
+          selectedEquipmentId: queryEquipmentId,
+          selectedLocationId: null,
+          selectedEquipmentPosition: null,
+        });
+      } else if (queryEquipmentId === null) {
+        this.setLocationCardState(null);
+      }
+    }
+
     return (
       <>
         <InventoryTopBar
@@ -216,9 +242,6 @@ class Inventory extends React.Component<Props, State> {
                   }
                   onAddEquipment={() => this.showDialog('equipment')}
                   onLocationRemoved={this.onDeleteLocation}
-                  onLocationSelected={selectedLocationId =>
-                    this.navigateToLocation(selectedLocationId)
-                  }
                 />
               )}
               {card.type == 'equipment' && (
@@ -352,10 +375,12 @@ class Inventory extends React.Component<Props, State> {
     });
   };
 
-  onDeleteLocation = () => {
+  onDeleteLocation = (deletedLocation: Location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
-    this.navigateToLocation(null);
     this.props.alert('Location removed successfuly');
+    this.navigateToLocation(
+      deletedLocation?.parentLocation?.id || this.state.parentLocationId || '',
+    );
   };
 }
 

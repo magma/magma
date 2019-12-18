@@ -25,6 +25,7 @@ type ServiceCreate struct {
 	update_time        *time.Time
 	name               *string
 	external_id        *string
+	status             *string
 	_type              map[string]struct{}
 	downstream         map[string]struct{}
 	upstream           map[string]struct{}
@@ -79,6 +80,12 @@ func (sc *ServiceCreate) SetNillableExternalID(s *string) *ServiceCreate {
 	if s != nil {
 		sc.SetExternalID(*s)
 	}
+	return sc
+}
+
+// SetStatus sets the status field.
+func (sc *ServiceCreate) SetStatus(s string) *ServiceCreate {
+	sc.status = &s
 	return sc
 }
 
@@ -237,6 +244,9 @@ func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
 		}
 	}
+	if sc.status == nil {
+		return nil, errors.New("ent: missing required field \"status\"")
+	}
 	if len(sc._type) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"type\"")
 	}
@@ -281,6 +291,10 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 	if value := sc.external_id; value != nil {
 		insert.Set(service.FieldExternalID, *value)
 		s.ExternalID = value
+	}
+	if value := sc.status; value != nil {
+		insert.Set(service.FieldStatus, *value)
+		s.Status = *value
 	}
 
 	id, err := insertLastID(ctx, tx, insert.Returning(service.FieldID))

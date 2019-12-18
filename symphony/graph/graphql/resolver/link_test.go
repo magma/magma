@@ -36,7 +36,6 @@ func TestAddLink(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:  "parent_equipment_type",
@@ -115,7 +114,6 @@ func TestAddLinkWithProperties(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 		PortTypeID:   &portType.ID,
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -213,7 +211,6 @@ func TestEditLinkWithProperties(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 		PortTypeID:   &portType.ID,
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -314,7 +311,6 @@ func TestRemoveLink(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:  "parent_equipment_type",
@@ -372,7 +368,6 @@ func TestAddLinkWithWorkOrder(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:  "parent_equipment_type",
@@ -443,7 +438,6 @@ func TestRemoveLinkWithWorkOrder(t *testing.T) {
 		Name:         "Port 1",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
-		Type:         "Eth",
 	}
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:  "parent_equipment_type",

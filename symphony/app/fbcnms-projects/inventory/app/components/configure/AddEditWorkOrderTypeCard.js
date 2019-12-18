@@ -12,12 +12,15 @@ import AddWorkOrderTypeMutation from '../../mutations/AddWorkOrderTypeMutation';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import CheckListTable from '../checklist/CheckListTable';
+import DeleteOutlineIcon from '@material-ui/icons/DeleteOutline';
 import EditWorkOrderTypeMutation from '../../mutations/EditWorkOrderTypeMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import PropertyTypeTable from '../form/PropertyTypeTable';
 import React from 'react';
+import RemoveWorkOrderTypeMutation from '../../mutations/RemoveWorkOrderTypeMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {ConnectionHandler} from 'relay-runtime';
@@ -85,6 +88,16 @@ const styles = theme => ({
     display: 'block',
     marginLeft: 'auto',
   },
+  deleteButton: {
+    cursor: 'pointer',
+    color: symphony.palette.D400,
+    width: '32px',
+    height: '32px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: '8px',
+  },
 });
 
 type Props = WithSnackbarProps &
@@ -99,14 +112,12 @@ type Props = WithSnackbarProps &
 type State = {
   editingWorkOrderType: WorkOrderType,
   isSaving: boolean,
-  isInEditMode: boolean,
 };
 
 class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
   state = {
     editingWorkOrderType: this.getEditingWorkOrderType(),
     isSaving: false,
-    isInEditMode: true,
   };
 
   render() {
@@ -137,6 +148,11 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           size="large"
         />
         <div className={classes.buttons}>
+          {!!this.props.editingWorkOrderType && (
+            <div className={classes.deleteButton}>
+              <DeleteOutlineIcon onClick={this.onDelete} />
+            </div>
+          )}
           <Button
             className={classes.cancelButton}
             skin="regular"
@@ -160,6 +176,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           </ExpandingPanel>
           <ExpandingPanel title="Properties">
             <PropertyTypeTable
+              supportDelete={true}
               propertyTypes={propertyTypes}
               onPropertiesChanged={this._propertyChangedHandler}
             />
@@ -313,6 +330,39 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     AddWorkOrderTypeMutation(variables, callbacks, updater);
   };
 
+  onDelete = () => {
+    const {editingWorkOrderType, confirm, onClose} = this.props;
+    if (!editingWorkOrderType) {
+      return;
+    }
+
+    confirm(
+      `Are you sure you want to delete "${editingWorkOrderType.name}"?`,
+    ).then(confirm => {
+      if (!confirm) {
+        return;
+      }
+      RemoveWorkOrderTypeMutation(
+        {id: editingWorkOrderType.id},
+        {
+          onCompleted: onClose,
+          onError: (error: Error) => {
+            this.props.alert(`Error: ${error.message}`);
+          },
+        },
+        store => {
+          const rootQuery = store.getRoot();
+          const workOrderTypes = ConnectionHandler.getConnection(
+            rootQuery,
+            'Configure_workOrderTypes',
+          );
+          ConnectionHandler.deleteNode(workOrderTypes, editingWorkOrderType.id);
+          store.delete(editingWorkOrderType.id);
+        },
+      );
+    });
+  };
+
   fieldChangedHandler = (field: 'name' | 'description') => value =>
     this.setState({
       editingWorkOrderType: {
@@ -349,6 +399,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
     const editingWorkOrderType = this.props.editingWorkOrderType;
     const propertyTypes = (editingWorkOrderType?.propertyTypes ?? [])
       .filter(Boolean)
+      .filter(propertyType => !propertyType.isDeleted)
       .map(p => ({
         id: p.id,
         name: p.name,
@@ -363,6 +414,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
         isEditable: p.isEditable,
         isMandatory: p.isMandatory,
         isInstanceProperty: p.isInstanceProperty,
+        isDeleted: p.isDeleted,
       }));
     // eslint-disable-next-line flowtype/no-weak-types
     const checkListDefinitions: Array<any> = (
@@ -379,7 +431,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       }));
 
     return {
-      id: editingWorkOrderType?.id ?? 'WorkOrderType@tmp0',
+      id: editingWorkOrderType?.id ?? 'WorkOrderType@tmp-0',
       name: editingWorkOrderType?.name ?? '',
       description: editingWorkOrderType?.description,
       numberOfWorkOrders: editingWorkOrderType?.numberOfWorkOrders ?? 0,
@@ -398,6 +450,7 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
           isEditable: true,
           isMandatory: false,
           isInstanceProperty: true,
+          isDeleted: false,
         },
       ],
       checkListDefinitions: checkListDefinitions,
@@ -431,6 +484,7 @@ export default withStyles(styles)(
               isEditable
               isMandatory
               isInstanceProperty
+              isDeleted
             }
             checkListDefinitions {
               id

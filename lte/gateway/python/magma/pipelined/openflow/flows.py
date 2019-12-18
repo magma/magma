@@ -409,6 +409,32 @@ def set_barrier(datapath):
     messages.send_msg(datapath, parser.OFPBarrierRequest(datapath))
 
 
+def get_delete_flow_msg(datapath, table, match, actions=None, instructions=None,
+                        **kwargs):
+    """
+    Get an delete flow message that deletes a specified flow
+
+    Args:
+        datapath (ryu.controller.controller.Datapath): Datapath to message.
+        table (int): Table number of the flow
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions of the flow.
+        instructions ([OFPInstruction]):
+            List of instructions of the flow.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    return parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
+                            match=ryu_match, instructions=inst,
+                            table_id=table, out_group=ofproto.OFPG_ANY,
+                            out_port=ofproto.OFPP_ANY,
+                            **kwargs)
+
+
 def delete_flow(datapath, table, match, actions=None, instructions=None,
                 retries=3, **kwargs):
     """
@@ -428,18 +454,9 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
     Raises:
         MagmaOFError: if the flow can't be deleted
     """
-    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-    inst = __get_instructions_for_actions(ofproto, parser,
-                                          actions, instructions)
-    ryu_match = parser.OFPMatch(**match.ryu_match)
-
-    mod = parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
-                            match=ryu_match, instructions=inst,
-                            table_id=table, out_group=ofproto.OFPG_ANY,
-                            out_port=ofproto.OFPP_ANY,
-                            **kwargs)
-    logger.debug('flowmod: %s (table %s)', mod, table)
-    messages.send_msg(datapath, mod, retries=retries)
+    msg = get_delete_flow_msg(datapath, table, match, actions, instructions, **kwargs)
+    logger.debug('flowmod: %s (table %s)', msg, table)
+    messages.send_msg(datapath, msg, retries=retries)
 
 
 def delete_all_flows_from_table(datapath, table, retries=3):

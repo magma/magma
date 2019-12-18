@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -152,7 +151,6 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 	bandwidth := "10/100/1000BASE-T"
 	portDef := models.EquipmentPortInput{
 		Name:         "Port 1",
-		Type:         "Eth",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
 	}
@@ -167,7 +165,6 @@ func TestAddEquipmentTypeWithPorts(t *testing.T) {
 	require.Len(t, ports, 1)
 
 	assert.Equal(t, ports[0].Name, "Port 1")
-	assert.Equal(t, ports[0].Type, "Eth")
 	assert.Equal(t, ports[0].VisibilityLabel, visibleLabel)
 	assert.Equal(t, ports[0].Bandwidth, bandwidth)
 }
@@ -219,7 +216,6 @@ func TestRemoveEquipmentType(t *testing.T) {
 	bandwidth := "10/100/1000BASE-T"
 	portDef := models.EquipmentPortInput{
 		Name:         "Port 1",
-		Type:         "Eth",
 		VisibleLabel: &visibleLabel,
 		Bandwidth:    &bandwidth,
 	}
@@ -401,7 +397,6 @@ func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	label := "v1"
 	strPortType := models.EquipmentPortInput{
 		Name:         "str_prop",
-		Type:         "string",
 		Bandwidth:    &bandwidth,
 		VisibleLabel: &label,
 	}
@@ -424,7 +419,6 @@ func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	strPortType = models.EquipmentPortInput{
 		ID:           &strPort.ID,
 		Name:         "str_port_edited",
-		Type:         "string",
 		Bandwidth:    &bandwidth,
 		VisibleLabel: &label,
 	}
@@ -432,7 +426,6 @@ func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	labelInt := "v2 new"
 	intPortType := models.EquipmentPortInput{
 		Name:         "int_port",
-		Type:         "int",
 		Bandwidth:    &bandwidthInt,
 		VisibleLabel: &labelInt,
 	}
@@ -458,18 +451,6 @@ func TestEditEquipmentTypeWithPortsAndPositions(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, eqType.Name, newType.Name, "successfully edited equipment type name")
-
-	strPort = eqType.QueryPortDefinitions().Where(equipmentportdefinition.Type("string")).OnlyX(ctx)
-	require.Equal(t, "str_port_edited", strPort.Name, "successfully edited prop type name")
-	require.Equal(t, bandwidth, strPort.Bandwidth, "successfully edited prop type string value")
-	require.Equal(t, label, strPort.VisibilityLabel, "successfully edited prop type string value")
-	require.Equal(t, "string", strPort.Type, "successfully edited prop type string value")
-
-	intPort := eqType.QueryPortDefinitions().Where(equipmentportdefinition.Type("int")).OnlyX(ctx)
-	require.Equal(t, "int_port", intPort.Name, "successfully edited prop type name")
-	require.Equal(t, bandwidthInt, intPort.Bandwidth, "successfully edited prop type string value")
-	require.Equal(t, labelInt, intPort.VisibilityLabel, "successfully edited prop type string value")
-	require.Equal(t, "int", intPort.Type, "successfully edited prop type string value")
 
 	pos1 := eqType.QueryPositionDefinitions().Where(equipmentpositiondefinition.Name("str_pos_edited")).OnlyX(ctx)
 	require.Equal(t, label, pos1.VisibilityLabel, "successfully edited prop type string value")

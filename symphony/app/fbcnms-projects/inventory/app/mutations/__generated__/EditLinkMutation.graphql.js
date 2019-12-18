@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1ce4544fffe8197e557751e123523ce6
+ * @relayHash 0cc6c5e9628f9897724ff8ba6fbcbab9
  */
 
 /* eslint-disable */
@@ -52,7 +52,6 @@ export type EditLinkMutationResponse = {|
         +id: string,
         +name: string,
         +visibleLabel: ?string,
-        +type: string,
         +portType: ?{|
           +linkPropertyTypes: $ReadOnlyArray<?{|
             +id: string,
@@ -84,7 +83,6 @@ export type EditLinkMutationResponse = {|
             +id: string,
             +name: string,
             +visibleLabel: ?string,
-            +type: string,
             +bandwidth: ?string,
             +portType: ?{|
               +id: string,
@@ -152,7 +150,6 @@ mutation EditLinkMutation(
         id
         name
         visibleLabel
-        type
         portType {
           linkPropertyTypes {
             id
@@ -185,7 +182,6 @@ mutation EditLinkMutation(
             id
             name
             visibleLabel
-            type
             bandwidth
             portType {
               id
@@ -455,7 +451,6 @@ v20 = {
         (v2/*: any*/),
         (v4/*: any*/),
         (v5/*: any*/),
-        (v6/*: any*/),
         {
           "kind": "ScalarField",
           "alias": null,
@@ -608,7 +603,6 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v5/*: any*/),
-                  (v6/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -690,7 +684,6 @@ return {
                   (v2/*: any*/),
                   (v4/*: any*/),
                   (v5/*: any*/),
-                  (v6/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
@@ -809,7 +802,7 @@ return {
     "operationKind": "mutation",
     "name": "EditLinkMutation",
     "id": null,
-    "text": "mutation EditLinkMutation(\n  $input: EditLinkInput!\n) {\n  editLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        type\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            type\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation EditLinkMutation(\n  $input: EditLinkInput!\n) {\n  editLink(input: $input) {\n    id\n    futureState\n    ports {\n      id\n      definition {\n        id\n        name\n        visibleLabel\n        portType {\n          linkPropertyTypes {\n            id\n            name\n            type\n            index\n            stringValue\n            intValue\n            booleanValue\n            floatValue\n            latitudeValue\n            longitudeValue\n            rangeFromValue\n            rangeToValue\n            isEditable\n            isInstanceProperty\n            isMandatory\n          }\n          id\n        }\n      }\n      parentEquipment {\n        id\n        name\n        futureState\n        equipmentType {\n          id\n          name\n          portDefinitions {\n            id\n            name\n            visibleLabel\n            bandwidth\n            portType {\n              id\n              name\n            }\n          }\n        }\n        ...EquipmentBreadcrumbs_equipment\n      }\n    }\n    workOrder {\n      id\n      status\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n    }\n    services {\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

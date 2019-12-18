@@ -9,7 +9,6 @@
  */
 
 import type {Link} from '../../common/Equipment';
-import type {Service} from '../../common/Service';
 
 import AddLinkToServiceDialog from './AddLinkToServiceDialog';
 import Dialog from '@material-ui/core/Dialog';
@@ -20,7 +19,7 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {makeStyles} from '@material-ui/styles';
 
 type Props = {
-  service: Service,
+  service: {id: string, name: string},
   anchorEl: ?HTMLElement,
   onClose: () => void,
   onAddLink: (link: Link) => void,
