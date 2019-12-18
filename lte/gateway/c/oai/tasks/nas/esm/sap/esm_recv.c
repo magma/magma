@@ -534,6 +534,11 @@ esm_cause_t esm_recv_pdn_disconnect_request(
 
   struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
 
+  /* Send PDN disconnect reject if there is only one PDN connection*/
+  if (emm_context->esm_ctx.n_pdns == 1) {
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM,
+      ESM_CAUSE_LAST_PDN_DISCONNECTION_NOT_ALLOWED );
+  }
   esm_data->pti = pti;
 
   /*

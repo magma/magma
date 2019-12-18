@@ -947,12 +947,13 @@ int mme_app_handle_create_sess_resp(
     /*
      * Depending on s11 result we have to send reject or accept for bearers
      */
-    DevCheck(
-      (bearer_id < BEARERS_PER_UE) && (bearer_id >= 0),
-      bearer_id,
-      BEARERS_PER_UE,
-      0);
-
+    if (ue_context_p->emm_context.esm_ctx.n_active_ebrs > BEARERS_PER_UE) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - The total number of active EPSbearers has exceeded %d\n",
+        ue_context_p->emm_context.esm_ctx.n_active_ebrs);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);;
+    }
     if (
       create_sess_resp_pP->bearer_contexts_created.bearer_contexts[i]
         .cause.cause_value != REQUEST_ACCEPTED) {
