@@ -102,6 +102,20 @@ func (_m *AlertmanagerClient) ModifyNetworkRoute(networkID string, route *config
 	return r0
 }
 
+// ReloadAlertmanager provides a mock function with given fields:
+func (_m *AlertmanagerClient) ReloadAlertmanager() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // UpdateReceiver provides a mock function with given fields: networkID, newRec
 func (_m *AlertmanagerClient) UpdateReceiver(networkID string, newRec *receivers.Receiver) error {
 	ret := _m.Called(networkID, newRec)
