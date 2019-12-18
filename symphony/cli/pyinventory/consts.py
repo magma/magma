@@ -7,7 +7,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from .reporter import DummyReporter
 
 
-__version__ = "2.2.2"
+__version__ = "2.3.2"
 
 DUMMY_REPORTER = DummyReporter()
 
