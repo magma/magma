@@ -23,6 +23,7 @@ type Props = {
   className: string,
   inputClassName?: ?string,
   label: ?string,
+  disabled?: boolean,
   property: Property | PropertyType,
   onChange: (Property | PropertyType) => void,
   margin: 'none' | 'dense' | 'normal',
@@ -50,6 +51,7 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
       className,
       inputClassName,
       autoFocus,
+      disabled = false,
     } = this.props;
     const propertyType = !!property.propertyType
       ? property.propertyType
@@ -63,6 +65,7 @@ class EnumPropertySelectValueInput extends React.Component<Props> {
         id="property-value"
         variant="outlined"
         autoFocus={autoFocus}
+        disabled={disabled}
         className={classNames(classes.input, className)}
         inputProps={{className: inputClassName}}
         label={this.props.label}
