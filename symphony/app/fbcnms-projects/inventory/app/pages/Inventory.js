@@ -357,10 +357,12 @@ class Inventory extends React.Component<Props, State> {
     });
   };
 
-  onDeleteLocation = () => {
+  onDeleteLocation = (deletedLocation: Location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
-    this.navigateToLocation(null);
     this.props.alert('Location removed successfuly');
+    this.navigateToLocation(
+      deletedLocation?.parentLocation?.id || this.state.parentLocationId || '',
+    );
   };
 }
 

@@ -10,6 +10,7 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {Equipment} from '../../common/Equipment';
+import type {Location} from '../../common/Location';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
@@ -42,7 +43,7 @@ type Props = {
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
-  onLocationRemoved: () => void,
+  onLocationRemoved: (removedLocation: Location) => void,
 } & WithStyles<typeof styles> &
   WithSnackbarProps;
 
