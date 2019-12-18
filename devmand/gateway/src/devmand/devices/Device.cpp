@@ -84,7 +84,10 @@ void Device::updateSharedView(SharedUnifiedView& sharedUnifiedView) {
             sharedUnifiedView.withULockPtr([&idL, &data](auto uUnifiedView) {
               auto unifiedView = uUnifiedView.moveFromUpgradeToWrite();
 
-              unifiedView->emplace(idL, data);
+              if (unifiedView->insert_or_assign(idL, data).second) {
+                LOG(ERROR) << "Failed to update unified view for " << idL;
+              }
+
               LOG(INFO) << "state for " << idL << " is " << folly::toJson(data);
             });
           }));

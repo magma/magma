@@ -73,6 +73,9 @@ void diffSorted(
       } else if (*newIt < *oldIt) {
         doHandle(DiffEvent::Add, newIt, handler);
       } else {
+        if (*oldIt != *newIt) {
+          doHandle(DiffEvent::Modify, newIt, handler);
+        }
         // element is unchanged, step forward
         ++oldIt;
         ++newIt;

@@ -32,7 +32,7 @@ folly::Future<folly::dynamic> Datastore::collect() {
           f();
         }
 
-        s->state.withRLock([&s](auto& unlockedState) {
+        s->datastore.withRLock([&s](auto& unlockedState) {
           auto status = YangUtils::lookup(
               unlockedState, "fbc-symphony-device:system/status");
           if (status != nullptr and status.isString()) {

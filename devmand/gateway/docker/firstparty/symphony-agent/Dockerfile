@@ -11,6 +11,7 @@ RUN %%INSTALL%% procps strace sudo vim gdb curl valgrind
 
 COPY --from=%%DOCKER_REGISTRY%%/thirdparty /cache/install /
 COPY --from=%%DOCKER_REGISTRY%%/firstparty /cache/install /
+# TODO mv ydk install to usr share
 
 COPY --from=%%DOCKER_REGISTRY%%/firstparty /cache/magma/repo/orc8r/gateway/python /tmp/orc8r
 RUN pip3 install /tmp/orc8r

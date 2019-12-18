@@ -428,8 +428,8 @@ TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
 
   auto cli = make_shared<UbntFakeCli>();
   auto channel = make_shared<Channel>("ubntTest", cli);
-  std::unique_ptr<devices::Device> dev =
-      std::make_unique<StructuredUbntDevice>(app, deviceConfig.id, channel);
+  std::unique_ptr<devices::Device> dev = std::make_unique<StructuredUbntDevice>(
+      app, deviceConfig.id, false, channel);
 
   std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
   const folly::dynamic& stateResult = state->collect().get();
