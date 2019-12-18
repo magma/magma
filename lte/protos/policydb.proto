@@ -8,6 +8,7 @@
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/subscriberdb.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
@@ -158,4 +159,16 @@ message ChargingRuleNameSet {
 message ChargingRuleBaseNameRecord {
   string Name = 1;
   ChargingRuleNameSet RuleNamesSet = 2;
+}
+
+
+// ----------------------------------------------------------------------------
+// Subscriber-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// ActivePolicies contains the base names and policy rules currently active
+// for a subscriber
+message ActivePolicies {
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
 }

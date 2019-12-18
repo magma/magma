@@ -8,13 +8,16 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import logging
+
+from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
 from magma.policydb.rpc_servicer import SessionRpcServicer
-from .streamer_callback import PolicyDBStreamerCallback
-from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+
+from .streamer_callback import PolicyDBStreamerCallback, \
+    RuleMappingsStreamerCallback
 
 
 def main():
@@ -30,8 +33,13 @@ def main():
 
     # Start a background thread to stream updates from the cloud
     if service.config['enable_streaming']:
-        callback = PolicyDBStreamerCallback(service.loop)
-        stream = StreamerClient({"policydb": callback}, service.loop)
+        stream = StreamerClient(
+            {
+                'policydb': PolicyDBStreamerCallback(),
+                'rule_mappings': RuleMappingsStreamerCallback(),
+            },
+            service.loop,
+        )
         stream.start()
     else:
         logging.info('enable_streaming set to False. Streamer disabled!')

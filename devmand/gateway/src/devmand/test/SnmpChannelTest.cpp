@@ -12,8 +12,8 @@
 #include <devmand/channels/snmp/Channel.h>
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/channels/snmp/IfMib.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/Device.h>
-#include <devmand/devices/State.h>
 #include <devmand/models/interface/Model.h>
 #include <devmand/test/EventBaseTest.h>
 #include <devmand/test/TestUtils.h>
@@ -73,7 +73,7 @@ TEST_F(SnmpChannelTest, checkSnmpWithState) {
   auto channel = std::make_shared<channels::snmp::Channel>(
       engine, local, community, version);
 
-  auto state = devices::State::make(*this, "testdid");
+  auto state = devices::Datastore::make(*this, "testdid");
   state->setStatus(false);
   state->update([](auto& lockedState) {
     devmand::models::interface::Model::init(lockedState);
@@ -86,7 +86,7 @@ TEST_F(SnmpChannelTest, checkSnmpWithState) {
   state->collect().wait();
   state = nullptr;
 
-  EXPECT_EQ(0, utils::LifetimeTracker<devices::State>::getLivingCount());
+  EXPECT_EQ(0, utils::LifetimeTracker<devices::Datastore>::getLivingCount());
 
   stop();
   snmpd.kill();
@@ -99,7 +99,7 @@ TEST_F(SnmpChannelTest, checkSnmpTimeoutWithState) {
   auto channel = std::make_shared<channels::snmp::Channel>(
       engine, local, community, version);
 
-  auto state = devices::State::make(*this, "testdid");
+  auto state = devices::Datastore::make(*this, "testdid");
   state->setStatus(false);
   state->update([](auto& lockedState) {
     devmand::models::interface::Model::init(lockedState);
@@ -112,7 +112,7 @@ TEST_F(SnmpChannelTest, checkSnmpTimeoutWithState) {
   state->collect().wait();
   state = nullptr;
 
-  EXPECT_EQ(0, utils::LifetimeTracker<devices::State>::getLivingCount());
+  EXPECT_EQ(0, utils::LifetimeTracker<devices::Datastore>::getLivingCount());
 }
 
 } // namespace test

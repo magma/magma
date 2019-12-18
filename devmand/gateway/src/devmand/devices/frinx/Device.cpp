@@ -5,7 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/devices/FrinxDevice.h>
+#include <devmand/devices/frinx/Device.h>
 
 #include <iostream>
 
@@ -13,10 +13,11 @@
 #include <folly/json.h>
 
 #include <devmand/Application.h>
-#include <devmand/ErrorHandler.h>
+#include <devmand/error/ErrorHandler.h>
 
 namespace devmand {
 namespace devices {
+namespace frinx {
 
 const char* connectTemplate = R"template({{
   "network-topology:node": {{
@@ -32,11 +33,11 @@ const char* connectTemplate = R"template({{
   }}
 }})template";
 
-constexpr const char* getStateEpTemplate =
+constexpr const char* getOperationalDatastoreEpTemplate =
     "/restconf/config/"
     "network-topology:network-topology/topology/"
     "unified/node/{}/yang-ext:mount";
-constexpr const char* setConfigEpTemplate =
+constexpr const char* setRunningDatastoreEpTemplate =
     "/restconf/config/"
     "network-topology:network-topology/topology/"
     "unified/node/{}/yang-ext:mount";
@@ -47,12 +48,12 @@ constexpr const char* checkConnectEpTemplate =
 constexpr const char* errorTemplate = "Error on endpoint {} ({})";
 constexpr const char* contentTypeJson = "application/json";
 
-std::shared_ptr<devices::Device> FrinxDevice::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
   auto& frinxKv = channelConfigs.at("frinx").kvPairs;
-  return std::make_unique<devices::FrinxDevice>(
+  return std::make_unique<devices::frinx::Device>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
@@ -70,7 +71,7 @@ std::shared_ptr<devices::Device> FrinxDevice::createDevice(
 }
 
 // TODO dont pass id twice
-FrinxDevice::FrinxDevice(
+Device::Device(
     Application& application,
     const Id& id_,
     bool readonly_,
@@ -85,7 +86,7 @@ FrinxDevice::FrinxDevice(
     const std::string& deviceVersion_,
     const std::string& deviceUsername_,
     const std::string& devicePassword_)
-    : Device(application, id_, readonly_),
+    : devices::Device(application, id_, readonly_),
       channel(controllerHost, controllerPort),
       headers({{"Authorization", authorization_},
                {"Accept", contentTypeJson},
@@ -101,11 +102,11 @@ FrinxDevice::FrinxDevice(
   connect();
 }
 
-FrinxDevice::~FrinxDevice() {
+Device::~Device() {
   // TODO disconnect();
 }
 
-void FrinxDevice::connect() {
+void Device::connect() {
   auto ep = folly::sformat(connectEpTemplate, deviceId);
   auto body = folly::sformat(
       connectTemplate,
@@ -132,7 +133,7 @@ void FrinxDevice::connect() {
           }));
 }
 
-void FrinxDevice::checkConnection() {
+void Device::checkConnection() {
   auto ep = folly::sformat(checkConnectEpTemplate, deviceId);
   std::cerr << "FRINX: check ep " << ep << std::endl;
 
@@ -159,8 +160,8 @@ void FrinxDevice::checkConnection() {
       }));
 }
 
-void FrinxDevice::setConfig(const folly::dynamic& config) {
-  auto ep = folly::sformat(setConfigEpTemplate, deviceId);
+void Device::setIntendedDatastore(const folly::dynamic& config) {
+  auto ep = folly::sformat(setRunningDatastoreEpTemplate, deviceId);
   folly::dynamic yang{folly::dynamic::object};
   const folly::dynamic* ints{nullptr};
   if (config != nullptr and config.isObject() and
@@ -170,13 +171,13 @@ void FrinxDevice::setConfig(const folly::dynamic& config) {
   channel.asyncPut(headers, ep, folly::toJson(yang), contentTypeJson);
 }
 
-std::shared_ptr<State> FrinxDevice::getState() {
-  auto state = State::make(app, getId());
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
+  auto state = Datastore::make(app, getId());
   if (not connected) {
     return state;
   }
 
-  auto ep = folly::sformat(getStateEpTemplate, deviceId);
+  auto ep = folly::sformat(getOperationalDatastoreEpTemplate, deviceId);
   state->addRequest(
       channel.asyncGet(headers, ep)
           .thenValue([state, ep](auto response) -> folly::dynamic {
@@ -212,5 +213,6 @@ std::shared_ptr<State> FrinxDevice::getState() {
   return state;
 }
 
+} // namespace frinx
 } // namespace devices
 } // namespace devmand

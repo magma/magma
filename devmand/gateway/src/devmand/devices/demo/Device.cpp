@@ -5,31 +5,32 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 
-#include <devmand/devices/DemoDevice.h>
+#include <devmand/devices/demo/Device.h>
 #include <devmand/models/wifi/Model.h>
 
 namespace devmand {
 namespace devices {
+namespace demo {
 
-std::shared_ptr<devices::Device> DemoDevice::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
-  return std::make_unique<devices::DemoDevice>(
+  return std::make_unique<devices::demo::Device>(
       app, deviceConfig.id, deviceConfig.readonly);
 }
 
-DemoDevice::DemoDevice(Application& application, const Id& id_, bool readonly_)
-    : Device(application, id_, readonly_) {}
+Device::Device(Application& application, const Id& id_, bool readonly_)
+    : devices::Device(application, id_, readonly_) {}
 
-std::shared_ptr<State> DemoDevice::getState() {
-  auto state = State::make(*reinterpret_cast<MetricSink*>(&app), getId());
-  state->update([](auto& lockedState) {
-    lockedState = std::move(DemoDevice::getDemoState());
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
+  auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
+  state->update([](auto& lockedDatastore) {
+    lockedDatastore = std::move(Device::getDemoDatastore());
   });
   return state;
 }
 
-folly::dynamic DemoDevice::getDemoState() {
+folly::dynamic Device::getDemoDatastore() {
   folly::dynamic data = folly::dynamic::object;
   devmand::models::wifi::Model::init(data);
 
@@ -92,5 +93,6 @@ folly::dynamic DemoDevice::getDemoState() {
   return std::move(data);
 }
 
+} // namespace demo
 } // namespace devices
 } // namespace devmand

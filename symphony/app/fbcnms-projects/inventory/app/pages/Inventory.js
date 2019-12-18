@@ -139,6 +139,22 @@ class Inventory extends React.Component<Props, State> {
   }
 
   setLocationCardState(locationId) {
+    const {
+      card,
+      selectedLocationId,
+      selectedEquipmentId,
+      selectedEquipmentPosition,
+    } = this.state;
+
+    if (
+      card === SHOW_LOCATION_CARD &&
+      selectedLocationId === locationId &&
+      selectedEquipmentId === null &&
+      selectedEquipmentPosition === null
+    ) {
+      return;
+    }
+
     this.setState({
       card: SHOW_LOCATION_CARD,
       selectedLocationId: locationId,
@@ -157,7 +173,7 @@ class Inventory extends React.Component<Props, State> {
     );
     if (queryLocationId !== this.state.selectedLocationId) {
       this.setLocationCardState(queryLocationId);
-    } else {
+    } else if (queryLocationId === null) {
       const queryEquipmentId = extractEntityIdFromUrl(
         'equipment',
         this.props.location.search,
@@ -169,6 +185,8 @@ class Inventory extends React.Component<Props, State> {
           selectedLocationId: null,
           selectedEquipmentPosition: null,
         });
+      } else if (queryEquipmentId === null) {
+        this.setLocationCardState(null);
       }
     }
 
@@ -357,10 +375,12 @@ class Inventory extends React.Component<Props, State> {
     });
   };
 
-  onDeleteLocation = () => {
+  onDeleteLocation = (deletedLocation: Location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
-    this.navigateToLocation(null);
     this.props.alert('Location removed successfuly');
+    this.navigateToLocation(
+      deletedLocation?.parentLocation?.id || this.state.parentLocationId || '',
+    );
   };
 }
 

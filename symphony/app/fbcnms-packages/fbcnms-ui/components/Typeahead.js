@@ -155,7 +155,7 @@ const Typeahead = (props: Props) => {
               value={selectedSuggestion ? selectedSuggestion.name : ''}
               onChange={emptyFunction}
               suffix={
-                searchTerm === '' ? (
+                searchTerm === '' && !disabled ? (
                   <InputAffix
                     onClick={() => {
                       setSearchTerm('');

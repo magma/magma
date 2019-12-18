@@ -11,31 +11,33 @@
 
 namespace devmand {
 namespace devices {
+namespace echo {
 
-class EchoDevice : public Device {
+class Device : public devices::Device {
  public:
-  EchoDevice(Application& application, const Id& id, bool readonly_);
+  Device(Application& application, const Id& id, bool readonly_);
 
-  EchoDevice() = delete;
-  virtual ~EchoDevice() = default;
-  EchoDevice(const EchoDevice&) = delete;
-  EchoDevice& operator=(const EchoDevice&) = delete;
-  EchoDevice(EchoDevice&&) = delete;
-  EchoDevice& operator=(EchoDevice&&) = delete;
+  Device() = delete;
+  virtual ~Device() = default;
+  Device(const Device&) = delete;
+  Device& operator=(const Device&) = delete;
+  Device(Device&&) = delete;
+  Device& operator=(Device&&) = delete;
 
   static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override;
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   folly::dynamic state;
 };
 
+} // namespace echo
 } // namespace devices
 } // namespace devmand

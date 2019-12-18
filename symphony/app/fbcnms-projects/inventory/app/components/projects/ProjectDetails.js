@@ -282,7 +282,7 @@ class ProjectDetails extends React.Component<Props, State> {
                     {properties.map((property, index) => (
                       <Grid key={property.id} item xs={12} sm={6} lg={4} xl={4}>
                         <PropertyValueInput
-                          required={!!property.propertyType.isInstanceProperty}
+                          required={!!property.propertyType.isMandatory}
                           disabled={!property.propertyType.isInstanceProperty}
                           headlineVariant="form"
                           fullWidth={true}

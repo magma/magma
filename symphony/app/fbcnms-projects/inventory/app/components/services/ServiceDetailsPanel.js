@@ -26,6 +26,7 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
 import symphony from '@fbcnms/ui/theme/symphony';
 import update from 'immutability-helper';
+import useStateWithCallback from 'use-state-with-callback';
 import useVerticalScrollingEffect from '../../common/useVerticalScrollingEffect';
 import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -103,7 +104,16 @@ const ServiceDetailsPanel = (props: Props) => {
   const classes = useStyles();
   const {shown, service, panelWidth, onClose} = props;
   const thisElement = useRef(null);
-  const [isDirty, setIsDirty] = useState(false);
+  const [dirtyValue, setDirtyValue] = useStateWithCallback(null, dirtyValue => {
+    if (
+      dirtyValue == 'equipment' ||
+      dirtyValue == 'location' ||
+      dirtyValue == 'customer'
+    ) {
+      // don't wait for blur because there is no blur in those selection values
+      editService();
+    }
+  });
   useVerticalScrollingEffect(thisElement);
   const enqueueSnackbar = useEnqueueSnackbar();
   let properties = service?.properties ?? [];
@@ -140,22 +150,6 @@ const ServiceDetailsPanel = (props: Props) => {
     };
   };
 
-  const onChangeProperty = index => (property: Property) => {
-    setEditableService(
-      update(editableService, {
-        properties: {
-          [index]: {$set: property},
-        },
-      }),
-    );
-    setIsDirty(true);
-  };
-  const onChangeDetail = (key: 'name' | 'externalId' | 'customer', value) => {
-    // $FlowFixMe Update specific value
-    setEditableService(update(editableService, {[key]: {$set: value}}));
-    setIsDirty(true);
-  };
-
   const enqueueError = (message: string) => {
     enqueueSnackbar(message, {
       children: key => (
@@ -164,8 +158,8 @@ const ServiceDetailsPanel = (props: Props) => {
     });
   };
 
-  const onBlur = () => {
-    if (isDirty) {
+  const editService = () => {
+    if (dirtyValue !== null) {
       const callbacks: MutationCallbacks<EditServiceMutationResponse> = {
         onCompleted: (response, errors) => {
           if (errors && errors[0]) {
@@ -178,7 +172,24 @@ const ServiceDetailsPanel = (props: Props) => {
       };
 
       EditServiceMutation(getServiceInput(), callbacks);
+      setDirtyValue(null);
     }
+  };
+
+  const onChangeProperty = index => (property: Property) => {
+    setEditableService(
+      update(editableService, {
+        properties: {
+          [index]: {$set: property},
+        },
+      }),
+    );
+    setDirtyValue(property.propertyType.type);
+  };
+  const onChangeDetail = (key: 'name' | 'externalId' | 'customer', value) => {
+    // $FlowFixMe Update specific value
+    setEditableService(update(editableService, {[key]: {$set: value}}));
+    setDirtyValue(key);
   };
 
   const backButton = (props: {onClose: () => void}) => (
@@ -212,7 +223,7 @@ const ServiceDetailsPanel = (props: Props) => {
                 margin="dense"
                 onChange={event => onChangeDetail('name', event.target.value)}
                 value={editableService.name}
-                onBlur={onBlur}
+                onBlur={editService}
               />
             </FormField>
           </div>
@@ -226,7 +237,7 @@ const ServiceDetailsPanel = (props: Props) => {
                   onChangeDetail('externalId', event.target.value)
                 }
                 value={editableService.externalId ?? ''}
-                onBlur={onBlur}
+                onBlur={editService}
               />
             </FormField>
           </div>
@@ -246,7 +257,6 @@ const ServiceDetailsPanel = (props: Props) => {
               <CustomerTypeahead
                 onCustomerSelection={customer => {
                   onChangeDetail('customer', customer);
-                  onBlur();
                 }}
                 required={false}
                 selectedCustomer={editableService.customer?.name}
@@ -276,7 +286,7 @@ const ServiceDetailsPanel = (props: Props) => {
                 property={property}
                 // $FlowFixMe pass property and not property type
                 onChange={onChangeProperty(index)}
-                onBlur={onBlur}
+                onBlur={editService}
                 headlineVariant="form"
               />
             ))}

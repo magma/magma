@@ -8,9 +8,9 @@
 #include <experimental/filesystem>
 #include <iostream>
 
-#include <devmand/FileWatcher.h>
 #include <devmand/test/EventBaseTest.h>
 #include <devmand/test/Notifier.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 namespace test {

@@ -14,10 +14,10 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 
-#include <devmand/ErrorHandler.h>
-#include <devmand/ErrorQueue.h>
 #include <devmand/MetricSink.h>
 #include <devmand/devices/Id.h>
+#include <devmand/error/ErrorHandler.h>
+#include <devmand/error/ErrorQueue.h>
 #include <devmand/utils/LifetimeTracker.h>
 #include <devmand/utils/Time.h>
 
@@ -25,29 +25,29 @@ namespace devmand {
 
 namespace devices {
 
-class State;
+class Datastore;
 
 struct Request {
-  std::shared_ptr<State> state{nullptr};
+  std::shared_ptr<Datastore> datastore{nullptr};
   utils::TimePoint start{};
   utils::TimePoint end{};
   bool isError{false};
 };
 
-class State final : public std::enable_shared_from_this<State>,
-                    public utils::LifetimeTracker<State> {
+class Datastore final : public std::enable_shared_from_this<Datastore>,
+                        public utils::LifetimeTracker<Datastore> {
  private:
-  State(MetricSink& sink_, const Id& device_);
+  Datastore(MetricSink& sink_, const Id& device_);
 
  public:
-  State() = delete;
-  virtual ~State() = default;
-  State(const State&) = delete;
-  State& operator=(const State&) = delete;
-  State(State&&) = delete;
-  State& operator=(State&&) = delete;
+  Datastore() = delete;
+  virtual ~Datastore() = default;
+  Datastore(const Datastore&) = delete;
+  Datastore& operator=(const Datastore&) = delete;
+  Datastore(Datastore&&) = delete;
+  Datastore& operator=(Datastore&&) = delete;
 
-  static std::shared_ptr<State> make(MetricSink& sink, const Id& device_);
+  static std::shared_ptr<Datastore> make(MetricSink& sink, const Id& device_);
 
  public:
   void update(std::function<void(folly::dynamic&)> func);
@@ -71,7 +71,7 @@ class State final : public std::enable_shared_from_this<State>,
   // Adds a callback to be executed on collect.
   void addFinally(std::function<void()>&& f);
 
-  // NOTE a state object that is never collected will be a leak.
+  // NOTE a datastore object that is never collected will be a leak.
   folly::Future<folly::dynamic> collect();
 
   // clears requests and finalies to break circle.
@@ -80,7 +80,7 @@ class State final : public std::enable_shared_from_this<State>,
  private:
   folly::dynamic& getFbcPlatformDevice(
       const std::string& key,
-      folly::dynamic& unlockedState);
+      folly::dynamic& unlockedDatastore);
 
   static std::chrono::microseconds getAverageRequestDuration(
       std::vector<std::shared_ptr<Request>> reqs);
@@ -93,7 +93,7 @@ class State final : public std::enable_shared_from_this<State>,
   Id device;
 
   // The state of an object formated according to the yang models supported.
-  folly::Synchronized<folly::dynamic> state;
+  folly::Synchronized<folly::dynamic> datastore;
 
   // This is a queue of errors occuring on this system.
   ErrorQueue errorQueue;
