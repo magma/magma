@@ -89,6 +89,9 @@ static void _emm_tracking_area_update_t3450_handler(void *args);
 
 static nas_emm_tau_proc_t * _emm_proc_create_procedure_tau(
     ue_mm_context_t *const ue_mm_context, emm_tau_request_ies_t *const ies);
+
+static int _send_tau_accept_and_check_for_neaf_flag (
+    nas_emm_tau_proc_t *tau_proc, ue_mm_context_t *ue_mm_context);
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -119,10 +122,19 @@ int _csfb_handle_tracking_area_req(
   emm_tau_request_ies_t* ies)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-
-  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC  _csfb_handle_tracking_area_req \n");
-  ue_mm_context_t* ue_mm_context = NULL;
-  /*In case we receive periodic TAU, send Location Update to MME only if SGS Association is established*/
+  ue_mm_context_t *ue_mm_context = NULL;
+  ue_mm_context = PARENT_STRUCT(emm_context_p,
+                                struct ue_mm_context_s, emm_context);
+  if(!ue_mm_context) {
+    OAILOG_DEBUG(LOG_NAS_EMM, "Got Invalid UE Context during TAU procedure \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+  OAILOG_INFO(LOG_NAS_EMM, "EMM-PROC"
+    "_csfb_handle_tracking_area_req for UE-ID:" MME_UE_S1AP_ID_FMT "\n",
+    ue_mm_context->mme_ue_s1ap_id);
+  /* If periodic TAU is received, send Location Update to MME
+   * only if SGS Association is established
+   */
   if (
     (EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING ==
      ies->eps_update_type.eps_update_type_value) ||
@@ -142,17 +154,31 @@ int _csfb_handle_tracking_area_req(
       (SMS_ONLY == *(ies->additional_updatetype))) {
       emm_context_p->additional_update_type = SMS_ONLY;
     }
-    //Send Location Update Req to MME
     nas_emm_tau_proc_t* tau_proc =
       get_nas_specific_procedure_tau(emm_context_p);
-    if (!tau_proc) {
-      ue_mm_context =
-        PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
+    if(!tau_proc) {
       tau_proc = _emm_proc_create_procedure_tau(ue_mm_context, ies);
-      nas_itti_cs_domain_location_update_req(
-        tau_proc->ue_id, TRACKING_AREA_UPDATE_REQUEST);
+      if(ue_mm_context->sgs_context &&
+        ((emm_context_p->tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
+        (emm_context_p->tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING))) {
+        if((ue_mm_context->sgs_context->vlr_reliable == true) &&
+            (ue_mm_context->sgs_context->sgs_state == SGS_ASSOCIATED)) {
+          OAILOG_INFO(
+            LOG_MME_APP, "Do not send Location Update Request to MSC\n");
+          /* No need to send Location Update Request as SGS state is in associated
+           * state and vlr_reliable flag is true
+           * Send TAU accept to UE
+           */
+          _send_tau_accept_and_check_for_neaf_flag(tau_proc, ue_mm_context);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+        } else {
+          mme_app_handle_nas_cs_domain_location_update_req(ue_mm_context,
+              TRACKING_AREA_UPDATE_REQUEST);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+        }
+      }
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
@@ -221,10 +247,11 @@ int emm_proc_tracking_area_update_request(
       emm_context->_security.next_hop_chaining_count = 0;
     }
   }
-  // Check if it is not periodic update and not combined TAU for CSFB.
-  /*If we receive combined TAU/TAU with IMSI attach send Location Update Req to MME instead of
-  * sending TAU accept immediately. After receiving Location Update Accept from MME, send TAU accept
-  */
+  /* Check if it is not periodic update and not combined TAU for CSFB.
+   * If we receive combined TAU/TAU with IMSI attach send Location Update Req
+   * to MME instead of sending TAU accept immediately. After receiving Location
+   * Update Accept from MME, send TAU accept
+   */
   if (
     (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
     (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) {
@@ -1018,4 +1045,45 @@ static nas_emm_tau_proc_t * _emm_proc_create_procedure_tau(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, NULL);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:        _send_tau_accept_and_check_for_neaf_flag()                **
+ **                                                                        **
+ ** Description:                                                           **
+ **                                                                        **
+ ** Inputs:  tau_proc: pointer for TAU emm specific proceddure             **                       **
+ **          ue_ctx:  UE context                                           **
+ **                                                                        **
+ ** Outputs: Return:    RETURNok, RETURNerror                              **
+ **                                                                        **
+ ***************************************************************************/
+static int _send_tau_accept_and_check_for_neaf_flag (
+  nas_emm_tau_proc_t *tau_proc,
+  ue_mm_context_t *ue_context)
+{
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  if ((emm_proc_tracking_area_update_accept(tau_proc)) == RETURNerror) {
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "EMMCN-SAP  - "
+      "Failed to send TAU accept for UE id " MME_UE_S1AP_ID_FMT " \n",
+      ue_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+  if ((mme_ue_context_get_ue_sgs_neaf(ue_context->mme_ue_s1ap_id) == true)) {
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Sending UE Activity Ind to MSC for ue-id: "MME_UE_S1AP_ID_FMT"\n",
+      ue_context->mme_ue_s1ap_id);
+    /* neaf flag is true*/
+    /* send the SGSAP Ue activity indication to MSC/VLR */
+    char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+    IMSI64_TO_STRING(ue_context->emm_context._imsi64, imsi_str,
+      ue_context->emm_context._imsi.length);
+    mme_app_send_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+    mme_ue_context_update_ue_sgs_neaf(ue_context->mme_ue_s1ap_id, false);
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }

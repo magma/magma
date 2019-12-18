@@ -48,9 +48,9 @@
 #include "log.h"
 #include "mme_app_desc.h"
 #include "mme_app_sgs_fsm.h"
-#include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
+#include "emm_proc.h"
 
 /**
  * Function to send a SGS EPS detach indication to SGSAP in either the initial case
@@ -456,7 +456,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           /*
         * Handle Ue initiated EPS detach towards SGS
         */
-        case SGS_DETACH_TYPE_UE_INITIATED_EPS: {
+        case EMM_SGS_UE_INITIATED_EPS_DETACH: {
           ue_context_p->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
             ue_context_p, ue_context_p->sgs_detach_type);
@@ -465,7 +465,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           /*
         * Handle Ue initiated IMSI detach towards SGS
         */
-        case SGS_DETACH_TYPE_UE_INITIATED_EXPLICIT_NONEPS: {
+        case EMM_SGS_UE_INITIATED_EXPLICIT_NONEPS_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
@@ -475,7 +475,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           /*
         * Handle Ue initiated Combined EPS/IMSI detach towards SGS
         */
-        case SGS_DETACH_TYPE_UE_INITIATED_COMBINED: {
+        case EMM_SGS_UE_INITIATED_COMBINED_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
@@ -485,7 +485,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           /*
         * Handle Network initiated EPS detach towards SGS
         */
-        case SGS_DETACH_TYPE_NW_INITIATED_EPS: {
+        case EMM_SGS_NW_INITIATED_EPS_DETACH: {
           ue_context_p->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
             ue_context_p, ue_context_p->sgs_detach_type);
@@ -494,7 +494,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           /*
         * Handle Network initiated Implicit IMSI detach towards SGS
         */
-        case SGS_DETACH_TYPE_NW_INITIATED_IMPLICIT_NONEPS: {
+        case EMM_SGS_NW_INITIATED_IMPLICIT_NONEPS_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
           mme_app_send_sgs_imsi_detach_indication(
@@ -510,20 +510,22 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           break;
       }
       /*
-    * Call the SGS FSM process function to 
+    * Call the SGS FSM process function to
     * process the respective message in different state
-    * and update the SGS State based on event 
+    * and update the SGS State based on event
     */
       sgs_fsm_process(&evnt);
     }
   } else {
     OAILOG_ERROR(
-      LOG_MME_APP, "UE SGS context doesn't exist -> Nothing to do :-) \n");
+      LOG_MME_APP, "UE SGS context doesn't exist for ue-id"
+      MME_UE_S1AP_ID_FMT "-> Nothing to do :-) \n",
+      ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t *mme_app_desc_p,
+int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t* mme_app_desc_p,
   const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -627,7 +629,7 @@ int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t* mme_app_desc_p,
     }
     /*
      * Send the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach
-     * once the SGS IMSI Detach Ack recieved from SGS task. 
+     * once the SGS IMSI Detach Ack recieved from SGS task.
      */
     if (
       (ue_context_p->sgs_detach_type ==

@@ -67,16 +67,6 @@
 #define SGSAP_SERVICE_ABORT_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.sgsap_service_abort_req
 
-/* SGS Detach type */
-typedef enum {
-  SGS_DETACH_TYPE_UE_INITIATED_EPS = 0,
-  SGS_DETACH_TYPE_UE_INITIATED_EXPLICIT_NONEPS,
-  SGS_DETACH_TYPE_UE_INITIATED_COMBINED,
-  SGS_DETACH_TYPE_NW_INITIATED_EPS,
-  SGS_DETACH_TYPE_NW_INITIATED_IMPLICIT_NONEPS,
-  SGS_DETACH_TYPE_MAX
-} SgsDetachType_t;
-
 typedef enum SgsCause_e {
   SGS_CAUSE_NORMAL,
   SGS_CAUSE_IMSI_DETACHED_FOR_EPS_SERVICE,
