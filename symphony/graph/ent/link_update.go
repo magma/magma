@@ -341,7 +341,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.ports) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(lu.ports))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(lu.ports))})
 			}
 		}
 	}
@@ -412,7 +412,7 @@ func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(lu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(lu.properties))})
 			}
 		}
 	}
@@ -783,7 +783,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.ports) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(luo.ports))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(luo.ports))})
 			}
 		}
 	}
@@ -854,7 +854,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(luo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(luo.properties))})
 			}
 		}
 	}

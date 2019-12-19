@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
@@ -29,7 +30,7 @@ type FloorPlanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlan
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -60,48 +61,48 @@ func (fpq *FloorPlanQuery) Order(o ...Order) *FloorPlanQuery {
 // QueryLocation chains the current query on the location edge.
 func (fpq *FloorPlanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: fpq.config}
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.LocationTable, floorplan.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
 
 // QueryReferencePoint chains the current query on the reference_point edge.
 func (fpq *FloorPlanQuery) QueryReferencePoint() *FloorPlanReferencePointQuery {
 	query := &FloorPlanReferencePointQuery{config: fpq.config}
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sql.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sqlgraph.To(floorplanreferencepoint.Table, floorplanreferencepoint.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ReferencePointTable, floorplan.ReferencePointColumn),
 	)
-	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
 
 // QueryScale chains the current query on the scale edge.
 func (fpq *FloorPlanQuery) QueryScale() *FloorPlanScaleQuery {
 	query := &FloorPlanScaleQuery{config: fpq.config}
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sql.To(floorplanscale.Table, floorplanscale.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sqlgraph.To(floorplanscale.Table, floorplanscale.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ScaleTable, floorplan.ScaleColumn),
 	)
-	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
 
 // QueryImage chains the current query on the image edge.
 func (fpq *FloorPlanQuery) QueryImage() *FileQuery {
 	query := &FileQuery{config: fpq.config}
-	step := sql.NewStep(
-		sql.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(floorplan.Table, floorplan.FieldID, fpq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, floorplan.ImageTable, floorplan.ImageColumn),
 	)
-	query.sql = sql.SetNeighbors(fpq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(fpq.driver.Dialect(), step)
 	return query
 }
 
@@ -269,7 +270,7 @@ func (fpq *FloorPlanQuery) Clone() *FloorPlanQuery {
 		order:      append([]Order{}, fpq.order...),
 		unique:     append([]string{}, fpq.unique...),
 		predicates: append([]predicate.FloorPlan{}, fpq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: fpq.sql.Clone(),
 	}
 }
@@ -395,7 +396,7 @@ type FloorPlanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -516,7 +517,7 @@ func (fpgb *FloorPlanGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(fpgb.fields)+len(fpgb.fns))
 	columns = append(columns, fpgb.fields...)
 	for _, fn := range fpgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(fpgb.fields...)
 }

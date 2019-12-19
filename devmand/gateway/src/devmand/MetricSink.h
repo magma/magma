@@ -11,7 +11,8 @@
 
 namespace devmand {
 
-/* An abstraction of a class which handles metrics.
+/* An abstraction of a class which handles metrics. This represents a place for
+ * metrics updates to go such as a time series database or a log.
  */
 class MetricSink {
  public:
@@ -26,10 +27,15 @@ class MetricSink {
   virtual void setGauge(
       const std::string& key,
       double value,
-      const std::string& label_name,
-      const std::string& label_value) = 0;
-  // TODO this shouldn't be virtual as it can just call the above.
-  virtual void setGauge(const std::string& key, double value) = 0;
+      const std::string& labelName,
+      const std::string& labelValue) = 0;
+
+  // Overloads
+  void setGauge(const std::string& key, int value);
+  void setGauge(const std::string& key, size_t value);
+  void setGauge(const std::string& key, unsigned int value);
+  void setGauge(const std::string& key, long long unsigned int value);
+  void setGauge(const std::string& key, double value);
 };
 
 } // namespace devmand

@@ -20,6 +20,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // Client is the client that holds all ent builders.
@@ -62,7 +63,6 @@ func Open(driverName, dataSourceName string, options ...Option) (*Client, error)
 			return nil, err
 		}
 		return NewClient(append(options, Driver(drv))...), nil
-
 	default:
 		return nil, fmt.Errorf("unsupported driver: %q", driverName)
 	}
@@ -310,12 +310,12 @@ func (c *TokenClient) GetX(ctx context.Context, id int) *Token {
 func (c *TokenClient) QueryUser(t *Token) *UserQuery {
 	query := &UserQuery{config: c.config}
 	id := t.ID
-	step := sql.NewStep(
-		sql.From(token.Table, token.FieldID, id),
-		sql.To(user.Table, user.FieldID),
-		sql.Edge(sql.M2O, true, token.UserTable, token.UserColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(token.Table, token.FieldID, id),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
 	)
-	query.sql = sql.Neighbors(t.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
 
 	return query
 }
@@ -388,12 +388,12 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 func (c *UserClient) QueryTokens(u *User) *TokenQuery {
 	query := &TokenQuery{config: c.config}
 	id := u.ID
-	step := sql.NewStep(
-		sql.From(user.Table, user.FieldID, id),
-		sql.To(token.Table, token.FieldID),
-		sql.Edge(sql.O2M, false, user.TokensTable, user.TokensColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(user.Table, user.FieldID, id),
+		sqlgraph.To(token.Table, token.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, user.TokensTable, user.TokensColumn),
 	)
-	query.sql = sql.Neighbors(u.driver.Dialect(), step)
+	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
 
 	return query
 }

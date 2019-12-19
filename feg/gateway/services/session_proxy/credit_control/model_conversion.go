@@ -27,9 +27,37 @@ func (gsu *GrantedServiceUnit) ToProto() *protos.GrantedUnits {
 	}
 }
 
+func (gsu *GrantedServiceUnit) IsEmpty() bool {
+	return gsu.TotalOctets == nil && gsu.InputOctets == nil && gsu.OutputOctets == nil
+}
+
 func getCreditUnit(volume *uint64) *protos.CreditUnit {
 	if volume == nil {
 		return &protos.CreditUnit{IsValid: false}
 	}
 	return &protos.CreditUnit{IsValid: true, Volume: *volume}
+}
+
+func GetRATType(pRATType protos.RATType) RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return RAT_WLAN
+	default:
+		return RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func GetIPCANType(pRATType protos.RATType) IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return IPCAN_Non3GPP
+	default:
+		return IPCAN_Non3GPP
+	}
 }

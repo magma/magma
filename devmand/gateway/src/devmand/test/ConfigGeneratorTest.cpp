@@ -11,8 +11,8 @@
 #include <list>
 #include <set>
 
-#include <devmand/FileUtils.h>
 #include <devmand/utils/ConfigGenerator.h>
+#include <devmand/utils/FileUtils.h>
 
 namespace devmand {
 namespace utils {

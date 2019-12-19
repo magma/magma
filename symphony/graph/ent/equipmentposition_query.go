@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
@@ -27,7 +28,7 @@ type EquipmentPositionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPosition
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,36 +59,36 @@ func (epq *EquipmentPositionQuery) Order(o ...Order) *EquipmentPositionQuery {
 // QueryDefinition chains the current query on the definition edge.
 func (epq *EquipmentPositionQuery) QueryDefinition() *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: epq.config}
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
-		sql.Edge(sql.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+		sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentposition.DefinitionTable, equipmentposition.DefinitionColumn),
 	)
-	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (epq *EquipmentPositionQuery) QueryParent() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentposition.ParentTable, equipmentposition.ParentColumn),
 	)
-	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 
 // QueryAttachment chains the current query on the attachment edge.
 func (epq *EquipmentPositionQuery) QueryAttachment() *EquipmentQuery {
 	query := &EquipmentQuery{config: epq.config}
-	step := sql.NewStep(
-		sql.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentposition.Table, equipmentposition.FieldID, epq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, equipmentposition.AttachmentTable, equipmentposition.AttachmentColumn),
 	)
-	query.sql = sql.SetNeighbors(epq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
 	return query
 }
 
@@ -255,7 +256,7 @@ func (epq *EquipmentPositionQuery) Clone() *EquipmentPositionQuery {
 		order:      append([]Order{}, epq.order...),
 		unique:     append([]string{}, epq.unique...),
 		predicates: append([]predicate.EquipmentPosition{}, epq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: epq.sql.Clone(),
 	}
 }
@@ -381,7 +382,7 @@ type EquipmentPositionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -502,7 +503,7 @@ func (epgb *EquipmentPositionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(epgb.fields)+len(epgb.fns))
 	columns = append(columns, epgb.fields...)
 	for _, fn := range epgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(epgb.fields...)
 }

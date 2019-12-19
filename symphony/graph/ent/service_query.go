@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -30,7 +31,7 @@ type ServiceQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Service
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -61,84 +62,84 @@ func (sq *ServiceQuery) Order(o ...Order) *ServiceQuery {
 // QueryType chains the current query on the type edge.
 func (sq *ServiceQuery) QueryType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(servicetype.Table, servicetype.FieldID),
-		sql.Edge(sql.M2O, false, service.TypeTable, service.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(servicetype.Table, servicetype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, service.TypeTable, service.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryDownstream chains the current query on the downstream edge.
 func (sq *ServiceQuery) QueryDownstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, service.DownstreamTable, service.DownstreamPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryUpstream chains the current query on the upstream edge.
 func (sq *ServiceQuery) QueryUpstream() *ServiceQuery {
 	query := &ServiceQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.UpstreamTable, service.UpstreamPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, service.PropertiesTable, service.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryTerminationPoints chains the current query on the termination_points edge.
 func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
 	query := &EquipmentQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinks chains the current query on the links edge.
 func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.LinksTable, service.LinksPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCustomer chains the current query on the customer edge.
 func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 	query := &CustomerQuery{config: sq.config}
-	step := sql.NewStep(
-		sql.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sql.To(customer.Table, customer.FieldID),
-		sql.Edge(sql.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(customer.Table, customer.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(sq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query
 }
 
@@ -306,7 +307,7 @@ func (sq *ServiceQuery) Clone() *ServiceQuery {
 		order:      append([]Order{}, sq.order...),
 		unique:     append([]string{}, sq.unique...),
 		predicates: append([]predicate.Service{}, sq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: sq.sql.Clone(),
 	}
 }
@@ -432,7 +433,7 @@ type ServiceGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -553,7 +554,7 @@ func (sgb *ServiceGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(sgb.fields)+len(sgb.fns))
 	columns = append(columns, sgb.fields...)
 	for _, fn := range sgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(sgb.fields...)
 }

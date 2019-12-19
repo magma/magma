@@ -937,7 +937,7 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(squ.wifi_scan) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squ.wifi_scan))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squ.wifi_scan))})
 			}
 		}
 	}
@@ -983,7 +983,7 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(squ.cell_scan) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squ.cell_scan))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squ.cell_scan))})
 			}
 		}
 	}
@@ -1029,7 +1029,7 @@ func (squ *SurveyQuestionUpdate) sqlSave(ctx context.Context) (n int, err error)
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(squ.photo_data) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"photo_data\" %v already connected to a different \"SurveyQuestion\"", keys(squ.photo_data))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"photo_data\" %v already connected to a different \"SurveyQuestion\"", keys(squ.photo_data))})
 			}
 		}
 	}
@@ -2010,7 +2010,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(squo.wifi_scan) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squo.wifi_scan))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squo.wifi_scan))})
 			}
 		}
 	}
@@ -2056,7 +2056,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(squo.cell_scan) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squo.cell_scan))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"SurveyQuestion\"", keys(squo.cell_scan))})
 			}
 		}
 	}
@@ -2102,7 +2102,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(squo.photo_data) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"photo_data\" %v already connected to a different \"SurveyQuestion\"", keys(squo.photo_data))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"photo_data\" %v already connected to a different \"SurveyQuestion\"", keys(squo.photo_data))})
 			}
 		}
 	}

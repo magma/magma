@@ -287,7 +287,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eptu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.property_types))})
 			}
 		}
 	}
@@ -333,7 +333,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eptu.link_property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"link_property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.link_property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"link_property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.link_property_types))})
 			}
 		}
 	}
@@ -379,7 +379,7 @@ func (eptu *EquipmentPortTypeUpdate) sqlSave(ctx context.Context) (n int, err er
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(eptu.port_definitions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.port_definitions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentPortType\"", keys(eptu.port_definitions))})
 			}
 		}
 	}
@@ -656,7 +656,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(eptuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.property_types))})
 			}
 		}
 	}
@@ -702,7 +702,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(eptuo.link_property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"link_property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.link_property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"link_property_types\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.link_property_types))})
 			}
 		}
 	}
@@ -748,7 +748,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(eptuo.port_definitions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.port_definitions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentPortType\"", keys(eptuo.port_definitions))})
 			}
 		}
 	}

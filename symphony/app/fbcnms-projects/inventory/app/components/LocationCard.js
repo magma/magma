@@ -9,6 +9,7 @@
  */
 
 import type {Equipment} from '../common/Equipment';
+import type {Location} from '../common/Location';
 import type {LocationType} from '../common/LocationType';
 
 import LocationAddEditCard from './location/LocationAddEditCard';
@@ -27,7 +28,7 @@ type Props = {
   onEquipmentSelected: Equipment => void,
   onWorkOrderSelected: (?string) => void,
   onAddEquipment: () => void,
-  onLocationRemoved: () => void,
+  onLocationRemoved: (removedLocation: Location) => void,
 };
 
 class LocationCard extends React.Component<Props> {

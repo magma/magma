@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 set(MGM_COM_DIR /usr/lib/)
 # Pass libyang plugins dir
-add_definitions(-DLIBYANG_PLUGINS_DIR="/usr/lib/libyang/")
+add_definitions(-DLIBYANG_PLUGINS_DIR="/lib/libyang/")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
@@ -31,33 +31,31 @@ add_library(devman
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Channel.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/ping/Engine.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/Config.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/CambiumDevice.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/DemoDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cambium/Device.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/Datastore.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/demo/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/Device.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/DcsgDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/Factory.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/EchoDevice.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/FrinxDevice.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/PingDevice.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/echo/Device.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/frinx/Device.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/ping/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Device.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/mikrotik/Mib.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/State.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/DhcpdConfig.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/ErrorHandler.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/ErrorQueue.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/FileUtils.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/FileWatcher.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/error/ErrorHandler.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/error/ErrorQueue.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/MetricSink.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/device/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/interface/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/models/wifi/Model.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/syslog/Manager.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/utils/ConfigGenerator.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/FileUtils.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/FileWatcher.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/utils/Time.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/YangUtils.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/utils/YangUtils.cpp
 )
 
 target_link_libraries(devman
-  boost_fiber
   boost_context
   boost_thread
   boost_system
@@ -98,7 +96,7 @@ add_library(devman_channel_snmp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Pdu.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Request.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/snmp/Response.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/Snmpv2Device.cpp)
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/snmpv2/Device.cpp)
 
 target_link_libraries(devman_channel_snmp
   devman
@@ -139,16 +137,45 @@ find_library(MGM_DATASTORE DATASTORE HINTS ${MGM_COM_DIR}/datastore)
 find_library(MGM_POLICYDB POLICYDB HINTS ${MGM_COM_DIR}/policydb)
 find_library(MGM_SRVC_REG SERVICE_REGISTRY HINTS ${MGM_COM_DIR}/service_registry)
 
-add_library(devman_service_magma
-  ${PROJECT_SOURCE_DIR}/src/devmand/magma/DevConf.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/magma/Service.cpp
+add_library(devman_service
   ${PROJECT_SOURCE_DIR}/src/devmand/Service.cpp)
 
-target_link_libraries(devman_service_magma
-  boost_fiber
-  boost_context
+target_link_libraries(devman_service
   folly
   pthread
+  double-conversion
+  stdc++)
+
+add_library(devman_service_fscache
+  ${PROJECT_SOURCE_DIR}/src/devmand/fscache/Service.cpp)
+
+target_link_libraries(devman_service_fscache
+  folly
+  pthread
+  double-conversion
+  devman_service
+  stdc++
+  dl
+  m
+  event
+  event_core
+  prometheus-cpp
+  yaml-cpp
+  protobuf
+  cpp_redis
+  tacopie
+  glog
+  gflags
+  iberty)
+
+add_library(devman_service_magma
+  ${PROJECT_SOURCE_DIR}/src/devmand/magma/DevConf.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/magma/Service.cpp)
+
+target_link_libraries(devman_service_magma
+  folly
+  pthread
+  devman_service
   double-conversion
   stdc++
   dl
@@ -179,6 +206,7 @@ target_link_libraries(devmand
   devman
   devman_channel_snmp
   devman_channel_cli
+  devman_service_fscache
   devman_service_magma)
 
 add_executable(devmantest

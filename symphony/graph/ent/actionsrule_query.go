@@ -25,7 +25,7 @@ type ActionsRuleQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.ActionsRule
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (arq *ActionsRuleQuery) Clone() *ActionsRuleQuery {
 		order:      append([]Order{}, arq.order...),
 		unique:     append([]string{}, arq.unique...),
 		predicates: append([]predicate.ActionsRule{}, arq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: arq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type ActionsRuleGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (argb *ActionsRuleGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(argb.fields)+len(argb.fns))
 	columns = append(columns, argb.fields...)
 	for _, fn := range argb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(argb.fields...)
 }
