@@ -64,6 +64,7 @@ const styles = _theme => ({
 
 const propertyTypeLabels = {
   date: 'Date',
+  datetime_local: 'Date & Time',
   int: 'Number',
   float: 'Float',
   string: 'Text',
