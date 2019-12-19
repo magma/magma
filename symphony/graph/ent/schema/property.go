@@ -40,7 +40,7 @@ func (PropertyType) Fields() []ent.Field {
 		field.Float("longitude_val").
 			StructTag(`gqlgen:"longitudeValue"`).
 			Optional(),
-		field.String("string_val").
+		field.Text("string_val").
 			StructTag(`gqlgen:"stringValue"`).
 			Optional(),
 		field.Float("range_from_val").
