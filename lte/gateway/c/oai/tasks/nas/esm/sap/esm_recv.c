@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -488,22 +488,28 @@ esm_cause_t esm_recv_pdn_connectivity_request(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_pdn_disconnect_request(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_disconnect_request_msg *msg)
+  const pdn_disconnect_request_msg* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-      ->mme_ue_s1ap_id;
+  ue_mm_context_t* ue_mm_context_p = NULL;
+  ue_mm_context_p =
+    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+
+  if (!ue_mm_context_p) {
+    OAILOG_WARNING(
+      LOG_NAS_ESM, "Failed to find ue context from emm context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
 
   OAILOG_INFO(
     LOG_NAS_ESM,
-    "ESM-SAP   - Received PDN Disconnect Request message "
-    "(ue_id=%d, pti=%d, ebi=%d)\n",
-    ue_id,
+    "ESM-SAP   - Received PDN Disconnect Request message for "
+    "ue_id " MME_UE_S1AP_ID_FMT ", pti=%u, ebi=%u)\n",
+    ue_mm_context_p->mme_ue_s1ap_id,
     pti,
     ebi);
 
@@ -559,10 +565,11 @@ esm_cause_t esm_recv_pdn_disconnect_request(
         LOG_NAS_ESM,
         "ESM-SAP   - Sending PDN Disconnect Request message "
         "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
-        ue_id,
+        ue_mm_context_p->mme_ue_s1ap_id,
         pid,
         msg->linkedepsbeareridentity);
-      nas_itti_pdn_disconnect_req(ue_id, pid, msg->linkedepsbeareridentity);
+      mme_app_send_delete_session_request(
+        ue_mm_context_p, msg->linkedepsbeareridentity, pid);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
     }
 
@@ -868,7 +875,7 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_accept(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-SAP   - Received Activate Dedicated EPS Bearer "
-    "Context Accept message (ue_id=%d, pti=%d, ebi=%d)\n",
+    "Context Accept message (ue_id="MME_UE_S1AP_ID_FMT", pti=%d, ebi=%d)\n",
     ue_id,
     pti,
     ebi);
