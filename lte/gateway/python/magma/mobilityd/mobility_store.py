@@ -41,8 +41,6 @@ def ip_states(client, key):
         serialize_utils.serialize_ip_desc,
         serialize_utils.deserialize_ip_desc,
     )
-    # TODO: Remove clear of container once mobilityd is not dependent on MME
-    redis_dict.clear()
     return redis_dict
 
 

@@ -9,4 +9,4 @@
 
 log_level: INFO
 persist_to_redis: false
-redis_port: 6379  # this is the default port for redis-server
+redis_port: 6380
