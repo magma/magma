@@ -94,9 +94,10 @@ app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());
 
 app.use(configureAccess({loginUrl: '/user/login'}));
 
-// All /graph endpoints don't use CORS and are JSON (no form),
+// All /graph and /webhooks endpoints don't use CORS and are JSON (no form),
 // so no CSRF is needed
 app.use('/graph', access(USER), require('./graph/routes'));
+app.use('/webhooks', access(USER), require('./webhooks/routes').default);
 
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 
