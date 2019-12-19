@@ -13,9 +13,9 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/servicers"
-	"magma/feg/cloud/go/services/health/storage"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -24,11 +24,6 @@ import (
 )
 
 type NetworkHealthStatusReporter struct {
-	Store storage.HealthStorage
-}
-
-func NewNetworkHealthStatusReporter(store storage.HealthStorage) (*NetworkHealthStatusReporter, error) {
-	return &NetworkHealthStatusReporter{Store: store}, nil
 }
 
 func (reporter *NetworkHealthStatusReporter) ReportHealthStatus(dur time.Duration) {
@@ -58,7 +53,7 @@ func (reporter *NetworkHealthStatusReporter) reportHealthStatus() error {
 		}
 		healthyGateways := 0
 		for _, gw := range gateways {
-			healthStatus, err := reporter.Store.GetHealth(networkID, gw.Key)
+			healthStatus, err := health.GetHealth(networkID, gw.Key)
 			if err != nil {
 				glog.V(2).Infof("error getting health for network %s, gateway %s: %v\n", networkID, gw.Key, err)
 				continue
