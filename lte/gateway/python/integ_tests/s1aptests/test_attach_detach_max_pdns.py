@@ -15,7 +15,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
-class TestMaximumBearersPeeUe(unittest.TestCase):
+class TestMaximumBearersPerUe(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()

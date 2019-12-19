@@ -14,16 +14,16 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnConnReq(unittest.TestCase):
+class TestSecondaryPdnConnLooped(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_seconday_pdn_conn_req(self):
+    def test_seconday_pdn_conn_looped(self):
         """ Attach a single UE and send standalone PDN Connectivity
-        Request """
+        Request + detach. Repeat 3 times """
 
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
