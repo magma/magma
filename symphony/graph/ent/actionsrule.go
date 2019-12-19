@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 // ActionsRule is the model entity for the ActionsRule schema.

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ec27097e56291d9b8643b3010382b70c
+ * @relayHash c71bbee232947edf384bb18e861704a3
  */
 
 /* eslint-disable */
@@ -16,7 +16,7 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentPortTypeItem_equipmentPortType$ref = any;
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type AddEquipmentPortTypeInput = {|
   name: string,
   properties?: ?$ReadOnlyArray<PropertyTypeInput>,

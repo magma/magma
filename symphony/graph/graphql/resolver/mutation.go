@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
@@ -36,6 +34,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
@@ -68,7 +68,11 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return false, errors.New("input not of type property or property type")
 	}
 	switch typ {
-	case models.PropertyKindDate, models.PropertyKindEmail, models.PropertyKindString, models.PropertyKindEnum:
+	case models.PropertyKindDate,
+		models.PropertyKindEmail,
+		models.PropertyKindString,
+		models.PropertyKindEnum,
+		models.PropertyKindDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
 	case models.PropertyKindInt:
 		// TODO detect int no-value

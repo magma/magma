@@ -12,12 +12,12 @@ import (
 
 	"github.com/AlekSi/pointer"
 
-	"github.com/facebookincubator/symphony/cloud/ctxgroup"
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )

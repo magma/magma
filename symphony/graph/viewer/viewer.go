@@ -8,8 +8,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"

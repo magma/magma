@@ -11,7 +11,7 @@ package graphgrpc
 
 import (
 	"database/sql"
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"google.golang.org/grpc"
 )
 

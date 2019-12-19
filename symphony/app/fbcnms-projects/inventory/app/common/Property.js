@@ -10,6 +10,8 @@
 
 import type {PropertyType} from './PropertyType';
 
+import DateTimeFormat from './DateTimeFormat.js';
+
 export type Property = {|
   id?: ?string,
   propertyType: PropertyType,
@@ -52,6 +54,8 @@ export const getPropertyValue = (property: Property | PropertyType) => {
       case 'enum':
       case 'string':
         return property.stringValue;
+      case 'datetime_local':
+        return DateTimeFormat.dateTime(property.stringValue);
       case 'bool':
         return property.booleanValue != undefined
           ? property.booleanValue.toString()

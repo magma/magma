@@ -8,8 +8,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/cloud/testdb"
 	"github.com/facebookincubator/symphony/frontier/ent"
+	"github.com/facebookincubator/symphony/pkg/testdb"
 )
 
 func NewClient() (*ent.Client, error) {

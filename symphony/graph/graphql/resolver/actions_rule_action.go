@@ -7,9 +7,9 @@ package resolver
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 )
 

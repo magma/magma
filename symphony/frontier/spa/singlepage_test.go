@@ -14,10 +14,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
-	"github.com/gorilla/csrf"
+	"github.com/justinas/nosurf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
@@ -57,7 +57,7 @@ func TestSinglePageHandler(t *testing.T) {
 	defer sp.Close()
 	waitForVar(t, sp.manifest)
 
-	h := csrf.Protect(make([]byte, 32))(sp)
+	h := nosurf.New(sp)
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	rec := httptest.NewRecorder()
 	h.ServeHTTP(rec, req)
@@ -66,7 +66,7 @@ func TestSinglePageHandler(t *testing.T) {
 	assert.Contains(t, body, "<html")
 	assert.Contains(t, body, "/main.b96c37ebdd5682a41d25.js")
 	assert.Contains(t, body, "/vendor.ec3cd6c53dea9177230f.js")
-	assert.Contains(t, body, csrf.Token(req))
+	assert.Contains(t, body, nosurf.Token(req))
 }
 
 func TestSinglePageOriginNoManifest(t *testing.T) {

@@ -10,9 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/enttest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

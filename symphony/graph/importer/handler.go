@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
-	"go.uber.org/zap"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"go.opencensus.io/plugin/ochttp"
+	"go.uber.org/zap"
 )
 
 type importer struct {

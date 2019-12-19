@@ -120,9 +120,14 @@ class PropertyValueInput extends React.Component<Props> {
         );
       }
       case 'date':
+      case 'datetime_local':
       case 'email':
       case 'string':
-        const coercedInputType: 'date' | 'email' | 'string' = propInputType;
+        const coercedInputType:
+          | 'date'
+          | 'datetime_local'
+          | 'email'
+          | 'string' = propInputType;
         return (
           <TextInput
             autoFocus={autoFocus}
@@ -144,7 +149,10 @@ class PropertyValueInput extends React.Component<Props> {
               )
             }
             inputProps={{className: inputClassName}}
-            type={coercedInputType}
+            // as we cant use hypens on server side types,
+            // replacing with underscores
+            // e.g. datetime_local -> datetime-local.
+            type={coercedInputType.replace('_', '-')}
           />
         );
       case 'int':

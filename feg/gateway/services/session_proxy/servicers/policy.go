@@ -43,8 +43,8 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		HardwareAddr:  pReq.HardwareAddr,
-		RATType:       credit_control.GetRATType(pReq.RatType),
-		IPCANType:     credit_control.GetIPCANType(pReq.RatType),
+		RATType:       gx.GetRATType(pReq.RatType),
+		IPCANType:     gx.GetIPCANType(pReq.RatType),
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
@@ -58,12 +58,12 @@ func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.S
 	request := &gx.CreditControlRequest{
 		SessionID:     pRequest.SessionId,
 		Type:          credit_control.CRTTerminate,
-		IMSI:          removeSidPrefix(pRequest.Sid),
+		IMSI:          credit_control.AddIMSIPrefix(pRequest.Sid),
 		RequestNumber: pRequest.RequestNumber,
 		IPAddr:        pRequest.UeIpv4,
 		UsageReports:  reports,
-		RATType:       credit_control.GetRATType(pRequest.RatType),
-		IPCANType:     credit_control.GetIPCANType(pRequest.RatType),
+		RATType:       gx.GetRATType(pRequest.RatType),
+		IPCANType:     gx.GetIPCANType(pRequest.RatType),
 	}
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
 }
@@ -112,7 +112,7 @@ func getUsageMonitorsFromCCA_I(imsi string, sessionID string, gxCCAInit *gx.Cred
 		monitors = append(monitors, &protos.UsageMonitoringUpdateResponse{
 			Credit:           monitor.ToUsageMonitoringCredit(),
 			SessionId:        sessionID,
-			Sid:              addSidPrefix(imsi),
+			Sid:              credit_control.AddIMSIPrefix(imsi),
 			Success:          true,
 			EventTriggers:    triggers,
 			RevalidationTime: revalidationTime,
@@ -242,7 +242,7 @@ func addMissingGxResponses(
 		responses = append(responses, &protos.UsageMonitoringUpdateResponse{
 			Success:   false,
 			SessionId: ccr.SessionID,
-			Sid:       addSidPrefix(ccr.IMSI),
+			Sid:       credit_control.AddIMSIPrefix(ccr.IMSI),
 			Credit: &protos.UsageMonitoringCredit{
 				MonitoringKey: []byte(ccr.UsageReports[0].MonitoringKey),
 				Level:         protos.MonitoringLevel(ccr.UsageReports[0].Level),
@@ -266,7 +266,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(answer
 	res := &protos.UsageMonitoringUpdateResponse{
 		Success:               answer.ResultCode == diameter.SuccessCode || answer.ResultCode == 0,
 		SessionId:             request.SessionID,
-		Sid:                   addSidPrefix(request.IMSI),
+		Sid:                   credit_control.AddIMSIPrefix(request.IMSI),
 		ResultCode:            answer.ResultCode,
 		RulesToRemove:         rulesToRemove,
 		StaticRulesToInstall:  staticRules,

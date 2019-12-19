@@ -12,11 +12,11 @@ import (
 	"hash/fnv"
 	"io"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/volatiletech/authboss"
 	"go.uber.org/zap"
 )

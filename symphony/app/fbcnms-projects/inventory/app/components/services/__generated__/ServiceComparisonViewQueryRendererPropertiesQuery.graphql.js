@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash dab1540829fd3b6ec28a58be074a8a34
+ * @relayHash ed14bc5351ef628761eb29683e7bd97a
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type ServiceComparisonViewQueryRendererPropertiesQueryVariables = {||};
 export type ServiceComparisonViewQueryRendererPropertiesQueryResponse = {|
   +possibleProperties: $ReadOnlyArray<{|

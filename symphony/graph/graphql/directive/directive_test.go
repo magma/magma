@@ -10,8 +10,8 @@ import (
 	"io"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/stretchr/testify/assert"

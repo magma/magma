@@ -16,7 +16,11 @@ import (
 func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error) {
 	var pred predicate.Property
 	switch p.Type {
-	case models.PropertyKindString, models.PropertyKindEmail, models.PropertyKindDate, models.PropertyKindEnum:
+	case models.PropertyKindString,
+		models.PropertyKindEmail,
+		models.PropertyKindDate,
+		models.PropertyKindEnum,
+		models.PropertyKindDatetimeLocal:
 		if p.StringValue != nil {
 			pred = property.StringVal(*p.StringValue)
 		}
@@ -42,7 +46,11 @@ func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error
 func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyType, error) {
 	var pred predicate.PropertyType
 	switch p.Type {
-	case models.PropertyKindString, models.PropertyKindEmail, models.PropertyKindDate, models.PropertyKindEnum:
+	case models.PropertyKindString,
+		models.PropertyKindEmail,
+		models.PropertyKindDate,
+		models.PropertyKindEnum,
+		models.PropertyKindDatetimeLocal:
 		if p.StringValue != nil {
 			pred = propertytype.StringVal(*p.StringValue)
 		}
@@ -66,7 +74,7 @@ func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyTyp
 
 // GetDatePropertyPred returns the property and propertyType predicate for the date
 func GetDatePropertyPred(p models.PropertyTypeInput, operator models.FilterOperator) (predicate.Property, predicate.PropertyType, error) {
-	if p.Type != models.PropertyKindDate {
+	if p.Type != models.PropertyKindDate && p.Type != models.PropertyKindDatetimeLocal {
 		return nil, nil, errors.Errorf("property kind should be type")
 	}
 

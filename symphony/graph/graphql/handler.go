@@ -10,11 +10,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
 	"github.com/facebookincubator/symphony/graph/graphql/tracer"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	gqlprometheus "github.com/99designs/gqlgen-contrib/prometheus"
 	"github.com/99designs/gqlgen/graphql"

@@ -7,9 +7,9 @@
 package main
 
 import (
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/server"
-	"github.com/facebookincubator/symphony/cloud/server/xserver"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/server"
+	"github.com/facebookincubator/symphony/pkg/server/xserver"
 	"github.com/facebookincubator/symphony/store/handler"
 	"github.com/facebookincubator/symphony/store/sign/s3"
 

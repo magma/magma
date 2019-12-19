@@ -697,7 +697,7 @@ export default withRouter(
                 id
               }
               checkList {
-                ...CheckListTable_list
+                ...CheckListTable_list @relay(mask: false)
               }
             }
           `,

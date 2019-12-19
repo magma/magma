@@ -69,6 +69,7 @@ class PropertyKind(Enum):
     gps_location = "gps_location"
     equipment = "equipment"
     location = "location"
+    datetime_local = "datetime_local"
 
 
 @dataclass_json
