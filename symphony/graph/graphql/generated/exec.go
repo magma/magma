@@ -5957,6 +5957,7 @@ enum PropertyKind {
   gps_location
   equipment
   location
+  datetime_local
 }
 
 type PropertyType implements Node {

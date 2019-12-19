@@ -1342,17 +1342,18 @@ func (e PropertyEntity) MarshalGQL(w io.Writer) {
 type PropertyKind string
 
 const (
-	PropertyKindString      PropertyKind = "string"
-	PropertyKindInt         PropertyKind = "int"
-	PropertyKindBool        PropertyKind = "bool"
-	PropertyKindFloat       PropertyKind = "float"
-	PropertyKindDate        PropertyKind = "date"
-	PropertyKindEnum        PropertyKind = "enum"
-	PropertyKindRange       PropertyKind = "range"
-	PropertyKindEmail       PropertyKind = "email"
-	PropertyKindGpsLocation PropertyKind = "gps_location"
-	PropertyKindEquipment   PropertyKind = "equipment"
-	PropertyKindLocation    PropertyKind = "location"
+	PropertyKindString        PropertyKind = "string"
+	PropertyKindInt           PropertyKind = "int"
+	PropertyKindBool          PropertyKind = "bool"
+	PropertyKindFloat         PropertyKind = "float"
+	PropertyKindDate          PropertyKind = "date"
+	PropertyKindEnum          PropertyKind = "enum"
+	PropertyKindRange         PropertyKind = "range"
+	PropertyKindEmail         PropertyKind = "email"
+	PropertyKindGpsLocation   PropertyKind = "gps_location"
+	PropertyKindEquipment     PropertyKind = "equipment"
+	PropertyKindLocation      PropertyKind = "location"
+	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
 )
 
 var AllPropertyKind = []PropertyKind{
@@ -1367,11 +1368,12 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindGpsLocation,
 	PropertyKindEquipment,
 	PropertyKindLocation,
+	PropertyKindDatetimeLocal,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindDatetimeLocal:
 		return true
 	}
 	return false
