@@ -1469,7 +1469,6 @@ void mme_app_handle_e_rab_setup_rsp(
     bearer_context_t* bc =
       mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     if (bc->bearer_state & BEARER_STATE_SGW_CREATED) {
-      //S1ap_Cause_t cause = e_rab_setup_rsp->e_rab_failed_to_setup_list.item[i].cause;
       AssertFatal(
         bc->bearer_state & BEARER_STATE_MME_CREATED,
         "TO DO check bearer state");
@@ -2359,9 +2358,12 @@ void mme_app_handle_create_dedicated_bearer_rsp(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 #endif
   // TODO:
-  // Actually do it simple, because it appear we have to wait for NAS procedure reworking (work in progress on another branch)
-  // for responding to S11 without mistakes (may be the create bearer procedure can be impacted by a S1 ue context release or
-  // a UE originating  NAS procedure)
+  /* Actually do it simple, because it appear we have to wait for NAS procedure
+   * reworking (work in progress on another branch)
+   * for responding to S11 without mistakes (may be the create bearer procedure
+   * can be impacted by a S1 ue context release or
+   * a UE originating  NAS procedure)
+   */
   mme_app_s11_proc_create_bearer_t* s11_proc_create =
     mme_app_get_s11_procedure_create_bearer(ue_context_p);
   if (s11_proc_create) {
@@ -2410,9 +2412,12 @@ void mme_app_handle_create_dedicated_bearer_rej(
 #endif
 
   // TODO:
-  // Actually do it simple, because it appear we have to wait for NAS procedure reworking (work in progress on another branch)
-  // for responding to S11 without mistakes (may be the create bearer procedure can be impacted by a S1 ue context release or
-  // a UE originating  NAS procedure)
+  /* Actually do it simple, because it appear we have to wait for NAS procedure
+   * reworking (work in progress on another branch)
+   * for responding to S11 without mistakes (may be the create bearer procedure
+   * can be impacted by a S1 ue context release or
+   * a UE originating  NAS procedure)
+   */
   mme_app_s11_proc_create_bearer_t *s11_proc_create =
     mme_app_get_s11_procedure_create_bearer(ue_context_p);
   if (s11_proc_create) {
@@ -3005,7 +3010,7 @@ void mme_app_handle_erab_rel_cmd(
          ((idx < BEARERS_PER_UE) &&
           (rel_index < pdn_context_p->esm_data.n_bearers));
          idx++) {
-      uint8_t bearer_index = pdn_context_p->bearer_contexts[idx];
+      int8_t bearer_index = pdn_context_p->bearer_contexts[idx];
       if (ue_context_p->bearer_contexts[bearer_index]) {
         s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[rel_index].e_rab_id =
           ue_context_p->bearer_contexts[bearer_index]->ebi;
@@ -3017,7 +3022,9 @@ void mme_app_handle_erab_rel_cmd(
     s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
       bearer_context->ebi;
   }
-  //s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0; //Pruthvi TDB
+  /* TODO Pruthvi, To fill cause for all bearers that are to be released
+   * s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0;
+   */
   s1ap_e_rab_rel_cmd->nas_pdu = nas_msg;
 
   OAILOG_INFO(
@@ -3048,7 +3055,8 @@ void mme_app_handle_e_rab_rel_rsp(
       e_rab_rel_rsp->mme_ue_s1ap_id);
   }
 
-  for (int i = 0; i < e_rab_rel_rsp->e_rab_rel_list.no_of_items; i++) {
+  for (int i = 0;
+    i < e_rab_rel_rsp->e_rab_failed_to_rel_list.no_of_items; i++) {
     e_rab_id_t e_rab_id =
       e_rab_rel_rsp->e_rab_failed_to_rel_list.item[i].e_rab_id;
     OAILOG_DEBUG(

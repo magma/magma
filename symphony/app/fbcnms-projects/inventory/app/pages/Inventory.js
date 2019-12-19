@@ -157,6 +157,7 @@ class Inventory extends React.Component<Props, State> {
 
     this.setState({
       card: SHOW_LOCATION_CARD,
+      selectedLocationType: null,
       selectedLocationId: locationId,
       selectedEquipmentId: null,
       selectedEquipmentPosition: null,
@@ -185,7 +186,11 @@ class Inventory extends React.Component<Props, State> {
           selectedLocationId: null,
           selectedEquipmentPosition: null,
         });
-      } else if (queryEquipmentId === null) {
+      } else if (
+        (queryEquipmentId === null &&
+          this.state.selectedLocationType === null) ||
+        this.state.card === null
+      ) {
         this.setLocationCardState(null);
       }
     }
@@ -334,7 +339,9 @@ class Inventory extends React.Component<Props, State> {
   onEquipmentSave = () => {
     ServerLogger.info(LogEvents.SAVE_EQUIPMENT_BUTTON_CLICKED);
     if (this.state.selectedEquipmentId) {
-      this.navigateToEquipment(this.state.selectedEquipmentId);
+      this.setState({
+        card: SHOW_EQUIPMENT_CARD,
+      });
     } else if (this.state.selectedEquipmentPosition) {
       this.navigateToEquipment(
         this.state.selectedEquipmentPosition.parentEquipment.id,
@@ -369,10 +376,7 @@ class Inventory extends React.Component<Props, State> {
 
   onLocationSave = (newLocationId: string) => {
     ServerLogger.info(LogEvents.SAVE_LOCATION_BUTTON_CLICKED);
-    this.setState({
-      selectedLocationId: newLocationId,
-      card: SHOW_LOCATION_CARD,
-    });
+    this.navigateToLocation(newLocationId);
   };
 
   onDeleteLocation = (deletedLocation: Location) => {

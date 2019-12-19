@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
@@ -36,6 +34,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
@@ -68,7 +68,11 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return false, errors.New("input not of type property or property type")
 	}
 	switch typ {
-	case models.PropertyKindDate, models.PropertyKindEmail, models.PropertyKindString, models.PropertyKindEnum:
+	case models.PropertyKindDate,
+		models.PropertyKindEmail,
+		models.PropertyKindString,
+		models.PropertyKindEnum,
+		models.PropertyKindDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
 	case models.PropertyKindInt:
 		// TODO detect int no-value
@@ -477,7 +481,7 @@ func (r mutationResolver) AddLocationType(
 		AddSurveyTemplateCategories(categories...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A location type with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrap(err, "creating location type")
@@ -737,7 +741,7 @@ func (r mutationResolver) AddEquipmentPortType(
 		AddLinkPropertyTypes(linkProps...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("An equipment port type with the name %s already exists", input.Name)
 		}
 		return nil, errors.Wrap(err, "creating equipment type")
@@ -769,7 +773,7 @@ func (r mutationResolver) AddEquipmentType(
 		AddPropertyTypes(props...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("An equipment type with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrap(err, "creating equipment type")
@@ -1787,7 +1791,7 @@ func (r mutationResolver) AddServiceType(ctx context.Context, data models.Servic
 		AddPropertyTypes(types...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A service type with the name %v already exists", data.Name)
 		}
 		return nil, errors.Wrap(err, "creating service type")
@@ -1802,7 +1806,7 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 		SetHasCustomer(data.HasCustomer).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A service type with the name %v already exists", data.Name)
 		}
 		return nil, errors.Wrapf(err, "updating service type: id=%q", data.ID)
@@ -2070,7 +2074,7 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 	entSetter(query)
 	if _, err =
 		query.
-			Save(ctx); ent.IsConstraintFailure(err) {
+			Save(ctx); ent.IsConstraintError(err) {
 		return gqlerror.Errorf("A property type with the name %v already exists under in the selected object", input.Name)
 	}
 	return err
@@ -2111,7 +2115,7 @@ func (r mutationResolver) EditLocationType(
 		SetNillableSite(input.IsSite).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A location type with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrapf(err, "updating location type: id=%q", input.ID)
@@ -2217,7 +2221,7 @@ func (r mutationResolver) EditEquipmentType(
 			UpdateOne(et).
 			SetName(input.Name).
 			Save(ctx); err != nil {
-			if ent.IsConstraintFailure(err) {
+			if ent.IsConstraintError(err) {
 				return nil, gqlerror.Errorf("An equipment type with the name %v already exists", input.Name)
 			}
 			return nil, errors.Wrap(err, "updating equipment type name")
@@ -2318,7 +2322,7 @@ func (r mutationResolver) EditEquipmentPortType(
 			UpdateOne(pt).
 			SetName(input.Name).
 			Save(ctx); err != nil {
-			if ent.IsConstraintFailure(err) {
+			if ent.IsConstraintError(err) {
 				return nil, gqlerror.Errorf("An equipment port type with the name %s already exists", input.Name)
 			}
 			return nil, errors.Wrap(err, "updating equipment port type")

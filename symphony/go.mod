@@ -19,7 +19,7 @@ require (
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/bobesa/go-domain-util v0.0.0-20190911083921-4033b5f7dd89
 	github.com/cenkalti/backoff v2.2.1+incompatible
-	github.com/facebookincubator/ent v0.0.0-20191128111655-f98dbbc440cb
+	github.com/facebookincubator/ent v0.0.0-20191218103752-88ef2bfddc25
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
@@ -28,7 +28,6 @@ require (
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.3.0
-	github.com/gorilla/csrf v1.6.1
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0
@@ -36,6 +35,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/jessevdk/go-flags v1.4.1-0.20181221193153-c0795c8afcf4
 	github.com/jstemmer/go-junit-report v0.9.1 // indirect
+	github.com/justinas/nosurf v1.1.0
 	github.com/mattn/go-sqlite3 v1.13.0
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1

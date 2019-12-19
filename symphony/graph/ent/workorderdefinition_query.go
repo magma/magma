@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
@@ -27,7 +28,7 @@ type WorkOrderDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.WorkOrderDefinition
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,24 +59,24 @@ func (wodq *WorkOrderDefinitionQuery) Order(o ...Order) *WorkOrderDefinitionQuer
 // QueryType chains the current query on the type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: wodq.config}
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, workorderdefinition.TypeTable, workorderdefinition.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (wodq *WorkOrderDefinitionQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: wodq.config}
-	step := sql.NewStep(
-		sql.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(workorderdefinition.Table, workorderdefinition.FieldID, wodq.sqlQuery()),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, workorderdefinition.ProjectTypeTable, workorderdefinition.ProjectTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(wodq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(wodq.driver.Dialect(), step)
 	return query
 }
 
@@ -243,7 +244,7 @@ func (wodq *WorkOrderDefinitionQuery) Clone() *WorkOrderDefinitionQuery {
 		order:      append([]Order{}, wodq.order...),
 		unique:     append([]string{}, wodq.unique...),
 		predicates: append([]predicate.WorkOrderDefinition{}, wodq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: wodq.sql.Clone(),
 	}
 }
@@ -369,7 +370,7 @@ type WorkOrderDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +491,7 @@ func (wodgb *WorkOrderDefinitionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(wodgb.fields)+len(wodgb.fns))
 	columns = append(columns, wodgb.fields...)
 	for _, fn := range wodgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(wodgb.fields...)
 }

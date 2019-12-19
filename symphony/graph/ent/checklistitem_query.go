@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -26,7 +27,7 @@ type CheckListItemQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.CheckListItem
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (cliq *CheckListItemQuery) Order(o ...Order) *CheckListItemQuery {
 // QueryWorkOrder chains the current query on the work_order edge.
 func (cliq *CheckListItemQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: cliq.config}
-	step := sql.NewStep(
-		sql.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(checklistitem.Table, checklistitem.FieldID, cliq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, checklistitem.WorkOrderTable, checklistitem.WorkOrderColumn),
 	)
-	query.sql = sql.SetNeighbors(cliq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(cliq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (cliq *CheckListItemQuery) Clone() *CheckListItemQuery {
 		order:      append([]Order{}, cliq.order...),
 		unique:     append([]string{}, cliq.unique...),
 		predicates: append([]predicate.CheckListItem{}, cliq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: cliq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type CheckListItemGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (cligb *CheckListItemGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(cligb.fields)+len(cligb.fns))
 	columns = append(columns, cligb.fields...)
 	for _, fn := range cligb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(cligb.fields...)
 }

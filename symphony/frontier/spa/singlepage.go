@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/ctxutil"
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/ctxutil"
+	"github.com/facebookincubator/symphony/pkg/log"
 
-	"github.com/gorilla/csrf"
+	"github.com/justinas/nosurf"
 	"github.com/shurcooL/httpfs/html/vfstemplate"
 	"go.opencensus.io/plugin/ochttp"
 	"go.uber.org/zap"
@@ -161,7 +161,7 @@ func (sp *SinglePage) indexData(r *http.Request) (*indexData, error) {
 	}
 	cfg, err := json.Marshal(configData{
 		Data: appData{
-			Token:    csrf.Token(r),
+			Token:    nosurf.Token(r),
 			Tabs:     []string{"nms", "inventory"}, // TODO: organization.tabs
 			User:     nil,                          // TODO: {"tenant", "email", "isSuperUser"}
 			Features: []string{},                   // TODO: feature flags

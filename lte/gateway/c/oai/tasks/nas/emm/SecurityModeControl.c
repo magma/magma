@@ -569,7 +569,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_ctx_set_security_type(emm_ctx, smc_proc->saved_sc_type);
 
     /*
-     * Notify EMM that the authentication procedure failed
+     * Notify EMM that the security mode procedure failed
      */
     emm_sap_t emm_sap = {0};
 
@@ -578,7 +578,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     emm_sap.u.emm_reg.notify = true;
-    emm_sap.u.emm_reg.free_proc = true;
+    emm_sap.u.emm_reg.free_proc = false;
     emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;

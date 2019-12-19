@@ -360,7 +360,7 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(su.questions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(su.questions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(su.questions))})
 			}
 		}
 	}
@@ -712,7 +712,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(suo.questions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(suo.questions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(suo.questions))})
 			}
 		}
 	}

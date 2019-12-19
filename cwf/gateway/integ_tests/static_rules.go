@@ -9,19 +9,19 @@
 package integ_tests
 
 import (
-	lteProtos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/protos"
 
 	"github.com/go-openapi/swag"
 )
 
-func getStaticPassAll(ruleID string, monitoringKey string) (*lteProtos.PolicyRule, error) {
-	rule := &models.PolicyRule{
+func getStaticPassAll(ruleID string, monitoringKey string) *protos.PolicyRule {
+	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
 				Match: &models.FlowMatch{
-					Direction: "UPLINK",
+					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
 					IPV4Dst:   "0.0.0.0/0",
 					IPV4Src:   "0.0.0.0/0",
@@ -30,22 +30,17 @@ func getStaticPassAll(ruleID string, monitoringKey string) (*lteProtos.PolicyRul
 			{
 				Action: swag.String("PERMIT"),
 				Match: &models.FlowMatch{
-					Direction: "DOWNLINK",
+					Direction: swag.String("DOWNLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
 					IPV4Dst:   "0.0.0.0/0",
 					IPV4Src:   "0.0.0.0/0",
 				},
 			},
 		},
-		ID:            ruleID,
-		MonitoringKey: swag.String(monitoringKey),
+		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(3),
 		TrackingType:  models.PolicyRuleTrackingTypeONLYPCRF,
 	}
-	protoRule := &lteProtos.PolicyRule{}
-	err := rule.ToProto(protoRule)
-	if err != nil {
-		return nil, err
-	}
-	return protoRule, nil
+
+	return rule.ToProto(ruleID)
 }

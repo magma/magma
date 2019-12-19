@@ -300,10 +300,11 @@ void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
 
 void mme_app_send_itti_sgsap_ue_activity_ind(
-    const char *imsi, const unsigned int imsi_len);
+  const char* imsi,
+  const unsigned int imsi_len);
 
-int handle_cs_domain_loc_updt_acc(
-    struct ue_mm_context_s *ue_context_p);
+int emm_send_cs_domain_attach_or_tau_accept(
+  struct ue_mm_context_s* ue_context_p);
 
 void mme_app_update_paging_tai_list(
   paging_tai_list_t* p_tai_list,
@@ -311,15 +312,16 @@ void mme_app_update_paging_tai_list(
   uint8_t num_of_tac);
 
 void send_delete_dedicated_bearer_rsp(
-  struct ue_mm_context_s *ue_context_p,
+  struct ue_mm_context_s* ue_context_p,
   bool delete_default_bearer,
   ebi_t ebi[],
   uint32_t num_bearer_context,
   teid_t s_gw_teid_s11_s4,
   gtpv2c_cause_value_t cause);
 
-int mme_app_create_sgs_context(
-    ue_mm_context_t *ue_context_p);
+int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
+
+int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)

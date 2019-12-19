@@ -35,4 +35,16 @@ export default class DateTimeFormat {
   static commentTime(dateTimeValue: MomentInput): string {
     return moment(dateTimeValue).calendar(null, CALENDAR);
   }
+
+  static dateTime = (dateTimeValue: ?string | ?number) => {
+    return !!dateTimeValue
+      ? new Intl.DateTimeFormat('default', {
+          hour: 'numeric',
+          minute: 'numeric',
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+        }).format(new Date(dateTimeValue))
+      : '';
+  };
 }

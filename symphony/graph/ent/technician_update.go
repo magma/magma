@@ -222,7 +222,7 @@ func (tu *TechnicianUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(tu.work_orders) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Technician\"", keys(tu.work_orders))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Technician\"", keys(tu.work_orders))})
 			}
 		}
 	}
@@ -436,7 +436,7 @@ func (tuo *TechnicianUpdateOne) sqlSave(ctx context.Context) (t *Technician, err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(tuo.work_orders) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Technician\"", keys(tuo.work_orders))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Technician\"", keys(tuo.work_orders))})
 			}
 		}
 	}

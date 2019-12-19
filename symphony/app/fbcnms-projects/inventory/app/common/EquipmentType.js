@@ -29,7 +29,6 @@ export type PortDefinition = {
   name: string,
   index: number,
   visibleLabel?: ?string,
-  type: string,
   portType: ?EquipmentPortType,
   bandwidth?: ?string,
 };

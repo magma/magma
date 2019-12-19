@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -28,7 +29,7 @@ type LocationTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.LocationType
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -59,36 +60,36 @@ func (ltq *LocationTypeQuery) Order(o ...Order) *LocationTypeQuery {
 // QueryLocations chains the current query on the locations edge.
 func (ltq *LocationTypeQuery) QueryLocations() *LocationQuery {
 	query := &LocationQuery{config: ltq.config}
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, locationtype.LocationsTable, locationtype.LocationsColumn),
 	)
-	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (ltq *LocationTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: ltq.config}
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.PropertyTypesTable, locationtype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }
 
 // QuerySurveyTemplateCategories chains the current query on the survey_template_categories edge.
 func (ltq *LocationTypeQuery) QuerySurveyTemplateCategories() *SurveyTemplateCategoryQuery {
 	query := &SurveyTemplateCategoryQuery{config: ltq.config}
-	step := sql.NewStep(
-		sql.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
-		sql.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
-		sql.Edge(sql.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(locationtype.Table, locationtype.FieldID, ltq.sqlQuery()),
+		sqlgraph.To(surveytemplatecategory.Table, surveytemplatecategory.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, locationtype.SurveyTemplateCategoriesTable, locationtype.SurveyTemplateCategoriesColumn),
 	)
-	query.sql = sql.SetNeighbors(ltq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ltq.driver.Dialect(), step)
 	return query
 }
 
@@ -256,7 +257,7 @@ func (ltq *LocationTypeQuery) Clone() *LocationTypeQuery {
 		order:      append([]Order{}, ltq.order...),
 		unique:     append([]string{}, ltq.unique...),
 		predicates: append([]predicate.LocationType{}, ltq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: ltq.sql.Clone(),
 	}
 }
@@ -382,7 +383,7 @@ type LocationTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -503,7 +504,7 @@ func (ltgb *LocationTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(ltgb.fields)+len(ltgb.fns))
 	columns = append(columns, ltgb.fields...)
 	for _, fn := range ltgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(ltgb.fields...)
 }

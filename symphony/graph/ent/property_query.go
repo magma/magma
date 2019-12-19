@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -33,7 +34,7 @@ type PropertyQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Property
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -64,120 +65,120 @@ func (pq *PropertyQuery) Order(o ...Order) *PropertyQuery {
 // QueryType chains the current query on the type edge.
 func (pq *PropertyQuery) QueryType() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.M2O, false, property.TypeTable, property.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.TypeTable, property.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (pq *PropertyQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, property.LocationTable, property.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.LocationTable, property.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (pq *PropertyQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, true, property.EquipmentTable, property.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentTable, property.EquipmentColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (pq *PropertyQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2O, true, property.ServiceTable, property.ServiceColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.ServiceTable, property.ServiceColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentPort chains the current query on the equipment_port edge.
 func (pq *PropertyQuery) QueryEquipmentPort() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.EquipmentPortTable, property.EquipmentPortColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLink chains the current query on the link edge.
 func (pq *PropertyQuery) QueryLink() *LinkQuery {
 	query := &LinkQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(link.Table, link.FieldID),
-		sql.Edge(sql.M2O, true, property.LinkTable, property.LinkColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(link.Table, link.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.LinkTable, property.LinkColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (pq *PropertyQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.WorkOrderTable, property.WorkOrderColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProject chains the current query on the project edge.
 func (pq *PropertyQuery) QueryProject() *ProjectQuery {
 	query := &ProjectQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(project.Table, project.FieldID),
-		sql.Edge(sql.M2O, true, property.ProjectTable, property.ProjectColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(project.Table, project.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, property.ProjectTable, property.ProjectColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentValue chains the current query on the equipment_value edge.
 func (pq *PropertyQuery) QueryEquipmentValue() *EquipmentQuery {
 	query := &EquipmentQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.EquipmentValueTable, property.EquipmentValueColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocationValue chains the current query on the location_value edge.
 func (pq *PropertyQuery) QueryLocationValue() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(property.Table, property.FieldID, pq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, property.LocationValueTable, property.LocationValueColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.LocationValueTable, property.LocationValueColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
@@ -345,7 +346,7 @@ func (pq *PropertyQuery) Clone() *PropertyQuery {
 		order:      append([]Order{}, pq.order...),
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Property{}, pq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: pq.sql.Clone(),
 	}
 }
@@ -471,7 +472,7 @@ type PropertyGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -592,7 +593,7 @@ func (pgb *PropertyGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
 	columns = append(columns, pgb.fields...)
 	for _, fn := range pgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(pgb.fields...)
 }

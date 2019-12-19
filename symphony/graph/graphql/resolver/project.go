@@ -82,7 +82,7 @@ func (r mutationResolver) CreateProjectType(ctx context.Context, input models.Ad
 		AddProperties(properties...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project type %q already exists", input.Name)
 		}
 		return nil, xerrors.Errorf("creating project type: %w", err)
@@ -112,7 +112,7 @@ func (r mutationResolver) EditProjectType(
 		if ent.IsNotFound(err) {
 			return nil, gqlerror.Errorf("Project template with id=%q does not exist", input.ID)
 		}
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("A project template with the name %v already exists", input.Name)
 		}
 		return nil, errors.Wrapf(err, "updating project template: id=%q", pt.ID)
@@ -273,7 +273,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		AddProperties(properties...).
 		Save(ctx)
 	if err != nil {
-		if ent.IsConstraintFailure(err) {
+		if ent.IsConstraintError(err) {
 			return nil, gqlerror.Errorf("Project %q already exists", input.Name)
 		}
 		return nil, xerrors.Errorf("creating project: %w", err)

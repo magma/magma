@@ -73,7 +73,6 @@
 
 static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental);
 
-static int _map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -730,7 +729,7 @@ int nas_proc_cs_domain_location_updt_fail(
     cs_location_updt_fail.presencemask = LAI;
   }
   // SGS Reject Cause
-  cs_location_updt_fail.reject_cause = _map_sgs_emm_cause(cause);
+  cs_location_updt_fail.reject_cause = map_sgs_emm_cause(cause);
 
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -932,114 +931,6 @@ int nas_proc_cs_domain_mm_information_request(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-/******************************************************************************
- **                                                                          **
- ** Name:                _map_sgs_emm_cause()                                **
- ** Description          Maps SGS Reject cause to EMM cause                  **
- **                                                                          **
- ** Inputs:              SGS Reject Cause                                    **
- ** Outputs:                                                                 **
- **      Return:    Selected emm cause                                       **
-*******************************************************************************/
-
-static int _map_sgs_emm_cause(SgsRejectCause_t sgs_cause)
-{
-  int emm_cause;
-  switch (sgs_cause) {
-    case SGS_IMSI_UNKNOWN_IN_HLR: {
-      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
-    } break;
-    case SGS_ILLEGAL_MS: {
-      emm_cause = EMM_CAUSE_ILLEGAL_UE;
-    } break;
-    case SGS_IMSI_UNKNOWN_IN_VLR: {
-      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
-    } break;
-    case SGS_IMEI_NOT_ACCEPTED: {
-      emm_cause = EMM_CAUSE_IMEI_NOT_ACCEPTED;
-    } break;
-    case SGS_ILLEGAL_UE: {
-      emm_cause = EMM_CAUSE_ILLEGAL_UE;
-    } break;
-    case SGS_PLMN_NOT_ALLOWED: {
-      emm_cause = EMM_CAUSE_PLMN_NOT_ALLOWED;
-    } break;
-    case SGS_LOCATION_AREA_NOT_ALLOWED: {
-      emm_cause = EMM_CAUSE_TA_NOT_ALLOWED;
-    } break;
-    case SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA: {
-      emm_cause = EMM_CAUSE_ROAMING_NOT_ALLOWED;
-    } break;
-    case SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA: {
-      emm_cause = EMM_CAUSE_NO_SUITABLE_CELLS;
-    } break;
-    case SGS_NETWORK_FAILURE: {
-      emm_cause = EMM_CAUSE_NETWORK_FAILURE;
-    } break;
-    case SGS_MAC_FAILURE: {
-      emm_cause = EMM_CAUSE_MAC_FAILURE;
-    } break;
-    case SGS_SYNCH_FAILURE: {
-      emm_cause = EMM_CAUSE_SYNCH_FAILURE;
-    } break;
-    case SGS_CONGESTION: {
-      emm_cause = EMM_CAUSE_CONGESTION;
-    } break;
-    case SGS_GSM_AUTHENTICATION_UNACCEPTABLE: {
-      emm_cause = EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE;
-    } break;
-    case SGS_NOT_AUTHORIZED_FOR_THIS_CSG: {
-      emm_cause = EMM_CAUSE_CSG_NOT_AUTHORIZED;
-    } break;
-    case SGS_SERVICE_OPTION_NOT_SUPPORTED: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_CALL_CANNOT_BE_IDENTIFIED: {
-      emm_cause = EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW;
-    } break;
-    // TODO : Need to map appropriate cause
-    case SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL: {
-      emm_cause = 0;
-    } break;
-    case SGS_SEMANTICALLY_INCORRECT_MESSAGE: {
-      emm_cause = EMM_CAUSE_SEMANTICALLY_INCORRECT;
-    } break;
-    case SGS_INVALID_MANDATORY_INFORMATION: {
-      emm_cause = EMM_CAUSE_INVALID_MANDATORY_INFO;
-    } break;
-    case SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED: {
-      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
-    } break;
-    case SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
-      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE;
-    } break;
-    case SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED: {
-      emm_cause = EMM_CAUSE_IE_NOT_IMPLEMENTED;
-    } break;
-    case SGS_CONDITIONAL_IE_ERROR: {
-      emm_cause = EMM_CAUSE_CONDITIONAL_IE_ERROR;
-    } break;
-    case SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
-      emm_cause = EMM_CAUSE_MESSAGE_NOT_COMPATIBLE;
-    } break;
-    case SGS_PROTOCOL_ERROR_UNSPECIFIED: {
-      emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    } break;
-    case SGS_MSC_NOT_REACHABLE: {
-      emm_cause = EMM_CAUSE_MSC_NOT_REACHABLE;
-    } break;
-    default:
-      OAILOG_INFO(LOG_NAS_EMM, "Invalid SGS Reject cause\n");
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-  }
-  return emm_cause;
-}
 /****************************************************************************
  **                                                                        **
  ** Name:    nas_proc_notify_service_reject()                              **

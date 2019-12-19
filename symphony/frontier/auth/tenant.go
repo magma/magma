@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/bobesa/go-domain-util/domainutil"
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/frontier/ent"
 	"github.com/facebookincubator/symphony/frontier/ent/tenant"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 )

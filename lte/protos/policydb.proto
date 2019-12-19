@@ -7,7 +7,6 @@
 
 syntax = "proto3";
 
-import "orc8r/protos/common.proto";
 import "lte/protos/subscriberdb.proto";
 
 package magma.lte;

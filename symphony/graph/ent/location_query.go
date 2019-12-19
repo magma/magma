@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
@@ -34,7 +35,7 @@ type LocationQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Location
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -65,132 +66,132 @@ func (lq *LocationQuery) Order(o ...Order) *LocationQuery {
 // QueryType chains the current query on the type edge.
 func (lq *LocationQuery) QueryType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(locationtype.Table, locationtype.FieldID),
-		sql.Edge(sql.M2O, false, location.TypeTable, location.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(locationtype.Table, locationtype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, location.TypeTable, location.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryParent chains the current query on the parent edge.
 func (lq *LocationQuery) QueryParent() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, location.ParentTable, location.ParentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, location.ParentTable, location.ParentColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryChildren chains the current query on the children edge.
 func (lq *LocationQuery) QueryChildren() *LocationQuery {
 	query := &LocationQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.O2M, false, location.ChildrenTable, location.ChildrenColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.ChildrenTable, location.ChildrenColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (lq *LocationQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, location.FilesTable, location.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.FilesTable, location.FilesColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (lq *LocationQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, false, location.EquipmentTable, location.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.EquipmentTable, location.EquipmentColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (lq *LocationQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, location.PropertiesTable, location.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, location.PropertiesTable, location.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QuerySurvey chains the current query on the survey edge.
 func (lq *LocationQuery) QuerySurvey() *SurveyQuery {
 	query := &SurveyQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(survey.Table, survey.FieldID),
-		sql.Edge(sql.O2M, true, location.SurveyTable, location.SurveyColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(survey.Table, survey.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.SurveyTable, location.SurveyColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWifiScan chains the current query on the wifi_scan edge.
 func (lq *LocationQuery) QueryWifiScan() *SurveyWiFiScanQuery {
 	query := &SurveyWiFiScanQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(surveywifiscan.Table, surveywifiscan.FieldID),
-		sql.Edge(sql.O2M, true, location.WifiScanTable, location.WifiScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(surveywifiscan.Table, surveywifiscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.WifiScanTable, location.WifiScanColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCellScan chains the current query on the cell_scan edge.
 func (lq *LocationQuery) QueryCellScan() *SurveyCellScanQuery {
 	query := &SurveyCellScanQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(surveycellscan.Table, surveycellscan.FieldID),
-		sql.Edge(sql.O2M, true, location.CellScanTable, location.CellScanColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(surveycellscan.Table, surveycellscan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.CellScanTable, location.CellScanColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (lq *LocationQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.WorkOrdersTable, location.WorkOrdersColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFloorPlans chains the current query on the floor_plans edge.
 func (lq *LocationQuery) QueryFloorPlans() *FloorPlanQuery {
 	query := &FloorPlanQuery{config: lq.config}
-	step := sql.NewStep(
-		sql.From(location.Table, location.FieldID, lq.sqlQuery()),
-		sql.To(floorplan.Table, floorplan.FieldID),
-		sql.Edge(sql.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(location.Table, location.FieldID, lq.sqlQuery()),
+		sqlgraph.To(floorplan.Table, floorplan.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, location.FloorPlansTable, location.FloorPlansColumn),
 	)
-	query.sql = sql.SetNeighbors(lq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(lq.driver.Dialect(), step)
 	return query
 }
 
@@ -358,7 +359,7 @@ func (lq *LocationQuery) Clone() *LocationQuery {
 		order:      append([]Order{}, lq.order...),
 		unique:     append([]string{}, lq.unique...),
 		predicates: append([]predicate.Location{}, lq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: lq.sql.Clone(),
 	}
 }
@@ -484,7 +485,7 @@ type LocationGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -605,7 +606,7 @@ func (lgb *LocationGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(lgb.fields)+len(lgb.fns))
 	columns = append(columns, lgb.fields...)
 	for _, fn := range lgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(lgb.fields...)
 }

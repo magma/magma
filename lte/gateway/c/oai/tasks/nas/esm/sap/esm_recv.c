@@ -499,7 +499,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   ue_mm_context_p =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  if (ue_mm_context_p) {
+  if (!ue_mm_context_p) {
     OAILOG_WARNING(
       LOG_NAS_ESM, "Failed to find ue context from emm context \n");
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);

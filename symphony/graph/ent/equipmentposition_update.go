@@ -281,7 +281,7 @@ func (epu *EquipmentPositionUpdate) sqlSave(ctx context.Context) (n int, err err
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(epu.attachment) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"attachment\" %v already connected to a different \"EquipmentPosition\"", keys(epu.attachment))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"attachment\" %v already connected to a different \"EquipmentPosition\"", keys(epu.attachment))})
 			}
 		}
 	}
@@ -550,7 +550,7 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(epuo.attachment) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"attachment\" %v already connected to a different \"EquipmentPosition\"", keys(epuo.attachment))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"attachment\" %v already connected to a different \"EquipmentPosition\"", keys(epuo.attachment))})
 			}
 		}
 	}

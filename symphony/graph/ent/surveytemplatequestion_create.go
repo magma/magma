@@ -12,7 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
 )
 
@@ -141,62 +143,93 @@ func (stqc *SurveyTemplateQuestionCreate) SaveX(ctx context.Context) *SurveyTemp
 
 func (stqc *SurveyTemplateQuestionCreate) sqlSave(ctx context.Context) (*SurveyTemplateQuestion, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(stqc.driver.Dialect())
-		stq     = &SurveyTemplateQuestion{config: stqc.config}
+		stq  = &SurveyTemplateQuestion{config: stqc.config}
+		spec = &sqlgraph.CreateSpec{
+			Table: surveytemplatequestion.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveytemplatequestion.FieldID,
+			},
+		}
 	)
-	tx, err := stqc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(surveytemplatequestion.Table).Default()
 	if value := stqc.create_time; value != nil {
-		insert.Set(surveytemplatequestion.FieldCreateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldCreateTime,
+		})
 		stq.CreateTime = *value
 	}
 	if value := stqc.update_time; value != nil {
-		insert.Set(surveytemplatequestion.FieldUpdateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldUpdateTime,
+		})
 		stq.UpdateTime = *value
 	}
 	if value := stqc.question_title; value != nil {
-		insert.Set(surveytemplatequestion.FieldQuestionTitle, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldQuestionTitle,
+		})
 		stq.QuestionTitle = *value
 	}
 	if value := stqc.question_description; value != nil {
-		insert.Set(surveytemplatequestion.FieldQuestionDescription, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldQuestionDescription,
+		})
 		stq.QuestionDescription = *value
 	}
 	if value := stqc.question_type; value != nil {
-		insert.Set(surveytemplatequestion.FieldQuestionType, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldQuestionType,
+		})
 		stq.QuestionType = *value
 	}
 	if value := stqc.index; value != nil {
-		insert.Set(surveytemplatequestion.FieldIndex, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: surveytemplatequestion.FieldIndex,
+		})
 		stq.Index = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(surveytemplatequestion.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	stq.ID = strconv.FormatInt(id, 10)
-	if len(stqc.category) > 0 {
-		for eid := range stqc.category {
-			eid, err := strconv.Atoi(eid)
-			if err != nil {
-				return nil, rollback(tx, err)
-			}
-			query, args := builder.Update(surveytemplatequestion.CategoryTable).
-				Set(surveytemplatequestion.CategoryColumn, eid).
-				Where(sql.EQ(surveytemplatequestion.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := stqc.category; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   surveytemplatequestion.CategoryTable,
+			Columns: []string{surveytemplatequestion.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatecategory.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, stqc.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := spec.ID.Value.(int64)
+	stq.ID = strconv.FormatInt(id, 10)
 	return stq, nil
 }

@@ -74,26 +74,31 @@ static int _mme_app_compare_tmsi(
 ******************************************************************************/
 
 void mme_app_send_itti_sgsap_ue_activity_ind(
-  const char *imsi, const unsigned int imsi_len)
+  const char* imsi,
+  const unsigned int imsi_len)
 {
   OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
-  memset(&message_p->ittiMsg.sgsap_ue_activity_ind, 0,
-         sizeof(itti_sgsap_ue_activity_ind_t));
-  memcpy(SGSAP_UE_ACTIVITY_IND (message_p).imsi, imsi, imsi_len);
-  OAILOG_DEBUG(LOG_NAS," Imsi : %s %d \n", imsi,imsi_len);
-  SGSAP_UE_ACTIVITY_IND (message_p).imsi[imsi_len] = '\0';
-  SGSAP_UE_ACTIVITY_IND (message_p).imsi_length = imsi_len;
+  memset(
+    &message_p->ittiMsg.sgsap_ue_activity_ind,
+    0,
+    sizeof(itti_sgsap_ue_activity_ind_t));
+  memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
+  OAILOG_DEBUG(LOG_NAS, " Imsi : %s %d \n", imsi, imsi_len);
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
-  OAILOG_DEBUG(LOG_NAS,
-     "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
-     "%s %d \n", imsi,imsi_len);
+  OAILOG_DEBUG(
+    LOG_NAS,
+    "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
+    "%s %d \n",
+    imsi,
+    imsi_len);
 
   OAILOG_FUNC_OUT(LOG_NAS);
 }
-
 
 /**********************************************************************************
  **                                                                              **
@@ -192,17 +197,19 @@ static int _build_sgs_status(
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
-/**********************************************************************************
- **                                                                              **
- ** Name:                _mme_app_update_csfb_params()                           **
- ** Description          Upon receiving SGS_LOCATION_UPDATE_ACC                  **
- **                      Update csfb specific params to UE context and send      **
- **                      Attach Accept or TAU accept                             **
- **                                                                              **
- ** Inputs:              Received ITTI message, itti_sgsap_location_update_acc   **
- **                      Pointer to UE context                                   **
-***********************************************************************************/
-static int _mme_app_update_csfb_params(
+/*******************************************************************************
+ **                                                                            *
+ ** Name:                _handle_cs_domain_loc_updt_acc()                      *
+ ** Description          Upon receiving SGS_LOCATION_UPDATE_ACC                *
+ **                      Update csfb specific params to UE context and send    *
+ **                      Attach Accept or TAU accept                           *
+ **                                                                            *
+ ** Inputs:              Received ITTI message, itti_sgsap_location_update_acc *
+ **                      Pointer to UE context                                 *
+ ** Outputs:                                                                   *
+ **      Return:    RETURNok, RETURNerror                                      *
+*******************************************************************************/
+static int _handle_cs_domain_loc_updt_acc(
   itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
   struct ue_mm_context_s* ue_context_p)
 {
@@ -214,20 +221,20 @@ static int _mme_app_update_csfb_params(
     OAILOG_ERROR(LOG_MME_APP, "Invalid emm context \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  //Store LAI to be sent in Attach Accept/TAU Accept
+  // Store LAI to be sent in Attach Accept/TAU Accept
   emm_ctx_p->csfbparams.presencemask |= LAI_CSFB;
-  emm_ctx_p->csfbparams.lai.mccdigit2 =
-    itti_sgsap_location_update_acc->laicsfb.mccdigit2;
   emm_ctx_p->csfbparams.lai.mccdigit1 =
     itti_sgsap_location_update_acc->laicsfb.mccdigit1;
+  emm_ctx_p->csfbparams.lai.mccdigit2 =
+    itti_sgsap_location_update_acc->laicsfb.mccdigit2;
   emm_ctx_p->csfbparams.lai.mncdigit3 =
     itti_sgsap_location_update_acc->laicsfb.mncdigit3;
-  emm_ctx_p->csfbparams.lai.mccdigit3 =
-    itti_sgsap_location_update_acc->laicsfb.mccdigit3;
-  emm_ctx_p->csfbparams.lai.mncdigit2 =
-    itti_sgsap_location_update_acc->laicsfb.mncdigit2;
   emm_ctx_p->csfbparams.lai.mncdigit1 =
     itti_sgsap_location_update_acc->laicsfb.mncdigit1;
+  emm_ctx_p->csfbparams.lai.mncdigit2 =
+    itti_sgsap_location_update_acc->laicsfb.mncdigit2;
+  emm_ctx_p->csfbparams.lai.mccdigit3 =
+    itti_sgsap_location_update_acc->laicsfb.mccdigit3;
   emm_ctx_p->csfbparams.lai.lac = itti_sgsap_location_update_acc->laicsfb.lac;
 
   OAILOG_DEBUG(
@@ -235,13 +242,13 @@ static int _mme_app_update_csfb_params(
     "MME-APP - Mobile Identity presence mask %u \n",
     itti_sgsap_location_update_acc->presencemask);
 
-  //Store Mobile Identity to be sent in Attach Accept/TAU Accept
+  // Store Mobile Identity to be sent in Attach Accept/TAU Accept
   if (itti_sgsap_location_update_acc->presencemask & SGSAP_MOBILE_IDENTITY) {
     emm_ctx_p->csfbparams.presencemask |= MOBILE_IDENTITY;
     if (
       itti_sgsap_location_update_acc->mobileid.typeofidentity ==
       MOBILE_IDENTITY_IMSI) {
-      //Convert char* IMSI/TMSI to digit format to be sent in NAS message
+      // Convert char* IMSI/TMSI to digit format to be sent in NAS message
       imsi_mobile_identity_t* imsi_p = &emm_ctx_p->csfbparams.mobileid.imsi;
       MOBILE_ID_CHAR_TO_MOBILE_ID_IMSI_NAS(
         itti_sgsap_location_update_acc->mobileid.u.imsi,
@@ -260,7 +267,7 @@ static int _mme_app_update_csfb_params(
       if (
         (_mme_app_compare_tmsi(
           emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi)) == RETURNerror) {
-        OAILOG_INFO(LOG_NAS_EMM, "MME-APP - New TMSI Allocated\n");
+        OAILOG_INFO(LOG_MME_APP, "MME-APP - New TMSI Allocated\n");
         memcpy(
           &emm_ctx_p->csfbparams.mobileid.tmsi,
           received_tmsi_p,
@@ -269,18 +276,18 @@ static int _mme_app_update_csfb_params(
       }
     }
   }
-  /*Store the status of Location Update procedure(success/failure) to send appropriate cause
-   *in Attach Accept/TAU Accept
-  */
+  /* Store the status of Location Update procedure(success/failure) to send appropriate cause
+   * in Attach Accept/TAU Accept
+   */
   emm_ctx_p->csfbparams.sgs_loc_updt_status = SUCCESS;
 
-  //Additional Update type
+  // Additional Update type
   if (ue_context_p->granted_service == GRANTED_SERVICE_SMS_ONLY) {
     emm_ctx_p->csfbparams.presencemask |= ADD_UPDATE_TYPE;
     emm_ctx_p->csfbparams.additional_updt_res = ADDITONAL_UPDT_RES_SMS_ONLY;
   }
-  //Send Attach Accept/TAU Accept
-  rc = handle_cs_domain_loc_updt_acc(ue_context_p);
+  // Send Attach Accept/TAU Accept
+  rc = emm_send_cs_domain_attach_or_tau_accept(ue_context_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -316,7 +323,7 @@ int mme_app_handle_nas_cs_domain_location_update_req(
     }
   }
 
-  //Store granted service type based on attach type & addition updt type
+  // Store granted service type based on attach type & addition updt type
   if (msg_type == ATTACH_REQUEST) {
     ue_context_p->attach_type =
       _get_eps_attach_type(ue_context_p->emm_context.attach_type);
@@ -374,7 +381,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     0,
     sizeof(itti_sgsap_location_update_req_t));
 
-  //IMSI
+  // IMSI
   IMSI64_TO_STRING(
     ue_context_p->emm_context._imsi64,
     sgsap_location_update_req->imsi,
@@ -383,12 +390,12 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     ue_context_p->emm_context._imsi.length;
 
   tau_updt_type = ue_context_p->emm_context.tau_updt_type;
-  //EPS Location update type
-  //If Combined attach is received, set Location Update type as IMSI_ATTACH
+  // EPS Location update type
+  // If Combined attach is received, set Location Update type as IMSI_ATTACH
   if (ue_context_p->sgs_context->ongoing_procedure == COMBINED_ATTACH) {
     sgsap_location_update_req->locationupdatetype = IMSI_ATTACH;
   }
-  //If Combined TAU is received, set Location Update type based the tau_updt_type
+  // If Combined TAU is received, set Location Update type based the tau_updt_type
   else if (ue_context_p->sgs_context->ongoing_procedure == COMBINED_TAU) {
     if (
       (tau_updt_type == EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
@@ -400,7 +407,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
       sgsap_location_update_req->locationupdatetype = IMSI_ATTACH;
     }
   }
-  //New LAI - Retrieve from conf
+  // New LAI - Retrieve from conf
   mme_config_read_lock(&mme_config);
   sgsap_location_update_req->newlaicsfb.mccdigit2 = mme_config.lai.mccdigit2;
   sgsap_location_update_req->newlaicsfb.mccdigit1 = mme_config.lai.mccdigit1;
@@ -411,14 +418,14 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
   sgsap_location_update_req->newlaicsfb.lac = mme_config.lai.lac;
   mme_config_unlock(&mme_config);
 
-  //IMEISV
+  // IMEISV
   sgsap_location_update_req->presencemask |= SGSAP_IMEISV;
   imeisv_t* imeisv = &ue_context_p->emm_context._imeisv;
   IMEISV_TO_STRING(imeisv, sgsap_location_update_req->imeisv, MAX_IMEISV_SIZE);
 
-  //TAI - TAI List currently not available in MME APP UE Context
+  // TAI - TAI List currently not available in MME APP UE Context
 
-  //ECGI
+  // ECGI
   sgsap_location_update_req->presencemask |= SGSAP_E_CGI;
   sgsap_location_update_req->ecgi.plmn.mcc_digit2 =
     ue_context_p->e_utran_cgi.plmn.mcc_digit2;
@@ -438,7 +445,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
   sgsap_location_update_req->ecgi.cell_identity.cell_id =
     ue_context_p->e_utran_cgi.cell_identity.cell_id;
 
-  /*Send SGSAP Location Update Request to SGS task*/
+  // Send SGSAP Location Update Request to SGS task
   rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
 
   /* update the neaf flag to false after sending the Location Update
@@ -453,7 +460,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
       ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  /* Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED*/
+  // Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED
   sgs_fsm_set_status(
     ue_context_p->mme_ue_s1ap_id,
     ue_context_p->sgs_context,
@@ -745,7 +752,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt)
     }
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
     if (
-      RETURNerror == (_mme_app_update_csfb_params(
+      RETURNerror == (_handle_cs_domain_loc_updt_acc(
                        itti_sgsap_location_update_acc_p, ue_context_p))) {
       OAILOG_DEBUG(
         LOG_MME_APP,
@@ -898,7 +905,7 @@ void mme_app_handle_ts6_1_timer_expiry(struct ue_mm_context_s *ue_context_p)
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->sgs_state = SGS_NULL;
 
-  /* Handle SGS Location Update Failure */
+  // Handle SGS Location Update Failure
   nas_proc_cs_domain_location_updt_fail(
     SGS_MSC_NOT_REACHABLE, NULL, ue_context_p->mme_ue_s1ap_id);
 
@@ -925,7 +932,6 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
     (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
-  /*Fetch UE context*/
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
@@ -948,7 +954,7 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt)
 }
 
 //----------------------------------------------------------------------------
-//Mapping between EMM Attach Type and EPS Attach Type
+// Mapping between EMM Attach Type and EPS Attach Type
 static uint8_t _get_eps_attach_type(uint8_t emm_attach_type)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -963,10 +969,9 @@ static uint8_t _get_eps_attach_type(uint8_t emm_attach_type)
       eps_attach_type = EPS_ATTACH_TYPE_EMERGENCY;
       break;
     default:
-      OAILOG_WARNING(LOG_NAS_EMM, " No Matching EPS Atttach type");
+      OAILOG_WARNING(LOG_MME_APP, " No Matching EPS Atttach type");
       break;
   }
-
   return eps_attach_type;
 }
 
@@ -1033,9 +1038,9 @@ static int _mme_app_compare_tmsi(
   if (
     (tmsi1.tmsi[0] != tmsi2.tmsi[0]) || (tmsi1.tmsi[1] != tmsi2.tmsi[1]) ||
     (tmsi1.tmsi[2] != tmsi2.tmsi[2]) || (tmsi1.tmsi[3] != tmsi2.tmsi[3])) {
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /*******************************************************************************
@@ -1064,15 +1069,11 @@ int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p)
       ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  /*Initialize SGS context to default values*/
+  // Initialize SGS context to default values
   ue_context_p->sgs_context->sgs_state = SGS_NULL;
   ue_context_p->sgs_context->vlr_reliable = false;
   ue_context_p->sgs_context->neaf = false;
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts10_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  ue_context_p->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts6_1_timer.sec = mme_config.sgs_config.ts6_1_sec;
   ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->ts8_timer.sec = mme_config.sgs_config.ts8_sec;
@@ -1088,4 +1089,112 @@ int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p)
   ue_context_p->sgs_context->ts13_retransmission_count = 0;
   ue_context_p->sgs_context->call_cancelled = false;
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+}
+
+/******************************************************************************
+ **                                                                          **
+ ** Name:                map_sgs_emm_cause()                                **
+ ** Description          Maps SGS Reject cause to EMM cause                  **
+ **                                                                          **
+ ** Inputs:              SGS Reject Cause                                    **
+ ** Outputs:                                                                 **
+ **      Return:    Selected emm cause                                       **
+*******************************************************************************/
+int map_sgs_emm_cause(SgsRejectCause_t sgs_cause)
+{
+  int emm_cause;
+  switch (sgs_cause) {
+    case SGS_IMSI_UNKNOWN_IN_HLR: {
+      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
+    } break;
+    case SGS_ILLEGAL_MS: {
+      emm_cause = EMM_CAUSE_ILLEGAL_UE;
+    } break;
+    case SGS_IMSI_UNKNOWN_IN_VLR: {
+      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
+    } break;
+    case SGS_IMEI_NOT_ACCEPTED: {
+      emm_cause = EMM_CAUSE_IMEI_NOT_ACCEPTED;
+    } break;
+    case SGS_ILLEGAL_UE: {
+      emm_cause = EMM_CAUSE_ILLEGAL_UE;
+    } break;
+    case SGS_PLMN_NOT_ALLOWED: {
+      emm_cause = EMM_CAUSE_PLMN_NOT_ALLOWED;
+    } break;
+    case SGS_LOCATION_AREA_NOT_ALLOWED: {
+      emm_cause = EMM_CAUSE_TA_NOT_ALLOWED;
+    } break;
+    case SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA: {
+      emm_cause = EMM_CAUSE_ROAMING_NOT_ALLOWED;
+    } break;
+    case SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA: {
+      emm_cause = EMM_CAUSE_NO_SUITABLE_CELLS;
+    } break;
+    case SGS_NETWORK_FAILURE: {
+      emm_cause = EMM_CAUSE_NETWORK_FAILURE;
+    } break;
+    case SGS_MAC_FAILURE: {
+      emm_cause = EMM_CAUSE_MAC_FAILURE;
+    } break;
+    case SGS_SYNCH_FAILURE: {
+      emm_cause = EMM_CAUSE_SYNCH_FAILURE;
+    } break;
+    case SGS_CONGESTION: {
+      emm_cause = EMM_CAUSE_CONGESTION;
+    } break;
+    case SGS_GSM_AUTHENTICATION_UNACCEPTABLE: {
+      emm_cause = EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE;
+    } break;
+    case SGS_NOT_AUTHORIZED_FOR_THIS_CSG: {
+      emm_cause = EMM_CAUSE_CSG_NOT_AUTHORIZED;
+    } break;
+    case SGS_SERVICE_OPTION_NOT_SUPPORTED: {
+      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+    } break;
+    case SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED: {
+      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+    } break;
+    case SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER: {
+      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+    } break;
+    case SGS_CALL_CANNOT_BE_IDENTIFIED: {
+      emm_cause = EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW;
+    } break;
+    // TODO : Need to map appropriate cause
+    case SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL: {
+      emm_cause = 0;
+    } break;
+    case SGS_SEMANTICALLY_INCORRECT_MESSAGE: {
+      emm_cause = EMM_CAUSE_SEMANTICALLY_INCORRECT;
+    } break;
+    case SGS_INVALID_MANDATORY_INFORMATION: {
+      emm_cause = EMM_CAUSE_INVALID_MANDATORY_INFO;
+    } break;
+    case SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED: {
+      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
+    } break;
+    case SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
+      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE;
+    } break;
+    case SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED: {
+      emm_cause = EMM_CAUSE_IE_NOT_IMPLEMENTED;
+    } break;
+    case SGS_CONDITIONAL_IE_ERROR: {
+      emm_cause = EMM_CAUSE_CONDITIONAL_IE_ERROR;
+    } break;
+    case SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
+      emm_cause = EMM_CAUSE_MESSAGE_NOT_COMPATIBLE;
+    } break;
+    case SGS_PROTOCOL_ERROR_UNSPECIFIED: {
+      emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
+    } break;
+    case SGS_MSC_NOT_REACHABLE: {
+      emm_cause = EMM_CAUSE_MSC_NOT_REACHABLE;
+    } break;
+    default:
+      OAILOG_INFO(LOG_NAS_EMM, "Invalid SGS Reject cause\n");
+      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+  }
+  return emm_cause;
 }
