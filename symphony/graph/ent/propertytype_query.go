@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
@@ -32,7 +33,7 @@ type PropertyTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.PropertyType
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -63,96 +64,96 @@ func (ptq *PropertyTypeQuery) Order(o ...Order) *PropertyTypeQuery {
 // QueryProperties chains the current query on the properties edge.
 func (ptq *PropertyTypeQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, propertytype.PropertiesTable, propertytype.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocationType chains the current query on the location_type edge.
 func (ptq *PropertyTypeQuery) QueryLocationType() *LocationTypeQuery {
 	query := &LocationTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(locationtype.Table, locationtype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(locationtype.Table, locationtype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LocationTypeTable, propertytype.LocationTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentPortTypeTable, propertytype.EquipmentPortTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLinkEquipmentPortType chains the current query on the link_equipment_port_type edge.
 func (ptq *PropertyTypeQuery) QueryLinkEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.LinkEquipmentPortTypeTable, propertytype.LinkEquipmentPortTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (ptq *PropertyTypeQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.EquipmentTypeTable, propertytype.EquipmentTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryServiceType chains the current query on the service_type edge.
 func (ptq *PropertyTypeQuery) QueryServiceType() *ServiceTypeQuery {
 	query := &ServiceTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(servicetype.Table, servicetype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(servicetype.Table, servicetype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ServiceTypeTable, propertytype.ServiceTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrderType chains the current query on the work_order_type edge.
 func (ptq *PropertyTypeQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 	query := &WorkOrderTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(workordertype.Table, workordertype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(workordertype.Table, workordertype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProjectType chains the current query on the project_type edge.
 func (ptq *PropertyTypeQuery) QueryProjectType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: ptq.config}
-	step := sql.NewStep(
-		sql.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, propertytype.ProjectTypeTable, propertytype.ProjectTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(ptq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 	return query
 }
 
@@ -320,7 +321,7 @@ func (ptq *PropertyTypeQuery) Clone() *PropertyTypeQuery {
 		order:      append([]Order{}, ptq.order...),
 		unique:     append([]string{}, ptq.unique...),
 		predicates: append([]predicate.PropertyType{}, ptq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: ptq.sql.Clone(),
 	}
 }
@@ -446,7 +447,7 @@ type PropertyTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -567,7 +568,7 @@ func (ptgb *PropertyTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(ptgb.fields)+len(ptgb.fns))
 	columns = append(columns, ptgb.fields...)
 	for _, fn := range ptgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(ptgb.fields...)
 }

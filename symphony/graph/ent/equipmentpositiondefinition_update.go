@@ -310,7 +310,7 @@ func (epdu *EquipmentPositionDefinitionUpdate) sqlSave(ctx context.Context) (n i
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(epdu.positions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"EquipmentPositionDefinition\"", keys(epdu.positions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"EquipmentPositionDefinition\"", keys(epdu.positions))})
 			}
 		}
 	}
@@ -641,7 +641,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(epduo.positions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"EquipmentPositionDefinition\"", keys(epduo.positions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"positions\" %v already connected to a different \"EquipmentPositionDefinition\"", keys(epduo.positions))})
 			}
 		}
 	}

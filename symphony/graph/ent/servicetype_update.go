@@ -263,7 +263,7 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(stu.services) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stu.services))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stu.services))})
 			}
 		}
 	}
@@ -309,7 +309,7 @@ func (stu *ServiceTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(stu.property_types) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stu.property_types))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stu.property_types))})
 			}
 		}
 	}
@@ -563,7 +563,7 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(stuo.services) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stuo.services))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"services\" %v already connected to a different \"ServiceType\"", keys(stuo.services))})
 			}
 		}
 	}
@@ -609,7 +609,7 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(stuo.property_types) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stuo.property_types))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"ServiceType\"", keys(stuo.property_types))})
 			}
 		}
 	}

@@ -26,6 +26,15 @@
 <section>
 </section>
 <section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="pyinventory.graphql.add_service_mutation.enum_field"><code class="name flex">
+<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
@@ -96,10 +105,10 @@
 </dd>
 <dt id="pyinventory.graphql.add_service_mutation.ServiceCreateData"><code class="flex name class">
 <span>class <span class="ident">ServiceCreateData</span></span>
-<span>(</span><span>name, serviceTypeId, upstreamServiceIds, terminationPointIds, externalId=None, customerId=None, properties=None)</span>
+<span>(</span><span>name, serviceTypeId, upstreamServiceIds, terminationPointIds, externalId=None, status=None, customerId=None, properties=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>ServiceCreateData(name: str, serviceTypeId: str, upstreamServiceIds: List[str], terminationPointIds: List[str], externalId: Union[str, NoneType] = None, customerId: Union[str, NoneType] = None, properties: Union[List[pyinventory.graphql.add_service_mutation.ServiceCreateData.PropertyInput], NoneType] = None)</p></section>
+<section class="desc"><p>ServiceCreateData(name: str, serviceTypeId: str, upstreamServiceIds: List[str], terminationPointIds: List[str], externalId: Union[str, NoneType] = None, status: Union[pyinventory.graphql.add_service_mutation.ServiceStatus, NoneType] = None, customerId: Union[str, NoneType] = None, properties: Union[List[pyinventory.graphql.add_service_mutation.ServiceCreateData.PropertyInput], NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_service_mutation.ServiceCreateData.PropertyInput"><code class="name">var <span class="ident">PropertyInput</span></code></dt>
@@ -115,6 +124,10 @@
 <section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_service_mutation.ServiceCreateData.properties"><code class="name">var <span class="ident">properties</span></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceCreateData.status"><code class="name">var <span class="ident">status</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
@@ -156,6 +169,36 @@
 </dd>
 </dl>
 </dd>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceStatus"><code class="flex name class">
+<span>class <span class="ident">ServiceStatus</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceStatus.DISCONNECTED"><code class="name">var <span class="ident">DISCONNECTED</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceStatus.IN_SERVICE"><code class="name">var <span class="ident">IN_SERVICE</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceStatus.MAINTENANCE"><code class="name">var <span class="ident">MAINTENANCE</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+<dt id="pyinventory.graphql.add_service_mutation.ServiceStatus.PENDING"><code class="name">var <span class="ident">PENDING</span></code></dt>
+<dd>
+<section class="desc"><p>An enumeration.</p></section>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -168,6 +211,11 @@
 <li><h3>Super-module</h3>
 <ul>
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="pyinventory.graphql.add_service_mutation.enum_field" href="#pyinventory.graphql.add_service_mutation.enum_field">enum_field</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -196,8 +244,18 @@
 <li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.from_json" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.from_json">from_json</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.properties" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.properties">properties</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.schema" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.schema">schema</a></code></li>
+<li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.status" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.status">status</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.to_dict" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.to_dict">to_dict</a></code></li>
 <li><code><a title="pyinventory.graphql.add_service_mutation.ServiceCreateData.to_json" href="#pyinventory.graphql.add_service_mutation.ServiceCreateData.to_json">to_json</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyinventory.graphql.add_service_mutation.ServiceStatus" href="#pyinventory.graphql.add_service_mutation.ServiceStatus">ServiceStatus</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.graphql.add_service_mutation.ServiceStatus.DISCONNECTED" href="#pyinventory.graphql.add_service_mutation.ServiceStatus.DISCONNECTED">DISCONNECTED</a></code></li>
+<li><code><a title="pyinventory.graphql.add_service_mutation.ServiceStatus.IN_SERVICE" href="#pyinventory.graphql.add_service_mutation.ServiceStatus.IN_SERVICE">IN_SERVICE</a></code></li>
+<li><code><a title="pyinventory.graphql.add_service_mutation.ServiceStatus.MAINTENANCE" href="#pyinventory.graphql.add_service_mutation.ServiceStatus.MAINTENANCE">MAINTENANCE</a></code></li>
+<li><code><a title="pyinventory.graphql.add_service_mutation.ServiceStatus.PENDING" href="#pyinventory.graphql.add_service_mutation.ServiceStatus.PENDING">PENDING</a></code></li>
 </ul>
 </li>
 </ul>

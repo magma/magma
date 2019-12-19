@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/diam"
@@ -22,6 +23,29 @@ import (
 
 var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
 	RevalidationTimeout: protos.EventTrigger_REVALIDATION_TIMEOUT,
+}
+
+func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
+	ccr.SessionID = update.SessionId
+	ccr.RequestNumber = update.RequestNumber
+	ccr.Type = credit_control.CRTUpdate
+	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
+	ccr.IPAddr = update.UeIpv4
+	ccr.HardwareAddr = update.HardwareAddr
+	ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+	ccr.RATType = GetRATType(update.RatType)
+	ccr.IPCANType = GetIPCANType(update.RatType)
+	return ccr
+}
+
+func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRequestInfo {
+	qos.ApnAggMaxBitRateDL = pQos.GetApnAmbrDl()
+	qos.ApnAggMaxBitRateUL = pQos.GetApnAmbrUl()
+	qos.QosClassIdentifier = pQos.GetQosClassId()
+	qos.PriLevel = pQos.GetPriorityLevel()
+	qos.PreCapability = pQos.GetPreemptionCapability()
+	qos.PreVulnerability = pQos.GetPreemptionVulnerability()
+	return qos
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
@@ -249,7 +273,7 @@ func getUsageMonitoringCredits(usageMonitors []*UsageMonitoringInfo) []*protos.U
 	for _, monitor := range usageMonitors {
 		usageMonitoringCredits = append(
 			usageMonitoringCredits,
-			GetUsageMonitorCreditFromAVP(monitor),
+			monitor.ToUsageMonitoringCredit(),
 		)
 	}
 	return usageMonitoringCredits
@@ -265,10 +289,17 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	}
 }
 
-func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
-		monitor.GrantedServiceUnit.InputOctets == nil &&
-		monitor.GrantedServiceUnit.OutputOctets == nil) {
+func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
+	report.MonitoringKey = string(update.MonitoringKey)
+	report.Level = MonitoringLevel(update.Level)
+	report.InputOctets = update.BytesTx
+	report.OutputOctets = update.BytesRx // receive == output
+	report.TotalOctets = update.BytesTx + update.BytesRx
+	return report
+}
+
+func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonitoringCredit {
+	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: []byte(monitor.MonitoringKey),
@@ -281,5 +312,29 @@ func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMon
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
+	}
+}
+
+func GetRATType(pRATType protos.RATType) credit_control.RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.RAT_WLAN
+	default:
+		return credit_control.RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.IPCAN_Non3GPP
+	default:
+		return credit_control.IPCAN_Non3GPP
 	}
 }

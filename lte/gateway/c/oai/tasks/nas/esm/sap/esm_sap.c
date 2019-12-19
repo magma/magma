@@ -1113,7 +1113,7 @@ static int _esm_sap_send(
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_dedicated_bearer_context_activate_t *msg =
+      const esm_eps_dedicated_bearer_context_activate_t* msg =
         &data->eps_dedicated_bearer_context_activate;
 
       EpsQualityOfService eps_qos = {0};
@@ -1144,18 +1144,16 @@ static int _esm_sap_send(
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST: break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST: {
-      const esm_eps_bearer_context_deactivate_t *msg =
+      const esm_eps_bearer_context_deactivate_t* msg =
         &data->eps_bearer_context_deactivate;
-      /*Currently we support single bearear deactivation only at NAS*/
-      if (RETURNok == rc) {
-        rc = esm_send_deactivate_eps_bearer_context_request(
-          (proc_tid_t) 0,
-          msg->ebi[0],
-          &esm_msg.deactivate_eps_bearer_context_request,
-          ESM_CAUSE_REGULAR_DEACTIVATION);
+      // Currently we support single bearear deactivation only at NAS
+      rc = esm_send_deactivate_eps_bearer_context_request(
+        (proc_tid_t) 0,
+        msg->ebi[0],
+        &esm_msg.deactivate_eps_bearer_context_request,
+        ESM_CAUSE_REGULAR_DEACTIVATION);
 
-        esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
-      }
+      esm_procedure = esm_proc_eps_bearer_context_deactivate_request;
     } break;
 
     case PDN_CONNECTIVITY_REJECT: break;

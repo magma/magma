@@ -101,6 +101,8 @@ add_library(SESSION_MANAGER
     PipelinedClient.h
     DirectorydClient.cpp
     DirectorydClient.h
+    DiameterCodes.cpp
+    DiameterCodes.h
     SessionRules.cpp
     SessionRules.h
     CreditKey.h

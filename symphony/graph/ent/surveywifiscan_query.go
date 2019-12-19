@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -27,7 +28,7 @@ type SurveyWiFiScanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyWiFiScan
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,24 +59,24 @@ func (swfsq *SurveyWiFiScanQuery) Order(o ...Order) *SurveyWiFiScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (swfsq *SurveyWiFiScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: swfsq.config}
-	step := sql.NewStep(
-		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.SurveyQuestionTable, surveywifiscan.SurveyQuestionColumn),
 	)
-	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (swfsq *SurveyWiFiScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: swfsq.config}
-	step := sql.NewStep(
-		sql.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveywifiscan.Table, surveywifiscan.FieldID, swfsq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveywifiscan.LocationTable, surveywifiscan.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(swfsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(swfsq.driver.Dialect(), step)
 	return query
 }
 
@@ -243,7 +244,7 @@ func (swfsq *SurveyWiFiScanQuery) Clone() *SurveyWiFiScanQuery {
 		order:      append([]Order{}, swfsq.order...),
 		unique:     append([]string{}, swfsq.unique...),
 		predicates: append([]predicate.SurveyWiFiScan{}, swfsq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: swfsq.sql.Clone(),
 	}
 }
@@ -369,7 +370,7 @@ type SurveyWiFiScanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +491,7 @@ func (swfsgb *SurveyWiFiScanGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(swfsgb.fields)+len(swfsgb.fns))
 	columns = append(columns, swfsgb.fields...)
 	for _, fn := range swfsgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(swfsgb.fields...)
 }

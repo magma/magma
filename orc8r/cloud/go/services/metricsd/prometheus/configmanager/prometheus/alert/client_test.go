@@ -11,8 +11,8 @@ package alert_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -173,5 +173,5 @@ func newTestClient(multitenant bool) alert.PrometheusAlertClient {
 	fsClient.On("ReadFile", "test_rules/test_rules.yml").Return([]byte(testRuleFile), nil)
 	fsClient.On("ReadFile", "test_rules/other_rules.yml").Return([]byte(otherRuleFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return alert.NewClient(fileLocks, "test_rules", fsClient, multitenant)
+	return alert.NewClient(fileLocks, "test_rules", "prometheus-host.com", fsClient, multitenant)
 }

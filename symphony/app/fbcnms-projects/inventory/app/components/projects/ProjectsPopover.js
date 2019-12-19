@@ -119,13 +119,12 @@ const ProjectsPopover = (props: Props) => {
           variables={{projectId}}
           render={props => {
             const {project} = props;
-            const headerContent =
-              project.name +
+            const headerContent = `${project.name}${project.location &&
               ' (' +
-              project.location.latitude +
-              ' , ' +
-              project.location.longitude +
-              ')';
+                project.location.latitude +
+                ' , ' +
+                project.location.longitude +
+                ')'}`;
             return (
               <Card className={classes.card}>
                 <CardHeader

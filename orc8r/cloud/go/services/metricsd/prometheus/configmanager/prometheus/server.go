@@ -13,9 +13,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/files"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/handlers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -36,19 +35,19 @@ func main() {
 	e := echo.New()
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
-	alertClient := alert.NewClient(fileLocks, *rulesDir, files.NewFSClient(), *multitenancy)
+	alertClient := alert.NewClient(fileLocks, *rulesDir, *prometheusURL, fsclient.NewFSClient(), *multitenancy)
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return
 	}
 	e.GET("/", statusHandler)
 
-	e.POST(handlers.AlertPath, handlers.GetConfigureAlertHandler(alertClient, *prometheusURL))
-	e.GET(handlers.AlertPath, handlers.GetRetrieveAlertHandler(alertClient))
-	e.DELETE(handlers.AlertPath, handlers.GetDeleteAlertHandler(alertClient, *prometheusURL))
-	e.PUT(handlers.AlertUpdatePath, handlers.GetUpdateAlertHandler(alertClient, *prometheusURL))
+	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
+	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
+	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
+	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
 
-	e.PUT(handlers.AlertBulkPath, handlers.GetBulkAlertUpdateHandler(alertClient, *prometheusURL))
+	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))

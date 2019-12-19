@@ -8,10 +8,12 @@
  * @format
  */
 
+jest.mock('@fbcnms/sequelize-models');
+
 import type {ExpressRequest} from 'express';
 
 import featureConfigs, {isFeatureEnabled} from '../features';
-import {FeatureFlag, sequelize} from '@fbcnms/sequelize-models';
+import {FeatureFlag} from '@fbcnms/sequelize-models';
 
 const ORG1 = 'org1';
 const ORG2 = 'org2';
@@ -23,7 +25,6 @@ mockRequest.hostname = 'localhost';
 
 describe('feature tests', () => {
   beforeAll(async () => {
-    await sequelize.sync({force: true});
     await FeatureFlag.create({
       featureId: FEATURE1.id,
       organization: ORG1,

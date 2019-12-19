@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 	"github.com/facebookincubator/symphony/frontier/ent/token"
 	"github.com/facebookincubator/symphony/frontier/ent/user"
@@ -26,7 +27,7 @@ type TokenQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Token
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (tq *TokenQuery) Order(o ...Order) *TokenQuery {
 // QueryUser chains the current query on the user edge.
 func (tq *TokenQuery) QueryUser() *UserQuery {
 	query := &UserQuery{config: tq.config}
-	step := sql.NewStep(
-		sql.From(token.Table, token.FieldID, tq.sqlQuery()),
-		sql.To(user.Table, user.FieldID),
-		sql.Edge(sql.M2O, true, token.UserTable, token.UserColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(token.Table, token.FieldID, tq.sqlQuery()),
+		sqlgraph.To(user.Table, user.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
 	)
-	query.sql = sql.SetNeighbors(tq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (tq *TokenQuery) Clone() *TokenQuery {
 		order:      append([]Order{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Token{}, tq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: tq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type TokenGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (tgb *TokenGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }

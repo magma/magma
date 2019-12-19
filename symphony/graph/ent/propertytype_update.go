@@ -917,7 +917,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ptu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"PropertyType\"", keys(ptu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"PropertyType\"", keys(ptu.properties))})
 			}
 		}
 	}
@@ -2035,7 +2035,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ptuo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"PropertyType\"", keys(ptuo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"PropertyType\"", keys(ptuo.properties))})
 			}
 		}
 	}

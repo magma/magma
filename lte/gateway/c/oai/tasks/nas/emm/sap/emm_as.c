@@ -1394,7 +1394,7 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_ACTIVATE_BEARER_CONTEXT_REQ: {
-        nas_itti_erab_setup_req(
+        mme_app_handle_erab_setup_req(
           as_msg.msg.activate_bearer_context_req.ue_id,
           as_msg.msg.activate_bearer_context_req.ebi,
           as_msg.msg.activate_bearer_context_req.mbr_dl,
@@ -1406,7 +1406,7 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_DEACTIVATE_BEARER_CONTEXT_REQ: {
-        nas_itti_erab_rel_cmd(
+        mme_app_handle_erab_rel_cmd(
           as_msg.msg.deactivate_bearer_context_req.ue_id,
           as_msg.msg.deactivate_bearer_context_req.ebi,
           as_msg.msg.deactivate_bearer_context_req.nas_msg);

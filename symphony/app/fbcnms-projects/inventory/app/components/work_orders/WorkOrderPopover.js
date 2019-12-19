@@ -159,10 +159,12 @@ const WorkOrderPopover = (props: Props) => {
               </Typography>
             </div>
             <div className={classes.couple}>
-              <Typography gutterBottom>
-                <strong>Location: </strong>
-                {formatLocation(workOrder.location)}
-              </Typography>
+              {!!workOrder.location && (
+                <Typography gutterBottom>
+                  <strong>Location: </strong>
+                  {formatLocation(workOrder.location)}
+                </Typography>
+              )}
               <div className={classes.assigneeDiv}>
                 <Typography className={classes.assigneeTypography}>
                   <strong>Assignee: </strong>

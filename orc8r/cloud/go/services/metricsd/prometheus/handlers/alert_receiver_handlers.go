@@ -15,7 +15,7 @@ import (
 	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"

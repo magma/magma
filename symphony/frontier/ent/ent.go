@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 )
 
 // Order applies an ordering on either graph traversal or sql selector.
@@ -20,31 +21,24 @@ type Order func(*sql.Selector)
 
 // Asc applies the given fields in ASC order.
 func Asc(fields ...string) Order {
-	return Order(
-		func(s *sql.Selector) {
-			for _, f := range fields {
-				s.OrderBy(sql.Asc(f))
-			}
-		},
-	)
+	return func(s *sql.Selector) {
+		for _, f := range fields {
+			s.OrderBy(sql.Asc(f))
+		}
+	}
 }
 
 // Desc applies the given fields in DESC order.
 func Desc(fields ...string) Order {
-	return Order(
-		func(s *sql.Selector) {
-			for _, f := range fields {
-				s.OrderBy(sql.Desc(f))
-			}
-		},
-	)
+	return func(s *sql.Selector) {
+		for _, f := range fields {
+			s.OrderBy(sql.Desc(f))
+		}
+	}
 }
 
 // Aggregate applies an aggregation step on the group-by traversal/selector.
-type Aggregate struct {
-	// SQL the column wrapped with the aggregation function.
-	SQL func(*sql.Selector) string
-}
+type Aggregate func(*sql.Selector) string
 
 // As is a pseudo aggregation function for renaming another other functions with custom names. For example:
 //
@@ -53,55 +47,43 @@ type Aggregate struct {
 //	Scan(ctx, &v)
 //
 func As(fn Aggregate, end string) Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.As(fn.SQL(s), end)
-		},
+	return func(s *sql.Selector) string {
+		return sql.As(fn(s), end)
 	}
 }
 
 // Count applies the "count" aggregation function on each group.
 func Count() Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.Count("*")
-		},
+	return func(s *sql.Selector) string {
+		return sql.Count("*")
 	}
 }
 
 // Max applies the "max" aggregation function on the given field of each group.
 func Max(field string) Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.Max(s.C(field))
-		},
+	return func(s *sql.Selector) string {
+		return sql.Max(s.C(field))
 	}
 }
 
 // Mean applies the "mean" aggregation function on the given field of each group.
 func Mean(field string) Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.Avg(s.C(field))
-		},
+	return func(s *sql.Selector) string {
+		return sql.Avg(s.C(field))
 	}
 }
 
 // Min applies the "min" aggregation function on the given field of each group.
 func Min(field string) Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.Min(s.C(field))
-		},
+	return func(s *sql.Selector) string {
+		return sql.Min(s.C(field))
 	}
 }
 
 // Sum applies the "sum" aggregation function on the given field of each group.
 func Sum(field string) Aggregate {
-	return Aggregate{
-		SQL: func(s *sql.Selector) string {
-			return sql.Sum(s.C(field))
-		},
+	return func(s *sql.Selector) string {
+		return sql.Sum(s.C(field))
 	}
 }
 
@@ -145,30 +127,31 @@ func IsNotSingular(err error) bool {
 	return ok
 }
 
-// ErrConstraintFailed returns when trying to create/update one or more entities and
-// one or more of their constraints failed. For example, violation of edge or field uniqueness.
-type ErrConstraintFailed struct {
+// ConstraintError returns when trying to create/update one or more entities and
+// one or more of their constraints failed. For example, violation of edge or
+// field uniqueness.
+type ConstraintError struct {
 	msg  string
 	wrap error
 }
 
 // Error implements the error interface.
-func (e ErrConstraintFailed) Error() string {
-	return fmt.Sprintf("ent: unique constraint failed: %s", e.msg)
+func (e ConstraintError) Error() string {
+	return fmt.Sprintf("ent: constraint failed: %s", e.msg)
 }
 
 // Unwrap implements the errors.Wrapper interface.
-func (e *ErrConstraintFailed) Unwrap() error {
+func (e *ConstraintError) Unwrap() error {
 	return e.wrap
 }
 
-// IsConstraintFailure returns a boolean indicating whether the error is a constraint failure.
-func IsConstraintFailure(err error) bool {
-	_, ok := err.(*ErrConstraintFailed)
+// IsConstraintError returns a boolean indicating whether the error is a constraint failure.
+func IsConstraintError(err error) bool {
+	_, ok := err.(*ConstraintError)
 	return ok
 }
 
-func isSQLConstraintError(err error) (*ErrConstraintFailed, bool) {
+func isSQLConstraintError(err error) (*ConstraintError, bool) {
 	var (
 		msg = err.Error()
 		// error format per dialect.
@@ -178,9 +161,12 @@ func isSQLConstraintError(err error) (*ErrConstraintFailed, bool) {
 			"duplicate key value violates unique constraint", // PostgreSQL.
 		}
 	)
+	if _, ok := err.(*sqlgraph.ConstraintError); ok {
+		return &ConstraintError{msg, err}, true
+	}
 	for i := range errors {
 		if strings.Contains(msg, errors[i]) {
-			return &ErrConstraintFailed{msg, err}, true
+			return &ConstraintError{msg, err}, true
 		}
 	}
 	return nil, false

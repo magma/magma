@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -30,7 +31,7 @@ type EquipmentTypeQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentType
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -61,60 +62,60 @@ func (etq *EquipmentTypeQuery) Order(o ...Order) *EquipmentTypeQuery {
 // QueryPortDefinitions chains the current query on the port_definitions edge.
 func (etq *EquipmentTypeQuery) QueryPortDefinitions() *EquipmentPortDefinitionQuery {
 	query := &EquipmentPortDefinitionQuery{config: etq.config}
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
-		sql.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sqlgraph.To(equipmentportdefinition.Table, equipmentportdefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PortDefinitionsTable, equipmenttype.PortDefinitionsColumn),
 	)
-	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPositionDefinitions chains the current query on the position_definitions edge.
 func (etq *EquipmentTypeQuery) QueryPositionDefinitions() *EquipmentPositionDefinitionQuery {
 	query := &EquipmentPositionDefinitionQuery{config: etq.config}
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
-		sql.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sqlgraph.To(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PositionDefinitionsTable, equipmenttype.PositionDefinitionsColumn),
 	)
-	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (etq *EquipmentTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: etq.config}
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
-		sql.To(propertytype.Table, propertytype.FieldID),
-		sql.Edge(sql.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sqlgraph.To(propertytype.Table, propertytype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipmenttype.PropertyTypesTable, equipmenttype.PropertyTypesColumn),
 	)
-	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipment chains the current query on the equipment edge.
 func (etq *EquipmentTypeQuery) QueryEquipment() *EquipmentQuery {
 	query := &EquipmentQuery{config: etq.config}
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
-		sql.To(equipment.Table, equipment.FieldID),
-		sql.Edge(sql.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sqlgraph.To(equipment.Table, equipment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmenttype.EquipmentTable, equipmenttype.EquipmentColumn),
 	)
-	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
 
 // QueryCategory chains the current query on the category edge.
 func (etq *EquipmentTypeQuery) QueryCategory() *EquipmentCategoryQuery {
 	query := &EquipmentCategoryQuery{config: etq.config}
-	step := sql.NewStep(
-		sql.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
-		sql.To(equipmentcategory.Table, equipmentcategory.FieldID),
-		sql.Edge(sql.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmenttype.Table, equipmenttype.FieldID, etq.sqlQuery()),
+		sqlgraph.To(equipmentcategory.Table, equipmentcategory.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmenttype.CategoryTable, equipmenttype.CategoryColumn),
 	)
-	query.sql = sql.SetNeighbors(etq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(etq.driver.Dialect(), step)
 	return query
 }
 
@@ -282,7 +283,7 @@ func (etq *EquipmentTypeQuery) Clone() *EquipmentTypeQuery {
 		order:      append([]Order{}, etq.order...),
 		unique:     append([]string{}, etq.unique...),
 		predicates: append([]predicate.EquipmentType{}, etq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: etq.sql.Clone(),
 	}
 }
@@ -408,7 +409,7 @@ type EquipmentTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -529,7 +530,7 @@ func (etgb *EquipmentTypeGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(etgb.fields)+len(etgb.fns))
 	columns = append(columns, etgb.fields...)
 	for _, fn := range etgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(etgb.fields...)
 }

@@ -797,7 +797,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.children) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"children\" %v already connected to a different \"Location\"", keys(lu.children))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"children\" %v already connected to a different \"Location\"", keys(lu.children))})
 			}
 		}
 	}
@@ -843,7 +843,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.files) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Location\"", keys(lu.files))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Location\"", keys(lu.files))})
 			}
 		}
 	}
@@ -889,7 +889,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.equipment) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"Location\"", keys(lu.equipment))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"Location\"", keys(lu.equipment))})
 			}
 		}
 	}
@@ -935,7 +935,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Location\"", keys(lu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Location\"", keys(lu.properties))})
 			}
 		}
 	}
@@ -981,7 +981,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.survey) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey\" %v already connected to a different \"Location\"", keys(lu.survey))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey\" %v already connected to a different \"Location\"", keys(lu.survey))})
 			}
 		}
 	}
@@ -1027,7 +1027,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.wifi_scan) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"Location\"", keys(lu.wifi_scan))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"Location\"", keys(lu.wifi_scan))})
 			}
 		}
 	}
@@ -1073,7 +1073,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.cell_scan) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"Location\"", keys(lu.cell_scan))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"Location\"", keys(lu.cell_scan))})
 			}
 		}
 	}
@@ -1119,7 +1119,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.work_orders) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(lu.work_orders))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(lu.work_orders))})
 			}
 		}
 	}
@@ -1165,7 +1165,7 @@ func (lu *LocationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(lu.floor_plans) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(lu.floor_plans))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(lu.floor_plans))})
 			}
 		}
 	}
@@ -1954,7 +1954,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.children) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"children\" %v already connected to a different \"Location\"", keys(luo.children))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"children\" %v already connected to a different \"Location\"", keys(luo.children))})
 			}
 		}
 	}
@@ -2000,7 +2000,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.files) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Location\"", keys(luo.files))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"files\" %v already connected to a different \"Location\"", keys(luo.files))})
 			}
 		}
 	}
@@ -2046,7 +2046,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.equipment) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"Location\"", keys(luo.equipment))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"Location\"", keys(luo.equipment))})
 			}
 		}
 	}
@@ -2092,7 +2092,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Location\"", keys(luo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Location\"", keys(luo.properties))})
 			}
 		}
 	}
@@ -2138,7 +2138,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.survey) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey\" %v already connected to a different \"Location\"", keys(luo.survey))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey\" %v already connected to a different \"Location\"", keys(luo.survey))})
 			}
 		}
 	}
@@ -2184,7 +2184,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.wifi_scan) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"Location\"", keys(luo.wifi_scan))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"wifi_scan\" %v already connected to a different \"Location\"", keys(luo.wifi_scan))})
 			}
 		}
 	}
@@ -2230,7 +2230,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.cell_scan) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"Location\"", keys(luo.cell_scan))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"cell_scan\" %v already connected to a different \"Location\"", keys(luo.cell_scan))})
 			}
 		}
 	}
@@ -2276,7 +2276,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.work_orders) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(luo.work_orders))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Location\"", keys(luo.work_orders))})
 			}
 		}
 	}
@@ -2322,7 +2322,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(luo.floor_plans) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(luo.floor_plans))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"floor_plans\" %v already connected to a different \"Location\"", keys(luo.floor_plans))})
 			}
 		}
 	}

@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
@@ -27,7 +28,7 @@ type EquipmentPositionDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPositionDefinition
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,24 +59,24 @@ func (epdq *EquipmentPositionDefinitionQuery) Order(o ...Order) *EquipmentPositi
 // QueryPositions chains the current query on the positions edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: epdq.config}
-	step := sql.NewStep(
-		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentpositiondefinition.PositionsTable, equipmentpositiondefinition.PositionsColumn),
 	)
-	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPositionDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := sql.NewStep(
-		sql.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentpositiondefinition.Table, equipmentpositiondefinition.FieldID, epdq.sqlQuery()),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentpositiondefinition.EquipmentTypeTable, equipmentpositiondefinition.EquipmentTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
 
@@ -243,7 +244,7 @@ func (epdq *EquipmentPositionDefinitionQuery) Clone() *EquipmentPositionDefiniti
 		order:      append([]Order{}, epdq.order...),
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPositionDefinition{}, epdq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: epdq.sql.Clone(),
 	}
 }
@@ -369,7 +370,7 @@ type EquipmentPositionDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +491,7 @@ func (epdgb *EquipmentPositionDefinitionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(epdgb.fields)+len(epdgb.fns))
 	columns = append(columns, epdgb.fields...)
 	for _, fn := range epdgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(epdgb.fields...)
 }

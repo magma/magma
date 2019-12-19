@@ -9,11 +9,13 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
@@ -185,97 +187,131 @@ func (sc *SurveyCreate) SaveX(ctx context.Context) *Survey {
 
 func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(sc.driver.Dialect())
-		s       = &Survey{config: sc.config}
+		s    = &Survey{config: sc.config}
+		spec = &sqlgraph.CreateSpec{
+			Table: survey.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: survey.FieldID,
+			},
+		}
 	)
-	tx, err := sc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(survey.Table).Default()
 	if value := sc.create_time; value != nil {
-		insert.Set(survey.FieldCreateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreateTime,
+		})
 		s.CreateTime = *value
 	}
 	if value := sc.update_time; value != nil {
-		insert.Set(survey.FieldUpdateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldUpdateTime,
+		})
 		s.UpdateTime = *value
 	}
 	if value := sc.name; value != nil {
-		insert.Set(survey.FieldName, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldName,
+		})
 		s.Name = *value
 	}
 	if value := sc.owner_name; value != nil {
-		insert.Set(survey.FieldOwnerName, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: survey.FieldOwnerName,
+		})
 		s.OwnerName = *value
 	}
 	if value := sc.completion_timestamp; value != nil {
-		insert.Set(survey.FieldCompletionTimestamp, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCompletionTimestamp,
+		})
 		s.CompletionTimestamp = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(survey.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	s.ID = strconv.FormatInt(id, 10)
-	if len(sc.location) > 0 {
-		for eid := range sc.location {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.location; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.LocationTable,
+			Columns: []string{survey.LocationColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(survey.LocationTable).
-				Set(survey.LocationColumn, eid).
-				Where(sql.EQ(survey.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.source_file) > 0 {
-		for eid := range sc.source_file {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.source_file; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   survey.SourceFileTable,
+			Columns: []string{survey.SourceFileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(survey.SourceFileTable).
-				Set(survey.SourceFileColumn, eid).
-				Where(sql.EQ(survey.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.questions) > 0 {
-		p := sql.P()
-		for eid := range sc.questions {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   survey.QuestionsTable,
+			Columns: []string{survey.QuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveyquestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(surveyquestion.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(survey.QuestionsTable).
-			Set(survey.QuestionsColumn, id).
-			Where(sql.And(p, sql.IsNull(survey.QuestionsColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(sc.questions) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"questions\" %v already connected to a different \"Survey\"", keys(sc.questions))})
-		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sc.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := spec.ID.Value.(int64)
+	s.ID = strconv.FormatInt(id, 10)
 	return s, nil
 }

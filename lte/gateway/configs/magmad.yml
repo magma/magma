@@ -1,4 +1,12 @@
 ---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
 log_level: INFO
 
 # List of services for magmad to control
@@ -14,7 +22,6 @@ magma_services:
   - redis
   - dnsd
   - policydb
-  - sctpd
   - state
 
 # List of services that don't provide service303 interface
@@ -22,7 +29,6 @@ non_service303_services:
   - control_proxy
   - dnsd
   - redis
-  - sctpd
   - td-agent-bit
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
@@ -37,7 +43,6 @@ linked_services:
     - pipelined
     - mobilityd
     - sessiond
-    - sctpd
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())

@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -26,7 +27,7 @@ type TechnicianQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Technician
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (tq *TechnicianQuery) Order(o ...Order) *TechnicianQuery {
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (tq *TechnicianQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: tq.config}
-	step := sql.NewStep(
-		sql.From(technician.Table, technician.FieldID, tq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(technician.Table, technician.FieldID, tq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, technician.WorkOrdersTable, technician.WorkOrdersColumn),
 	)
-	query.sql = sql.SetNeighbors(tq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(tq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (tq *TechnicianQuery) Clone() *TechnicianQuery {
 		order:      append([]Order{}, tq.order...),
 		unique:     append([]string{}, tq.unique...),
 		predicates: append([]predicate.Technician{}, tq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: tq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type TechnicianGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (tgb *TechnicianGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(tgb.fields)+len(tgb.fns))
 	columns = append(columns, tgb.fields...)
 	for _, fn := range tgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(tgb.fields...)
 }

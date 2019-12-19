@@ -422,7 +422,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(pu.work_orders) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Project\"", keys(pu.work_orders))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Project\"", keys(pu.work_orders))})
 			}
 		}
 	}
@@ -468,7 +468,7 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(pu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Project\"", keys(pu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Project\"", keys(pu.properties))})
 			}
 		}
 	}
@@ -881,7 +881,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(puo.work_orders) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Project\"", keys(puo.work_orders))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"Project\"", keys(puo.work_orders))})
 			}
 		}
 	}
@@ -927,7 +927,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(puo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Project\"", keys(puo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Project\"", keys(puo.properties))})
 			}
 		}
 	}

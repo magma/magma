@@ -16,7 +16,7 @@ namespace magma {
 
 template<class ResponseType>
 AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
-  folly::EventBase *base,
+  folly::EventBase* base,
   std::function<void(grpc::Status, ResponseType)> callback,
   uint32_t timeout_sec):
   base_(base),
@@ -33,8 +33,25 @@ void AsyncEvbResponse<ResponseType>::handle_response()
   });
 }
 
+ReporterCallbackFn<SessionTerminateResponse>
+  SessionReporter::get_terminate_logging_cb(
+    const SessionTerminateRequest& request)
+{
+    return [request](grpc::Status status, SessionTerminateResponse response) {
+      if (!status.ok()) {
+        MLOG(MERROR) << "Failed to terminate session in controller for "
+                        "subscriber "
+                     << request.sid() << ": " << status.error_message();
+      } else {
+        MLOG(MDEBUG) << "Termination successful in controller for "
+                        "subscriber "
+                     << request.sid();
+      }
+    };
+}
+
 SessionReporterImpl::SessionReporterImpl(
-  folly::EventBase *base,
+  folly::EventBase* base,
   std::shared_ptr<grpc::Channel> channel):
   base_(base),
   stub_(CentralSessionController::NewStub(channel))
@@ -42,8 +59,8 @@ SessionReporterImpl::SessionReporterImpl(
 }
 
 void SessionReporterImpl::report_updates(
-  const UpdateSessionRequest &request,
-  std::function<void(grpc::Status, UpdateSessionResponse)> callback)
+  const UpdateSessionRequest& request,
+  ReporterCallbackFn<UpdateSessionResponse> callback)
 {
   auto cloud_response = new AsyncEvbResponse<UpdateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
@@ -52,8 +69,8 @@ void SessionReporterImpl::report_updates(
 }
 
 void SessionReporterImpl::report_create_session(
-  const CreateSessionRequest &request,
-  std::function<void(grpc::Status, CreateSessionResponse)> callback)
+  const CreateSessionRequest& request,
+  ReporterCallbackFn<CreateSessionResponse> callback)
 {
   auto cloud_response = new AsyncEvbResponse<CreateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
@@ -62,8 +79,8 @@ void SessionReporterImpl::report_create_session(
 }
 
 void SessionReporterImpl::report_terminate_session(
-  const SessionTerminateRequest &request,
-  std::function<void(grpc::Status, SessionTerminateResponse)> callback)
+  const SessionTerminateRequest& request,
+  ReporterCallbackFn<SessionTerminateResponse> callback)
 {
   auto cloud_response = new AsyncEvbResponse<SessionTerminateResponse>(
     base_, callback, RESPONSE_TIMEOUT);

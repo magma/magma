@@ -25,7 +25,7 @@ type FloorPlanScaleQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.FloorPlanScale
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -217,7 +217,7 @@ func (fpsq *FloorPlanScaleQuery) Clone() *FloorPlanScaleQuery {
 		order:      append([]Order{}, fpsq.order...),
 		unique:     append([]string{}, fpsq.unique...),
 		predicates: append([]predicate.FloorPlanScale{}, fpsq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: fpsq.sql.Clone(),
 	}
 }
@@ -343,7 +343,7 @@ type FloorPlanScaleGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -464,7 +464,7 @@ func (fpsgb *FloorPlanScaleGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(fpsgb.fields)+len(fpsgb.fns))
 	columns = append(columns, fpsgb.fields...)
 	for _, fn := range fpsgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(fpsgb.fields...)
 }
