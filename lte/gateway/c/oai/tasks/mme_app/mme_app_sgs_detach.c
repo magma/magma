@@ -60,19 +60,21 @@
  * @param sgs_detach_type - SGS EPS detach type
  */
 static void mme_app_send_sgs_eps_detach_indication(
-  ue_mm_context_t *ue_context_p,
+  ue_mm_context_t* ue_context_p,
   uint8_t detach_type)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO(LOG_MME_APP, "Send SGSAP_EPS_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Send SGSAP_EPS_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
     detach_type,
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_EPS_DETACH_IND);
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   memset(
-    (void *) &message_p->ittiMsg.sgsap_eps_detach_ind,
+    (void*) &message_p->ittiMsg.sgsap_eps_detach_ind,
     0,
     sizeof(itti_sgsap_eps_detach_ind_t));
 
@@ -96,7 +98,7 @@ static void mme_app_send_sgs_eps_detach_indication(
         TASK_MME_APP,
         INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
-        (void *) &(ue_context_p->mme_ue_s1ap_id),
+        (void*) &(ue_context_p->mme_ue_s1ap_id),
         sizeof(mme_ue_s1ap_id_t),
         &(ue_context_p->sgs_context->ts13_timer.id)) < 0) {
       OAILOG_ERROR(
@@ -120,7 +122,7 @@ static void mme_app_send_sgs_eps_detach_indication(
         TASK_MME_APP,
         INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
-        (void *) &(ue_context_p->mme_ue_s1ap_id),
+        (void*) &(ue_context_p->mme_ue_s1ap_id),
         sizeof(mme_ue_s1ap_id_t),
         &(ue_context_p->sgs_context->ts8_timer.id)) < 0) {
       OAILOG_ERROR(
@@ -237,19 +239,21 @@ void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
 }
 //------------------------------------------------------------------------------
 void mme_app_send_sgs_imsi_detach_indication(
-  struct ue_mm_context_s *ue_context_p,
+  struct ue_mm_context_s* ue_context_p,
   uint8_t detach_type)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO(LOG_MME_APP, "Send SGSAP_IMSI_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+  OAILOG_INFO(
+    LOG_MME_APP,
+    "Send SGSAP_IMSI_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
     detach_type,
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_IMSI_DETACH_IND);
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   memset(
-    (void *) &message_p->ittiMsg.sgsap_imsi_detach_ind,
+    (void*) &message_p->ittiMsg.sgsap_imsi_detach_ind,
     0,
     sizeof(itti_sgsap_imsi_detach_ind_t));
   IMSI64_TO_STRING(
@@ -270,7 +274,7 @@ void mme_app_send_sgs_imsi_detach_indication(
         TASK_MME_APP,
         INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
-        (void *) &(ue_context_p->mme_ue_s1ap_id),
+        (void*) &(ue_context_p->mme_ue_s1ap_id),
         sizeof(mme_ue_s1ap_id_t),
         &(ue_context_p->sgs_context->ts10_timer.id)) < 0) {
       OAILOG_ERROR(
@@ -294,7 +298,7 @@ void mme_app_send_sgs_imsi_detach_indication(
         TASK_MME_APP,
         INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
-        (void *) &(ue_context_p->mme_ue_s1ap_id),
+        (void*) &(ue_context_p->mme_ue_s1ap_id),
         sizeof(mme_ue_s1ap_id_t),
         &(ue_context_p->sgs_context->ts9_timer.id)) < 0) {
       OAILOG_ERROR(
@@ -434,7 +438,8 @@ void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+void mme_app_handle_sgs_detach_req(
+  ue_mm_context_t* ue_context_p,
   emm_proc_sgs_detach_type_t detach_type)
 {
   sgs_fsm_t evnt = {0};
@@ -449,8 +454,7 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
     evnt.ue_id = ue_context_p->mme_ue_s1ap_id;
     evnt.ctx = ue_context_p->sgs_context;
     /* check the SGS state and if it is null then do not send te Detach towards SGS*/
-    OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n",
-      detach_type);
+    OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n", detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
       switch (detach_type) {
           /*
@@ -510,26 +514,28 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
           break;
       }
       /*
-    * Call the SGS FSM process function to
-    * process the respective message in different state
-    * and update the SGS State based on event
-    */
+       * Call the SGS FSM process function to
+       * process the respective message in different state
+       * and update the SGS State based on event
+       */
       sgs_fsm_process(&evnt);
     }
   } else {
     OAILOG_ERROR(
-      LOG_MME_APP, "UE SGS context doesn't exist for ue-id"
-      MME_UE_S1AP_ID_FMT "-> Nothing to do :-) \n",
+      LOG_MME_APP,
+      "UE SGS context doesn't exist for ue-id" MME_UE_S1AP_ID_FMT
+      "-> Nothing to do :-) \n",
       ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t* mme_app_desc_p,
-  const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p)
+int mme_app_handle_sgs_eps_detach_ack(
+  mme_app_desc_t* mme_app_desc_p,
+  const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(eps_detach_ack_p);
@@ -577,7 +583,7 @@ int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t* mme_app_desc_p,
     if (ue_context_p->sgs_context != NULL) {
       // free the sgs context
       mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context, imsi64);
-      free_wrapper((void **) &(ue_context_p->sgs_context));
+      free_wrapper((void**) &(ue_context_p->sgs_context));
     }
   } else {
     OAILOG_ERROR(
@@ -590,11 +596,12 @@ int mme_app_handle_sgs_eps_detach_ack(mme_app_desc_t* mme_app_desc_p,
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t* mme_app_desc_p,
-  const itti_sgsap_imsi_detach_ack_t *const imsi_detach_ack_p)
+int mme_app_handle_sgs_imsi_detach_ack(
+  mme_app_desc_t* mme_app_desc_p,
+  const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p)
 {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -636,18 +643,18 @@ int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t* mme_app_desc_p,
        SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
       (ue_context_p->sgs_detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-       if (NULL == ue_context_p->sgs_context->message_p) {
-         OAILOG_DEBUG(
-           LOG_MME_APP,
-           "Detach Accept has been sent already after ts9 timer expired for "
-           "UE id %d, ignore the IMSI detach Ack \n",
-           ue_context_p->mme_ue_s1ap_id);
-           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-       } else {
-         rc = itti_send_msg_to_task(
-           TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
-         ue_context_p->sgs_context->message_p = NULL;
-       }
+      if (NULL == ue_context_p->sgs_context->message_p) {
+        OAILOG_DEBUG(
+          LOG_MME_APP,
+          "Detach Accept has been sent already after ts9 timer expired for "
+          "UE id %d, ignore the IMSI detach Ack \n",
+          ue_context_p->mme_ue_s1ap_id);
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      } else {
+        rc = itti_send_msg_to_task(
+          TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
+        ue_context_p->sgs_context->message_p = NULL;
+      }
       /*
        Notify S1AP to send UE Context Release Command to eNB or free s1 context locally,
        if the ue requested for combined EPS/IMSI detach
@@ -672,7 +679,7 @@ int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t* mme_app_desc_p,
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(
       ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
-    free_wrapper((void **) &(ue_context_p->sgs_context));
+    free_wrapper((void**) &(ue_context_p->sgs_context));
   } else {
     OAILOG_ERROR(
       LOG_MME_APP,
