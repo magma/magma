@@ -5,7 +5,7 @@
 package magmaalert
 
 import (
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 // trigger is the magmalert trigger

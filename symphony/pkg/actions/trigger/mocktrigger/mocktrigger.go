@@ -5,7 +5,7 @@
 package mocktrigger
 
 import (
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/stretchr/testify/mock"
 )
 

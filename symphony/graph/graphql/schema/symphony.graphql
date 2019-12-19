@@ -1433,18 +1433,16 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
-# You will also need to update cloud/actions/core/id
 enum ActionID
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionID"
   ) {
   magma_reboot_node
 }
 
-# You will also need to update cloud/actions/core/id
 enum TriggerID
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.TriggerID"
   ) {
   magma_alert
 }
@@ -1452,7 +1450,7 @@ enum TriggerID
 # Data type for the input to be
 enum ActionsDataType
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.DataType"
   ) {
   string
   stringArray
@@ -1508,7 +1506,7 @@ type ActionsTriggersSearchResult {
 # with data for executing that action
 type ActionsRuleAction
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleAction"
   ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
@@ -1518,7 +1516,7 @@ type ActionsRuleAction
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleFilter"
   ) {
   filterID: String
   operatorID: String

@@ -7,8 +7,8 @@ package actions
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
 )
 
 // Client provides a client interface to the actions framework.
@@ -41,11 +41,11 @@ type contextKey struct{}
 
 // FromContext returns an executor stored in a context
 func FromContext(ctx context.Context) *Client {
-	executor, ok := ctx.Value(contextKey{}).(*executor.Executor)
+	e, ok := ctx.Value(contextKey{}).(*executor.Executor)
 	if !ok {
 		return nil
 	}
-	return &Client{executor}
+	return &Client{e}
 }
 
 // NewContext returns a new context with the given Executor attached.

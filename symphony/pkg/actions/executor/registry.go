@@ -7,7 +7,7 @@ package executor
 import (
 	"fmt"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 )
 

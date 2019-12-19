@@ -10,10 +10,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/actions/executor"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/magmaalert"
-
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/magmaalert"
 	"github.com/stretchr/testify/assert"
 )
 

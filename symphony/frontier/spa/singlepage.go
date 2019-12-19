@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/ctxutil"
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/ctxutil"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/justinas/nosurf"
 	"github.com/shurcooL/httpfs/html/vfstemplate"

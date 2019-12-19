@@ -7,7 +7,7 @@ package executor
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 // DataLoader is an interface for querying data for the executor

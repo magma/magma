@@ -8,12 +8,12 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/action/mockaction"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/actions/executor"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/mocktrigger"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/action/mockaction"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/executor"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/mocktrigger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -8,9 +8,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions/action/mockaction"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/actions/trigger/mocktrigger"
+	"github.com/facebookincubator/symphony/pkg/actions/action/mockaction"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/actions/trigger/mocktrigger"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

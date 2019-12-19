@@ -9,8 +9,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/pkg/errors"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 )
 
 type action struct {
@@ -50,14 +49,11 @@ func (a *action) Execute(ctx core.ActionContext) error {
 	url := fmt.Sprintf("/networks/%s/gateways/%s/command/reboot", networkID, gatewayID)
 	res, err := a.orc8rClient.Post(url, "application/json", nil)
 	if err != nil {
-		return errors.Wrap(err, "rebooting node")
+		return fmt.Errorf("rebooting node: %w", err)
 	}
-
 	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
+	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("node reboot received status %d", res.StatusCode)
 	}
-
 	return nil
 }

@@ -18,10 +18,10 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -6853,18 +6853,16 @@ type LatestPythonPackageResult {
   lastBreakingPythonPackage: PythonPackage
 }
 
-# You will also need to update cloud/actions/core/id
 enum ActionID
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionID"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionID"
   ) {
   magma_reboot_node
 }
 
-# You will also need to update cloud/actions/core/id
 enum TriggerID
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.TriggerID"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.TriggerID"
   ) {
   magma_alert
 }
@@ -6872,7 +6870,7 @@ enum TriggerID
 # Data type for the input to be
 enum ActionsDataType
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.DataType"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.DataType"
   ) {
   string
   stringArray
@@ -6928,7 +6926,7 @@ type ActionsTriggersSearchResult {
 # with data for executing that action
 type ActionsRuleAction
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleAction"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleAction"
   ) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
@@ -6938,7 +6936,7 @@ type ActionsRuleAction
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
   @goModel(
-    model: "github.com/facebookincubator/symphony/cloud/actions/core.ActionsRuleFilter"
+    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleFilter"
   ) {
   filterID: String
   operatorID: String
@@ -9370,7 +9368,7 @@ func (ec *executionContext) _ActionsAction_actionID(ctx context.Context, field g
 	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsAction_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsAction) (ret graphql.Marshaler) {
@@ -9444,7 +9442,7 @@ func (ec *executionContext) _ActionsAction_dataType(ctx context.Context, field g
 	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsFilter_filterID(ctx context.Context, field graphql.CollectedField, obj *models.ActionsFilter) (ret graphql.Marshaler) {
@@ -9666,7 +9664,7 @@ func (ec *executionContext) _ActionsOperator_dataType(ctx context.Context, field
 	res := resTmp.(core.DataType)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
+	return ec.marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐDataType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_id(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9814,7 +9812,7 @@ func (ec *executionContext) _ActionsRule_triggerID(ctx context.Context, field gr
 	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9851,7 +9849,7 @@ func (ec *executionContext) _ActionsRule_ruleActions(ctx context.Context, field 
 	res := resTmp.([]*core.ActionsRuleAction)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx, field.Selections, res)
+	return ec.marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRule_ruleFilters(ctx context.Context, field graphql.CollectedField, obj *ent.ActionsRule) (ret graphql.Marshaler) {
@@ -9888,7 +9886,7 @@ func (ec *executionContext) _ActionsRule_ruleFilters(ctx context.Context, field 
 	res := resTmp.([]*core.ActionsRuleFilter)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx, field.Selections, res)
+	return ec.marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleFilter(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRuleAction_action(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
@@ -9962,7 +9960,7 @@ func (ec *executionContext) _ActionsRuleAction_actionID(ctx context.Context, fie
 	res := resTmp.(core.ActionID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
+	return ec.marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsRuleAction_data(ctx context.Context, field graphql.CollectedField, obj *core.ActionsRuleAction) (ret graphql.Marshaler) {
@@ -10289,7 +10287,7 @@ func (ec *executionContext) _ActionsTrigger_triggerID(ctx context.Context, field
 	res := resTmp.(core.TriggerID)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
+	return ec.marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ActionsTrigger_description(ctx context.Context, field graphql.CollectedField, obj *models.ActionsTrigger) (ret graphql.Marshaler) {
@@ -30007,7 +30005,7 @@ func (ec *executionContext) unmarshalInputActionsRuleActionInput(ctx context.Con
 		switch k {
 		case "actionID":
 			var err error
-			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx, v)
+			it.ActionID, err = ec.unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -30067,7 +30065,7 @@ func (ec *executionContext) unmarshalInputAddActionsRuleInput(ctx context.Contex
 			}
 		case "triggerID":
 			var err error
-			it.TriggerID, err = ec.unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx, v)
+			it.TriggerID, err = ec.unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38959,12 +38957,12 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
+func (ec *executionContext) unmarshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionID(ctx context.Context, v interface{}) (core.ActionID, error) {
 	var res core.ActionID
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
+func (ec *executionContext) marshalNActionID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionID(ctx context.Context, sel ast.SelectionSet, v core.ActionID) graphql.Marshaler {
 	return v
 }
 
@@ -39019,12 +39017,12 @@ func (ec *executionContext) marshalNActionsAction2ᚖgithubᚗcomᚋfacebookincu
 	return ec._ActionsAction(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
+func (ec *executionContext) unmarshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐDataType(ctx context.Context, v interface{}) (core.DataType, error) {
 	var res core.DataType
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
+func (ec *executionContext) marshalNActionsDataType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐDataType(ctx context.Context, sel ast.SelectionSet, v core.DataType) graphql.Marshaler {
 	return v
 }
 
@@ -39153,7 +39151,7 @@ func (ec *executionContext) marshalNActionsRule2ᚕᚖgithubᚗcomᚋfacebookinc
 	return ret
 }
 
-func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleAction) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -39177,7 +39175,7 @@ func (ec *executionContext) marshalNActionsRuleAction2ᚕᚖgithubᚗcomᚋfaceb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx, sel, v[i])
+			ret[i] = ec.marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -39210,7 +39208,7 @@ func (ec *executionContext) unmarshalNActionsRuleActionInput2ᚕᚖgithubᚗcom�
 	return res, nil
 }
 
-func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v []*core.ActionsRuleFilter) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -39234,7 +39232,7 @@ func (ec *executionContext) marshalNActionsRuleFilter2ᚕᚖgithubᚗcomᚋfaceb
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx, sel, v[i])
+			ret[i] = ec.marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleFilter(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -41766,12 +41764,12 @@ func (ec *executionContext) marshalNTopologyLink2ᚖgithubᚗcomᚋfacebookincub
 	return ec._TopologyLink(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, v interface{}) (core.TriggerID, error) {
+func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx context.Context, v interface{}) (core.TriggerID, error) {
 	var res core.TriggerID
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v core.TriggerID) graphql.Marshaler {
+func (ec *executionContext) marshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx context.Context, sel ast.SelectionSet, v core.TriggerID) graphql.Marshaler {
 	return v
 }
 
@@ -42269,11 +42267,11 @@ func (ec *executionContext) marshalOActionsRule2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._ActionsRule(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOActionsRuleAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleAction2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleAction) graphql.Marshaler {
 	return ec._ActionsRuleAction(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleAction) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleAction2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleAction(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleAction) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -42292,11 +42290,11 @@ func (ec *executionContext) unmarshalOActionsRuleActionInput2ᚖgithubᚗcomᚋf
 	return &res, err
 }
 
-func (ec *executionContext) marshalOActionsRuleFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleFilter2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v core.ActionsRuleFilter) graphql.Marshaler {
 	return ec._ActionsRuleFilter(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋcloudᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleFilter) graphql.Marshaler {
+func (ec *executionContext) marshalOActionsRuleFilter2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐActionsRuleFilter(ctx context.Context, sel ast.SelectionSet, v *core.ActionsRuleFilter) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

@@ -16,7 +16,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -25,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/stretchr/testify/require"
 )

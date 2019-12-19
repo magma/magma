@@ -12,8 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/server/driver"
-	"github.com/facebookincubator/symphony/cloud/server/recovery"
+	"github.com/facebookincubator/symphony/pkg/server/driver"
+	"github.com/facebookincubator/symphony/pkg/server/recovery"
 
 	"github.com/google/wire"
 	"github.com/pkg/errors"

@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/log/logtest"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
 	"github.com/justinas/nosurf"
 	"github.com/stretchr/testify/assert"

@@ -8,9 +8,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/log"
-
 	"contrib.go.opencensus.io/exporter/jaeger"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )

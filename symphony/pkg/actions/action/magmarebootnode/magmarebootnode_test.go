@@ -11,15 +11,14 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/facebookincubator/symphony/cloud/actions/core"
-	"github.com/facebookincubator/symphony/cloud/orc8r"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
+	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestMagmaRebootNode(t *testing.T) {
-
-	handlerCalled := false
+	var handlerCalled bool
 	srv := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/networks/network1/gateways/gateway1/command/reboot", r.URL.Path)
 		_, err := io.WriteString(w, "ok")

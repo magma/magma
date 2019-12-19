@@ -11,9 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/facebookincubator/symphony/cloud/log"
-
 	"contrib.go.opencensus.io/integrations/ocsql"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )
