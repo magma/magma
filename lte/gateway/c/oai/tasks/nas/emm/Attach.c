@@ -78,7 +78,7 @@
 #include "esm_sap.h"
 #include "emm_cause.h"
 #include "mme_config.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "service303.h"
 #include "common_ies.h"
 #include "3gpp_23.003.h"
@@ -720,7 +720,7 @@ int emm_proc_attach_complete(
         OAILOG_INFO(
           LOG_NAS_EMM, " Sending SGSAP TMSI REALLOCATION COMPLETE to SGS for ue_id = (%u)\n",
           ue_id);
-        nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
         emm_ctx->csfbparams.newTmsiAllocated = false;
         /* update the neaf flag to false after sending the Tmsi Reallocation Complete message to SGS */
         mme_ue_context_update_ue_sgs_neaf(ue_id, false);

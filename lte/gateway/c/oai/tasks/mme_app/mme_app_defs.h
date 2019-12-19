@@ -58,8 +58,10 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
 int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_cancel_location_req_t *const clr_pP);
 
-int mme_app_handle_nas_extended_service_req(mme_app_desc_t *mme_app_desc_p,
-  itti_nas_extended_service_req_t *const nas_extended_service_req_pP);
+int mme_app_handle_nas_extended_service_req(
+  const mme_ue_s1ap_id_t ue_id,
+  const uint8_t servicetype,
+  uint8_t csfb_response);
 
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id);
 
@@ -194,11 +196,6 @@ int mme_app_handle_s6a_reset_req(mme_app_desc_t *mme_app_desc_p,
   const s6a_reset_req_t *const rsr_pP);
 
 int mme_app_send_s6a_reset_ans(int rsa_result, void *msg_rsa_p);
-
-int mme_app_send_nas_cs_service_notification(
-  mme_ue_s1ap_id_t ue_id,
-  uint8_t paging_id,
-  bstring cli);
 
 int mme_app_send_sgsap_service_request(
   uint8_t service_indicator,

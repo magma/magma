@@ -34,7 +34,7 @@
 #include "3gpp_requirements_24.301.h"
 #include "emm_sap.h"
 #include "service303.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "conversions.h"
 #include "3gpp_24.301.h"
 #include "AdditionalUpdateType.h"
@@ -732,7 +732,7 @@ int emm_recv_service_request(
       if(service_type != CSFB_SERVICE_MT_SMS) {
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-        nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
       }
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }

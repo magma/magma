@@ -932,6 +932,7 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
     (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
+  // Fetch UE context
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
