@@ -33,7 +33,7 @@ const (
 
 var locStruct map[string]*ent.Location
 
-func importExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
+func importEquipmentExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
@@ -155,19 +155,19 @@ func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterR
 	require.Equal(t, locStruct["JERU"].ID, locStruct["b3"].QueryParent().OnlyX(ctx).ID)
 }
 
-func TestImportData(t *testing.T) {
+func TestEquipmentImportData(t *testing.T) {
 	r, err := newImporterTestResolver(t)
 	require.NoError(t, err)
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	require.NoError(t, err)
-	code := importExportedData(ctx, t, tenantHeader, r)
+	code := importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, http.StatusBadRequest, code)
 	require.Nil(t, err)
 	q := r.importer.r.Query()
 
 	createLocationTypes(ctx, t, r)
 	createEquipmentTypes(ctx, r)
-	code = importExportedData(ctx, t, tenantHeader, r)
+	code = importEquipmentExportedData(ctx, t, tenantHeader, r)
 	require.Equal(t, 200, code)
 
 	verifyLocationsStructure(ctx, t, *r)
