@@ -986,8 +986,8 @@ int mme_app_handle_create_sess_resp(
      */
     if (ue_context_p->emm_context.esm_ctx.n_active_ebrs > BEARERS_PER_UE) {
       OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-PROC  - The total number of active EPSbearers has exceeded %d\n",
+        LOG_MME_APP,
+        "The total number of active EPS bearers has exceeded %d\n",
         ue_context_p->emm_context.esm_ctx.n_active_ebrs);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
