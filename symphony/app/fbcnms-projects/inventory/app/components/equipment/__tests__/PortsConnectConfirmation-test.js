@@ -74,9 +74,10 @@ describe('<PortsConnectConfirmation />', () => {
       definition: {
         id: '1',
         index: 1,
-        type: name + 'type',
         name: name + 'name',
-        portType: null,
+        portType: {
+          name: name + 'type',
+        },
       },
       parentEquipment: eq(ename, tname),
       properties: [],
@@ -87,6 +88,7 @@ describe('<PortsConnectConfirmation />', () => {
     const {getByText} = render(
       <Wrapper>
         <PortsConnectConfirmation
+          // $FlowFixMe
           aSidePort={eqPort('a', 'a_eq_name', 'a_eq_type_name')}
           aSideEquipment={eq('a_eq_name', 'a_eq_type_name')}
           zSidePort={eqPort('z', 'z_eq_name', 'z_eq_type_name')}

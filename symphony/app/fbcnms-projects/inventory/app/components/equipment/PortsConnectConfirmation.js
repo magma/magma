@@ -30,7 +30,7 @@ type Props = {
 
 class PortsConnectConfirmation extends React.Component<Props> {
   _formatPortEquipment(equipment: Equipment, port: EquipmentPort) {
-    return `${port.definition.type}
+    return `${port.definition.portType?.name || ''}
     ${port.definition.name} on
     ${equipment.equipmentType.name}
     ${equipment.name}`;
