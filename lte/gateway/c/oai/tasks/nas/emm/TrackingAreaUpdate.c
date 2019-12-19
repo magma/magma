@@ -1063,7 +1063,7 @@ static nas_emm_tau_proc_t* _emm_proc_create_procedure_tau(
  **                                                                        **
  ** Description:                                                           **
  **                                                                        **
- ** Inputs:  tau_proc: pointer for TAU emm specific proceddure             **                       **
+ ** Inputs:  tau_proc: pointer for TAU emm specific proceddure             **
  **          ue_ctx:  UE context                                           **
  **                                                                        **
  ** Outputs: Return:    RETURNok, RETURNerror                              **

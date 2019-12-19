@@ -497,7 +497,7 @@ static int _emm_cn_nw_initiated_detach_ue(
 }
 
 //------------------------------------------------------------------------------
-static int _is_csfb_enabled(struct emm_context_s* emm_ctx_p, bstring esm_data)
+static int _emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p, bstring esm_data)
 {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -511,19 +511,25 @@ static int _is_csfb_enabled(struct emm_context_s* emm_ctx_p, bstring esm_data)
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
       if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {
         emm_ctx_p->emm_cause = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE;
+        rc = RETURNerror;
       } else {
-        mme_app_handle_nas_cs_domain_location_update_req(
+        rc = mme_app_handle_nas_cs_domain_location_update_req(
           ue_mm_context_p, ATTACH_REQUEST);
         /* Store ESM message, Activate Default EPS bearer Context Req to be
          * sent in Attach Accept triggered after receiving
          * SGS-Location Update Accept
          */
         emm_ctx_p->csfbparams.esm_data = esm_data;
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       }
     }
   }
-  OAILOG_DEBUG(LOG_NAS_EMM, "is_csfb_enabled = False\n");
+  if (rc != RETURNok) {
+    OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "Failed to send SGS Location Update Req for ue_id " MME_UE_S1AP_ID_FMT
+      "\n", ue_mm_context_p->mme_ue_s1ap_id);
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
@@ -663,13 +669,10 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       "ESM send activate_default_eps_bearer_context_request failed\n");
   }
 
-  /*************************************************************************/
-  /*
-   * END OF CODE THAT WAS IN esm_sap.c/_esm_sap_recv()
+  /* Notify SGS Location update request to MME App
+   * if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI
    */
-  /*************************************************************************/
-  /*Send ITTI Location update request message to MME App if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI*/
-  if (_is_csfb_enabled(emm_ctx, rsp) == RETURNok) {
+  if (_emm_proc_combined_attach_req(emm_ctx, rsp) == RETURNok) {
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
@@ -927,7 +930,7 @@ static int _send_attach_accept(struct emm_context_s* emm_ctx_p)
 }
 
 //------------------------------------------------------------------------------
-int handle_cs_domain_loc_updt_acc(struct ue_mm_context_s* ue_context_p)
+int emm_send_cs_domain_attach_or_tau_accept(struct ue_mm_context_s* ue_context_p)
 {
   int rc = RETURNok;
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
@@ -942,7 +945,7 @@ int handle_cs_domain_loc_updt_acc(struct ue_mm_context_s* ue_context_p)
    * If fsm_state is DE-REGISTERED,Location Update Accept is received for
    * Attach procedure
    */
-  if (EMM_REGISTERED == fsm_state) {
+  if (fsm_state == EMM_REGISTERED) {
     OAILOG_ERROR(
       LOG_NAS_EMM,
       "EMMCN-SAP  - ue_context_p->emm_context.csfbparams.presencemask %d\n",
@@ -1021,7 +1024,7 @@ static int _emm_cn_cs_domain_loc_updt_fail(
   emm_ctx_p->csfbparams.sgs_loc_updt_status = FAILURE;
   fsm_state = emm_fsm_get_state(emm_ctx_p);
 
-  if (EMM_DEREGISTERED == fsm_state) {
+  if (fsm_state == EMM_DEREGISTERED) {
     nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_ctx_p);
     /*
