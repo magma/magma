@@ -586,6 +586,10 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   }
 
   // Check if valid LBI and EBI recvd
+  /* For multi PDN, same IMSI can have multiple sessions, which means there
+   * will be multiple entries for different sessions with the same IMSI. Hence
+   * even though IMSI is found search the entire list for the LBI
+   */
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
          (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);

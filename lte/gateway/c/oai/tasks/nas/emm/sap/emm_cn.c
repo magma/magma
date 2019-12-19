@@ -1368,6 +1368,7 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
+  // Fetch the pdn conn id using the linked bearer id
   int pid = ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(msg->lbi)]->pdn_cx_id;
 
   if (pid < MAX_APN_PER_UE) {
@@ -1390,7 +1391,7 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
     }
   } else {
     OAILOG_ERROR(
-      LOG_NAS_ESM,
+      LOG_NAS_EMM,
       "ESM-PROC  - No PDN connection found (lbi=%u)\n",msg->lbi);
     rc = RETURNerror;
   }
