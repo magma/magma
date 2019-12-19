@@ -1391,8 +1391,7 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
     }
   } else {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "ESM-PROC  - No PDN connection found (lbi=%u)\n",msg->lbi);
+      LOG_NAS_EMM, "ESM-PROC  - No PDN connection found (lbi=%u)\n", msg->lbi);
     rc = RETURNerror;
   }
   unlock_ue_contexts(ue_mm_context_p);
