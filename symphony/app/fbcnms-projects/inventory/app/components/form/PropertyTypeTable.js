@@ -124,7 +124,7 @@ class PropertyTypeTable extends React.Component<Props> {
             {propertyTypes
               .filter(property => !property.isDeleted)
               .map((property, i) => (
-                <DraggableTableRow id={property.id} index={i} key={property.id}>
+                <DraggableTableRow id={property.id} index={i} key={i}>
                   <TableCell
                     className={classes.cell}
                     component="div"
