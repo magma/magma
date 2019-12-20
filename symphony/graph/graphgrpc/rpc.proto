@@ -29,11 +29,11 @@ message TenantList {
 }
 
 service ActionsAlertService {
-    rpc Receive(AlertPayload) returns (google.protobuf.Empty);
+    rpc Trigger(AlertPayload) returns (google.protobuf.Empty);
 }
 
 message AlertPayload {
-    Tenant tenant = 1;
+    string tenantID = 1;
     string alertname = 2;
     string networkID = 3;
     map<string, string> labels = 4;

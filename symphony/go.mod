@@ -12,7 +12,6 @@ require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0
-	github.com/Azure/go-autorest v12.0.0+incompatible
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/aws/aws-sdk-go v1.19.45
@@ -49,7 +48,7 @@ require (
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.12.0
 	gocloud.dev v0.18.0
-	golang.org/x/crypto v0.0.0-20191106202628-ed6320f186d4
+	golang.org/x/crypto v0.0.0-20191106202628-ed6320f186d4 // indirect
 	golang.org/x/net v0.0.0-20191105084925-a882066a44e0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191105231009-c1f44814a5cd // indirect

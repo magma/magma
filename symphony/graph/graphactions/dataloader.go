@@ -15,12 +15,12 @@ import (
 
 // EntDataLoader is an implementation of loading rules using Ents
 type EntDataLoader struct {
-	client *ent.Client
+	Client *ent.Client
 }
 
 // QueryRules is an implementation of DataLoader.QueryRules
 func (e EntDataLoader) QueryRules(ctx context.Context, triggerID core.TriggerID) ([]core.Rule, error) {
-	entRules, err := e.client.ActionsRule.Query().Where(
+	entRules, err := e.Client.ActionsRule.Query().Where(
 		actionsrule.TriggerIDEQ(string(triggerID)),
 	).All(ctx)
 	if err != nil {
