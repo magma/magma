@@ -71,6 +71,7 @@ func (er linksRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 	}
 
 	title := append(portADataHeader[:], portBDataHeader[:]...)
+	title = append(title, "Service Names")
 	title = append(title, propertyTypes...)
 
 	allRows[0] = title
@@ -134,6 +135,16 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes []string) ([
 		row = append(row, portsData[j]...)
 		row = append(row, equipmentData[j]...)
 	}
+	services, err := link.QueryService().All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "querying link for services (id=%s)", link.ID)
+	}
+	var servicesList []string
+	for _, service := range services {
+		servicesList = append(servicesList, service.Name)
+	}
+	servicesStr := strings.Join(servicesList, ", ")
+	row = append(row, servicesStr)
 	row = append(row, properties...)
 	return row, nil
 }
