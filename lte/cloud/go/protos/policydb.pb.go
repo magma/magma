@@ -360,7 +360,7 @@ type PolicyRule struct {
 	// The precedence for the flow. Same definition as 3GPP.
 	Priority             uint32                  `protobuf:"varint,3,opt,name=priority,proto3" json:"priority,omitempty"`
 	RatingGroup          uint32                  `protobuf:"varint,4,opt,name=rating_group,json=ratingGroup,proto3" json:"rating_group,omitempty"`
-	MonitoringKey        string                  `protobuf:"bytes,6,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
+	MonitoringKey        []byte                  `protobuf:"bytes,6,opt,name=monitoring_key,json=monitoringKey,proto3" json:"monitoring_key,omitempty"`
 	Redirect             *RedirectInformation    `protobuf:"bytes,9,opt,name=redirect,proto3" json:"redirect,omitempty"`
 	FlowList             []*FlowDescription      `protobuf:"bytes,7,rep,name=flow_list,json=flowList,proto3" json:"flow_list,omitempty"`
 	Qos                  *FlowQos                `protobuf:"bytes,8,opt,name=qos,proto3" json:"qos,omitempty"`
@@ -418,11 +418,11 @@ func (m *PolicyRule) GetRatingGroup() uint32 {
 	return 0
 }
 
-func (m *PolicyRule) GetMonitoringKey() string {
+func (m *PolicyRule) GetMonitoringKey() []byte {
 	if m != nil {
 		return m.MonitoringKey
 	}
-	return ""
+	return nil
 }
 
 func (m *PolicyRule) GetRedirect() *RedirectInformation {

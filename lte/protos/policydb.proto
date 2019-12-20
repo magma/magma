@@ -28,10 +28,10 @@ option go_package = "magma/lte/cloud/go/protos";
 // --------------------------------------------------------------------------
 message PolicyRule{
   string id = 1;
-  // The precedence for the flow. Same definition as 3GPP. 
+  // The precedence for the flow. Same definition as 3GPP.
   uint32 priority = 3;
   uint32 rating_group = 4; // optional
-  string monitoring_key = 6; // optional
+  bytes monitoring_key = 6; // optional
   RedirectInformation redirect = 9;
   repeated FlowDescription flow_list = 7;
   FlowQos qos = 8;
