@@ -373,7 +373,15 @@ func (r queryResolver) Customers(
 func (r queryResolver) ActionsRules(
 	ctx context.Context,
 ) (*models.ActionsRulesSearchResult, error) {
-	return nil, errors.New("stub")
+	actions, err := r.ClientFrom(ctx).ActionsRule.Query().All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query action rules")
+	}
+
+	return &models.ActionsRulesSearchResult{
+		Results: actions,
+		Count:   len(actions),
+	}, nil
 }
 
 func (r queryResolver) ActionsTriggers(
