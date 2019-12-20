@@ -27,3 +27,14 @@ message Tenant {
 message TenantList {
     repeated Tenant tenants = 1;
 }
+
+service ActionsAlertService {
+    rpc Receive(AlertPayload) returns (google.protobuf.Empty);
+}
+
+message AlertPayload {
+    Tenant tenant = 1;
+    string alertname = 2;
+    string networkID = 3;
+    map<string, string> labels = 4;
+}
