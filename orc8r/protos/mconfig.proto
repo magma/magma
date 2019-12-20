@@ -25,10 +25,17 @@ message GatewayConfigs {
     GatewayConfigsMetadata metadata = 11;
 }
 
+// Deterministic hash of a serialized GatewayConfigs proto
+message GatewayConfigsDigest {
+    // Hexadecimal MD5 hash of the UTF-8-encoded stringified full mconfigs
+    string md5_hex_digest = 1;
+}
+
 // Metadata about the configs.
 message GatewayConfigsMetadata {
     // Unix timestamp of Cloud at the time of config generation.
     uint64 created_at = 11;
+    GatewayConfigsDigest digest = 12;
 }
 
 // Wraps a gateway config and a stream offset that the config was computed
