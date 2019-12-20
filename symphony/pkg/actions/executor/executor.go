@@ -13,10 +13,9 @@ import (
 
 // Executor will execute all Actions defined in Rules for a Trigger
 type Executor struct {
-	Context context.Context
 	*Registry
 	DataLoader
-	OnError func(error)
+	OnError func(context.Context, error)
 }
 
 // Execute runs all workflows for the specified object/trigger
@@ -29,19 +28,19 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 		trigger, err := exc.Registry.TriggerForID(triggerID)
 		if err != nil {
 			// TODO: Should we bail here, or just log an error and continue
-			exc.OnError(errors.Errorf("could not find trigger: %s", triggerID))
+			exc.OnError(ctx, errors.Errorf("could not find trigger: %s", triggerID))
 			continue
 		}
 
 		rules, err := exc.DataLoader.QueryRules(ctx, triggerID)
 		if err != nil {
-			exc.OnError(errors.Errorf("could not query rules for trigger: %s", triggerID))
+			exc.OnError(ctx, errors.Errorf("could not query rules for trigger: %s", triggerID))
 		}
 
 		for _, rule := range rules {
 			shouldExecute, err := core.EvaluateTrigger(trigger, rule, inputPayload)
 			if err != nil {
-				exc.OnError(errors.Errorf("evaluating rule %s: %v", rule.ID, err))
+				exc.OnError(ctx, errors.Errorf("evaluating rule %s: %v", rule.ID, err))
 				continue
 			}
 			if !shouldExecute {
@@ -50,7 +49,7 @@ func (exc Executor) Execute(ctx context.Context, objectID string, triggerToPaylo
 			for _, ruleAction := range rule.RuleActions {
 				err := exc.executeAction(rule, ruleAction, inputPayload)
 				if err != nil {
-					exc.OnError(errors.Errorf("executing action %s: %v", ruleAction.ActionID, err))
+					exc.OnError(ctx, errors.Errorf("executing action %s: %v", ruleAction.ActionID, err))
 				}
 			}
 		}

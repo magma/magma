@@ -32,8 +32,8 @@ type MockLogger struct {
 	mock.Mock
 }
 
-func (m *MockLogger) LogError(err error) {
-	m.Called(err)
+func (m *MockLogger) LogError(ctx context.Context, err error) {
+	m.Called(ctx, err)
 }
 
 func TestExecutor(t *testing.T) {
@@ -75,12 +75,11 @@ func TestExecutor(t *testing.T) {
 	registry.MustRegisterTrigger(trigger2)
 
 	exc := Executor{
-		Context:  context.Background(),
 		Registry: registry,
 		DataLoader: BasicDataLoader{
 			Rules: []core.Rule{testRule},
 		},
-		OnError: func(err error) {
+		OnError: func(ctx context.Context, err error) {
 			assert.Fail(t, "error in test when shouldnt be", err)
 		},
 	}
@@ -128,12 +127,11 @@ func TestExecutorRuleFilter(t *testing.T) {
 	registry.MustRegisterTrigger(trigger1)
 
 	exc := Executor{
-		Context:  context.Background(),
 		Registry: registry,
 		DataLoader: BasicDataLoader{
 			Rules: []core.Rule{testRule},
 		},
-		OnError: func(err error) {
+		OnError: func(ctx context.Context, err error) {
 			assert.Fail(t, "error in test when shouldnt be", err)
 		},
 	}
@@ -148,7 +146,7 @@ func TestExecutorRuleFilter(t *testing.T) {
 
 func TestExecutorUnregisteredTrigger(t *testing.T) {
 	var mockErrorHandler MockLogger
-	mockErrorHandler.On("LogError", mock.Anything).Return()
+	mockErrorHandler.On("LogError", mock.Anything, mock.Anything).Return()
 
 	trigger1 := mocktrigger.New()
 	trigger1.On("ID").Return(testTriggerID2)
@@ -157,7 +155,6 @@ func TestExecutorUnregisteredTrigger(t *testing.T) {
 	registry.MustRegisterTrigger(trigger1)
 
 	exc := Executor{
-		Context:  context.Background(),
 		Registry: registry,
 		DataLoader: BasicDataLoader{
 			Rules: []core.Rule{},
