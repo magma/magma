@@ -101,13 +101,16 @@ func handleLinkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (
 }
 
 func linkServiceFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) (*ent.LinkQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
+	switch filter.Operator {
+	case models.FilterOperatorIsOneOf:
 		return q.Where(link.HasServiceWith(service.IDIn(filter.IDSet...))), nil
-	} else if filter.Operator == models.FilterOperatorIsNotOneOf {
+	case models.FilterOperatorIsNotOneOf:
 		return q.Where(link.Not(
 			link.HasServiceWith(service.IDIn(filter.IDSet...)),
 		),
 		), nil
+	case models.FilterOperatorContains:
+		return q.Where(link.HasServiceWith(service.NameContainsFold(*filter.StringValue))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
