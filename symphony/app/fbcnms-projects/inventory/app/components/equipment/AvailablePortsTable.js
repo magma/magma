@@ -133,7 +133,6 @@ const AvailablePortsTable = (props: Props) => {
                 <EquipmentPortBreadcrumbs port={port} />
               </TableCell>
               <TableCell>{port.definition.visibleLabel}</TableCell>
-              <TableCell>{port.definition.type}</TableCell>
               {isTestEnv() && (
                 <TableCell>
                   <Text variant="caption" className={classes.futureState}>

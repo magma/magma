@@ -68,7 +68,11 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return false, errors.New("input not of type property or property type")
 	}
 	switch typ {
-	case models.PropertyKindDate, models.PropertyKindEmail, models.PropertyKindString, models.PropertyKindEnum:
+	case models.PropertyKindDate,
+		models.PropertyKindEmail,
+		models.PropertyKindString,
+		models.PropertyKindEnum,
+		models.PropertyKindDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
 	case models.PropertyKindInt:
 		// TODO detect int no-value

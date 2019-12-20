@@ -94,3 +94,27 @@ func (l ImportHeader) PropertyStartIdx() int {
 	}
 	return -1
 }
+
+// ServiceExternalIDIdx is the index of the external id of the service (used in other systems) in the exported csv
+func (l ImportHeader) ServiceExternalIDIdx() int {
+	if l.entity == ImportEntityService {
+		return 3
+	}
+	return -1
+}
+
+// CustomerNameIdx is the index of the name of customer that uses the services in the exported csv
+func (l ImportHeader) CustomerNameIdx() int {
+	if l.entity == ImportEntityService {
+		return 4
+	}
+	return -1
+}
+
+// CustomerExternalIDIdx is the index of the external id of customer that uses the services in the exported csv
+func (l ImportHeader) CustomerExternalIDIdx() int {
+	if l.entity == ImportEntityService {
+		return 5
+	}
+	return -1
+}
