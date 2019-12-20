@@ -548,6 +548,12 @@ export type mutable_symphony_agent = {
     name: gateway_name,
     tier: tier_id,
 };
+export type mutable_symphony_device = {
+    config: symphony_device_config,
+    id: symphony_device_id,
+    managing_agent ? : symphony_device_agent,
+    name: symphony_device_name,
+};
 export type mutable_wifi_gateway = {
     description: gateway_description,
     device: gateway_device,
@@ -905,8 +911,11 @@ export type symphony_agent = {
 export type symphony_device = {
     config: symphony_device_config,
     id: symphony_device_id,
+    managing_agent: symphony_device_agent,
     name: symphony_device_name,
+    state: symphony_device_state,
 };
+export type symphony_device_agent = string;
 export type symphony_device_config = {
     channels ? : {
         cambium_channel ? : cambium_channel,
@@ -6946,7 +6955,7 @@ export default class MagmaAPIBindings {
     static async postSymphonyByNetworkIdDevices(
         parameters: {
             'networkId': string,
-            'symphonyDevice': symphony_device,
+            'symphonyDevice': mutable_symphony_device,
         }
     ): Promise < "Success" > {
         let path = '/symphony/{network_id}/devices';
@@ -7019,7 +7028,7 @@ export default class MagmaAPIBindings {
         parameters: {
             'networkId': string,
             'deviceId': string,
-            'symphonyDevice': symphony_device,
+            'symphonyDevice': mutable_symphony_device,
         }
     ): Promise < "Success" > {
         let path = '/symphony/{network_id}/devices/{device_id}';
@@ -7047,12 +7056,68 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getSymphonyByNetworkIdDevicesByDeviceIdConfig(
+            parameters: {
+                'networkId': string,
+                'deviceId': string,
+            }
+        ): Promise < symphony_device_config >
+        {
+            let path = '/symphony/{network_id}/devices/{device_id}/config';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['deviceId'] === undefined) {
+                throw new Error('Missing required  parameter: deviceId');
+            }
+
+            path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putSymphonyByNetworkIdDevicesByDeviceIdConfig(
+        parameters: {
+            'networkId': string,
+            'deviceId': string,
+            'name': symphony_device_config,
+        }
+    ): Promise < "Success" > {
+        let path = '/symphony/{network_id}/devices/{device_id}/config';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['deviceId'] === undefined) {
+            throw new Error('Missing required  parameter: deviceId');
+        }
+
+        path = path.replace('{device_id}', `${parameters['deviceId']}`);
+
+        if (parameters['name'] === undefined) {
+            throw new Error('Missing required  parameter: name');
+        }
+
+        if (parameters['name'] !== undefined) {
+            body = parameters['name'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getSymphonyByNetworkIdDevicesByDeviceIdName(
             parameters: {
                 'networkId': string,
                 'deviceId': string,
             }
-        ): Promise < symphony_device_id >
+        ): Promise < symphony_device_name >
         {
             let path = '/symphony/{network_id}/devices/{device_id}/name';
             let body;

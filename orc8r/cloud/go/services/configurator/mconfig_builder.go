@@ -9,6 +9,8 @@
 package configurator
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"sync"
 	"testing"
 	"time"
@@ -76,6 +78,7 @@ func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGrap
 	ret := &protos.GatewayConfigs{
 		Metadata: &protos.GatewayConfigsMetadata{
 			CreatedAt: uint64(time.Now().Unix()),
+			Digest:    &protos.GatewayConfigsDigest{},
 		},
 		ConfigsByKey: map[string]*any.Any{},
 	}
@@ -86,8 +89,40 @@ func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGrap
 		}
 		ret.ConfigsByKey[k] = a
 	}
+	digest, err := getMconfigDigest(ret)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate digest of ConfigsByKey")
+	}
+	ret.Metadata.Digest.Md5HexDigest = digest
 
 	return ret, nil
+}
+
+// getMconfigDigest generates a representative hash of the configs (sans metadata).
+func getMconfigDigest(configs *protos.GatewayConfigs) (string, error) {
+	configsWithoutMetadata := &protos.GatewayConfigs{ConfigsByKey: configs.ConfigsByKey}
+	serializedConfig, err := encodePbDeterministic(configsWithoutMetadata)
+	if err != nil {
+		return "", err
+	}
+
+	sum := md5.Sum(serializedConfig)
+	digest := hex.EncodeToString(sum[:])
+	return digest, nil
+}
+
+// encodePbDeterministic encodes protobuf while enforcing deterministic serialization.
+// NOTE: deterministic != canonical, so do not expect this encoding to be
+// equal across languages or even versions of golang/protobuf/proto.
+// For further reading, see below.
+// 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
+//	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
+func encodePbDeterministic(pb proto.Message) ([]byte, error) {
+	buf := &proto.Buffer{}
+	buf.SetDeterministic(true)
+
+	err := buf.Marshal(pb)
+	return buf.Bytes(), err
 }
 
 // ClearMconfigBuilders exists ONLY for testing - this the required but unused

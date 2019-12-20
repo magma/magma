@@ -966,9 +966,9 @@ void mme_remove_ue_context(
   DevAssert(ue_context_p);
 
   if (!lock_ue_contexts(ue_context_p)) {
-    mme_app_ue_context_free_content(ue_context_p);
     // Release emm and esm context
     _clear_emm_ctxt(&ue_context_p->emm_context);
+    mme_app_ue_context_free_content(ue_context_p);
     // IMSI
     if (ue_context_p->emm_context._imsi64) {
       hash_rc = hashtable_uint64_ts_remove(

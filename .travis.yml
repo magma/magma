@@ -172,6 +172,25 @@ matrix:
         - cd ${NMS_ROOT}
         - docker-compose build magmalte
 
+    - stage: Build
+      name: FOSSA analyze
+      language: generic
+      env:
+        - MAGMA_ROOT=${TRAVIS_BUILD_DIR}
+      go:
+        - "1.13.x"
+      python:
+        - "3.7"
+      before_install:
+        - cd /tmp
+        - wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+        - bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+        - sudo rm -f /tmp/fossa
+        - tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+        - sudo cp /tmp/fossa /usr/local/bin/
+      script:
+        - ${MAGMA_ROOT}/travis/fossa-analyze-go.sh
+
 stages:
   - Tests
   - Build

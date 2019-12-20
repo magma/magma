@@ -46,7 +46,7 @@ type connector struct {
 	dsn string
 }
 
-func (c connector) Connect(ctx context.Context) (driver.Conn, error) {
+func (c connector) Connect(context.Context) (driver.Conn, error) {
 	return c.Driver().Open(c.dsn)
 }
 

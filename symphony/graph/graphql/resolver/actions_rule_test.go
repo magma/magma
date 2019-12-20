@@ -94,6 +94,43 @@ func TestAddActionsRule(t *testing.T) {
 	assert.Equal(t, rule.RuleFilters[0].Data, "testdata")
 }
 
+func TestQueryActionsRules(t *testing.T) {
+	r, ctx := actionsContext(t)
+	actions := []*core.ActionsRuleAction{
+		{
+			ActionID: "action1",
+			Data:     "testdata",
+		},
+	}
+
+	filters := []*core.ActionsRuleFilter{
+		{
+			FilterID:   "filter1",
+			OperatorID: "eq",
+			Data:       "testdata",
+		},
+	}
+
+	rule, err := r.client.
+		ActionsRule.
+		Create().
+		SetName("testInput").
+		SetTriggerID("trigger1").
+		SetRuleActions(actions).
+		SetRuleFilters(filters).
+		Save(ctx)
+	require.NoError(t, err)
+
+	rules, err := r.Query().ActionsRules(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, len(rules.Results), 1)
+	assert.Equal(t, rules.Results[0].ID, rule.ID)
+	assert.Equal(t, rules.Results[0].Name, rule.Name)
+	assert.Equal(t, rules.Results[0].TriggerID, rule.TriggerID)
+	assert.Equal(t, rules.Results[0].RuleActions[0].ActionID, rule.RuleActions[0].ActionID)
+	assert.Equal(t, rules.Results[0].RuleFilters[0].FilterID, rule.RuleFilters[0].FilterID)
+}
+
 func TestEditActionsRule(t *testing.T) {
 	r, ctx := actionsContext(t)
 

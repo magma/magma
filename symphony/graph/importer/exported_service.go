@@ -7,6 +7,9 @@ package importer
 import (
 	"context"
 	"fmt"
+
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -76,6 +79,23 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 				http.Error(w, fmt.Sprintf("couldn't find service type %q (row #%d). %q ", serviceTypName, numRows, err), http.StatusBadRequest)
 				return
 			}
+
+			var customerID *string = nil
+			customerName := importLine.CustomerName()
+			if customerName != "" {
+				customer, err := m.getOrCreateCustomer(ctx, m.r.Mutation(), customerName, importLine.CustomerExternalID())
+				if err != nil {
+					log.Error("add customer", zap.String("name", importLine.CustomerName()), zap.Error(err))
+					http.Error(w, fmt.Sprintf("add customer with name %q (row #%d). %q", importLine.CustomerName(), numRows, err.Error()), http.StatusBadRequest)
+					return
+				}
+				if customer != nil {
+					customerID = &customer.ID
+				}
+			}
+
+			externalID := pointer.ToStringOrNil(importLine.ServiceExternalID())
+
 			id := importLine.ID()
 			var propInputs []*models.PropertyInput
 			if importLine.Len() > importHeader.PropertyStartIdx() {
@@ -87,7 +107,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 				}
 			}
 			if id == "" {
-				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs)
+				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID)
 				if created {
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
@@ -114,7 +134,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						propInput.ID = &propID
 					}
 				}
-				_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{ID: id, Name: &name, Properties: propInputs})
+				_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{ID: id, Name: &name, Properties: propInputs, ExternalID: externalID, CustomerID: customerID})
 				if err != nil {
 					log.Warn("editing service", zap.Error(err), importLine.ZapField())
 					http.Error(w, fmt.Sprintf("editing service: id %q (row #%d). %q: ", id, numRows, err), http.StatusBadRequest)

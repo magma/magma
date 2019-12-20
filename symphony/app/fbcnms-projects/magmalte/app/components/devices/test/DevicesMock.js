@@ -205,7 +205,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'snmp',
     },
     id: 'ens_switch_1',
+    managing_agent: '',
     name: 'ens_switch_1',
+    state: {},
   },
   localhost_snmpd: {
     config: {
@@ -239,7 +241,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'snmp',
     },
     id: 'localhost_snmpd',
+    managing_agent: '',
     name: 'localhost_snmpd',
+    state: {},
   },
   mikrotik: {
     config: {
@@ -260,7 +264,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'mikrotik',
     },
     id: 'mikrotik',
+    managing_agent: '',
     name: 'Mikrotik',
+    state: {},
   },
   ping_fb_dns_from_lab: {
     config: {
@@ -271,7 +277,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'ping',
     },
     id: 'ping_fb_dns_from_lab',
+    managing_agent: 'fbbosfbcdockerengine',
     name: 'Ping FB DNS From Lab',
+    state: {},
   },
   ping_fb_dns_ken_laptop: {
     config: {
@@ -305,7 +313,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'ping',
     },
     id: 'ping_fb_dns_ken_laptop',
+    managing_agent: '',
     name: 'ping_fb_dns_ken_laptop',
+    state: {},
   },
   ping_google_ipv6: {
     config: {
@@ -316,7 +326,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'ping',
     },
     id: 'ping_google_ipv6',
+    managing_agent: 'fbbosfbcdockerengine',
     name: 'Ping Google IPv6',
+    state: {},
   },
   ping_google_ipv6_ken_laptop: {
     config: {
@@ -350,7 +362,9 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'ping',
     },
     id: 'ping_google_ipv6_ken_laptop',
+    managing_agent: '',
     name: 'ping_google_ipv6_ken_laptop',
+    state: {},
   },
   ubnt: {
     config: {
@@ -384,6 +398,8 @@ export const RAW_DEVICES: {[string]: symphony_device} = {
       platform: 'Ubnt',
     },
     id: 'ubnt',
+    managing_agent: '',
     name: 'ubnt',
+    state: {},
   },
 };
