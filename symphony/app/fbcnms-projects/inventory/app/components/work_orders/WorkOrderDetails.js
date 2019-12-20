@@ -695,6 +695,10 @@ export default withRouter(
               project {
                 name
                 id
+                type {
+                  id
+                  name
+                }
               }
               checkList {
                 ...CheckListTable_list @relay(mask: false)

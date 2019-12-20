@@ -81,7 +81,7 @@ func getDefaultPolicy() *lteProtos.PolicyRule {
 		Id:            "static1",
 		Priority:      1,
 		RatingGroup:   2,
-		MonitoringKey: "mkey1",
+		MonitoringKey: []byte("mkey1"),
 		Redirect:      nil,
 		FlowList:      []*lteProtos.FlowDescription{{Action: lteProtos.FlowDescription_PERMIT}},
 		Qos:           nil,

@@ -43,4 +43,3 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_auth_param_req_t,
   nas_auth_param_req)
-

@@ -65,9 +65,13 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	conn, err := registry.GetConnection(streamer.ServiceName)
 	assert.NoError(t, err)
 	grpcClient := protos.NewStreamerClient(conn)
+
+	// Make normal call for config updates
+	extraArgs := &protos.GatewayConfigsDigest{Md5HexDigest: "useless_digest"}
+	serializedExtraArgs, _ := ptypes.MarshalAny(extraArgs)
 	streamerClient, err := grpcClient.GetUpdates(
 		context.Background(),
-		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"},
+		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
 	)
 	assert.NoError(t, err)
 
@@ -86,6 +90,20 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual.ConfigsByKey)
+
+	// Make optimized call for config updates--when passed config digest
+	// matches provider's digest, empty update batch is returned
+	extraArgs = &protos.GatewayConfigsDigest{Md5HexDigest: actual.Metadata.Digest.Md5HexDigest}
+	serializedExtraArgs, _ = ptypes.MarshalAny(extraArgs)
+	streamerClient, err = grpcClient.GetUpdates(
+		context.Background(),
+		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
+	)
+
+	actualMarshaled, err = streamerClient.Recv()
+	assert.NoError(t, err)
+	assert.Empty(t, actualMarshaled.Updates)
+
 	mockBuilder.AssertExpectations(t)
 }
 

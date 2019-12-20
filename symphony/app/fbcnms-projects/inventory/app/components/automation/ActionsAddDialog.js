@@ -22,6 +22,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Divider from '@material-ui/core/Divider';
+import EditActionsRuleMutation from '../../mutations/EditActionsRuleMutation';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import TriggerFilterRow from './TriggerFilterRow';
@@ -50,6 +51,11 @@ type Props = {|
   trigger: ActionsAddDialog_triggerData$key,
   onClose: () => void,
   onSave: () => void,
+  rule?: {
+    id: string,
+    ruleFilters: $ReadOnlyArray<?RuleFilter>,
+    ruleActions: $ReadOnlyArray<?RuleAction>,
+  },
 |};
 
 const query = graphql`
@@ -70,8 +76,13 @@ export default function ActionsAddDialog(props: Props) {
     props.trigger,
   );
 
-  const [filters, setFilters] = useState<(?RuleFilter)[]>([EMPTY_ITEM]);
-  const [actions, setActions] = useState<(?RuleAction)[]>([EMPTY_ITEM]);
+  const rule = props.rule;
+  const [filters, setFilters] = useState<(?RuleFilter)[]>(
+    rule ? [...rule.ruleFilters] : [EMPTY_ITEM],
+  );
+  const [actions, setActions] = useState<(?RuleAction)[]>(
+    rule ? [...rule.ruleActions] : [EMPTY_ITEM],
+  );
 
   const onSave = () => {
     const input = {
@@ -86,7 +97,14 @@ export default function ActionsAddDialog(props: Props) {
         data: JSON.stringify(filter.data),
       })),
     };
-    AddActionsRuleMutation({input}, {onCompleted: props.onSave});
+    if (rule) {
+      EditActionsRuleMutation(
+        {id: rule.id, input},
+        {onCompleted: props.onSave},
+      );
+    } else {
+      AddActionsRuleMutation({input}, {onCompleted: props.onSave});
+    }
   };
 
   const onChangeFilter = (newFilter, i) => {

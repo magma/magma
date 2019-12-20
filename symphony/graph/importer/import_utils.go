@@ -6,9 +6,11 @@ package importer
 
 import (
 	"context"
+	"github.com/AlekSi/pointer"
 	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -233,7 +235,8 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 	return equip, true, nil
 }
 
-func (m *importer) getOrCreateService(ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput) (*ent.Service, bool) {
+func (m *importer) getOrCreateService(
+	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string) (*ent.Service, bool) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
@@ -259,6 +262,8 @@ func (m *importer) getOrCreateService(ctx context.Context, mr generated.Mutation
 		ServiceTypeID: serviceType.ID,
 		Properties:    props,
 		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		CustomerID:    customerID,
+		ExternalID:    externalID,
 	})
 	if err != nil {
 		log.Error("add service", zap.String("name", name), zap.Error(err))
@@ -267,6 +272,36 @@ func (m *importer) getOrCreateService(ctx context.Context, mr generated.Mutation
 	log.Debug("Creating new service", zap.String("service.Name", service.Name), zap.String("service.ID", service.ID))
 
 	return service, true
+}
+
+func (m *importer) getOrCreateCustomer(ctx context.Context, mr generated.MutationResolver, name string, externalID string) (*ent.Customer, error) {
+
+	exID := pointer.ToStringOrNil(externalID)
+
+	log := m.log.For(ctx)
+	client := m.ClientFrom(ctx)
+	customer, err := client.Customer.Query().Where(customer.Name(name)).First(ctx)
+	if customer != nil {
+		log.Debug("customer exists",
+			zap.String("name", name),
+		)
+		return customer, nil
+	}
+	if !ent.IsNotFound(err) {
+		return nil, err
+	}
+
+	customer, err = mr.AddCustomer(ctx, models.AddCustomerInput{
+		Name:       name,
+		ExternalID: exID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	log.Debug("Creating new customer", zap.String("customer.Name", customer.Name),
+		zap.String("customer.ID", customer.ID))
+
+	return customer, nil
 }
 
 func (m *importer) deleteEquipmentIfExists(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, pos *ent.EquipmentPosition) error {
