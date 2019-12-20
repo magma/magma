@@ -82,15 +82,6 @@ export default function DevicesManagedDeviceRow(props: Props) {
     });
   };
 
-  const statusAgentId = device.statusAgentId;
-  const managingAgentIds = device.agentIds.join(', ');
-
-  const managingAgentText =
-    managingAgentIds === statusAgentId
-      ? managingAgentIds
-      : `Managed by ${managingAgentIds ||
-          '<none>'}, State from ${statusAgentId || '<none>'}`;
-
   return (
     <>
       <Alert
@@ -104,7 +95,7 @@ export default function DevicesManagedDeviceRow(props: Props) {
       <TableRow className={classes.tableRow}>
         <TableCell className={classes.subrowCell}>{props.deviceID}</TableCell>
         <TableCell>{device && <DevicesState device={device} />}</TableCell>
-        <TableCell>{managingAgentText}</TableCell>
+        <TableCell>{device.managingAgentId || '<none>'}</TableCell>
 
         <TableCell className={classes.actionsCell}>
           <NestedRouteLink to={`/metrics/${props.deviceID}`}>
