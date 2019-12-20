@@ -1368,10 +1368,10 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
-  int pid = esm_proc_pdn_disconnect_request(
-    &ue_mm_context_p->emm_context, pti, &esm_cause);
+  // Fetch the pdn conn id using the linked bearer id
+  int pid = ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(msg->lbi)]->pdn_cx_id;
 
-  if (pid != RETURNerror) {
+  if (pid < MAX_APN_PER_UE) {
     /*
      * Release the associated default EPS bearer context
      */
@@ -1389,6 +1389,10 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
         "Processing bearer deactivation failed for ebi %u\n",
         msg->lbi);
     }
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_EMM, "ESM-PROC  - No PDN connection found (lbi=%u)\n", msg->lbi);
+    rc = RETURNerror;
   }
   unlock_ue_contexts(ue_mm_context_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
