@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -26,7 +27,7 @@ type EquipmentCategoryQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentCategory
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -57,12 +58,12 @@ func (ecq *EquipmentCategoryQuery) Order(o ...Order) *EquipmentCategoryQuery {
 // QueryTypes chains the current query on the types edge.
 func (ecq *EquipmentCategoryQuery) QueryTypes() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: ecq.config}
-	step := sql.NewStep(
-		sql.From(equipmentcategory.Table, equipmentcategory.FieldID, ecq.sqlQuery()),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentcategory.Table, equipmentcategory.FieldID, ecq.sqlQuery()),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentcategory.TypesTable, equipmentcategory.TypesColumn),
 	)
-	query.sql = sql.SetNeighbors(ecq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(ecq.driver.Dialect(), step)
 	return query
 }
 
@@ -230,7 +231,7 @@ func (ecq *EquipmentCategoryQuery) Clone() *EquipmentCategoryQuery {
 		order:      append([]Order{}, ecq.order...),
 		unique:     append([]string{}, ecq.unique...),
 		predicates: append([]predicate.EquipmentCategory{}, ecq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: ecq.sql.Clone(),
 	}
 }
@@ -356,7 +357,7 @@ type EquipmentCategoryGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -477,7 +478,7 @@ func (ecgb *EquipmentCategoryGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(ecgb.fields)+len(ecgb.fns))
 	columns = append(columns, ecgb.fields...)
 	for _, fn := range ecgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(ecgb.fields...)
 }

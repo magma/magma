@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
@@ -28,7 +29,7 @@ type EquipmentPortDefinitionQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.EquipmentPortDefinition
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -59,36 +60,36 @@ func (epdq *EquipmentPortDefinitionQuery) Order(o ...Order) *EquipmentPortDefini
 // QueryEquipmentPortType chains the current query on the equipment_port_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentPortType() *EquipmentPortTypeQuery {
 	query := &EquipmentPortTypeQuery{config: epdq.config}
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sql.To(equipmentporttype.Table, equipmentporttype.FieldID),
-		sql.Edge(sql.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sqlgraph.To(equipmentporttype.Table, equipmentporttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipmentportdefinition.EquipmentPortTypeTable, equipmentportdefinition.EquipmentPortTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPorts chains the current query on the ports edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: epdq.config}
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentportdefinition.PortsTable, equipmentportdefinition.PortsColumn),
 	)
-	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
 
 // QueryEquipmentType chains the current query on the equipment_type edge.
 func (epdq *EquipmentPortDefinitionQuery) QueryEquipmentType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: epdq.config}
-	step := sql.NewStep(
-		sql.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentportdefinition.Table, equipmentportdefinition.FieldID, epdq.sqlQuery()),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipmentportdefinition.EquipmentTypeTable, equipmentportdefinition.EquipmentTypeColumn),
 	)
-	query.sql = sql.SetNeighbors(epdq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(epdq.driver.Dialect(), step)
 	return query
 }
 
@@ -256,7 +257,7 @@ func (epdq *EquipmentPortDefinitionQuery) Clone() *EquipmentPortDefinitionQuery 
 		order:      append([]Order{}, epdq.order...),
 		unique:     append([]string{}, epdq.unique...),
 		predicates: append([]predicate.EquipmentPortDefinition{}, epdq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: epdq.sql.Clone(),
 	}
 }
@@ -382,7 +383,7 @@ type EquipmentPortDefinitionGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -503,7 +504,7 @@ func (epdgb *EquipmentPortDefinitionGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(epdgb.fields)+len(epdgb.fns))
 	columns = append(columns, epdgb.fields...)
 	for _, fn := range epdgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(epdgb.fields...)
 }

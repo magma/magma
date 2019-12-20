@@ -156,7 +156,7 @@ const PositionDefinitionsAddEditTable = (props: Props) => {
         </TableHead>
         <DroppableTableBody onDragEnd={onDragEnd}>
           {positionDefinitions.map((definition, i) => (
-            <DraggableTableRow key={definition.id} id={definition.id} index={i}>
+            <DraggableTableRow key={i} id={definition.id} index={i}>
               <TableCell className={classes.cell} component="div" scope="row">
                 <TextField
                   className={classes.input}

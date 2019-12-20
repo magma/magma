@@ -9,8 +9,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/gqlerror"

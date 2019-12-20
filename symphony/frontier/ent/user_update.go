@@ -290,7 +290,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(uu.tokens) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uu.tokens))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uu.tokens))})
 			}
 		}
 	}
@@ -578,7 +578,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(uuo.tokens) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uuo.tokens))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"tokens\" %v already connected to a different \"User\"", keys(uuo.tokens))})
 			}
 		}
 	}

@@ -757,7 +757,7 @@ var (
 		{Name: "float_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "latitude_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "longitude_val", Type: field.TypeFloat64, Nullable: true},
-		{Name: "string_val", Type: field.TypeString, Nullable: true},
+		{Name: "string_val", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "range_from_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "range_to_val", Type: field.TypeFloat64, Nullable: true},
 		{Name: "is_instance_property", Type: field.TypeBool, Default: propertytype.DefaultIsInstanceProperty},

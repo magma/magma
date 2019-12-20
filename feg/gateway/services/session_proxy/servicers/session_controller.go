@@ -16,6 +16,7 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
@@ -75,7 +76,7 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
-	imsi := removeSidPrefix(request.Subscriber.Id)
+	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
 	sessionID := request.SessionId
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)

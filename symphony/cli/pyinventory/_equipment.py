@@ -360,7 +360,7 @@ def _get_equipment_type_and_properties_dict(
         property_types_with_id = [
             property_type
             for property_type in property_types
-            if property_type.id == property_type_id
+            if property_type["id"] == property_type_id
         ]
         assert (
             len(property_types_with_id) == 1
@@ -368,8 +368,8 @@ def _get_equipment_type_and_properties_dict(
             equipment_type, property_type_id
         )
         property_type = property_types_with_id[0]
-        property_value = _get_property_value(property_type, property)
-        properties_dict[property_type.name] = property_value
+        property_value = _get_property_value(property_type, property.to_dict())
+        properties_dict[property_type["name"]] = property_value
     return equipment_type, properties_dict
 
 

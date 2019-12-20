@@ -398,7 +398,7 @@ func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, 
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(epdu.ports) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epdu.ports))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epdu.ports))})
 			}
 		}
 	}
@@ -819,7 +819,7 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(epduo.ports) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epduo.ports))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epduo.ports))})
 			}
 		}
 	}

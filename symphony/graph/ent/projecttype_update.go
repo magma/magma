@@ -322,7 +322,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ptu.projects) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"projects\" %v already connected to a different \"ProjectType\"", keys(ptu.projects))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"projects\" %v already connected to a different \"ProjectType\"", keys(ptu.projects))})
 			}
 		}
 	}
@@ -368,7 +368,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ptu.properties) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"ProjectType\"", keys(ptu.properties))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"ProjectType\"", keys(ptu.properties))})
 			}
 		}
 	}
@@ -414,7 +414,7 @@ func (ptu *ProjectTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(ptu.work_orders) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"ProjectType\"", keys(ptu.work_orders))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"ProjectType\"", keys(ptu.work_orders))})
 			}
 		}
 	}
@@ -727,7 +727,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ptuo.projects) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"projects\" %v already connected to a different \"ProjectType\"", keys(ptuo.projects))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"projects\" %v already connected to a different \"ProjectType\"", keys(ptuo.projects))})
 			}
 		}
 	}
@@ -773,7 +773,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ptuo.properties) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"ProjectType\"", keys(ptuo.properties))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"ProjectType\"", keys(ptuo.properties))})
 			}
 		}
 	}
@@ -819,7 +819,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(ptuo.work_orders) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"ProjectType\"", keys(ptuo.work_orders))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"work_orders\" %v already connected to a different \"ProjectType\"", keys(ptuo.work_orders))})
 			}
 		}
 	}

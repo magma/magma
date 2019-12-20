@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -29,7 +30,7 @@ type ProjectQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Project
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -60,48 +61,48 @@ func (pq *ProjectQuery) Order(o ...Order) *ProjectQuery {
 // QueryType chains the current query on the type edge.
 func (pq *ProjectQuery) QueryType() *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(projecttype.Table, projecttype.FieldID),
-		sql.Edge(sql.M2O, true, project.TypeTable, project.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(projecttype.Table, projecttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, project.TypeTable, project.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (pq *ProjectQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, project.LocationTable, project.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, project.LocationTable, project.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrders chains the current query on the work_orders edge.
 func (pq *ProjectQuery) QueryWorkOrders() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.WorkOrdersTable, project.WorkOrdersColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (pq *ProjectQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: pq.config}
-	step := sql.NewStep(
-		sql.From(project.Table, project.FieldID, pq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, project.PropertiesTable, project.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.PropertiesTable, project.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(pq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query
 }
 
@@ -269,7 +270,7 @@ func (pq *ProjectQuery) Clone() *ProjectQuery {
 		order:      append([]Order{}, pq.order...),
 		unique:     append([]string{}, pq.unique...),
 		predicates: append([]predicate.Project{}, pq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: pq.sql.Clone(),
 	}
 }
@@ -395,7 +396,7 @@ type ProjectGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -516,7 +517,7 @@ func (pgb *ProjectGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(pgb.fields)+len(pgb.fns))
 	columns = append(columns, pgb.fields...)
 	for _, fn := range pgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(pgb.fields...)
 }

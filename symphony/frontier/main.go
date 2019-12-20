@@ -11,9 +11,9 @@ import (
 	"os"
 	"syscall"
 
-	"github.com/facebookincubator/symphony/cloud/ctxutil"
-	"github.com/facebookincubator/symphony/cloud/log"
-	"github.com/facebookincubator/symphony/cloud/oc"
+	"github.com/facebookincubator/symphony/pkg/ctxutil"
+	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/oc"
 
 	"github.com/jessevdk/go-flags"
 )

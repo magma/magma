@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -33,7 +34,7 @@ type EquipmentQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.Equipment
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -64,108 +65,108 @@ func (eq *EquipmentQuery) Order(o ...Order) *EquipmentQuery {
 // QueryType chains the current query on the type edge.
 func (eq *EquipmentQuery) QueryType() *EquipmentTypeQuery {
 	query := &EquipmentTypeQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(equipmenttype.Table, equipmenttype.FieldID),
-		sql.Edge(sql.M2O, false, equipment.TypeTable, equipment.TypeColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(equipmenttype.Table, equipmenttype.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipment.TypeTable, equipment.TypeColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (eq *EquipmentQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, true, equipment.LocationTable, equipment.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, equipment.LocationTable, equipment.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryParentPosition chains the current query on the parent_position edge.
 func (eq *EquipmentQuery) QueryParentPosition() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, equipment.ParentPositionTable, equipment.ParentPositionColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPositions chains the current query on the positions edge.
 func (eq *EquipmentQuery) QueryPositions() *EquipmentPositionQuery {
 	query := &EquipmentPositionQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(equipmentposition.Table, equipmentposition.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(equipmentposition.Table, equipmentposition.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PositionsTable, equipment.PositionsColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryPorts chains the current query on the ports edge.
 func (eq *EquipmentQuery) QueryPorts() *EquipmentPortQuery {
 	query := &EquipmentPortQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(equipmentport.Table, equipmentport.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PortsTable, equipment.PortsColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PortsTable, equipment.PortsColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryWorkOrder chains the current query on the work_order edge.
 func (eq *EquipmentQuery) QueryWorkOrder() *WorkOrderQuery {
 	query := &WorkOrderQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(workorder.Table, workorder.FieldID),
-		sql.Edge(sql.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(workorder.Table, workorder.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, equipment.WorkOrderTable, equipment.WorkOrderColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryProperties chains the current query on the properties edge.
 func (eq *EquipmentQuery) QueryProperties() *PropertyQuery {
 	query := &PropertyQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(property.Table, property.FieldID),
-		sql.Edge(sql.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(property.Table, property.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryService chains the current query on the service edge.
 func (eq *EquipmentQuery) QueryService() *ServiceQuery {
 	query := &ServiceQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(service.Table, service.FieldID),
-		sql.Edge(sql.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
 // QueryFiles chains the current query on the files edge.
 func (eq *EquipmentQuery) QueryFiles() *FileQuery {
 	query := &FileQuery{config: eq.config}
-	step := sql.NewStep(
-		sql.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sql.To(file.Table, file.FieldID),
-		sql.Edge(sql.O2M, false, equipment.FilesTable, equipment.FilesColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
+		sqlgraph.To(file.Table, file.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, equipment.FilesTable, equipment.FilesColumn),
 	)
-	query.sql = sql.SetNeighbors(eq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query
 }
 
@@ -333,7 +334,7 @@ func (eq *EquipmentQuery) Clone() *EquipmentQuery {
 		order:      append([]Order{}, eq.order...),
 		unique:     append([]string{}, eq.unique...),
 		predicates: append([]predicate.Equipment{}, eq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: eq.sql.Clone(),
 	}
 }
@@ -459,7 +460,7 @@ type EquipmentGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -580,7 +581,7 @@ func (egb *EquipmentGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(egb.fields)+len(egb.fns))
 	columns = append(columns, egb.fields...)
 	for _, fn := range egb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(egb.fields...)
 }

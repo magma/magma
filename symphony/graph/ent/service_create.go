@@ -13,9 +13,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
 // ServiceCreate is the builder for creating a Service entity.
@@ -267,162 +272,223 @@ func (sc *ServiceCreate) SaveX(ctx context.Context) *Service {
 
 func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 	var (
-		res     sql.Result
-		builder = sql.Dialect(sc.driver.Dialect())
-		s       = &Service{config: sc.config}
+		s    = &Service{config: sc.config}
+		spec = &sqlgraph.CreateSpec{
+			Table: service.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: service.FieldID,
+			},
+		}
 	)
-	tx, err := sc.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	insert := builder.Insert(service.Table).Default()
 	if value := sc.create_time; value != nil {
-		insert.Set(service.FieldCreateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: service.FieldCreateTime,
+		})
 		s.CreateTime = *value
 	}
 	if value := sc.update_time; value != nil {
-		insert.Set(service.FieldUpdateTime, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: service.FieldUpdateTime,
+		})
 		s.UpdateTime = *value
 	}
 	if value := sc.name; value != nil {
-		insert.Set(service.FieldName, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: service.FieldName,
+		})
 		s.Name = *value
 	}
 	if value := sc.external_id; value != nil {
-		insert.Set(service.FieldExternalID, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: service.FieldExternalID,
+		})
 		s.ExternalID = value
 	}
 	if value := sc.status; value != nil {
-		insert.Set(service.FieldStatus, *value)
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: service.FieldStatus,
+		})
 		s.Status = *value
 	}
-
-	id, err := insertLastID(ctx, tx, insert.Returning(service.FieldID))
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-	s.ID = strconv.FormatInt(id, 10)
-	if len(sc._type) > 0 {
-		for eid := range sc._type {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc._type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   service.TypeTable,
+			Columns: []string{service.TypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: servicetype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			query, args := builder.Update(service.TypeTable).
-				Set(service.TypeColumn, eid).
-				Where(sql.EQ(service.FieldID, id)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.downstream) > 0 {
-		for eid := range sc.downstream {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.downstream; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   service.DownstreamTable,
+			Columns: service.DownstreamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-
-			query, args := builder.Insert(service.DownstreamTable).
-				Columns(service.DownstreamPrimaryKey[1], service.DownstreamPrimaryKey[0]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.upstream) > 0 {
-		for eid := range sc.upstream {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.upstream; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.UpstreamTable,
+			Columns: service.UpstreamPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-
-			query, args := builder.Insert(service.UpstreamTable).
-				Columns(service.UpstreamPrimaryKey[0], service.UpstreamPrimaryKey[1]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.properties) > 0 {
-		p := sql.P()
-		for eid := range sc.properties {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.PropertiesTable,
+			Columns: []string{service.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			p.Or().EQ(property.FieldID, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Update(service.PropertiesTable).
-			Set(service.PropertiesColumn, id).
-			Where(sql.And(p, sql.IsNull(service.PropertiesColumn))).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-		affected, err := res.RowsAffected()
-		if err != nil {
-			return nil, rollback(tx, err)
-		}
-		if int(affected) < len(sc.properties) {
-			return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Service\"", keys(sc.properties))})
-		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.termination_points) > 0 {
-		for eid := range sc.termination_points {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.termination_points; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.TerminationPointsTable,
+			Columns: service.TerminationPointsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-
-			query, args := builder.Insert(service.TerminationPointsTable).
-				Columns(service.TerminationPointsPrimaryKey[0], service.TerminationPointsPrimaryKey[1]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.links) > 0 {
-		for eid := range sc.links {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.links; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.LinksTable,
+			Columns: service.LinksPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: link.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-
-			query, args := builder.Insert(service.LinksTable).
-				Columns(service.LinksPrimaryKey[0], service.LinksPrimaryKey[1]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if len(sc.customer) > 0 {
-		for eid := range sc.customer {
-			eid, err := strconv.Atoi(eid)
+	if nodes := sc.customer; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   service.CustomerTable,
+			Columns: service.CustomerPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: customer.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-
-			query, args := builder.Insert(service.CustomerTable).
-				Columns(service.CustomerPrimaryKey[0], service.CustomerPrimaryKey[1]).
-				Values(id, eid).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges = append(spec.Edges, edge)
 	}
-	if err := tx.Commit(); err != nil {
+	if err := sqlgraph.CreateNode(ctx, sc.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
+	id := spec.ID.Value.(int64)
+	s.ID = strconv.FormatInt(id, 10)
 	return s, nil
 }

@@ -366,7 +366,7 @@ orc8r-proxy-57cf989fcc-xn2cw              1/1     Running   0          X
 Then:
 
 ```bash
-export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+export CNTLR_POD=$(kubectl -n magma get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 kubectl exec -it ${CNTLR_POD} bash
 
 # The following commands are to be run inside the pod
@@ -387,7 +387,7 @@ just created into the secrets directory:
 cd ~/secrets/certs
 for certfile in admin_operator.pem admin_operator.key.pem admin_operator.pfx
 do
-    kubectl cp ${CNTLR_POD}:/var/opt/magma/bin/${certfile} ./${certfile}
+    kubectl -n magma cp ${CNTLR_POD}:/var/opt/magma/bin/${certfile} ./${certfile}
 done
 ```
 
@@ -466,7 +466,7 @@ Wait for the NMS pods (`nms-magmalte`, `nms-nginx-proxy`) to transition into
 
 ```bash
 kubectl exec -it -n magma \
-  $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
+  $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
   yarn setAdminPassword <admin user email> <admin user password>
 ```
 

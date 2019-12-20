@@ -9,8 +9,6 @@ import (
 	"encoding/json"
 	"sort"
 
-	"github.com/facebookincubator/symphony/cloud/actions"
-	"github.com/facebookincubator/symphony/cloud/actions/core"
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
@@ -21,6 +19,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/pkg/actions"
+	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"

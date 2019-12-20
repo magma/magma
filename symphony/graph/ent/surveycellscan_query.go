@@ -13,6 +13,7 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -27,7 +28,7 @@ type SurveyCellScanQuery struct {
 	order      []Order
 	unique     []string
 	predicates []predicate.SurveyCellScan
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -58,24 +59,24 @@ func (scsq *SurveyCellScanQuery) Order(o ...Order) *SurveyCellScanQuery {
 // QuerySurveyQuestion chains the current query on the survey_question edge.
 func (scsq *SurveyCellScanQuery) QuerySurveyQuestion() *SurveyQuestionQuery {
 	query := &SurveyQuestionQuery{config: scsq.config}
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sql.To(surveyquestion.Table, surveyquestion.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sqlgraph.To(surveyquestion.Table, surveyquestion.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.SurveyQuestionTable, surveycellscan.SurveyQuestionColumn),
 	)
-	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 
 // QueryLocation chains the current query on the location edge.
 func (scsq *SurveyCellScanQuery) QueryLocation() *LocationQuery {
 	query := &LocationQuery{config: scsq.config}
-	step := sql.NewStep(
-		sql.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
-		sql.To(location.Table, location.FieldID),
-		sql.Edge(sql.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
+	step := sqlgraph.NewStep(
+		sqlgraph.From(surveycellscan.Table, surveycellscan.FieldID, scsq.sqlQuery()),
+		sqlgraph.To(location.Table, location.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, surveycellscan.LocationTable, surveycellscan.LocationColumn),
 	)
-	query.sql = sql.SetNeighbors(scsq.driver.Dialect(), step)
+	query.sql = sqlgraph.SetNeighbors(scsq.driver.Dialect(), step)
 	return query
 }
 
@@ -243,7 +244,7 @@ func (scsq *SurveyCellScanQuery) Clone() *SurveyCellScanQuery {
 		order:      append([]Order{}, scsq.order...),
 		unique:     append([]string{}, scsq.unique...),
 		predicates: append([]predicate.SurveyCellScan{}, scsq.predicates...),
-		// clone intermediate queries.
+		// clone intermediate query.
 		sql: scsq.sql.Clone(),
 	}
 }
@@ -369,7 +370,7 @@ type SurveyCellScanGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate queries.
+	// intermediate query.
 	sql *sql.Selector
 }
 
@@ -490,7 +491,7 @@ func (scsgb *SurveyCellScanGroupBy) sqlQuery() *sql.Selector {
 	columns := make([]string, 0, len(scsgb.fields)+len(scsgb.fns))
 	columns = append(columns, scsgb.fields...)
 	for _, fn := range scsgb.fns {
-		columns = append(columns, fn.SQL(selector))
+		columns = append(columns, fn(selector))
 	}
 	return selector.Select(columns...).GroupBy(scsgb.fields...)
 }

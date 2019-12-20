@@ -6,6 +6,10 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
+#pragma once
+
+#include <stdint.h>
+
 namespace magma {
   enum DiameterResultCode {
     DIAMETER_MULTI_ROUND_AUTH = 1001,
@@ -33,6 +37,7 @@ namespace magma {
     DIAMETER_UNKNOWN_PEER = 3010,
     DIAMETER_REALM_REDIRECT_INDICATION = 3011,
 
+    // Transient Failures
     DIAMETER_AUTHENTICATION_REJECTED = 4001,
     DIAMETER_OUT_OF_SPACE = 4002,
     DIAMETER_ELECTION_LOST = 4003,
@@ -66,6 +71,7 @@ namespace magma {
     DIAMETER_NO_AVAILABLE_POLICY_COUNTERS = 4241,
     DIAMETER_SERVICE_TEMPORARILY_NOT_AUTHORIZED = 4261,
 
+    // Permanent Failures
     DIAMETER_AVP_UNSUPPORTED = 5001,
     DIAMETER_UNKNOWN_SESSION_ID = 5002,
     DIAMETER_AUTHORIZATION_REJECTED = 5003,
@@ -102,7 +108,7 @@ namespace magma {
     DIAMETER_NO_ACCESS_INDEPENDENT_SUBSCRIPTION,
     DIAMETER_USER_NO_W_APN_SUBSCRIPTION,
     DIAMETER_UNSUITABLE_NETWORK,
-    DIAMETER_EAP_CODE_UNKNOWN,
+    DIAMETER_EAP_CODE_UNKNOWN = 5048,
     DIAMETER_INVALID_SERVICE_INFORMATION = 5061,
     DIAMETER_FILTER_RESTRICTIONS,
     DIAMETER_REQUESTED_SERVICE_NOT_AUTHORIZED,
@@ -147,5 +153,12 @@ namespace magma {
     DIAMETER_TIMED_OUT_REQUEST,
     DIAMETER_ERROR_SUBSESSION = 5470,
     DIAMETER_V2X_NOT_ALLOWED = 5691,
+  };
+
+  class DiameterCodeHandler {
+    public:
+      static bool is_transient_failure(const uint32_t code);
+
+      static bool is_permanent_failure(const uint32_t code);
   };
 } // namespace magma

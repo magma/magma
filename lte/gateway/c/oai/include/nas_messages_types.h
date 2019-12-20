@@ -49,7 +49,6 @@
 #define NAS_AUTHENTICATION_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_auth_req
 #define NAS_AUTHENTICATION_PARAM_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.nas_auth_param_req
-#define NAS_ERAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_setup_req
 #define NAS_CS_DOMAIN_LOCATION_UPDATE_REQ(mSGpTR)                              \
   (mSGpTR)->ittiMsg.nas_cs_domain_location_update_req
 #define NAS_CS_DOMAIN_LOCATION_UPDATE_ACC(mSGpTR)                              \
@@ -63,7 +62,6 @@
   (mSGpTR)->ittiMsg.nas_extended_service_req
 #define NAS_NOTIFY_SERVICE_REJECT(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.nas_notify_service_reject
-#define NAS_ERAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.itti_erab_rel_cmd
 
 typedef struct itti_nas_cs_service_notification_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
@@ -79,24 +77,6 @@ typedef struct itti_nas_info_transfer_s {
   //nas_error_code_t err_code;     /* Transaction status               */
   bstring nas_msg; /* Uplink NAS message           */
 } itti_nas_info_transfer_t;
-
-typedef struct itti_erab_setup_req_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier   */
-  ebi_t ebi;              /* EPS bearer id        */
-  bstring nas_msg; /* NAS erab bearer context activation message           */
-  bitrate_t mbr_dl;
-  bitrate_t mbr_ul;
-  bitrate_t gbr_dl;
-  bitrate_t gbr_ul;
-} itti_erab_setup_req_t;
-
-typedef struct itti_erab_rel_cmd_s {
-  mme_ue_s1ap_id_t ue_id;   /* UE lower layer identifier   */
-  ebi_t ebi;                /* EPS bearer id        */
-  bstring nas_msg;          /* NAS erab bearer context activation message */
-  uint8_t n_bearers;        /*Number of bearers to be released*/
-  ebi_t* bearers_to_be_rel; /* Bearers to be released*/
-} itti_erab_rel_cmd_t;
 
 typedef struct itti_nas_attach_req_s {
   /* TODO: Set the correct size */

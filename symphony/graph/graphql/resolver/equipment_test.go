@@ -16,7 +16,6 @@ import (
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/cloud/orc8r"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -26,6 +25,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
+	"github.com/facebookincubator/symphony/pkg/orc8r"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

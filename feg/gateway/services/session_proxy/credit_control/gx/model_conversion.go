@@ -9,7 +9,6 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
-	"strings"
 	"time"
 
 	"magma/feg/gateway/policydb"
@@ -30,12 +29,12 @@ func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMoni
 	ccr.SessionID = update.SessionId
 	ccr.RequestNumber = update.RequestNumber
 	ccr.Type = credit_control.CRTUpdate
-	ccr.IMSI = removeSidPrefix(update.Sid)
+	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
 	ccr.IPAddr = update.UeIpv4
 	ccr.HardwareAddr = update.HardwareAddr
 	ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
-	ccr.RATType = credit_control.GetRATType(update.RatType)
-	ccr.IPCANType = credit_control.GetIPCANType(update.RatType)
+	ccr.RATType = GetRATType(update.RatType)
+	ccr.IPCANType = GetIPCANType(update.RatType)
 	return ccr
 }
 
@@ -315,6 +314,27 @@ func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonit
 		}
 	}
 }
-func removeSidPrefix(imsi string) string {
-	return strings.TrimPrefix(imsi, "IMSI")
+
+func GetRATType(pRATType protos.RATType) credit_control.RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.RAT_WLAN
+	default:
+		return credit_control.RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.IPCAN_Non3GPP
+	default:
+		return credit_control.IPCAN_Non3GPP
+	}
 }

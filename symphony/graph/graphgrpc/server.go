@@ -8,8 +8,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/facebookincubator/symphony/cloud/log"
 	"github.com/facebookincubator/symphony/pkg/grpc-middleware/sqltx"
+	"github.com/facebookincubator/symphony/pkg/log"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"

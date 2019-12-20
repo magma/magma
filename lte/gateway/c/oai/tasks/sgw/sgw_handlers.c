@@ -2523,7 +2523,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
 
         sgw_free_eps_bearer_context(
           &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
-             .sgw_eps_bearers_array[ebi]);
+             .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
         break;
       }
     }

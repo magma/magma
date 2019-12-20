@@ -212,7 +212,7 @@ func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, e
 				return 0, rollback(tx, err)
 			}
 			if int(affected) < len(stcu.survey_template_questions) {
-				return 0, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcu.survey_template_questions))})
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcu.survey_template_questions))})
 			}
 		}
 	}
@@ -416,7 +416,7 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 				return nil, rollback(tx, err)
 			}
 			if int(affected) < len(stcuo.survey_template_questions) {
-				return nil, rollback(tx, &ErrConstraintFailed{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcuo.survey_template_questions))})
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcuo.survey_template_questions))})
 			}
 		}
 	}

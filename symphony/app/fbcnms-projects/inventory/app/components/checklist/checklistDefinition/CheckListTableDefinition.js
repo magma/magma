@@ -168,7 +168,7 @@ const CheckListTableDefinition = (props: Props) => {
   );
 
   const checklistItems = list.map((checkListItem, i) => (
-    <DraggableTableRow id={checkListItem.id} index={i} key={checkListItem.id}>
+    <DraggableTableRow id={checkListItem.id} index={i} key={i}>
       <TableCell className={classes.cell} size="small" component="div">
         <TextField
           select

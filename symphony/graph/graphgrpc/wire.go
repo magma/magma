@@ -9,7 +9,7 @@ package graphgrpc
 import (
 	"database/sql"
 
-	"github.com/facebookincubator/symphony/cloud/log"
+	"github.com/facebookincubator/symphony/pkg/log"
 
 	"github.com/google/wire"
 	"google.golang.org/grpc"

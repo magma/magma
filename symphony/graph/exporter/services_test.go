@@ -8,16 +8,17 @@ import (
 	"context"
 	"encoding/csv"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 	"github.com/stretchr/testify/require"
-	"io"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 const serviceNameTitle = "Service Name"
