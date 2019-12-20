@@ -68,6 +68,7 @@ int decode_detach_request(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_detach_request(
   detach_request_msg *detach_request,
   uint8_t *buffer,
@@ -97,6 +98,7 @@ int encode_detach_request(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_nw_detach_request(
   nw_detach_request_msg *nw_detach_request,

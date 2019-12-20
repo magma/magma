@@ -28,6 +28,7 @@
 #include "ActivateDefaultEpsBearerContextRequest.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_activate_default_eps_bearer_context_request(
   activate_default_eps_bearer_context_request_msg
     *activate_default_eps_bearer_context_request,
@@ -230,6 +231,7 @@ int decode_activate_default_eps_bearer_context_request(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_activate_default_eps_bearer_context_request(
   activate_default_eps_bearer_context_request_msg

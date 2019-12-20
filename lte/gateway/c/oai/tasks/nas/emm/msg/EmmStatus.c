@@ -46,6 +46,7 @@ int decode_emm_status(emm_status_msg *emm_status, uint8_t *buffer, uint32_t len)
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_emm_status(emm_status_msg *emm_status, uint8_t *buffer, uint32_t len)
 {
   int encoded = 0;
@@ -66,3 +67,4 @@ int encode_emm_status(emm_status_msg *emm_status, uint8_t *buffer, uint32_t len)
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

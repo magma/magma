@@ -27,6 +27,7 @@
 #include "AttachAccept.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_attach_accept(
   attach_accept_msg *attach_accept,
   uint8_t *buffer,
@@ -258,6 +259,7 @@ int decode_attach_accept(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 //------------------------------------------------------------------------------
 int encode_attach_accept(

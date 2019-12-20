@@ -436,6 +436,7 @@ int decode_tracking_area_update_request(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_tracking_area_update_request(
   tracking_area_update_request_msg *tracking_area_update_request,
   uint8_t *buffer,
@@ -759,3 +760,4 @@ int encode_tracking_area_update_request(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

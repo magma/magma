@@ -53,6 +53,7 @@ int decode_identity_response(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_identity_response(
   identity_response_msg *identity_response,
   uint8_t *buffer,
@@ -79,3 +80,4 @@ int encode_identity_response(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

@@ -53,6 +53,7 @@ int decode_attach_complete(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_attach_complete(
   attach_complete_msg *attach_complete,
   uint8_t *buffer,
@@ -79,3 +80,4 @@ int encode_attach_complete(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

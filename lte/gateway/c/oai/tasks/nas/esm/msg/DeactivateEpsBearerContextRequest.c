@@ -27,6 +27,7 @@
 #include "DeactivateEpsBearerContextRequest.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_deactivate_eps_bearer_context_request(
   deactivate_eps_bearer_context_request_msg
     *deactivate_eps_bearer_context_request,
@@ -89,6 +90,7 @@ int decode_deactivate_eps_bearer_context_request(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_deactivate_eps_bearer_context_request(
   deactivate_eps_bearer_context_request_msg

@@ -106,8 +106,10 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
   switch (msg->header.message_type) {
     case EMM_INFORMATION:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result =
         decode_emm_information(&msg->emm_information, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case UPLINK_NAS_TRANSPORT:
@@ -126,7 +128,9 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case DETACH_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_detach_accept(&msg->detach_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case SERVICE_REJECT:
@@ -134,8 +138,10 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case AUTHENTICATION_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_authentication_request(
         &msg->authentication_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case TRACKING_AREA_UPDATE_REQUEST:
@@ -157,8 +163,10 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case IDENTITY_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result =
         decode_identity_request(&msg->identity_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case GUTI_REALLOCATION_COMMAND:
@@ -172,7 +180,9 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ATTACH_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_attach_accept(&msg->attach_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case SECURITY_MODE_COMPLETE:
@@ -181,12 +191,16 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case TRACKING_AREA_UPDATE_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_tracking_area_update_accept(
         &msg->tracking_area_update_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ATTACH_REJECT:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_attach_reject(&msg->attach_reject, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ATTACH_COMPLETE:
@@ -219,8 +233,10 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case SECURITY_MODE_COMMAND:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result =
         decode_security_mode_command(&msg->security_mode_command, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case DOWNLINK_NAS_TRANSPORT:
@@ -308,8 +324,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ATTACH_COMPLETE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result =
         encode_attach_complete(&msg->attach_complete, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ATTACH_REJECT:
@@ -317,8 +335,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case AUTHENTICATION_FAILURE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_authentication_failure(
         &msg->authentication_failure, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case AUTHENTICATION_REJECT:
@@ -332,8 +352,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case AUTHENTICATION_RESPONSE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_authentication_response(
         &msg->authentication_response, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case CS_SERVICE_NOTIFICATION:
@@ -346,7 +368,9 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case DETACH_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_detach_request(&msg->detach_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case DOWNLINK_NAS_TRANSPORT:
@@ -360,7 +384,9 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case EMM_STATUS:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_emm_status(&msg->emm_status, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case EXTENDED_SERVICE_REQUEST:
@@ -384,8 +410,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case IDENTITY_RESPONSE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result =
         encode_identity_response(&msg->identity_response, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case SECURITY_MODE_COMMAND:
@@ -394,8 +422,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case SECURITY_MODE_COMPLETE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_security_mode_complete(
         &msg->security_mode_complete, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case SECURITY_MODE_REJECT:
@@ -428,8 +458,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case TRACKING_AREA_UPDATE_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_tracking_area_update_request(
         &msg->tracking_area_update_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case NW_DETACH_REQUEST:

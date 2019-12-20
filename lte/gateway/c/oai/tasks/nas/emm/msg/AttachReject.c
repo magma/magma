@@ -26,6 +26,7 @@
 #include "AttachReject.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_attach_reject(
   attach_reject_msg *attach_reject,
   uint8_t *buffer,
@@ -83,6 +84,7 @@ int decode_attach_reject(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_attach_reject(
   attach_reject_msg *attach_reject,

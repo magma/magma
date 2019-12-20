@@ -99,6 +99,7 @@ int decode_esm_information_response(
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded);
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_esm_information_response(
   esm_information_response_msg *esm_information_response,
   uint8_t *buffer,
@@ -148,3 +149,4 @@ int encode_esm_information_response(
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, encoded);
 }
+#endif /* ENABLE_CODE_COVERAGE */

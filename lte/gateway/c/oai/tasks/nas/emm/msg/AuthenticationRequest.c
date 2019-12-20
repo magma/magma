@@ -26,6 +26,7 @@
 #include "TLVDecoder.h"
 #include "AuthenticationRequest.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_authentication_request(
   authentication_request_msg *authentication_request,
   uint8_t *buffer,
@@ -73,6 +74,7 @@ int decode_authentication_request(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_authentication_request(
   authentication_request_msg *authentication_request,

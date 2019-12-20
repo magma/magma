@@ -80,6 +80,7 @@ int decode_activate_dedicated_eps_bearer_context_accept(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_activate_dedicated_eps_bearer_context_accept(
   activate_dedicated_eps_bearer_context_accept_msg
     *activate_dedicated_eps_bearer_context_accept,
@@ -114,3 +115,4 @@ int encode_activate_dedicated_eps_bearer_context_accept(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

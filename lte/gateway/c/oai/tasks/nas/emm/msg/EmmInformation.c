@@ -26,6 +26,7 @@
 #include "EmmInformation.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_emm_information(
   emm_information_msg *emm_information,
   uint8_t *buffer,
@@ -144,6 +145,7 @@ int decode_emm_information(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_emm_information(
   emm_information_msg *emm_information,

@@ -32,6 +32,7 @@
 #include "UeSecurityCapability.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_security_mode_command(
   security_mode_command_msg *security_mode_command,
   uint8_t *buffer,
@@ -153,6 +154,7 @@ int decode_security_mode_command(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_security_mode_command(
   security_mode_command_msg *security_mode_command,

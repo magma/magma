@@ -26,6 +26,7 @@
 #include "TLVDecoder.h"
 #include "EsmInformationRequest.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_esm_information_request(
   esm_information_request_msg *esm_information_request,
   uint8_t *buffer,
@@ -42,6 +43,7 @@ int decode_esm_information_request(
    */
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded);
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_esm_information_request(
   esm_information_request_msg *esm_information_request,

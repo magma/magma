@@ -27,6 +27,7 @@
 #include "TrackingAreaUpdateAccept.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_tracking_area_update_accept(
   tracking_area_update_accept_msg *tracking_area_update_accept,
   uint8_t *buffer,
@@ -291,6 +292,7 @@ int decode_tracking_area_update_accept(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_tracking_area_update_accept(
   tracking_area_update_accept_msg *tracking_area_update_accept,

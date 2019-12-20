@@ -28,6 +28,7 @@
 #include "PdnConnectivityReject.h"
 #include "common_defs.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_pdn_connectivity_reject(
   pdn_connectivity_reject_msg *pdn_connectivity_reject,
   uint8_t *buffer,
@@ -88,6 +89,7 @@ int decode_pdn_connectivity_reject(
 
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_pdn_connectivity_reject(
   pdn_connectivity_reject_msg *pdn_connectivity_reject,

@@ -78,6 +78,7 @@ int decode_security_mode_complete(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_security_mode_complete(
   security_mode_complete_msg *security_mode_complete,
   uint8_t *buffer,
@@ -110,3 +111,4 @@ int encode_security_mode_complete(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */

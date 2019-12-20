@@ -144,8 +144,10 @@ int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case PDN_CONNECTIVITY_REJECT:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_pdn_connectivity_reject(
         &msg->pdn_connectivity_reject, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case MODIFY_EPS_BEARER_CONTEXT_REJECT:
@@ -164,8 +166,10 @@ int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_deactivate_eps_bearer_context_request(
         &msg->deactivate_eps_bearer_context_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
@@ -189,8 +193,10 @@ int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_activate_dedicated_eps_bearer_context_request(
         &msg->activate_dedicated_eps_bearer_context_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case BEARER_RESOURCE_MODIFICATION_REJECT:
@@ -204,8 +210,10 @@ int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_activate_default_eps_bearer_context_request(
         &msg->activate_default_eps_bearer_context_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case PDN_CONNECTIVITY_REQUEST:
@@ -224,8 +232,10 @@ int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ESM_INFORMATION_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       decode_result = decode_esm_information_request(
         &msg->esm_information_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ESM_STATUS:
@@ -305,8 +315,10 @@ int esm_msg_encode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_deactivate_eps_bearer_context_accept(
         &msg->deactivate_eps_bearer_context_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case BEARER_RESOURCE_ALLOCATION_REQUEST:
@@ -315,8 +327,10 @@ int esm_msg_encode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_activate_default_eps_bearer_context_accept(
         &msg->activate_default_eps_bearer_context_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case PDN_CONNECTIVITY_REJECT:
@@ -345,13 +359,17 @@ int esm_msg_encode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_activate_dedicated_eps_bearer_context_accept(
         &msg->activate_dedicated_eps_bearer_context_accept, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_activate_default_eps_bearer_context_reject(
         &msg->activate_default_eps_bearer_context_reject, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case MODIFY_EPS_BEARER_CONTEXT_REQUEST:
@@ -385,13 +403,17 @@ int esm_msg_encode(ESM_msg *msg, uint8_t *buffer, uint32_t len)
       break;
 
     case PDN_CONNECTIVITY_REQUEST:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_pdn_connectivity_request(
         &msg->pdn_connectivity_request, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case ESM_INFORMATION_RESPONSE:
+#ifndef ENABLE_CODE_COVERAGE
       encode_result = encode_esm_information_response(
         &msg->esm_information_response, buffer, len);
+#endif /* ENABLE_CODE_COVERAGE */
       break;
 
     case BEARER_RESOURCE_MODIFICATION_REQUEST:

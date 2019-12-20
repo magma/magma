@@ -25,6 +25,7 @@
 #include "TLVDecoder.h"
 #include "DetachAccept.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_detach_accept(
   detach_accept_msg *detach_accept,
   uint8_t *buffer,
@@ -40,6 +41,7 @@ int decode_detach_accept(
    */
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_detach_accept(
   detach_accept_msg *detach_accept,

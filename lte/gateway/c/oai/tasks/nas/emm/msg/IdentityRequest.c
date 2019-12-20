@@ -26,6 +26,7 @@
 #include "TLVDecoder.h"
 #include "IdentityRequest.h"
 
+#ifndef ENABLE_CODE_COVERAGE
 int decode_identity_request(
   identity_request_msg *identity_request,
   uint8_t *buffer,
@@ -52,6 +53,7 @@ int decode_identity_request(
   decoded++;
   return decoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
 
 int encode_identity_request(
   identity_request_msg *identity_request,

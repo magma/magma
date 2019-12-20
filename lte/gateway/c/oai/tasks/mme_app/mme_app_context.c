@@ -1273,7 +1273,7 @@ void mme_app_dump_protocol_configuration_options(
     }
   }
 }
-
+#ifndef ENABLE_CODE_COVERAGE
 //------------------------------------------------------------------------------
 void mme_app_dump_bearer_context(
   const bearer_context_t *const bc,
@@ -1424,7 +1424,8 @@ void mme_app_dump_bearer_context(
     " ",
     bc->pdn_cx_id);
 }
-
+#endif /* ENABLE_CODE_COVERAGE */
+#ifndef ENABLE_CODE_COVERAGE
 //------------------------------------------------------------------------------
 void mme_app_dump_pdn_context(
   const struct ue_mm_context_s *const ue_mm_context,
@@ -1683,7 +1684,7 @@ void mme_app_dump_pdn_context(
     }
   }
 }
-
+#endif /* ENABLE_CODE_COVERAGE */
 //-------------------------------------------------------------------------------------------------------
 void mme_ue_context_update_ue_sig_connection_state(
   mme_ue_context_t *const mme_ue_context_p,
@@ -1797,6 +1798,7 @@ void mme_ue_context_update_ue_sig_connection_state(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+#ifndef ENABLE_CODE_COVERAGE
 //------------------------------------------------------------------------------
 bool mme_app_dump_ue_context(
   const hash_key_t keyP,
@@ -1993,7 +1995,8 @@ bool mme_app_dump_ue_context(
   }
   return true;
 }
-
+#endif /* ENABLE_CODE_COVERAGE */
+#ifndef ENABLE_CODE_COVERAGE
 //------------------------------------------------------------------------------
 void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context_p)
 //------------------------------------------------------------------------------
@@ -2004,7 +2007,7 @@ void mme_app_dump_ue_contexts(const mme_ue_context_t *const mme_ue_context_p)
     NULL,
     NULL);
 }
-
+#endif /* ENABLE_CODE_COVERAGE */
 //------------------------------------------------------------------------------
 void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)

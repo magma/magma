@@ -80,6 +80,7 @@ int decode_deactivate_eps_bearer_context_accept(
   return decoded;
 }
 
+#ifndef ENABLE_CODE_COVERAGE
 int encode_deactivate_eps_bearer_context_accept(
   deactivate_eps_bearer_context_accept_msg
     *deactivate_eps_bearer_context_accept,
@@ -113,3 +114,4 @@ int encode_deactivate_eps_bearer_context_accept(
 
   return encoded;
 }
+#endif /* ENABLE_CODE_COVERAGE */
