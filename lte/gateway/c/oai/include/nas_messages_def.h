@@ -53,7 +53,6 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_cs_service_notification_t,
   nas_cs_service_notification)
-
 MESSAGE_DEF(
   NAS_NOTIFY_SERVICE_REJECT,
   MESSAGE_PRIORITY_MED,

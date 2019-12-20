@@ -643,7 +643,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
        SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
       (ue_context_p->sgs_detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-      if (NULL == ue_context_p->sgs_context->message_p) {
+      if (!ue_context_p->sgs_context->message_p) {
         OAILOG_DEBUG(
           LOG_MME_APP,
           "Detach Accept has been sent already after ts9 timer expired for "
