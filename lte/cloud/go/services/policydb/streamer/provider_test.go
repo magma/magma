@@ -104,7 +104,7 @@ func TestPolicyStreamers(t *testing.T) {
 	expectedProtos := []*protos.PolicyRule{
 		{
 			Id:            "r1",
-			MonitoringKey: "foo",
+			MonitoringKey: []byte("foo"),
 			FlowList: []*protos.FlowDescription{
 				{
 					Match: &protos.FlowMatch{
@@ -126,7 +126,7 @@ func TestPolicyStreamers(t *testing.T) {
 				ServerAddress: "https://www.google.com",
 			},
 		},
-		{Id: "r3", MonitoringKey: "bar"},
+		{Id: "r3", MonitoringKey: []byte("bar")},
 	}
 	expected := funk.Map(
 		expectedProtos,

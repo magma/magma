@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package gx
 
 import (
+	"encoding/base64"
 	"time"
 
 	"magma/feg/gateway/policydb"
@@ -49,9 +50,13 @@ func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRe
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
-	monitoringKey := ""
-	if rd.MonitoringKey != nil {
-		monitoringKey = *rd.MonitoringKey
+	monitoringKey := []byte{}
+	if rd.MonitoringKey != nil && len(*rd.MonitoringKey) > 0 {
+		if decoded, err := base64.StdEncoding.DecodeString(*rd.MonitoringKey); err == nil {
+			monitoringKey = decoded
+		} else {
+			monitoringKey = []byte(*rd.MonitoringKey)
+		}
 	}
 	var ratingGroup uint32 = 0
 	if rd.RatingGroup != nil {

@@ -2241,6 +2241,7 @@ definitions:
         format: uint32
       monitoring_key:
         type: string
+        example: 'SGVsbG8gV29ybGQ='
       tracking_type:
         type: string
         enum:
