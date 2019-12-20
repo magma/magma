@@ -235,18 +235,6 @@ data:
               you can ssh into any of the boxes and check syslog to see if it's
               able to contact the cloud.
 
-        - alert: Metrics missing
-          expr: sum(process_cpu_seconds_total{job!="prometheus"}) by (networkID, gatewayID) unless sum(gateway_checkin_status) by (networkID, gatewayID)
-          for: 5m
-          labels:
-            severity: minor
-            magma_alert_type: gateway
-            networkID: orc8r
-            originatingNetwork: "{{`{{ $labels.networkID }}`}}"
-          annotations:
-            description: "Gateway {{`{{ $labels.gatewayID }}`}} hasn't sent metrics for at least 5 minutes on network {{`{{ $labels.networkID }}`}}."
-            recovery: "No recovery steps configured currently."
-
         - alert: Gateway service down
           expr: process_uptime_seconds > 120 and service_metrics_collected < 1
           for: 7m
