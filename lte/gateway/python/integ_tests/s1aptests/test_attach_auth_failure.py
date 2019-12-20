@@ -52,7 +52,7 @@ class TestAuthFailure(unittest.TestCase):
 
         auth_failure = s1ap_types.ueAuthFailure_t()
         auth_failure.ue_Id = 1
-        auth_failure.cause = s1ap_types.TFW_SYNC_FAILURE
+        auth_failure.cause = s1ap_types.TFW_EMM_CAUSE_SYNC_FAILURE
         # sending random/zero auts value to simulate failure scenario
         for idx1 in range(14):
             auth_failure.auts[idx1] = 0
