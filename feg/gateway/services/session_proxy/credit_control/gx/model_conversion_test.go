@@ -112,7 +112,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				PolicyRule: &protos.PolicyRule{
 					Id:            "dynamic1",
 					RatingGroup:   42,
-					MonitoringKey: monitoringKey,
+					MonitoringKey: []byte(monitoringKey),
 					Priority:      100,
 					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
 				},
@@ -192,7 +192,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_OCS, ruleOut.TrackingType)
 
@@ -201,7 +201,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: &monitoringKey,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_PCRF, ruleOut.TrackingType)
 
@@ -210,7 +210,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: &monitoringKey,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_OCS_AND_PCRF, ruleOut.TrackingType)
 
@@ -219,7 +219,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_NO_TRACKING, ruleOut.TrackingType)
 }

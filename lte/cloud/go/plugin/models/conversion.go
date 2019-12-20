@@ -9,6 +9,7 @@
 package models
 
 import (
+	"encoding/base64"
 	"fmt"
 	"sort"
 
@@ -539,11 +540,20 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 }
 
 func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
+	var (
+		protoMKey = []byte{}
+		err       error
+	)
+	if len(m.MonitoringKey) > 0 {
+		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
+			protoMKey = []byte(m.MonitoringKey)
+		}
+	}
 	rule := &protos.PolicyRule{
 		Id:            id,
 		Priority:      swag.Uint32Value(m.Priority),
 		RatingGroup:   m.RatingGroup,
-		MonitoringKey: m.MonitoringKey,
+		MonitoringKey: protoMKey,
 		TrackingType:  protos.PolicyRule_TrackingType(protos.PolicyRule_TrackingType_value[m.TrackingType]),
 		HardTimeout:   0,
 	}

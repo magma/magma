@@ -11,15 +11,15 @@ package streamer
 import (
 	"sort"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
+
 	"magma/lte/cloud/go/lte"
 	lteModels "magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
-
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 )
 
 const (
