@@ -128,3 +128,18 @@ func (l ImportRecord) LocationsRangeArr() []string {
 func (l ImportRecord) PropertiesSlice() []string {
 	return l.line[l.title.PropertyStartIdx():]
 }
+
+// ServiceExternalID is the external id of the service (used in other systems)
+func (l ImportRecord) ServiceExternalID() string {
+	return l.line[l.title.ServiceExternalIDIdx()]
+}
+
+// CustomerName is name of customer that uses the services
+func (l ImportRecord) CustomerName() string {
+	return l.line[l.title.CustomerNameIdx()]
+}
+
+// CustomerExternalID is the external id of customer that uses the services
+func (l ImportRecord) CustomerExternalID() string {
+	return l.line[l.title.CustomerExternalIDIdx()]
+}

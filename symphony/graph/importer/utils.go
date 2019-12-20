@@ -81,6 +81,15 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			PropertyTypeID: propertyType.ID,
 			IntValue:       &intVal,
 		}, nil
+	case "float":
+		floatVal, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return nil, err
+		}
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+			FloatValue:     &floatVal,
+		}, nil
 	case "gps_location": // 45.6 , 67.89
 		split := strings.Split(value, ",")
 		if len(split) != 2 {

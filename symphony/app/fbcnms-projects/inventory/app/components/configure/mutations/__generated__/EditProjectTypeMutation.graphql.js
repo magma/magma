@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 387a29eedd91cb321f636168d438508b
+ * @relayHash 761f2e5ab83e83bbff7579fd43dd5c11
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditProjectTypeCard_editingProjectType$ref = any;
 type ProjectTypeCard_projectType$ref = any;
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type EditProjectTypeInput = {|
   id: string,
   name: string,

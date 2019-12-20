@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b3c62c3f47c407d40e34a84c24da974e
+ * @relayHash 2281f2b07442b846fe1f3fd0db458a97
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type PowerSearchEquipmentResultsTable_equipment$ref = any;
 type PowerSearchLinkFirstEquipmentResultsTable_equipment$ref = any;
 export type EquipmentFilterType = "EQUIPMENT_TYPE" | "EQUIP_INST_NAME" | "LOCATION_INST" | "PROPERTY" | "%future added value";
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type PropertyKind = "bool" | "date" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
 export type EquipmentFilterInput = {|
   filterType: EquipmentFilterType,
   operator: FilterOperator,
