@@ -7,11 +7,11 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
 
 
 class TestAttachMissingImsi(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestAttachMissingImsi(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         print("************************* Running End to End attach for ",
               "UE id ", ue_id)
-        self._s1ap_wrapper._sub_util.clean_up()
+        self._s1ap_wrapper._sub_util.cleanup()
         # Now actually attempt the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
