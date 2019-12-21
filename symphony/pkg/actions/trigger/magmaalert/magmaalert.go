@@ -23,7 +23,7 @@ func (*trigger) ID() core.TriggerID {
 
 // Description returns the description
 func (*trigger) Description() string {
-	return "alert fired relating to magma"
+	return "an orc8r alert is fired"
 }
 
 // SupportedActionIDs returns the ActionsIDs supported by this trigger

@@ -121,7 +121,7 @@ export default function ActionsAddDialog(props: Props) {
 
   return (
     <Dialog open={true} onClose={() => props.onClose()}>
-      <DialogTitle>Create New Rule</DialogTitle>
+      <DialogTitle>{rule ? 'Edit Rule' : 'Create New Rule'}</DialogTitle>
       <DialogContent>
         <Grid container spacing={1}>
           <Grid item xs={3} className={classes.control}>
