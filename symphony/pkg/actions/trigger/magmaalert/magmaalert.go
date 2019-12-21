@@ -36,12 +36,16 @@ func (*trigger) SupportedActionIDs() []core.ActionID {
 func (*trigger) SupportedFilters() []core.Filter {
 	return []core.Filter{
 		core.NewStringFieldFilter(
+			"alertname",
+			"the alert's name",
+		),
+		core.NewStringFieldFilter(
 			"networkID",
-			"the alerts networkID",
+			"the alert's networkID",
 		),
 		core.NewStringFieldFilter(
 			"gatewayID",
-			"the alerts gatewayID",
+			"the alert's gatewayID",
 		),
 	}
 }
