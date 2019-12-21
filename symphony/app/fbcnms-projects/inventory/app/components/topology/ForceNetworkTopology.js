@@ -8,17 +8,16 @@
  * @format
  */
 
-import type {TopologyNetwork} from '../../common/NetworkTopology';
+import type {ForceNetworkTopology_topology} from './__generated__/ForceNetworkTopology_topology.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import * as d3 from 'd3';
-import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
-import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {createFragmentContainer, graphql} from 'react-relay';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -72,9 +71,10 @@ const styles = theme => ({
 });
 
 type Props = {
-  networkTopology: TopologyNetwork,
-  rootIds: Array<string>,
+  topology: ForceNetworkTopology_topology,
   className?: string,
+  renderNode: (id: string) => React.Node,
+  renderNodeName: (id: string) => string,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -98,29 +98,24 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps) {
-    if (
-      this.props.networkTopology === prevProps.networkTopology &&
-      (this.props.rootIds === prevProps.rootIds ||
-        (this.props.rootIds.length == 0 && prevProps.rootIds.length == 0))
-    ) {
+    if (this.props.topology === prevProps.topology) {
       return;
     }
     this.calculateGraph();
   }
 
   calculateGraph() {
-    const {classes, networkTopology, rootIds} = this.props;
+    const {classes, topology, renderNode, renderNodeName} = this.props;
 
     const container = nullthrows(this._topologyContainer?.current);
     const height = container.clientHeight - PADDING;
     const width = container.clientWidth - PADDING;
-    const nodes = networkTopology.nodes.map(node => ({
+    const nodes = topology.nodes.map(node => ({
       id: node.id,
-      name: node.name,
     }));
-    const links = networkTopology.links.map(l => ({
-      source: l.source,
-      target: l.target,
+    const links = topology.links.map(l => ({
+      source: l.source.id,
+      target: l.target.id,
     }));
 
     d3.select(nullthrows(this._topologyContainer).current)
@@ -165,7 +160,7 @@ class ForceNetworkTopology extends React.Component<Props, State> {
 
     // For each node create a group and enable dragging it
     const node = g
-      .selectAll(`.${classes.node}`)
+      .selectAll()
       .data(nodes)
       .enter()
       .append('g')
@@ -176,19 +171,11 @@ class ForceNetworkTopology extends React.Component<Props, State> {
 
     const newNode = node.append('g').attr('transform', 'translate(-8 -8)');
 
-    newNode.html(d =>
-      renderToStaticMarkup(
-        rootIds.includes(d.id) ? (
-          <ActiveEquipmentInLocationIcon />
-        ) : (
-          <ActiveEquipmentIcon />
-        ),
-      ),
-    );
+    newNode.html(d => renderToStaticMarkup(renderNode(d.id)));
 
     const text = newNode
       .append('text')
-      .text(d => d.name)
+      .text(d => renderNodeName(d.id))
       .attr('transform', 'translate(8 40)')
       .attr('class', classes.nodeText);
 
@@ -305,4 +292,22 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 }
 
-export default withStyles(styles)(ForceNetworkTopology);
+export default withStyles(styles)(
+  createFragmentContainer(ForceNetworkTopology, {
+    topology: graphql`
+      fragment ForceNetworkTopology_topology on NetworkTopology {
+        nodes {
+          id
+        }
+        links {
+          source {
+            id
+          }
+          target {
+            id
+          }
+        }
+      }
+    `,
+  }),
+);

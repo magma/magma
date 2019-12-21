@@ -781,6 +781,7 @@ type ComplexityRoot struct {
 	TopologyLink struct {
 		Source func(childComplexity int) int
 		Target func(childComplexity int) int
+		Type   func(childComplexity int) int
 	}
 
 	Vertex struct {
@@ -4999,6 +5000,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TopologyLink.Target(childComplexity), true
 
+	case "TopologyLink.type":
+		if e.complexity.TopologyLink.Type == nil {
+			break
+		}
+
+		return e.complexity.TopologyLink.Type(childComplexity), true
+
 	case "Vertex.edges":
 		if e.complexity.Vertex.Edges == nil {
 			break
@@ -5557,13 +5565,18 @@ input EditLocationTypeInput {
 }
 
 type NetworkTopology {
-  nodes: [Equipment!]!
+  nodes: [Node!]!
   links: [TopologyLink!]!
 }
 
+enum TopologyLinkType {
+  PHYSICAL
+}
+
 type TopologyLink {
-  source: ID!
-  target: ID!
+  type: TopologyLinkType!
+  source: Node!
+  target: Node!
 }
 
 scalar Time
@@ -19274,10 +19287,10 @@ func (ec *executionContext) _NetworkTopology_nodes(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.Equipment)
+	res := resTmp.([]ent.Noder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentᚄ(ctx, field.Selections, res)
+	return ec.marshalNNode2ᚕgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoderᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NetworkTopology_links(ctx context.Context, field graphql.CollectedField, obj *models.NetworkTopology) (ret graphql.Marshaler) {
@@ -26925,6 +26938,43 @@ func (ec *executionContext) _Technician_email(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TopologyLink_type(ctx context.Context, field graphql.CollectedField, obj *models.TopologyLink) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TopologyLink",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.TopologyLinkType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTopologyLinkType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTopologyLinkType(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TopologyLink_source(ctx context.Context, field graphql.CollectedField, obj *models.TopologyLink) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -26956,10 +27006,10 @@ func (ec *executionContext) _TopologyLink_source(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(ent.Noder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TopologyLink_target(ctx context.Context, field graphql.CollectedField, obj *models.TopologyLink) (ret graphql.Marshaler) {
@@ -26993,10 +27043,10 @@ func (ec *executionContext) _TopologyLink_target(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(ent.Noder)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Vertex_id(ctx context.Context, field graphql.CollectedField, obj *ent.Node) (ret graphql.Marshaler) {
@@ -38094,6 +38144,11 @@ func (ec *executionContext) _TopologyLink(ctx context.Context, sel ast.Selection
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TopologyLink")
+		case "type":
+			out.Values[i] = ec._TopologyLink_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "source":
 			out.Values[i] = ec._TopologyLink_source(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -40790,6 +40845,53 @@ func (ec *executionContext) marshalNNetworkTopology2ᚖgithubᚗcomᚋfacebookin
 	return ec._NetworkTopology(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Node(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoderᚄ(ctx context.Context, sel ast.SelectionSet, v []ent.Noder) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNNode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐNoder(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v models.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
@@ -41763,6 +41865,15 @@ func (ec *executionContext) marshalNTopologyLink2ᚖgithubᚗcomᚋfacebookincub
 		return graphql.Null
 	}
 	return ec._TopologyLink(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTopologyLinkType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTopologyLinkType(ctx context.Context, v interface{}) (models.TopologyLinkType, error) {
+	var res models.TopologyLinkType
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNTopologyLinkType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTopologyLinkType(ctx context.Context, sel ast.SelectionSet, v models.TopologyLinkType) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNTriggerID2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋactionsᚋcoreᚐTriggerID(ctx context.Context, v interface{}) (core.TriggerID, error) {

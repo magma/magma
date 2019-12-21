@@ -9,23 +9,36 @@
  */
 
 import type {Equipment} from '../../common/Equipment';
-import type {TopologyNetwork} from '../../common/NetworkTopology';
+import type {LocationEquipmentTopology_topology} from './__generated__/LocationEquipmentTopology_topology.graphql';
 
 import * as React from 'react';
+import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
+import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import ForceNetworkTopology from '../topology/ForceNetworkTopology';
 import {createFragmentContainer, graphql} from 'react-relay';
 
 type Props = {
-  topology: TopologyNetwork,
+  topology: LocationEquipmentTopology_topology,
   equipment: Array<Equipment>,
 };
 
 const LocationEquipmentTopology = (props: Props) => {
   const {topology, equipment} = props;
+  const rootIds = equipment.map(eq => eq.id);
   return (
     <ForceNetworkTopology
-      networkTopology={topology}
-      rootIds={equipment.map(eq => eq.id)}
+      topology={topology}
+      renderNode={(id: string) =>
+        rootIds.includes(id) ? (
+          <ActiveEquipmentInLocationIcon />
+        ) : (
+          <ActiveEquipmentIcon />
+        )
+      }
+      renderNodeName={(id: string) => {
+        const nodes = topology.nodes.filter(node => node.id === id);
+        return nodes[0].name;
+      }}
     />
   );
 };
@@ -34,13 +47,12 @@ export default createFragmentContainer(LocationEquipmentTopology, {
   topology: graphql`
     fragment LocationEquipmentTopology_topology on NetworkTopology {
       nodes {
-        id
-        name
+        ... on Equipment {
+          id
+          name
+        }
       }
-      links {
-        source
-        target
-      }
+      ...ForceNetworkTopology_topology
     }
   `,
   equipment: graphql`

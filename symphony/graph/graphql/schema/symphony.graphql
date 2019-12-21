@@ -137,13 +137,18 @@ input EditLocationTypeInput {
 }
 
 type NetworkTopology {
-  nodes: [Equipment!]!
+  nodes: [Node!]!
   links: [TopologyLink!]!
 }
 
+enum TopologyLinkType {
+  PHYSICAL
+}
+
 type TopologyLink {
-  source: ID!
-  target: ID!
+  type: TopologyLinkType!
+  source: Node!
+  target: Node!
 }
 
 scalar Time

@@ -458,8 +458,8 @@ type LocationTypeIndex struct {
 }
 
 type NetworkTopology struct {
-	Nodes []*ent.Equipment `json:"nodes"`
-	Links []*TopologyLink  `json:"links"`
+	Nodes []ent.Noder     `json:"nodes"`
+	Links []*TopologyLink `json:"links"`
 }
 
 type PageInfo struct {
@@ -710,8 +710,9 @@ type TechnicianInput struct {
 }
 
 type TopologyLink struct {
-	Source string `json:"source"`
-	Target string `json:"target"`
+	Type   TopologyLinkType `json:"type"`
+	Source ent.Noder        `json:"source"`
+	Target ent.Noder        `json:"target"`
 }
 
 type WorkOrderConnection struct {
@@ -1555,6 +1556,45 @@ func (e *SurveyQuestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type TopologyLinkType string
+
+const (
+	TopologyLinkTypePhysical TopologyLinkType = "PHYSICAL"
+)
+
+var AllTopologyLinkType = []TopologyLinkType{
+	TopologyLinkTypePhysical,
+}
+
+func (e TopologyLinkType) IsValid() bool {
+	switch e {
+	case TopologyLinkTypePhysical:
+		return true
+	}
+	return false
+}
+
+func (e TopologyLinkType) String() string {
+	return string(e)
+}
+
+func (e *TopologyLinkType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TopologyLinkType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TopologyLinkType", str)
+	}
+	return nil
+}
+
+func (e TopologyLinkType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
