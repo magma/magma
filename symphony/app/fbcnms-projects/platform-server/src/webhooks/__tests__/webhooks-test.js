@@ -73,7 +73,7 @@ describe('magma webhook endpoint', () => {
 
   test('basic alert works', async () => {
     const triggerMagmaAlert = jest
-      .spyOn(require('../../graphgrpc/magmaalert'), 'triggerMagmaAlert')
+      .spyOn(require('../../graphgrpc/magmaalert'), 'triggerActionsAlert')
       .mockReturnValue(true);
     const res = await request(app)
       .post('/webhooks/magma')
@@ -85,7 +85,7 @@ describe('magma webhook endpoint', () => {
     expect(res.body).toEqual({success: true, message: 'ok'});
 
     expect(triggerMagmaAlert).toHaveBeenCalledWith({
-      tenant: 'notmaster',
+      tenantID: 'notmaster',
       alertname: 'My Alert',
       networkID: 'network1',
       labels: {

@@ -14,7 +14,7 @@ import asyncHandler from '@fbcnms/util/asyncHandler';
 import express from 'express';
 import {Organization, jsonArrayContains} from '@fbcnms/sequelize-models';
 import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
-import {triggerMagmaAlert} from '../graphgrpc/magmaalert';
+import {triggerActionsAlert} from '../graphgrpc/magmaalert';
 
 const router = express.Router();
 
@@ -48,8 +48,8 @@ router.post(
         });
 
         networkOrgs.map(networkOrg =>
-          triggerMagmaAlert({
-            tenant: networkOrg.name,
+          triggerActionsAlert({
+            tenantID: networkOrg.name,
             alertname,
             networkID,
             labels: alert.labels,

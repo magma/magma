@@ -9,15 +9,25 @@
  */
 'use strict';
 
+import caller from 'grpc-caller';
+import path from 'path';
+
 const logger = require('@fbcnms/logging').getLogger(module);
 
 type Payload = {
-  tenant: string,
+  tenantID: string,
   alertname: string,
   networkID: string,
   labels: {[string]: string},
 };
 
-export async function triggerMagmaAlert(payload: Payload) {
+export async function triggerActionsAlert(payload: Payload) {
   logger.info('sending payload: %s', payload);
+
+  const actionsAlertService = caller(
+    `${process.env.GRAPH_HOST || 'graph'}:443`,
+    path.resolve(__dirname, 'graph.proto'),
+    'ActionsAlertService',
+  );
+  await actionsAlertService.Trigger(payload).catch(err => console.error(err));
 }
