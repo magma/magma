@@ -76,7 +76,7 @@ const WorkOrderHeader = (props: Props) => {
             {
               id: workOrder.project?.id ?? '',
               name: workOrder.project?.name ?? '',
-              subtext: workOrder.project?.type.name,
+              subtext: workOrder.project?.type?.name,
               onClick: () =>
                 history.push(
                   InventoryAPIUrls.project(nullthrows(workOrder.project?.id)),
