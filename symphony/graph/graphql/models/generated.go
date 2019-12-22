@@ -83,6 +83,7 @@ type AddEquipmentInput struct {
 	PositionDefinition *string          `json:"positionDefinition"`
 	Properties         []*PropertyInput `json:"properties"`
 	WorkOrder          *string          `json:"workOrder"`
+	ExternalID         *string          `json:"externalId"`
 }
 
 type AddEquipmentPortTypeInput struct {
@@ -235,6 +236,7 @@ type EditEquipmentInput struct {
 	Name       string           `json:"name"`
 	Properties []*PropertyInput `json:"properties"`
 	DeviceID   *string          `json:"deviceID"`
+	ExternalID *string          `json:"externalId"`
 }
 
 type EditEquipmentPortInput struct {

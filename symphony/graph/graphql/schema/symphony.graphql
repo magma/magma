@@ -196,6 +196,7 @@ input CommentInput {
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
 type Equipment implements Node {
   id: ID!
+  externalId: String
   name: String!
   parentLocation: Location
   parentPosition: EquipmentPosition
@@ -227,6 +228,7 @@ input AddEquipmentInput {
   positionDefinition: ID
   properties: [PropertyInput!]
   workOrder: ID
+  externalId: String
 }
 
 input EditEquipmentInput {
@@ -234,6 +236,7 @@ input EditEquipmentInput {
   name: String!
   properties: [PropertyInput!]
   deviceID: String
+  externalId: String
 }
 
 input EditEquipmentPortInput {

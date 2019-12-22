@@ -206,6 +206,7 @@ type ComplexityRoot struct {
 	Equipment struct {
 		Device            func(childComplexity int) int
 		EquipmentType     func(childComplexity int) int
+		ExternalID        func(childComplexity int) int
 		Files             func(childComplexity int) int
 		FutureState       func(childComplexity int) int
 		ID                func(childComplexity int) int
@@ -1645,6 +1646,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Equipment.EquipmentType(childComplexity), true
+
+	case "Equipment.externalId":
+		if e.complexity.Equipment.ExternalID == nil {
+			break
+		}
+
+		return e.complexity.Equipment.ExternalID(childComplexity), true
 
 	case "Equipment.files":
 		if e.complexity.Equipment.Files == nil {
@@ -5624,6 +5632,7 @@ input CommentInput {
 # specific equipment instance: e.g. Wifi Access Point X at Location Y.
 type Equipment implements Node {
   id: ID!
+  externalId: String
   name: String!
   parentLocation: Location
   parentPosition: EquipmentPosition
@@ -5655,6 +5664,7 @@ input AddEquipmentInput {
   positionDefinition: ID
   properties: [PropertyInput!]
   workOrder: ID
+  externalId: String
 }
 
 input EditEquipmentInput {
@@ -5662,6 +5672,7 @@ input EditEquipmentInput {
   name: String!
   properties: [PropertyInput!]
   deviceID: String
+  externalId: String
 }
 
 input EditEquipmentPortInput {
@@ -11672,6 +11683,40 @@ func (ec *executionContext) _Equipment_id(ctx context.Context, field graphql.Col
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Equipment_externalId(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Equipment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Equipment_name(ctx context.Context, field graphql.CollectedField, obj *ent.Equipment) (ret graphql.Marshaler) {
@@ -30227,6 +30272,12 @@ func (ec *executionContext) unmarshalInputAddEquipmentInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "externalId":
+			var err error
+			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -31139,6 +31190,12 @@ func (ec *executionContext) unmarshalInputEditEquipmentInput(ctx context.Context
 		case "deviceID":
 			var err error
 			it.DeviceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "externalId":
+			var err error
+			it.ExternalID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -34189,6 +34246,8 @@ func (ec *executionContext) _Equipment(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "externalId":
+			out.Values[i] = ec._Equipment_externalId(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._Equipment_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
