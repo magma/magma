@@ -96,6 +96,10 @@ func (l ImportRecord) PortEquipmentTypeName() string {
 	return ""
 }
 
+func (l ImportRecord) ExternalID() string {
+	return l.line[l.title.ExternalIDIdx()]
+}
+
 func (l ImportRecord) ThirdParent() string {
 	return l.line[l.title.ThirdParentIdx()]
 }

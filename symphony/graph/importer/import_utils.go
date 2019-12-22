@@ -173,7 +173,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -225,6 +225,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		Parent:             parentEquipmentID,
 		PositionDefinition: positionDefinitionID,
 		Properties:         props,
+		ExternalID:         externalID,
 	})
 	if err != nil {
 		log.Error("add equipment", zap.String("name", name), zap.Error(err))

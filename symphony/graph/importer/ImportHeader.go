@@ -24,6 +24,10 @@ func (l ImportHeader) Find(s string) int {
 	return findIndex(l.line, s)
 }
 
+func (l ImportHeader) ExternalIDIdx() int {
+	return findIndex(l.line, "External ID")
+}
+
 func (l ImportHeader) ThirdParentIdx() int {
 	return l.prnt3Idx
 }
@@ -76,7 +80,7 @@ func (l ImportHeader) LocationTypesRangeArr() []string {
 
 func (l ImportHeader) LocationsRangeIdx() (int, int) {
 	if l.entity == ImportEntityEquipment {
-		return 3, l.prnt3Idx
+		return l.ExternalIDIdx() + 1, l.prnt3Idx
 	} else if l.entity == ImportEntityPort {
 		return 5, l.prnt3Idx
 	}
