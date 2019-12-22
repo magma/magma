@@ -20,5 +20,6 @@ title: Exporting your service data
    * "Customer Name" - Unique. Maybe be empty
    * "Customer External ID" - Customer ID used to identify the customer in other systems (CRM for example).
                               Unique. Maybe be empty.
+   * "Status" - 4 options: PENDING, IN_SERVICE, MAINTENANCE, DISCONNECTED
    * List of properties for this service.
 

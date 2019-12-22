@@ -94,7 +94,7 @@ func (l ImportHeader) PropertyStartIdx() int {
 	case ImportEntityPort:
 		return l.PositionIdx() + 5
 	case ImportEntityService:
-		return findIndex(l.line, "Customer External ID") + 1
+		return l.StatusIdx() + 1
 	}
 	return -1
 }
@@ -119,6 +119,14 @@ func (l ImportHeader) CustomerNameIdx() int {
 func (l ImportHeader) CustomerExternalIDIdx() int {
 	if l.entity == ImportEntityService {
 		return 5
+	}
+	return -1
+}
+
+// StatusIdx is the index of the status of the service (can be of types enum ServiceType in graphql) in the exported csv
+func (l ImportHeader) StatusIdx() int {
+	if l.entity == ImportEntityService {
+		return 6
 	}
 	return -1
 }

@@ -147,3 +147,8 @@ func (l ImportRecord) CustomerName() string {
 func (l ImportRecord) CustomerExternalID() string {
 	return l.line[l.title.CustomerExternalIDIdx()]
 }
+
+// Status is the status of the service (can be of types enum ServiceType in graphql)
+func (l ImportRecord) Status() string {
+	return l.line[l.title.StatusIdx()]
+}
