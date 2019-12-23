@@ -57,10 +57,6 @@ static void *nas_intertask_interface(void *args_p)
         OAI_FPRINTF_INFO("TASK_NAS_MME received MESSAGE_TEST\n");
       } break;
 
-      case S1AP_DEREGISTER_UE_REQ: {
-        nas_proc_deregister_ue(
-          S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
-      } break;
 
       case TERMINATE_MESSAGE: {
         put_mme_nas_state(&mme_app_desc_p);

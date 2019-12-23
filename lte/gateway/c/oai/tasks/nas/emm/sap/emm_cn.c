@@ -104,7 +104,6 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
 static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
 static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
@@ -114,7 +113,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 static const char *_emm_cn_primitive_str[] = {
   "EMM_CN_AUTHENTICATION_PARAM_RES",
   "EMM_CN_AUTHENTICATION_PARAM_FAIL",
-  "EMM_CN_DEREGISTER_UE",
   "EMM_CN_ULA_SUCCESS",
   "EMM_CN_CS_RESPONSE_SUCCESS",
   "EMM_CN_ULA_OR_CSRSP_FAIL",
@@ -213,27 +211,6 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
-{
-  int rc = RETURNok;
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_WARNING(
-    LOG_NAS_EMM,
-    "EMM-PROC  - "
-    "TODO deregister UE " MME_UE_S1AP_ID_FMT
-    ", following procedure is a test\n",
-    ue_id);
-  emm_detach_request_ies_t params = {0};
-  params.type = EMM_DETACH_TYPE_EPS;
-  params.switch_off = false;
-  params.is_native_sc = false;
-  params.ksi = 0;
-  increment_counter("ue_detach", 1, 1, "cause", "deregister_ue");
-  emm_proc_detach_request(ue_id, &params);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
 //------------------------------------------------------------------------------
 void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 {
@@ -1268,10 +1245,6 @@ int emm_cn_send(const emm_cn_t *msg)
 
     case _EMMCN_AUTHENTICATION_PARAM_FAIL:
       rc = _emm_cn_authentication_fail(msg->u.auth_fail);
-      break;
-
-    case EMMCN_DEREGISTER_UE:
-      rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
     case EMMCN_ULA_SUCCESS:

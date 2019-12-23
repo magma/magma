@@ -489,19 +489,6 @@ int nas_proc_auth_param_fail(mme_ue_s1ap_id_t ue_id, nas_cause_t cause)
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_deregister_ue(mme_ue_s1ap_id_t ue_id)
-{
-  int rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap.primitive = EMMCN_DEREGISTER_UE;
-  emm_sap.u.emm_cn.u.deregister.ue_id = ue_id;
-  rc = emm_sap_send(&emm_sap);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-//------------------------------------------------------------------------------
 int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
