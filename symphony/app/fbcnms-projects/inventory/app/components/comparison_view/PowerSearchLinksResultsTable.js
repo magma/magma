@@ -144,6 +144,14 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
           })}
         </div>
       );
+    } else if (dataKey === 'services') {
+      return (
+        <div className={classes.propsCell}>
+          {cellData.map(service => (
+            <Box>{service.name}</Box>
+          ))}
+        </div>
+      );
     } else {
       content = <Text className={classes.cellText}>{cellData}</Text>;
     }
@@ -165,6 +173,7 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
     const equipmetStatusEnabled = this.context.isFeatureEnabled(
       'planned_equipment',
     );
+    const servicesEnabled = this.context.isFeatureEnabled('services');
 
     return links.length > 0 ? (
       <AutoSizer>
@@ -250,6 +259,17 @@ class PowerSearchLinksResultsTable extends React.Component<Props> {
               cellRenderer={this._cellRenderer}
               cellDataGetter={({rowData}) => rowData.properties}
             />
+            {servicesEnabled && (
+              <Column
+                label="Services"
+                dataKey="services"
+                cellDataGetter={({rowData}) => rowData.services}
+                width={250}
+                flexGrow={1}
+                headerRenderer={this._headerRenderer}
+                cellRenderer={this._cellRenderer}
+              />
+            )}
             {equipmetStatusEnabled && (
               <Column
                 label="Status"
@@ -345,6 +365,10 @@ export default withRouter(
             workOrder {
               id
               status
+            }
+            services {
+              id
+              name
             }
           }
         `,

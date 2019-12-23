@@ -5,6 +5,7 @@
 package actions
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/facebookincubator/symphony/pkg/actions/core"
@@ -24,10 +25,9 @@ func Handler(next http.Handler, logger log.Logger, registry *executor.Registry) 
 		ctx := r.Context()
 
 		exc := &executor.Executor{
-			Context:    ctx,
 			Registry:   registry,
 			DataLoader: dataLoader,
-			OnError: func(err error) {
+			OnError: func(ctx context.Context, err error) {
 				logger.For(ctx).Error("error executing action", zap.Error(err))
 			},
 		}

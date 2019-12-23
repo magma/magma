@@ -45,13 +45,13 @@ func editLine(line []string, index int) {
 	if index == 1 {
 		line[1] = "newName"
 		line[3] = "D243"
-		line[6] = "root"
-		line[7] = "20"
+		line[7] = "root"
+		line[8] = "20"
 	} else {
 		line[4] = "Donald"
 		line[5] = "U333"
-		line[8] = "22.4"
-		line[9] = "true"
+		line[9] = "22.4"
+		line[10] = "true"
 	}
 }
 
@@ -161,7 +161,7 @@ func prepareServiceData(ctx context.Context, t *testing.T, r *TestImporterResolv
 		Name:          service2Name,
 		ServiceTypeID: serviceType2.ID,
 		Properties:    service2PropInput,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
 	})
 	require.NoError(t, err)
 }
@@ -182,6 +182,7 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	require.NoError(t, err)
 
 	require.Equal(t, "D243", *s1.ExternalID)
+	require.Equal(t, models.ServiceStatusPending.String(), s1.Status)
 
 	prop1, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.Type("string"))).Only(ctx)
 	require.NoError(t, err)
@@ -198,6 +199,7 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 
 	require.Equal(t, "Donald", customer.Name)
 	require.Equal(t, "U333", *customer.ExternalID)
+	require.Equal(t, models.ServiceStatusInService.String(), s2.Status)
 
 	prop3, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.Type("float"))).Only(ctx)
 	require.NoError(t, err)

@@ -38,6 +38,7 @@ const (
 	equipmentBIDTitle   = "Equipment B ID"
 	equipmentBNameTitle = "Equipment B Name"
 	equipmentBTypeTitle = "Equipment B Type"
+	serviceNamesTitle   = "Service Names"
 )
 
 //prepareLinkData: data will be of type:
@@ -162,7 +163,7 @@ func prepareLinkData(ctx context.Context, t *testing.T, r TestExporterResolver) 
 	portDef2 := equipmentType2.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 	portDef3 := equipmentType2.QueryPortDefinitions().Where(equipmentportdefinition.Name(portName3)).OnlyX(ctx)
 	propType2 := portDef1.QueryEquipmentPortType().QueryLinkPropertyTypes().Where(propertytype.Name(propStr2)).OnlyX(ctx)
-	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+	l1, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: parentEquipment.ID, Port: portDef1.ID},
 			{Equipment: childEquip1.ID, Port: portDef2.ID},
@@ -175,12 +176,30 @@ func prepareLinkData(ctx context.Context, t *testing.T, r TestExporterResolver) 
 		},
 	})
 
-	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+	l2, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: childEquip1.ID, Port: portDef3.ID},
 			{Equipment: childEquip2.ID, Port: portDef3.ID},
 		},
 	})
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S1",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	s2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "S2",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s2.ID, l1.ID)
+	_, _ = mr.AddServiceLink(ctx, s1.ID, l2.ID)
+
 	require.NoError(t, err)
 }
 
@@ -223,6 +242,7 @@ func TestEmptyLinksDataExport(t *testing.T) {
 			equipmentBIDTitle,
 			equipmentBNameTitle,
 			equipmentBTypeTitle,
+			serviceNamesTitle,
 		}, ln)
 	}
 }
@@ -270,6 +290,7 @@ func TestLinksExport(t *testing.T) {
 				equipmentBIDTitle,
 				equipmentBNameTitle,
 				equipmentBTypeTitle,
+				serviceNamesTitle,
 				propStr,
 				propStr2,
 			}, ln)
@@ -289,6 +310,7 @@ func TestLinksExport(t *testing.T) {
 				"--",
 				currEquip,
 				equipmentType2Name,
+				"S1, S2",
 				"t1",
 				"p2",
 			})
@@ -308,6 +330,7 @@ func TestLinksExport(t *testing.T) {
 				"--",
 				currEquip2,
 				equipmentType2Name,
+				"S1",
 				"",
 				"",
 			})
@@ -414,6 +437,7 @@ func TestLinksWithFilters(t *testing.T) {
 					"--",
 					currEquip,
 					equipmentType2Name,
+					"S1, S2",
 					"t1",
 					"p2",
 				}, ln[2:])

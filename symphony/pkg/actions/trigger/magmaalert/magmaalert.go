@@ -23,7 +23,7 @@ func (*trigger) ID() core.TriggerID {
 
 // Description returns the description
 func (*trigger) Description() string {
-	return "alert fired relating to magma"
+	return "an orc8r alert is fired"
 }
 
 // SupportedActionIDs returns the ActionsIDs supported by this trigger
@@ -36,12 +36,16 @@ func (*trigger) SupportedActionIDs() []core.ActionID {
 func (*trigger) SupportedFilters() []core.Filter {
 	return []core.Filter{
 		core.NewStringFieldFilter(
+			"alertname",
+			"the alert's name",
+		),
+		core.NewStringFieldFilter(
 			"networkID",
-			"the alerts networkID",
+			"the alert's networkID",
 		),
 		core.NewStringFieldFilter(
 			"gatewayID",
-			"the alerts gatewayID",
+			"the alert's gatewayID",
 		),
 	}
 }

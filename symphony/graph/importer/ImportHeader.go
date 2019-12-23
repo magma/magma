@@ -24,6 +24,10 @@ func (l ImportHeader) Find(s string) int {
 	return findIndex(l.line, s)
 }
 
+func (l ImportHeader) ExternalIDIdx() int {
+	return findIndex(l.line, "External ID")
+}
+
 func (l ImportHeader) ThirdParentIdx() int {
 	return l.prnt3Idx
 }
@@ -76,7 +80,7 @@ func (l ImportHeader) LocationTypesRangeArr() []string {
 
 func (l ImportHeader) LocationsRangeIdx() (int, int) {
 	if l.entity == ImportEntityEquipment {
-		return 3, l.prnt3Idx
+		return l.ExternalIDIdx() + 1, l.prnt3Idx
 	} else if l.entity == ImportEntityPort {
 		return 5, l.prnt3Idx
 	}
@@ -90,7 +94,7 @@ func (l ImportHeader) PropertyStartIdx() int {
 	case ImportEntityPort:
 		return l.PositionIdx() + 5
 	case ImportEntityService:
-		return findIndex(l.line, "Customer External ID") + 1
+		return l.StatusIdx() + 1
 	}
 	return -1
 }
@@ -115,6 +119,14 @@ func (l ImportHeader) CustomerNameIdx() int {
 func (l ImportHeader) CustomerExternalIDIdx() int {
 	if l.entity == ImportEntityService {
 		return 5
+	}
+	return -1
+}
+
+// StatusIdx is the index of the status of the service (can be of types enum ServiceType in graphql) in the exported csv
+func (l ImportHeader) StatusIdx() int {
+	if l.entity == ImportEntityService {
+		return 6
 	}
 	return -1
 }

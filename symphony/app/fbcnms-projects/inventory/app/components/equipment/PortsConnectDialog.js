@@ -30,6 +30,7 @@ import StepLabel from '@material-ui/core/StepLabel';
 import Stepper from '@material-ui/core/Stepper';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
+import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {graphql} from 'react-relay';
 import {sortPropertiesByIndex} from '../../common/Property';
@@ -274,17 +275,19 @@ class PortsConnectDialog extends React.Component<Props, State> {
     return (
       <>
         <DialogContent div className={classes.root}>
-          <Stepper
-            alternativeLabel
-            activeStep={activeStep}
-            connector={connector}>
-            {steps.map(label => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          <div className={classes.content}>{this.getStepContent()}</div>
+          <WizardContextProvider>
+            <Stepper
+              alternativeLabel
+              activeStep={activeStep}
+              connector={connector}>
+              {steps.map(label => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+            <div className={classes.content}>{this.getStepContent()}</div>
+          </WizardContextProvider>
         </DialogContent>
         <DialogActions>
           <Button

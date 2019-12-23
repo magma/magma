@@ -89,10 +89,10 @@ func TestValidatePropertiesForServiceType(t *testing.T) {
 	data := prepareServiceTypeData(ctx, t, *r)
 
 	var (
-		dataHeader = [...]string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID"}
-		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "strVal", "54", "", "", "", ""}
-		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "", "", "29/03/88", "false", "", ""}
-		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "", "", "", "", "30.23-50", "45.8,88.9"}
+		dataHeader = [...]string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
+		row1       = []string{"", "s1", serviceTypeName, "M123", "", "", "IN_SERVICE", "strVal", "54", "", "", "", ""}
+		row2       = []string{"", "s2", serviceType2Name, "M456", "", "", "MAINTENANCE", "", "", "29/03/88", "false", "", ""}
+		row3       = []string{"", "s3", serviceType3Name, "M789", "", "", "DISCONNECTED", "", "", "", "", "30.23-50", "45.8,88.9"}
 	)
 
 	titleWithProperties := append(dataHeader[:], propName1, propName2, propName3, propName4, propName5, propName6)
@@ -172,7 +172,7 @@ func TestValidateForExistingService(t *testing.T) {
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	prepareServiceTypeData(ctx, t, *r)
 
-	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID"}
+	titleWithProperties := []string{"Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
 	title := NewImportHeader(titleWithProperties, ImportEntityService)
 
 	serviceType, err := importer.r.Mutation().AddServiceType(ctx, models.ServiceTypeCreateData{
@@ -186,7 +186,7 @@ func TestValidateForExistingService(t *testing.T) {
 	})
 	require.NoError(t, err)
 	var (
-		test = []string{service.ID, "myService", "type1", "", "", "", ""}
+		test = []string{service.ID, "myService", "type1", "", "", "", "", models.ServiceStatusPending.String()}
 	)
 	_, err = importer.validateLineForExistingService(ctx, service.ID, NewImportRecord(test, title))
 	require.NoError(t, err)

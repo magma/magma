@@ -25,6 +25,7 @@ import Divider from '@material-ui/core/Divider';
 import EditActionsRuleMutation from '../../mutations/EditActionsRuleMutation';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import TriggerFilterRow from './TriggerFilterRow';
 
 import {graphql, useFragment} from 'react-relay/hooks';
@@ -53,6 +54,7 @@ type Props = {|
   onSave: () => void,
   rule?: {
     id: string,
+    name: string,
     ruleFilters: $ReadOnlyArray<?RuleFilter>,
     ruleActions: $ReadOnlyArray<?RuleAction>,
   },
@@ -77,6 +79,7 @@ export default function ActionsAddDialog(props: Props) {
   );
 
   const rule = props.rule;
+  const [name, setName] = useState<string>(rule?.name || '');
   const [filters, setFilters] = useState<(?RuleFilter)[]>(
     rule ? [...rule.ruleFilters] : [EMPTY_ITEM],
   );
@@ -86,7 +89,7 @@ export default function ActionsAddDialog(props: Props) {
 
   const onSave = () => {
     const input = {
-      name: '',
+      name: name,
       triggerID: data.triggerID,
       ruleActions: actions.filter(Boolean).map(action => ({
         ...action,
@@ -121,9 +124,18 @@ export default function ActionsAddDialog(props: Props) {
 
   return (
     <Dialog open={true} onClose={() => props.onClose()}>
-      <DialogTitle>Create New Rule</DialogTitle>
+      <DialogTitle>{rule ? 'Edit Rule' : 'Create New Rule'}</DialogTitle>
       <DialogContent>
         <Grid container spacing={1}>
+          <Grid item xs={3} className={classes.control}>
+            Name
+          </Grid>
+          <Grid item xs={9}>
+            <TextInput
+              value={name}
+              onChange={({target}) => setName(target.value)}
+            />
+          </Grid>
           <Grid item xs={3} className={classes.control}>
             Whenever
           </Grid>

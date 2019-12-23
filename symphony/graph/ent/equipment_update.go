@@ -35,6 +35,8 @@ type EquipmentUpdate struct {
 	clearfuture_state     bool
 	device_id             *string
 	cleardevice_id        bool
+	external_id           *string
+	clearexternal_id      bool
 	_type                 map[string]struct{}
 	location              map[string]struct{}
 	parent_position       map[string]struct{}
@@ -107,6 +109,27 @@ func (eu *EquipmentUpdate) SetNillableDeviceID(s *string) *EquipmentUpdate {
 func (eu *EquipmentUpdate) ClearDeviceID() *EquipmentUpdate {
 	eu.device_id = nil
 	eu.cleardevice_id = true
+	return eu
+}
+
+// SetExternalID sets the external_id field.
+func (eu *EquipmentUpdate) SetExternalID(s string) *EquipmentUpdate {
+	eu.external_id = &s
+	return eu
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (eu *EquipmentUpdate) SetNillableExternalID(s *string) *EquipmentUpdate {
+	if s != nil {
+		eu.SetExternalID(*s)
+	}
+	return eu
+}
+
+// ClearExternalID clears the value of external_id.
+func (eu *EquipmentUpdate) ClearExternalID() *EquipmentUpdate {
+	eu.external_id = nil
+	eu.clearexternal_id = true
 	return eu
 }
 
@@ -519,6 +542,12 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if eu.cleardevice_id {
 		updater.SetNull(equipment.FieldDeviceID)
 	}
+	if value := eu.external_id; value != nil {
+		updater.Set(equipment.FieldExternalID, *value)
+	}
+	if eu.clearexternal_id {
+		updater.SetNull(equipment.FieldExternalID)
+	}
 	if !updater.Empty() {
 		query, args := updater.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
@@ -872,6 +901,8 @@ type EquipmentUpdateOne struct {
 	clearfuture_state     bool
 	device_id             *string
 	cleardevice_id        bool
+	external_id           *string
+	clearexternal_id      bool
 	_type                 map[string]struct{}
 	location              map[string]struct{}
 	parent_position       map[string]struct{}
@@ -937,6 +968,27 @@ func (euo *EquipmentUpdateOne) SetNillableDeviceID(s *string) *EquipmentUpdateOn
 func (euo *EquipmentUpdateOne) ClearDeviceID() *EquipmentUpdateOne {
 	euo.device_id = nil
 	euo.cleardevice_id = true
+	return euo
+}
+
+// SetExternalID sets the external_id field.
+func (euo *EquipmentUpdateOne) SetExternalID(s string) *EquipmentUpdateOne {
+	euo.external_id = &s
+	return euo
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (euo *EquipmentUpdateOne) SetNillableExternalID(s *string) *EquipmentUpdateOne {
+	if s != nil {
+		euo.SetExternalID(*s)
+	}
+	return euo
+}
+
+// ClearExternalID clears the value of external_id.
+func (euo *EquipmentUpdateOne) ClearExternalID() *EquipmentUpdateOne {
+	euo.external_id = nil
+	euo.clearexternal_id = true
 	return euo
 }
 
@@ -1359,6 +1411,15 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 		var value string
 		e.DeviceID = value
 		updater.SetNull(equipment.FieldDeviceID)
+	}
+	if value := euo.external_id; value != nil {
+		updater.Set(equipment.FieldExternalID, *value)
+		e.ExternalID = *value
+	}
+	if euo.clearexternal_id {
+		var value string
+		e.ExternalID = value
+		updater.SetNull(equipment.FieldExternalID)
 	}
 	if !updater.Empty() {
 		query, args := updater.Query()

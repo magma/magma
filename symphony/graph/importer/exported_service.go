@@ -96,6 +96,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 
 			externalID := pointer.ToStringOrNil(importLine.ServiceExternalID())
 
+			status := models.ServiceStatus(importLine.Status())
+
 			id := importLine.ID()
 			var propInputs []*models.PropertyInput
 			if importLine.Len() > importHeader.PropertyStartIdx() {
@@ -107,7 +109,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 				}
 			}
 			if id == "" {
-				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID)
+				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, status)
 				if created {
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
@@ -134,7 +136,14 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 						propInput.ID = &propID
 					}
 				}
-				_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{ID: id, Name: &name, Properties: propInputs, ExternalID: externalID, CustomerID: customerID})
+				_, err = m.r.Mutation().EditService(ctx, models.ServiceEditData{
+					ID:         id,
+					Name:       &name,
+					Properties: propInputs,
+					ExternalID: externalID,
+					CustomerID: customerID,
+					Status:     pointerToServiceStatus(status),
+				})
 				if err != nil {
 					log.Warn("editing service", zap.Error(err), importLine.ZapField())
 					http.Error(w, fmt.Sprintf("editing service: id %q (row #%d). %q: ", id, numRows, err), http.StatusBadRequest)

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 05db2b9abb48b2493bd6306e50ada06b
+ * @relayHash bd62bd84e754401667f477d79f01c9a2
  */
 
 /* eslint-disable */
@@ -21,6 +21,7 @@ export type EditEquipmentInput = {|
   name: string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   deviceID?: ?string,
+  externalId?: ?string,
 |};
 export type PropertyInput = {|
   id?: ?string,

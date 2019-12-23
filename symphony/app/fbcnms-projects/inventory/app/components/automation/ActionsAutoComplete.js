@@ -16,25 +16,26 @@ import Chip from '@material-ui/core/Chip';
 import React from 'react';
 import TextField from '@material-ui/core/TextField';
 
-import {makeStyles} from '@material-ui/styles';
-
-const useStyles = makeStyles(theme => ({
-  popup: {
-    zIndex: theme.zIndex.modal + 100,
-  },
-}));
+import {findIndex} from 'lodash';
 
 type Props = {
-  onChange: (SyntheticInputEvent<*>, string[]) => void,
+  onChange: (SyntheticEvent<*>, string[]) => void,
   value: ActionData,
   options: string[],
 };
 
 export default function ActionsAutocomplete(props: Props) {
-  const classes = useStyles();
-
-  const renderTags = (value, {className, onDelete}) => {
+  const renderTags = (value, {className}) => {
     return value.map((option, index) => {
+      const onDelete = evt => {
+        const i = findIndex(value, item => item === option);
+        if (i !== -1) {
+          const newValue = [...value];
+          newValue.splice(i, 1);
+          props.onChange(evt, newValue);
+        }
+      };
+
       return (
         <Chip
           key={index}
@@ -43,7 +44,7 @@ export default function ActionsAutocomplete(props: Props) {
           label={option}
           className={className}
           deleteIcon={<CancelIcon data-tag-index={index} />}
-          onDelete={evt => onDelete(evt)}
+          onDelete={onDelete}
         />
       );
     });
@@ -51,9 +52,6 @@ export default function ActionsAutocomplete(props: Props) {
 
   return (
     <Autocomplete
-      classes={{
-        popup: classes.popup,
-      }}
       autoComplete
       filterSelectedOptions
       freeSolo
@@ -62,10 +60,19 @@ export default function ActionsAutocomplete(props: Props) {
       options={props.options}
       value={props.value}
       renderTags={renderTags}
-      renderInput={params => (
-        // $FlowFixMe - cannot spread interfaces
-        <TextField {...params} variant="standard" margin="normal" fullWidth />
-      )}
+      renderInput={params => {
+        return (
+          <TextField
+            ref={params.ref}
+            InputLabelProps={params.InputLabelProps}
+            InputProps={params.InputProps}
+            inputProps={params.inputProps}
+            variant="standard"
+            margin="normal"
+            fullWidth
+          />
+        );
+      }}
     />
   );
 }

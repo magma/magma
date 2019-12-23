@@ -53,8 +53,10 @@ func NewApplication(flags *cliFlags) (*application, func(), error) {
 	}
 	db := mysql.Open(string2)
 	graphgrpcConfig := graphgrpc.Config{
-		DB:     db,
-		Logger: logger,
+		DB:      db,
+		Logger:  logger,
+		Orc8r:   orc8rConfig,
+		Tenancy: mySQLTenancy,
 	}
 	grpcServer, cleanup3, err := graphgrpc.NewServer(graphgrpcConfig)
 	if err != nil {

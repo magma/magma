@@ -178,20 +178,24 @@ func TestEquipmentImportData(t *testing.T) {
 		switch equip.Name {
 		case "A":
 			require.Equal(t, "EquipType1", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "AA", equip.ExternalID)
 			require.Equal(t, locStruct["b1"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.Equal(t, "val1", equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Str"))).OnlyX(ctx).StringVal)
 			require.Equal(t, 12, equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Int"))).OnlyX(ctx).IntVal)
 		case "B":
 			require.Equal(t, "EquipType2", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "BB", equip.ExternalID)
 			require.Equal(t, locStruct["b2"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.Equal(t, "val2", equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Str"))).OnlyX(ctx).StringVal)
 			require.Equal(t, 13, equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name("prop1Int"))).OnlyX(ctx).IntVal)
 		case "C":
 			require.Equal(t, "EquipType3", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "CC", equip.ExternalID)
 			require.Equal(t, locStruct["b3"].ID, equip.QueryLocation().OnlyXID(ctx))
 			require.True(t, equip.QueryPositions().Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.Name("pos1"))).ExistX(ctx))
 		case "D":
 			require.Equal(t, "EquipType4", equip.QueryType().OnlyX(ctx).Name)
+			require.Equal(t, "", equip.ExternalID)
 			loc, err := equip.QueryLocation().Only(ctx)
 			require.Error(t, err)
 			require.Nil(t, loc)

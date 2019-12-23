@@ -587,6 +587,7 @@ func (r mutationResolver) addEquipment(
 		Equipment.Create().
 		SetName(input.Name).
 		SetType(typ).
+		SetNillableExternalID(input.ExternalID).
 		SetNillableParentPositionID(positionID).
 		SetNillableLocationID(input.Location).
 		SetNillableWorkOrderID(input.WorkOrder).
@@ -1910,6 +1911,7 @@ func (r mutationResolver) EditEquipment(
 			UpdateOne(e).
 			SetName(input.Name).
 			SetNillableDeviceID(input.DeviceID).
+			SetNillableExternalID(input.ExternalID).
 			Save(ctx); err != nil {
 			return nil, errors.Wrapf(err, "updating equipment: id=%q", input.ID)
 		}

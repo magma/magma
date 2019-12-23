@@ -8,14 +8,16 @@
  * @format
  */
 
-import type {Equipment} from './Equipment';
+export type Node = {
+  id: string,
+};
 
 export type TopologyLink = {
-  source: string,
-  target: string,
+  source: Node,
+  target: Node,
 };
 
 export type TopologyNetwork = {
-  nodes: Array<Equipment>,
+  nodes: Array<Node>,
   links: Array<TopologyLink>,
 };

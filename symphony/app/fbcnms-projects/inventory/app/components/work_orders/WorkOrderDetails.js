@@ -235,16 +235,16 @@ class WorkOrderDetails extends React.Component<Props, State> {
     const actionsEnabled = this.context.isFeatureEnabled('planned_equipment');
     return (
       <div className={classes.root}>
-        <WorkOrderHeader
-          workOrderName={this.props.workOrder.name}
-          workOrder={workOrder}
-          properties={properties}
-          checklist={checklist}
-          locationId={locationId}
-          onWorkOrderRemoved={onWorkOrderRemoved}
-          onCancelClicked={onCancelClicked}
-        />
         <FormValidationContextProvider>
+          <WorkOrderHeader
+            workOrderName={this.props.workOrder.name}
+            workOrder={workOrder}
+            properties={properties}
+            checklist={checklist}
+            locationId={locationId}
+            onWorkOrderRemoved={onWorkOrderRemoved}
+            onCancelClicked={onCancelClicked}
+          />
           <FormValidationContext.Consumer>
             {validationContext => {
               validationContext.editLock.check({

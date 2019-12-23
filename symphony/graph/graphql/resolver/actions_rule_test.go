@@ -35,7 +35,6 @@ func actionsContext(t *testing.T) (*TestResolver, context.Context) {
 	registry.MustRegisterAction(action1)
 
 	exc := &executor.Executor{
-		Context:  ctx,
 		Registry: registry,
 		DataLoader: executor.BasicDataLoader{
 			Rules: []core.Rule{},

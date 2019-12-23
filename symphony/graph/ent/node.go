@@ -386,7 +386,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     e.ID,
 		Type:   "Equipment",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
@@ -428,6 +428,14 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[4] = &Field{
 		Type:  "string",
 		Name:  "DeviceID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(e.ExternalID); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
+		Type:  "string",
+		Name:  "ExternalID",
 		Value: string(buf),
 	}
 	var ids []string

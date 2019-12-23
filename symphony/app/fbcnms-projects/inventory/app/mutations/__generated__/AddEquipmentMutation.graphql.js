@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 24ab714a3310e9ed30bd2a5e6c1ee006
+ * @relayHash 24ec4d52c1e80063aeee70a0ddfad3f8
  */
 
 /* eslint-disable */
@@ -24,6 +24,7 @@ export type AddEquipmentInput = {|
   positionDefinition?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   workOrder?: ?string,
+  externalId?: ?string,
 |};
 export type PropertyInput = {|
   id?: ?string,

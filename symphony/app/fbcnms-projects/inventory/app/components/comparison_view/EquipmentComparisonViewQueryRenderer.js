@@ -21,6 +21,7 @@ import PowerSearchEquipmentResultsTable_equipment from './__generated__/PowerSea
 import PowerSearchLinkFirstEquipmentResultsTable_equipment from '../services/__generated__/PowerSearchLinkFirstEquipmentResultsTable_equipment.graphql';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import WizardContext from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
@@ -32,7 +33,7 @@ import {
 } from './FilterUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
 
 const PROPERTY_FILTER_NAME = 'inst_property';
 
@@ -94,7 +95,6 @@ const equipmentSearchQuery = graphql`
 const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
   const {limit, showExport, children} = props;
-  const [filters, setFilters] = useState(([]: FiltersQuery));
   const [count, setCount] = useState((0: number));
 
   const equipmentDataResponse = usePropertyFilters('equipment');
@@ -113,13 +113,24 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
     .concat(equipmentPropertiesFilterConfigs)
     .concat(locationTypesFilterConfigs);
 
+  const wizardContext = useContext(WizardContext);
+
+  const filtersContextKey = 'EquipmentComparisonViewQueryRenderer_Filters';
+  const updateFilters = newFilters => {
+    wizardContext.set(filtersContextKey, newFilters);
+  };
+
+  // eslint-disable-next-line no-warning-comments
+  // $FlowFixMe
+  const filters = (wizardContext.get(filtersContextKey) || []: FiltersQuery);
+
   return (
     <div className={classes.root}>
       <div className={classes.searchBar}>
         <PowerSearchBar
           filterValues={filters}
           exportPath={showExport ? '/equipment' : null}
-          onFiltersChanged={setFilters}
+          onFiltersChanged={updateFilters}
           onFilterRemoved={handleFilterRemoved}
           onFilterBlurred={handleFilterBlurred}
           getSelectedFilter={(filterConfig: FilterConfig) =>

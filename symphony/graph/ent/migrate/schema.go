@@ -148,6 +148,7 @@ var (
 		{Name: "name", Type: field.TypeString},
 		{Name: "future_state", Type: field.TypeString, Nullable: true},
 		{Name: "device_id", Type: field.TypeString, Nullable: true},
+		{Name: "external_id", Type: field.TypeString, Nullable: true},
 		{Name: "type_id", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_id", Type: field.TypeInt, Nullable: true},
 		{Name: "parent_position_id", Type: field.TypeInt, Unique: true, Nullable: true},
@@ -161,28 +162,28 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "equipment_equipment_types_type",
-				Columns: []*schema.Column{EquipmentColumns[6]},
+				Columns: []*schema.Column{EquipmentColumns[7]},
 
 				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "equipment_work_orders_work_order",
-				Columns: []*schema.Column{EquipmentColumns[7]},
+				Columns: []*schema.Column{EquipmentColumns[8]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "equipment_equipment_positions_attachment",
-				Columns: []*schema.Column{EquipmentColumns[8]},
+				Columns: []*schema.Column{EquipmentColumns[9]},
 
 				RefColumns: []*schema.Column{EquipmentPositionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "equipment_locations_equipment",
-				Columns: []*schema.Column{EquipmentColumns[9]},
+				Columns: []*schema.Column{EquipmentColumns[10]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,

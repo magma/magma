@@ -12,6 +12,7 @@ import type {
   gateway_status,
   magmad_gateway_configs,
   symphony_agent,
+  symphony_device,
   symphony_device_config,
 } from '@fbcnms/magma-api';
 
@@ -46,12 +47,11 @@ export type DeviceStatus = {
 
 export type FullDevice = {
   id: string,
-  agentIds: string[], // list of agents that manage this device
   config: ?symphony_device_config,
+  managingAgentId: ?string,
   // status meta from agents are unstructured
   // eslint-disable-next-line flowtype/no-weak-types
   status: any,
-  statusAgentId: string, // agentId that reported the status
 };
 
 export function buildDevicesAgentFromPayload(
@@ -115,91 +115,38 @@ export const DEFAULT_MAGMAD_CONFIGS: magmad_gateway_configs = {
   checkin_timeout: 12,
 };
 
-/* get list of all devices from:
-        devices (any and all devices that should exist)
-        agent status (device is reporting info)
-        agent devmand config (device should be managed by someone)
-
-    In orc8r V1 API, this object would be returned natively in one API call
-    and this function would be completely deleted.
-  */
-export function mergeAgentsDevices(
-  agents: ?Array<DevicesAgent>,
-  devices: ?Array<string>,
-): {[key: string]: FullDevice} {
+export function augmentDevicesMap(devices: {
+  [string]: symphony_device,
+}): {[key: string]: FullDevice} {
   const devicemap = {};
-  if (devices) {
-    // get list of all 'valid' devices
-    devices.forEach(id => {
-      devicemap[id] = {
-        id,
-        agentIds: [],
-        config: null, // TODO: will exist after V1 of API
-        statusAgentId: null,
-        status: null,
-      };
-    });
-  }
 
-  if (agents) {
-    // gather "managed" devices
-    agents.forEach(agent => {
-      // map agent.devmand_config.managed_devices to devicemap[id].agentId
-      (agent.devmand_config?.managed_devices || []).forEach(id => {
-        if (id in devicemap) {
-          devicemap[id].agentIds.push(agent.id);
-        } else {
-          // If a device does not exist in devicemap,
-          //    then we're in an inconsistent state.
-          console.error(
-            `Warning agent ${agent.id} is configured to manage non-existing device ${id}`,
-          );
-        }
-      });
-    });
+  Object.keys(devices).map(id => {
+    const managingAgentId = devices[id]?.managing_agent;
 
-    // gather "managed" devices
-    agents.forEach(agent => {
-      // status meta from agents are unstructured
-      // eslint-disable-next-line flowtype/no-weak-types
-      let devmand: {[key: string]: any} = {};
+    /*
+    Currently, raw_state contains a JSON string using a YANG model. In the
+    future this string should be returned expanded and typed; this logic here
+    does the expansion on the client side while we figure out how to
+    autogenerate swagger and javascript types based on a YANG model.
 
+    The 'catch' clause is in case raw_state is published incorrectly, so the UI
+    can detect the error and display something sane.
+    */
+    let status = null;
+    if (devices[id].state?.raw_state) {
       try {
-        devmand = JSON.parse(agent.status?.meta?.devmand || '{}');
-      } catch (err) {
-        console.error(err);
-        return;
+        status = JSON.parse(devices[id].state?.raw_state || '{}');
+      } catch (e) {
+        status = devices[id].state;
       }
+    }
 
-      Object.keys(devmand)
-        .filter(id => devmand[id])
-        .map(id => {
-          const status = devmand[id];
-          if (!(id in devicemap)) {
-            // If a device does not exist in devicemap,
-            //   then we're in an inconsistent state, but display it anyway
-            console.error(
-              `Warning agent ${agent.id} is reporting state for non-existing device ${id}`,
-            );
-            // display it anyway because it's interesting
-            devicemap[id] = {
-              id,
-              agentIds: [],
-              config: null,
-              status,
-              statusAgentId: agent.id,
-            };
-          } else {
-            if (devicemap[id].status) {
-              console.error(
-                `Warning: device id ${id} managed by multiple devices`,
-              );
-            }
-            devicemap[id].status = status;
-            devicemap[id].statusAgentId = agent.id;
-          }
-        });
-    });
-  }
+    devicemap[id] = {
+      id,
+      managingAgentId,
+      config: devices[id].config,
+      status,
+    };
+  });
   return devicemap;
 }
