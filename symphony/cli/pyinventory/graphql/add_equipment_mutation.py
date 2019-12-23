@@ -52,6 +52,7 @@ class AddEquipmentInput:
     parent: Optional[str] = None
     positionDefinition: Optional[str] = None
     workOrder: Optional[str] = None
+    externalId: Optional[str] = None
 
 
 @dataclass_json

@@ -42,7 +42,7 @@ export default function DeviceStatusCircle(props: Props) {
     );
   } else {
     return (
-      <span className={classes.status} style={{backgroundColor: '#fa3a3f'}} />
+      <span className={classes.status} style={{border: '2px solid #fa3a3f'}} />
     );
   }
 }

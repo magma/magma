@@ -9,10 +9,7 @@
  */
 
 import {RAW_AGENT, RAW_DEVICES} from '../test/DevicesMock';
-import {
-  buildDevicesAgentFromPayload,
-  mergeAgentsDevices,
-} from '../DevicesUtils';
+import {augmentDevicesMap, buildDevicesAgentFromPayload} from '../DevicesUtils';
 
 it('disect agent', () => {
   const agent = buildDevicesAgentFromPayload(
@@ -46,95 +43,205 @@ it('test merging devices and agents calls', () => {
     managed_devices.push('nonexistdevice_but_ok_to_ignore');
   }
 
-  const devicesAgents = mergeAgentsDevices([agent], Object.keys(RAW_DEVICES));
+  const devicesAgents = augmentDevicesMap(RAW_DEVICES);
 
   expect(devicesAgents).toEqual({
     ens_switch_1: {
       id: 'ens_switch_1',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          cambium_channel: {
+            client_id: 'randomid',
+            client_ip: '10.0.0.1',
+            client_mac: '58:C1:7A:90:36:50',
+            client_secret: 'randomsecret',
+          },
+          frinx_channel: {
+            authorization: 'Basic auth',
+            device_type: 'ios',
+            device_version: '15.2',
+            frinx_port: 8181,
+            host: 'frinx',
+            password: 'frinx',
+            port: 23,
+            transport_type: 'telnet',
+            username: 'username',
+          },
+          other_channel: {},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_config: '{}',
+        device_type: ['snmp'],
+        host: '2620:10d:c089:1:822a:a8ff:fe1c:d3c1',
+        platform: 'snmp',
+      },
       status: null,
     },
     localhost_snmpd: {
       id: 'localhost_snmpd',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          cambium_channel: {
+            client_id: 'randomid',
+            client_ip: '10.0.0.1',
+            client_mac: '58:C1:7A:90:36:50',
+            client_secret: 'randomsecret',
+          },
+          frinx_channel: {
+            authorization: 'Basic auth',
+            device_type: 'ios',
+            device_version: '15.2',
+            frinx_port: 8181,
+            host: 'frinx',
+            password: 'frinx',
+            port: 23,
+            transport_type: 'telnet',
+            username: 'username',
+          },
+          other_channel: {},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_config: '{}',
+        device_type: ['snmp'],
+        host: '127.0.0.1',
+        platform: 'snmp',
+      },
       status: null,
     },
     mikrotik: {
       id: 'mikrotik',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          other_channel: {channel_props: {password: '', username: 'admin'}},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_type: [],
+        host: '192.168.90.1',
+        platform: 'mikrotik',
+      },
       status: null,
     },
     ping_fb_dns_from_lab: {
       id: 'ping_fb_dns_from_lab',
-      agentIds: ['fbbosfbcdockerengine'],
-      config: null,
-      statusAgentId: 'fbbosfbcdockerengine',
-      status: {
-        'fbc-symphony-device:system': {
-          'geo-location': {
-            'reference-frame': {
-              'astronomical-body': 'earth',
-              'geodetic-system': {'geodetic-datum': 'wgs-84'},
-            },
-            latitude: 0,
-            longitude: 0,
-            height: 0,
-          },
-          latencies: {
-            latency: [{type: 'ping', src: 'agent', dst: 'device', rtt: 11797}],
-          },
-          status: 'UP',
-        },
+      managingAgentId: 'fbbosfbcdockerengine',
+      config: {
+        channels: {},
+        device_config: '{}',
+        device_type: [],
+        host: '192.168.96.18',
+        platform: 'ping',
       },
+      status: null,
     },
     ping_fb_dns_ken_laptop: {
       id: 'ping_fb_dns_ken_laptop',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          cambium_channel: {
+            client_id: 'randomid',
+            client_ip: '10.0.0.1',
+            client_mac: '58:C1:7A:90:36:50',
+            client_secret: 'randomsecret',
+          },
+          frinx_channel: {
+            authorization: 'Basic auth',
+            device_type: 'ios',
+            device_version: '15.2',
+            frinx_port: 8181,
+            host: 'frinx',
+            password: 'frinx',
+            port: 23,
+            transport_type: 'telnet',
+            username: 'username',
+          },
+          other_channel: {},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_config: '{}',
+        device_type: ['snmp'],
+        host: '192.168.96.18',
+        platform: 'ping',
+      },
       status: null,
     },
     ping_google_ipv6: {
       id: 'ping_google_ipv6',
-      agentIds: ['fbbosfbcdockerengine'],
-      config: null,
-      statusAgentId: 'fbbosfbcdockerengine',
-      status: {
-        'fbc-symphony-device:system': {
-          status: 'UP',
-          latencies: {
-            latency: [{rtt: 12296, dst: 'device', src: 'agent', type: 'ping'}],
-          },
-          'geo-location': {
-            height: 0,
-            longitude: 0,
-            latitude: 0,
-            'reference-frame': {
-              'geodetic-system': {'geodetic-datum': 'wgs-84'},
-              'astronomical-body': 'earth',
-            },
-          },
-        },
+      managingAgentId: 'fbbosfbcdockerengine',
+      config: {
+        channels: {},
+        device_config: '{}',
+        device_type: [],
+        host: '2607:f8b0:4004:814::200e',
+        platform: 'ping',
       },
+      status: null,
     },
     ping_google_ipv6_ken_laptop: {
       id: 'ping_google_ipv6_ken_laptop',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          cambium_channel: {
+            client_id: 'randomid',
+            client_ip: '10.0.0.1',
+            client_mac: '58:C1:7A:90:36:50',
+            client_secret: 'randomsecret',
+          },
+          frinx_channel: {
+            authorization: 'Basic auth',
+            device_type: 'ios',
+            device_version: '15.2',
+            frinx_port: 8181,
+            host: 'frinx',
+            password: 'frinx',
+            port: 23,
+            transport_type: 'telnet',
+            username: 'username',
+          },
+          other_channel: {},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_config: '{}',
+        device_type: ['snmp'],
+        host: '2607:f8b0:4004:803::200e',
+        platform: 'ping',
+      },
       status: null,
     },
     ubnt: {
       id: 'ubnt',
-      agentIds: [],
-      config: null,
-      statusAgentId: null,
+      managingAgentId: '',
+      config: {
+        channels: {
+          cambium_channel: {
+            client_id: 'randomid',
+            client_ip: '10.0.0.1',
+            client_mac: '58:C1:7A:90:36:50',
+            client_secret: 'randomsecret',
+          },
+          frinx_channel: {
+            authorization: 'Basic auth',
+            device_type: 'ios',
+            device_version: '15.2',
+            frinx_port: 8181,
+            host: 'frinx',
+            password: 'frinx',
+            port: 23,
+            transport_type: 'telnet',
+            username: 'username',
+          },
+          other_channel: {},
+          snmp_channel: {community: 'public', version: 'v1'},
+        },
+        device_config: '{}',
+        device_type: ['snmp'],
+        host: '192.168.88.253',
+        platform: 'Ubnt',
+      },
       status: null,
     },
   });

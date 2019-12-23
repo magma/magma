@@ -12,6 +12,7 @@ import type {EntityConfig} from './ComparisonViewTypes';
 
 import PowerSearchEquipmentTypeFilter from './PowerSearchEquipmentTypeFilter';
 import PowerSearchLinkFutureStateFilter from './PowerSearchLinkFutureStateFilter';
+import PowerSearchLinkServiceNameFilter from './PowerSearchLinkServiceNameFilter';
 
 const LinkCriteriaConfig: Array<EntityConfig> = [
   {
@@ -33,6 +34,14 @@ const LinkCriteriaConfig: Array<EntityConfig> = [
         label: 'Equipment Type',
         component: PowerSearchEquipmentTypeFilter,
         defaultOperator: 'is_one_of',
+      },
+      {
+        key: 'service_inst',
+        name: 'service_inst',
+        entityType: 'link',
+        label: 'Used by Service',
+        component: PowerSearchLinkServiceNameFilter,
+        defaultOperator: 'contains',
       },
     ],
   },

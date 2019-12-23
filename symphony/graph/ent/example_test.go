@@ -244,6 +244,7 @@ func ExampleEquipment() {
 		SetName("string").
 		SetFutureState("string").
 		SetDeviceID("string").
+		SetExternalID("string").
 		SetType(et0).
 		AddPositions(ep3).
 		AddPorts(ep4).
@@ -547,6 +548,7 @@ func ExampleEquipmentPosition() {
 		SetName("string").
 		SetFutureState("string").
 		SetDeviceID("string").
+		SetExternalID("string").
 		SaveX(ctx)
 	log.Println("equipment created:", e2)
 
@@ -1019,6 +1021,7 @@ func ExampleLocation() {
 		SetName("string").
 		SetFutureState("string").
 		SetDeviceID("string").
+		SetExternalID("string").
 		SaveX(ctx)
 	log.Println("equipment created:", e4)
 	pr5 := client.Property.
@@ -1376,6 +1379,7 @@ func ExampleProperty() {
 		SetName("string").
 		SetFutureState("string").
 		SetDeviceID("string").
+		SetExternalID("string").
 		SaveX(ctx)
 	log.Println("equipment created:", e8)
 	l9 := client.Location.
@@ -1521,6 +1525,7 @@ func ExampleService() {
 		SetName("string").
 		SetFutureState("string").
 		SetDeviceID("string").
+		SetExternalID("string").
 		SaveX(ctx)
 	log.Println("equipment created:", e4)
 	l5 := client.Link.

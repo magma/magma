@@ -37,7 +37,7 @@ func (er servicesRower) rows(ctx context.Context, url *url.URL) ([][]string, err
 	var (
 		err         error
 		filterInput []*models.ServiceFilterInput
-		dataHeader  = [...]string{bom + "Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID"}
+		dataHeader  = [...]string{bom + "Service ID", "Service Name", "Service Type", "Service External ID", "Customer Name", "Customer External ID", "Status"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {
@@ -123,7 +123,7 @@ func serviceToSlice(ctx context.Context, service *ent.Service, propertyTypes []s
 		return nil, err
 	}
 
-	row := []string{service.ID, service.Name, serviceType, externalID, customerName, customerExternalID}
+	row := []string{service.ID, service.Name, serviceType, externalID, customerName, customerExternalID, service.Status}
 	row = append(row, properties...)
 	return row, nil
 }

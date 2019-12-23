@@ -17,6 +17,11 @@ type Client struct {
 	executor *executor.Executor
 }
 
+// NewClient returns a new executor client
+func NewClient(exec *executor.Executor) *Client {
+	return &Client{exec}
+}
+
 // ActionForID delegates to executor.Registry.ActionForID
 func (c *Client) ActionForID(str core.ActionID) (core.Action, error) {
 	return c.executor.Registry.ActionForID(str)

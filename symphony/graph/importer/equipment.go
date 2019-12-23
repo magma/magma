@@ -133,7 +133,7 @@ func (m *importer) processEquipmentCSV(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			_, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), equipName, et, loc, nil, propertyInput)
+			_, _, err = m.getOrCreateEquipment(ctx, m.r.Mutation(), equipName, et, nil, loc, nil, propertyInput)
 			if err != nil {
 				log.Warn("error while creating equipment", zap.String("equipment name", equipName), zap.Error(err))
 				http.Error(w, fmt.Sprintf("row %d: error while creating equipment (namew=%s): %s", i, equipName, err.Error()), http.StatusInternalServerError)

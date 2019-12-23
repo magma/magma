@@ -9,16 +9,18 @@
  */
 
 import type {Equipment} from '../../common/Equipment';
-import type {TopologyNetwork} from '../../common/NetworkTopology';
+import type {ServiceEquipmentTopology_topology} from './__generated__/ServiceEquipmentTopology_topology.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
+import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
+import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import ForceNetworkTopology from '../topology/ForceNetworkTopology';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
-  topology: TopologyNetwork,
+  topology: ServiceEquipmentTopology_topology,
   terminationPoints: Array<Equipment>,
 } & WithStyles<typeof styles>;
 
@@ -31,12 +33,23 @@ const styles = _ => ({
 
 const ServiceEquipmentTopology = (props: Props) => {
   const {topology, terminationPoints, classes} = props;
+  const rootIds = terminationPoints.map(eq => eq.id);
   return (
     <div className={classes.card}>
       <ForceNetworkTopology
-        networkTopology={topology}
-        rootIds={terminationPoints.map(eq => eq.id)}
+        topology={topology}
         className={classes.card}
+        renderNode={(id: string) =>
+          rootIds.includes(id) ? (
+            <ActiveEquipmentInLocationIcon />
+          ) : (
+            <ActiveEquipmentIcon />
+          )
+        }
+        renderNodeName={(id: string) => {
+          const nodes = topology.nodes.filter(node => node.id === id);
+          return nodes[0].name;
+        }}
       />
     </div>
   );
@@ -47,13 +60,12 @@ export default withStyles(styles)(
     topology: graphql`
       fragment ServiceEquipmentTopology_topology on NetworkTopology {
         nodes {
-          id
-          name
+          ... on Equipment {
+            id
+            name
+          }
         }
-        links {
-          source
-          target
-        }
+        ...ForceNetworkTopology_topology
       }
     `,
     terminationPoints: graphql`

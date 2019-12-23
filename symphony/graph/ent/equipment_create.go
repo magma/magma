@@ -34,6 +34,7 @@ type EquipmentCreate struct {
 	name            *string
 	future_state    *string
 	device_id       *string
+	external_id     *string
 	_type           map[string]struct{}
 	location        map[string]struct{}
 	parent_position map[string]struct{}
@@ -103,6 +104,20 @@ func (ec *EquipmentCreate) SetDeviceID(s string) *EquipmentCreate {
 func (ec *EquipmentCreate) SetNillableDeviceID(s *string) *EquipmentCreate {
 	if s != nil {
 		ec.SetDeviceID(*s)
+	}
+	return ec
+}
+
+// SetExternalID sets the external_id field.
+func (ec *EquipmentCreate) SetExternalID(s string) *EquipmentCreate {
+	ec.external_id = &s
+	return ec
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ec *EquipmentCreate) SetNillableExternalID(s *string) *EquipmentCreate {
+	if s != nil {
+		ec.SetExternalID(*s)
 	}
 	return ec
 }
@@ -380,6 +395,14 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 			Column: equipment.FieldDeviceID,
 		})
 		e.DeviceID = *value
+	}
+	if value := ec.external_id; value != nil {
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipment.FieldExternalID,
+		})
+		e.ExternalID = *value
 	}
 	if nodes := ec._type; len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

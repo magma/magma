@@ -323,3 +323,8 @@ func (m *importer) trimLine(line []string) []string {
 	}
 	return line
 }
+
+func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
+	log.Warn(msg, zap.Error(err))
+	http.Error(w, msg, http.StatusUnprocessableEntity)
+}

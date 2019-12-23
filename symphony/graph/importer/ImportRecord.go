@@ -96,6 +96,10 @@ func (l ImportRecord) PortEquipmentTypeName() string {
 	return ""
 }
 
+func (l ImportRecord) ExternalID() string {
+	return l.line[l.title.ExternalIDIdx()]
+}
+
 func (l ImportRecord) ThirdParent() string {
 	return l.line[l.title.ThirdParentIdx()]
 }
@@ -142,4 +146,9 @@ func (l ImportRecord) CustomerName() string {
 // CustomerExternalID is the external id of customer that uses the services
 func (l ImportRecord) CustomerExternalID() string {
 	return l.line[l.title.CustomerExternalIDIdx()]
+}
+
+// Status is the status of the service (can be of types enum ServiceType in graphql)
+func (l ImportRecord) Status() string {
+	return l.line[l.title.StatusIdx()]
 }

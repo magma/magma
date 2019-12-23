@@ -292,7 +292,7 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-    def clean_up(self):
+    def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
         # block until changes propagate
@@ -368,6 +368,11 @@ class MobilityUtil(object):
         """
         removed_blocks = self._mobility_client.remove_ip_blocks(blocks)
         return removed_blocks
+
+    def cleanup(self):
+        """ Cleanup added IP blocks """
+        blocks = self.list_ip_blocks()
+        self.remove_ip_blocks(blocks)
 
     def wait_for_changes(self):
         self._mobility_client.wait_for_changes()

@@ -190,7 +190,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 		for _, leq := range leqs {
 			root := t.rootNode(ctx, leq)
 			key := t.hkey(eq.ID, root.ID)
-			value := &models.TopologyLink{Source: eq.ID, Target: root.ID}
+			value := &models.TopologyLink{Type: models.TopologyLinkTypePhysical, Source: eq, Target: root}
 			if _, loaded := t.links.LoadOrStore(key, value); !loaded {
 				g.Go(func(ctx context.Context) error {
 					return t.build(ctx, root, depth+1)
@@ -202,7 +202,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 }
 
 func (t *topologist) topology() *models.NetworkTopology {
-	var nodes []*ent.Equipment
+	var nodes []ent.Noder
 	t.equipment.Range(func(_, value interface{}) bool {
 		nodes = append(nodes, value.(*ent.Equipment))
 		return true

@@ -84,7 +84,7 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 		return nil, errors.Wrap(err, "querying links equipments")
 	}
 
-	var nodes []*ent.Equipment
+	var nodes []ent.Noder
 	eqsMap := make(map[string]*ent.Equipment)
 	for _, eq := range eqs {
 		node := r.rootNode(ctx, eq)
@@ -121,7 +121,7 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 		}
 		node0 := r.rootNode(ctx, leqs[0])
 		node1 := r.rootNode(ctx, leqs[1])
-		links = append(links, &models.TopologyLink{Source: node0.ID, Target: node1.ID})
+		links = append(links, &models.TopologyLink{Type: models.TopologyLinkTypePhysical, Source: node0, Target: node1})
 	}
 
 	return &models.NetworkTopology{Nodes: nodes, Links: links}, nil

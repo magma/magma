@@ -40,10 +40,26 @@ func (m *importer) processPortDefinitionsCSV(w http.ResponseWriter, r *http.Requ
 		equipmentTypeNameToID := getImportContext(ctx).equipmentTypeNameToID
 
 		portNameIndex := findIndex(firstLine, "Port_ID")
+		if portNameIndex == -1 {
+			errorReturn(w, "Couldn't find 'Port_ID' title", log, nil)
+			return
+		}
 		portTypeIndex := findIndex(firstLine, "Port_Type")
 		portBWIndex := findIndex(firstLine, "Port_Bandwidth")
+		if portBWIndex == -1 {
+			errorReturn(w, "Couldn't find 'Port_Bandwidth' title", log, nil)
+			return
+		}
 		portLabelIndex := findIndex(firstLine, "Port_Visible_Label")
+		if portLabelIndex == -1 {
+			errorReturn(w, "Couldn't find 'Port_Visible_Label' title", log, nil)
+			return
+		}
 		equipmentTypeNameIndex := findIndex(firstLine, "Equipment_Type")
+		if equipmentTypeNameIndex == -1 {
+			errorReturn(w, "Couldn't find 'Equipment_Type' title", log, nil)
+			return
+		}
 		for {
 			line, err := reader.Read()
 			if err != nil {

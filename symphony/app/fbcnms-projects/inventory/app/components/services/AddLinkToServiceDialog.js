@@ -24,6 +24,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import {graphql} from 'react-relay';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
@@ -226,7 +227,9 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
           )}
         </DialogTitle>
         <DialogContent div className={classes.root}>
-          <div className={classes.content}>{this.getStepContent()}</div>
+          <WizardContextProvider>
+            <div className={classes.content}>{this.getStepContent()}</div>
+          </WizardContextProvider>
         </DialogContent>
         <DialogActions>
           {!lastStep && (

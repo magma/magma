@@ -88,6 +88,8 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				http.Error(w, fmt.Sprintf("couldn't find equipment type %q (row #%d). %q ", equipTypName, numRows, err), http.StatusBadRequest)
 				return
 			}
+
+			externalID := importLine.ExternalID()
 			id := importLine.ID()
 			if id == "" {
 				// new equip
@@ -121,7 +123,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					http.Error(w, fmt.Sprintf("creating equipment position (row #%d). %q", numRows, err), http.StatusBadRequest)
 					return
 				}
-				equip, created, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, parentLoc, pos, propInputs)
+				equip, created, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
 				if err != nil {
 					log.Warn("creating/fetching equipment", zap.Error(err), zap.Int("line_number", numRows), importLine.ZapField())
 					http.Error(w, fmt.Sprintf("creating/fetching equipment (row #%d). %q", numRows, err), http.StatusBadRequest)
@@ -164,7 +166,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					}
 					inputs = append(inputs, inp)
 				}
-				_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs})
+				_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
 				if err != nil {
 					log.Warn("editing equipment", zap.Error(err), importLine.ZapField())
 					http.Error(w, fmt.Sprintf("editing equipment: id %q (row #%d). %q: ", id, numRows, err), http.StatusBadRequest)
@@ -203,16 +205,16 @@ func (m *importer) inputValidations(ctx context.Context, importHeader ImportHead
 	firstLine := importHeader.line
 	prnt3Idx := importHeader.prnt3Idx
 	if len(firstLine) < minimalEquipmentLineLength {
-		return errors.New("first line too short. should include: 'Equipment ID', 'Equipment Name' or 'Equipment Type', location types and parents")
+		return errors.New("first line too short. should include: 'Equipment ID', 'Equipment Name', 'Equipment Type', 'External ID' location types and parents")
 	}
 	locStart, _ := importHeader.LocationsRangeIdx()
-	if !equal(firstLine[:locStart], []string{"Equipment ID", "Equipment Name", "Equipment Type"}) {
-		return errors.New("first line misses sequence; 'Equipment ID', 'Equipment Name' or 'Equipment Type'")
+	if !equal(firstLine[:locStart], []string{"Equipment ID", "Equipment Name", "Equipment Type", "External ID"}) {
+		return errors.New("first line misses sequence; 'Equipment ID', 'Equipment Name' or 'Equipment Type' , 'External ID'")
 	}
 	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Position (3)", "Parent Equipment (2)", "Position (2)", "Parent Equipment", "Equipment Position"}) {
 		return errors.New("first line misses sequence: 'Parent Equipment(3)', 'Position (3)', 'Parent Equipment (2)', 'Position (2)', 'Parent Equipment' or 'Equipment Position'")
 	}
-	err := m.validateAllLocationTypeExist(ctx, 3, importHeader.LocationTypesRangeArr(), false)
+	err := m.validateAllLocationTypeExist(ctx, importHeader.ExternalIDIdx()+1, importHeader.LocationTypesRangeArr(), false)
 	return err
 }
 

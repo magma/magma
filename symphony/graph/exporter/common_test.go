@@ -43,7 +43,7 @@ const (
 	propNameStr         = "propNameStr"
 	propNameDate        = "propNameDate"
 	propNameBool        = "propNameBool"
-	propNameInt         = "propNameInts"
+	propNameInt         = "propNameInt"
 	externalIDL         = "11"
 	externalIDM         = "22"
 	lat                 = 32.109
@@ -246,6 +246,7 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		Type:               equipmentType2.ID,
 		Parent:             &parentEquipment.ID,
 		PositionDefinition: &posDef1.ID,
+		ExternalID:         pointer.ToString(externalIDM),
 		Properties:         []*models.PropertyInput{&propInstance1},
 	})
 	require.NoError(t, err)

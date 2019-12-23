@@ -51,6 +51,7 @@ func TestEmptyDataExport(t *testing.T) {
 			"\ufeffEquipment ID",
 			nameTitle,
 			"Equipment Type",
+			"External ID",
 			"Parent Equipment (3)",
 			"Position (3)",
 			"Parent Equipment (2)",
@@ -94,6 +95,7 @@ func TestExport(t *testing.T) {
 				"\ufeffEquipment ID",
 				nameTitle,
 				"Equipment Type",
+				"External ID",
 				locTypeNameL,
 				locTypeNameM,
 				locTypeNameS,
@@ -111,6 +113,7 @@ func TestExport(t *testing.T) {
 			require.EqualValues(t, ln[1:], []string{
 				parentEquip,
 				equipmentTypeName,
+				"",
 				grandParentLocation,
 				parentLocation,
 				childLocation,
@@ -128,6 +131,7 @@ func TestExport(t *testing.T) {
 			require.EqualValues(t, ln[1:], []string{
 				currEquip,
 				equipmentType2Name,
+				externalIDM,
 				grandParentLocation,
 				parentLocation,
 				childLocation,
@@ -199,6 +203,7 @@ func TestExportWithFilters(t *testing.T) {
 			require.EqualValues(t, []string{
 				parentEquip,
 				equipmentTypeName,
+				"",
 				grandParentLocation,
 				parentLocation,
 				childLocation,

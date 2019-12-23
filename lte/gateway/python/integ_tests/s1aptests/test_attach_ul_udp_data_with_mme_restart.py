@@ -23,7 +23,7 @@ class TestAttachUlUdpDataWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_ul_udp_data(self):
-        """ Attach and send UL UDP data """
+        """ Attach, send UL UDP data, restart MME and send UL UDP data again"""
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         print("************************* Running End to End attach for ",

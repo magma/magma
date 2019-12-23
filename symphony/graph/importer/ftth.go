@@ -207,7 +207,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 						StringValue:    &equipStatus,
 					})
 				}
-				equip, _, _ := m.getOrCreateEquipment(ctx, mr, equipName, equipType, site, nil, equipProps)
+				equip, _, _ := m.getOrCreateEquipment(ctx, mr, equipName, equipType, nil, site, nil, equipProps)
 
 				var statusVal string
 				if hasgbic := line[7] != ""; hasgbic {
@@ -228,7 +228,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 					QueryPositions().
 					Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.Name(posName))).
 					OnlyX(ctx)
-				card, _, _ := m.getOrCreateEquipment(ctx, mr, cardName, card16Type, nil, position, cardProps)
+				card, _, _ := m.getOrCreateEquipment(ctx, mr, cardName, card16Type, nil, nil, position, cardProps)
 				if card == nil {
 					log.Warn("failed to create card", zap.Int("row", row), zap.String("cardName", cardName), zap.String("position", position.ID))
 					return
@@ -279,7 +279,7 @@ func (m *importer) ProcessFTTHCSV(w http.ResponseWriter, r *http.Request) {
 				}
 
 				splitterType := client.EquipmentType.Query().Where(equipmenttype.Name("Splitter 1:" + splitterSizeStr)).OnlyX(ctx)
-				splitter, _, _ := m.getOrCreateEquipment(ctx, mr, splitterName, splitterType, manhole, nil, nil)
+				splitter, _, _ := m.getOrCreateEquipment(ctx, mr, splitterName, splitterType, nil, manhole, nil, nil)
 
 				for i := 0; i < splitterSizeInt; i++ {
 					splitterOutPortName := "out" + strconv.Itoa(i+1)
@@ -375,7 +375,7 @@ func (m importer) linkBuildingAndManholePorts(ctx context.Context, bldgPort *ent
 func (m *importer) getOrCreateBuildingInPort(ctx context.Context, bldg *ent.Location, sPSize int, name string) *ent.EquipmentPort {
 	client, mr := m.ClientFrom(ctx), m.r.Mutation()
 	bldgPortType := client.EquipmentType.Query().Where(equipmenttype.Name(fmt.Sprintf("Splitter 2:%d", sPSize))).OnlyX(ctx)
-	bldgPortEquipment, _, _ := m.getOrCreateEquipment(ctx, mr, name, bldgPortType, bldg, nil, nil)
+	bldgPortEquipment, _, _ := m.getOrCreateEquipment(ctx, mr, name, bldgPortType, nil, bldg, nil, nil)
 	if bldgPortEquipment == nil {
 		return nil
 	}

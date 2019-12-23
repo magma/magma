@@ -173,7 +173,7 @@ func (m *importer) getOrCreateLocation(ctx context.Context, name string, latitud
 	return l, true
 }
 
-func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
+func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.MutationResolver, name string, equipType *ent.EquipmentType, externalID *string, loc *ent.Location, position *ent.EquipmentPosition, props []*models.PropertyInput) (*ent.Equipment, bool, error) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.EquipmentType.Query().
@@ -225,6 +225,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 		Parent:             parentEquipmentID,
 		PositionDefinition: positionDefinitionID,
 		Properties:         props,
+		ExternalID:         externalID,
 	})
 	if err != nil {
 		log.Error("add equipment", zap.String("name", name), zap.Error(err))
@@ -236,7 +237,7 @@ func (m *importer) getOrCreateEquipment(ctx context.Context, mr generated.Mutati
 }
 
 func (m *importer) getOrCreateService(
-	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string) (*ent.Service, bool) {
+	ctx context.Context, mr generated.MutationResolver, name string, serviceType *ent.ServiceType, props []*models.PropertyInput, customerID *string, externalID *string, status models.ServiceStatus) (*ent.Service, bool) {
 	log := m.log.For(ctx)
 	client := m.ClientFrom(ctx)
 	rq := client.ServiceType.Query().
@@ -261,7 +262,7 @@ func (m *importer) getOrCreateService(
 		Name:          name,
 		ServiceTypeID: serviceType.ID,
 		Properties:    props,
-		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Status:        pointerToServiceStatus(status),
 		CustomerID:    customerID,
 		ExternalID:    externalID,
 	})

@@ -149,6 +149,7 @@ function RuleRow(props: {rule: ActionsListCard_actionsRule$key}) {
             trigger={rule.trigger}
             rule={{
               id: rule.id,
+              name: rule.name,
               ruleActions: rule.ruleActions
                 .filter(Boolean)
                 .map(a => ({...a, data: JSON.parse(a.data)})),

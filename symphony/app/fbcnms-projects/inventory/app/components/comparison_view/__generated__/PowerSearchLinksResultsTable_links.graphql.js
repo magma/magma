@@ -101,6 +101,10 @@ export type PowerSearchLinksResultsTable_links = $ReadOnlyArray<{|
     +id: string,
     +status: WorkOrderStatus,
   |},
+  +services: $ReadOnlyArray<?{|
+    +id: string,
+    +name: string,
+  |}>,
   +$refType: PowerSearchLinksResultsTable_links$ref,
 |}>;
 export type PowerSearchLinksResultsTable_links$data = PowerSearchLinksResultsTable_links;
@@ -216,7 +220,11 @@ v14 = {
   "name": "isInstanceProperty",
   "args": null,
   "storageKey": null
-};
+},
+v15 = [
+  (v0/*: any*/),
+  (v2/*: any*/)
+];
 return {
   "kind": "Fragment",
   "name": "PowerSearchLinksResultsTable_links",
@@ -351,10 +359,7 @@ return {
                       "args": null,
                       "concreteType": "EquipmentPortType",
                       "plural": false,
-                      "selections": [
-                        (v0/*: any*/),
-                        (v2/*: any*/)
-                      ]
+                      "selections": (v15/*: any*/)
                     }
                   ]
                 }
@@ -431,10 +436,20 @@ return {
           "storageKey": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "services",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": true,
+      "selections": (v15/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '8273986dcdb823c1311ba256c7cc3b34';
+(node/*: any*/).hash = '1f762af83fe696ca157c3697b4b35e8b';
 module.exports = node;

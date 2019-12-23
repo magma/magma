@@ -42,12 +42,12 @@ export default function ActionsList() {
           <Button
             variant="text"
             onClick={() => history.push('/automation/actions')}>
-            Add Actions
+            Create Rule
           </Button>
         </div>
       </ActionsHead>
       <div className={classes.main}>
-        <Text variant="h6">Existing Actions</Text>
+        <Text variant="h6">Existing Rules</Text>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <ActionsListCard />

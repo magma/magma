@@ -30,6 +30,8 @@ type Equipment struct {
 	FutureState string `json:"future_state,omitempty"`
 	// DeviceID holds the value of the "device_id" field.
 	DeviceID string `json:"device_id,omitempty"`
+	// ExternalID holds the value of the "external_id" field.
+	ExternalID string `json:"external_id,omitempty"`
 }
 
 // FromRows scans the sql response data into Equipment.
@@ -41,6 +43,7 @@ func (e *Equipment) FromRows(rows *sql.Rows) error {
 		Name        sql.NullString
 		FutureState sql.NullString
 		DeviceID    sql.NullString
+		ExternalID  sql.NullString
 	}
 	// the order here should be the same as in the `equipment.Columns`.
 	if err := rows.Scan(
@@ -50,6 +53,7 @@ func (e *Equipment) FromRows(rows *sql.Rows) error {
 		&scane.Name,
 		&scane.FutureState,
 		&scane.DeviceID,
+		&scane.ExternalID,
 	); err != nil {
 		return err
 	}
@@ -59,6 +63,7 @@ func (e *Equipment) FromRows(rows *sql.Rows) error {
 	e.Name = scane.Name.String
 	e.FutureState = scane.FutureState.String
 	e.DeviceID = scane.DeviceID.String
+	e.ExternalID = scane.ExternalID.String
 	return nil
 }
 
@@ -140,6 +145,8 @@ func (e *Equipment) String() string {
 	builder.WriteString(e.FutureState)
 	builder.WriteString(", device_id=")
 	builder.WriteString(e.DeviceID)
+	builder.WriteString(", external_id=")
+	builder.WriteString(e.ExternalID)
 	builder.WriteByte(')')
 	return builder.String()
 }

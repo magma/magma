@@ -28,6 +28,8 @@ const (
 	FieldFutureState = "future_state"
 	// FieldDeviceID holds the string denoting the device_id vertex property in the database.
 	FieldDeviceID = "device_id"
+	// FieldExternalID holds the string denoting the external_id vertex property in the database.
+	FieldExternalID = "external_id"
 
 	// Table holds the table name of the equipment in the database.
 	Table = "equipment"
@@ -102,6 +104,7 @@ var Columns = []string{
 	FieldName,
 	FieldFutureState,
 	FieldDeviceID,
+	FieldExternalID,
 }
 
 var (

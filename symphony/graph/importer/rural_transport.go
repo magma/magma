@@ -150,7 +150,7 @@ func (m *importer) ProcessRuralTransportCSV(w http.ResponseWriter, r *http.Reque
 					},
 				}
 				// create specific BTS Equipment types
-				m.getOrCreateEquipment(ctx, mr, nombreNodoVal+"_SAT", vsatEquipmentType, estacion, nil, vsatPropertyInput)
+				m.getOrCreateEquipment(ctx, mr, nombreNodoVal+"_SAT", vsatEquipmentType, nil, estacion, nil, vsatPropertyInput)
 			case "FO":
 				fallthrough
 			case "MW":
@@ -188,7 +188,7 @@ func (m *importer) ProcessRuralTransportCSV(w http.ResponseWriter, r *http.Reque
 					},
 				}
 				// create specific BTS Equipment types
-				m.getOrCreateEquipment(ctx, mr, nombreNodoVal+"_"+transportType, foEquipmentType, estacion, nil, vsatPropertyInput)
+				m.getOrCreateEquipment(ctx, mr, nombreNodoVal+"_"+transportType, foEquipmentType, nil, estacion, nil, vsatPropertyInput)
 			}
 
 			energyPropertyInput := []*models.PropertyInput{
@@ -204,7 +204,7 @@ func (m *importer) ProcessRuralTransportCSV(w http.ResponseWriter, r *http.Reque
 				},
 			}
 
-			m.getOrCreateEquipment(ctx, mr, energyType+" Energia", energyEquipmentType, estacion, nil, energyPropertyInput)
+			m.getOrCreateEquipment(ctx, mr, energyType+" Energia", energyEquipmentType, nil, estacion, nil, energyPropertyInput)
 		}
 		log.Debug("Done!!")
 		w.WriteHeader(http.StatusOK)

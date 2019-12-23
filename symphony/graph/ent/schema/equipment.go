@@ -193,6 +193,8 @@ func (Equipment) Fields() []ent.Field {
 			Optional(),
 		field.String("device_id").
 			Optional(),
+		field.String("external_id").
+			Optional(),
 	}
 }
 
