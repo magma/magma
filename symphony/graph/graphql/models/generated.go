@@ -853,15 +853,17 @@ type CommentEntity string
 
 const (
 	CommentEntityWorkOrder CommentEntity = "WORK_ORDER"
+	CommentEntityProject   CommentEntity = "PROJECT"
 )
 
 var AllCommentEntity = []CommentEntity{
 	CommentEntityWorkOrder,
+	CommentEntityProject,
 }
 
 func (e CommentEntity) IsValid() bool {
 	switch e {
-	case CommentEntityWorkOrder:
+	case CommentEntityWorkOrder, CommentEntityProject:
 		return true
 	}
 	return false

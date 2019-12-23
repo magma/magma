@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1037b4c197eb259606351cd496aaa1da
+ * @relayHash 9a7a269ba2b87fa44be1bdaeba3f4926
  */
 
 /* eslint-disable */
@@ -41,6 +41,15 @@ query ProjectCardQuery(
     ...ProjectDetails_project
     id
   }
+}
+
+fragment CommentsBox_comments on Comment {
+  ...CommentsLog_comments
+}
+
+fragment CommentsLog_comments on Comment {
+  id
+  ...TextCommentPost_comment
 }
 
 fragment LocationBreadcrumbsTitle_locationDetails on Location {
@@ -112,6 +121,10 @@ fragment ProjectDetails_project on Project {
     ...ProjectWorkOrdersList_workOrders
     id
   }
+  comments {
+    ...CommentsBox_comments
+    id
+  }
 }
 
 fragment ProjectMoreActionsButton_project on Project {
@@ -133,6 +146,13 @@ fragment ProjectWorkOrdersList_workOrders on WorkOrder {
   installDate
   status
   priority
+}
+
+fragment TextCommentPost_comment on Comment {
+  id
+  authorName
+  text
+  createTime
 }
 */
 
@@ -510,6 +530,39 @@ return {
                 "storageKey": null
               }
             ]
+          },
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "comments",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Comment",
+            "plural": true,
+            "selections": [
+              (v2/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "authorName",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "text",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "createTime",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           }
         ]
       }
@@ -519,7 +572,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n",
     "metadata": {}
   }
 };
