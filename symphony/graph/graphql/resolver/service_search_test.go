@@ -151,6 +151,65 @@ func TestSearchServicesByName(t *testing.T) {
 	require.Len(t, res2.Services, 2)
 }
 
+func TestSearchServicesByStatus(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	qr, mr := r.Query(), r.Mutation()
+	ctx := viewertest.NewContext(r.client)
+
+	data := prepareServiceData(ctx, r)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 201",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusMaintenance),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 202",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Room 2010",
+		ServiceTypeID: data.st1,
+		Status:        pointerToServiceStatus(models.ServiceStatusInService),
+	})
+	require.NoError(t, err)
+
+	limit := 100
+	f1 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusMaintenance.String()},
+	}
+	res1, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Services, 1)
+
+	f2 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusInService.String()},
+	}
+	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res2.Services, 2)
+
+	f3 := models.ServiceFilterInput{
+		FilterType: models.ServiceFilterTypeServiceStatus,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{models.ServiceStatusPending.String()},
+	}
+	res3, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f3}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res3.Services, 0)
+}
+
 func TestSearchServicesByType(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
