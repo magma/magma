@@ -565,11 +565,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP)
 
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
-  if (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) {
-    is_standalone = emm_ctx->esm_ctx.is_standalone;
-    emm_ctx->esm_ctx.is_standalone = false;
-  }
-
   switch (msg_pP->pdn_type) {
     case IPv4:
       OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4\n");

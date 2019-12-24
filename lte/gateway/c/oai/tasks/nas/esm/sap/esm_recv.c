@@ -50,6 +50,7 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -753,7 +754,13 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   if (rc != RETURNerror) {
     esm_cause = ESM_CAUSE_SUCCESS;
   }
-
+  /* If default EPS bearer context accept message is received for a new PDN
+   *  connection, send modify bearer request to sgw
+   */
+  if (emm_context->esm_ctx.is_standalone == true) {
+    emm_context->esm_ctx.is_standalone = false;
+    send_modify_bearer_req(ue_id, ebi);
+  }
   /*
    * Return the ESM cause value
    */
