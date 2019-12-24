@@ -249,6 +249,10 @@ func (projectResolver) Properties(ctx context.Context, obj *ent.Project) ([]*ent
 	return properties, nil
 }
 
+func (projectResolver) Comments(ctx context.Context, obj *ent.Project) ([]*ent.Comment, error) {
+	return obj.QueryComments().All(ctx)
+}
+
 func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project) (int, error) {
 	return obj.QueryWorkOrders().Count(ctx)
 }

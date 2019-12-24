@@ -513,6 +513,7 @@ type ComplexityRoot struct {
 	}
 
 	Project struct {
+		Comments           func(childComplexity int) int
 		Creator            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
@@ -1046,6 +1047,7 @@ type ProjectResolver interface {
 	WorkOrders(ctx context.Context, obj *ent.Project) ([]*ent.WorkOrder, error)
 	NumberOfWorkOrders(ctx context.Context, obj *ent.Project) (int, error)
 	Properties(ctx context.Context, obj *ent.Project) ([]*ent.Property, error)
+	Comments(ctx context.Context, obj *ent.Project) ([]*ent.Comment, error)
 }
 type ProjectTypeResolver interface {
 	Projects(ctx context.Context, obj *ent.ProjectType) ([]*ent.Project, error)
@@ -3427,6 +3429,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PortSearchResult.Ports(childComplexity), true
+
+	case "Project.comments":
+		if e.complexity.Project.Comments == nil {
+			break
+		}
+
+		return e.complexity.Project.Comments(childComplexity), true
 
 	case "Project.creator":
 		if e.complexity.Project.Creator == nil {
@@ -6108,6 +6117,7 @@ enum PropertyEntity {
 
 enum CommentEntity {
   WORK_ORDER
+  PROJECT
 }
 
 # capturing information about a connection between two ports in the network
@@ -6330,6 +6340,7 @@ type Project implements Node {
   workOrders: [WorkOrder!]!
   numberOfWorkOrders: Int!
   properties: [Property!]!
+  comments: [Comment]!
 }
 
 input AddProjectInput {
@@ -19943,6 +19954,43 @@ func (ec *executionContext) _Project_properties(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNProperty2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPropertyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Project_comments(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Project",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Project().Comments(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.Comment)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProjectType_id(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectType) (ret graphql.Marshaler) {
@@ -36370,6 +36418,20 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Project_properties(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "comments":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Project_comments(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
