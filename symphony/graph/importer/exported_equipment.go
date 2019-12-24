@@ -133,7 +133,8 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating equipment", numRows), zap.String("name", equip.Name), zap.String("id", equip.ID))
 				} else {
-					log.Warn(fmt.Sprintf("(row #%d) [SKIP]equipment existed under location", numRows), zap.String("name", equip.Name), zap.String("id", equip.ID))
+					errorReturn(w, "Equipment "+equip.Name+" already exists under location/position", log, nil)
+					return
 				}
 			} else {
 				// existingEquip
