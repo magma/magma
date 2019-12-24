@@ -6451,6 +6451,7 @@ what filters should we apply on services
 """
 enum ServiceFilterType {
   SERVICE_INST_NAME
+  SERVICE_STATUS
   SERVICE_TYPE
   SERVICE_INST_EXTERNAL_ID
   SERVICE_INST_CUSTOMER_NAME

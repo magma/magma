@@ -18,6 +18,7 @@ import PowerSearchServiceCustomerNameFilter from './PowerSearchServiceCustomerNa
 import PowerSearchServiceEquipmentInServiceFilter from './PowerSearchServiceEquipmentInServiceFilter';
 import PowerSearchServiceExternalIDFilter from './PowerSearchServiceExternalIDFilter';
 import PowerSearchServiceNameFilter from './PowerSearchServiceNameFilter';
+import PowerSearchServiceStatusFilter from './PowerSearchServiceStatusFilter';
 import PowerSearchServiceTypeFilter from './PowerSearchServiceTypeFilter';
 import {
   PowerSearchServicePropertyFilter,
@@ -54,6 +55,14 @@ const ServiceSearchConfig: Array<EntityConfig> = [
         defaultOperator: 'is',
       },
       {
+        key: 'service_status',
+        name: 'service_status',
+        entityType: 'service',
+        label: 'Status',
+        component: PowerSearchServiceStatusFilter,
+        defaultOperator: 'is_one_of',
+      },
+      {
         key: 'equipment_in_service',
         name: 'equipment_in_service',
         entityType: 'service',
@@ -71,13 +80,16 @@ const ServiceSearchConfig: Array<EntityConfig> = [
       },
     ],
   },
-  /*
   {
     type: 'location_by_types',
     label: 'Location',
     filters: [],
   },
-  */
+  {
+    type: 'properties',
+    label: 'Properties',
+    filters: [],
+  },
 ];
 
 const buildServicePropertyFilterConfigs = (
@@ -86,7 +98,7 @@ const buildServicePropertyFilterConfigs = (
   return definitions.map(definition => ({
     key: `service_property_${definition.name}_${definition.type}`,
     name: SERVICE_PROPERTY_FILTER_NAME,
-    entityType: 'service',
+    entityType: 'properties',
     label: definition.name,
     component: PowerSearchServicePropertyFilter,
     defaultOperator: 'is', // Take from property type

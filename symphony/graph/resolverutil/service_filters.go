@@ -23,6 +23,8 @@ func handleServiceFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput)
 	switch filter.FilterType {
 	case models.ServiceFilterTypeServiceInstName:
 		return serviceNameFilter(q, filter)
+	case models.ServiceFilterTypeServiceStatus:
+		return serviceStatusFilter(q, filter)
 	case models.ServiceFilterTypeServiceType:
 		return serviceTypeFilter(q, filter)
 	case models.ServiceFilterTypeServiceInstExternalID:
@@ -41,6 +43,13 @@ func serviceNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (
 		return q.Where(service.NameContainsFold(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
+}
+
+func serviceStatusFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.Operator == models.FilterOperatorIsOneOf {
+		return q.Where(service.StatusIn(filter.IDSet...)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
 func serviceTypeFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
