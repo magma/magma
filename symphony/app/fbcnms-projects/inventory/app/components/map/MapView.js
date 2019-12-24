@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ContextRouter} from 'react-router-dom';
 import type {LngLatLike} from 'mapbox-gl/src/geo/lng_lat';
 import type {MapType} from '@fbcnms/magmalte/app/components/map/styles';
 import type {WithStyles} from '@material-ui/core';
@@ -21,7 +22,7 @@ import ThemeProvider from '@material-ui/styles/ThemeProvider';
 import defaultTheme from '@fbcnms/ui/theme/default';
 import mapboxgl from 'mapbox-gl';
 import nullthrows from '@fbcnms/util/nullthrows';
-import {BrowserRouter} from 'react-router-dom';
+import {Router, withRouter} from 'react-router-dom';
 import {SnackbarProvider} from 'notistack';
 import {getMapStyleForType} from '@fbcnms/magmalte/app/components/map/styles';
 import {withStyles} from '@material-ui/core/styles';
@@ -77,6 +78,7 @@ type Props = WithStyles<typeof styles> & {
   showMapSatelliteToggle?: boolean,
   mapButton?: React.Node,
   workOrdersView?: boolean,
+  ...ContextRouter,
 };
 
 export type MapLayer = {
@@ -691,7 +693,9 @@ class MapView extends React.Component<Props, State> {
             vertical: 'bottom',
             horizontal: 'right',
           }}>
-          <BrowserRouter>{getPopupContent(event.features[0])}</BrowserRouter>
+          <Router history={this.props.history}>
+            {getPopupContent(event.features[0])}
+          </Router>
         </SnackbarProvider>
       </ThemeProvider>,
       container,
@@ -736,4 +740,4 @@ class MapView extends React.Component<Props, State> {
   };
 }
 
-export default withStyles(styles)(MapView);
+export default withRouter(withStyles(styles)(MapView));

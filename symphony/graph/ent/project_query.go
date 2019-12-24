@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -77,6 +78,18 @@ func (pq *ProjectQuery) QueryLocation() *LocationQuery {
 		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
 		sqlgraph.To(location.Table, location.FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, false, project.LocationTable, project.LocationColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	return query
+}
+
+// QueryComments chains the current query on the comments edge.
+func (pq *ProjectQuery) QueryComments() *CommentQuery {
+	query := &CommentQuery{config: pq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, pq.sqlQuery()),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.CommentsTable, project.CommentsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 	return query

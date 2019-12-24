@@ -66,6 +66,7 @@ func (Project) Edges() []ent.Edge {
 			Required(),
 		edge.To("location", Location.Type).
 			Unique(),
+		edge.To("comments", Comment.Type),
 		edge.To("work_orders", WorkOrder.Type),
 		edge.To("properties", Property.Type),
 	}

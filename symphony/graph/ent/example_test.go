@@ -1187,7 +1187,15 @@ func ExampleProject() {
 		SetSiteSurveyNeeded(true).
 		SaveX(ctx)
 	log.Println("location created:", l1)
-	wo2 := client.WorkOrder.
+	c2 := client.Comment.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetAuthorName("string").
+		SetText("string").
+		SaveX(ctx)
+	log.Println("comment created:", c2)
+	wo3 := client.WorkOrder.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -1201,8 +1209,8 @@ func ExampleProject() {
 		SetAssignee("string").
 		SetIndex(1).
 		SaveX(ctx)
-	log.Println("workorder created:", wo2)
-	pr3 := client.Property.
+	log.Println("workorder created:", wo3)
+	pr4 := client.Property.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -1215,7 +1223,7 @@ func ExampleProject() {
 		SetRangeToVal(1).
 		SetStringVal("string").
 		SaveX(ctx)
-	log.Println("property created:", pr3)
+	log.Println("property created:", pr4)
 
 	// create project vertex with its edges.
 	pr := client.Project.
@@ -1226,8 +1234,9 @@ func ExampleProject() {
 		SetDescription("string").
 		SetCreator("string").
 		SetLocation(l1).
-		AddWorkOrders(wo2).
-		AddProperties(pr3).
+		AddComments(c2).
+		AddWorkOrders(wo3).
+		AddProperties(pr4).
 		SaveX(ctx)
 	log.Println("project created:", pr)
 
@@ -1239,17 +1248,23 @@ func ExampleProject() {
 	}
 	log.Println("location found:", l1)
 
-	wo2, err = pr.QueryWorkOrders().First(ctx)
+	c2, err = pr.QueryComments().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying comments: %v", err)
+	}
+	log.Println("comments found:", c2)
+
+	wo3, err = pr.QueryWorkOrders().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying work_orders: %v", err)
 	}
-	log.Println("work_orders found:", wo2)
+	log.Println("work_orders found:", wo3)
 
-	pr3, err = pr.QueryProperties().First(ctx)
+	pr4, err = pr.QueryProperties().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying properties: %v", err)
 	}
-	log.Println("properties found:", pr3)
+	log.Println("properties found:", pr4)
 
 	// Output:
 }

@@ -108,6 +108,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "author_name", Type: field.TypeString},
 		{Name: "text", Type: field.TypeString},
+		{Name: "project_comment_id", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_comment_id", Type: field.TypeInt, Nullable: true},
 	}
 	// CommentsTable holds the schema information for the "comments" table.
@@ -117,8 +118,15 @@ var (
 		PrimaryKey: []*schema.Column{CommentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "comments_work_orders_comments",
+				Symbol:  "comments_projects_comments",
 				Columns: []*schema.Column{CommentsColumns[5]},
+
+				RefColumns: []*schema.Column{ProjectsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "comments_work_orders_comments",
+				Columns: []*schema.Column{CommentsColumns[6]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1390,7 +1398,8 @@ var (
 func init() {
 	CheckListItemsTable.ForeignKeys[0].RefTable = WorkOrdersTable
 	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
-	CommentsTable.ForeignKeys[0].RefTable = WorkOrdersTable
+	CommentsTable.ForeignKeys[0].RefTable = ProjectsTable
+	CommentsTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	EquipmentTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[2].RefTable = EquipmentPositionsTable

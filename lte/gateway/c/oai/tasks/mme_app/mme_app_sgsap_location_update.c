@@ -162,12 +162,11 @@ int _mme_app_compare_tmsi(
  ** Inputs:              Mobile Id                                           **
  **                                                                          **
 ******************************************************************************/
-
 void mme_app_send_itti_sgsap_ue_activity_ind(
   const char* imsi,
   const unsigned int imsi_len)
 {
-  OAILOG_FUNC_IN(LOG_NAS);
+  OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
@@ -176,18 +175,26 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
     0,
     sizeof(itti_sgsap_ue_activity_ind_t));
   memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
-  OAILOG_DEBUG(LOG_NAS, " Imsi : %s %d \n", imsi, imsi_len);
+  OAILOG_DEBUG(LOG_MME_APP, " Imsi : %s %d \n", imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
-  OAILOG_DEBUG(
-    LOG_NAS,
-    "Sending NAS ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
-    "%s %d \n",
-    imsi,
-    imsi_len);
-
-  OAILOG_FUNC_OUT(LOG_NAS);
+  if ((itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p))
+    == RETURNok) {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
+      "%s %d \n",
+      imsi,
+      imsi_len);
+  } else {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
+      "%s %d \n",
+      imsi,
+      imsi_len);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 /**********************************************************************************
@@ -537,7 +544,15 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     ue_context_p->e_utran_cgi.cell_identity.cell_id;
 
   // Send SGSAP Location Update Request to SGS task
-  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  if ((itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p))
+    != RETURNok) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send SGS-Location Update Request for UE ID"
+      MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   /* update the neaf flag to false after sending the Location Update
    * Request message to SGS
@@ -585,7 +600,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
  **
  ** Name:                mme_app_handle_sgsap_location_update_acc()         **
  ** Description          Upon receiving SGS_LOCATION_UPDATE_ACC             **
- **                      send itti_nas_location_update_acc_p to na          **
+ **                      Based on the state, invoke state machine handlers  **
  **                                                                         **
  ** Inputs:              nas_sgs_location_update_acc                        **
  **
@@ -635,15 +650,15 @@ int mme_app_handle_sgsap_location_update_acc(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-/**********************************************************************************
+/*******************************************************************************
  **
- ** Name:                mme_app_handle_sgs_location_update_rej()                **
- ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ                  **
- **                      send itti_location_update_fail to nas                   **
- **                                                                              **
- ** Inputs:              nas_sgs_location_update_rej                             **
+ ** Name:                mme_app_handle_sgs_location_update_rej()             **
+ ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ               **
+ **                      Based on the state, invoke state machine handlers    **
+ **                                                                           **
+ ** Inputs:              nas_sgs_location_update_rej                          **
  **
-***********************************************************************************/
+********************************************************************************/
 int mme_app_handle_sgsap_location_update_rej(
   mme_app_desc_t* mme_app_desc_p,
   itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej)
@@ -1192,7 +1207,7 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause)
       emm_cause = EMM_CAUSE_MSC_NOT_REACHABLE;
     } break;
     default:
-      OAILOG_INFO(LOG_NAS_EMM, "Invalid SGS Reject cause\n");
+      OAILOG_INFO(LOG_MME_APP, "Invalid SGS Reject cause\n");
       emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
   }
   return emm_cause;

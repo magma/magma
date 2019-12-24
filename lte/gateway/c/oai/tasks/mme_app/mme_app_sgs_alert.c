@@ -133,7 +133,6 @@ int mme_app_handle_sgsap_alert_request(
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
   }
-
   ue_context_p->sgs_context->neaf = SET_NEAF;
   /* send Alert Ack */
   _mme_app_send_sgsap_alert_ack(sgsap_alert_req_pP, imsi64);

@@ -503,6 +503,11 @@ static int _emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p, bstrin
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context_p =
     PARENT_STRUCT(emm_ctx_p, struct ue_mm_context_s, emm_context);
+
+  if (!ue_mm_context_p) {
+    OAILOG_ERROR(LOG_NAS_EMM, "Failed to get ue context from emm context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
 
   if (emm_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) {
@@ -519,6 +524,12 @@ static int _emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p, bstrin
          * sent in Attach Accept triggered after receiving
          * SGS-Location Update Accept
          */
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+            LOG_MME_APP, "Failed to send SGS Location Update Request to MSC for"
+            "ue_id" MME_UE_S1AP_ID_FMT "\n", ue_mm_context_p->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
         emm_ctx_p->csfbparams.esm_data = esm_data;
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
       }
