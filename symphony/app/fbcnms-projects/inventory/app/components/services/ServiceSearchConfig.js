@@ -71,13 +71,11 @@ const ServiceSearchConfig: Array<EntityConfig> = [
       },
     ],
   },
-  /*
   {
     type: 'location_by_types',
     label: 'Location',
     filters: [],
   },
-  */
 ];
 
 const buildServicePropertyFilterConfigs = (

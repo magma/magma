@@ -38,4 +38,5 @@ export type FeatureID =
   | 'multi_subject_reports'
   | 'equipment_live_status'
   | 'logged_out_alert'
-  | 'external_id';
+  | 'external_id'
+  | 'service_endpoints';
