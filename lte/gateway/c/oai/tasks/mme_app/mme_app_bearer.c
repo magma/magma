@@ -2154,7 +2154,7 @@ int mme_app_handle_nas_extended_service_req(
         if (!ue_context_p->sgs_context) {
           OAILOG_ERROR(
             LOG_MME_APP,
-            "sgs_context is null for ue_id" IMSI_64_FMT "\n",
+            "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
           break;
         }
@@ -2227,7 +2227,9 @@ int mme_app_handle_nas_extended_service_req(
         ue_context_p->sgs_context->is_emergency_call = true;
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
-        /* send Service Reject to UE */
+        /* Notify Service Reject to NAS, which shall Service Reject message
+         * to UE
+         */
         mme_app_notify_service_reject_to_nas(
           ue_context_p->mme_ue_s1ap_id,
           EMM_CAUSE_CONGESTION,

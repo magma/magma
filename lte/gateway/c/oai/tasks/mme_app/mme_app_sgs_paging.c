@@ -126,7 +126,6 @@ int sgs_handle_associated_paging_request(const sgs_fsm_t *evt)
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
 ******************************************************************************/
-
 static int _sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt)
 {
   int rc = RETURNerror;
