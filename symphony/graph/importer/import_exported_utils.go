@@ -110,11 +110,11 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 
 		defName := directPos.QueryDefinition().OnlyX(ctx).Name
 		if defName != importLine.Position() {
-			return errors.Errorf("wrong position name. should be %q, but %q", importLine.Position(), defName)
+			return errors.Errorf("wrong position name. should be %v, but %v", importLine.Position(), defName)
 		}
 		pName := directPos.QueryParent().OnlyX(ctx).Name
 		if pName != importLine.DirectParent() {
-			return errors.Errorf("wrong equipment parent name. should be %q, but %q", importLine.DirectParent(), pName)
+			return errors.Errorf("wrong equipment parent name. should be %v, but %v", importLine.DirectParent(), pName)
 		}
 	}
 	return nil
