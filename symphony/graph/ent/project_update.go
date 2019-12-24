@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
@@ -34,10 +35,12 @@ type ProjectUpdate struct {
 	clearcreator      bool
 	_type             map[string]struct{}
 	location          map[string]struct{}
+	comments          map[string]struct{}
 	work_orders       map[string]struct{}
 	properties        map[string]struct{}
 	clearedType       bool
 	clearedLocation   bool
+	removedComments   map[string]struct{}
 	removedWorkOrders map[string]struct{}
 	removedProperties map[string]struct{}
 	predicates        []predicate.Project
@@ -133,6 +136,26 @@ func (pu *ProjectUpdate) SetLocation(l *Location) *ProjectUpdate {
 	return pu.SetLocationID(l.ID)
 }
 
+// AddCommentIDs adds the comments edge to Comment by ids.
+func (pu *ProjectUpdate) AddCommentIDs(ids ...string) *ProjectUpdate {
+	if pu.comments == nil {
+		pu.comments = make(map[string]struct{})
+	}
+	for i := range ids {
+		pu.comments[ids[i]] = struct{}{}
+	}
+	return pu
+}
+
+// AddComments adds the comments edges to Comment.
+func (pu *ProjectUpdate) AddComments(c ...*Comment) *ProjectUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.AddCommentIDs(ids...)
+}
+
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (pu *ProjectUpdate) AddWorkOrderIDs(ids ...string) *ProjectUpdate {
 	if pu.work_orders == nil {
@@ -183,6 +206,26 @@ func (pu *ProjectUpdate) ClearType() *ProjectUpdate {
 func (pu *ProjectUpdate) ClearLocation() *ProjectUpdate {
 	pu.clearedLocation = true
 	return pu
+}
+
+// RemoveCommentIDs removes the comments edge to Comment by ids.
+func (pu *ProjectUpdate) RemoveCommentIDs(ids ...string) *ProjectUpdate {
+	if pu.removedComments == nil {
+		pu.removedComments = make(map[string]struct{})
+	}
+	for i := range ids {
+		pu.removedComments[ids[i]] = struct{}{}
+	}
+	return pu
+}
+
+// RemoveComments removes comments edges to Comment.
+func (pu *ProjectUpdate) RemoveComments(c ...*Comment) *ProjectUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pu.RemoveCommentIDs(ids...)
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
@@ -380,6 +423,52 @@ func (pu *ProjectUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if len(pu.removedComments) > 0 {
+		eids := make([]int, len(pu.removedComments))
+		for eid := range pu.removedComments {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(project.CommentsTable).
+			SetNull(project.CommentsColumn).
+			Where(sql.InInts(project.CommentsColumn, ids...)).
+			Where(sql.InInts(comment.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(pu.comments) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range pu.comments {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(comment.FieldID, eid)
+			}
+			query, args := builder.Update(project.CommentsTable).
+				Set(project.CommentsColumn, id).
+				Where(sql.And(p, sql.IsNull(project.CommentsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return 0, rollback(tx, err)
+			}
+			if int(affected) < len(pu.comments) {
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"Project\"", keys(pu.comments))})
+			}
+		}
+	}
 	if len(pu.removedWorkOrders) > 0 {
 		eids := make([]int, len(pu.removedWorkOrders))
 		for eid := range pu.removedWorkOrders {
@@ -491,10 +580,12 @@ type ProjectUpdateOne struct {
 	clearcreator      bool
 	_type             map[string]struct{}
 	location          map[string]struct{}
+	comments          map[string]struct{}
 	work_orders       map[string]struct{}
 	properties        map[string]struct{}
 	clearedType       bool
 	clearedLocation   bool
+	removedComments   map[string]struct{}
 	removedWorkOrders map[string]struct{}
 	removedProperties map[string]struct{}
 }
@@ -583,6 +674,26 @@ func (puo *ProjectUpdateOne) SetLocation(l *Location) *ProjectUpdateOne {
 	return puo.SetLocationID(l.ID)
 }
 
+// AddCommentIDs adds the comments edge to Comment by ids.
+func (puo *ProjectUpdateOne) AddCommentIDs(ids ...string) *ProjectUpdateOne {
+	if puo.comments == nil {
+		puo.comments = make(map[string]struct{})
+	}
+	for i := range ids {
+		puo.comments[ids[i]] = struct{}{}
+	}
+	return puo
+}
+
+// AddComments adds the comments edges to Comment.
+func (puo *ProjectUpdateOne) AddComments(c ...*Comment) *ProjectUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.AddCommentIDs(ids...)
+}
+
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
 func (puo *ProjectUpdateOne) AddWorkOrderIDs(ids ...string) *ProjectUpdateOne {
 	if puo.work_orders == nil {
@@ -633,6 +744,26 @@ func (puo *ProjectUpdateOne) ClearType() *ProjectUpdateOne {
 func (puo *ProjectUpdateOne) ClearLocation() *ProjectUpdateOne {
 	puo.clearedLocation = true
 	return puo
+}
+
+// RemoveCommentIDs removes the comments edge to Comment by ids.
+func (puo *ProjectUpdateOne) RemoveCommentIDs(ids ...string) *ProjectUpdateOne {
+	if puo.removedComments == nil {
+		puo.removedComments = make(map[string]struct{})
+	}
+	for i := range ids {
+		puo.removedComments[ids[i]] = struct{}{}
+	}
+	return puo
+}
+
+// RemoveComments removes comments edges to Comment.
+func (puo *ProjectUpdateOne) RemoveComments(c ...*Comment) *ProjectUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return puo.RemoveCommentIDs(ids...)
 }
 
 // RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
@@ -836,6 +967,52 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 				Query()
 			if err := tx.Exec(ctx, query, args, &res); err != nil {
 				return nil, rollback(tx, err)
+			}
+		}
+	}
+	if len(puo.removedComments) > 0 {
+		eids := make([]int, len(puo.removedComments))
+		for eid := range puo.removedComments {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(project.CommentsTable).
+			SetNull(project.CommentsColumn).
+			Where(sql.InInts(project.CommentsColumn, ids...)).
+			Where(sql.InInts(comment.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(puo.comments) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range puo.comments {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(comment.FieldID, eid)
+			}
+			query, args := builder.Update(project.CommentsTable).
+				Set(project.CommentsColumn, id).
+				Where(sql.And(p, sql.IsNull(project.CommentsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			if int(affected) < len(puo.comments) {
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"comments\" %v already connected to a different \"Project\"", keys(puo.comments))})
 			}
 		}
 	}

@@ -1720,7 +1720,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pr.ID,
 		Type:   "Project",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 4),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pr.CreateTime); err != nil {
@@ -1786,13 +1786,24 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Location",
 		Name: "Location",
 	}
+	ids, err = pr.QueryComments().
+		Select(comment.FieldID).
+		Strings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "Comment",
+		Name: "Comments",
+	}
 	ids, err = pr.QueryWorkOrders().
 		Select(workorder.FieldID).
 		Strings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[2] = &Edge{
+	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrders",
@@ -1803,7 +1814,7 @@ func (pr *Project) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[3] = &Edge{
+	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Property",
 		Name: "Properties",

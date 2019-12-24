@@ -15,6 +15,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
@@ -32,6 +33,7 @@ type ProjectCreate struct {
 	creator     *string
 	_type       map[string]struct{}
 	location    map[string]struct{}
+	comments    map[string]struct{}
 	work_orders map[string]struct{}
 	properties  map[string]struct{}
 }
@@ -132,6 +134,26 @@ func (pc *ProjectCreate) SetNillableLocationID(id *string) *ProjectCreate {
 // SetLocation sets the location edge to Location.
 func (pc *ProjectCreate) SetLocation(l *Location) *ProjectCreate {
 	return pc.SetLocationID(l.ID)
+}
+
+// AddCommentIDs adds the comments edge to Comment by ids.
+func (pc *ProjectCreate) AddCommentIDs(ids ...string) *ProjectCreate {
+	if pc.comments == nil {
+		pc.comments = make(map[string]struct{})
+	}
+	for i := range ids {
+		pc.comments[ids[i]] = struct{}{}
+	}
+	return pc
+}
+
+// AddComments adds the comments edges to Comment.
+func (pc *ProjectCreate) AddComments(c ...*Comment) *ProjectCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return pc.AddCommentIDs(ids...)
 }
 
 // AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
@@ -296,6 +318,29 @@ func (pc *ProjectCreate) sqlSave(ctx context.Context) (*Project, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := pc.comments; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   project.CommentsTable,
+			Columns: []string{project.CommentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: comment.FieldID,
 				},
 			},
 		}

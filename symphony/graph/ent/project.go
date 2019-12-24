@@ -78,6 +78,11 @@ func (pr *Project) QueryLocation() *LocationQuery {
 	return (&ProjectClient{pr.config}).QueryLocation(pr)
 }
 
+// QueryComments queries the comments edge of the Project.
+func (pr *Project) QueryComments() *CommentQuery {
+	return (&ProjectClient{pr.config}).QueryComments(pr)
+}
+
 // QueryWorkOrders queries the work_orders edge of the Project.
 func (pr *Project) QueryWorkOrders() *WorkOrderQuery {
 	return (&ProjectClient{pr.config}).QueryWorkOrders(pr)

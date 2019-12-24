@@ -118,7 +118,6 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc)
  ** Outputs: Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-
 int _csfb_handle_tracking_area_req(
   emm_context_t* emm_context_p,
   emm_tau_request_ies_t* ies)
@@ -128,7 +127,7 @@ int _csfb_handle_tracking_area_req(
   ue_mm_context =
     PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
   if (!ue_mm_context) {
-    OAILOG_DEBUG(LOG_NAS_EMM, "Got Invalid UE Context during TAU procedure \n");
+    OAILOG_ERROR(LOG_NAS_EMM, "Got Invalid UE Context during TAU procedure \n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   OAILOG_INFO(
@@ -172,15 +171,22 @@ int _csfb_handle_tracking_area_req(
           (ue_mm_context->sgs_context->sgs_state == SGS_ASSOCIATED)) {
           OAILOG_INFO(
             LOG_MME_APP, "Do not send Location Update Request to MSC\n");
-          /* No need to send Location Update Request as SGS state is in associated
-           * state and vlr_reliable flag is true
+          /* No need to send Location Update Request as SGS state is in
+           * associated state and vlr_reliable flag is true
            * Send TAU accept to UE
            */
           _send_tau_accept_and_check_for_neaf_flag(tau_proc, ue_mm_context);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         } else {
-          mme_app_handle_nas_cs_domain_location_update_req(
-            ue_mm_context, TRACKING_AREA_UPDATE_REQUEST);
+          if ((mme_app_handle_nas_cs_domain_location_update_req(
+            ue_mm_context, TRACKING_AREA_UPDATE_REQUEST)) != RETURNerror) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "Failed to send SGS Location Update Request to MSC for ue_id"
+              MME_UE_S1AP_ID_FMT "\n",
+              ue_mm_context->mme_ue_s1ap_id);
+            OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+          }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       }
