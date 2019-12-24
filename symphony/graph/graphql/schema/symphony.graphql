@@ -672,6 +672,7 @@ enum PropertyEntity {
 
 enum CommentEntity {
   WORK_ORDER
+  PROJECT
 }
 
 # capturing information about a connection between two ports in the network
@@ -894,6 +895,7 @@ type Project implements Node {
   workOrders: [WorkOrder!]!
   numberOfWorkOrders: Int!
   properties: [Property!]!
+  comments: [Comment]!
 }
 
 input AddProjectInput {

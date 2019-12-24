@@ -1074,15 +1074,25 @@ func (r mutationResolver) AddComment(ctx context.Context, input models.CommentIn
 	if err != nil {
 		return nil, errors.Wrap(err, "creating comment")
 	}
-	if input.EntityType != models.CommentEntityWorkOrder {
+
+	switch input.EntityType {
+	case models.CommentEntityWorkOrder:
+		wo, err := client.WorkOrder.Get(ctx, input.ID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying work order id=%q", input.ID)
+		}
+		err = client.WorkOrder.UpdateOne(wo).AddComments(c).Exec(ctx)
+		return c, err
+	case models.CommentEntityProject:
+		p, err := client.Project.Get(ctx, input.ID)
+		if err != nil {
+			return nil, errors.Wrapf(err, "querying project id=%q", input.ID)
+		}
+		err = client.Project.UpdateOne(p).AddComments(c).Exec(ctx)
+		return c, err
+	default:
 		return nil, errors.New("entity type does not exist")
 	}
-	wo, err := client.WorkOrder.Get(ctx, input.ID)
-	if err != nil {
-		return nil, errors.Wrapf(err, "querying work order id=%q", input.ID)
-	}
-	err = client.WorkOrder.UpdateOne(wo).AddComments(c).Exec(ctx)
-	return c, err
 }
 
 func (r mutationResolver) AddLink(

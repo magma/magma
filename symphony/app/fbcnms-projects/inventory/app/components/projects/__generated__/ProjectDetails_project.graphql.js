@@ -14,6 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+type CommentsBox_comments$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type ProjectWorkOrdersList_workOrders$ref = any;
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
@@ -69,6 +70,9 @@ export type ProjectDetails_project = {|
   |}>,
   +workOrders: $ReadOnlyArray<{|
     +$fragmentRefs: ProjectWorkOrdersList_workOrders$ref
+  |}>,
+  +comments: $ReadOnlyArray<?{|
+    +$fragmentRefs: CommentsBox_comments$ref
   |}>,
   +$refType: ProjectDetails_project$ref,
 |};
@@ -328,10 +332,26 @@ return {
           "args": null
         }
       ]
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "comments",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Comment",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "FragmentSpread",
+          "name": "CommentsBox_comments",
+          "args": null
+        }
+      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '5d075b433a2cc3094f34bb101a94ff7c';
+(node/*: any*/).hash = '1805f5d8350a8960328b3f51cdcd6a3c';
 module.exports = node;

@@ -2451,6 +2451,20 @@ func (c *ProjectClient) QueryLocation(pr *Project) *LocationQuery {
 	return query
 }
 
+// QueryComments queries the comments edge of a Project.
+func (c *ProjectClient) QueryComments(pr *Project) *CommentQuery {
+	query := &CommentQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(project.Table, project.FieldID, id),
+		sqlgraph.To(comment.Table, comment.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, project.CommentsTable, project.CommentsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
 // QueryWorkOrders queries the work_orders edge of a Project.
 func (c *ProjectClient) QueryWorkOrders(pr *Project) *WorkOrderQuery {
 	query := &WorkOrderQuery{config: c.config}
