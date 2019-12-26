@@ -40,14 +40,17 @@ export default class DateTimeFormat {
     dateTimeValue: ?string | ?number,
     fallback: string = '',
   ) => {
-    return !!dateTimeValue
-      ? new Intl.DateTimeFormat('default', {
+    // eslint-disable-next-line no-warning-comments
+    // $FlowFixMe - Date.parse can handle number and nulls
+    const dateTime = Date.parse(dateTimeValue);
+    return Number.isNaN(dateTime)
+      ? fallback
+      : new Intl.DateTimeFormat('default', {
           hour: 'numeric',
           minute: 'numeric',
           year: 'numeric',
           month: 'numeric',
           day: 'numeric',
-        }).format(new Date(dateTimeValue))
-      : fallback;
+        }).format(dateTime);
   };
 }
