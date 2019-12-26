@@ -87,7 +87,7 @@
 void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  uint8_t item = 1;
+  uint8_t item = 0;
   struct ue_mm_context_s* ue_context_p = NULL;
   mme_app_desc_t* mme_app_desc_p = NULL;
   mme_app_desc_p = get_mme_nas_state(false);
@@ -133,6 +133,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
     .bearer_contexts[item].eps_bearer_id = ebi;
   s11_modify_bearer_request->bearer_contexts_to_be_modified
     .bearer_contexts[item].s1_eNB_fteid.teid = bearer_cntxt->enb_fteid_s1u.teid;
+
   s11_modify_bearer_request->bearer_contexts_to_be_modified
     .bearer_contexts[item].s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
   pdn_cid_t cid =
