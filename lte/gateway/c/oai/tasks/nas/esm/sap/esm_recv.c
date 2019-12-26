@@ -754,8 +754,8 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   if (rc != RETURNerror) {
     esm_cause = ESM_CAUSE_SUCCESS;
   }
-  /* If default EPS bearer context accept message is received for a new PDN
-   *  connection, send modify bearer request to sgw
+  /* If activate default EPS bearer context accept message is received for a
+   * new standalone PDN connection, send modify bearer request to sgw
    */
   if (emm_context->esm_ctx.is_standalone == true) {
     emm_context->esm_ctx.is_standalone = false;
