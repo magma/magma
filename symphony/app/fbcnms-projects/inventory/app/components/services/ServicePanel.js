@@ -113,6 +113,9 @@ const useStyles = makeStyles({
   select: {
     marginBottom: '24px',
   },
+  detailsPanel: {
+    padding: '0px',
+  },
 });
 
 /* $FlowFixMe - Flow doesn't support typing when using forwardRef on a
