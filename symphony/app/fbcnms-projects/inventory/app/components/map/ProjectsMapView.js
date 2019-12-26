@@ -164,7 +164,7 @@ class ProjectsMapView extends React.Component<Props, State> {
     }
   };
 
-  onPopoverClearClick = () => {
+  onClickOutside = () => {
     this.setState({
       projectId: null,
     });
@@ -188,6 +188,10 @@ class ProjectsMapView extends React.Component<Props, State> {
 
     map.on('style.load', () => {
       this._addMarkers();
+    });
+
+    map.on('click', () => {
+      this.onClickOutside();
     });
 
     map.addControl(new mapboxgl.NavigationControl({}));
@@ -219,10 +223,7 @@ class ProjectsMapView extends React.Component<Props, State> {
             )}
             <div>
               {this.state.projectId !== null && (
-                <ProjectsPopover
-                  projectId={this.state.projectId}
-                  onClearButtonClicked={this.onPopoverClearClick}
-                />
+                <ProjectsPopover projectId={this.state.projectId} />
               )}
             </div>
             <>
@@ -292,8 +293,9 @@ class ProjectsMapView extends React.Component<Props, State> {
             clickable
             className={classes.chip}
             color="primary"
-            onClick={() => {
+            onClick={e => {
               this._onProjectMarkerClick(selectedFeatureId);
+              e.stopPropagation();
             }}
           />,
           marker.getElement(),

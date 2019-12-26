@@ -9,6 +9,7 @@
  */
 
 import {gray14, green30, orange} from '@fbcnms/ui/theme/colors';
+import type {BasicLocation} from '../../common/Location';
 import type {
   GeoJSONFeature,
   GeoJSONFeatureCollection,
@@ -27,11 +28,7 @@ export type CoordsWithProps = {
   properties: Object,
 };
 
-export type WorkOrderLocation = {
-  id: string,
-  name: string,
-  latitude: number,
-  longitude: number,
+export type WorkOrderLocation = BasicLocation & {
   randomizedLatitude: number,
 };
 
