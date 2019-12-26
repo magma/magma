@@ -18,36 +18,44 @@ import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import WorkOrderPopover from '../work_orders/WorkOrderPopover';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import symphony from '@fbcnms/ui/theme/symphony';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
+const cardTop = '116px';
 const useStyles = makeStyles(theme => ({
-  root: {
-    marginTop: '8px',
-    maxWidth: '600px',
-  },
-  title: {
-    marginBottom: '12px',
-  },
   card: {
+    display: 'flex',
+    flexDirection: 'column',
     position: 'absolute',
-    maxHeight: '400px',
-    overflow: 'scroll',
-    right: 0,
-    bottom: 0,
+    right: '10px',
+    top: cardTop,
+    maxWidth: '400px',
+    width: '25%',
+    maxHeight: `calc(100% - ${cardTop} - 40px)`,
+    borderRadius: '8px',
+    overflow: 'hidden',
   },
   cardHeader: {
-    paddingBottom: '0px',
+    paddingBottom: '4px',
     fontSize: '18px',
+    borderBottom: `2px solid ${symphony.palette.separator}`,
   },
   cardContent: {
-    borderTop: '2px solid #f0f0f0',
-    paddingBottom: '27px',
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    paddingTop: '8px',
   },
-  cardBottom: {
-    borderTop: '2px solid #f0f0f0',
+  workOrderBlock: {
+    overflowY: 'hidden',
+    padding: '8px 0px',
+    borderBottom: `2px solid ${symphony.palette.separator}`,
+    '&:last-child': {
+      borderBottom: 'none',
+      paddingBottom: '0',
+    },
   },
   media: {
     height: 0,
@@ -145,9 +153,9 @@ const ProjectsPopover = (props: Props) => {
                   subheader={headerContent}
                   className={classes.cardHeader}
                 />
-                <CardContent>
+                <CardContent className={classes.cardContent}>
                   {project.workOrders.map(workOrder => (
-                    <div className={classes.cardContent}>
+                    <div className={classes.workOrderBlock}>
                       <WorkOrderPopover
                         onWorkOrderChanged={emptyFunction}
                         displayFullDetails={true}

@@ -29,9 +29,7 @@ import {priorityValues, statusValues} from '../../common/WorkOrder';
 
 const useStyles = makeStyles(() => ({
   fullDetails: {
-    marginTop: '8px',
-    minWidth: '410px',
-    overflow: 'visible',
+    width: '100%',
   },
   root: {
     marginTop: '8px',
@@ -56,7 +54,8 @@ const useStyles = makeStyles(() => ({
   },
   dueDiv: {
     display: 'flex',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
     alignItems: 'center',
     marginRight: '0.35em',
     marginTop: '20px',
@@ -70,6 +69,7 @@ type Props = {
   workOrder: WorkOrderProperties,
   onWorkOrderClick?: () => void,
   displayFullDetails?: boolean,
+  containerClassName?: string,
   selectedView?: string,
   onWorkOrderChanged?: (
     key: 'assignee' | 'installDate',
@@ -85,6 +85,7 @@ const WorkOrderPopover = (props: Props) => {
     displayFullDetails,
     selectedView,
     onWorkOrderChanged,
+    containerClassName,
   } = props;
   const classes = useStyles();
   const editAssignee = selectedView === 'status' || workOrder.status === 'DONE';
@@ -136,7 +137,7 @@ const WorkOrderPopover = (props: Props) => {
   };
 
   return (
-    <>
+    <div className={containerClassName}>
       {displayFullDetails ? (
         <div className={classes.fullDetails}>
           <Text variant="h6" className={classes.title} gutterBottom>
@@ -228,7 +229,7 @@ const WorkOrderPopover = (props: Props) => {
           {showAssignee(workOrder.assignee)}
         </div>
       )}
-    </>
+    </div>
   );
 };
 

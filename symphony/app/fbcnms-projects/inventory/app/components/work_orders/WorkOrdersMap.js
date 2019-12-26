@@ -22,6 +22,7 @@ import WorkOrderPopover from './WorkOrderPopover';
 import nullthrows from 'nullthrows';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {makeStyles} from '@material-ui/styles';
 import {useMemo, useState} from 'react';
 import {withRouter} from 'react-router-dom';
 import {workOrderToGeoJSONSource} from './../map/MapUtil';
@@ -29,6 +30,15 @@ import {workOrderToGeoJSONSource} from './../map/MapUtil';
 type Props = {
   workOrders: Array<WorkOrder>,
 };
+
+const useStyles = makeStyles({
+  workOrderPopover: {
+    marginTop: '8px',
+    minWidth: '410px',
+    maxWidth: '50%',
+  },
+});
+
 const LOCATIONS_DISTRIBUTION_FACTOR = 0.01;
 
 const distributeLocations = (
@@ -48,6 +58,7 @@ const distributeLocations = (
 
 const WorkOrdersMap = (props: Props) => {
   const {workOrders} = props;
+  const classes = useStyles();
   const [selectedView, setSelectedView] = useState('status');
   const router = useRouter();
   const setLocations = useMemo(() => new Set(), []);
@@ -136,6 +147,7 @@ const WorkOrdersMap = (props: Props) => {
           <WorkOrderPopover
             onWorkOrderChanged={onWorkOrderChanged}
             displayFullDetails={true}
+            containerClassName={classes.workOrderPopover}
             selectedView={selectedView}
             workOrder={workOrder}
             onWorkOrderClick={() => {
