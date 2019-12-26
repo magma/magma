@@ -16,6 +16,7 @@ import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrderPopover from '../work_orders/WorkOrderPopover';
 import emptyFunction from '@fbcnms/util/emptyFunction';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
@@ -57,6 +58,11 @@ const useStyles = makeStyles(theme => ({
     '&:last-child': {
       borderBottom: 'none',
     },
+  },
+  noWorkordersPlaceholder: {
+    marginTop: '16px',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   media: {
     height: 0,
@@ -145,21 +151,32 @@ const ProjectsPopover = (props: Props) => {
                   className={classes.cardHeader}
                 />
                 <CardContent className={classes.cardContent}>
-                  {project.workOrders.map(workOrder => (
-                    <div className={classes.workOrderBlock}>
-                      <WorkOrderPopover
-                        onWorkOrderChanged={emptyFunction}
-                        displayFullDetails={true}
-                        selectedView={'status'}
-                        workOrder={workOrder}
-                        onWorkOrderClick={() => {
-                          router.history.push(
-                            `/workorders/search?workorder=${workOrder.id}`,
-                          );
-                        }}
-                      />
+                  {project.workOrders?.length ? (
+                    project.workOrders.map(workOrder => (
+                      <div className={classes.workOrderBlock}>
+                        <WorkOrderPopover
+                          onWorkOrderChanged={emptyFunction}
+                          displayFullDetails={true}
+                          selectedView={'status'}
+                          workOrder={workOrder}
+                          onWorkOrderClick={() => {
+                            router.history.push(
+                              `/workorders/search?workorder=${workOrder.id}`,
+                            );
+                          }}
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className={classes.noWorkordersPlaceholder}>
+                      <Text variant="subtitle1" color="gray">
+                        {fbt(
+                          'No work orders related to this project',
+                          'Placeholder in ProjectsPopover card',
+                        )}
+                      </Text>
                     </div>
-                  ))}
+                  )}
                 </CardContent>
               </Card>
             );
