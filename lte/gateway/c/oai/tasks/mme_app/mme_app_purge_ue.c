@@ -66,9 +66,11 @@ int mme_app_send_s6a_purge_ue_req(mme_app_desc_t *mme_app_desc_p,
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_PURGE_UE_REQ);
-
   if (message_p == NULL) {
-    unlock_ue_contexts(ue_context_p);
+    OAILOG_WARNING(
+      LOG_MME_APP,
+      "Failed to allocate memory for S6A_PURGE_UE_REQ for imsi " IMSI_64_FMT
+      "\n", imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -82,7 +84,6 @@ int mme_app_send_s6a_purge_ue_req(mme_app_desc_t *mme_app_desc_p,
 
   rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
 
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

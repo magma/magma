@@ -46,7 +46,7 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "log.h"
-#include "mme_app_desc.h"
+#include "mme_app_state.h"
 #include "mme_app_sgs_fsm.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
@@ -68,11 +68,19 @@ static void mme_app_send_sgs_eps_detach_indication(
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
     LOG_MME_APP,
-    "Send SGSAP_EPS_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+    "Send SGSAP_EPS_DETACH_IND to SGS, detach_type = %u for ue_id: "
+    MME_UE_S1AP_ID_FMT "\n",
     detach_type,
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_EPS_DETACH_IND);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (!message_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_EPS_DETACH_IND for ue_id: "
+      MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   memset(
     (void*) &message_p->ittiMsg.sgsap_eps_detach_ind,
     0,
@@ -89,51 +97,62 @@ static void mme_app_send_sgs_eps_detach_indication(
 
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
 
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  if (detach_type == SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS) {
+    timer_callback_fun.nas_timer_callback =
+      mme_app_handle_sgs_implicit_eps_detach_timer_expiry;
+  } else {
+    timer_callback_fun.nas_timer_callback =
+      mme_app_handle_sgs_eps_detach_timer_expiry;
+  }
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
   // Start SGS Implicit EPS Detach indication timer
   if (detach_type == SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS) {
-    if (
-      timer_setup(
-        ue_context_p->sgs_context->ts13_timer.sec,
-        0,
-        TASK_MME_APP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void*) &(ue_context_p->mme_ue_s1ap_id),
-        sizeof(mme_ue_s1ap_id_t),
-        &(ue_context_p->sgs_context->ts13_timer.id)) < 0) {
+    if (timer_setup(
+      ue_context_p->sgs_context->ts13_timer.sec,
+      0,
+      TASK_MME_APP,
+      INSTANCE_DEFAULT,
+      TIMER_ONE_SHOT,
+      &timer_callback_fun,
+      sizeof(timer_callback_fun),
+      &(ue_context_p->sgs_context->ts13_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
-        "Failed to start SGS Implicit EPS Detach indication timer for UE id  "
-        "%d \n",
+        "Failed to start SGS Implicit EPS Detach indication timer for ue_id "
+        MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
       ue_context_p->sgs_context->ts13_timer.id = MME_APP_TIMER_INACTIVE_ID;
     } else {
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Started SGS Implicit EPS Detach indication timer for UE id  %d \n",
+        "Started SGS Implicit EPS Detach indication timer for ue_id "
+        MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
     }
   } else {
     // Start SGS EPS Detach indication timer
-    if (
-      timer_setup(
-        ue_context_p->sgs_context->ts8_timer.sec,
-        0,
-        TASK_MME_APP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void*) &(ue_context_p->mme_ue_s1ap_id),
-        sizeof(mme_ue_s1ap_id_t),
-        &(ue_context_p->sgs_context->ts8_timer.id)) < 0) {
+    if (timer_setup(
+      ue_context_p->sgs_context->ts8_timer.sec,
+      0,
+      TASK_MME_APP,
+      INSTANCE_DEFAULT,
+      TIMER_ONE_SHOT,
+      &timer_callback_fun,
+      sizeof(timer_callback_fun),
+      &(ue_context_p->sgs_context->ts8_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
-        "Failed to start SGS EPS Detach indication timer for UE id  %d \n",
+        "Failed to start SGS EPS Detach indication timer for ue_id "
+        MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
       ue_context_p->sgs_context->ts8_timer.id = MME_APP_TIMER_INACTIVE_ID;
     } else {
       OAILOG_DEBUG(
         LOG_MME_APP,
-        "Started SGS EPS Detach indication timer for UE id  %d \n",
+        "Started SGS EPS Detach indication timer for ue_id "
+        MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
     }
 
@@ -143,7 +162,8 @@ static void mme_app_send_sgs_eps_detach_indication(
       if (timer_remove(ue_context_p->sgs_context->ts6_1_timer.id, NULL)) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to stop SGS Location Update Request timer for UE id %d \n",
+          "Failed to stop SGS Location Update Request timer for ue_id "
+          MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
       }
       ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -156,11 +176,32 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 /* handle the SGS EPS detach timer expiry. */
-void mme_app_handle_sgs_eps_detach_timer_expiry(ue_mm_context_t *ue_context_p)
+void mme_app_handle_sgs_eps_detach_timer_expiry(void *args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(ue_context_p->sgs_context);
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s *ue_context_p = NULL;
+
+  mme_app_desc_p = get_mme_nas_state(false);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS EPS Detach Timer expired but no assoicated UE context for UE "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   /*
    * Increment the retransmission counter
    */
@@ -197,12 +238,32 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(ue_mm_context_t *ue_context_p)
 }
 
 /* handle the SGS Implicit EPS detach timer expiry. */
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
-  ue_mm_context_t *ue_context_p)
+void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(ue_context_p->sgs_context);
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s* ue_context_p = NULL;
+
+  mme_app_desc_p = get_mme_nas_state(false);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS IMPLICIT EPS DETACH Timer expired but no assoicated UE context "
+      "found for ue-id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+ if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   /*
    * Increment the retransmission counter
    */
@@ -247,11 +308,19 @@ void mme_app_send_sgs_imsi_detach_indication(
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
     LOG_MME_APP,
-    "Send SGSAP_IMSI_DETACH_IND to SGS, detach_type = (%d) for (ue_id = %u)\n",
+    "Send SGSAP_IMSI_DETACH_IND to SGS, detach_type = %u for ue_id "
+    MME_UE_S1AP_ID_FMT "\n",
     detach_type,
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_IMSI_DETACH_IND);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (!message_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_IMSI_DETACH_IND for ue_id: "
+      MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   memset(
     (void*) &message_p->ittiMsg.sgsap_imsi_detach_ind,
     0,
@@ -265,18 +334,27 @@ void mme_app_send_sgs_imsi_detach_indication(
   SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type = detach_type;
 
   itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  if (detach_type == SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
+    timer_callback_fun.nas_timer_callback =
+      mme_app_handle_sgs_implicit_imsi_detach_timer_expiry;
+  } else {
+    timer_callback_fun.nas_timer_callback =
+      mme_app_handle_sgs_imsi_detach_timer_expiry;
+  }
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
   if (detach_type == SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) {
     // Start SGS Implicit IMSI Detach indication timer
-    if (
-      timer_setup(
-        ue_context_p->sgs_context->ts10_timer.sec,
-        0,
-        TASK_MME_APP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void*) &(ue_context_p->mme_ue_s1ap_id),
-        sizeof(mme_ue_s1ap_id_t),
-        &(ue_context_p->sgs_context->ts10_timer.id)) < 0) {
+    if (timer_setup(
+      ue_context_p->sgs_context->ts10_timer.sec,
+      0,
+      TASK_MME_APP,
+      INSTANCE_DEFAULT,
+      TIMER_ONE_SHOT,
+      &timer_callback_fun,
+      sizeof(timer_callback_fun),
+      &(ue_context_p->sgs_context->ts10_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to start SGS Implicit IMSI Detach indication timer for UE id  "
@@ -291,16 +369,15 @@ void mme_app_send_sgs_imsi_detach_indication(
     }
   } else {
     // Start SGS IMSI Detach indication timer
-    if (
-      timer_setup(
-        ue_context_p->sgs_context->ts9_timer.sec,
-        0,
-        TASK_MME_APP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void*) &(ue_context_p->mme_ue_s1ap_id),
-        sizeof(mme_ue_s1ap_id_t),
-        &(ue_context_p->sgs_context->ts9_timer.id)) < 0) {
+    if (timer_setup(
+      ue_context_p->sgs_context->ts9_timer.sec,
+      0,
+      TASK_MME_APP,
+      INSTANCE_DEFAULT,
+      TIMER_ONE_SHOT,
+      &timer_callback_fun,
+      sizeof(timer_callback_fun),
+      &(ue_context_p->sgs_context->ts9_timer.id)) < 0) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to start SGS IMSI Detach indication timer for UE id  %d \n",
@@ -332,11 +409,32 @@ void mme_app_send_sgs_imsi_detach_indication(
 }
 
 /* handle the SGS IMSI detach timer expiry. */
-void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p)
+void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(ue_context_p->sgs_context);
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s *ue_context_p = NULL;
+
+  mme_app_desc_p = get_mme_nas_state(false);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS IMSI Detach Timer expired but no assoicated UE context for UE "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS EPS Detach Timer expired but no assoicated SGS context for UE "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   /*
    * Increment the retransmission counter
    */
@@ -396,12 +494,32 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p)
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-  ue_mm_context_t *ue_context_p)
+void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p);
-  DevAssert(ue_context_p->sgs_context);
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
+  struct ue_mm_context_s *ue_context_p = NULL;
+
+  mme_app_desc_p = get_mme_nas_state(false);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS IMPLICIT IMSI Detach Timer expired but no assoicated UE context for"
+      " ue_id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "SGS IMPLICIT IMSI Detach Timer expired but no assoicated SGS context for"
+      " ue_id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   /*
    * Increment the retransmission counter
    */
@@ -454,7 +572,7 @@ void mme_app_handle_sgs_detach_req(
     evnt.ue_id = ue_context_p->mme_ue_s1ap_id;
     evnt.ctx = ue_context_p->sgs_context;
     // check the SGS state and if it is null then do not send Detach towards SGS
-    OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n", detach_type);
+    OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %u )\n", detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
       switch (detach_type) {
         /*
@@ -589,10 +707,8 @@ int mme_app_handle_sgs_eps_detach_ack(
     OAILOG_ERROR(
       LOG_MME_APP,
       "SGS context not found in mme_app_handle_sgs_eps_detach_ack\n");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -629,7 +745,8 @@ int mme_app_handle_sgs_imsi_detach_ack(
       if (timer_remove(ue_context_p->sgs_context->ts9_timer.id, NULL)) {
         OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to stop SGS IMSI Detach Indication timer for UE id %d \n",
+          "Failed to stop SGS IMSI Detach Indication timer for ue_id"
+          MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
       }
       ue_context_p->sgs_context->ts9_timer.id = MME_APP_TIMER_INACTIVE_ID;
@@ -647,7 +764,7 @@ int mme_app_handle_sgs_imsi_detach_ack(
         OAILOG_DEBUG(
           LOG_MME_APP,
           "Detach Accept has been sent already after ts9 timer expired for "
-          "UE id %d, ignore the IMSI detach Ack \n",
+          "UE id " MME_UE_S1AP_ID_FMT ", ignore the IMSI detach Ack \n",
           ue_context_p->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       } else {
@@ -686,6 +803,5 @@ int mme_app_handle_sgs_imsi_detach_ack(
       "SGS context not found in mme_app_handle_sgs_imsi_detach_ack\n");
     rc = RETURNerror;
   }
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

@@ -92,7 +92,7 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_proc_initialize(mme_config_t *mme_config_p)
+void nas_proc_initialize(const mme_config_t *mme_config_p)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
@@ -378,12 +378,10 @@ int nas_proc_authentication_info_answer(
   if (!(emm_ctxt_p)) {
     OAILOG_ERROR(
       LOG_NAS_EMM, "That's embarrassing as we don't know this IMSI\n");
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = ue_mm_context_p->mme_ue_s1ap_id;
-  unlock_ue_contexts(ue_mm_context_p);
   OAILOG_INFO(
     LOG_NAS_EMM,
     "Received Authentication Information Answer from S6A for"
@@ -642,7 +640,6 @@ int nas_proc_downlink_unitdata(itti_sgsap_downlink_unitdata_t *dl_unitdata)
    * Notify EMM-AS SAP that Downlink Nas transport message has to be sent to the ue
    */
   emm_sap.primitive = EMMAS_DATA_REQ;
-  emm_context_unlock(ctxt);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -768,7 +765,6 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
       NW_DETACH_TYPE_IMSI_DETACH;
     rc = emm_sap_send(&emm_sap);
   }
-  emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 /****************************************************************************

@@ -35,7 +35,6 @@
 #include "itti_free_defined_msg.h"
 #include "async_system_messages_types.h"
 #include "ip_forward_messages_types.h"
-#include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "sctp_messages_types.h"
 
@@ -98,9 +97,6 @@ void itti_free_msg_content(MessageDef* const message_p)
       AssertFatal(
         NULL == message_p->ittiMsg.mme_app_ul_data_ind.nas_msg,
         "TODO clean pointer");
-      break;
-
-    case NAS_AUTHENTICATION_PARAM_REQ:
       break;
 
     case S11_CREATE_SESSION_REQUEST: {

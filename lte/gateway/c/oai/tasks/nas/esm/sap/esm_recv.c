@@ -28,7 +28,6 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "mme_app_ue_context.h"
-#include "nas_itti_messaging.h"
 #include "esm_recv.h"
 #include "esm_pt.h"
 #include "esm_ebr.h"
@@ -378,7 +377,6 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         "ESM-PROC  - Cannot find free pdn_cid for ue id" MME_UE_S1AP_ID_FMT
         "\n",
         ue_id);
-      unlock_ue_contexts(ue_mm_context_p);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INSUFFICIENT_RESOURCES);
     }
     // Update pdn connection id
@@ -427,7 +425,6 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     mme_app_send_s11_create_session_req(
       mme_app_desc_p, ue_mm_context_p, pdn_cid);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
   }
 

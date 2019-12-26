@@ -43,7 +43,6 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_app_desc.h"
-#include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
 
@@ -107,7 +106,8 @@ int mme_app_handle_nas_dl_req(
 
   /*
    * Move the UE to ECM Connected State ,if not in connected state already
-   * S1 Signaling connection gets established via first DL NAS Trasnport message in some scenarios so check the state
+   * S1 Signaling connection gets established via first DL NAS Trasnport
+   * message in some scenarios so check the state
    * first
    */
   if (ue_context->ecm_state != ECM_CONNECTED) {
@@ -130,7 +130,5 @@ int mme_app_handle_nas_dl_req(
     mme_app_itti_ue_context_release(
       ue_context, ue_context->ue_context_rel_cause);
   }
-
-  unlock_ue_contexts(ue_context);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

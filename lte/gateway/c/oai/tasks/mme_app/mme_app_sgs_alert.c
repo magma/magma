@@ -48,7 +48,6 @@
 #include "mme_config.h"
 #include "intertask_interface.h"
 #include "mme_app_sgs_fsm.h"
-#include "assertions.h"
 #include "conversions.h"
 #include "mme_app_defs.h"
 #include "common_defs.h"
@@ -82,7 +81,6 @@ static int _mme_app_send_sgsap_alert_ack(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-
 int mme_app_handle_sgsap_alert_request(
   mme_app_desc_t* mme_app_desc_p,
   itti_sgsap_alert_request_t* const sgsap_alert_req_pP)
@@ -91,7 +89,12 @@ int mme_app_handle_sgsap_alert_request(
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(sgsap_alert_req_pP);
+  if (!sgsap_alert_req_pP) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "sgsap_alert_req_pP is NULL \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64(sgsap_alert_req_pP->imsi, &imsi64);
 
@@ -121,7 +124,6 @@ int mme_app_handle_sgsap_alert_request(
       sgsap_alert_req_pP, SGS_CAUSE_IMSI_DETACHED_FOR_EPS_SERVICE, imsi64);
     increment_counter(
       "sgsap_alert_reject", 1, 1, "cause", "ue_is_not_registered_to_eps");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -136,7 +138,6 @@ int mme_app_handle_sgsap_alert_request(
   ue_context_p->sgs_context->neaf = SET_NEAF;
   /* send Alert Ack */
   _mme_app_send_sgsap_alert_ack(sgsap_alert_req_pP, imsi64);
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -157,13 +158,20 @@ static int _mme_app_send_sgsap_alert_reject(
   SgsCause_t sgs_cause,
   uint64_t imsi64)
 {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   int rc = RETURNerror;
   MessageDef* message_p = NULL;
   itti_sgsap_alert_reject_t* sgsap_alert_reject_pP = NULL;
-  OAILOG_FUNC_IN(LOG_MME_APP);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_REJECT);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (!message_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_ALERT_REJECT for Imsi: "
+      IMSI_64_FMT "\n",
+      imsi64);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
   sgsap_alert_reject_pP = &message_p->ittiMsg.sgsap_alert_reject;
   memset((void*) sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
 
@@ -204,7 +212,14 @@ static int _mme_app_send_sgsap_alert_ack(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_ACK);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  if (!message_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_ALERT_ACK for Imsi: "
+      IMSI_64_FMT "\n",
+      imsi64);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  }
   sgsap_alert_ack_pP = &message_p->ittiMsg.sgsap_alert_ack;
   memset((void*) sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
 

@@ -42,6 +42,7 @@
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
 #include "s1ap_messages_types.h"
+#include "mme_app_defs.h"
 
 void mme_app_itti_ue_context_release(
   struct ue_mm_context_s *ue_context_p,
@@ -55,7 +56,7 @@ int mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
   const pdn_cid_t pdn_cid);
 
 static inline void mme_app_itti_ue_context_mod_for_csfb(
-  struct ue_mm_context_s *ue_context_p)
+  struct ue_mm_context_s* ue_context_p)
 {
   MessageDef *message_p;
 
@@ -96,19 +97,24 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
 
   /* Start timer to wait for UE Context Modification from eNB
-   * If timer expires treat this as failure of ongoing procedure and abort corresponding NAS procedure
+   * If timer expires treat this as failure of ongoing procedure
+   * and abort corresponding NAS procedure
    * such as SERVICE REQUEST and Send Service Reject to eNB
    */
-  if (
-    timer_setup(
-      ue_context_p->ue_context_modification_timer.sec,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      (void *) &(ue_context_p->mme_ue_s1ap_id),
-      sizeof(mme_ue_s1ap_id_t),
-      &(ue_context_p->ue_context_modification_timer.id)) < 0) {
+  nas_itti_timer_arg_t timer_callback_fun = {0};
+  timer_callback_fun.nas_timer_callback =
+    mme_app_handle_ue_context_modification_timer_expiry;
+  timer_callback_fun.nas_timer_callback_arg =
+    (void *) &(ue_context_p->mme_ue_s1ap_id);
+  if (timer_setup(
+    ue_context_p->ue_context_modification_timer.sec,
+    0,
+    TASK_MME_APP,
+    INSTANCE_DEFAULT,
+    TIMER_ONE_SHOT,
+    &timer_callback_fun,
+    sizeof(timer_callback_fun),
+    &(ue_context_p->ue_context_modification_timer.id)) < 0) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to start UE context modification timer for UE id  %d \n",

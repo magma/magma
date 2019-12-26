@@ -51,7 +51,6 @@ Description NAS procedure call manager
 #include "TrackingAreaIdentity.h"
 #include "nas/as_message.h"
 #include "bstrlib.h"
-#include "nas_messages_types.h"
 #include "mme_app_defs.h"
 #include "s6a_messages_types.h"
 #include "security_types.h"
@@ -73,7 +72,7 @@ Description NAS procedure call manager
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void nas_proc_initialize(mme_config_t *mme_config_p);
+void nas_proc_initialize(const mme_config_t *mme_config_p);
 
 void nas_proc_cleanup(void);
 

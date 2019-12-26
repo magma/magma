@@ -45,7 +45,6 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_app_desc.h"
-#include "nas_messages_types.h"
 #include "sgs_messages_types.h"
 
 /****************************************************************************
@@ -103,7 +102,6 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
       SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE);
     increment_counter(
       "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   ue_context_p->sgs_context->sgsap_msg = (void *) sgsap_paging_req_pP;
@@ -119,7 +117,6 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
       ue_context_p->mme_ue_s1ap_id);
   }
   ue_context_p->sgs_context->sgsap_msg = NULL;
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 

@@ -161,7 +161,8 @@ int mme_app_send_s11_release_access_bearers_req(
  ** description: Send itti mesage to SPGW task to send Create Session      **
  **              Request (CSR)                                             **
  **                                                                        **
- ** inputs:  ue_context_p: Pointer to UE context                           **
+ ** inputs:  mme_app_desc_p: Pointer to structure, mme_app_desc_t          **
+ **          ue_mm_context: Pointer to ue_mm_context_s                     **
  **          pdn_index: PDN index for which CSR is initiated               **
  **                                                                        **
  ** outputs:                                                               **
@@ -180,9 +181,13 @@ int mme_app_send_s11_create_session_req(
    */
   MessageDef* message_p = NULL;
   itti_s11_create_session_request_t* session_request_p = NULL;
-  int rc = RETURNok;
 
-  DevAssert(ue_mm_context);
+  if (!ue_mm_context) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "ue_mm_context is NULL \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   OAILOG_DEBUG(
     LOG_MME_APP,
     "Handling imsi " IMSI_64_FMT "\n",
@@ -192,8 +197,10 @@ int mme_app_send_s11_create_session_req(
      * HSS rejected the bearer creation or roaming is not allowed for this
      * UE. This result will trigger an ESM Failure message sent to UE.
      */
-    DevMessage(
+    OAILOG_ERROR(
+      LOG_MME_APP,
       "Not implemented: ACCESS NOT GRANTED, send ESM Failure to NAS\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
@@ -369,10 +376,19 @@ int mme_app_send_s11_create_session_req(
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   OAILOG_INFO(
     TASK_MME_APP,
-    "Sending S11 CREATE SESSION REQ message to SPGW for (ue_id = %u)\n",
+    "Sending S11 CREATE SESSION REQ message to SPGW for ue_id "
+    MME_UE_S1AP_ID_FMT "\n",
     ue_mm_context->mme_ue_s1ap_id);
-  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  if ((itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p)) !=
+    RETURNok) {
+    OAILOG_ERROR(
+      TASK_MME_APP,
+      "Failed to send S11 CREATE SESSION REQ message to SPGW for ue_id "
+      MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /****************************************************************************

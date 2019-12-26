@@ -109,9 +109,6 @@ void mme_app_handle_release_access_bearers_resp(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_s11_create_bearer_req(mme_app_desc_t *mme_app_desc_p,
   const itti_s11_create_bearer_request_t *const create_bearer_request_pP);
 
-void mme_app_handle_nas_auth_param_req(
-  const itti_nas_auth_param_req_t *const nas_auth_param_req_pP);
-
 void mme_app_handle_initial_context_setup_rsp(mme_app_desc_t *mme_app_desc_p,
   itti_mme_app_initial_context_setup_rsp_t *const initial_ctxt_setup_rsp_pP);
 
@@ -148,16 +145,15 @@ void mme_ue_context_update_ue_sig_connection_state(
   ecm_state_t new_ecm_state);
 
 void mme_app_handle_mobile_reachability_timer_expiry(
-  struct ue_mm_context_s *ue_context_p);
+  void *args);
 
 void mme_app_handle_implicit_detach_timer_expiry(
-  struct ue_mm_context_s *ue_context_p);
+  void *args);
 
 void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-  struct ue_mm_context_s *ue_context_p);
+  void *args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(
-  struct ue_mm_context_s *ue_context_p);
+void mme_app_handle_ue_context_modification_timer_expiry(void *args);
 
 void mme_app_handle_enb_reset_req(
   const itti_s1ap_enb_initiated_reset_req_t const *enb_reset_req);
@@ -165,15 +161,13 @@ void mme_app_handle_enb_reset_req(
 int mme_app_handle_initial_paging_request(mme_app_desc_t *mme_app_desc_p,
     const char *imsi);
 
-int mme_app_handle_paging_timer_expiry(ue_mm_context_t *ue_context_p);
-void mme_app_handle_ulr_timer_expiry(ue_mm_context_t *ue_context_p);
+void mme_app_handle_paging_timer_expiry(void *args);
+void mme_app_handle_ulr_timer_expiry(void *args);
 
-void mme_app_handle_sgs_eps_detach_timer_expiry(ue_mm_context_t *ue_context_p);
-void mme_app_handle_sgs_imsi_detach_timer_expiry(ue_mm_context_t *ue_context_p);
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-  ue_mm_context_t *ue_context_p);
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
-  ue_mm_context_t *ue_context_p);
+void mme_app_handle_sgs_eps_detach_timer_expiry(void *args);
+void mme_app_handle_sgs_imsi_detach_timer_expiry(void *args);
+void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(void *args);
+void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(void *args);
 
 int mme_app_send_s6a_cancel_location_ans(
   int cla_result,
@@ -217,7 +211,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context);
 int mme_app_handle_sgsap_location_update_rej(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_location_update_rej_t *const itti_sgsap_location_update_rej);
 
-void mme_app_handle_ts6_1_timer_expiry(struct ue_mm_context_s *ue_context_p);
+void mme_app_handle_ts6_1_timer_expiry(void * args);
 
 int mme_app_handle_sgsap_reset_indication(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_vlr_reset_indication_t *const reset_indication_pP);
