@@ -84,7 +84,7 @@
 #define TASK_SPGW TASK_S11
 #endif
 
-void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
+void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t item = 0;
@@ -97,19 +97,18 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "ue_context_p is NULL while sending S11_MODIFY_BEARER_REQUEST\n");
-      OAILOG_FUNC_OUT(LOG_MME_APP);
+      "ue_context_p is NULL, did not send S11_MODIFY_BEARER_REQUEST\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  MessageDef *message_p =
+  MessageDef* message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP,
-      "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
+      LOG_MME_APP, "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  itti_s11_modify_bearer_request_t *s11_modify_bearer_request =
+  itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
     &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
   /*
@@ -123,26 +122,27 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
   if (bearer_cntxt == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Bearer context is null while sending S11_MODIFY_BEARER_REQUEST for ebi"
-      "%u\n", ebi);
+      "Bearer context is null, did not send S11_MODIFY_BEARER_REQUEST for ebi"
+      "%u\n",
+      ebi);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
   s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].eps_bearer_id = ebi;
+    .bearer_contexts[item]
+    .eps_bearer_id = ebi;
   s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].s1_eNB_fteid.teid = bearer_cntxt->enb_fteid_s1u.teid;
+    .bearer_contexts[item]
+    .s1_eNB_fteid.teid = bearer_cntxt->enb_fteid_s1u.teid;
 
   s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-  pdn_cid_t cid =
-    ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
-  pdn_context_t *pdn_context_p = ue_context_p->pdn_contexts[cid];
+    .bearer_contexts[item]
+    .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+  pdn_cid_t cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
+  pdn_context_t* pdn_context_p = ue_context_p->pdn_contexts[cid];
   if (pdn_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Did not find PDN context for ebi %u\n", ebi);
+    OAILOG_ERROR(LOG_MME_APP, "Did not find PDN context for ebi %u\n", ebi);
     unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -151,24 +151,30 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi)
   s11_modify_bearer_request->teid = pdn_context_p->s_gw_teid_s11_s4;
   if (bearer_cntxt->enb_fteid_s1u.ipv4) {
     s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].s1_eNB_fteid.ipv4 = 1;
-    memcpy(&s11_modify_bearer_request->bearer_contexts_to_be_modified
-      .bearer_contexts[item].s1_eNB_fteid.ipv4_address,
+      .bearer_contexts[item]
+      .s1_eNB_fteid.ipv4 = 1;
+    memcpy(
+      &s11_modify_bearer_request->bearer_contexts_to_be_modified
+         .bearer_contexts[item]
+         .s1_eNB_fteid.ipv4_address,
       &bearer_cntxt->enb_fteid_s1u.ipv4_address,
       sizeof(bearer_cntxt->enb_fteid_s1u.ipv4_address));
-  } else if (bearer_cntxt->enb_fteid_s1u.ipv6){
+  } else if (bearer_cntxt->enb_fteid_s1u.ipv6) {
     s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].s1_eNB_fteid.ipv6 = 1;
-    memcpy(&s11_modify_bearer_request->bearer_contexts_to_be_modified
-    .bearer_contexts[item].s1_eNB_fteid.ipv6_address,
-    &bearer_cntxt->enb_fteid_s1u.ipv6_address,
-    sizeof(bearer_cntxt->enb_fteid_s1u.ipv6_address));
+      .bearer_contexts[item]
+      .s1_eNB_fteid.ipv6 = 1;
+    memcpy(
+      &s11_modify_bearer_request->bearer_contexts_to_be_modified
+         .bearer_contexts[item]
+         .s1_eNB_fteid.ipv6_address,
+      &bearer_cntxt->enb_fteid_s1u.ipv6_address,
+      sizeof(bearer_cntxt->enb_fteid_s1u.ipv6_address));
   } else {
-      OAILOG_ERROR(
-      LOG_MME_APP,"Unknown IP address\n");
+    OAILOG_ERROR(LOG_MME_APP, "Unknown IP address\n");
   }
+  // Only one bearer context to be sent for secondary PDN
   s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context =
-    item;
+    1;
 
   s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
     0;
