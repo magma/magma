@@ -59,8 +59,8 @@ class TestMaximumBearersPerUe(unittest.TestCase):
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
             )
             act_ded_ber_req_oai_apn = response.cast(
                 s1ap_types.UeActDedBearCtxtReq_t
@@ -99,8 +99,9 @@ class TestMaximumBearersPerUe(unittest.TestCase):
                 )
 
                 response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertTrue(
-                    response, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                self.assertEqual(
+                    response.msg_type,
+                    s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
                 )
                 act_ded_ber_req_ims_apn = response.cast(
                     s1ap_types.UeActDedBearCtxtReq_t
