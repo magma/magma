@@ -26,6 +26,7 @@ import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {WorkOrderSearchConfig} from './WorkOrderSearchConfig';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {getInitialFilterValue} from '../comparison_view/FilterUtils';
@@ -122,12 +123,7 @@ const WorkOrderComparisonView = () => {
   }
 
   function navigateToWorkOrder(selectedWorkOrderCardId: ?string) {
-    history.push(
-      match.url +
-        (selectedWorkOrderCardId
-          ? `?workorder=${selectedWorkOrderCardId}`
-          : ''),
-    );
+    history.push(InventoryAPIUrls.workorder(selectedWorkOrderCardId));
   }
 
   const showDialog = () => {
