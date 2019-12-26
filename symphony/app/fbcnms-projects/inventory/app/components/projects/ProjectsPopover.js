@@ -15,7 +15,7 @@ import CardHeader from '@material-ui/core/CardHeader';
 import ClearIcon from '@material-ui/icons/Clear';
 import IconButton from '@material-ui/core/IconButton';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrderPopover from '../work_orders/WorkOrderPopover';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -32,29 +32,32 @@ const useStyles = makeStyles(theme => ({
     position: 'absolute',
     right: '10px',
     top: cardTop,
-    maxWidth: '400px',
-    width: '25%',
+    maxWidth: '40%',
+    width: '416px',
     maxHeight: `calc(100% - ${cardTop} - 40px)`,
     borderRadius: '8px',
     overflow: 'hidden',
   },
   cardHeader: {
     paddingBottom: '4px',
-    fontSize: '18px',
+    paddingTop: '8px',
+    alignItems: 'baseline',
     borderBottom: `2px solid ${symphony.palette.separator}`,
+  },
+  cardHeaderContent: {
+    paddingTop: '4px',
   },
   cardContent: {
     overflowY: 'auto',
     overflowX: 'hidden',
-    paddingTop: '8px',
+    padding: '0',
   },
   workOrderBlock: {
     overflowY: 'hidden',
-    padding: '8px 0px',
-    borderBottom: `2px solid ${symphony.palette.separator}`,
+    padding: '0',
+    borderBottom: `2px solid ${symphony.palette.separatorLight}`,
     '&:last-child': {
       borderBottom: 'none',
-      paddingBottom: '0',
     },
   },
   media: {
@@ -127,29 +130,31 @@ const ProjectsPopover = (props: Props) => {
           variables={{projectId}}
           render={props => {
             const {project} = props;
-            const headerContent = `${project.name}${project.location &&
-              ' (' +
-                project.location.latitude +
-                ' , ' +
-                project.location.longitude +
-                ')'}`;
+            const pLoc = project.location;
+            const headerContent = (
+              <div className={classes.cardHeaderContent}>
+                <Text variant="subtitle1">{project.name}</Text>
+                {pLoc && (
+                  <Text variant="body2">
+                    {` (${pLoc.latitude}, ${pLoc.longitude})`}
+                  </Text>
+                )}
+              </div>
+            );
+            const headerActions = (
+              <div>
+                {/* <IconButton>
+                  <MoreVertIcon />
+                </IconButton> */}
+                <IconButton aria-label="clear" onClick={onClearButtonClicked}>
+                  <ClearIcon />
+                </IconButton>
+              </div>
+            );
             return (
               <Card className={classes.card}>
                 <CardHeader
-                  action={
-                    ((
-                      <IconButton>
-                        <MoreVertIcon />
-                      </IconButton>
-                    ),
-                    (
-                      <IconButton
-                        aria-label="clear"
-                        onClick={onClearButtonClicked}>
-                        <ClearIcon />
-                      </IconButton>
-                    ))
-                  }
+                  action={headerActions}
                   subheader={headerContent}
                   className={classes.cardHeader}
                 />

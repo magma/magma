@@ -16,12 +16,13 @@ import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WorkOrderLocation, WorkOrderProperties} from '../map/MapUtil';
 
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import UserTypeahead from '../typeahead/UserTypeahead';
+import classNames from 'classnames';
+import symphony from '@fbcnms/ui/theme/symphony';
+import {InventoryAPIUrls} from '../../common/InventoryAPI';
+import {Link} from 'react-router-dom';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
 import {formatMultiSelectValue} from '@fbcnms/ui/utils/displayUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -30,13 +31,14 @@ import {priorityValues, statusValues} from '../../common/WorkOrder';
 const useStyles = makeStyles(() => ({
   fullDetails: {
     width: '100%',
+    padding: '24px',
   },
-  root: {
+  quickPeek: {
     marginTop: '8px',
     minWidth: '157px',
   },
-  title: {
-    fontSize: '18px',
+  notUnderlinedLink: {
+    textDecoration: 'none',
   },
   assigneeDiv: {
     display: 'flex',
@@ -60,8 +62,43 @@ const useStyles = makeStyles(() => ({
     marginRight: '0.35em',
     marginTop: '20px',
   },
-  couple: {
-    marginTop: '20px',
+  section: {
+    '&:not(:first-child)': {
+      marginTop: '20px',
+    },
+    '&>*': {
+      '&:not(:first-child)': {
+        marginTop: '4px',
+      },
+    },
+  },
+  field: {
+    display: 'flex',
+    alignItems: 'baseline',
+    '&>:not(:first-child)': {
+      marginLeft: '2px',
+    },
+    '&>:last-child': {
+      flexGrow: '1',
+    },
+  },
+  trunckedContent: {
+    '-webkit-line-clamp': '2',
+    overflow: 'hidden',
+    display: '-webkit-box',
+    '-webkit-box-orient': 'vertical',
+  },
+  fieldBox: {
+    display: 'block',
+    '&:not(:first-child)': {
+      marginTop: '8px',
+    },
+    '&>*': {
+      display: 'inline-flex',
+      background: symphony.palette.background,
+      borderRadius: '4px',
+      padding: '3px 8px',
+    },
   },
 }));
 
@@ -81,14 +118,13 @@ type Props = {
 const WorkOrderPopover = (props: Props) => {
   const {
     workOrder,
-    onWorkOrderClick,
     displayFullDetails,
     selectedView,
     onWorkOrderChanged,
     containerClassName,
   } = props;
   const classes = useStyles();
-  const editAssignee = selectedView === 'status' || workOrder.status === 'DONE';
+  const viewMode = selectedView === 'status' || workOrder.status === 'DONE';
 
   const setWorkOrderDetails = (
     key: 'assignee' | 'installDate',
@@ -136,97 +172,82 @@ const WorkOrderPopover = (props: Props) => {
     );
   };
 
+  const woHeader = (
+    <Link
+      className={classes.notUnderlinedLink}
+      to={InventoryAPIUrls.workorder(workOrder.id)}>
+      <Text variant="subtitle1" color="primary">
+        {workOrder.name}
+      </Text>
+    </Link>
+  );
+
   return (
     <div className={containerClassName}>
       {displayFullDetails ? (
         <div className={classes.fullDetails}>
-          <Text variant="h6" className={classes.title} gutterBottom>
-            {workOrder.name}
-          </Text>
-          <Typography gutterBottom>{workOrder.description}</Typography>
-          <div className={classes.couple}>
-            <Typography gutterBottom>
-              <strong>Owner: </strong>
-              {workOrder.ownerName}
-            </Typography>
-            <div>
-              <Typography gutterBottom>
-                <strong>Status: </strong>
-                {formatMultiSelectValue(statusValues, workOrder.status)}
-              </Typography>
-              <Typography gutterBottom>
-                <strong>Priority: </strong>
-                {formatMultiSelectValue(priorityValues, workOrder.priority)}
-              </Typography>
-            </div>
-            <div className={classes.couple}>
-              {!!workOrder.location && (
-                <Typography gutterBottom>
-                  <strong>Location: </strong>
-                  {formatLocation(workOrder.location)}
-                </Typography>
-              )}
-              <div className={classes.assigneeDiv}>
-                <Typography className={classes.assigneeTypography}>
-                  <strong>Assignee: </strong>
-                  {editAssignee && showAssignee(workOrder.assignee)}
-                </Typography>
-                {!editAssignee && (
-                  <UserTypeahead
-                    margin="dense"
-                    selectedUser={workOrder.assignee}
-                    onUserSelection={user =>
-                      setWorkOrderDetails('assignee', user)
-                    }
-                  />
-                )}
-              </div>
-            </div>
-            <div className={classes.dueDiv}>
-              <div className={classes.assigneeDiv}>
-                <Typography className={classes.assigneeTypography}>
-                  <strong>Due: </strong>
-                </Typography>
-                <TextField
-                  type="date"
-                  label=""
-                  variant="outlined"
+          {woHeader}
+          <div>
+            <Text
+              title={workOrder.description}
+              variant="body2"
+              className={classNames(classes.field, classes.trunckedContent)}>
+              {workOrder.description}
+            </Text>
+          </div>
+          <div className={classes.section}>
+            <Text variant="body2" className={classes.field}>
+              <strong>Assignee: </strong>
+              {!!viewMode ? (
+                <span>{showAssignee(workOrder.assignee)}</span>
+              ) : (
+                <UserTypeahead
                   margin="dense"
-                  disabled={
-                    workOrder.status === 'DONE' || selectedView === 'status'
+                  selectedUser={workOrder.assignee}
+                  onUserSelection={user =>
+                    setWorkOrderDetails('assignee', user)
                   }
-                  className={classes.gridInput}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  defaultValue={formatDateForTextInput(workOrder.installDate)}
-                  onChange={event => {
-                    setWorkOrderDetails(
-                      'installDate',
-                      event.target.value !== ''
-                        ? new Date(event.target.value).toISOString()
-                        : null,
-                    );
-                  }}
                 />
-              </div>
-              {onWorkOrderClick && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={onWorkOrderClick}>
-                  View
-                </Button>
               )}
+            </Text>
+            {!!workOrder.location && (
+              <Text variant="body2" className={classes.field}>
+                <strong>Location: </strong>
+                <span>{formatLocation(workOrder.location)}</span>
+              </Text>
+            )}
+          </div>
+          <div className={classes.section}>
+            <div className={classes.fieldBox}>
+              <Text variant="body2" className={classes.field}>
+                <strong>Status: </strong>
+                <span>
+                  {formatMultiSelectValue(statusValues, workOrder.status)}
+                </span>
+              </Text>
+            </div>
+            <div className={classes.fieldBox}>
+              <Text variant="body2" className={classes.field}>
+                <strong>Priority: </strong>
+                <span>
+                  {formatMultiSelectValue(priorityValues, workOrder.priority)}
+                </span>
+              </Text>
+            </div>
+            <div className={classes.fieldBox}>
+              <Text variant="body2" className={classes.field}>
+                <strong>Due: </strong>
+                <span>
+                  {formatDateForTextInput(workOrder.installDate) || 'None'}
+                </span>
+              </Text>
             </div>
           </div>
         </div>
       ) : (
-        <div className={classes.root}>
-          <Text variant="h6" gutterBottom>
-            {workOrder.name}
-          </Text>
-          {showAssignee(workOrder.assignee)}
+        <div className={classes.quickPeek}>
+          {woHeader}
+          <div>{showAssignee(workOrder.assignee)}</div>
         </div>
       )}
     </div>
