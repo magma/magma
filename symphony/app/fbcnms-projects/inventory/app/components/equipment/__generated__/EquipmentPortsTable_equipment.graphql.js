@@ -219,7 +219,8 @@ export type EquipmentPortsTable_equipment = {|
         |},
       |}>,
       +services: $ReadOnlyArray<?{|
-        +id: string
+        +id: string,
+        +name: string,
       |}>,
     |},
     +properties: $ReadOnlyArray<{|
@@ -402,7 +403,8 @@ export type EquipmentPortsTable_equipment = {|
             |},
           |}>,
           +services: $ReadOnlyArray<?{|
-            +id: string
+            +id: string,
+            +name: string,
           |}>,
         |},
         +properties: $ReadOnlyArray<{|
@@ -593,7 +595,8 @@ export type EquipmentPortsTable_equipment = {|
                 |},
               |}>,
               +services: $ReadOnlyArray<?{|
-                +id: string
+                +id: string,
+                +name: string,
               |}>,
             |},
             +properties: $ReadOnlyArray<{|
@@ -784,7 +787,8 @@ export type EquipmentPortsTable_equipment = {|
                     |},
                   |}>,
                   +services: $ReadOnlyArray<?{|
-                    +id: string
+                    +id: string,
+                    +name: string,
                   |}>,
                 |},
                 +properties: $ReadOnlyArray<{|
@@ -975,7 +979,8 @@ export type EquipmentPortsTable_equipment = {|
                         |},
                       |}>,
                       +services: $ReadOnlyArray<?{|
-                        +id: string
+                        +id: string,
+                        +name: string,
                       |}>,
                     |},
                     +properties: $ReadOnlyArray<{|
@@ -1476,9 +1481,7 @@ v24 = {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v19/*: any*/)
         }
       ]
     },

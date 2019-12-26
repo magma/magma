@@ -168,7 +168,8 @@ export type EquipmentPortsTable_port = {|
       |},
     |}>,
     +services: $ReadOnlyArray<?{|
-      +id: string
+      +id: string,
+      +name: string,
     |}>,
   |},
   +properties: $ReadOnlyArray<{|
@@ -649,9 +650,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v18/*: any*/)
         }
       ]
     },

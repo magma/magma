@@ -104,7 +104,8 @@ export type EquipmentPortsTable_link = {|
     |},
   |}>,
   +services: $ReadOnlyArray<?{|
-    +id: string
+    +id: string,
+    +name: string,
   |}>,
   +$refType: EquipmentPortsTable_link$ref,
 |};
@@ -459,13 +460,11 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": true,
-      "selections": [
-        (v0/*: any*/)
-      ]
+      "selections": (v16/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'becaecab8da3c7407c4afef303f0e537';
+(node/*: any*/).hash = '305eb52ae1d04d26954b2a42bc4c81ac';
 module.exports = node;

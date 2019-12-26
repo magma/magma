@@ -104,7 +104,8 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
     |},
   |}>,
   +services: $ReadOnlyArray<?{|
-    +id: string
+    +id: string,
+    +name: string,
   |}>,
   +$refType: WorkOrderDetailsPaneLinkItem_link$ref,
 |};
@@ -459,9 +460,7 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": true,
-      "selections": [
-        (v0/*: any*/)
-      ]
+      "selections": (v16/*: any*/)
     }
   ]
 };
