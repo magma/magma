@@ -16,19 +16,21 @@ import type {LocationType} from './LocationType';
 import type {Property} from './Property';
 import type {TopologyNetwork} from './NetworkTopology';
 
+export type BasicLocation = {
+  name: string,
+  latitude: number,
+  longitude: number,
+};
 // TODO: Usage of the Location type should eventually be replaced by the
 // generated Relay type.
-export type Location = {
+export type Location = BasicLocation & {
   id: string,
   externalId: ?string,
-  name: string,
   locationType: LocationType,
   parentLocation: ?Location,
   children: Array<Location>,
   numChildren: number,
   equipments: Array<Equipment>,
-  latitude: number,
-  longitude: number,
   properties: Array<Property>,
   images: Array<ImageAttachmentType>,
   files: Array<FileAttachmentType>,
@@ -36,4 +38,14 @@ export type Location = {
   topology: TopologyNetwork,
   locationHierarchy: Array<Location>,
   surveys: $PropertyType<LocationSiteSurveyTab_location, 'surveys'>,
+};
+
+export const locationFormat = {
+  nameAndCoordinates: (locationInput: 'string' | BasicLocation) => {
+    const loc: BasicLocation =
+      typeof locationInput === 'string'
+        ? JSON.parse(locationInput)
+        : locationInput;
+    return `${loc.name} (${loc.latitude}, ${loc.longitude})`;
+  },
 };

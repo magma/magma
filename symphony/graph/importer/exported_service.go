@@ -10,6 +10,10 @@ import (
 
 	"github.com/AlekSi/pointer"
 
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -17,9 +21,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 const minimalLineLength = 6
@@ -165,7 +166,7 @@ func (m *importer) validateLineForExistingService(ctx context.Context, serviceID
 	}
 	typ := service.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Wrapf(err, "wrong service type. should be %q, but %q", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong service type. should be %v, but %v", importLine.TypeName(), typ.Name)
 	}
 	return service, nil
 }

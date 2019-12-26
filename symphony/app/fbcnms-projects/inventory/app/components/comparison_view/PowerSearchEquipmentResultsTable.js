@@ -143,6 +143,7 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
     const equipmetStatusEnabled = this.context.isFeatureEnabled(
       'planned_equipment',
     );
+    const externalIDEnabled = this.context.isFeatureEnabled('external_id');
 
     return equipment.length > 0 ? (
       <AutoSizer>
@@ -165,6 +166,17 @@ class PowerSearchEquipmentResultsTable extends React.Component<Props> {
               headerRenderer={this._headerRenderer}
               cellRenderer={this._cellRenderer}
             />
+            {externalIDEnabled && (
+              <Column
+                label="External ID"
+                dataKey="id"
+                width={150}
+                flexGrow={1}
+                headerRenderer={this._headerRenderer}
+                cellRenderer={this._cellRenderer}
+                cellDataGetter={({rowData}) => rowData.externalId}
+              />
+            )}
             <Column
               label="Location"
               dataKey="location"
@@ -216,6 +228,7 @@ export default withRouter(
             id
             name
             futureState
+            externalId
             equipmentType {
               id
               name

@@ -23,12 +23,13 @@ import type {ServiceStatus} from '../../common/Service';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import IconButton from '@material-ui/core/IconButton';
-import React, {useState} from 'react';
+import React, {useContext, useState} from 'react';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
 import Select from '@fbcnms/ui/components/design-system/ContexualLayer/Select';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
@@ -89,7 +90,7 @@ const useStyles = makeStyles({
       padding: '0px 20px 0px 32px',
     },
   },
-  addLink: {
+  addButton: {
     marginRight: '8px',
     '&:hover': {
       backgroundColor: 'transparent',
@@ -122,7 +123,11 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
   const {service, onOpenDetailsPanel} = props;
   const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
+  const serviceEndpointsEnabled = useContext(AppContext).isFeatureEnabled(
+    'service_endpoints',
+  );
 
   const onAddLink = (link: Link) => {
     const variables: AddServiceLinkMutationVariables = {
@@ -223,6 +228,27 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
           </Button>
         </div>
       </Card>
+      {serviceEndpointsEnabled && (
+        <>
+          <div className={classes.separator} />
+          <ExpandingPanel
+            title="Endpoints"
+            defaultExpanded={false}
+            expandedClassName={classes.expanded}
+            className={classes.panel}
+            expansionPanelSummaryClassName={classes.expansionPanel}
+            detailsPaneClass={classes.detailsPanel}
+            expanded={endpointsExpanded}
+            onChange={expanded => setEndpointsExpanded(expanded)}
+            rightContent={
+              <IconButton className={classes.addButton}>
+                <AddCircleOutlineIcon />
+              </IconButton>
+            }>
+            <div />
+          </ExpandingPanel>
+        </>
+      )}
       <div className={classes.separator} />
       <ExpandingPanel
         title="Links & Subservices"
@@ -235,7 +261,7 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         onChange={expanded => setLinksExpanded(expanded)}
         rightContent={
           <IconButton
-            className={classes.addLink}
+            className={classes.addButton}
             onClick={event => {
               setAnchorEl(event.currentTarget);
               setShowAddMenu(true);

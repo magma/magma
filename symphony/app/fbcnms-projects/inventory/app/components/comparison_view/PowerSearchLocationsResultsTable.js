@@ -9,10 +9,12 @@
  */
 
 import type PowerSearchLocationsResultsTable_locations from './__generated__/PowerSearchLocationsResultsTable_locations.graphql';
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {ContextRouter} from 'react-router-dom';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithStyles} from '@material-ui/core';
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Box from '@material-ui/core/Box';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -85,6 +87,9 @@ type Props = WithAlert &
   };
 
 class PowerSearchLocationsResultsTable extends React.Component<Props> {
+  static contextType = AppContext;
+  context: AppContextType;
+
   _headerRenderer = ({label}) => {
     const {classes} = this.props;
     return (
@@ -147,6 +152,8 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
     if (locations.length === 0) {
       return null;
     }
+    const externalIDEnabled = this.context.isFeatureEnabled('external_id');
+
     return locations.length > 0 ? (
       <AutoSizer>
         {({height, width}) => (
@@ -169,6 +176,17 @@ class PowerSearchLocationsResultsTable extends React.Component<Props> {
               cellRenderer={this._cellRenderer}
               cellDataGetter={({rowData}) => rowData.name}
             />
+            {externalIDEnabled && (
+              <Column
+                label="External ID"
+                dataKey="id"
+                width={150}
+                flexGrow={1}
+                headerRenderer={this._headerRenderer}
+                cellRenderer={this._cellRenderer}
+                cellDataGetter={({rowData}) => rowData.externalId}
+              />
+            )}
             <Column
               label="Location Type"
               dataKey="type"
@@ -212,6 +230,7 @@ export default withRouter(
             @relay(plural: true) {
             id
             name
+            externalId
             locationType {
               id
               name
