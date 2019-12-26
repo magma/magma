@@ -21,6 +21,8 @@ type Props = {
   title?: string,
   placeholder?: string,
   disabled?: boolean,
+  onBlur?: () => void,
+  hasSpacer?: boolean,
 };
 
 const NameInput = (props: Props) => {
@@ -31,6 +33,8 @@ const NameInput = (props: Props) => {
     inputClass,
     placeholder,
     disabled,
+    onBlur,
+    hasSpacer,
   } = props;
   const onNameChanded = event => {
     if (!onChange) {
@@ -52,7 +56,7 @@ const NameInput = (props: Props) => {
       required={true}
       hasError={!!errorText}
       errorText={errorText}
-      hasSpacer={true}>
+      hasSpacer={hasSpacer ?? true}>
       <TextInput
         name={fieldId}
         autoFocus={true}
@@ -62,6 +66,7 @@ const NameInput = (props: Props) => {
         placeholder={placeholder}
         onChange={onNameChanded}
         disabled={disabled}
+        onBlur={onBlur}
       />
     </FormField>
   );
