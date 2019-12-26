@@ -46,7 +46,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		//
-		//	populating:
+		//	populating, but not using:
 		//	indexToLocationTypeID
 		//
 		if err = m.inputValidationsPorts(ctx, importHeader); err != nil {
@@ -180,10 +180,11 @@ func (m *importer) inputValidationsPorts(ctx context.Context, importHeader Impor
 	if !equal(firstLine[:locStart], []string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}) {
 		return errors.New("first line misses sequence; 'Port ID','Port Name','Port Type','Equipment Name' or 'Equipment Type'")
 	}
-	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position", "Linked Port ID", "Linked Port name", "Linked Port Equipment ID", "Linked Port Equipment"}) {
-		return errors.New("first line should include: 'Parent Equipment(3)', 'Parent Equipment (2)', 'Parent Equipment', 'Equipment Position' 'Linked Port ID', 'Linked Port name', 'Linked Equipment ID', 'Linked Equipment'")
+
+	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position", "Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}) {
+		return errors.New("first line should include: 'Parent Equipment (3)', 'Parent Equipment (2)', 'Parent Equipment', 'Equipment Position' 'Linked Port ID', 'Linked Port Name', 'Linked Equipment ID', 'Linked Equipment'")
 	}
-	err := m.validateAllLocationTypeExist(ctx, 3, importHeader.LocationTypesRangeArr(), false)
+	err := m.validateAllLocationTypeExist(ctx, 5, importHeader.LocationTypesRangeArr(), false)
 	return err
 }
 
