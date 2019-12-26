@@ -2,6 +2,7 @@
 # pyre-strict
 
 from datetime import datetime
+from enum import Enum
 from typing import Any, Dict, List, NamedTuple, Optional
 
 from .reporter import DummyReporter
@@ -33,6 +34,13 @@ PROPERTY_VALUES = """stringValue
     floatValue
     latitudeValue
     longitudeValue"""
+
+
+class ImageEntity(Enum):
+    LOCATION = "LOCATION"
+    WORK_ORDER = "WORK_ORDER"
+    SITE_SURVEY = "SITE_SURVEY"
+    EQUIPMENT = "EQUIPMENT"
 
 
 class LocationType(NamedTuple):
@@ -95,3 +103,10 @@ class Service(NamedTuple):
     customer: Optional[Customer]
     terminationPoints: List[Equipment]
     links: List[Link]
+
+
+class Document(NamedTuple):
+    id: str
+    name: str
+    parentId: str
+    parentEntity: ImageEntity
