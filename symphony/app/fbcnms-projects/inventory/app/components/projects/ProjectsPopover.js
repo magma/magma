@@ -12,8 +12,6 @@ import * as React from 'react';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
-import ClearIcon from '@material-ui/icons/Clear';
-import IconButton from '@material-ui/core/IconButton';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrderPopover from '../work_orders/WorkOrderPopover';
@@ -39,7 +37,7 @@ const useStyles = makeStyles(theme => ({
     overflow: 'hidden',
   },
   cardHeader: {
-    paddingBottom: '4px',
+    paddingBottom: '8px',
     paddingTop: '8px',
     alignItems: 'baseline',
     borderBottom: `2px solid ${symphony.palette.separator}`,
@@ -79,7 +77,6 @@ const useStyles = makeStyles(theme => ({
 
 type Props = {
   projectId: ?string,
-  onClearButtonClicked: () => void,
 };
 
 const ProjectsPopoverQuery = graphql`
@@ -114,7 +111,7 @@ const ProjectsPopoverQuery = graphql`
 `;
 
 const ProjectsPopover = (props: Props) => {
-  const {projectId, onClearButtonClicked} = props;
+  const {projectId} = props;
   const classes = useStyles();
   const router = useRouter();
 
@@ -141,20 +138,9 @@ const ProjectsPopover = (props: Props) => {
                 )}
               </div>
             );
-            const headerActions = (
-              <div>
-                {/* <IconButton>
-                  <MoreVertIcon />
-                </IconButton> */}
-                <IconButton aria-label="clear" onClick={onClearButtonClicked}>
-                  <ClearIcon />
-                </IconButton>
-              </div>
-            );
             return (
               <Card className={classes.card}>
                 <CardHeader
-                  action={headerActions}
                   subheader={headerContent}
                   className={classes.cardHeader}
                 />
