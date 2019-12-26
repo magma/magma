@@ -194,6 +194,16 @@ const arrayConfigs = [
     title: 'Logged Out Alert',
     enabledByDefault: true,
   },
+  {
+    id: 'external_id',
+    title: 'External ID',
+    enabledByDefault: false,
+  },
+  {
+    id: 'service_endpoints',
+    title: 'Service Endpoints',
+    enabledByDefault: false,
+  },
 ];
 
 const featureConfigs: {[FeatureID]: FeatureConfig} = {};
