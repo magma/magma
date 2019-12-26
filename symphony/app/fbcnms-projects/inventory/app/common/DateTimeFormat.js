@@ -36,7 +36,10 @@ export default class DateTimeFormat {
     return moment(dateTimeValue).calendar(null, CALENDAR);
   }
 
-  static dateTime = (dateTimeValue: ?string | ?number) => {
+  static dateTime = (
+    dateTimeValue: ?string | ?number,
+    fallback: string = '',
+  ) => {
     return !!dateTimeValue
       ? new Intl.DateTimeFormat('default', {
           hour: 'numeric',
@@ -45,6 +48,6 @@ export default class DateTimeFormat {
           month: 'numeric',
           day: 'numeric',
         }).format(new Date(dateTimeValue))
-      : '';
+      : fallback;
   };
 }

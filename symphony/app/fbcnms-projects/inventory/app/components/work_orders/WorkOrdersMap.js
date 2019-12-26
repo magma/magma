@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {BasicLocation} from '../../common/Location';
 import type {WorkOrder} from '../../common/WorkOrder';
 import type {
   WorkOrderLocation,
@@ -42,7 +43,7 @@ const useStyles = makeStyles({
 const LOCATIONS_DISTRIBUTION_FACTOR = 0.01;
 
 const distributeLocations = (
-  location: WorkOrderLocation,
+  location: BasicLocation,
   setLocations: Set<string>,
 ): WorkOrderLocation => {
   let lat = location.latitude + Math.random() * LOCATIONS_DISTRIBUTION_FACTOR;

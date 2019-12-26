@@ -13,18 +13,21 @@ import type {
   EditWorkOrderMutationVariables,
 } from '../../mutations/__generated__/EditWorkOrderMutation.graphql';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
-import type {WorkOrderLocation, WorkOrderProperties} from '../map/MapUtil';
+import type {WorkOrderProperties} from '../map/MapUtil';
 
 import * as React from 'react';
+import DateTimeFormat from '../../common/DateTimeFormat';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
+import Strings from '../../common/CommonStrings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {Link} from 'react-router-dom';
-import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
 import {formatMultiSelectValue} from '@fbcnms/ui/utils/displayUtils';
+import {locationFormat} from '../../common/Location';
 import {makeStyles} from '@material-ui/styles';
 import {priorityValues, statusValues} from '../../common/WorkOrder';
 
@@ -156,20 +159,7 @@ const WorkOrderPopover = (props: Props) => {
   };
 
   const showAssignee = (assignee: string) => {
-    return assignee === '' ? 'Unassigned' : assignee;
-  };
-
-  const formatLocation = (location: 'string' | WorkOrderLocation) => {
-    const WorkOrderlocation =
-      typeof location === 'string' ? JSON.parse(location) : location;
-    return (
-      WorkOrderlocation.name +
-      ' (' +
-      WorkOrderlocation.latitude +
-      ' , ' +
-      WorkOrderlocation.longitude +
-      ')'
-    );
+    return assignee || Strings.common.unassignedItem;
   };
 
   const woHeader = (
@@ -197,7 +187,9 @@ const WorkOrderPopover = (props: Props) => {
           </div>
           <div className={classes.section}>
             <Text variant="body2" className={classes.field}>
-              <strong>Assignee: </strong>
+              <strong>
+                {fbt('Assignee:', 'Work Order card "Assignee" field title')}
+              </strong>
               {!!viewMode ? (
                 <span>{showAssignee(workOrder.assignee)}</span>
               ) : (
@@ -212,15 +204,21 @@ const WorkOrderPopover = (props: Props) => {
             </Text>
             {!!workOrder.location && (
               <Text variant="body2" className={classes.field}>
-                <strong>Location: </strong>
-                <span>{formatLocation(workOrder.location)}</span>
+                <strong>
+                  {fbt('Location:', 'Work Order card "Location" field title')}
+                </strong>
+                <span>
+                  {locationFormat.nameAndCoordinates(workOrder.location)}
+                </span>
               </Text>
             )}
           </div>
           <div className={classes.section}>
             <div className={classes.fieldBox}>
               <Text variant="body2" className={classes.field}>
-                <strong>Status: </strong>
+                <strong>
+                  {fbt('Status:', 'Work Order card "Status" field title')}
+                </strong>
                 <span>
                   {formatMultiSelectValue(statusValues, workOrder.status)}
                 </span>
@@ -228,7 +226,9 @@ const WorkOrderPopover = (props: Props) => {
             </div>
             <div className={classes.fieldBox}>
               <Text variant="body2" className={classes.field}>
-                <strong>Priority: </strong>
+                <strong>
+                  {fbt('Priority:', 'Work Order card "Priority" field title')}
+                </strong>
                 <span>
                   {formatMultiSelectValue(priorityValues, workOrder.priority)}
                 </span>
@@ -236,9 +236,14 @@ const WorkOrderPopover = (props: Props) => {
             </div>
             <div className={classes.fieldBox}>
               <Text variant="body2" className={classes.field}>
-                <strong>Due: </strong>
+                <strong>
+                  {fbt('Due:', 'Work Order card "Due" field title')}
+                </strong>
                 <span>
-                  {formatDateForTextInput(workOrder.installDate) || 'None'}
+                  {DateTimeFormat.dateTime(
+                    workOrder.installDate,
+                    Strings.common.emptyField,
+                  )}
                 </span>
               </Text>
             </div>
