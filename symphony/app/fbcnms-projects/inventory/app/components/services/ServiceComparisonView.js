@@ -13,13 +13,14 @@ import type {PropertyType} from '../../common/PropertyType';
 import type {ServiceComparisonViewQueryRendererPropertiesQueryResponse} from './__generated__/ServiceComparisonViewQueryRendererPropertiesQuery.graphql.js';
 
 import AddServiceDialog from './AddServiceDialog';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
 import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
 import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
@@ -117,6 +118,9 @@ const ServiceComparisonView = () => {
   const [count, setCount] = useState(0);
   const [filters, setFilters] = useState([]);
   const classes = useStyles();
+  const serviceEndpointsEnabled = useContext(AppContext).isFeatureEnabled(
+    'service_endpoints',
+  );
 
   const selectedServiceCardId = useMemo(
     () => extractEntityIdFromUrl('service', location.search),
@@ -137,10 +141,13 @@ const ServiceComparisonView = () => {
 
   const locationTypesFilterConfigs = useLocationTypes();
 
-  const filterConfigs = ServiceSearchConfig.map(ent => ent.filters)
+  let filterConfigs = ServiceSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(servicePropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(servicePropertiesFilterConfigs);
+
+  if (serviceEndpointsEnabled) {
+    filterConfigs = filterConfigs.concat(locationTypesFilterConfigs);
+  }
 
   const navigateToService = (selectedServiceId: ?string) => {
     history.push(

@@ -10,12 +10,13 @@
 
 import type {Location} from '../../common/Location.js';
 
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import LocationDetailsCardProperty from './LocationDetailsCardProperty';
 import LocationMapSnippet from './LocationMapSnippet';
-import React from 'react';
+import React, {useContext} from 'react';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -39,6 +40,9 @@ type Props = {
 const LocationDetailsCard = (props: Props) => {
   const {className, location} = props;
   const classes = useStyles();
+  const externalIDEnabled = useContext(AppContext).isFeatureEnabled(
+    'external_id',
+  );
 
   return (
     <Card className={className}>
@@ -63,7 +67,7 @@ const LocationDetailsCard = (props: Props) => {
                   value={String(location.longitude)}
                 />
               )}
-              {location.externalId && (
+              {externalIDEnabled && location.externalId && (
                 <LocationDetailsCardProperty
                   title="External ID"
                   value={location.externalId}

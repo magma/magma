@@ -24,6 +24,7 @@ export type PowerSearchEquipmentResultsTable_equipment = $ReadOnlyArray<{|
   +id: string,
   +name: string,
   +futureState: ?FutureState,
+  +externalId: ?string,
   +equipmentType: {|
     +id: string,
     +name: string,
@@ -77,6 +78,13 @@ return {
       "storageKey": null
     },
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "externalId",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "equipmentType",
@@ -117,5 +125,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cc60d8bfb665259465fae6c9b0ba525d';
+(node/*: any*/).hash = 'dbd45296395196af507b9270ca136663';
 module.exports = node;

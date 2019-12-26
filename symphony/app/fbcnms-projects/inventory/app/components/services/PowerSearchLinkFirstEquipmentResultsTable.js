@@ -19,7 +19,6 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {makeStyles} from '@material-ui/styles';
-import {useRouter} from '@fbcnms/ui/hooks';
 
 import 'react-virtualized/styles.css';
 
@@ -78,7 +77,6 @@ type Props = {
 
 const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
   const classes = useStyles();
-  const {history} = useRouter();
   const {equipment, selectedEquipment, onEquipmentSelected} = props;
 
   const headerRenderer = ({label}) => {
@@ -97,16 +95,6 @@ const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
         <EquipmentBreadcrumbs
           equipment={rowData}
           showSelfEquipment={false}
-          onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
-          }
-          onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
-          }
           variant="body2"
         />
       );

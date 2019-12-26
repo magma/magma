@@ -12,6 +12,7 @@ import type {
   AddLocationMutationResponse,
   AddLocationMutationVariables,
 } from '../../mutations/__generated__/AddLocationMutation.graphql';
+import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {
   EditLocationMutationResponse,
   EditLocationMutationVariables,
@@ -24,6 +25,7 @@ import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddLocationMutation from '../../mutations/AddLocationMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardFooter from '@fbcnms/ui/components/CardFooter';
@@ -195,6 +197,9 @@ const locationAddEditCard__locationTypeQuery = graphql`
 `;
 
 class LocationAddEditCard extends React.Component<Props, State> {
+  static contextType = AppContext;
+  context: AppContextType;
+
   componentDidMount() {
     this.getEditingLocation().then(editingLocation => {
       this.setState({
@@ -212,7 +217,7 @@ class LocationAddEditCard extends React.Component<Props, State> {
   render() {
     const {classes} = this.props;
     const {editingLocation} = this.state;
-
+    const externalIDEnabled = this.context.isFeatureEnabled('external_id');
     if (!editingLocation) {
       return (
         <div className={classes.loadingContainer}>
@@ -236,19 +241,21 @@ class LocationAddEditCard extends React.Component<Props, State> {
                   inputClass={classes.input}
                 />
               </Grid>
-              <Grid item xs={12} sm={12} lg={6} xl={4}>
-                <FormField
-                  label="External ID"
-                  hasSpacer
-                  className={classes.externalIdFormField}>
-                  <TextInput
-                    className={classes.input}
-                    type="string"
-                    value={editingLocation.externalId ?? ''}
-                    onChange={this._onExternalIdChanged}
-                  />
-                </FormField>
-              </Grid>
+              {externalIDEnabled && (
+                <Grid item xs={12} sm={12} lg={6} xl={4}>
+                  <FormField
+                    label="External ID"
+                    hasSpacer
+                    className={classes.externalIdFormField}>
+                    <TextInput
+                      className={classes.input}
+                      type="string"
+                      value={editingLocation.externalId ?? ''}
+                      onChange={this._onExternalIdChanged}
+                    />
+                  </FormField>
+                </Grid>
+              )}
             </Grid>
             <Grid container spacing={0} className={classes.row}>
               <Grid item xs={12} sm={12} lg={6} xl={4}>

@@ -20,7 +20,6 @@ import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
 import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
@@ -116,7 +115,6 @@ const showLinksByOrder = (
 
 const AvailableLinksTable = (props: Props) => {
   const {equipment, links, selectedLink, onLinkSelected, classes} = props;
-  const {history} = useRouter();
 
   const headerRenderer = ({label}) => {
     return (
@@ -135,16 +133,6 @@ const AvailableLinksTable = (props: Props) => {
           equipment={cellData}
           size="small"
           variant="body2"
-          onParentLocationClicked={locationId =>
-            history.push(
-              `inventory/` + (locationId ? `?location=${locationId}` : ''),
-            )
-          }
-          onEquipmentClicked={equipmentId =>
-            history.push(
-              `inventory/` + (equipmentId ? `?equipment=${equipmentId}` : ''),
-            )
-          }
         />
       );
     } else {
@@ -219,7 +207,7 @@ const AvailableLinksTable = (props: Props) => {
             className={classes.column}
           />
           <Column
-            label="Equipment B (Selected)"
+            label="Equipment B"
             dataKey="equipment_b"
             width={250}
             flexGrow={1}

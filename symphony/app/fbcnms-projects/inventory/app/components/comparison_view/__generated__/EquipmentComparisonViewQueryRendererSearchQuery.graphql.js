@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2281f2b07442b846fe1f3fd0db458a97
+ * @relayHash 3ebd42dfcc8c00cc727424ad5b80fb7f
  */
 
 /* eslint-disable */
@@ -118,6 +118,7 @@ fragment PowerSearchEquipmentResultsTable_equipment on Equipment {
   id
   name
   futureState
+  externalId
   equipmentType {
     id
     name
@@ -278,6 +279,13 @@ return {
                 "args": null,
                 "storageKey": null
               },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "externalId",
+                "args": null,
+                "storageKey": null
+              },
               (v5/*: any*/),
               {
                 "kind": "LinkedField",
@@ -381,7 +389,7 @@ return {
     "operationKind": "query",
     "name": "EquipmentComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: $limit, filters: $filters) {\n    equipment {\n      ...PowerSearchEquipmentResultsTable_equipment\n      ...PowerSearchLinkFirstEquipmentResultsTable_equipment\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n\nfragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
+    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: $limit, filters: $filters) {\n    equipment {\n      ...PowerSearchEquipmentResultsTable_equipment\n      ...PowerSearchLinkFirstEquipmentResultsTable_equipment\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  externalId\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n\nfragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
     "metadata": {}
   }
 };

@@ -19,4 +19,6 @@ export const InventoryAPIUrls = {
     `${INVENTORY_PATH}?${EQUIPMENT_SEARCH_PARAM}=${equipmentId}`,
   project: (projectId: string) =>
     `/workorders/projects/search?project=${projectId}`,
+  workorder: (workorderId: ?string) =>
+    `/workorders/search${!!workorderId ? `?workorder=${workorderId}` : ''}`,
 };

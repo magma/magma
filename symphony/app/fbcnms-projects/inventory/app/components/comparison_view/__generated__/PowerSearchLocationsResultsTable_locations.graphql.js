@@ -21,6 +21,7 @@ declare export opaque type PowerSearchLocationsResultsTable_locations$fragmentTy
 export type PowerSearchLocationsResultsTable_locations = $ReadOnlyArray<{|
   +id: string,
   +name: string,
+  +externalId: ?string,
   +locationType: {|
     +id: string,
     +name: string,
@@ -174,6 +175,13 @@ return {
     (v0/*: any*/),
     (v1/*: any*/),
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "externalId",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "LinkedField",
       "alias": null,
       "name": "locationType",
@@ -317,5 +325,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '94f76914b09b49d6486ef324b3aae0c3';
+(node/*: any*/).hash = 'fb5082a37e66230f492b97837d2287d5';
 module.exports = node;
