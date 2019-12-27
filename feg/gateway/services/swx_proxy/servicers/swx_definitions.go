@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 package servicers
 
-import "github.com/fiorix/go-diameter/diam/datatype"
+import "github.com/fiorix/go-diameter/v4/diam/datatype"
 
 const (
 	// 3GPP 29.273 8.2.3.12:
