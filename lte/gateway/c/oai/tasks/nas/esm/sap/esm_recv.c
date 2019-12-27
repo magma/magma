@@ -494,6 +494,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   const pdn_disconnect_request_msg* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  pdn_cid_t pid = MAX_APN_PER_UE;
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   ue_mm_context_t* ue_mm_context_p = NULL;
   ue_mm_context_p =
@@ -554,10 +555,27 @@ esm_cause_t esm_recv_pdn_disconnect_request(
    * Execute the PDN disconnect procedure requested by the UE
    */
 
-  pdn_cid_t pid =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-      ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]
-      ->pdn_cx_id;
+  if (ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(
+    msg->linkedepsbeareridentity)]) {
+    pid = ue_mm_context_p->bearer_contexts[EBI_TO_INDEX(
+      msg->linkedepsbeareridentity)]->pdn_cx_id;
+    // Check if the LBI received matches with the default bearer ID
+    if (msg->linkedepsbeareridentity != ue_mm_context_p->pdn_contexts[pid]
+      ->default_ebi) {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+        "ESM-PROC  - PDN disconnect received for dedicated bearer (lbi=%u)\n",
+        msg->linkedepsbeareridentity);
+
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+    }
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+        "ESM-PROC  - No bearer context found, invalid bearer id (lbi=%u)\n",
+        msg->linkedepsbeareridentity);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+  }
 
   if (pid < MAX_APN_PER_UE) {
     /* If VoLTE is enabled, send ITTI message to MME APP
