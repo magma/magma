@@ -70,6 +70,7 @@ func newLocalListener(network string) net.Listener {
 	}
 	l, err := diam.MultistreamListen(network, "127.0.0.1:0")
 	if err != nil {
+		fmt.Printf("diamtest: failed initial listen on network %s: %v", network, err)
 		switch network {
 		case "sctp":
 			network = "sctp6"
