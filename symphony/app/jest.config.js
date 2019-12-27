@@ -16,6 +16,7 @@ module.exports = {
     '!**/fbcnms-packages/fbcnms-ui/stories/**',
     '!**/thrift/gen-nodejs/**',
     '!**/node_modules/**',
+    '!**/fbcnms-packages/fbcnms-test/**',
   ],
   coverageReporters: ['json', 'html'],
   modulePathIgnorePatterns: [],
