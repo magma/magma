@@ -35,7 +35,7 @@ const styles = theme => ({
     marginRight: theme.spacing(),
   },
   content: {
-    height: '60vh',
+    height: '100%',
     width: '100%',
   },
   portIdLabel: {
@@ -61,6 +61,15 @@ const styles = theme => ({
   subtitle: {
     display: 'block',
     color: symphony.palette.D500,
+  },
+  footer: {
+    padding: '16px 24px',
+    boxShadow: '0px 1px 4px 0px rgba(0, 0, 0, 0.17)',
+  },
+  actionButton: {
+    '&&': {
+      marginLeft: '12px',
+    },
   },
 });
 
@@ -231,21 +240,22 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
             <div className={classes.content}>{this.getStepContent()}</div>
           </WizardContextProvider>
         </DialogContent>
-        <DialogActions>
+        <DialogActions className={classes.footer}>
           {!lastStep && (
-            <Button skin="regular" onClick={onClose}>
+            <Button skin="gray" onClick={onClose}>
               Cancel
             </Button>
           )}
           {lastStep && (
-            <Button skin="regular" onClick={this.handleBack}>
+            <Button skin="gray" onClick={this.handleBack}>
               Back
             </Button>
           )}
           {!lastStep && (
             <Button
               disabled={activeEquipement === null}
-              onClick={this.handleNext}>
+              onClick={this.handleNext}
+              className={classes.actionButton}>
               Next
             </Button>
           )}
@@ -253,7 +263,8 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
             <Button
               disabled={activeLink === null}
               color="primary"
-              onClick={() => onAddLink(nullthrows(activeLink))}>
+              onClick={() => onAddLink(nullthrows(activeLink))}
+              className={classes.actionButton}>
               Add
             </Button>
           )}
