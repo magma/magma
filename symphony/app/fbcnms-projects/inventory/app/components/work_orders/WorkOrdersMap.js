@@ -36,7 +36,7 @@ const useStyles = makeStyles({
   workOrderPopover: {
     marginTop: '8px',
     minWidth: '410px',
-    maxWidth: '50%',
+    maxWidth: '50vw',
   },
 });
 
