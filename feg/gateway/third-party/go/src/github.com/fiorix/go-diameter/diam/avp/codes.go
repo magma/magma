@@ -547,6 +547,7 @@ const (
 	SIPResponseTimestamp                       = 835
 	SIPResponseTimestampFraction               = 2302
 	SIPTOPermission                            = 1613
+	SLRequestType                              = 2904
 	SMDeviceTriggerIndicator                   = 3407
 	SMDeviceTriggerInformation                 = 3405
 	SMDischargeTime                            = 2012
