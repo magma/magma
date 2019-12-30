@@ -29,13 +29,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type method string
-
-const (
-	MethodAdd  method = "ADD"
-	MethodEdit method = "EDIT"
-)
-
 // TODO (T59270743): Move this file to importer folder and refactor similar code with exported_service_integration_test.go
 func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer, string) {
 	var newLine []string
@@ -87,7 +80,7 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method) (*bytes.Buffer
 	return &buf, ct
 }
 
-func importFile(t *testing.T, client *ent.Client, r io.Reader, method method) {
+func importEquipmentFile(t *testing.T, client *ent.Client, r io.Reader, method method) {
 	readr := csv.NewReader(r)
 	buf, contentType := writeModifiedCSV(t, readr, method)
 
@@ -108,7 +101,7 @@ func importFile(t *testing.T, client *ent.Client, r io.Reader, method method) {
 	resp.Body.Close()
 }
 
-func deleteData(ctx context.Context, t *testing.T, r *TestExporterResolver) {
+func deleteEquipmentData(ctx context.Context, t *testing.T, r *TestExporterResolver) {
 	id := r.client.Equipment.Query().Where(equipment.Name(currEquip)).OnlyXID(ctx)
 	_, err := r.Mutation().RemoveEquipment(ctx, id, nil)
 	require.NoError(t, err)
@@ -130,7 +123,7 @@ func deleteData(ctx context.Context, t *testing.T, r *TestExporterResolver) {
 	require.NoError(t, err)
 }
 
-func prepareAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *http.Response) {
+func prepareEquipmentAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *http.Response) {
 	log := r.exporter.log
 
 	e := &exporter{log, equipmentRower{log}}
@@ -152,17 +145,17 @@ func prepareAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *
 	return ctx, res
 }
 
-func TestExportAndImportMatch(t *testing.T) {
+func TestEquipmentExportAndImportMatch(t *testing.T) {
 	r, err := newExporterTestResolver(t)
 	require.NoError(t, err)
-	ctx, res := prepareAndExport(t, r)
+	ctx, res := prepareEquipmentAndExport(t, r)
 	defer res.Body.Close()
-	deleteData(ctx, t, r)
+	deleteEquipmentData(ctx, t, r)
 
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 0)
 
-	importFile(t, r.client, res.Body, MethodAdd)
+	importEquipmentFile(t, r.client, res.Body, MethodAdd)
 	locs = r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
 	for _, loc := range locs {
@@ -204,13 +197,13 @@ func TestExportAndImportMatch(t *testing.T) {
 	}
 }
 
-func TestImportAndEdit(t *testing.T) {
+func TestEquipmentImportAndEdit(t *testing.T) {
 	r, err := newExporterTestResolver(t)
 	require.NoError(t, err)
-	ctx, res := prepareAndExport(t, r)
+	ctx, res := prepareEquipmentAndExport(t, r)
 	defer res.Body.Close()
 
-	importFile(t, r.client, res.Body, MethodEdit)
+	importEquipmentFile(t, r.client, res.Body, MethodEdit)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
 	equips, err := r.Query().EquipmentSearch(ctx, nil, nil)

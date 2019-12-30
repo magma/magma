@@ -11,12 +11,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-
 	"github.com/facebookincubator/symphony/graph/ent"
-
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
@@ -180,7 +177,6 @@ func (m *importer) inputValidationsPorts(ctx context.Context, importHeader Impor
 	if !equal(firstLine[:locStart], []string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}) {
 		return errors.New("first line misses sequence; 'Port ID','Port Name','Port Type','Equipment Name' or 'Equipment Type'")
 	}
-
 	if !equal(firstLine[prnt3Idx:importHeader.PropertyStartIdx()], []string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position", "Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}) {
 		return errors.New("first line should include: 'Parent Equipment (3)', 'Parent Equipment (2)', 'Parent Equipment', 'Equipment Position' 'Linked Port ID', 'Linked Port Name', 'Linked Equipment ID', 'Linked Equipment'")
 	}
