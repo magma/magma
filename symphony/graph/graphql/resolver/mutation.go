@@ -6,11 +6,11 @@ package resolver
 
 import (
 	"context"
-	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -2184,7 +2184,7 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 		return nil, errors.Wrapf(err, "failed to fetch survey template categories for location type: id=%q", id)
 	}
 
-	deleteIDs := []string{}
+	var deleteIDs []string
 	for _, existingCategory := range existingCategories {
 		if _, ok := keepIDs[existingCategory.ID]; !ok {
 			deleteIDs = append(deleteIDs, existingCategory.ID)
@@ -2487,7 +2487,7 @@ func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, inpu
 		return nil, errors.Wrapf(err, "failed to fetch survey template questions for category: id=%q", *input.ID)
 	}
 
-	deleteIDs := []string{}
+	var deleteIDs []string
 	for _, existingQuestion := range existingQuestions {
 		if _, ok := keepIDs[existingQuestion.ID]; !ok {
 			deleteIDs = append(deleteIDs, existingQuestion.ID)

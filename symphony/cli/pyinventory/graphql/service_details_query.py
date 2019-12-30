@@ -29,21 +29,23 @@ DATETIME_FIELD = field(
 class ServiceDetailsQuery:
     __QUERY__ = """
     query ServiceDetailsQuery($id: ID!) {
-  service(id: $id) {
-    id
-    name
-    externalId
-    customer {
+  service: node(id: $id) {
+    ... on Service {
       id
       name
       externalId
-    }
-    terminationPoints {
-      id
-      name
-    }
-    links {
-      id
+      customer {
+        id
+        name
+        externalId
+      }
+      terminationPoints {
+        id
+        name
+      }
+      links {
+        id
+      }
     }
   }
 }
@@ -55,7 +57,7 @@ class ServiceDetailsQuery:
     class ServiceDetailsQueryData:
         @dataclass_json
         @dataclass
-        class Service:
+        class Node:
             @dataclass_json
             @dataclass
             class Customer:
@@ -81,7 +83,7 @@ class ServiceDetailsQuery:
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        service: Optional[Service] = None
+        service: Optional[Node] = None
 
     data: Optional[ServiceDetailsQueryData] = None
     errors: Any = None
