@@ -10,7 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 from typing import Any, List
 
-from lte.protos.policydb_pb2 import ActivePolicies, PolicyRule, \
+from lte.protos.policydb_pb2 import AssignedPolicies, PolicyRule, \
     ChargingRuleNameSet
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
@@ -99,7 +99,7 @@ class RuleMappingsStreamerCallback(StreamerClient.Callback):
         logging.info('Processing %d SID -> policy updates', len(updates))
         policies_by_sid = {}
         for update in updates:
-            policies = ActivePolicies()
+            policies = AssignedPolicies()
             policies.ParseFromString(update.value)
             policies_by_sid[update.key] = policies
 
