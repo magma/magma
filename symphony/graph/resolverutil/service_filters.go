@@ -77,21 +77,38 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 	p := filter.PropertyValue
 	switch filter.Operator {
 	case models.FilterOperatorIs:
-		q = q.Where(
-			service.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
-				),
-			),
-		)
 		pred, err := GetPropertyPredicate(*p)
 		if err != nil {
 			return nil, err
 		}
-		if pred != nil {
-			q = q.Where(service.HasPropertiesWith(pred))
+		predForType, err := GetPropertyTypePredicate(*p)
+		if err != nil {
+			return nil, err
 		}
+
+		q = q.Where(
+			service.Or(
+				service.HasPropertiesWith(
+					property.And(
+						property.HasTypeWith(
+							propertytype.Name(p.Name),
+							propertytype.Type(p.Type.String()),
+						),
+						pred,
+					),
+				),
+				service.And(
+					service.HasTypeWith(servicetype.HasPropertyTypesWith(
+						propertytype.Name(p.Name),
+						propertytype.Type(p.Type.String()),
+						predForType,
+					)),
+					service.Not(service.HasPropertiesWith(
+						property.HasTypeWith(
+							propertytype.Name(p.Name),
+							propertytype.Type(p.Type.String()),
+						)),
+					))))
 		return q, nil
 	default:
 		return nil, errors.Errorf("operator %q not supported", filter.Operator)
