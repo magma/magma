@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6c5c54d5bf9a2b4e61433360449c3739
+ * @relayHash e0e6238b48795191121be011d78108fa
  */
 
 /* eslint-disable */
@@ -81,6 +81,10 @@ export type LocationAddEditCardQueryResponse = {|
         +name: string,
       |},
       +locationValue: ?{|
+        +id: string,
+        +name: string,
+      |},
+      +serviceValue: ?{|
         +id: string,
         +name: string,
       |},
@@ -161,6 +165,10 @@ query LocationAddEditCardQuery(
           name
         }
         locationValue {
+          id
+          name
+        }
+        serviceValue {
           id
           name
         }
@@ -447,6 +455,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v20/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v20/*: any*/)
     }
   ]
 };
@@ -529,11 +547,11 @@ return {
     "operationKind": "query",
     "name": "LocationAddEditCardQuery",
     "id": null,
-    "text": "query LocationAddEditCardQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      latitude\n      longitude\n      externalId\n      locationType {\n        id\n        name\n        mapType\n        mapZoomLevel\n        propertyTypes {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isMandatory\n        }\n      }\n      equipments {\n        id\n        name\n        equipmentType {\n          id\n          name\n        }\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          index\n          isEditable\n          isInstanceProperty\n          stringValue\n          isMandatory\n        }\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query LocationAddEditCardQuery(\n  $locationId: ID!\n) {\n  location: node(id: $locationId) {\n    __typename\n    ... on Location {\n      id\n      name\n      latitude\n      longitude\n      externalId\n      locationType {\n        id\n        name\n        mapType\n        mapZoomLevel\n        propertyTypes {\n          id\n          name\n          index\n          isInstanceProperty\n          type\n          stringValue\n          intValue\n          floatValue\n          booleanValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isMandatory\n        }\n      }\n      equipments {\n        id\n        name\n        equipmentType {\n          id\n          name\n        }\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          index\n          isEditable\n          isInstanceProperty\n          stringValue\n          isMandatory\n        }\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n        serviceValue {\n          id\n          name\n        }\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '00b9d2caeb30dd590d31cf8614483aaa';
+(node/*: any*/).hash = '85b606d05ba2c01cd02efd2c0c710f2f';
 module.exports = node;

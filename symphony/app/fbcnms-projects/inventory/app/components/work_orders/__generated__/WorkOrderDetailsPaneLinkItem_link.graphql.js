@@ -102,6 +102,10 @@ export type WorkOrderDetailsPaneLinkItem_link = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}>,
   +services: $ReadOnlyArray<?{|
     +id: string,
@@ -447,6 +451,16 @@ return {
           "storageKey": null,
           "args": null,
           "concreteType": "Location",
+          "plural": false,
+          "selections": (v16/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
           "plural": false,
           "selections": (v16/*: any*/)
         }

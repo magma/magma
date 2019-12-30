@@ -55,6 +55,10 @@ export type PowerSearchLocationsResultsTable_locations = $ReadOnlyArray<{|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
     +propertyType: {|
       +id: string,
       +name: string,
@@ -255,6 +259,16 @@ return {
         {
           "kind": "LinkedField",
           "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
           "name": "propertyType",
           "storageKey": null,
           "args": null,
@@ -325,5 +339,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fb5082a37e66230f492b97837d2287d5';
+(node/*: any*/).hash = '9d38c67661728822a327bdc6b1b3ce23';
 module.exports = node;

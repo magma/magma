@@ -45,6 +45,10 @@ export type PropertyFormField_property = {|
     +id: string,
     +name: string,
   |},
+  +serviceValue: ?{|
+    +id: string,
+    +name: string,
+  |},
   +$refType: PropertyFormField_property$ref,
 |};
 export type PropertyFormField_property$data = PropertyFormField_property;
@@ -200,10 +204,20 @@ return {
       "concreteType": "Location",
       "plural": false,
       "selections": (v3/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v3/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '7c12dd5eb803dde513c1cc81145dc5e8';
+(node/*: any*/).hash = '67524c0dbba3cf1a4b79dffefa3b014f';
 module.exports = node;

@@ -71,6 +71,10 @@ export type ServiceDetailsPanel_service = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}>,
   +$refType: ServiceDetailsPanel_service$ref,
 |};
@@ -309,6 +313,16 @@ return {
           "concreteType": "Location",
           "plural": false,
           "selections": (v12/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": (v12/*: any*/)
         }
       ]
     }
@@ -316,5 +330,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '60540300d13ea87b5c48d44a8bf606ae';
+(node/*: any*/).hash = '676fbae125b6fd1111f3a3c4aceb9c00';
 module.exports = node;

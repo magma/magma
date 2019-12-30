@@ -78,6 +78,10 @@ export type WorkOrderDetails_workOrder = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}>,
   +images: $ReadOnlyArray<?{|
     +$fragmentRefs: EntityDocumentsTable_files$ref
@@ -396,6 +400,16 @@ return {
           "storageKey": null,
           "args": null,
           "concreteType": "Location",
+          "plural": false,
+          "selections": (v4/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
           "plural": false,
           "selections": (v4/*: any*/)
         }

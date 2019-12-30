@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash f1154d7ca65457abdd46c7366ae7e91d
+ * @relayHash b1e3c8d017515cf7ccc201e8e5d60db2
  */
 
 /* eslint-disable */
@@ -114,6 +114,10 @@ fragment PowerSearchLocationsResultsTable_locations on Location {
       name
     }
     locationValue {
+      id
+      name
+    }
+    serviceValue {
       id
       name
     }
@@ -397,6 +401,16 @@ return {
                   {
                     "kind": "LinkedField",
                     "alias": null,
+                    "name": "serviceValue",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "Service",
+                    "plural": false,
+                    "selections": (v13/*: any*/)
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
                     "name": "propertyType",
                     "storageKey": null,
                     "args": null,
@@ -475,7 +489,7 @@ return {
     "operationKind": "query",
     "name": "LocationViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locationSearch(limit: $limit, filters: $filters) {\n    locations {\n      ...PowerSearchLocationsResultsTable_locations\n      id\n    }\n    count\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
+    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locationSearch(limit: $limit, filters: $filters) {\n    locations {\n      ...PowerSearchLocationsResultsTable_locations\n      id\n    }\n    count\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

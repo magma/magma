@@ -65,6 +65,7 @@ export const getPropertyDefaultValue = (propertyType: PropertyType) => {
           : '';
       case 'equipment':
       case 'location':
+      case 'service':
         return '';
     }
   }

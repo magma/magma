@@ -264,6 +264,10 @@ export default withRouter(
                 id
                 name
               }
+              serviceValue {
+                id
+                name
+              }
               propertyType {
                 id
                 name
