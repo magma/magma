@@ -3010,7 +3010,7 @@ void mme_app_handle_erab_rel_cmd(
           (rel_index < pdn_context_p->esm_data.n_bearers));
          idx++) {
       int8_t bearer_index = pdn_context_p->bearer_contexts[idx];
-      if ((bearer_index != -1) &&
+      if ((bearer_index != INVALID_BEARER_INDEX) &&
         (ue_context_p->bearer_contexts[bearer_index])) {
         s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[rel_index].e_rab_id =
           ue_context_p->bearer_contexts[bearer_index]->ebi;
