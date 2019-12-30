@@ -6434,6 +6434,7 @@ enum PortFilterType {
   PORT_INST_EQUIPMENT
   LOCATION_INST
   PROPERTY
+  SERVICE_INST
 }
 
 """

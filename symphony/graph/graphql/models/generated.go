@@ -1220,6 +1220,7 @@ const (
 	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
 	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
 	PortFilterTypeProperty          PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1228,11 +1229,12 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
 	PortFilterTypeProperty,
+	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false

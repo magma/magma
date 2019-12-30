@@ -8,10 +8,10 @@
  * @format
  */
 
-import type {Equipment, EquipmentPort, Link} from '../../common/Equipment';
+import type {Equipment, EquipmentPort} from '../../common/Equipment';
 import type {WithStyles} from '@material-ui/core';
 
-import AvailableLinksTable_links from './__generated__/AvailableLinksTable_links.graphql';
+import AvailablePortsTable_ports from './__generated__/AvailablePortsTable_ports.graphql';
 import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -20,7 +20,6 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
-import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
 import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
@@ -35,10 +34,6 @@ const styles = {
   },
   noResultsLabel: {
     color: symphony.palette.D600,
-  },
-  futureState: {
-    textTransform: 'capitalize',
-    maxWidth: '50px',
   },
   checked: {
     backgroundColor: symphony.palette.B50,
@@ -71,51 +66,13 @@ const styles = {
 
 type Props = {
   equipment: Equipment,
-  links: AvailableLinksTable_links,
-  selectedLink: ?Link,
-  onLinkSelected: (link: Link) => void,
+  ports: AvailablePortsTable_ports,
+  selectedPort: ?EquipmentPort,
+  onPortSelected: (port: EquipmentPort) => void,
 } & WithStyles<typeof styles>;
 
-type LinkPorts = Link & {
-  srcPort: EquipmentPort,
-  dstPort: EquipmentPort,
-};
-
-const showLinksByOrder = (
-  srcEquipment: Equipment,
-  links: AvailableLinksTable_links,
-): Array<LinkPorts> => {
-  return links
-    .map(link => ({
-      ...link,
-      srcPort: link.ports[0],
-      dstPort: link.ports[1],
-    }))
-    .map(link => {
-      if (
-        link.srcPort.parentEquipment.id != srcEquipment.id &&
-        !link.srcPort.parentEquipment.positionHierarchy
-          .map(position => position.parentEquipment.id)
-          .includes(srcEquipment.id)
-      ) {
-        return {
-          ...link,
-          srcPort: link.dstPort,
-          dstPort: link.srcPort,
-        };
-      }
-      return link;
-    })
-    .sort((linkA, linkB) =>
-      sortLexicographically(
-        linkA.srcPort.definition.name,
-        linkB.srcPort.definition.name,
-      ),
-    );
-};
-
-const AvailableLinksTable = (props: Props) => {
-  const {equipment, links, selectedLink, onLinkSelected, classes} = props;
+const AvailablePortsTable = (props: Props) => {
+  const {equipment, ports, selectedPort, onPortSelected, classes} = props;
 
   const headerRenderer = ({label}) => {
     return (
@@ -128,7 +85,7 @@ const AvailableLinksTable = (props: Props) => {
   const cellRenderer = ({dataKey, _, cellData}) => {
     let content = null;
 
-    if (dataKey.startsWith('equipment_')) {
+    if (dataKey.startsWith('parent_equipment')) {
       content = (
         <EquipmentBreadcrumbs
           equipment={cellData}
@@ -138,7 +95,7 @@ const AvailableLinksTable = (props: Props) => {
       );
     } else {
       content = (
-        <Text variant={dataKey === 'port_b' ? 'subtitle2' : 'body2'}>
+        <Text variant={dataKey === 'port_name' ? 'subtitle2' : 'body2'}>
           {cellData}
         </Text>
       );
@@ -147,20 +104,19 @@ const AvailableLinksTable = (props: Props) => {
   };
 
   const onRowClicked = ({_event, _index, rowData}) => {
-    onLinkSelected(rowData);
+    onPortSelected(rowData);
   };
 
-  const linksByOrder = showLinksByOrder(equipment, links);
-  if (linksByOrder.length === 0) {
+  if (ports.length === 0) {
     return (
       <div className={classes.noResultsRoot}>
         <Text variant="h6" className={classes.noResultsLabel}>
           {`${fbt(
-            'No available links out of ' +
+            'No ports for ' +
               fbt.param('equipment type name', equipment.equipmentType.name) +
               ' ' +
               fbt.param('equipment name', equipment.name),
-            'Message when no available links found are for a chosen equipment',
+            'Message when no ports found are for a chosen equipment',
           )}
           `}
         </Text>
@@ -177,59 +133,59 @@ const AvailableLinksTable = (props: Props) => {
           width={width}
           headerHeight={50}
           rowHeight={50}
-          rowCount={linksByOrder.length}
-          rowGetter={({index}) => linksByOrder[index]}
+          rowCount={ports.length}
+          rowGetter={({index}) => ports[index]}
           gridClassName={classes.table}
           rowClassName={({index}) =>
             classNames({
               [classes.header]: index === -1,
               [classes.row]: index !== -1,
               [classes.checked]:
-                selectedLink &&
+                selectedPort &&
                 index !== -1 &&
-                links[index].id === selectedLink.id,
+                ports[index].id === selectedPort.id,
             })
           }
           onRowClick={onRowClicked}>
           <Column
-            label="Equipment A (Selected)"
-            dataKey="equipment_a"
+            label="Port Name"
+            dataKey="port_name"
             width={250}
             flexGrow={1}
-            cellDataGetter={({rowData}) => rowData.srcPort.parentEquipment}
+            cellDataGetter={({rowData}) => rowData.definition.name}
             headerRenderer={headerRenderer}
             cellRenderer={cellRenderer}
             headerClassName={classes.column}
             className={classes.column}
           />
           <Column
-            label="Port A"
-            dataKey="port_a"
+            label="Port Type"
+            dataKey="port_type"
             width={250}
             flexGrow={1}
-            cellDataGetter={({rowData}) => rowData.srcPort.definition.name}
+            cellDataGetter={({rowData}) => rowData.definition.portType?.name}
             headerRenderer={headerRenderer}
             cellRenderer={cellRenderer}
             headerClassName={classes.column}
             className={classes.column}
           />
           <Column
-            label="Equipment B"
-            dataKey="equipment_b"
+            label="Parent Equipment"
+            dataKey="parent_equipment"
             width={250}
             flexGrow={1}
-            cellDataGetter={({rowData}) => rowData.dstPort.parentEquipment}
+            cellDataGetter={({rowData}) => rowData.parentEquipment}
             headerRenderer={headerRenderer}
             cellRenderer={cellRenderer}
             headerClassName={classes.column}
             className={classes.column}
           />
           <Column
-            label="Port B"
-            dataKey="port_b"
+            label="Visible Label"
+            dataKey="visible_label"
             width={250}
             flexGrow={1}
-            cellDataGetter={({rowData}) => rowData.dstPort.definition.name}
+            cellDataGetter={({rowData}) => rowData.definition.visibleLabel}
             headerRenderer={headerRenderer}
             cellRenderer={cellRenderer}
             headerClassName={classes.column}
@@ -242,25 +198,21 @@ const AvailableLinksTable = (props: Props) => {
 };
 
 export default withStyles(styles)(
-  createFragmentContainer(AvailableLinksTable, {
-    links: graphql`
-      fragment AvailableLinksTable_links on Link @relay(plural: true) {
+  createFragmentContainer(AvailablePortsTable, {
+    ports: graphql`
+      fragment AvailablePortsTable_ports on EquipmentPort @relay(plural: true) {
         id
-        ports {
-          parentEquipment {
-            id
-            name
-            positionHierarchy {
-              parentEquipment {
-                id
-              }
-            }
-            ...EquipmentBreadcrumbs_equipment
-          }
-          definition {
-            id
+        parentEquipment {
+          id
+          name
+          ...EquipmentBreadcrumbs_equipment
+        }
+        definition {
+          name
+          portType {
             name
           }
+          visibleLabel
         }
       }
     `,
