@@ -564,7 +564,8 @@ esm_cause_t esm_recv_pdn_disconnect_request(
       ->default_ebi) {
     OAILOG_ERROR(
       LOG_NAS_ESM,
-        "ESM-PROC  - PDN disconnect received for dedicated bearer (lbi=%u)\n",
+        "ESM-PROC  - Cannot perform PDN disconnect for dedicated bearer "
+        "(lbi=%u)\n",
         msg->linkedepsbeareridentity);
 
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
