@@ -10,10 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 from typing import Any, List
 
-from lte.protos.policydb_pb2 import ActivePolicies, PolicyRule
+from lte.protos.policydb_pb2 import ActivePolicies, PolicyRule, \
+    ChargingRuleNameSet
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
 
+from .basename_store import BaseNameDict
 from .rule_store import PolicyRuleDict
 
 
@@ -55,6 +57,30 @@ class PolicyDBStreamerCallback(StreamerClient.Callback):
         missing_rules = set(self._policy_dict.keys()) - id_set
         for rule in missing_rules:
             del self._policy_dict[rule]
+
+
+class BaseNamesStreamerCallback(StreamerClient.Callback):
+    """
+    Callback for the base names streamer policy which persists the basenames
+    and rules associated to the basename
+    """
+    def __init__(
+        self,
+        basenames_dict: BaseNameDict,
+    ):
+        self._basenames = basenames_dict
+
+    def get_request_args(self, stream_name: str) -> Any:
+        return None
+
+    def process_update(self, stream_name: str, updates: List[DataUpdate],
+                       resync: bool):
+        logging.info('Processing %d basename -> policy updates', len(updates))
+        for update in updates:
+            logging.info('basename update: %s', update.value)
+            basename = ChargingRuleNameSet()
+            basename.ParseFromString(update.value)
+            self._basenames[update.key] = basename
 
 
 class RuleMappingsStreamerCallback(StreamerClient.Callback):
