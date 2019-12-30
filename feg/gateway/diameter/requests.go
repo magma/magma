@@ -9,8 +9,8 @@ LICENSE file in the root directory of this source tree.
 package diameter
 
 import (
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 )
 
 // NewProxiableRequest creates a request with the proxy bit set, meaning that

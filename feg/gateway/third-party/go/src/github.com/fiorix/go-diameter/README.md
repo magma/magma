@@ -36,22 +36,27 @@ See the API documentation at http://godoc.org/github.com/fiorix/go-diameter
 - TCP and SCTP support. SCTP support relies on kernel SCTP implementation and external github.com/ishidawataru/sctp
   package and is currently tested and enabled for Go 1.8+ and x86 Linux
   
-## Install
+## Getting started
 
-go-diameter requires at least Go 1.4.
+The easiest way to get started is by trying out the client and server example programs.
 
-Make sure Go is installed, and both GOPATH and GOROOT are set.
+With Go 1.11 and newer (preferred), you can start the client and server already:
 
-Install:
+```
+export GO111MODULE=on
+go run github.com/fiorix/go-diameter/v4/examples/server
+go run github.com/fiorix/go-diameter/v4/examples/client -hello
+```
 
-	go get github.com/fiorix/go-diameter/diam
+Without modules, use standard procedure:
 
-Check out the examples:
+```
+go get github.com/fiorix/go-diameter/examples/...
+go run github.com/fiorix/go-diameter/examples/server
+go run github.com/fiorix/go-diameter/examples/client -hello
+```
 
-	cd $GOPATH/src/github.com/fiorix/go-diameter/examples
-
-See the test cases for more specific examples.
-
+Source code is your best friend. Check out other examples and test cases.
 
 ## Performance
 

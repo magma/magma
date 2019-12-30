@@ -1,7 +1,7 @@
 //go:generate protoc --go_out=plugins=grpc:. ./s6a.proto
 
 // protos package encapsulates protoc generated go files for S6a GRPC Proxy.
-// Use `go generate github.com/fiorix/go-diameter/examples/s6a_proxy/protos` to re-generate
+// Use `go generate github.com/fiorix/go-diameter/v4/examples/s6a_proxy/protos` to re-generate
 // protos
 // As noted in:
 //   https://docs.google.com/document/d/1V03LUfjSADDooDMhe-_K59EgpTEm3V8uvQRuNMAEnjg/edit#heading=h.tksmbbpjl4ya
