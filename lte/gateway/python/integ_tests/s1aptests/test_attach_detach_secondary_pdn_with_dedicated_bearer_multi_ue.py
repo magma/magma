@@ -114,8 +114,9 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
 
             # Receive UE_DEACTIVATE_BER_REQ
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertTrue(
-                response, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            self.assertEqual(
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
             )
 
             print(
