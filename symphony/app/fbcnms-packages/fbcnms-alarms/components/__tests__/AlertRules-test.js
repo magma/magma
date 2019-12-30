@@ -10,11 +10,7 @@
 import 'jest-dom/extend-expect';
 import * as React from 'react';
 import AlertRules from '../AlertRules';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
-import defaultTheme from '@fbcnms/ui/theme/default';
-import {MemoryRouter} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SnackbarProvider} from 'notistack';
+import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {apiMock, mockApiUtil} from '../../test/testHelpers';
 import type {GenericRule} from '../RuleInterface';
@@ -54,18 +50,6 @@ const axiosMock = jest
   .spyOn(require('axios'), 'default')
   .mockImplementation(jest.fn(() => Promise.resolve({data: {}})));
 
-function Wrapper(props: {route?: string, children: React.Node}) {
-  return (
-    <MemoryRouter initialEntries={[props.route || '/']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>{props.children}</SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
-}
-
 const commonProps = {
   apiUtil: mockApiUtil(),
   ruleMap: {},
@@ -77,9 +61,9 @@ test('renders rules returned by api', () => {
     isLoading: false,
   });
   const {getByText} = render(
-    <Wrapper>
+    <SymphonyWrapper>
       <AlertRules {...commonProps} />
-    </Wrapper>,
+    </SymphonyWrapper>,
   );
   expect(getByText('<<test>>')).toBeInTheDocument();
   expect(getByText('up == 0')).toBeInTheDocument();
@@ -91,9 +75,9 @@ test('clicking the add alert icon displays the AddEditAlert view', () => {
     isLoading: false,
   });
   const {queryByTestId, getByTestId} = render(
-    <Wrapper>
+    <SymphonyWrapper>
       <AlertRules {...commonProps} />
-    </Wrapper>,
+    </SymphonyWrapper>,
   );
   expect(queryByTestId('add-edit-alert')).not.toBeInTheDocument();
   // click the add alert rule fab
@@ -109,9 +93,9 @@ test('clicking close button when AddEditAlert is open closes the panel', () => {
     isLoading: false,
   });
   const {queryByTestId, getByTestId, getByText} = render(
-    <Wrapper>
+    <SymphonyWrapper>
       <AlertRules {...commonProps} />
-    </Wrapper>,
+    </SymphonyWrapper>,
   );
   expect(queryByTestId('add-edit-alert')).not.toBeInTheDocument();
   // click the add alert rule fab
@@ -137,9 +121,9 @@ test('clicking the "edit" button in the table menu opens AddEditAlert for that a
     isLoading: false,
   });
   const {getByText, getByLabelText} = render(
-    <Wrapper>
+    <SymphonyWrapper>
       <AlertRules {...commonProps} />
-    </Wrapper>,
+    </SymphonyWrapper>,
   );
 
   // open the table row menu
@@ -164,9 +148,9 @@ describe('AddEditAlert > Prometheus Editor', () => {
       isLoading: false,
     });
     const {getByText, getByTestId, getByLabelText} = render(
-      <Wrapper>
+      <SymphonyWrapper>
         <AlertRules {...commonProps} />
-      </Wrapper>,
+      </SymphonyWrapper>,
     );
     act(() => {
       fireEvent.click(getByTestId('add-edit-alert-button'));
@@ -226,9 +210,9 @@ describe('AddEditAlert > Prometheus Editor', () => {
       },
     });
     const {getByText, getByTestId} = render(
-      <Wrapper>
+      <SymphonyWrapper>
         <AlertRules {...commonProps} />
-      </Wrapper>,
+      </SymphonyWrapper>,
     );
     act(() => {
       fireEvent.click(getByTestId('add-edit-alert-button'));

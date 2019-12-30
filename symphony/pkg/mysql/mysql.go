@@ -14,6 +14,7 @@ import (
 	"contrib.go.opencensus.io/integrations/ocsql"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/go-sql-driver/mysql"
+	"go.opencensus.io/trace"
 	"go.uber.org/zap"
 )
 
@@ -56,5 +57,13 @@ func (connector) Driver() driver.Driver {
 		ocsql.WithRowsClose(false),
 		ocsql.WithRowsNext(false),
 		ocsql.WithDisableErrSkip(true),
+		ocsql.WithSampler(sampler),
 	)
+}
+
+func sampler(params trace.SamplingParameters) trace.SamplingDecision {
+	if params.Name == "sql:prepare" {
+		return trace.SamplingDecision{Sample: false}
+	}
+	return trace.SamplingDecision{Sample: true}
 }
