@@ -88,7 +88,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 
 	if err != nil {
 		metrics.ULRSendFailures.Inc()
-		log.Printf("Error sending AIR with SID %s: %v", sid, err)
+		log.Printf("Error sending ULR with SID %s: %v", sid, err)
 	}
 
 	if err == nil {
