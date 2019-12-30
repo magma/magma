@@ -16,7 +16,7 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
@@ -302,7 +302,7 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   bytes msisdn = 5;
   string ue_ipv4 = 6;
   string spgw_ipv4 = 7;
@@ -320,7 +320,7 @@ message CreditUpdateResponse {
     UPDATE = 0;
   }
   bool success = 1;
-  string sid = 2;
+  string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   ResponseType type = 5;
@@ -367,7 +367,7 @@ message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   string ue_ipv4 = 5;
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
@@ -377,7 +377,7 @@ message UsageMonitoringUpdateRequest {
 message UsageMonitoringUpdateResponse {
   UsageMonitoringCredit credit = 1;
   string session_id = 2;
-  string sid = 3;
+  string sid = 3; // System Identification Number
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
@@ -449,12 +449,12 @@ message UpdateSessionResponse {
 }
 
 message SessionTerminateResponse {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
 }
 
 message SessionTerminateRequest {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
   string apn = 3;
   uint32 request_number = 4;
