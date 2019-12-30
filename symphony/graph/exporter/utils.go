@@ -38,6 +38,7 @@ const (
 	enum                = "enum"
 	equipmentVal        = "equipment"
 	locationVal         = "location"
+	serviceVal          = "service"
 )
 
 func index(a []string, x string) int {
@@ -451,6 +452,16 @@ func propertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 			id, _ = property.QueryLocationValue().OnlyID(ctx)
 		}
 		return id, nil
+	case serviceVal:
+		property, ok := v.(*ent.Property)
+		if !ok {
+			return "", nil
+		}
+		value, _ := property.QueryServiceValue().Only(ctx)
+		if value == nil {
+			return "", nil
+		}
+		return value.Name, nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

@@ -516,6 +516,7 @@ type PropertyInput struct {
 	RangeToValue       *float64 `json:"rangeToValue"`
 	EquipmentIDValue   *string  `json:"equipmentIDValue"`
 	LocationIDValue    *string  `json:"locationIDValue"`
+	ServiceIDValue     *string  `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
@@ -1358,6 +1359,7 @@ const (
 	PropertyKindGpsLocation   PropertyKind = "gps_location"
 	PropertyKindEquipment     PropertyKind = "equipment"
 	PropertyKindLocation      PropertyKind = "location"
+	PropertyKindService       PropertyKind = "service"
 	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
 )
 
@@ -1373,12 +1375,13 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindGpsLocation,
 	PropertyKindEquipment,
 	PropertyKindLocation,
+	PropertyKindService,
 	PropertyKindDatetimeLocal,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindDatetimeLocal:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindService, PropertyKindDatetimeLocal:
 		return true
 	}
 	return false

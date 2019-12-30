@@ -20,7 +20,7 @@ type EntityDocumentsTable_files$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type WorkOrderDetailsPane_workOrder$ref = any;
 export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";

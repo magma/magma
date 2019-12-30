@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 6a526c70c41b477c7e4357911d6f299c
+ * @relayHash 0489e24d662d6219c162507184c09ad4
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type AddLinkInput = {|
   sides: $ReadOnlyArray<LinkSide>,
@@ -41,6 +41,7 @@ export type PropertyInput = {|
   rangeToValue?: ?number,
   equipmentIDValue?: ?string,
   locationIDValue?: ?string,
+  serviceIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};

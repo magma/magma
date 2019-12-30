@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9d1d74b89801c43b964c616f7862e297
+ * @relayHash 4f20dfb7afcb15da5621f6f194f5cf6f
  */
 
 /* eslint-disable */
@@ -40,6 +40,7 @@ export type PropertyInput = {|
   rangeToValue?: ?number,
   equipmentIDValue?: ?string,
   locationIDValue?: ?string,
+  serviceIDValue?: ?string,
   isEditable?: ?boolean,
   isInstanceProperty?: ?boolean,
 |};

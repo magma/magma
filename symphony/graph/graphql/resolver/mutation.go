@@ -122,6 +122,7 @@ func (r mutationResolver) AddProperty(
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableEquipmentValueID(input.EquipmentIDValue).
 		SetNillableLocationValueID(input.LocationIDValue).
+		SetNillableServiceValueID(input.ServiceIDValue).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating property")
@@ -2422,7 +2423,8 @@ func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.
 		SetNillableRangeFromVal(input.RangeFromValue).
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableEquipmentValueID(input.EquipmentIDValue).
-		SetNillableLocationValueID(input.LocationIDValue)
+		SetNillableLocationValueID(input.LocationIDValue).
+		SetNillableServiceValueID(input.ServiceIDValue)
 
 	if input.EquipmentIDValue == nil {
 		pu = pu.ClearEquipmentValue()
@@ -2430,6 +2432,10 @@ func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.
 
 	if input.LocationIDValue == nil {
 		pu = pu.ClearLocationValue()
+	}
+
+	if input.ServiceIDValue == nil {
+		pu = pu.ClearServiceValue()
 	}
 
 	return pu

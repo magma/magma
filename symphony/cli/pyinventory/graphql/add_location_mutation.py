@@ -42,6 +42,7 @@ class AddLocationInput:
         rangeToValue: Optional[float] = None
         equipmentIDValue: Optional[str] = None
         locationIDValue: Optional[str] = None
+        serviceIDValue: Optional[str] = None
         isEditable: Optional[bool] = None
         isInstanceProperty: Optional[bool] = None
 

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 81f7a124612f4c25a09f160a653257b1
+ * @relayHash 43cbe89a2c0232070e90f0f815943de4
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type ServiceTypeEditData = {|
   id: string,
   name: string,

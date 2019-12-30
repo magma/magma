@@ -137,6 +137,11 @@ func (pr *Property) QueryLocationValue() *LocationQuery {
 	return (&PropertyClient{pr.config}).QueryLocationValue(pr)
 }
 
+// QueryServiceValue queries the service_value edge of the Property.
+func (pr *Property) QueryServiceValue() *ServiceQuery {
+	return (&PropertyClient{pr.config}).QueryServiceValue(pr)
+}
+
 // Update returns a builder for updating this Property.
 // Note that, you need to call Property.Unwrap() before calling this method, if this Property
 // was returned from a transaction, and the transaction was committed or rolled back.

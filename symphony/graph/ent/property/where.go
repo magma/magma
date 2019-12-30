@@ -1435,6 +1435,36 @@ func HasLocationValueWith(preds ...predicate.Location) predicate.Property {
 	)
 }
 
+// HasServiceValue applies the HasEdge predicate on the "service_value" edge.
+func HasServiceValue() predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ServiceValueTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ServiceValueTable, ServiceValueColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasServiceValueWith applies the HasEdge predicate on the "service_value" edge with a given conditions (other predicates).
+func HasServiceValueWith(preds ...predicate.Service) predicate.Property {
+	return predicate.Property(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(ServiceValueInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, ServiceValueTable, ServiceValueColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.Property) predicate.Property {
 	return predicate.Property(

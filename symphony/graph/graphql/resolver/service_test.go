@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -703,4 +704,59 @@ func TestServicesOfEquipment(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, eq2Services, 1)
 	require.Equal(t, s2.ID, eq2Services[0].ID)
+}
+
+func TestAddServiceWithServiceProperty(t *testing.T) {
+
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	mr := r.Mutation()
+
+	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "service_type", HasCustomer: false})
+	require.NoError(t, err)
+
+	service1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "service_1",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	index := 0
+	servicePropType := models.PropertyTypeInput{
+		Name:  "service_prop",
+		Type:  "service",
+		Index: &index,
+	}
+
+	propTypeInputs := []*models.PropertyTypeInput{&servicePropType}
+	serviceTypeWithServiceProp, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name:        "service_type_with_service_prop",
+		HasCustomer: true,
+		Properties:  propTypeInputs,
+	})
+	require.NoError(t, err)
+
+	propType := serviceTypeWithServiceProp.QueryPropertyTypes().OnlyX(ctx)
+	servicePropInput := models.PropertyInput{
+		PropertyTypeID: propType.ID,
+		ServiceIDValue: &service1.ID,
+	}
+
+	service2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "service_2",
+		ServiceTypeID: serviceTypeWithServiceProp.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+		Properties:    []*models.PropertyInput{&servicePropInput},
+	})
+	require.NoError(t, err)
+
+	serviceProp := service2.QueryProperties().Where(property.HasTypeWith(propertytype.Name("service_prop"))).OnlyX(ctx)
+	serviceValue := serviceProp.QueryServiceValue().OnlyX(ctx)
+
+	require.Equal(t, "service_1", serviceValue.Name)
 }

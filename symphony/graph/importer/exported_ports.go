@@ -192,7 +192,7 @@ func (m *importer) validatePropertiesForPortType(ctx context.Context, line Impor
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(ctx, portType, ptypeName)
+		pInput, err := line.GetPropertyInput(m, ctx, portType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

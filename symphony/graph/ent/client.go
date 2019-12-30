@@ -2803,6 +2803,20 @@ func (c *PropertyClient) QueryLocationValue(pr *Property) *LocationQuery {
 	return query
 }
 
+// QueryServiceValue queries the service_value edge of a Property.
+func (c *PropertyClient) QueryServiceValue(pr *Property) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := pr.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+	)
+	query.sql = sqlgraph.Neighbors(pr.driver.Dialect(), step)
+
+	return query
+}
+
 // PropertyTypeClient is a client for the PropertyType schema.
 type PropertyTypeClient struct {
 	config

@@ -558,6 +558,7 @@ type ComplexityRoot struct {
 		PropertyType   func(childComplexity int) int
 		RangeFromVal   func(childComplexity int) int
 		RangeToVal     func(childComplexity int) int
+		ServiceValue   func(childComplexity int) int
 		StringVal      func(childComplexity int) int
 	}
 
@@ -1063,6 +1064,7 @@ type PropertyResolver interface {
 
 	EquipmentValue(ctx context.Context, obj *ent.Property) (*ent.Equipment, error)
 	LocationValue(ctx context.Context, obj *ent.Property) (*ent.Location, error)
+	ServiceValue(ctx context.Context, obj *ent.Property) (*ent.Service, error)
 }
 type PropertyTypeResolver interface {
 	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
@@ -3661,6 +3663,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Property.RangeToVal(childComplexity), true
 
+	case "Property.serviceValue":
+		if e.complexity.Property.ServiceValue == nil {
+			break
+		}
+
+		return e.complexity.Property.ServiceValue(childComplexity), true
+
 	case "Property.stringValue":
 		if e.complexity.Property.StringVal == nil {
 			break
@@ -5990,6 +5999,7 @@ enum PropertyKind {
   gps_location
   equipment
   location
+  service
   datetime_local
 }
 
@@ -6046,6 +6056,7 @@ type Property implements Node {
   rangeToValue: Float
   equipmentValue: Equipment
   locationValue: Location
+  serviceValue: Service
 }
 
 input PropertyInput {
@@ -6061,6 +6072,7 @@ input PropertyInput {
   rangeToValue: Float
   equipmentIDValue: ID
   locationIDValue: ID
+  serviceIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -20867,6 +20879,40 @@ func (ec *executionContext) _Property_locationValue(ctx context.Context, field g
 	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Property_serviceValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Property",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Property().ServiceValue(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PropertyType_id(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -32396,6 +32442,12 @@ func (ec *executionContext) unmarshalInputPropertyInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
+		case "serviceIDValue":
+			var err error
+			it.ServiceIDValue, err = ec.unmarshalOID2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "isEditable":
 			var err error
 			it.IsEditable, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
@@ -36677,6 +36729,17 @@ func (ec *executionContext) _Property(ctx context.Context, sel ast.SelectionSet,
 					}
 				}()
 				res = ec._Property_locationValue(ctx, field, obj)
+				return res
+			})
+		case "serviceValue":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Property_serviceValue(ctx, field, obj)
 				return res
 			})
 		default:

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 068e6bafbad733ece59cad115adf397b
+ * @relayHash 85bdb3f85dbcdcc9512b44100121a22e
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchPortsResultsTable_ports$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PortFilterType = "LOCATION_INST" | "PORT_DEF" | "PORT_INST_EQUIPMENT" | "PORT_INST_HAS_LINK" | "PROPERTY" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type PortFilterInput = {|
   filterType: PortFilterType,
   operator: FilterOperator,
