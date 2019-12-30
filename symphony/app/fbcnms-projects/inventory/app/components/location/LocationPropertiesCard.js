@@ -123,6 +123,7 @@ const locationsPropertiesCardQuery = graphql`
         name
         latitude
         longitude
+        externalId
         locationType {
           id
           name
