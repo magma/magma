@@ -762,8 +762,10 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
     rc = send_modify_bearer_req(ue_id, ebi);
     if (rc != RETURNok) {
       OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
-        "\n", ebi);
+        LOG_NAS_ESM,
+        "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+        "\n",
+        ebi);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
     }
   }
