@@ -1643,8 +1643,7 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 		SetStatus(data.Status.String()).
 		SetNillableExternalID(data.ExternalID).
 		SetTypeID(data.ServiceTypeID).
-		AddUpstreamIDs(data.UpstreamServiceIds...).
-		AddTerminationPointIDs(data.TerminationPointIds...)
+		AddUpstreamIDs(data.UpstreamServiceIds...)
 
 	if data.CustomerID != nil {
 		query.AddCustomerIDs(*data.CustomerID)
@@ -1694,13 +1693,6 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 
 	if data.Status != nil {
 		query.SetStatus(data.Status.String())
-	}
-
-	if data.TerminationPointIds != nil {
-		oldTerminationPointIds := s.QueryTerminationPoints().IDsX(ctx)
-		addedTerminationPointIds, deletedTerminationPointIds := resolverutil.GetDifferenceBetweenSlices(
-			oldTerminationPointIds, data.TerminationPointIds)
-		query.RemoveTerminationPointIDs(deletedTerminationPointIds...).AddTerminationPointIDs(addedTerminationPointIds...)
 	}
 
 	if data.UpstreamServiceIds != nil {
