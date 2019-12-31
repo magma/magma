@@ -78,7 +78,6 @@ class ServiceCreateData:
     name: str
     serviceTypeId: str
     upstreamServiceIds: List[str]
-    terminationPointIds: List[str]
     externalId: Optional[str] = None
     status: Optional[ServiceStatus] = None
     customerId: Optional[str] = None

@@ -85,11 +85,6 @@ func (s *Service) QueryProperties() *PropertyQuery {
 	return (&ServiceClient{s.config}).QueryProperties(s)
 }
 
-// QueryTerminationPoints queries the termination_points edge of the Service.
-func (s *Service) QueryTerminationPoints() *EquipmentQuery {
-	return (&ServiceClient{s.config}).QueryTerminationPoints(s)
-}
-
 // QueryLinks queries the links edge of the Service.
 func (s *Service) QueryLinks() *LinkQuery {
 	return (&ServiceClient{s.config}).QueryLinks(s)

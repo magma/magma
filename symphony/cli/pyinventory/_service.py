@@ -113,7 +113,6 @@ def add_service(
         customerId=customer.id if customer is not None else None,
         properties=properties,
         upstreamServiceIds=[],
-        terminationPointIds=[],
     )
     result = AddServiceMutation.execute(client, data=service_create_data).addService
     for l in links:

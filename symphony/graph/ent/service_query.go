@@ -15,7 +15,6 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -103,18 +102,6 @@ func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
-	return query
-}
-
-// QueryTerminationPoints chains the current query on the termination_points edge.
-func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
-	query := &EquipmentQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query

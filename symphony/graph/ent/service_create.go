@@ -16,7 +16,6 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -27,19 +26,18 @@ import (
 // ServiceCreate is the builder for creating a Service entity.
 type ServiceCreate struct {
 	config
-	create_time        *time.Time
-	update_time        *time.Time
-	name               *string
-	external_id        *string
-	status             *string
-	_type              map[string]struct{}
-	downstream         map[string]struct{}
-	upstream           map[string]struct{}
-	properties         map[string]struct{}
-	termination_points map[string]struct{}
-	links              map[string]struct{}
-	customer           map[string]struct{}
-	endpoints          map[string]struct{}
+	create_time *time.Time
+	update_time *time.Time
+	name        *string
+	external_id *string
+	status      *string
+	_type       map[string]struct{}
+	downstream  map[string]struct{}
+	upstream    map[string]struct{}
+	properties  map[string]struct{}
+	links       map[string]struct{}
+	customer    map[string]struct{}
+	endpoints   map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -168,26 +166,6 @@ func (sc *ServiceCreate) AddProperties(p ...*Property) *ServiceCreate {
 		ids[i] = p[i].ID
 	}
 	return sc.AddPropertyIDs(ids...)
-}
-
-// AddTerminationPointIDs adds the termination_points edge to Equipment by ids.
-func (sc *ServiceCreate) AddTerminationPointIDs(ids ...string) *ServiceCreate {
-	if sc.termination_points == nil {
-		sc.termination_points = make(map[string]struct{})
-	}
-	for i := range ids {
-		sc.termination_points[ids[i]] = struct{}{}
-	}
-	return sc
-}
-
-// AddTerminationPoints adds the termination_points edges to Equipment.
-func (sc *ServiceCreate) AddTerminationPoints(e ...*Equipment) *ServiceCreate {
-	ids := make([]string, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return sc.AddTerminationPointIDs(ids...)
 }
 
 // AddLinkIDs adds the links edge to Link by ids.
@@ -423,29 +401,6 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: property.FieldID,
-				},
-			},
-		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		spec.Edges = append(spec.Edges, edge)
-	}
-	if nodes := sc.termination_points; len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: false,
-			Table:   service.TerminationPointsTable,
-			Columns: service.TerminationPointsPrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: equipment.FieldID,
 				},
 			},
 		}

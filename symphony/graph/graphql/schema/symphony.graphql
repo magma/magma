@@ -1139,7 +1139,6 @@ type Service implements Node {
   upstream: [Service]!
   downstream: [Service]!
   properties: [Property]!
-  terminationPoints: [Equipment]!
   endpoints: [ServiceEndpoint]!
   links: [Link]!
   topology: NetworkTopology!
@@ -1190,7 +1189,6 @@ input ServiceCreateData {
   customerId: ID
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -1201,7 +1199,6 @@ input ServiceEditData {
   customerId: ID
   upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]
 }
 
 input AddServiceEndpointInput {

@@ -109,7 +109,6 @@ func (Service) Edges() []ent.Edge {
 		edge.To("upstream", Service.Type).
 			From("downstream"),
 		edge.To("properties", Property.Type),
-		edge.To("termination_points", Equipment.Type),
 		edge.To("links", Link.Type),
 		edge.To("customer", Customer.Type),
 		edge.To("endpoints", ServiceEndpoint.Type),

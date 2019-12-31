@@ -1308,33 +1308,6 @@ var (
 			},
 		},
 	}
-	// ServiceTerminationPointsColumns holds the columns for the "service_termination_points" table.
-	ServiceTerminationPointsColumns = []*schema.Column{
-		{Name: "service_id", Type: field.TypeInt},
-		{Name: "equipment_id", Type: field.TypeInt},
-	}
-	// ServiceTerminationPointsTable holds the schema information for the "service_termination_points" table.
-	ServiceTerminationPointsTable = &schema.Table{
-		Name:       "service_termination_points",
-		Columns:    ServiceTerminationPointsColumns,
-		PrimaryKey: []*schema.Column{ServiceTerminationPointsColumns[0], ServiceTerminationPointsColumns[1]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:  "service_termination_points_service_id",
-				Columns: []*schema.Column{ServiceTerminationPointsColumns[0]},
-
-				RefColumns: []*schema.Column{ServicesColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-			{
-				Symbol:  "service_termination_points_equipment_id",
-				Columns: []*schema.Column{ServiceTerminationPointsColumns[1]},
-
-				RefColumns: []*schema.Column{EquipmentColumns[0]},
-				OnDelete:   schema.Cascade,
-			},
-		},
-	}
 	// ServiceLinksColumns holds the columns for the "service_links" table.
 	ServiceLinksColumns = []*schema.Column{
 		{Name: "service_id", Type: field.TypeInt},
@@ -1429,7 +1402,6 @@ var (
 		WorkOrderDefinitionsTable,
 		WorkOrderTypesTable,
 		ServiceUpstreamTable,
-		ServiceTerminationPointsTable,
 		ServiceLinksTable,
 		ServiceCustomerTable,
 	}
@@ -1504,8 +1476,6 @@ func init() {
 	WorkOrderDefinitionsTable.ForeignKeys[1].RefTable = WorkOrderTypesTable
 	ServiceUpstreamTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceUpstreamTable.ForeignKeys[1].RefTable = ServicesTable
-	ServiceTerminationPointsTable.ForeignKeys[0].RefTable = ServicesTable
-	ServiceTerminationPointsTable.ForeignKeys[1].RefTable = EquipmentTable
 	ServiceLinksTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceLinksTable.ForeignKeys[1].RefTable = LinksTable
 	ServiceCustomerTable.ForeignKeys[0].RefTable = ServicesTable

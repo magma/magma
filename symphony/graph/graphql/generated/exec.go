@@ -654,19 +654,18 @@ type ComplexityRoot struct {
 	}
 
 	Service struct {
-		Customer          func(childComplexity int) int
-		Downstream        func(childComplexity int) int
-		Endpoints         func(childComplexity int) int
-		ExternalID        func(childComplexity int) int
-		ID                func(childComplexity int) int
-		Links             func(childComplexity int) int
-		Name              func(childComplexity int) int
-		Properties        func(childComplexity int) int
-		ServiceType       func(childComplexity int) int
-		Status            func(childComplexity int) int
-		TerminationPoints func(childComplexity int) int
-		Topology          func(childComplexity int) int
-		Upstream          func(childComplexity int) int
+		Customer    func(childComplexity int) int
+		Downstream  func(childComplexity int) int
+		Endpoints   func(childComplexity int) int
+		ExternalID  func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Links       func(childComplexity int) int
+		Name        func(childComplexity int) int
+		Properties  func(childComplexity int) int
+		ServiceType func(childComplexity int) int
+		Status      func(childComplexity int) int
+		Topology    func(childComplexity int) int
+		Upstream    func(childComplexity int) int
 	}
 
 	ServiceEndpoint struct {
@@ -1133,7 +1132,6 @@ type ServiceResolver interface {
 	Upstream(ctx context.Context, obj *ent.Service) ([]*ent.Service, error)
 	Downstream(ctx context.Context, obj *ent.Service) ([]*ent.Service, error)
 	Properties(ctx context.Context, obj *ent.Service) ([]*ent.Property, error)
-	TerminationPoints(ctx context.Context, obj *ent.Service) ([]*ent.Equipment, error)
 	Endpoints(ctx context.Context, obj *ent.Service) ([]*ent.ServiceEndpoint, error)
 	Links(ctx context.Context, obj *ent.Service) ([]*ent.Link, error)
 	Topology(ctx context.Context, obj *ent.Service) (*models.NetworkTopology, error)
@@ -4462,13 +4460,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Service.Status(childComplexity), true
 
-	case "Service.terminationPoints":
-		if e.complexity.Service.TerminationPoints == nil {
-			break
-		}
-
-		return e.complexity.Service.TerminationPoints(childComplexity), true
-
 	case "Service.topology":
 		if e.complexity.Service.Topology == nil {
 			break
@@ -6680,7 +6671,6 @@ type Service implements Node {
   upstream: [Service]!
   downstream: [Service]!
   properties: [Property]!
-  terminationPoints: [Equipment]!
   endpoints: [ServiceEndpoint]!
   links: [Link]!
   topology: NetworkTopology!
@@ -6731,7 +6721,6 @@ input ServiceCreateData {
   customerId: ID
   upstreamServiceIds: [ID!]!
   properties: [PropertyInput]
-  terminationPointIds: [ID!]!
 }
 
 input ServiceEditData {
@@ -6742,7 +6731,6 @@ input ServiceEditData {
   customerId: ID
   upstreamServiceIds: [ID!]
   properties: [PropertyInput]
-  terminationPointIds: [ID!]
 }
 
 input AddServiceEndpointInput {
@@ -24257,43 +24245,6 @@ func (ec *executionContext) _Service_properties(ctx context.Context, field graph
 	return ec.marshalNProperty2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Service_terminationPoints(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Service",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Service().TerminationPoints(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*ent.Equipment)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipment(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Service_endpoints(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -33104,12 +33055,6 @@ func (ec *executionContext) unmarshalInputServiceCreateData(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "terminationPointIds":
-			var err error
-			it.TerminationPointIds, err = ec.unmarshalNID2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		}
 	}
 
@@ -33161,12 +33106,6 @@ func (ec *executionContext) unmarshalInputServiceEditData(ctx context.Context, o
 		case "properties":
 			var err error
 			it.Properties, err = ec.unmarshalOPropertyInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "terminationPointIds":
-			var err error
-			it.TerminationPointIds, err = ec.unmarshalOID2ᚕstringᚄ(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38081,20 +38020,6 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Service_properties(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "terminationPoints":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Service_terminationPoints(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}

@@ -388,7 +388,7 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		ID:     e.ID,
 		Type:   "Equipment",
 		Fields: make([]*Field, 6),
-		Edges:  make([]*Edge, 9),
+		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(e.CreateTime); err != nil {
@@ -517,24 +517,13 @@ func (e *Equipment) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Property",
 		Name: "Properties",
 	}
-	ids, err = e.QueryService().
-		Select(service.FieldID).
-		Strings(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[7] = &Edge{
-		IDs:  ids,
-		Type: "Service",
-		Name: "Service",
-	}
 	ids, err = e.QueryFiles().
 		Select(file.FieldID).
 		Strings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[8] = &Edge{
+	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "File",
 		Name: "Files",
@@ -2373,7 +2362,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 		ID:     s.ID,
 		Type:   "Service",
 		Fields: make([]*Field, 5),
-		Edges:  make([]*Edge, 8),
+		Edges:  make([]*Edge, 7),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(s.CreateTime); err != nil {
@@ -2461,24 +2450,13 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 		Type: "Property",
 		Name: "Properties",
 	}
-	ids, err = s.QueryTerminationPoints().
-		Select(equipment.FieldID).
-		Strings(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[4] = &Edge{
-		IDs:  ids,
-		Type: "Equipment",
-		Name: "TerminationPoints",
-	}
 	ids, err = s.QueryLinks().
 		Select(link.FieldID).
 		Strings(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[5] = &Edge{
+	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "Link",
 		Name: "Links",
@@ -2489,7 +2467,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[6] = &Edge{
+	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Customer",
 		Name: "Customer",
@@ -2500,7 +2478,7 @@ func (s *Service) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "ServiceEndpoint",
 		Name: "Endpoints",

@@ -146,7 +146,6 @@ const ServiceDetailsPanel = (props: Props) => {
         externalId: editableService.externalId,
         customerId: editableService.customer?.id,
         properties: toPropertyInput(editableService.properties),
-        terminationPointIds: [],
         upstreamServiceIds: [],
       },
     };

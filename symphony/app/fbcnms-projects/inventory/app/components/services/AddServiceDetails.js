@@ -191,7 +191,6 @@ const AddServiceDetails = (props: Props) => {
         customerId: customer?.id,
         properties: toPropertyInput(properties),
         upstreamServiceIds: [],
-        terminationPointIds: [],
       },
     };
 

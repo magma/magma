@@ -572,25 +572,23 @@ type SearchEntryEdge struct {
 }
 
 type ServiceCreateData struct {
-	Name                string           `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	Status              *ServiceStatus   `json:"status"`
-	ServiceTypeID       string           `json:"serviceTypeId"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	Name               string           `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	ServiceTypeID      string           `json:"serviceTypeId"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceEditData struct {
-	ID                  string           `json:"id"`
-	Name                *string          `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	Status              *ServiceStatus   `json:"status"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	ID                 string           `json:"id"`
+	Name               *string          `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceFilterInput struct {

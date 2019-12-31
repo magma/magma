@@ -59,10 +59,6 @@ func (serviceResolver) Properties(ctx context.Context, obj *ent.Service) ([]*ent
 	return obj.QueryProperties().All(ctx)
 }
 
-func (serviceResolver) TerminationPoints(ctx context.Context, obj *ent.Service) ([]*ent.Equipment, error) {
-	return obj.QueryTerminationPoints().All(ctx)
-}
-
 func (serviceResolver) Links(ctx context.Context, obj *ent.Service) ([]*ent.Link, error) {
 	return obj.QueryLinks().All(ctx)
 }

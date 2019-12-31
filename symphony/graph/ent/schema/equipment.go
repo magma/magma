@@ -217,8 +217,6 @@ func (Equipment) Edges() []ent.Edge {
 		edge.To("work_order", WorkOrder.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
-		edge.From("service", Service.Type).
-			Ref("termination_points"),
 		edge.To("files", File.Type),
 	}
 }

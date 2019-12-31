@@ -839,20 +839,6 @@ func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 	return query
 }
 
-// QueryService queries the service edge of a Equipment.
-func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
-	query := &ServiceQuery{config: c.config}
-	id := e.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, id),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
-
-	return query
-}
-
 // QueryFiles queries the files edge of a Equipment.
 func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 	query := &FileQuery{config: c.config}
@@ -3127,20 +3113,6 @@ func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 		sqlgraph.From(service.Table, service.FieldID, id),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, service.PropertiesTable, service.PropertiesColumn),
-	)
-	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
-
-	return query
-}
-
-// QueryTerminationPoints queries the termination_points edge of a Service.
-func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
-	query := &EquipmentQuery{config: c.config}
-	id := s.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, id),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
 
