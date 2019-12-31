@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {Equipment, Link} from './Equipment';
+import type {EquipmentPort, Link} from './Equipment';
 import type {Property} from './Property';
 import type {ServiceType} from './ServiceType';
 
@@ -17,6 +17,8 @@ export type ServiceStatus =
   | 'IN_SERVICE'
   | 'MAINTENANCE'
   | 'DISCONNECTED';
+
+export type ServiceEndpointRole = 'CONSUMER' | 'PROVIDER';
 
 export const serviceStatusToVisibleNames = {
   PENDING: 'Pending',
@@ -37,6 +39,12 @@ export type Customer = {
   name: string,
 };
 
+export type ServiceEndpoint = {
+  id: string,
+  port: EquipmentPort,
+  role: ServiceEndpointRole,
+};
+
 export type Service = {
   id: string,
   name: string,
@@ -47,6 +55,6 @@ export type Service = {
   upstream: Array<Service>,
   downstream: Array<Service>,
   properties: Array<Property>,
-  terminationPoints: Array<Equipment>,
+  endpoints: Array<ServiceEndpoint>,
   links: Array<Link>,
 };

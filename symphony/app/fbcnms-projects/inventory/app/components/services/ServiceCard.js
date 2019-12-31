@@ -103,7 +103,7 @@ const ServiceCard = (props: Props) => {
               <CardHeader className={classes.titleText}>Topology</CardHeader>
               <ServiceEquipmentTopology
                 topology={service.topology}
-                terminationPoints={service.terminationPoints}
+                endpoints={service.endpoints}
               />
             </Card>
           </div>
@@ -135,11 +135,11 @@ export default withRouter(
           name
           ...ServiceDetailsPanel_service
           ...ServicePanel_service
-          terminationPoints {
-            ...ServiceEquipmentTopology_terminationPoints
-          }
           topology {
             ...ServiceEquipmentTopology_topology
+          }
+          endpoints {
+            ...ServiceEquipmentTopology_endpoints
           }
         }
       `,

@@ -99,15 +99,22 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 		nodes = append(nodes, node)
 	}
 
-	tps, err := obj.QueryTerminationPoints().All(ctx)
+	eps, err := obj.QueryEndpoints().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying termination points")
 	}
 
-	for _, tp := range tps {
-		node := r.rootNode(ctx, tp)
-		if _, ok := eqsMap[node.ID]; !ok {
-			nodes = append(nodes, node)
+	for _, ep := range eps {
+		equipment, err := ep.QueryPort().QueryParent().Only(ctx)
+		if err != nil {
+			if !ent.IsNotFound(err) {
+				return nil, errors.Wrap(err, "querying equipment of endpoint")
+			}
+		} else {
+			node := r.rootNode(ctx, equipment)
+			if _, ok := eqsMap[node.ID]; !ok {
+				nodes = append(nodes, node)
+			}
 		}
 	}
 

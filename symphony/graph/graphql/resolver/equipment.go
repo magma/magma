@@ -8,6 +8,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"net/http"
 	"strings"
 	"time"
@@ -242,7 +246,19 @@ func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
 }
 
 func (r equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
-	services, err := obj.QueryPorts().QueryEndpoints().QueryService().All(ctx)
+	eqPred := resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 4)
+	endpoints, err := r.ClientFrom(ctx).ServiceEndpoint.Query().Where(
+		serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred))).All(ctx)
+
+	if err != nil {
+		return nil, errors.Wrap(err, "querying service endpoints")
+	}
+	eids := make([]string, len(endpoints))
+	for _, ep := range endpoints {
+		eids = append(eids, ep.ID)
+	}
+
+	services, err := r.ClientFrom(ctx).Service.Query().Where(service.HasEndpointsWith(serviceendpoint.IDIn(eids...))).All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying services where equipment port is an endpoint")
 	}

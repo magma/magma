@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 1eb2bedca43db3713483b70b31a09dc7
+ * @relayHash 8f910359d69d67bfcee78ada7ad1f734
  */
 
 /* eslint-disable */
@@ -66,12 +66,12 @@ fragment ServiceCard_service on Service {
   name
   ...ServiceDetailsPanel_service
   ...ServicePanel_service
-  terminationPoints {
-    ...ServiceEquipmentTopology_terminationPoints
-    id
-  }
   topology {
     ...ServiceEquipmentTopology_topology
+  }
+  endpoints {
+    ...ServiceEquipmentTopology_endpoints
+    id
   }
 }
 
@@ -136,8 +136,19 @@ fragment ServiceDetailsPanel_service on Service {
   }
 }
 
-fragment ServiceEquipmentTopology_terminationPoints on Equipment {
-  id
+fragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {
+  port {
+    parentEquipment {
+      id
+      positionHierarchy {
+        parentEquipment {
+          id
+        }
+        id
+      }
+    }
+    id
+  }
 }
 
 fragment ServiceEquipmentTopology_topology on NetworkTopology {
@@ -553,18 +564,6 @@ return {
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "terminationPoints",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Equipment",
-                "plural": true,
-                "selections": [
-                  (v3/*: any*/)
-                ]
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
                 "name": "topology",
                 "storageKey": null,
                 "args": null,
@@ -623,6 +622,66 @@ return {
                     ]
                   }
                 ]
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "endpoints",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "ServiceEndpoint",
+                "plural": true,
+                "selections": [
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "port",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "EquipmentPort",
+                    "plural": false,
+                    "selections": [
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "parentEquipment",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "Equipment",
+                        "plural": false,
+                        "selections": [
+                          (v3/*: any*/),
+                          {
+                            "kind": "LinkedField",
+                            "alias": null,
+                            "name": "positionHierarchy",
+                            "storageKey": null,
+                            "args": null,
+                            "concreteType": "EquipmentPosition",
+                            "plural": true,
+                            "selections": [
+                              {
+                                "kind": "LinkedField",
+                                "alias": null,
+                                "name": "parentEquipment",
+                                "storageKey": null,
+                                "args": null,
+                                "concreteType": "Equipment",
+                                "plural": false,
+                                "selections": [
+                                  (v3/*: any*/)
+                                ]
+                              },
+                              (v3/*: any*/)
+                            ]
+                          }
+                        ]
+                      },
+                      (v3/*: any*/)
+                    ]
+                  },
+                  (v3/*: any*/)
+                ]
               }
             ]
           }
@@ -634,7 +693,7 @@ return {
     "operationKind": "query",
     "name": "ServiceCardQueryRendererQuery",
     "id": null,
-    "text": "query ServiceCardQueryRendererQuery(\n  $serviceId: ID!\n) {\n  service: node(id: $serviceId) {\n    __typename\n    ... on Service {\n      ...ServiceCard_service\n    }\n    id\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  terminationPoints {\n    ...ServiceEquipmentTopology_terminationPoints\n    id\n  }\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_terminationPoints on Equipment {\n  id\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n}\n",
+    "text": "query ServiceCardQueryRendererQuery(\n  $serviceId: ID!\n) {\n  service: node(id: $serviceId) {\n    __typename\n    ... on Service {\n      ...ServiceCard_service\n    }\n    id\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n  endpoints {\n    ...ServiceEquipmentTopology_endpoints\n    id\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {\n  port {\n    parentEquipment {\n      id\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n}\n",
     "metadata": {}
   }
 };

@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {Equipment} from '../../common/Equipment';
+import type {ServiceEquipmentTopology_endpoints} from './__generated__/ServiceEquipmentTopology_endpoints.graphql';
 import type {ServiceEquipmentTopology_topology} from './__generated__/ServiceEquipmentTopology_topology.graphql';
 import type {WithStyles} from '@material-ui/core';
 
@@ -21,7 +21,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 type Props = {
   topology: ServiceEquipmentTopology_topology,
-  terminationPoints: Array<Equipment>,
+  endpoints: ServiceEquipmentTopology_endpoints,
 } & WithStyles<typeof styles>;
 
 const styles = _ => ({
@@ -32,8 +32,16 @@ const styles = _ => ({
 });
 
 const ServiceEquipmentTopology = (props: Props) => {
-  const {topology, terminationPoints, classes} = props;
-  const rootIds = terminationPoints.map(eq => eq.id);
+  const {topology, endpoints, classes} = props;
+  const rootIds = endpoints.map(endpoint => {
+    const port = endpoint.port;
+    const positionHierarchySize = port.parentEquipment.positionHierarchy.length;
+    if (positionHierarchySize > 0) {
+      return port.parentEquipment.positionHierarchy[positionHierarchySize - 1]
+        .parentEquipment.id;
+    }
+    return port.parentEquipment.id;
+  });
   return (
     <div className={classes.card}>
       <ForceNetworkTopology
@@ -68,10 +76,19 @@ export default withStyles(styles)(
         ...ForceNetworkTopology_topology
       }
     `,
-    terminationPoints: graphql`
-      fragment ServiceEquipmentTopology_terminationPoints on Equipment
+    endpoints: graphql`
+      fragment ServiceEquipmentTopology_endpoints on ServiceEndpoint
         @relay(plural: true) {
-        id
+        port {
+          parentEquipment {
+            id
+            positionHierarchy {
+              parentEquipment {
+                id
+              }
+            }
+          }
+        }
       }
     `,
   }),
