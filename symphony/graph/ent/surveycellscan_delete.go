@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 )
@@ -41,23 +43,23 @@ func (scsd *SurveyCellScanDelete) ExecX(ctx context.Context) int {
 }
 
 func (scsd *SurveyCellScanDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(scsd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(surveycellscan.Table))
-	for _, p := range scsd.predicates {
-		p(selector)
+	spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: surveycellscan.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(surveycellscan.Table).FromSelect(selector).Query()
-	if err := scsd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := scsd.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, scsd.driver, spec)
 }
 
 // SurveyCellScanDeleteOne is the builder for deleting a single SurveyCellScan entity.

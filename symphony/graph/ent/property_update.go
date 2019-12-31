@@ -63,6 +63,7 @@ type PropertyUpdate struct {
 	project               map[string]struct{}
 	equipment_value       map[string]struct{}
 	location_value        map[string]struct{}
+	service_value         map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedEquipment      bool
@@ -73,6 +74,7 @@ type PropertyUpdate struct {
 	clearedProject        bool
 	clearedEquipmentValue bool
 	clearedLocationValue  bool
+	clearedServiceValue   bool
 	predicates            []predicate.Property
 }
 
@@ -528,6 +530,28 @@ func (pu *PropertyUpdate) SetLocationValue(l *Location) *PropertyUpdate {
 	return pu.SetLocationValueID(l.ID)
 }
 
+// SetServiceValueID sets the service_value edge to Service by id.
+func (pu *PropertyUpdate) SetServiceValueID(id string) *PropertyUpdate {
+	if pu.service_value == nil {
+		pu.service_value = make(map[string]struct{})
+	}
+	pu.service_value[id] = struct{}{}
+	return pu
+}
+
+// SetNillableServiceValueID sets the service_value edge to Service by id if the given value is not nil.
+func (pu *PropertyUpdate) SetNillableServiceValueID(id *string) *PropertyUpdate {
+	if id != nil {
+		pu = pu.SetServiceValueID(*id)
+	}
+	return pu
+}
+
+// SetServiceValue sets the service_value edge to Service.
+func (pu *PropertyUpdate) SetServiceValue(s *Service) *PropertyUpdate {
+	return pu.SetServiceValueID(s.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (pu *PropertyUpdate) ClearType() *PropertyUpdate {
 	pu.clearedType = true
@@ -588,6 +612,12 @@ func (pu *PropertyUpdate) ClearLocationValue() *PropertyUpdate {
 	return pu
 }
 
+// ClearServiceValue clears the service_value edge to Service.
+func (pu *PropertyUpdate) ClearServiceValue() *PropertyUpdate {
+	pu.clearedServiceValue = true
+	return pu
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (pu *PropertyUpdate) Save(ctx context.Context) (int, error) {
 	if pu.update_time == nil {
@@ -626,6 +656,9 @@ func (pu *PropertyUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if len(pu.location_value) > 1 {
 		return 0, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
+	}
+	if len(pu.service_value) > 1 {
+		return 0, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
 	}
 	return pu.sqlSave(ctx)
 }
@@ -1013,6 +1046,31 @@ func (pu *PropertyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if pu.clearedServiceValue {
+		query, args := builder.Update(property.ServiceValueTable).
+			SetNull(property.ServiceValueColumn).
+			Where(sql.InInts(service.FieldID, ids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(pu.service_value) > 0 {
+		for eid := range pu.service_value {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			query, args := builder.Update(property.ServiceValueTable).
+				Set(property.ServiceValueColumn, eid).
+				Where(sql.InInts(property.FieldID, ids...)).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -1057,6 +1115,7 @@ type PropertyUpdateOne struct {
 	project               map[string]struct{}
 	equipment_value       map[string]struct{}
 	location_value        map[string]struct{}
+	service_value         map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
 	clearedEquipment      bool
@@ -1067,6 +1126,7 @@ type PropertyUpdateOne struct {
 	clearedProject        bool
 	clearedEquipmentValue bool
 	clearedLocationValue  bool
+	clearedServiceValue   bool
 }
 
 // SetIntVal sets the int_val field.
@@ -1515,6 +1575,28 @@ func (puo *PropertyUpdateOne) SetLocationValue(l *Location) *PropertyUpdateOne {
 	return puo.SetLocationValueID(l.ID)
 }
 
+// SetServiceValueID sets the service_value edge to Service by id.
+func (puo *PropertyUpdateOne) SetServiceValueID(id string) *PropertyUpdateOne {
+	if puo.service_value == nil {
+		puo.service_value = make(map[string]struct{})
+	}
+	puo.service_value[id] = struct{}{}
+	return puo
+}
+
+// SetNillableServiceValueID sets the service_value edge to Service by id if the given value is not nil.
+func (puo *PropertyUpdateOne) SetNillableServiceValueID(id *string) *PropertyUpdateOne {
+	if id != nil {
+		puo = puo.SetServiceValueID(*id)
+	}
+	return puo
+}
+
+// SetServiceValue sets the service_value edge to Service.
+func (puo *PropertyUpdateOne) SetServiceValue(s *Service) *PropertyUpdateOne {
+	return puo.SetServiceValueID(s.ID)
+}
+
 // ClearType clears the type edge to PropertyType.
 func (puo *PropertyUpdateOne) ClearType() *PropertyUpdateOne {
 	puo.clearedType = true
@@ -1575,6 +1657,12 @@ func (puo *PropertyUpdateOne) ClearLocationValue() *PropertyUpdateOne {
 	return puo
 }
 
+// ClearServiceValue clears the service_value edge to Service.
+func (puo *PropertyUpdateOne) ClearServiceValue() *PropertyUpdateOne {
+	puo.clearedServiceValue = true
+	return puo
+}
+
 // Save executes the query and returns the updated entity.
 func (puo *PropertyUpdateOne) Save(ctx context.Context) (*Property, error) {
 	if puo.update_time == nil {
@@ -1613,6 +1701,9 @@ func (puo *PropertyUpdateOne) Save(ctx context.Context) (*Property, error) {
 	}
 	if len(puo.location_value) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
+	}
+	if len(puo.service_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
 	}
 	return puo.sqlSave(ctx)
 }
@@ -2027,6 +2118,31 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 			}
 			query, args := builder.Update(property.LocationValueTable).
 				Set(property.LocationValueColumn, eid).
+				Where(sql.InInts(property.FieldID, ids...)).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+		}
+	}
+	if puo.clearedServiceValue {
+		query, args := builder.Update(property.ServiceValueTable).
+			SetNull(property.ServiceValueColumn).
+			Where(sql.InInts(service.FieldID, ids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(puo.service_value) > 0 {
+		for eid := range puo.service_value {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			query, args := builder.Update(property.ServiceValueTable).
+				Set(property.ServiceValueColumn, eid).
 				Where(sql.InInts(property.FieldID, ids...)).
 				Query()
 			if err := tx.Exec(ctx, query, args, &res); err != nil {

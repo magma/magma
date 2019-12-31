@@ -196,7 +196,7 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(ctx, serviceType, ptypeName)
+		pInput, err := line.GetPropertyInput(m, ctx, serviceType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

@@ -43,7 +43,7 @@ func (er portsRower) rows(ctx context.Context, url *url.URL) ([][]string, error)
 		filterInput    []*models.PortFilterInput
 		portDataHeader = [...]string{bom + "Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
-		linkHeader     = [...]string{"Linked Port ID", "Linked Port name", "Linked Port Equipment ID", "Linked Port Equipment"}
+		linkHeader     = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
 	)
 	filtersParam := url.Query().Get("filters")
 	if filtersParam != "" {

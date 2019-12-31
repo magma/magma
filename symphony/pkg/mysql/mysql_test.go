@@ -43,14 +43,3 @@ func TestOpen(t *testing.T) {
 	err = db.Close()
 	assert.NoError(t, err)
 }
-
-func TestSampler(t *testing.T) {
-	decision := sampler(trace.SamplingParameters{
-		Name: "sql:prepare",
-	})
-	assert.False(t, decision.Sample)
-	decision = sampler(trace.SamplingParameters{
-		Name: "sql:exec",
-	})
-	assert.True(t, decision.Sample)
-}

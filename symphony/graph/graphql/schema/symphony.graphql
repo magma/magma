@@ -545,6 +545,7 @@ enum PropertyKind {
   gps_location
   equipment
   location
+  service
   datetime_local
 }
 
@@ -601,6 +602,7 @@ type Property implements Node {
   rangeToValue: Float
   equipmentValue: Equipment
   locationValue: Location
+  serviceValue: Service
 }
 
 input PropertyInput {
@@ -616,6 +618,7 @@ input PropertyInput {
   rangeToValue: Float
   equipmentIDValue: ID
   locationIDValue: ID
+  serviceIDValue: ID
   isEditable: Boolean
   isInstanceProperty: Boolean
 }
@@ -977,6 +980,7 @@ enum PortFilterType {
   PORT_INST_EQUIPMENT
   LOCATION_INST
   PROPERTY
+  SERVICE_INST
 }
 
 """
@@ -1614,8 +1618,8 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service
-  serviceType(id: ID!): ServiceType
+  service(id: ID!): Service @deprecated(reason: "Use `node` instead")
+  serviceType(id: ID!): ServiceType @deprecated(reason: "Use `node` instead")
   serviceTypes(
     after: Cursor
     first: Int

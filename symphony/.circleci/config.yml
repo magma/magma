@@ -37,8 +37,12 @@ executors:
     docker:
       - image: circleci/node
   golangci:
+    parameters:
+      tag:
+        default: v1.22
+        type: string
     docker:
-      - image: golangci/golangci-lint
+      - image: golangci/golangci-lint:<<parameters.tag>>
   terraform:
     parameters:
       tag:

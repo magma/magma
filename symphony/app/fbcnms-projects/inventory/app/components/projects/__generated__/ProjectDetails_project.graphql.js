@@ -17,7 +17,7 @@ import type { ReaderFragment } from 'relay-runtime';
 type CommentsBox_comments$ref = any;
 type LocationBreadcrumbsTitle_locationDetails$ref = any;
 type ProjectWorkOrdersList_workOrders$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ProjectDetails_project$ref: FragmentReference;
 declare export opaque type ProjectDetails_project$fragmentType: ProjectDetails_project$ref;

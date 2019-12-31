@@ -1,13 +1,15 @@
 query ServiceTypeServicesQuery($id: ID!) {
-  serviceType(id: $id) {
-    services {
-      id
-      name
-      externalId
-      customer {
+  serviceType: node(id: $id) {
+    ... on ServiceType {
+      services {
         id
         name
         externalId
+        customer {
+          id
+          name
+          externalId
+        }
       }
     }
   }

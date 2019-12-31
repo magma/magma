@@ -1408,6 +1408,15 @@ func ExampleProperty() {
 		SetSiteSurveyNeeded(true).
 		SaveX(ctx)
 	log.Println("location created:", l9)
+	s10 := client.Service.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetName("string").
+		SetExternalID("string").
+		SetStatus("string").
+		SaveX(ctx)
+	log.Println("service created:", s10)
 
 	// create property vertex with its edges.
 	pr := client.Property.
@@ -1425,6 +1434,7 @@ func ExampleProperty() {
 		SetType(pt0).
 		SetEquipmentValue(e8).
 		SetLocationValue(l9).
+		SetServiceValue(s10).
 		SaveX(ctx)
 	log.Println("property created:", pr)
 
@@ -1446,6 +1456,12 @@ func ExampleProperty() {
 		log.Fatalf("failed querying location_value: %v", err)
 	}
 	log.Println("location_value found:", l9)
+
+	s10, err = pr.QueryServiceValue().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying service_value: %v", err)
+	}
+	log.Println("service_value found:", s10)
 
 	// Output:
 }

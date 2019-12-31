@@ -111,6 +111,13 @@ const (
 	LocationValueInverseTable = "locations"
 	// LocationValueColumn is the table column denoting the location_value relation/edge.
 	LocationValueColumn = "property_location_value_id"
+	// ServiceValueTable is the table the holds the service_value relation/edge.
+	ServiceValueTable = "properties"
+	// ServiceValueInverseTable is the table name for the Service entity.
+	// It exists in this package in order to avoid circular dependency with the "service" package.
+	ServiceValueInverseTable = "services"
+	// ServiceValueColumn is the table column denoting the service_value relation/edge.
+	ServiceValueColumn = "property_service_value_id"
 )
 
 // Columns holds all SQL columns are property fields.
