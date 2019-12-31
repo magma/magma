@@ -167,6 +167,12 @@ type AddProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type AddServiceEndpointInput struct {
+	ID     string              `json:"id"`
+	PortID string              `json:"portId"`
+	Role   ServiceEndpointRole `json:"role"`
+}
+
 type AddWorkOrderInput struct {
 	Name            string                `json:"name"`
 	Description     *string               `json:"description"`
@@ -1407,6 +1413,47 @@ func (e *PropertyKind) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PropertyKind) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type ServiceEndpointRole string
+
+const (
+	ServiceEndpointRoleConsumer ServiceEndpointRole = "CONSUMER"
+	ServiceEndpointRoleProvider ServiceEndpointRole = "PROVIDER"
+)
+
+var AllServiceEndpointRole = []ServiceEndpointRole{
+	ServiceEndpointRoleConsumer,
+	ServiceEndpointRoleProvider,
+}
+
+func (e ServiceEndpointRole) IsValid() bool {
+	switch e {
+	case ServiceEndpointRoleConsumer, ServiceEndpointRoleProvider:
+		return true
+	}
+	return false
+}
+
+func (e ServiceEndpointRole) String() string {
+	return string(e)
+}
+
+func (e *ServiceEndpointRole) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceEndpointRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceEndpointRole", str)
+	}
+	return nil
+}
+
+func (e ServiceEndpointRole) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

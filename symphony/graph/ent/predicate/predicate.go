@@ -85,6 +85,9 @@ type PropertyType func(*sql.Selector)
 // Service is the predicate function for service builders.
 type Service func(*sql.Selector)
 
+// ServiceEndpoint is the predicate function for serviceendpoint builders.
+type ServiceEndpoint func(*sql.Selector)
+
 // ServiceType is the predicate function for servicetype builders.
 type ServiceType func(*sql.Selector)
 

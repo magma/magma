@@ -82,6 +82,8 @@ func (EquipmentPort) Edges() []ent.Edge {
 		edge.To("link", Link.Type).
 			Unique(),
 		edge.To("properties", Property.Type),
+		edge.From("endpoints", ServiceEndpoint.Type).
+			Ref("port"),
 	}
 }
 

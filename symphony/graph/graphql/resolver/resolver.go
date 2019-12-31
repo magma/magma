@@ -154,6 +154,10 @@ func (r resolver) ServiceType() generated.ServiceTypeResolver {
 	return serviceTypeResolver{}
 }
 
+func (r resolver) ServiceEndpoint() generated.ServiceEndpointResolver {
+	return serviceEndpointResolver{}
+}
+
 func (resolver) Project() generated.ProjectResolver {
 	return projectResolver{}
 }

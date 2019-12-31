@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -138,6 +139,18 @@ func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
 		sqlgraph.To(customer.Table, customer.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	return query
+}
+
+// QueryEndpoints chains the current query on the endpoints edge.
+func (sq *ServiceQuery) QueryEndpoints() *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: sq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query

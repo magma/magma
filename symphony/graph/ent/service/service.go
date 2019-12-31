@@ -64,6 +64,13 @@ const (
 	// CustomerInverseTable is the table name for the Customer entity.
 	// It exists in this package in order to avoid circular dependency with the "customer" package.
 	CustomerInverseTable = "customers"
+	// EndpointsTable is the table the holds the endpoints relation/edge.
+	EndpointsTable = "service_endpoints"
+	// EndpointsInverseTable is the table name for the ServiceEndpoint entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
+	EndpointsInverseTable = "service_endpoints"
+	// EndpointsColumn is the table column denoting the endpoints relation/edge.
+	EndpointsColumn = "service_id"
 )
 
 // Columns holds all SQL columns are service fields.

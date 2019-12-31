@@ -394,6 +394,7 @@ type EquipmentPort implements Node {
   parentEquipment: Equipment!
   link: Link
   properties: [Property!]!
+  serviceEndpoints: [ServiceEndpoint!]!
 }
 
 input EquipmentPortInput {
@@ -1113,6 +1114,18 @@ type Customer implements Node {
   externalId: String
 }
 
+enum ServiceEndpointRole {
+  CONSUMER
+  PROVIDER
+}
+
+type ServiceEndpoint implements Node {
+  id: ID!
+  port: EquipmentPort!
+  role: ServiceEndpointRole!
+  service: Service!
+}
+
 """
 Modeling a specific service: e.g. a L2 VPN instance.
 """
@@ -1127,6 +1140,7 @@ type Service implements Node {
   downstream: [Service]!
   properties: [Property]!
   terminationPoints: [Equipment]!
+  endpoints: [ServiceEndpoint]!
   links: [Link]!
   topology: NetworkTopology!
 }
@@ -1188,6 +1202,12 @@ input ServiceEditData {
   upstreamServiceIds: [ID!]
   properties: [PropertyInput]
   terminationPointIds: [ID!]
+}
+
+input AddServiceEndpointInput {
+  id: ID!
+  portId: ID!
+  role: ServiceEndpointRole!
 }
 
 input SurveyCreateData {
@@ -1740,6 +1760,8 @@ type Mutation {
   ): Service
   addServiceLink(id: ID!, linkId: ID!): Service
   removeServiceLink(id: ID!, linkId: ID!): Service
+  addServiceEndpoint(input: AddServiceEndpointInput!): Service
+  removeServiceEndpoint(serviceEndpointId: ID!): Service
   addServiceType(
     """
     data to edit service type

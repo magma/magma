@@ -898,6 +898,37 @@ var (
 			},
 		},
 	}
+	// ServiceEndpointsColumns holds the columns for the "service_endpoints" table.
+	ServiceEndpointsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "role", Type: field.TypeString},
+		{Name: "service_id", Type: field.TypeInt, Nullable: true},
+		{Name: "port_id", Type: field.TypeInt, Nullable: true},
+	}
+	// ServiceEndpointsTable holds the schema information for the "service_endpoints" table.
+	ServiceEndpointsTable = &schema.Table{
+		Name:       "service_endpoints",
+		Columns:    ServiceEndpointsColumns,
+		PrimaryKey: []*schema.Column{ServiceEndpointsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "service_endpoints_services_endpoints",
+				Columns: []*schema.Column{ServiceEndpointsColumns[4]},
+
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "service_endpoints_equipment_ports_port",
+				Columns: []*schema.Column{ServiceEndpointsColumns[5]},
+
+				RefColumns: []*schema.Column{EquipmentPortsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// ServiceTypesColumns holds the columns for the "service_types" table.
 	ServiceTypesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1385,6 +1416,7 @@ var (
 		PropertiesTable,
 		PropertyTypesTable,
 		ServicesTable,
+		ServiceEndpointsTable,
 		ServiceTypesTable,
 		SurveysTable,
 		SurveyCellScansTable,
@@ -1453,6 +1485,8 @@ func init() {
 	PropertyTypesTable.ForeignKeys[5].RefTable = ServiceTypesTable
 	PropertyTypesTable.ForeignKeys[6].RefTable = WorkOrderTypesTable
 	ServicesTable.ForeignKeys[0].RefTable = ServiceTypesTable
+	ServiceEndpointsTable.ForeignKeys[0].RefTable = ServicesTable
+	ServiceEndpointsTable.ForeignKeys[1].RefTable = EquipmentPortsTable
 	SurveysTable.ForeignKeys[0].RefTable = LocationsTable
 	SurveysTable.ForeignKeys[1].RefTable = FilesTable
 	SurveyCellScansTable.ForeignKeys[0].RefTable = SurveyQuestionsTable

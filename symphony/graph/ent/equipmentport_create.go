@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // EquipmentPortCreate is the builder for creating a EquipmentPort entity.
@@ -30,6 +31,7 @@ type EquipmentPortCreate struct {
 	parent      map[string]struct{}
 	link        map[string]struct{}
 	properties  map[string]struct{}
+	endpoints   map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -136,6 +138,26 @@ func (epc *EquipmentPortCreate) AddProperties(p ...*Property) *EquipmentPortCrea
 		ids[i] = p[i].ID
 	}
 	return epc.AddPropertyIDs(ids...)
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (epc *EquipmentPortCreate) AddEndpointIDs(ids ...string) *EquipmentPortCreate {
+	if epc.endpoints == nil {
+		epc.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epc.endpoints[ids[i]] = struct{}{}
+	}
+	return epc
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (epc *EquipmentPortCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortCreate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epc.AddEndpointIDs(ids...)
 }
 
 // Save creates the EquipmentPort in the database.
@@ -279,6 +301,29 @@ func (epc *EquipmentPortCreate) sqlSave(ctx context.Context) (*EquipmentPort, er
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := epc.endpoints; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentport.EndpointsTable,
+			Columns: []string{equipmentport.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: serviceendpoint.FieldID,
 				},
 			},
 		}

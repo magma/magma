@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // EquipmentPortQuery is the builder for querying EquipmentPort entities.
@@ -101,6 +102,18 @@ func (epq *EquipmentPortQuery) QueryProperties() *PropertyQuery {
 		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
+	return query
+}
+
+// QueryEndpoints chains the current query on the endpoints edge.
+func (epq *EquipmentPortQuery) QueryEndpoints() *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: epq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, epq.sqlQuery()),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentport.EndpointsTable, equipmentport.EndpointsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(epq.driver.Dialect(), step)
 	return query

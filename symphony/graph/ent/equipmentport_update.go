@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // EquipmentPortUpdate is the builder for updating EquipmentPort entities.
@@ -31,10 +32,12 @@ type EquipmentPortUpdate struct {
 	parent            map[string]struct{}
 	link              map[string]struct{}
 	properties        map[string]struct{}
+	endpoints         map[string]struct{}
 	clearedDefinition bool
 	clearedParent     bool
 	clearedLink       bool
 	removedProperties map[string]struct{}
+	removedEndpoints  map[string]struct{}
 	predicates        []predicate.EquipmentPort
 }
 
@@ -122,6 +125,26 @@ func (epu *EquipmentPortUpdate) AddProperties(p ...*Property) *EquipmentPortUpda
 	return epu.AddPropertyIDs(ids...)
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (epu *EquipmentPortUpdate) AddEndpointIDs(ids ...string) *EquipmentPortUpdate {
+	if epu.endpoints == nil {
+		epu.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epu.endpoints[ids[i]] = struct{}{}
+	}
+	return epu
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (epu *EquipmentPortUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epu.AddEndpointIDs(ids...)
+}
+
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epu *EquipmentPortUpdate) ClearDefinition() *EquipmentPortUpdate {
 	epu.clearedDefinition = true
@@ -158,6 +181,26 @@ func (epu *EquipmentPortUpdate) RemoveProperties(p ...*Property) *EquipmentPortU
 		ids[i] = p[i].ID
 	}
 	return epu.RemovePropertyIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (epu *EquipmentPortUpdate) RemoveEndpointIDs(ids ...string) *EquipmentPortUpdate {
+	if epu.removedEndpoints == nil {
+		epu.removedEndpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epu.removedEndpoints[ids[i]] = struct{}{}
+	}
+	return epu
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (epu *EquipmentPortUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epu.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -369,6 +412,52 @@ func (epu *EquipmentPortUpdate) sqlSave(ctx context.Context) (n int, err error) 
 			}
 		}
 	}
+	if len(epu.removedEndpoints) > 0 {
+		eids := make([]int, len(epu.removedEndpoints))
+		for eid := range epu.removedEndpoints {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(equipmentport.EndpointsTable).
+			SetNull(equipmentport.EndpointsColumn).
+			Where(sql.InInts(equipmentport.EndpointsColumn, ids...)).
+			Where(sql.InInts(serviceendpoint.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(epu.endpoints) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range epu.endpoints {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(serviceendpoint.FieldID, eid)
+			}
+			query, args := builder.Update(equipmentport.EndpointsTable).
+				Set(equipmentport.EndpointsColumn, id).
+				Where(sql.And(p, sql.IsNull(equipmentport.EndpointsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return 0, rollback(tx, err)
+			}
+			if int(affected) < len(epu.endpoints) {
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"endpoints\" %v already connected to a different \"EquipmentPort\"", keys(epu.endpoints))})
+			}
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -385,10 +474,12 @@ type EquipmentPortUpdateOne struct {
 	parent            map[string]struct{}
 	link              map[string]struct{}
 	properties        map[string]struct{}
+	endpoints         map[string]struct{}
 	clearedDefinition bool
 	clearedParent     bool
 	clearedLink       bool
 	removedProperties map[string]struct{}
+	removedEndpoints  map[string]struct{}
 }
 
 // SetDefinitionID sets the definition edge to EquipmentPortDefinition by id.
@@ -469,6 +560,26 @@ func (epuo *EquipmentPortUpdateOne) AddProperties(p ...*Property) *EquipmentPort
 	return epuo.AddPropertyIDs(ids...)
 }
 
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (epuo *EquipmentPortUpdateOne) AddEndpointIDs(ids ...string) *EquipmentPortUpdateOne {
+	if epuo.endpoints == nil {
+		epuo.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epuo.endpoints[ids[i]] = struct{}{}
+	}
+	return epuo
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (epuo *EquipmentPortUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdateOne {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epuo.AddEndpointIDs(ids...)
+}
+
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epuo *EquipmentPortUpdateOne) ClearDefinition() *EquipmentPortUpdateOne {
 	epuo.clearedDefinition = true
@@ -505,6 +616,26 @@ func (epuo *EquipmentPortUpdateOne) RemoveProperties(p ...*Property) *EquipmentP
 		ids[i] = p[i].ID
 	}
 	return epuo.RemovePropertyIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (epuo *EquipmentPortUpdateOne) RemoveEndpointIDs(ids ...string) *EquipmentPortUpdateOne {
+	if epuo.removedEndpoints == nil {
+		epuo.removedEndpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		epuo.removedEndpoints[ids[i]] = struct{}{}
+	}
+	return epuo
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (epuo *EquipmentPortUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *EquipmentPortUpdateOne {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return epuo.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -717,6 +848,52 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 			}
 			if int(affected) < len(epuo.properties) {
 				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"EquipmentPort\"", keys(epuo.properties))})
+			}
+		}
+	}
+	if len(epuo.removedEndpoints) > 0 {
+		eids := make([]int, len(epuo.removedEndpoints))
+		for eid := range epuo.removedEndpoints {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(equipmentport.EndpointsTable).
+			SetNull(equipmentport.EndpointsColumn).
+			Where(sql.InInts(equipmentport.EndpointsColumn, ids...)).
+			Where(sql.InInts(serviceendpoint.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(epuo.endpoints) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range epuo.endpoints {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(serviceendpoint.FieldID, eid)
+			}
+			query, args := builder.Update(equipmentport.EndpointsTable).
+				Set(equipmentport.EndpointsColumn, id).
+				Where(sql.And(p, sql.IsNull(equipmentport.EndpointsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			if int(affected) < len(epuo.endpoints) {
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"endpoints\" %v already connected to a different \"EquipmentPort\"", keys(epuo.endpoints))})
 			}
 		}
 	}

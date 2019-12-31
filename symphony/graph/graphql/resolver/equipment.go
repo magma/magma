@@ -24,6 +24,10 @@ import (
 
 type equipmentPortResolver struct{}
 
+func (r equipmentPortResolver) ServiceEndpoints(ctx context.Context, obj *ent.EquipmentPort) ([]*ent.ServiceEndpoint, error) {
+	return obj.QueryEndpoints().All(ctx)
+}
+
 func (equipmentPortResolver) Definition(ctx context.Context, obj *ent.EquipmentPort) (*ent.EquipmentPortDefinition, error) {
 	return obj.QueryDefinition().Only(ctx)
 }
@@ -237,10 +241,10 @@ func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
 	return checkinTime/1000+int64(buffer.Seconds()) > time.Now().Unix()
 }
 
-func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
-	services, err := obj.QueryService().All(ctx)
+func (r equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
+	services, err := obj.QueryPorts().QueryEndpoints().QueryService().All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "querying services where equipment is termination point")
+		return nil, errors.Wrap(err, "querying services where equipment port is an endpoint")
 	}
 
 	ids := make([]string, len(services))

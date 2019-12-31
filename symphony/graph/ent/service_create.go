@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -38,6 +39,7 @@ type ServiceCreate struct {
 	termination_points map[string]struct{}
 	links              map[string]struct{}
 	customer           map[string]struct{}
+	endpoints          map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -226,6 +228,26 @@ func (sc *ServiceCreate) AddCustomer(c ...*Customer) *ServiceCreate {
 		ids[i] = c[i].ID
 	}
 	return sc.AddCustomerIDs(ids...)
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (sc *ServiceCreate) AddEndpointIDs(ids ...string) *ServiceCreate {
+	if sc.endpoints == nil {
+		sc.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		sc.endpoints[ids[i]] = struct{}{}
+	}
+	return sc
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (sc *ServiceCreate) AddEndpoints(s ...*ServiceEndpoint) *ServiceCreate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return sc.AddEndpointIDs(ids...)
 }
 
 // Save creates the Service in the database.
@@ -470,6 +492,29 @@ func (sc *ServiceCreate) sqlSave(ctx context.Context) (*Service, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: customer.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := sc.endpoints; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   service.EndpointsTable,
+			Columns: []string{service.EndpointsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: serviceendpoint.FieldID,
 				},
 			},
 		}

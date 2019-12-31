@@ -1574,6 +1574,13 @@ func ExampleService() {
 		SetExternalID("string").
 		SaveX(ctx)
 	log.Println("customer created:", c6)
+	se7 := client.ServiceEndpoint.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetRole("string").
+		SaveX(ctx)
+	log.Println("serviceendpoint created:", se7)
 
 	// create service vertex with its edges.
 	s := client.Service.
@@ -1589,6 +1596,7 @@ func ExampleService() {
 		AddTerminationPoints(e4).
 		AddLinks(l5).
 		AddCustomer(c6).
+		AddEndpoints(se7).
 		SaveX(ctx)
 	log.Println("service created:", s)
 
@@ -1628,6 +1636,50 @@ func ExampleService() {
 		log.Fatalf("failed querying customer: %v", err)
 	}
 	log.Println("customer found:", c6)
+
+	se7, err = s.QueryEndpoints().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying endpoints: %v", err)
+	}
+	log.Println("endpoints found:", se7)
+
+	// Output:
+}
+func ExampleServiceEndpoint() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the serviceendpoint's edges.
+	ep0 := client.EquipmentPort.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SaveX(ctx)
+	log.Println("equipmentport created:", ep0)
+
+	// create serviceendpoint vertex with its edges.
+	se := client.ServiceEndpoint.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetRole("string").
+		SetPort(ep0).
+		SaveX(ctx)
+	log.Println("serviceendpoint created:", se)
+
+	// query edges.
+	ep0, err = se.QueryPort().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying port: %v", err)
+	}
+	log.Println("port found:", ep0)
 
 	// Output:
 }

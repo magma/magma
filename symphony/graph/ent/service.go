@@ -100,6 +100,11 @@ func (s *Service) QueryCustomer() *CustomerQuery {
 	return (&ServiceClient{s.config}).QueryCustomer(s)
 }
 
+// QueryEndpoints queries the endpoints edge of the Service.
+func (s *Service) QueryEndpoints() *ServiceEndpointQuery {
+	return (&ServiceClient{s.config}).QueryEndpoints(s)
+}
+
 // Update returns a builder for updating this Service.
 // Note that, you need to call Service.Unwrap() before calling this method, if this Service
 // was returned from a transaction, and the transaction was committed or rolled back.

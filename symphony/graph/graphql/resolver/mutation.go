@@ -1864,19 +1864,6 @@ func (r mutationResolver) RemoveServiceType(ctx context.Context, id string) (str
 	return id, nil
 }
 
-func (r mutationResolver) RemoveService(ctx context.Context, id string) (string, error) {
-	client := r.ClientFrom(ctx)
-	if _, err := client.Property.Delete().
-		Where(property.HasServiceWith(service.ID(id))).
-		Exec(ctx); err != nil {
-		return "", errors.Wrapf(err, "deleting service properties: id=%q", id)
-	}
-	if err := client.Service.DeleteOneID(id).Exec(ctx); err != nil {
-		return "", errors.Wrapf(err, "deleting service: id=%q", id)
-	}
-	return id, nil
-}
-
 func (r mutationResolver) EditEquipment(
 	ctx context.Context, input models.EditEquipmentInput,
 ) (*ent.Equipment, error) {

@@ -7,6 +7,9 @@ package resolver
 import (
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -191,6 +194,7 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 
 	equipmentType := r.client.EquipmentType.GetX(ctx, eqt.ID)
 	defs := equipmentType.QueryPortDefinitions().AllX(ctx)
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs[0].ID))).OnlyX(ctx)
 
 	l1, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
@@ -209,15 +213,20 @@ func TestServiceTopologyReturnsCorrectLinksAndEquipment(t *testing.T) {
 		Name: "Internet Access", HasCustomer: false})
 
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{eq1.ID},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "Internet Access Room 2",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l1.ID)
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l2.ID)
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
 	require.NoError(t, err)
 
 	res, err := r.Service().Topology(ctx, s)
@@ -296,17 +305,24 @@ func TestServiceTopologyWithSlots(t *testing.T) {
 		},
 	})
 
+	ep1 := card1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDefs[0].ID))).OnlyX(ctx)
+
 	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "Internet Access", HasCustomer: false})
 
 	s, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{router1.ID},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "Internet Access Room 2",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s.ID, l.ID)
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
 	require.NoError(t, err)
 
 	res, err := r.Service().Topology(ctx, s)
@@ -528,7 +544,7 @@ func TestEditServiceWithProperties(t *testing.T) {
 	require.False(t, existC, "Property with the old name should not exist on service")
 }
 
-func TestEditServiceWithTerminationPoints(t *testing.T) {
+func TestAddEndpointsToService(t *testing.T) {
 	r, err := newTestResolver(t)
 	require.NoError(t, err)
 	defer r.drv.Close()
@@ -549,8 +565,13 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 
 	eqType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type_name",
+		Ports: []*models.EquipmentPortInput{
+			{Name: "typ1_p1"},
+		},
 	})
 	require.NoError(t, err)
+
+	defs := eqType.QueryPortDefinitions().AllX(ctx)
 
 	eq1, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "eq_inst_name_1",
@@ -559,12 +580,16 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs[0].ID))).OnlyX(ctx)
+
 	eq2, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "eq_inst_name_2",
 		Type:     eqType.ID,
 		Location: &location.ID,
 	})
 	require.NoError(t, err)
+
+	ep2 := eq2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs[0].ID))).OnlyX(ctx)
 
 	eq3, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:     "eq_inst_name_3",
@@ -573,6 +598,8 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	ep3 := eq3.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs[0].ID))).OnlyX(ctx)
+
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "service_type_name",
 	})
@@ -580,38 +607,49 @@ func TestEditServiceWithTerminationPoints(t *testing.T) {
 	require.Equal(t, "service_type_name", serviceType.Name)
 
 	service, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "service_name",
-		ServiceTypeID:       serviceType.ID,
-		TerminationPointIds: []string{eq1.ID, eq2.ID},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "service_name",
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     service.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     service.ID,
+		PortID: ep2.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
 	})
 	require.NoError(t, err)
 
 	fetchedService, _ := qr.Service(ctx, service.ID)
-	terminationPoints := fetchedService.QueryTerminationPoints().IDsX(ctx)
-	require.Len(t, terminationPoints, 2)
-	require.NotContains(t, terminationPoints, eq3.ID)
+	endpoints := fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
+	require.Len(t, endpoints, 2)
+	require.NotContains(t, endpoints, eq3.ID)
 
-	_, err = mr.EditService(ctx, models.ServiceEditData{
-		ID:                  service.ID,
-		Name:                pointer.ToString(service.Name),
-		TerminationPointIds: []string{eq2.ID, eq3.ID},
+	e1 := fetchedService.QueryEndpoints().Where(serviceendpoint.HasPortWith(equipmentport.ID(ep1.ID))).OnlyX(ctx)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     service.ID,
+		PortID: ep3.ID,
+		Role:   models.ServiceEndpointRoleProvider,
 	})
+	require.NoError(t, err)
+
+	_, err = mr.RemoveServiceEndpoint(ctx, e1.ID)
+	require.NoError(t, err)
+
 	require.NoError(t, err)
 	fetchedService, _ = qr.Service(ctx, service.ID)
-	terminationPoints = fetchedService.QueryTerminationPoints().IDsX(ctx)
-	require.Len(t, terminationPoints, 2)
-	require.Contains(t, terminationPoints, eq3.ID)
-	require.NotContains(t, terminationPoints, eq1.ID)
-
-	_, err = mr.EditService(ctx, models.ServiceEditData{
-		ID:                  service.ID,
-		Name:                pointer.ToString(service.Name),
-		TerminationPointIds: []string{},
-	})
-	require.NoError(t, err)
-	exist := fetchedService.QueryTerminationPoints().ExistX(ctx)
-	require.False(t, exist)
+	endpoints = fetchedService.QueryEndpoints().QueryPort().IDsX(ctx)
+	require.Len(t, endpoints, 2)
+	require.Contains(t, endpoints, ep3.ID)
+	require.NotContains(t, endpoints, ep1.ID)
 }
 
 func TestServicesOfEquipment(t *testing.T) {
@@ -666,6 +704,9 @@ func TestServicesOfEquipment(t *testing.T) {
 			{Equipment: eq2.ID, Port: defs[0].ID},
 		},
 	})
+
+	ep1 := eq1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(defs[0].ID))).OnlyX(ctx)
+
 	l2, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: eq2.ID, Port: defs[1].ID},
@@ -676,24 +717,34 @@ func TestServicesOfEquipment(t *testing.T) {
 	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
 		Name: "Internet Access", HasCustomer: false})
 
-	_, err = mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2a",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{eq1.ID},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Internet Access Room 2a",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
 	})
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2b",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{eq1.ID},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "Internet Access Room 2b",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, l1.ID)
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, l2.ID)
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: ep1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
 	require.NoError(t, err)
 
 	eq1Services, err := r.Equipment().Services(ctx, eq1)
