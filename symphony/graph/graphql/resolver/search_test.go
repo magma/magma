@@ -276,8 +276,9 @@ func TestEquipmentSearch(t *testing.T) {
 		FilterType: models.EquipmentFilterTypeProperty,
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
-			Name: fetchedPropType.Name,
-			Type: models.PropertyKind(fetchedPropType.Type),
+			Name:        fetchedPropType.Name,
+			Type:        models.PropertyKind(fetchedPropType.Type),
+			StringValue: &owner,
 		},
 		MaxDepth: &maxDepth,
 	}

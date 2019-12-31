@@ -55,6 +55,12 @@ const LocationDetailsCard = (props: Props) => {
                 title="Type"
                 value={location.locationType.name}
               />
+              {externalIDEnabled && location.externalId && (
+                <LocationDetailsCardProperty
+                  title="External ID"
+                  value={location.externalId}
+                />
+              )}
               {location.latitude && (
                 <LocationDetailsCardProperty
                   title="Lat"
@@ -65,12 +71,6 @@ const LocationDetailsCard = (props: Props) => {
                 <LocationDetailsCardProperty
                   title="Long"
                   value={String(location.longitude)}
-                />
-              )}
-              {externalIDEnabled && location.externalId && (
-                <LocationDetailsCardProperty
-                  title="External ID"
-                  value={location.externalId}
                 />
               )}
             </Grid>

@@ -8,11 +8,12 @@
 package diam_test
 
 import (
+	"crypto/tls"
 	"testing"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/diamtest"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/diamtest"
 )
 
 func TestCapabilitiesExchangeSCTP(t *testing.T) {
@@ -56,7 +57,12 @@ func TestCapabilitiesExchangeSCTP_TLS(t *testing.T) {
 	tm := 100 * time.Millisecond
 	srv.Config.ReadTimeout = tm
 	srv.Config.WriteTimeout = tm
+	srv.TLS = &tls.Config{
+		MinVersion: tls.VersionTLS10,
+		MaxVersion: tls.VersionTLS10,
+	}
 	srv.StartTLS()
+	time.Sleep(time.Millisecond * 10) // let srv start
 	defer srv.Close()
 
 	wait := make(chan struct{})

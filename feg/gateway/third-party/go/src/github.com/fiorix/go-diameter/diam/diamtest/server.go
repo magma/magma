@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 )
 
 // A Server is a Diameter server listening on a system-chosen port on the
@@ -70,6 +70,7 @@ func newLocalListener(network string) net.Listener {
 	}
 	l, err := diam.MultistreamListen(network, "127.0.0.1:0")
 	if err != nil {
+		fmt.Printf("diamtest: failed initial listen on network %s: %v", network, err)
 		switch network {
 		case "sctp":
 			network = "sctp6"

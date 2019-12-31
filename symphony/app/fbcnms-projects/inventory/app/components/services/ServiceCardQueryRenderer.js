@@ -19,8 +19,10 @@ type Props = {
 
 const serviceQuery = graphql`
   query ServiceCardQueryRendererQuery($serviceId: ID!) {
-    service(id: $serviceId) {
-      ...ServiceCard_service
+    service: node(id: $serviceId) {
+      ... on Service {
+        ...ServiceCard_service
+      }
     }
   }
 `;

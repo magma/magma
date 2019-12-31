@@ -180,5 +180,7 @@ func (Property) Edges() []ent.Edge {
 			Unique(),
 		edge.To("location_value", Location.Type).
 			Unique(),
+		edge.To("service_value", Service.Type).
+			Unique(),
 	}
 }

@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {ButtonVariant} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
@@ -27,9 +28,19 @@ type Props<TValue> = {
   children: React.Node,
   options: Array<OptionProps<TValue>>,
   onChange: (value: TValue) => void | (() => void),
+  variant?: ButtonVariant,
+  leftIcon?: React$ComponentType<SvgIconExports>,
+  rightIcon?: React$ComponentType<SvgIconExports>,
 };
 
-const PopoverMenu = <TValue>({children, ...selectMenuProps}: Props<TValue>) => {
+const PopoverMenu = <TValue>({
+  className,
+  children,
+  variant = 'text',
+  leftIcon,
+  rightIcon,
+  ...selectMenuProps
+}: Props<TValue>) => {
   const classes = useStyles();
   return (
     <BasePopoverTrigger
@@ -41,7 +52,14 @@ const PopoverMenu = <TValue>({children, ...selectMenuProps}: Props<TValue>) => {
         />
       }>
       {(onShow, contextRef) => (
-        <Button onClick={onShow} ref={contextRef} variant="text">
+        <Button
+          onClick={onShow}
+          ref={contextRef}
+          variant={variant}
+          className={className}
+          leftIcon={leftIcon}
+          rightIcon={rightIcon}
+          skin="regular">
           {children}
         </Button>
       )}

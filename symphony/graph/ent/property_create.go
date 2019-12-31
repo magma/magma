@@ -48,6 +48,7 @@ type PropertyCreate struct {
 	project         map[string]struct{}
 	equipment_value map[string]struct{}
 	location_value  map[string]struct{}
+	service_value   map[string]struct{}
 }
 
 // SetCreateTime sets the create_time field.
@@ -402,6 +403,28 @@ func (pc *PropertyCreate) SetLocationValue(l *Location) *PropertyCreate {
 	return pc.SetLocationValueID(l.ID)
 }
 
+// SetServiceValueID sets the service_value edge to Service by id.
+func (pc *PropertyCreate) SetServiceValueID(id string) *PropertyCreate {
+	if pc.service_value == nil {
+		pc.service_value = make(map[string]struct{})
+	}
+	pc.service_value[id] = struct{}{}
+	return pc
+}
+
+// SetNillableServiceValueID sets the service_value edge to Service by id if the given value is not nil.
+func (pc *PropertyCreate) SetNillableServiceValueID(id *string) *PropertyCreate {
+	if id != nil {
+		pc = pc.SetServiceValueID(*id)
+	}
+	return pc
+}
+
+// SetServiceValue sets the service_value edge to Service.
+func (pc *PropertyCreate) SetServiceValue(s *Service) *PropertyCreate {
+	return pc.SetServiceValueID(s.ID)
+}
+
 // Save creates the Property in the database.
 func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 	if pc.create_time == nil {
@@ -444,6 +467,9 @@ func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 	}
 	if len(pc.location_value) > 1 {
 		return nil, errors.New("ent: multiple assignments on a unique edge \"location_value\"")
+	}
+	if len(pc.service_value) > 1 {
+		return nil, errors.New("ent: multiple assignments on a unique edge \"service_value\"")
 	}
 	return pc.sqlSave(ctx)
 }
@@ -766,6 +792,29 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: location.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges = append(spec.Edges, edge)
+	}
+	if nodes := pc.service_value; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   property.ServiceValueTable,
+			Columns: []string{property.ServiceValueColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
 				},
 			},
 		}

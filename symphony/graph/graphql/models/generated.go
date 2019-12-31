@@ -516,6 +516,7 @@ type PropertyInput struct {
 	RangeToValue       *float64 `json:"rangeToValue"`
 	EquipmentIDValue   *string  `json:"equipmentIDValue"`
 	LocationIDValue    *string  `json:"locationIDValue"`
+	ServiceIDValue     *string  `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
@@ -1219,6 +1220,7 @@ const (
 	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
 	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
 	PortFilterTypeProperty          PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1227,11 +1229,12 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
 	PortFilterTypeProperty,
+	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false
@@ -1358,6 +1361,7 @@ const (
 	PropertyKindGpsLocation   PropertyKind = "gps_location"
 	PropertyKindEquipment     PropertyKind = "equipment"
 	PropertyKindLocation      PropertyKind = "location"
+	PropertyKindService       PropertyKind = "service"
 	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
 )
 
@@ -1373,12 +1377,13 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindGpsLocation,
 	PropertyKindEquipment,
 	PropertyKindLocation,
+	PropertyKindService,
 	PropertyKindDatetimeLocal,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindDatetimeLocal:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindService, PropertyKindDatetimeLocal:
 		return true
 	}
 	return false

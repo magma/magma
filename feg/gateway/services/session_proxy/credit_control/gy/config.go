@@ -12,7 +12,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"

@@ -7,7 +7,7 @@
 module magma/feg/gateway
 
 replace (
-	github.com/fiorix/go-diameter => ./third-party/go/src/github.com/fiorix/go-diameter
+	github.com/fiorix/go-diameter/v4 => ./third-party/go/src/github.com/fiorix/go-diameter
 
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
@@ -18,18 +18,18 @@ replace (
 )
 
 require (
-	github.com/fiorix/go-diameter v3.0.3-0.20180924121357-70410bd9fce3+incompatible
+	github.com/fiorix/go-diameter/v4 v4.0.1
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
 	github.com/gorilla/mux v1.6.2
-	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
+	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
 	github.com/prometheus/common v0.2.0
 	github.com/shirou/gopsutil v2.18.10+incompatible
 	github.com/stretchr/testify v1.4.0
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
+	golang.org/x/net v0.0.0-20191007182048-72f939374954
 	google.golang.org/grpc v1.25.0
 
 	magma/feg/cloud/go v0.0.0

@@ -16,6 +16,7 @@ import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {AutoSizer, Column, Table} from 'react-virtualized';
 import {createFragmentContainer, graphql} from 'react-relay';
@@ -24,7 +25,7 @@ import {withStyles} from '@material-ui/core/styles';
 
 import 'react-virtualized/styles.css';
 
-const styles = theme => ({
+const styles = {
   noResultsRoot: {
     display: 'flex',
     flexDirection: 'column',
@@ -33,7 +34,7 @@ const styles = theme => ({
     marginTop: '100px',
   },
   noResultsLabel: {
-    color: theme.palette.grey[600],
+    color: symphony.palette.D600,
   },
   futureState: {
     textTransform: 'capitalize',
@@ -66,7 +67,7 @@ const styles = theme => ({
       textTransform: 'none',
     },
   },
-});
+};
 
 type Props = {
   equipment: Equipment,
@@ -154,8 +155,14 @@ const AvailableLinksTable = (props: Props) => {
     return (
       <div className={classes.noResultsRoot}>
         <Text variant="h6" className={classes.noResultsLabel}>
-          No available links out of
-          {` ${equipment.equipmentType.name} ${equipment.name}`}
+          {`${fbt(
+            'No available links out of ' +
+              fbt.param('equipment type name', equipment.equipmentType.name) +
+              ' ' +
+              fbt.param('equipment name', equipment.name),
+            'Message when no available links found are for a chosen equipment',
+          )}
+          `}
         </Text>
       </div>
     );

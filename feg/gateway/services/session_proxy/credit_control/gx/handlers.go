@@ -11,7 +11,7 @@ package gx
 import (
 	"context"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 
 	"magma/feg/gateway/diameter"

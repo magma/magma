@@ -30,9 +30,9 @@ const p2Title = "Parent Equipment (2)"
 const p1Title = "Parent Equipment"
 const positionTitle = "Equipment Position"
 const linkPID = "Linked Port ID"
-const linkPName = "Linked Port name"
-const linkEID = "Linked Port Equipment ID"
-const linkEName = "Linked Port Equipment"
+const linkPName = "Linked Port Name"
+const linkEID = "Linked Equipment ID"
+const linkEName = "Linked Equipment"
 const propStr = "propStr"
 const propStr2 = "propStr2"
 
@@ -189,15 +189,6 @@ func TestPortWithFilters(t *testing.T) {
 	defer server.Close()
 
 	prepareData(ctx, t, *r)
-	/*
-		helper: data now is of type:
-		loc(grandParent):
-			loc(parent):
-				loc(child):
-						parentEquipment(equipemtnType): with portType1 (has 2 string props)
-						childEquipment(equipemtnType): with portType2 (no props props)
-						these ports are linked together
-	*/
 	loc := r.client.Location.Query().Where(location.Name(childLocation)).OnlyX(ctx)
 	pDef2 := r.client.EquipmentPortDefinition.Query().Where(equipmentportdefinition.Name(portName2)).OnlyX(ctx)
 

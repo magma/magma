@@ -11,7 +11,7 @@ package servicers
 import (
 	"log"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 )
 
 // handleUnknownMessage is called when a diameter message is received with a

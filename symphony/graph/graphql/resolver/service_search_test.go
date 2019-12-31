@@ -415,10 +415,10 @@ func TestSearchServicesByProperties(t *testing.T) {
 		FilterType: models.ServiceFilterTypeServiceInstProperty,
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
-			Name: "service_str_prop",
-			Type: models.PropertyKind("string"),
+			Name:        "service_str_prop",
+			Type:        models.PropertyKind("string"),
+			StringValue: pointer.ToString("Foo is the best"),
 		},
-		StringValue: pointer.ToString("Foo is the best"),
 	}
 	res, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f}, &limit)
 	require.NoError(t, err)
