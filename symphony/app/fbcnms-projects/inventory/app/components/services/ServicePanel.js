@@ -9,6 +9,11 @@
  */
 
 import type {
+  AddServiceEndpointMutationResponse,
+  AddServiceEndpointMutationVariables,
+  ServiceEndpointRole,
+} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
+import type {
   AddServiceLinkMutationResponse,
   AddServiceLinkMutationVariables,
 } from '../../mutations/__generated__/AddServiceLinkMutation.graphql';
@@ -25,6 +30,7 @@ import type {
 import type {ServiceEndpoint, ServiceStatus} from '../../common/Service';
 import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
 
+import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -136,11 +142,20 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
     'service_endpoints',
   );
 
-  const onAddEndpoint = (
-    _port: EquipmentPort,
-    _role: 'consumer' | 'provider',
-  ) => {
-    // TODO: add the mutation
+  const onAddEndpoint = (port: EquipmentPort, role: ServiceEndpointRole) => {
+    const variables: AddServiceEndpointMutationVariables = {
+      input: {
+        id: service.id,
+        portId: port.id,
+        role: role,
+      },
+    };
+    const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {
+      onCompleted: () => {
+        setEndpointsExpanded(true);
+      },
+    };
+    AddServiceEndpointMutation(variables, callbacks);
   };
 
   const onAddLink = (link: Link) => {

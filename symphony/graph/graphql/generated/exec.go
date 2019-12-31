@@ -7167,8 +7167,8 @@ type Query {
     before: Cursor
     last: Int
   ): EquipmentTypeConnection!
-  service(id: ID!): Service
-  serviceType(id: ID!): ServiceType
+  service(id: ID!): Service @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
+  serviceType(id: ID!): ServiceType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   serviceTypes(
     after: Cursor
     first: Int

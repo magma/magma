@@ -91,7 +91,7 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 	eqsMap := make(map[string]*ent.Equipment)
 	for _, eq := range eqs {
 		node := r.rootNode(ctx, eq)
-		eqsMap[node.ID] = eq
+		eqsMap[node.ID] = node
 		nodes = append(nodes, node)
 	}
 
@@ -110,6 +110,7 @@ func (r serviceResolver) Topology(ctx context.Context, obj *ent.Service) (*model
 			node := r.rootNode(ctx, equipment)
 			if _, ok := eqsMap[node.ID]; !ok {
 				nodes = append(nodes, node)
+				eqsMap[node.ID] = node
 			}
 		}
 	}

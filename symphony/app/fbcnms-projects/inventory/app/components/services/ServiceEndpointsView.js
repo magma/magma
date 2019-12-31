@@ -27,6 +27,12 @@ const ServiceEndpointsView = (props: Props) => {
   return (
     <div>
       {endpoints
+        .sort((e1, e2) =>
+          sortLexicographically(
+            e1.port.parentEquipment.name,
+            e2.port.parentEquipment.name,
+          ),
+        )
         .sort((e1, e2) => sortLexicographically(e1.role, e2.role))
         .map(endpoint => (
           <ServiceEndpointDetails
