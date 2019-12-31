@@ -10,10 +10,14 @@
 
 import * as React from 'react';
 import CheckIcon from '@material-ui/icons/Check';
+import ClearIcon from '@material-ui/icons/Clear';
+import InputAffix from '../Input/InputAffix';
 import Text from '../Text';
+import TextInput from '../Input/TextInput';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useState} from 'react';
 import {useMenuContext} from './MenuContext';
 
 const useStyles = makeStyles({
@@ -44,6 +48,24 @@ const useStyles = makeStyles({
   normalWidth: {
     width: '236px',
   },
+  input: {
+    padding: '16px',
+  },
+  clearIconContainer: {
+    backgroundColor: symphony.palette.background,
+    padding: '6px',
+    borderRadius: '100%',
+    width: '20px',
+    height: '20px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  clearIcon: {
+    color: symphony.palette.D800,
+    fontSize: '13.66px',
+  },
 });
 
 export type OptionProps<TValue> = {
@@ -55,6 +77,8 @@ type Props<TValue> = {
   className?: string,
   onChange: (value: TValue) => void | (() => void),
   options: Array<OptionProps<TValue>>,
+  searchable?: boolean,
+  onOptionsFetchRequested?: (searchTerm: string) => void,
   selectedValue?: ?TValue,
   size?: 'normal' | 'full',
 };
@@ -65,15 +89,45 @@ const SelectMenu = <TValue>({
   onChange,
   selectedValue,
   size = 'full',
+  searchable = false,
+  onOptionsFetchRequested,
 }: Props<TValue>) => {
   const classes = useStyles();
   const {onClose} = useMenuContext();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const updateSearchTerm = useCallback(
+    searchTerm => {
+      setSearchTerm(searchTerm.toLowerCase());
+      onOptionsFetchRequested && onOptionsFetchRequested(searchTerm);
+    },
+    [onOptionsFetchRequested],
+  );
+
   return (
     <div
       className={classNames(classes.root, className, {
         [classes.fullWidth]: size === 'full',
         [classes.normalWidth]: size === 'normal',
       })}>
+      {searchable && (
+        <TextInput
+          className={classes.input}
+          type="string"
+          placeholder="Type to filter..."
+          onChange={({target}) => updateSearchTerm(target.value)}
+          value={searchTerm}
+          suffix={
+            searchTerm ? (
+              <InputAffix
+                onClick={() => updateSearchTerm('')}
+                className={classes.clearIconContainer}>
+                <ClearIcon className={classes.clearIcon} />
+              </InputAffix>
+            ) : null
+          }
+        />
+      )}
       {options.map(option => (
         <div
           className={classes.option}

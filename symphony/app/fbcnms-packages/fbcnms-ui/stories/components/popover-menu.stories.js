@@ -8,6 +8,7 @@
  * @format
  */
 
+import AddIcon from '@material-ui/icons/Add';
 import MoreHorizIcon from '@material-ui/icons/MoreHoriz';
 import PopoverMenu from '../../components/design-system/ContexualLayer/PopoverMenu';
 import React from 'react';
@@ -18,6 +19,11 @@ import {storiesOf} from '@storybook/react';
 const useStyles = makeStyles({
   root: {
     width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  popoverMenu: {
+    marginRight: '16px',
   },
   moreIcon: {
     padding: '6px',
@@ -33,7 +39,7 @@ const PopoverMenuRoot = () => {
   return (
     <div className={classes.root}>
       <PopoverMenu
-        label="Project"
+        className={classes.popoverMenu}
         options={[
           {
             label: 'Option 1',
@@ -46,6 +52,22 @@ const PopoverMenuRoot = () => {
         ]}
         onChange={value => window.alert(`Clicked on item #${value}`)}>
         <MoreHorizIcon className={classes.moreIcon} />
+      </PopoverMenu>
+      <PopoverMenu
+        variant="contained"
+        options={[
+          {
+            label: 'Option 1',
+            value: '1',
+          },
+          {
+            label: 'Option 2',
+            value: '2',
+          },
+        ]}
+        onChange={value => window.alert(`Clicked on item #${value}`)}
+        rightIcon={AddIcon}>
+        Add Filter
       </PopoverMenu>
     </div>
   );
