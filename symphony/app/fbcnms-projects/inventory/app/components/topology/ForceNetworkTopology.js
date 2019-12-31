@@ -98,7 +98,11 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.topology === prevProps.topology) {
+    if (
+      this.props.topology === prevProps.topology &&
+      this.props.renderNode === prevProps.renderNode &&
+      this.props.renderNodeName === prevProps.renderNodeName
+    ) {
       return;
     }
     this.calculateGraph();

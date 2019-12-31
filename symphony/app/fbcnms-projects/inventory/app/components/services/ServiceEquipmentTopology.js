@@ -12,10 +12,10 @@ import type {ServiceEquipmentTopology_endpoints} from './__generated__/ServiceEq
 import type {ServiceEquipmentTopology_topology} from './__generated__/ServiceEquipmentTopology_topology.graphql';
 import type {WithStyles} from '@material-ui/core';
 
-import * as React from 'react';
 import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
 import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import ForceNetworkTopology from '../topology/ForceNetworkTopology';
+import React, {useCallback} from 'react';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -33,31 +33,42 @@ const styles = _ => ({
 
 const ServiceEquipmentTopology = (props: Props) => {
   const {topology, endpoints, classes} = props;
-  const rootIds = endpoints.map(endpoint => {
-    const port = endpoint.port;
-    const positionHierarchySize = port.parentEquipment.positionHierarchy.length;
-    if (positionHierarchySize > 0) {
-      return port.parentEquipment.positionHierarchy[positionHierarchySize - 1]
-        .parentEquipment.id;
-    }
-    return port.parentEquipment.id;
-  });
+
+  const renderNode = useCallback(
+    (id: string) => {
+      const rootIds = endpoints.map(endpoint => {
+        const port = endpoint.port;
+        const positionHierarchySize =
+          port.parentEquipment.positionHierarchy.length;
+        if (positionHierarchySize > 0) {
+          return port.parentEquipment.positionHierarchy[
+            positionHierarchySize - 1
+          ].parentEquipment.id;
+        }
+        return port.parentEquipment.id;
+      });
+      return rootIds.includes(id) ? (
+        <ActiveEquipmentInLocationIcon />
+      ) : (
+        <ActiveEquipmentIcon />
+      );
+    },
+    [endpoints],
+  );
+  const renderNodeName = useCallback(
+    (id: string) => {
+      const node = topology.nodes.find(node => node.id === id);
+      return node?.name;
+    },
+    [topology],
+  );
   return (
     <div className={classes.card}>
       <ForceNetworkTopology
         topology={topology}
         className={classes.card}
-        renderNode={(id: string) =>
-          rootIds.includes(id) ? (
-            <ActiveEquipmentInLocationIcon />
-          ) : (
-            <ActiveEquipmentIcon />
-          )
-        }
-        renderNodeName={(id: string) => {
-          const nodes = topology.nodes.filter(node => node.id === id);
-          return nodes[0].name;
-        }}
+        renderNode={renderNode}
+        renderNodeName={renderNodeName}
       />
     </div>
   );

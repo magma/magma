@@ -36,8 +36,8 @@ const LocationEquipmentTopology = (props: Props) => {
         )
       }
       renderNodeName={(id: string) => {
-        const nodes = topology.nodes.filter(node => node.id === id);
-        return nodes[0].name;
+        const node = topology.nodes.find(node => node.id === id);
+        return node?.name;
       }}
     />
   );
