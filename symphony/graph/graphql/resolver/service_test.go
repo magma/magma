@@ -6,13 +6,13 @@ package resolver
 
 import (
 	"github.com/AlekSi/pointer"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
