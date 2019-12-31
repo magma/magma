@@ -14,10 +14,12 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type ServiceEquipmentTopology_endpoints$ref: FragmentReference;
 declare export opaque type ServiceEquipmentTopology_endpoints$fragmentType: ServiceEquipmentTopology_endpoints$ref;
 export type ServiceEquipmentTopology_endpoints = $ReadOnlyArray<{|
+  +role: ServiceEndpointRole,
   +port: {|
     +parentEquipment: {|
       +id: string,
@@ -55,6 +57,13 @@ return {
   },
   "argumentDefinitions": [],
   "selections": [
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "role",
+      "args": null,
+      "storageKey": null
+    },
     {
       "kind": "LinkedField",
       "alias": null,
@@ -105,5 +114,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c9cc3e14ffe6e5867941a7efb256e37b';
+(node/*: any*/).hash = 'fefef731e1a8ed1be6e4d21a1a0b7781';
 module.exports = node;

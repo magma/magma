@@ -100,9 +100,15 @@ const ServiceEndpointDetails = (props: Props) => {
       <div className={classes.detail}>
         <EndpointIcon className={classes.icon} />
         {endpoint.role == 'CONSUMER' ? (
-          <ActiveConsumerEndpointIcon className={classes.activeIcon} />
+          <ActiveConsumerEndpointIcon
+            variant="small"
+            className={classes.activeIcon}
+          />
         ) : (
-          <ActiveProviderEndpointIcon className={classes.activeIcon} />
+          <ActiveProviderEndpointIcon
+            variant="small"
+            className={classes.activeIcon}
+          />
         )}
         <div>
           <Text variant="subtitle2" className={classes.componentName}>
