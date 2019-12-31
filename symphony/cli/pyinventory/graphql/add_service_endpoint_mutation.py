@@ -48,29 +48,35 @@ class ServiceEndpointRole(Enum):
 
 @dataclass_json
 @dataclass
-class ServiceDetailsQuery:
+class AddServiceEndpointInput:
+    id: str
+    portId: str
+    role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
+
+
+@dataclass_json
+@dataclass
+class AddServiceEndpointMutation:
     __QUERY__ = """
-    query ServiceDetailsQuery($id: ID!) {
-  service: node(id: $id) {
-    ... on Service {
+    mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
+  addServiceEndpoint(input: $input) {
+    id
+    name
+    externalId
+    customer {
       id
       name
       externalId
-      customer {
-        id
-        name
-        externalId
-      }
-      endpoints {
-        id
-        port {
-          id
-        }
-        role
-      }
-      links {
+    }
+    endpoints {
+      id
+      port {
         id
       }
+      role
+    }
+    links {
+      id
     }
   }
 }
@@ -79,10 +85,10 @@ class ServiceDetailsQuery:
 
     @dataclass_json
     @dataclass
-    class ServiceDetailsQueryData:
+    class AddServiceEndpointMutationData:
         @dataclass_json
         @dataclass
-        class Node:
+        class Service:
             @dataclass_json
             @dataclass
             class Customer:
@@ -114,15 +120,15 @@ class ServiceDetailsQuery:
             externalId: Optional[str] = None
             customer: Optional[Customer] = None
 
-        service: Optional[Node] = None
+        addServiceEndpoint: Optional[Service] = None
 
-    data: Optional[ServiceDetailsQueryData] = None
+    data: Optional[AddServiceEndpointMutationData] = None
     errors: Any = None
 
     @classmethod
     # fmt: off
-    def execute(cls, client, id: str):
+    def execute(cls, client, input: AddServiceEndpointInput):
         # fmt: off
-        variables = {"id": id}
+        variables = {"input": input}
         response_text = client.call(cls.__QUERY__, variables=variables)
         return cls.from_json(response_text).data

@@ -43,6 +43,11 @@ class ImageEntity(Enum):
     EQUIPMENT = "EQUIPMENT"
 
 
+class ServiceEndpointRole(Enum):
+    CONSUMER = "CONSUMER"
+    PROVIDER = "PROVIDER"
+
+
 class LocationType(NamedTuple):
     name: str
     id: str
@@ -66,6 +71,10 @@ class EquipmentType(NamedTuple):
 
 class Equipment(NamedTuple):
     name: str
+    id: str
+
+
+class EquipmentPort(NamedTuple):
     id: str
 
 
@@ -96,12 +105,18 @@ class Customer(NamedTuple):
     externalId: Optional[str]
 
 
+class ServiceEndpoint(NamedTuple):
+    id: str
+    port: EquipmentPort
+    role: str
+
+
 class Service(NamedTuple):
     name: str
     id: str
     externalId: Optional[str]
     customer: Optional[Customer]
-    terminationPoints: List[Equipment]
+    endpoints: List[ServiceEndpoint]
     links: List[Link]
 
 

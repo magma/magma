@@ -1,5 +1,5 @@
-mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
-  addServiceLink(id: $id, linkId: $linkId) {
+mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
+  addServiceEndpoint(input: $input) {
     id
     name
     externalId

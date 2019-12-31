@@ -48,6 +48,11 @@ class ServiceStatus(Enum):
     DISCONNECTED = "DISCONNECTED"
 
 
+class ServiceEndpointRole(Enum):
+    CONSUMER = "CONSUMER"
+    PROVIDER = "PROVIDER"
+
+
 @dataclass_json
 @dataclass
 class ServiceCreateData:
@@ -94,9 +99,12 @@ class AddServiceMutation:
       name
       externalId
     }
-    terminationPoints {
+    endpoints {
       id
-      name
+      port {
+        id
+      }
+      role
     }
     links {
       id
@@ -121,9 +129,15 @@ class AddServiceMutation:
 
             @dataclass_json
             @dataclass
-            class Equipment:
+            class ServiceEndpoint:
+                @dataclass_json
+                @dataclass
+                class EquipmentPort:
+                    id: str
+
                 id: str
-                name: str
+                port: EquipmentPort
+                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
             @dataclass_json
             @dataclass
@@ -132,7 +146,7 @@ class AddServiceMutation:
 
             id: str
             name: str
-            terminationPoints: List[Equipment]
+            endpoints: List[ServiceEndpoint]
             links: List[Link]
             externalId: Optional[str] = None
             customer: Optional[Customer] = None

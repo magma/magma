@@ -9,9 +9,12 @@ query ServiceDetailsQuery($id: ID!) {
         name
         externalId
       }
-      terminationPoints {
+      endpoints {
         id
-        name
+        port {
+          id
+        }
+        role
       }
       links {
         id
