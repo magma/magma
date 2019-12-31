@@ -50,7 +50,7 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi);
+extern int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -751,15 +751,21 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   int rc =
     esm_proc_default_eps_bearer_context_accept(emm_context, ebi, &esm_cause);
 
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
   }
   /* If activate default EPS bearer context accept message is received for a
    * new standalone PDN connection, send modify bearer request to sgw
    */
   if (emm_context->esm_ctx.is_standalone == true) {
     emm_context->esm_ctx.is_standalone = false;
-    send_modify_bearer_req(ue_id, ebi);
+    rc = send_modify_bearer_req(ue_id, ebi);
+    if (rc != RETURNok) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM, "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+        "\n", ebi);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
+    }
   }
   /*
    * Return the ESM cause value

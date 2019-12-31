@@ -84,7 +84,7 @@
 #define TASK_SPGW TASK_S11
 #endif
 
-void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
+int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t item = 0;
@@ -98,7 +98,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     OAILOG_ERROR(
       LOG_MME_APP,
       "ue_context_p is NULL, did not send S11_MODIFY_BEARER_REQUEST\n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   MessageDef* message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
@@ -106,7 +106,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     OAILOG_ERROR(
       LOG_MME_APP, "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
     unlock_ue_contexts(ue_context_p);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
     &message_p->ittiMsg.s11_modify_bearer_request;
@@ -126,7 +126,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
       "%u\n",
       ebi);
     unlock_ue_contexts(ue_context_p);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   s11_modify_bearer_request->bearer_contexts_to_be_modified
@@ -144,7 +144,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
   if (pdn_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Did not find PDN context for ebi %u\n", ebi);
     unlock_ue_contexts(ue_context_p);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   s11_modify_bearer_request->peer_ip =
     pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
@@ -193,7 +193,7 @@ void send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     ue_id);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_OUT(LOG_MME_APP);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 
