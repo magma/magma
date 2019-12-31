@@ -11,7 +11,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 )
 
 const (

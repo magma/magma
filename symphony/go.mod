@@ -8,7 +8,7 @@ require (
 	cloud.google.com/go/storage v1.2.1 // indirect
 	contrib.go.opencensus.io/exporter/jaeger v0.1.0
 	contrib.go.opencensus.io/exporter/prometheus v0.1.0
-	contrib.go.opencensus.io/integrations/ocsql v0.1.5-0.20190624063948-41ee6eb7a3ea
+	contrib.go.opencensus.io/integrations/ocsql v0.1.5
 	github.com/99designs/gqlgen v0.10.2
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0

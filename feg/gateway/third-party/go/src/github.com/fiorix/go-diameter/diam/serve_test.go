@@ -5,16 +5,17 @@
 package diam_test
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io"
 	"net"
 	"testing"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/diamtest"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/diamtest"
 )
 
 func TestCapabilitiesExchange(t *testing.T) {
@@ -55,28 +56,38 @@ func TestCapabilitiesExchangeTLS(t *testing.T) {
 	smux.Handle("CER", handleCER(errc, true))
 
 	srv := diamtest.NewUnstartedServer(smux, nil)
-	tm := 100 * time.Millisecond
+	tm := time.Second
 	srv.Config.ReadTimeout = tm
 	srv.Config.WriteTimeout = tm
+	srv.TLS = &tls.Config{
+		MinVersion: tls.VersionTLS10,
+		MaxVersion: tls.VersionTLS10,
+	}
 	srv.StartTLS()
+	time.Sleep(time.Millisecond * 10) // let srv start
 	defer srv.Close()
-
 	wait := make(chan struct{})
 	cmux := diam.NewServeMux()
 	cmux.Handle("CEA", handleCEA(errc, wait))
 
 	cli, err := diam.DialTLS(srv.Addr, "", "", cmux, nil)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("diam.DialTLS Error: %v", err)
 	}
 
-	sendCER(cli)
+	n, err := sendCER(cli)
+	if err != nil {
+		t.Fatalf("sendCER Error: %v", err)
+	}
+	if n <= 0 {
+		t.Fatalf("sendCER: %d bytes sent", n)
+	}
 
 	select {
 	case <-wait:
 	case err := <-errc:
 		t.Fatal(err)
-	case <-time.After(time.Second):
+	case <-time.After(time.Second * 3):
 		t.Fatal("Timed out: no CER or CEA received")
 	}
 }

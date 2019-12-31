@@ -13,12 +13,18 @@ import (
 	"github.com/ishidawataru/sctp"
 )
 
-// MaxInboundSCTPStreams - max inbound streams default for new connections.
-// see https://tools.ietf.org/html/rfc4960#page-25
-const MaxInboundSCTPStreams = 16
+const (
+	// MaxInboundSCTPStreams - max inbound streams default for new connections.
+	// see https://tools.ietf.org/html/rfc4960#page-25
+	MaxInboundSCTPStreams = 16
 
-// MaxOutboundSCTPStreams - max outbound streams default for new connections.
-const MaxOutboundSCTPStreams = MaxInboundSCTPStreams
+	// MaxOutboundSCTPStreams - max outbound streams default for new connections.
+	MaxOutboundSCTPStreams = MaxInboundSCTPStreams
+
+	// DiameterPPID - SCTP Payload Protocol Identifier for Diameter
+	// see: https://tools.ietf.org/html/rfc4960#section-14.4 and https://tools.ietf.org/html/rfc6733#page-24
+	DiameterPPID uint32 = 46
+)
 
 type sctpDialer struct {
 	LocalAddr *sctp.SCTPAddr
@@ -236,10 +242,11 @@ func (msc *SCTPConn) bufferStreamData(b []byte, stream uint) {
 
 // WriteStream writes data to the association's stream.
 func (msc *SCTPConn) WriteStream(b []byte, stream uint) (int, error) {
+	info := &sctp.SndRcvInfo{PPID: DiameterPPID}
 	if stream != InvalidStreamID {
-		return msc.SCTPWrite(b, &sctp.SndRcvInfo{Stream: uint16(stream)})
+		info.Stream = uint16(stream)
 	}
-	return msc.SCTPWrite(b, nil)
+	return msc.SCTPWrite(b, info)
 }
 
 // CurrentStream returns the last stream read by Read 'adaptor'.
@@ -344,11 +351,13 @@ func (msc *SCTPConn) Write(b []byte) (int, error) {
 	if stream == InvalidStreamID {
 		stream = msc.CurrentStream()
 	}
+	info := &sctp.SndRcvInfo{PPID: DiameterPPID}
+
 	// If writer stream is not set, stick with the reader stream #
-	if stream == InvalidStreamID {
-		return msc.SCTPWrite(b, nil)
+	if stream != InvalidStreamID {
+		info.Stream = uint16(stream)
 	}
-	return msc.SCTPWrite(b, &sctp.SndRcvInfo{Stream: uint16(stream)})
+	return msc.SCTPWrite(b, info)
 }
 
 // Dial connects to the address on the named SCTP network.

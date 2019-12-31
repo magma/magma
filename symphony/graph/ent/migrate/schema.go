@@ -671,6 +671,7 @@ var (
 		{Name: "type_id", Type: field.TypeInt, Nullable: true},
 		{Name: "property_equipment_value_id", Type: field.TypeInt, Nullable: true},
 		{Name: "property_location_value_id", Type: field.TypeInt, Nullable: true},
+		{Name: "property_service_value_id", Type: field.TypeInt, Nullable: true},
 		{Name: "service_id", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_id", Type: field.TypeInt, Nullable: true},
 	}
@@ -737,15 +738,22 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "properties_services_properties",
+				Symbol:  "properties_services_service_value",
 				Columns: []*schema.Column{PropertiesColumns[19]},
 
 				RefColumns: []*schema.Column{ServicesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "properties_work_orders_properties",
+				Symbol:  "properties_services_properties",
 				Columns: []*schema.Column{PropertiesColumns[20]},
+
+				RefColumns: []*schema.Column{ServicesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "properties_work_orders_properties",
+				Columns: []*schema.Column{PropertiesColumns[21]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -1435,7 +1443,8 @@ func init() {
 	PropertiesTable.ForeignKeys[6].RefTable = EquipmentTable
 	PropertiesTable.ForeignKeys[7].RefTable = LocationsTable
 	PropertiesTable.ForeignKeys[8].RefTable = ServicesTable
-	PropertiesTable.ForeignKeys[9].RefTable = WorkOrdersTable
+	PropertiesTable.ForeignKeys[9].RefTable = ServicesTable
+	PropertiesTable.ForeignKeys[10].RefTable = WorkOrdersTable
 	PropertyTypesTable.ForeignKeys[0].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[1].RefTable = EquipmentPortTypesTable
 	PropertyTypesTable.ForeignKeys[2].RefTable = EquipmentTypesTable

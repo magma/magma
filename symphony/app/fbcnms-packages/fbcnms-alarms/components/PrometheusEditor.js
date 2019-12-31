@@ -87,13 +87,19 @@ export type InputChangeFunc = (
   formUpdate: (val: string) => $Shape<FormState>,
 ) => (event: SyntheticInputEvent<HTMLElement>) => void;
 
-function RuleNameEditor(props: {onChange: InputChangeFunc, ruleName: string}) {
+function RuleNameEditor({
+  ruleName,
+  ...props
+}: {
+  onChange: InputChangeFunc,
+  ruleName: string,
+}) {
   return (
     <TextField
       required
       label="Rule Name"
       placeholder="Ex: Service Down"
-      value={props.ruleName}
+      value={ruleName}
       onChange={props.onChange(value => ({ruleName: value}))}
       fullWidth
     />

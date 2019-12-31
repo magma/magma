@@ -182,6 +182,18 @@ func (pq *PropertyQuery) QueryLocationValue() *LocationQuery {
 	return query
 }
 
+// QueryServiceValue chains the current query on the service_value edge.
+func (pq *PropertyQuery) QueryServiceValue() *ServiceQuery {
+	query := &ServiceQuery{config: pq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(property.Table, property.FieldID, pq.sqlQuery()),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, property.ServiceValueTable, property.ServiceValueColumn),
+	)
+	query.sql = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
+	return query
+}
+
 // First returns the first Property entity in the query. Returns *ErrNotFound when no property was found.
 func (pq *PropertyQuery) First(ctx context.Context) (*Property, error) {
 	prs, err := pq.Limit(1).All(ctx)

@@ -25,6 +25,8 @@ const (
 	propName4          = "prop4"
 	propName5          = "prop5"
 	propName6          = "prop6"
+	propName7          = "prop7"
+	propName8          = "prop8"
 	propDefValue       = "defaultVal"
 	locTypeNameL       = "locTypeLarge"
 	locTypeNameM       = "locTypeMedium"

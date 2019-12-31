@@ -9,20 +9,18 @@
  */
 import * as React from 'react';
 import AddEditAlert from './AddEditAlert';
-import AddIcon from '@material-ui/icons/Add';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import Fab from '@material-ui/core/Fab';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import PrometheusEditor from './PrometheusEditor';
 import SimpleTable from './SimpleTable';
 import TableActionDialog from './TableActionDialog';
+import TableAddButton from './common/TableAddButton';
 import axios from 'axios';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useLoadRules} from './hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
-
 import type {AlertConfig} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
 import type {ColumnData} from './SimpleTable';
@@ -260,18 +258,15 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
           }
         />
       )}
-      <Fab
-        className={classes.addButton}
-        color="primary"
+      <TableAddButton
         onClick={() => {
           setIsNewAlert(true);
           setSelectedRow(null);
           setIsAddEditAlert(true);
         }}
-        aria-label="Add Alert"
-        data-testid="add-edit-alert-button">
-        <AddIcon />
-      </Fab>
+        label="Add Alert"
+        data-testid="add-edit-alert-button"
+      />
     </>
   );
 }

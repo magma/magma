@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -39,7 +40,7 @@ func (l ImportRecord) Header() ImportHeader {
 	return l.title
 }
 
-func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
+func (l ImportRecord) GetPropertyInput(m *importer, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
 	var pTyp *ent.PropertyType
 	var err error
 	switch l.entity() {
@@ -63,7 +64,13 @@ func (l ImportRecord) GetPropertyInput(ctx context.Context, typ interface{}, pro
 	if idx == -1 {
 		return nil, nil
 	}
-	return getPropInput(*pTyp, l.line[idx])
+	value := l.line[idx]
+	if pTyp.Type == "service" && value != "" {
+		if value, err = m.ClientFrom(ctx).Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
+			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
+		}
+	}
+	return getPropInput(*pTyp, value)
 }
 
 func (l ImportRecord) entity() ImportEntity {

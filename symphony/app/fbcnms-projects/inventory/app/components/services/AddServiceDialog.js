@@ -39,11 +39,6 @@ const useStyles = makeStyles(_ => ({
     height: '400px',
     overflowY: 'scroll',
   },
-  serviceCreateDialogContent: {
-    padding: 0,
-    maxHeight: '500px',
-    overflowY: 'auto',
-  },
   dialogActions: {
     padding: '24px',
     bottom: 0,

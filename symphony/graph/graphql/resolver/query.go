@@ -259,7 +259,10 @@ func (r queryResolver) SearchForEntity(
 	}
 
 	equipments, err := client.Equipment.Query().
-		Where(equipment.NameContainsFold(name)).
+		Where(equipment.Or(
+			equipment.NameContainsFold(name),
+			equipment.ExternalIDContainsFold(name),
+		)).
 		Limit(*limit - len(locations)).
 		All(ctx)
 	if err != nil {

@@ -64,7 +64,7 @@ class RequestsHTTPSessionTransport(HTTPTransport):
 
         extensions = {}
         if "x-correlation-id" in request.headers:
-            extensions["err_id"] = request.headers["x-correlation-id"]
+            extensions["trace_id"] = request.headers["x-correlation-id"]
 
         assert (
             "errors" in result or "data" in result

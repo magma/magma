@@ -12,7 +12,7 @@ import type {
   AddServiceLinkMutationResponse,
   AddServiceLinkMutationVariables,
 } from '../../mutations/__generated__/AddServiceLinkMutation.graphql';
-import type {Link} from '../../common/Equipment';
+import type {EquipmentPort, Link} from '../../common/Equipment';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
   RemoveServiceLinkMutationResponse,
@@ -21,17 +21,16 @@ import type {
 import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
 import type {ServiceStatus} from '../../common/Service';
 
-import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
-import IconButton from '@material-ui/core/IconButton';
 import React, {useContext, useState} from 'react';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
 import Select from '@fbcnms/ui/components/design-system/ContexualLayer/Select';
+import ServiceEndpointsMenu from './ServiceEndpointsMenu';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -113,6 +112,9 @@ const useStyles = makeStyles({
   select: {
     marginBottom: '24px',
   },
+  detailsPanel: {
+    padding: '0px',
+  },
 });
 
 /* $FlowFixMe - Flow doesn't support typing when using forwardRef on a
@@ -121,13 +123,18 @@ const useStyles = makeStyles({
 const ServicePanel = React.forwardRef((props: Props, ref) => {
   const classes = useStyles();
   const {service, onOpenDetailsPanel} = props;
-  const [anchorEl, setAnchorEl] = useState<?HTMLElement>(null);
-  const [showAddMenu, setShowAddMenu] = useState(false);
   const [endpointsExpanded, setEndpointsExpanded] = useState(false);
   const [linksExpanded, setLinksExpanded] = useState(false);
   const serviceEndpointsEnabled = useContext(AppContext).isFeatureEnabled(
     'service_endpoints',
   );
+
+  const onAddEndpoint = (
+    _port: EquipmentPort,
+    _role: 'consumer' | 'provider',
+  ) => {
+    // TODO: add the mutation
+  };
 
   const onAddLink = (link: Link) => {
     const variables: AddServiceLinkMutationVariables = {
@@ -241,9 +248,10 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
             expanded={endpointsExpanded}
             onChange={expanded => setEndpointsExpanded(expanded)}
             rightContent={
-              <IconButton className={classes.addButton}>
-                <AddCircleOutlineIcon />
-              </IconButton>
+              <ServiceEndpointsMenu
+                service={{id: service.id, name: service.name}}
+                onAddEndpoint={onAddEndpoint}
+              />
             }>
             <div />
           </ExpandingPanel>
@@ -260,27 +268,14 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
         expanded={linksExpanded}
         onChange={expanded => setLinksExpanded(expanded)}
         rightContent={
-          <IconButton
-            className={classes.addButton}
-            onClick={event => {
-              setAnchorEl(event.currentTarget);
-              setShowAddMenu(true);
-            }}>
-            <AddCircleOutlineIcon />
-          </IconButton>
+          <ServiceLinksSubservicesMenu
+            service={{id: service.id, name: service.name}}
+            onAddLink={onAddLink}
+          />
         }>
         <ServiceLinksView links={service.links} onDeleteLink={onDeleteLink} />
       </ExpandingPanel>
       <div className={classes.separator} />
-      {showAddMenu ? (
-        <ServiceLinksSubservicesMenu
-          key={`${service.id}-menu`}
-          service={{id: service.id, name: service.name}}
-          anchorEl={anchorEl}
-          onClose={() => setAnchorEl(null)}
-          onAddLink={onAddLink}
-        />
-      ) : null}
     </div>
   );
 });

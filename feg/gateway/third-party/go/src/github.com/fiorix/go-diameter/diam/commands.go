@@ -25,6 +25,7 @@ const (
 	Reset                     = 322
 	ServerAssignment          = 301
 	SessionTermination        = 275
+	SpendingLimit             = 8388635
 	UpdateLocation            = 316
 )
 
@@ -62,6 +63,8 @@ const (
 	RTR = "RTR"
 	SAA = "SAA"
 	SAR = "SAR"
+	SLA = "SLA"
+	SLR = "SLR"
 	STA = "STA"
 	STR = "STR"
 	ULA = "ULA"

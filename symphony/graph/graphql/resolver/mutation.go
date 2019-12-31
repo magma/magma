@@ -6,11 +6,11 @@ package resolver
 
 import (
 	"context"
-	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"strings"
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
@@ -122,6 +122,7 @@ func (r mutationResolver) AddProperty(
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableEquipmentValueID(input.EquipmentIDValue).
 		SetNillableLocationValueID(input.LocationIDValue).
+		SetNillableServiceValueID(input.ServiceIDValue).
 		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "creating property")
@@ -2184,7 +2185,7 @@ func (r mutationResolver) EditLocationTypeSurveyTemplateCategories(
 		return nil, errors.Wrapf(err, "failed to fetch survey template categories for location type: id=%q", id)
 	}
 
-	deleteIDs := []string{}
+	var deleteIDs []string
 	for _, existingCategory := range existingCategories {
 		if _, ok := keepIDs[existingCategory.ID]; !ok {
 			deleteIDs = append(deleteIDs, existingCategory.ID)
@@ -2422,7 +2423,8 @@ func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.
 		SetNillableRangeFromVal(input.RangeFromValue).
 		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableEquipmentValueID(input.EquipmentIDValue).
-		SetNillableLocationValueID(input.LocationIDValue)
+		SetNillableLocationValueID(input.LocationIDValue).
+		SetNillableServiceValueID(input.ServiceIDValue)
 
 	if input.EquipmentIDValue == nil {
 		pu = pu.ClearEquipmentValue()
@@ -2430,6 +2432,10 @@ func updatePropValues(input *models.PropertyInput, pu *ent.PropertyUpdate) *ent.
 
 	if input.LocationIDValue == nil {
 		pu = pu.ClearLocationValue()
+	}
+
+	if input.ServiceIDValue == nil {
+		pu = pu.ClearServiceValue()
 	}
 
 	return pu
@@ -2487,7 +2493,7 @@ func (r mutationResolver) updateSurveyTemplateCategory(ctx context.Context, inpu
 		return nil, errors.Wrapf(err, "failed to fetch survey template questions for category: id=%q", *input.ID)
 	}
 
-	deleteIDs := []string{}
+	var deleteIDs []string
 	for _, existingQuestion := range existingQuestions {
 		if _, ok := keepIDs[existingQuestion.ID]; !ok {
 			deleteIDs = append(deleteIDs, existingQuestion.ID)

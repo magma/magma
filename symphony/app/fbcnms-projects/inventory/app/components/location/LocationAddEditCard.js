@@ -162,6 +162,10 @@ const locationAddEditCardQuery = graphql`
             id
             name
           }
+          serviceValue {
+            id
+            name
+          }
         }
       }
     }
