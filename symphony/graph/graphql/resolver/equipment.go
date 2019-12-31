@@ -16,14 +16,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent/file"
-
-	"github.com/facebookincubator/symphony/graph/ent/service"
-
-	"github.com/pkg/errors"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/pkg/errors"
 )
 
 type equipmentPortResolver struct{}
@@ -268,7 +269,10 @@ func (r equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]
 		ids[i] = svc.ID
 	}
 
-	linkServices, err := obj.QueryPorts().QueryLink().QueryService().Where(service.Not(service.IDIn(ids...))).All(ctx)
+	linkServices, err := r.ClientFrom(ctx).Service.Query().Where(
+		service.HasLinksWith(link.HasPortsWith(equipmentport.HasParentWith(
+			resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 3)))),
+		service.Not(service.IDIn(ids...))).All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying services where equipment connected to link of service")
 	}
