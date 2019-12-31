@@ -26,7 +26,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
     def test_seconday_pdn_disconn_ded_bearer(self):
         """ Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer + disconnect
-        dedicated baerer"""
+        dedicated bearer"""
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 

@@ -129,7 +129,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             )
 
             print(
-                "******************* Deletd IMS PDN with bearer ID",
+                "******************* Deleted IMS PDN with bearer ID",
                 bearer_ids[i],
             )
         time.sleep(2)
