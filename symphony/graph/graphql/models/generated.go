@@ -1464,7 +1464,7 @@ const (
 	ServiceFilterTypeServiceType             ServiceFilterType = "SERVICE_TYPE"
 	ServiceFilterTypeServiceInstExternalID   ServiceFilterType = "SERVICE_INST_EXTERNAL_ID"
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
-	ServiceFilterTypeServiceInstProperty     ServiceFilterType = "SERVICE_INST_PROPERTY"
+	ServiceFilterTypeProperty                ServiceFilterType = "PROPERTY"
 	ServiceFilterTypeLocationInst            ServiceFilterType = "LOCATION_INST"
 	ServiceFilterTypeEquipmentInService      ServiceFilterType = "EQUIPMENT_IN_SERVICE"
 )
@@ -1475,14 +1475,14 @@ var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceType,
 	ServiceFilterTypeServiceInstExternalID,
 	ServiceFilterTypeServiceInstCustomerName,
-	ServiceFilterTypeServiceInstProperty,
+	ServiceFilterTypeProperty,
 	ServiceFilterTypeLocationInst,
 	ServiceFilterTypeEquipmentInService,
 }
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeServiceInstProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false
