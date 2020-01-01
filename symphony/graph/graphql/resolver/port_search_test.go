@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -17,6 +18,11 @@ import (
 	"github.com/AlekSi/pointer"
 	"github.com/stretchr/testify/require"
 )
+
+const equipmentType1Port1Name = "typ1_p1"
+const equipmentType1Port2Name = "typ1_p2"
+const equipmentType2Port1Name = "typ2_p1"
+const equipmentType2Port2Name = "typ2_p2"
 
 type portSearchDataModels struct {
 	typ1 *ent.EquipmentType
@@ -77,16 +83,16 @@ func preparePortData(ctx context.Context, r *TestResolver, props []*models.Prope
 	equType1, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type",
 		Ports: []*models.EquipmentPortInput{
-			{Name: "typ1_p1", PortTypeID: &ptyp.ID},
-			{Name: "typ1_p2"},
+			{Name: equipmentType1Port1Name, PortTypeID: &ptyp.ID},
+			{Name: equipmentType1Port2Name},
 		},
 	})
 	defs1 := equType1.QueryPortDefinitions().AllX(ctx)
 	equType2, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "eq_type2",
 		Ports: []*models.EquipmentPortInput{
-			{Name: "typ2_p1"},
-			{Name: "typ2_p2"},
+			{Name: equipmentType2Port1Name},
+			{Name: equipmentType2Port2Name},
 		},
 	})
 
@@ -331,4 +337,111 @@ func TestSearchPortProperties(t *testing.T) {
 	require.NoError(t, err)
 	ports = res5.Ports
 	require.Len(t, ports, 1)
+}
+
+func TestSearchPortsByService(t *testing.T) {
+	r, err := newTestResolver(t)
+	require.NoError(t, err)
+	defer r.drv.Close()
+	ctx := viewertest.NewContext(r.client)
+
+	data := preparePortData(ctx, r, nil)
+
+	qr, mr := r.Query(), r.Mutation()
+
+	port1, err := data.e1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.Name(equipmentType1Port1Name))).Only(ctx)
+	require.NoError(t, err)
+	port2, err := data.e1.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.Name(equipmentType1Port2Name))).Only(ctx)
+	require.NoError(t, err)
+	port3, err := data.e3.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.Name(equipmentType2Port1Name))).Only(ctx)
+	require.NoError(t, err)
+
+	st, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: "Service Type", HasCustomer: false})
+
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Service Instance 1",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: port1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
+	s2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          "Service Instance 2",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: port1.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: port2.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+	_, err = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: port3.ID,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	require.NoError(t, err)
+
+	limit := 100
+	all, err := qr.PortSearch(ctx, []*models.PortFilterInput{}, &limit)
+	require.NoError(t, err)
+	require.Len(t, all.Ports, 8)
+	maxDepth := 2
+
+	f1 := models.PortFilterInput{
+		FilterType: models.PortFilterTypeServiceInst,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{s1.ID},
+		MaxDepth:   &maxDepth,
+	}
+	res1, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f1}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Ports, 1)
+	require.Equal(t, res1.Ports[0].ID, port1.ID)
+
+	f2 := models.PortFilterInput{
+		FilterType: models.PortFilterTypeServiceInst,
+		Operator:   models.FilterOperatorIsOneOf,
+		IDSet:      []string{s2.ID},
+		MaxDepth:   &maxDepth,
+	}
+	res2, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res2.Ports, 3)
+
+	f3 := models.PortFilterInput{
+		FilterType: models.PortFilterTypeServiceInst,
+		Operator:   models.FilterOperatorIsNotOneOf,
+		IDSet:      []string{s1.ID},
+		MaxDepth:   &maxDepth,
+	}
+	res3, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f3}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res3.Ports, 7)
+
+	f4 := models.PortFilterInput{
+		FilterType: models.PortFilterTypeServiceInst,
+		Operator:   models.FilterOperatorIsNotOneOf,
+		IDSet:      []string{s2.ID},
+		MaxDepth:   &maxDepth,
+	}
+	res4, err := qr.PortSearch(ctx, []*models.PortFilterInput{&f4}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res4.Ports, 5)
 }

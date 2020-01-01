@@ -347,6 +347,34 @@ func (tr txResolver) RemoveServiceLink(ctx context.Context, id string, linkID st
 	return result, nil
 }
 
+func (tr txResolver) AddServiceEndpoint(ctx context.Context, input models.AddServiceEndpointInput) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.AddServiceEndpoint(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) RemoveServiceEndpoint(ctx context.Context, serviceEndpointID string) (*ent.Service, error) {
+	var result, zero *ent.Service
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.RemoveServiceEndpoint(ctx, serviceEndpointID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
 func (tr txResolver) AddServiceType(ctx context.Context, data models.ServiceTypeCreateData) (*ent.ServiceType, error) {
 	var result, zero *ent.ServiceType
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {

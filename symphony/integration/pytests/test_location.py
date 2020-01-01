@@ -4,6 +4,9 @@
 # license that can be found in the LICENSE file.
 
 
+import tempfile
+
+from pyinventory.exceptions import LocationCannotBeDeletedWithDependency
 from utils.base_test import BaseTest
 
 
@@ -108,3 +111,18 @@ class TestLocation(BaseTest):
         # and will fail
         self.client.delete_location(location_1)
         self.client.delete_location(location_2)
+
+    def test_delete_location_documents(self):
+        location = self.client.add_location(
+            [("City", "Lima")], {"Mayor": "Bernard King", "Contact": "limacity@peru.pe"}
+        )
+        with tempfile.NamedTemporaryFile() as fp:
+            fp.write(b"DATA")
+            self.client.add_location_image(fp.name, location)
+        with self.assertRaises(LocationCannotBeDeletedWithDependency):
+            self.client.delete_location(location)
+        docs = self.client.get_location_documents(location)
+        self.assertEqual(len(docs), 1)
+        for doc in docs:
+            self.client.delete_document(doc)
+        self.client.delete_location(location)

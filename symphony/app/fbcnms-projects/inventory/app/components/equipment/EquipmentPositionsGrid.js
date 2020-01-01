@@ -117,6 +117,9 @@ export default withStyles(styles)(
             id
             name
             futureState
+            services {
+              id
+            }
           }
           parentEquipment {
             id

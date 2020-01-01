@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 

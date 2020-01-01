@@ -64,6 +64,10 @@ export default withStyles(styles)(
           id
           name
         }
+        serviceValue {
+          id
+          name
+        }
       }
     `,
   }),

@@ -24,6 +24,28 @@ DATETIME_FIELD = field(
 )
 
 
+def enum_field(enum_type):
+    def encode_enum(value):
+        return value.value
+
+    def decode_enum(t, value):
+        return t(value)
+
+    return field(
+        metadata={
+            "dataclasses_json": {
+                "encoder": encode_enum,
+                "decoder": partial(decode_enum, enum_type),
+            }
+        }
+    )
+
+
+class ServiceEndpointRole(Enum):
+    CONSUMER = "CONSUMER"
+    PROVIDER = "PROVIDER"
+
+
 @dataclass_json
 @dataclass
 class AddServiceLinkMutation:
@@ -38,9 +60,12 @@ class AddServiceLinkMutation:
       name
       externalId
     }
-    terminationPoints {
+    endpoints {
       id
-      name
+      port {
+        id
+      }
+      role
     }
     links {
       id
@@ -65,9 +90,15 @@ class AddServiceLinkMutation:
 
             @dataclass_json
             @dataclass
-            class Equipment:
+            class ServiceEndpoint:
+                @dataclass_json
+                @dataclass
+                class EquipmentPort:
+                    id: str
+
                 id: str
-                name: str
+                port: EquipmentPort
+                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
 
             @dataclass_json
             @dataclass
@@ -76,7 +107,7 @@ class AddServiceLinkMutation:
 
             id: str
             name: str
-            terminationPoints: List[Equipment]
+            endpoints: List[ServiceEndpoint]
             links: List[Link]
             externalId: Optional[str] = None
             customer: Optional[Customer] = None

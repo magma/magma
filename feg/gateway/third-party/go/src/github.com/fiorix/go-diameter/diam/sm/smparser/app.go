@@ -5,10 +5,10 @@
 package smparser
 
 import (
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 )
 
 // Role stores information whether SM is initialized as a Client or a Server
@@ -41,10 +41,13 @@ func (app *Application) Parse(d *dict.Parser, localRole Role) (failedAVP *diam.A
 	}
 	if app.VendorSpecificApplicationID != nil {
 		for _, vs := range app.VendorSpecificApplicationID {
-			failedAVP, err := app.handleGroup(d, vs)
-			if err != nil {
-				return failedAVP, err
+			failedAVP, err = app.handleGroup(d, vs)
+			if err == nil {
+				break
 			}
+		}
+		if err != nil {
+			return failedAVP, err
 		}
 	}
 	if app.ID() == nil {
@@ -117,9 +120,7 @@ func (app *Application) validate(d *dict.Parser, appType uint32, appAVP *diam.AV
 	if err != nil {
 		//TODO Log informational message to console?
 	} else if len(avp.Type) > 0 && avp.Type != typ {
-		//return nil, ErrNoCommonApplication
-		// Let the validate loop continue to the next AVP as
-		// we might find a common application there. 
+		return nil, ErrNoCommonApplication
 	} else {
 		app.id = append(app.id, id)
 	}

@@ -304,9 +304,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 			return nil, xerrors.Errorf("fetching work order properties", err)
 		}
 		for _, p := range props {
+			var stringValue *string = nil
+			if p.Type != models.PropertyKindEnum.String() {
+				stringValue = &p.StringVal
+			}
+
 			_, err = r.AddProperty(ctx, &models.PropertyInput{
 				PropertyTypeID: p.ID,
-				StringValue:    &p.StringVal,
+				StringValue:    stringValue,
 				IntValue:       &p.IntVal,
 				BooleanValue:   &p.BoolVal,
 				FloatValue:     &p.FloatVal,

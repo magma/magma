@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
   },
   line: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'start',
   },
   icon: {
     padding: '0px',
@@ -55,7 +55,7 @@ const useStyles = makeStyles(theme => ({
   },
   separator: {
     borderBottom: `1px solid ${symphony.palette.B500}`,
-    margin: '0px 24px',
+    margin: '12px 24px 0px 24px',
     width: '24px',
   },
   moreButton: {

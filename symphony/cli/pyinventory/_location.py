@@ -6,12 +6,18 @@ from typing import Any, Dict, List, Optional, Tuple
 from gql.gql.client import OperationException
 
 from ._utils import _get_properties_to_add
-from .consts import Location
-from .exceptions import LocationIsNotUniqueException, LocationNotFoundException
+from .consts import Document, ImageEntity, Location
+from .exceptions import (
+    LocationCannotBeDeletedWithDependency,
+    LocationIsNotUniqueException,
+    LocationNotFoundException,
+)
 from .graphql.add_location_mutation import AddLocationInput, AddLocationMutation
 from .graphql.edit_location_mutation import EditLocationInput, EditLocationMutation
 from .graphql.location_children_query import LocationChildrenQuery
+from .graphql.location_deps_query import LocationDepsQuery
 from .graphql.location_details_query import LocationDetailsQuery
+from .graphql.location_documents_query import LocationDocumentsQuery
 from .graphql.move_location_mutation import MoveLocationMutation
 from .graphql.remove_location_mutation import RemoveLocationMutation
 from .graphql.search_query import SearchQuery
@@ -356,6 +362,15 @@ def edit_location(
 
 
 def delete_location(client: GraphqlClient, location: Location) -> None:
+    deps = LocationDepsQuery.execute(client, id=location.id).location
+    if len(deps.files) > 0:
+        raise LocationCannotBeDeletedWithDependency(location.name, "files")
+    if len(deps.children) > 0:
+        raise LocationCannotBeDeletedWithDependency(location.name, "children")
+    if len(deps.surveys) > 0:
+        raise LocationCannotBeDeletedWithDependency(location.name, "surveys")
+    if len(deps.equipments) > 0:
+        raise LocationCannotBeDeletedWithDependency(location.name, "equipment")
     RemoveLocationMutation.execute(client, id=location.id)
 
 
@@ -404,3 +419,17 @@ def get_locations_by_external_id(
             )
 
     return res
+
+
+def get_location_documents(client: GraphqlClient, location: Location) -> List[Document]:
+    result = LocationDocumentsQuery.execute(client, id=location.id)
+    files = result.location.files
+    return [
+        Document(
+            name=file.fileName,
+            id=file.id,
+            parentId=location.id,
+            parentEntity=ImageEntity.LOCATION,
+        )
+        for file in files
+    ]

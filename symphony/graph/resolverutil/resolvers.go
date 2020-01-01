@@ -115,6 +115,7 @@ func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.
 	}, err
 }
 
+// nolint: dupl
 func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
 	var (
 		query = client.EquipmentPort.Query()
@@ -136,6 +137,10 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 			}
 		case strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
 			if query, err = handlePortPropertyFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "SERVICE_INST"):
+			if query, err = handlePortServiceFilter(query, f); err != nil {
 				return nil, err
 			}
 		}

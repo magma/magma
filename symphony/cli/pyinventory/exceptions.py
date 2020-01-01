@@ -157,3 +157,12 @@ class EquipmentPortIsNotUniqueException(CustomException):
         super(EquipmentPortIsNotUniqueException, self).__init__(
             f"Equipment {equipment_name} has more than one port {port_name}"
         )
+
+
+class LocationCannotBeDeletedWithDependency(CustomException):
+    def __init__(self, location_name: str, dependency: str) -> None:
+        self.location_name: str = location_name
+        self.dependency: str = dependency
+        super(LocationCannotBeDeletedWithDependency, self).__init__(
+            f"Location {location_name} cannot be deleted with {dependency}"
+        )

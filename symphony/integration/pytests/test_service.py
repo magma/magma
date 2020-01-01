@@ -4,6 +4,7 @@
 # license that can be found in the LICENSE file.
 
 
+from pyinventory.consts import ServiceEndpointRole
 from utils.base_test import BaseTest
 
 
@@ -55,7 +56,6 @@ class TestService(BaseTest):
             None,
             {"Address Family": "v4"},
             [],
-            [],
         )
         fetch_service = self.client.get_service(service.id)
         self.assertEqual(service, fetch_service)
@@ -75,16 +75,21 @@ class TestService(BaseTest):
         )
         link1 = self.client.add_link(router1, "Port 1", router2, "Port 1")
         link2 = self.client.add_link(router2, "Port 2", router3, "Port 1")
+        endpoint_port = self.client.get_port(router1, "Port 2")
         service = self.client.add_service(
             name="Room 201 Internet Access",
             external_id="S3232",
             service_type="Internet Access",
             customer=None,
             properties_dict={"Address Family": "v4"},
-            termination_points=[router1],
             links=[link1, link2],
         )
-        self.assertEqual([router1], service.terminationPoints)
+        self.client.add_service_endpoint(
+            service, endpoint_port, ServiceEndpointRole.CONSUMER
+        )
+        service = self.client.get_service(service.id)
+
+        self.assertEqual([endpoint_port], [e.port for e in service.endpoints])
         self.assertEqual([link1, link2], service.links)
 
     def test_service_with_customer_created(self):
@@ -95,7 +100,6 @@ class TestService(BaseTest):
             service_type="Internet Access",
             customer=customer,
             properties_dict={},
-            termination_points=[],
             links=[],
         )
         self.assertEqual(customer, service.customer)

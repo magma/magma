@@ -97,7 +97,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 
 			externalID := pointer.ToStringOrNil(importLine.ServiceExternalID())
 
-			status := models.ServiceStatus(importLine.Status())
+			status, err := m.getValidatedStatus(importLine)
+			if err != nil {
+				errorReturn(w, fmt.Sprintf("failed parsing status with value %q (row #%d)", importLine.Status(), numRows), log, nil)
+				return
+			}
 
 			id := importLine.ID()
 			var propInputs []*models.PropertyInput
@@ -110,7 +114,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 				}
 			}
 			if id == "" {
-				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, status)
+				service, created := m.getOrCreateService(ctx, m.r.Mutation(), name, serviceType, propInputs, customerID, externalID, *status)
 				if created {
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
@@ -143,7 +147,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					Properties: propInputs,
 					ExternalID: externalID,
 					CustomerID: customerID,
-					Status:     pointerToServiceStatus(status),
+					Status:     status,
 				})
 				if err != nil {
 					log.Warn("editing service", zap.Error(err), importLine.ZapField())
@@ -171,6 +175,19 @@ func (m *importer) validateLineForExistingService(ctx context.Context, serviceID
 	return service, nil
 }
 
+func (m *importer) getValidatedStatus(importLine ImportRecord) (*models.ServiceStatus, error) {
+	statuses := make([]string, len(models.AllServiceStatus))
+	for i, status := range models.AllServiceStatus {
+		statuses[i] = status.String()
+	}
+
+	index := findIndexForSimilar(statuses, importLine.Status())
+	if index == -1 {
+		return nil, errors.Errorf("failed parse status %q", importLine.Status())
+	}
+	return &models.AllServiceStatus[index], nil
+}
+
 func (m *importer) validatePropertiesForServiceType(ctx context.Context, line ImportRecord, serviceType *ent.ServiceType) ([]*models.PropertyInput, error) {
 	var pInputs []*models.PropertyInput
 	propTypes, err := serviceType.QueryPropertyTypes().All(ctx)
@@ -179,7 +196,7 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(ctx, serviceType, ptypeName)
+		pInput, err := line.GetPropertyInput(m, ctx, serviceType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

@@ -31,6 +31,7 @@ class InventoryClient(GraphqlClient):
     from ._image import (
         add_location_image,
         add_site_survey_image,
+        delete_document,
         delete_site_survey_image,
     )
     from ._locationtype import (
@@ -42,6 +43,7 @@ class InventoryClient(GraphqlClient):
         get_location,
         get_locations_by_external_id,
         get_location_children,
+        get_location_documents,
         delete_location,
         add_location,
         edit_location,
@@ -74,9 +76,11 @@ class InventoryClient(GraphqlClient):
         add_link,
         get_link_in_port_of_equipment,
         get_all_links_and_port_names_of_equipment,
+        get_port,
     )
     from ._service import (
         add_service,
+        add_service_endpoint,
         add_service_type,
         get_service,
         delete_service_type_with_services,

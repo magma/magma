@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_port$ref: FragmentReference;
@@ -166,9 +166,14 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
     |}>,
     +services: $ReadOnlyArray<?{|
-      +id: string
+      +id: string,
+      +name: string,
     |}>,
   |},
   +properties: $ReadOnlyArray<{|
@@ -195,6 +200,10 @@ export type EquipmentPortsTable_port = {|
       +name: string,
     |},
     +locationValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+    +serviceValue: ?{|
       +id: string,
       +name: string,
     |},
@@ -432,6 +441,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v18/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v18/*: any*/)
     }
   ]
 };
@@ -649,9 +668,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v18/*: any*/)
         }
       ]
     },

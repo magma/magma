@@ -141,7 +141,10 @@ export const buildPropertyFilterConfigs = (
   definitions: Array<PropertyType>,
 ): Array<FilterConfig> => {
   return definitions
-    .filter(d => d.type !== 'equipment' && d.type !== 'location')
+    .filter(
+      d =>
+        d.type !== 'equipment' && d.type !== 'location' && d.type !== 'service',
+    )
     .map(definition => ({
       key: `property_${definition.name}_${definition.type}`,
       name: 'property',

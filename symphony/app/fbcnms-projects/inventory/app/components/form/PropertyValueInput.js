@@ -23,6 +23,7 @@ import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import MenuItem from '@material-ui/core/MenuItem';
 import RangePropertyValueInput from './RangePropertyValueInput';
+import ServiceTypeahead from '../typeahead/ServiceTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
@@ -329,6 +330,25 @@ class PropertyValueInput extends React.Component<Props> {
               onChange(
                 update(property, {
                   locationValue: {$set: location},
+                }),
+              )
+            }
+            headline={label}
+          />
+        ) : (
+          <Text>-</Text>
+        );
+      case 'service':
+        return inputType == 'Property' ? (
+          <ServiceTypeahead
+            margin="dense"
+            // eslint-disable-next-line no-warning-comments
+            // $FlowFixMe - need to fix this entire file as it receives either property or property type
+            selectedService={property.serviceValue}
+            onServiceSelection={service =>
+              onChange(
+                update(property, {
+                  serviceValue: {$set: service},
                 }),
               )
             }

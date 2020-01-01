@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 )
@@ -41,23 +43,23 @@ func (ptd *PropertyTypeDelete) ExecX(ctx context.Context) int {
 }
 
 func (ptd *PropertyTypeDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(ptd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(propertytype.Table))
-	for _, p := range ptd.predicates {
-		p(selector)
+	spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: propertytype.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: propertytype.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(propertytype.Table).FromSelect(selector).Query()
-	if err := ptd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := ptd.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, ptd.driver, spec)
 }
 
 // PropertyTypeDeleteOne is the builder for deleting a single PropertyType entity.

@@ -26,7 +26,7 @@ const ActiveEquipmentInLocationIcon = (props: Props) => (
       transform="translate(1 1)"
       fill="#ECF3FF"
       stroke="#F28046"
-      stroke-width="2">
+      strokeWidth="2">
       <g>
         <circle cx="8" cy="8" r="8" />
       </g>

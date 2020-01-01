@@ -4,10 +4,11 @@
 
 import os.path
 from datetime import datetime
+from typing import Dict
 
 import filetype
 
-from .consts import Location, SiteSurvey
+from .consts import Document, ImageEntity, Location, SiteSurvey
 from .graphql.add_image_mutation import (
     AddImageInput,
     AddImageMutation,
@@ -18,6 +19,14 @@ from .graphql.delete_image_mutation import (
     ImageEntity as DeleteImageEntity,
 )
 from .graphql_client import GraphqlClient
+
+
+IMAGE_ENTITY_TO_DELETE_IMAGE_ENTITY: Dict[ImageEntity, DeleteImageEntity] = {
+    ImageEntity.LOCATION: DeleteImageEntity.LOCATION,
+    ImageEntity.WORK_ORDER: DeleteImageEntity.WORK_ORDER,
+    ImageEntity.SITE_SURVEY: DeleteImageEntity.SITE_SURVEY,
+    ImageEntity.EQUIPMENT: DeleteImageEntity.EQUIPMENT,
+}
 
 
 def store_file(
@@ -102,3 +111,12 @@ def delete_site_survey_image(client: GraphqlClient, survey: SiteSurvey) -> None:
         delete_file(client, source_file_key, False)
     if source_file_id is not None:
         _delete_image(client, DeleteImageEntity.SITE_SURVEY, survey.id, source_file_id)
+
+
+def delete_document(client: GraphqlClient, document: Document) -> None:
+    _delete_image(
+        client,
+        IMAGE_ENTITY_TO_DELETE_IMAGE_ENTITY[document.parentEntity],
+        document.parentId,
+        document.id,
+    )

@@ -29,20 +29,12 @@ type Props<TRuleUnion> = {
 };
 
 const useStyles = makeStyles(theme => ({
-  header: {
-    padding: `${theme.spacing(2)}px ${theme.spacing(3)}px`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'white',
-    borderBottom: `1px solid ${theme.palette.divider}`,
-  },
   gridContainer: {
     flexGrow: 1,
   },
   editingSpace: {
     height: '100%',
-    padding: '30px',
+    padding: theme.spacing(3),
   },
 }));
 

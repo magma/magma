@@ -70,10 +70,11 @@ type Props = {
   isLastBreadcrumb: boolean,
   size?: 'default' | 'small' | 'large',
   variant?: TextVariant,
+  className?: string,
 };
 
 const Breadcrumb = (props: Props) => {
-  const {data, isLastBreadcrumb, size, variant} = props;
+  const {data, isLastBreadcrumb, size, variant, className} = props;
   const {id, name, subtext, onClick} = data;
   const classes = useStyles();
   return (
@@ -97,11 +98,14 @@ const Breadcrumb = (props: Props) => {
               variant={
                 variant ? variant : size === 'small' ? 'subtitle2' : 'h6'
               }
-              className={classNames({
-                [classes.breadcrumbName]: true,
-                [classes.parentBreadcrumb]: !isLastBreadcrumb,
-                [classes.hover]: !!onClick,
-              })}
+              className={classNames(
+                {
+                  [classes.breadcrumbName]: true,
+                  [classes.parentBreadcrumb]: !isLastBreadcrumb,
+                  [classes.hover]: !!onClick,
+                },
+                className,
+              )}
               onClick={() => onClick && onClick(id)}>
               {name}
             </Text>

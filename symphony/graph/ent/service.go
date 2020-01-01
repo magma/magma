@@ -85,11 +85,6 @@ func (s *Service) QueryProperties() *PropertyQuery {
 	return (&ServiceClient{s.config}).QueryProperties(s)
 }
 
-// QueryTerminationPoints queries the termination_points edge of the Service.
-func (s *Service) QueryTerminationPoints() *EquipmentQuery {
-	return (&ServiceClient{s.config}).QueryTerminationPoints(s)
-}
-
 // QueryLinks queries the links edge of the Service.
 func (s *Service) QueryLinks() *LinkQuery {
 	return (&ServiceClient{s.config}).QueryLinks(s)
@@ -98,6 +93,11 @@ func (s *Service) QueryLinks() *LinkQuery {
 // QueryCustomer queries the customer edge of the Service.
 func (s *Service) QueryCustomer() *CustomerQuery {
 	return (&ServiceClient{s.config}).QueryCustomer(s)
+}
+
+// QueryEndpoints queries the endpoints edge of the Service.
+func (s *Service) QueryEndpoints() *ServiceEndpointQuery {
+	return (&ServiceClient{s.config}).QueryEndpoints(s)
 }
 
 // Update returns a builder for updating this Service.

@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package gy
 
 import (
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
