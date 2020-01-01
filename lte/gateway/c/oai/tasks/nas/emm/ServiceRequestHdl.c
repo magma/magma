@@ -211,7 +211,7 @@ int emm_proc_extended_service_request(
     emm_context_unlock(emm_ctx);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
-  /* Handle extended service request received in ue connected mode */
+  // Handle extended service request received in ue connected mode
   emm_context_unlock(emm_ctx);
   mme_app_handle_nas_extended_service_req(ue_id, msg->servicetype,
     msg->csfbresponse);

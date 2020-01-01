@@ -2082,7 +2082,7 @@ int mme_app_handle_nas_extended_service_req(
       OAILOG_ERROR(
         LOG_MME_APP,
         "ERROR***** Abnormal case: ue_id does not match with ue_id in "
-        "ue_context %d, %d\n",
+        "ue_context" MME_UE_S1AP_ID_FMT "," MME_UE_S1AP_ID_FMT "\n",
         ue_id,
         ue_context_p->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_context_p);
@@ -2146,7 +2146,7 @@ int mme_app_handle_nas_extended_service_req(
         } else {
           OAILOG_ERROR(
             LOG_MME_APP,
-            "sgs_context is null for ue_id" IMSI_64_FMT "\n",
+            "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
         }
       } else if (
@@ -2156,7 +2156,7 @@ int mme_app_handle_nas_extended_service_req(
             LOG_MME_APP,
             "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
-          break;
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
         /* Set mt_call_in_progress flag as UE accepted the MT Call.
           * This will be used to decide whether to abort the on going MT call or
@@ -2173,42 +2173,29 @@ int mme_app_handle_nas_extended_service_req(
              */
             rc = emm_proc_service_reject(ue_id,
                EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE);
-            if (RETURNok == rc) {
-               OAILOG_INFO(
-                 LOG_MME_APP,
-                 "Send Service Reject because MT_CALL_CANCEL is set by network"
-                 "for ue-id:" MME_UE_S1AP_ID_FMT "\n",
-                 ue_id);
-            } else {
-              OAILOG_ERROR(
-                LOG_MME_APP,
-                "Failed to send Service Reject for ue-id:%u \n",
-                ue_id);
-            }
           } else if (ue_context_p->ecm_state == ECM_CONNECTED) {
             rc = emm_send_service_reject_in_dl_nas(ue_id,
               EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE);
-            if (RETURNok == rc) {
-              OAILOG_INFO(
-                LOG_MME_APP,
-                "Send Service Reject because MT_CALL_CANCEL is set by network"
-                "for ue-id:" MME_UE_S1AP_ID_FMT "\n",
-                ue_id);
-            } else {
-              OAILOG_ERROR(
-                LOG_MME_APP,
-                "Failed to send Service Reject for ue-id:"
-                 MME_UE_S1AP_ID_FMT" \n",
-                ue_id);
-            }
+          }
+          if (RETURNok == rc) {
+             OAILOG_INFO(
+               LOG_MME_APP,
+               "Send Service Reject because MT_CALL_CANCEL is set by network"
+               "for ue-id:" MME_UE_S1AP_ID_FMT "\n",
+               ue_id);
+          } else {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "Failed to send Service Reject for ue-id: " MME_UE_S1AP_ID_FMT
+              "\n",
+              ue_id);
           }
           //Reset call_cancelled flag
           ue_context_p->sgs_context->call_cancelled = false;
           OAILOG_WARNING(
             LOG_MME_APP,
-            "Sending Service Reject to NAS as MSC has triggered SGSAP SERVICE "
-            "ABORT"
-            "Request for UE id :%u \n",
+            "Sending Service Reject to NAS module as MSC has triggered SGS "
+            "SERVICE ABORT Request for ue_id: " MME_UE_S1AP_ID_FMT "\n",
             ue_id);
         } else {
           mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
@@ -2216,7 +2203,8 @@ int mme_app_handle_nas_extended_service_req(
       } else {
         OAILOG_WARNING(
           LOG_MME_APP,
-          "Invalid csfb_response for service type :%d and ue_id :%u \n",
+          "Invalid csfb_response for service type :%d and ue_id: "
+          MME_UE_S1AP_ID_FMT "\n",
           service_type,
           ue_id);
       }
@@ -2315,18 +2303,12 @@ int handle_csfb_s1ap_procedure_failure(
         increment_counter(
           "sgsap_paging_reject", 1, 1, "cause", failed_statement);
       }
-      rc = mme_app_notify_service_reject_to_nas(
-        ue_context_p->mme_ue_s1ap_id,
-        EMM_CAUSE_CONGESTION,
-        failed_procedure);
-    } else if (
-      ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MO_CALL) {
-      /* send Service Reject to UE */
-      rc = mme_app_notify_service_reject_to_nas(
-        ue_context_p->mme_ue_s1ap_id,
-        EMM_CAUSE_CONGESTION,
-        UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
     }
+    // send Service Reject to UE
+    rc = mme_app_notify_service_reject_to_nas(
+      ue_context_p->mme_ue_s1ap_id,
+      EMM_CAUSE_CONGESTION,
+      failed_procedure);
     ue_context_p->sgs_context->csfb_service_type = CSFB_SERVICE_NONE;
     if (failed_statement) {
       increment_counter("nas service reject", 1, 1, "cause", failed_statement);
