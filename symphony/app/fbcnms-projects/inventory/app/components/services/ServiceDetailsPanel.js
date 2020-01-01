@@ -109,6 +109,7 @@ const ServiceDetailsPanel = (props: Props) => {
     if (
       dirtyValue == 'equipment' ||
       dirtyValue == 'location' ||
+      dirtyValue == 'service' ||
       dirtyValue == 'customer'
     ) {
       // don't wait for blur because there is no blur in those selection values
@@ -145,7 +146,6 @@ const ServiceDetailsPanel = (props: Props) => {
         externalId: editableService.externalId,
         customerId: editableService.customer?.id,
         properties: toPropertyInput(editableService.properties),
-        terminationPointIds: [],
         upstreamServiceIds: [],
       },
     };
@@ -344,6 +344,10 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           name
         }
         locationValue {
+          id
+          name
+        }
+        serviceValue {
           id
           name
         }

@@ -28,6 +28,7 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {capitalize} from '@fbcnms/util/strings';
@@ -123,10 +124,29 @@ class EquipmentPositionItem extends React.Component<Props, State> {
               return;
             }
 
+            const deleteMsg = (
+              <span>
+                {fbt(
+                  'Are you sure you want to detach this equipment from its position?',
+                  'Text to be displayed to the user after it pressed to detach an equipment from its position',
+                )}
+                {position.attachedEquipment &&
+                  position.attachedEquipment.services.length > 0 && (
+                    <span>
+                      <br />
+                      {fbt(
+                        `This attached equipment is used by some services and
+                      deleting it can potentially break them`,
+                        'Text to be displayed to the user after it pressed to detach ' +
+                          'an equipment from its position but the attached equipment has links that are part of service',
+                      )}
+                    </span>
+                  )}
+              </span>
+            );
+
             this.props
-              .confirm(
-                'Are you sure you want to detach this equipment from its position?',
-              )
+              .confirm(deleteMsg)
               .then(
                 confirmed => confirmed && this.onDetachEquipmentFromPosition(),
               );

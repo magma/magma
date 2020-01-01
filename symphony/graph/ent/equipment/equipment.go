@@ -82,11 +82,6 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "equipment_id"
-	// ServiceTable is the table the holds the service relation/edge. The primary key declared below.
-	ServiceTable = "service_termination_points"
-	// ServiceInverseTable is the table name for the Service entity.
-	// It exists in this package in order to avoid circular dependency with the "service" package.
-	ServiceInverseTable = "services"
 	// FilesTable is the table the holds the files relation/edge.
 	FilesTable = "files"
 	// FilesInverseTable is the table name for the File entity.
@@ -106,12 +101,6 @@ var Columns = []string{
 	FieldDeviceID,
 	FieldExternalID,
 }
-
-var (
-	// ServicePrimaryKey and ServiceColumn2 are the table columns denoting the
-	// primary key for the service relation (M2M).
-	ServicePrimaryKey = []string{"service_id", "equipment_id"}
-)
 
 var (
 	mixin       = schema.Equipment{}.Mixin()

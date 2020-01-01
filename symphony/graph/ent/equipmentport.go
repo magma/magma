@@ -67,6 +67,11 @@ func (ep *EquipmentPort) QueryProperties() *PropertyQuery {
 	return (&EquipmentPortClient{ep.config}).QueryProperties(ep)
 }
 
+// QueryEndpoints queries the endpoints edge of the EquipmentPort.
+func (ep *EquipmentPort) QueryEndpoints() *ServiceEndpointQuery {
+	return (&EquipmentPortClient{ep.config}).QueryEndpoints(ep)
+}
+
 // Update returns a builder for updating this EquipmentPort.
 // Note that, you need to call EquipmentPort.Unwrap() before calling this method, if this EquipmentPort
 // was returned from a transaction, and the transaction was committed or rolled back.

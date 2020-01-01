@@ -1,19 +1,24 @@
 query ServiceDetailsQuery($id: ID!) {
-  service(id: $id) {
-    id
-    name
-    externalId
-    customer {
+  service: node(id: $id) {
+    ... on Service {
       id
       name
       externalId
-    }
-    terminationPoints {
-      id
-      name
-    }
-    links {
-      id
+      customer {
+        id
+        name
+        externalId
+      }
+      endpoints {
+        id
+        port {
+          id
+        }
+        role
+      }
+      links {
+        id
+      }
     }
   }
 }

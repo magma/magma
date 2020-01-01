@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -24,26 +25,26 @@ import (
 type ServiceUpdate struct {
 	config
 
-	update_time              *time.Time
-	name                     *string
-	external_id              *string
-	clearexternal_id         bool
-	status                   *string
-	_type                    map[string]struct{}
-	downstream               map[string]struct{}
-	upstream                 map[string]struct{}
-	properties               map[string]struct{}
-	termination_points       map[string]struct{}
-	links                    map[string]struct{}
-	customer                 map[string]struct{}
-	clearedType              bool
-	removedDownstream        map[string]struct{}
-	removedUpstream          map[string]struct{}
-	removedProperties        map[string]struct{}
-	removedTerminationPoints map[string]struct{}
-	removedLinks             map[string]struct{}
-	removedCustomer          map[string]struct{}
-	predicates               []predicate.Service
+	update_time       *time.Time
+	name              *string
+	external_id       *string
+	clearexternal_id  bool
+	status            *string
+	_type             map[string]struct{}
+	downstream        map[string]struct{}
+	upstream          map[string]struct{}
+	properties        map[string]struct{}
+	links             map[string]struct{}
+	customer          map[string]struct{}
+	endpoints         map[string]struct{}
+	clearedType       bool
+	removedDownstream map[string]struct{}
+	removedUpstream   map[string]struct{}
+	removedProperties map[string]struct{}
+	removedLinks      map[string]struct{}
+	removedCustomer   map[string]struct{}
+	removedEndpoints  map[string]struct{}
+	predicates        []predicate.Service
 }
 
 // Where adds a new predicate for the builder.
@@ -159,26 +160,6 @@ func (su *ServiceUpdate) AddProperties(p ...*Property) *ServiceUpdate {
 	return su.AddPropertyIDs(ids...)
 }
 
-// AddTerminationPointIDs adds the termination_points edge to Equipment by ids.
-func (su *ServiceUpdate) AddTerminationPointIDs(ids ...string) *ServiceUpdate {
-	if su.termination_points == nil {
-		su.termination_points = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.termination_points[ids[i]] = struct{}{}
-	}
-	return su
-}
-
-// AddTerminationPoints adds the termination_points edges to Equipment.
-func (su *ServiceUpdate) AddTerminationPoints(e ...*Equipment) *ServiceUpdate {
-	ids := make([]string, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return su.AddTerminationPointIDs(ids...)
-}
-
 // AddLinkIDs adds the links edge to Link by ids.
 func (su *ServiceUpdate) AddLinkIDs(ids ...string) *ServiceUpdate {
 	if su.links == nil {
@@ -217,6 +198,26 @@ func (su *ServiceUpdate) AddCustomer(c ...*Customer) *ServiceUpdate {
 		ids[i] = c[i].ID
 	}
 	return su.AddCustomerIDs(ids...)
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (su *ServiceUpdate) AddEndpointIDs(ids ...string) *ServiceUpdate {
+	if su.endpoints == nil {
+		su.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		su.endpoints[ids[i]] = struct{}{}
+	}
+	return su
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (su *ServiceUpdate) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.AddEndpointIDs(ids...)
 }
 
 // ClearType clears the type edge to ServiceType.
@@ -285,26 +286,6 @@ func (su *ServiceUpdate) RemoveProperties(p ...*Property) *ServiceUpdate {
 	return su.RemovePropertyIDs(ids...)
 }
 
-// RemoveTerminationPointIDs removes the termination_points edge to Equipment by ids.
-func (su *ServiceUpdate) RemoveTerminationPointIDs(ids ...string) *ServiceUpdate {
-	if su.removedTerminationPoints == nil {
-		su.removedTerminationPoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		su.removedTerminationPoints[ids[i]] = struct{}{}
-	}
-	return su
-}
-
-// RemoveTerminationPoints removes termination_points edges to Equipment.
-func (su *ServiceUpdate) RemoveTerminationPoints(e ...*Equipment) *ServiceUpdate {
-	ids := make([]string, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return su.RemoveTerminationPointIDs(ids...)
-}
-
 // RemoveLinkIDs removes the links edge to Link by ids.
 func (su *ServiceUpdate) RemoveLinkIDs(ids ...string) *ServiceUpdate {
 	if su.removedLinks == nil {
@@ -343,6 +324,26 @@ func (su *ServiceUpdate) RemoveCustomer(c ...*Customer) *ServiceUpdate {
 		ids[i] = c[i].ID
 	}
 	return su.RemoveCustomerIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (su *ServiceUpdate) RemoveEndpointIDs(ids ...string) *ServiceUpdate {
+	if su.removedEndpoints == nil {
+		su.removedEndpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		su.removedEndpoints[ids[i]] = struct{}{}
+	}
+	return su
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (su *ServiceUpdate) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return su.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
@@ -600,46 +601,6 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if len(su.removedTerminationPoints) > 0 {
-		eids := make([]int, len(su.removedTerminationPoints))
-		for eid := range su.removedTerminationPoints {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Delete(service.TerminationPointsTable).
-			Where(sql.InInts(service.TerminationPointsPrimaryKey[0], ids...)).
-			Where(sql.InInts(service.TerminationPointsPrimaryKey[1], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(su.termination_points) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range su.termination_points {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
-			}
-		}
-		builder := builder.Insert(service.TerminationPointsTable).
-			Columns(service.TerminationPointsPrimaryKey[0], service.TerminationPointsPrimaryKey[1])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
 	if len(su.removedLinks) > 0 {
 		eids := make([]int, len(su.removedLinks))
 		for eid := range su.removedLinks {
@@ -720,6 +681,52 @@ func (su *ServiceUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			return 0, rollback(tx, err)
 		}
 	}
+	if len(su.removedEndpoints) > 0 {
+		eids := make([]int, len(su.removedEndpoints))
+		for eid := range su.removedEndpoints {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(service.EndpointsTable).
+			SetNull(service.EndpointsColumn).
+			Where(sql.InInts(service.EndpointsColumn, ids...)).
+			Where(sql.InInts(serviceendpoint.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return 0, rollback(tx, err)
+		}
+	}
+	if len(su.endpoints) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range su.endpoints {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(serviceendpoint.FieldID, eid)
+			}
+			query, args := builder.Update(service.EndpointsTable).
+				Set(service.EndpointsColumn, id).
+				Where(sql.And(p, sql.IsNull(service.EndpointsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return 0, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return 0, rollback(tx, err)
+			}
+			if int(affected) < len(su.endpoints) {
+				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"endpoints\" %v already connected to a different \"Service\"", keys(su.endpoints))})
+			}
+		}
+	}
 	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
@@ -731,25 +738,25 @@ type ServiceUpdateOne struct {
 	config
 	id string
 
-	update_time              *time.Time
-	name                     *string
-	external_id              *string
-	clearexternal_id         bool
-	status                   *string
-	_type                    map[string]struct{}
-	downstream               map[string]struct{}
-	upstream                 map[string]struct{}
-	properties               map[string]struct{}
-	termination_points       map[string]struct{}
-	links                    map[string]struct{}
-	customer                 map[string]struct{}
-	clearedType              bool
-	removedDownstream        map[string]struct{}
-	removedUpstream          map[string]struct{}
-	removedProperties        map[string]struct{}
-	removedTerminationPoints map[string]struct{}
-	removedLinks             map[string]struct{}
-	removedCustomer          map[string]struct{}
+	update_time       *time.Time
+	name              *string
+	external_id       *string
+	clearexternal_id  bool
+	status            *string
+	_type             map[string]struct{}
+	downstream        map[string]struct{}
+	upstream          map[string]struct{}
+	properties        map[string]struct{}
+	links             map[string]struct{}
+	customer          map[string]struct{}
+	endpoints         map[string]struct{}
+	clearedType       bool
+	removedDownstream map[string]struct{}
+	removedUpstream   map[string]struct{}
+	removedProperties map[string]struct{}
+	removedLinks      map[string]struct{}
+	removedCustomer   map[string]struct{}
+	removedEndpoints  map[string]struct{}
 }
 
 // SetName sets the name field.
@@ -859,26 +866,6 @@ func (suo *ServiceUpdateOne) AddProperties(p ...*Property) *ServiceUpdateOne {
 	return suo.AddPropertyIDs(ids...)
 }
 
-// AddTerminationPointIDs adds the termination_points edge to Equipment by ids.
-func (suo *ServiceUpdateOne) AddTerminationPointIDs(ids ...string) *ServiceUpdateOne {
-	if suo.termination_points == nil {
-		suo.termination_points = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.termination_points[ids[i]] = struct{}{}
-	}
-	return suo
-}
-
-// AddTerminationPoints adds the termination_points edges to Equipment.
-func (suo *ServiceUpdateOne) AddTerminationPoints(e ...*Equipment) *ServiceUpdateOne {
-	ids := make([]string, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return suo.AddTerminationPointIDs(ids...)
-}
-
 // AddLinkIDs adds the links edge to Link by ids.
 func (suo *ServiceUpdateOne) AddLinkIDs(ids ...string) *ServiceUpdateOne {
 	if suo.links == nil {
@@ -917,6 +904,26 @@ func (suo *ServiceUpdateOne) AddCustomer(c ...*Customer) *ServiceUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return suo.AddCustomerIDs(ids...)
+}
+
+// AddEndpointIDs adds the endpoints edge to ServiceEndpoint by ids.
+func (suo *ServiceUpdateOne) AddEndpointIDs(ids ...string) *ServiceUpdateOne {
+	if suo.endpoints == nil {
+		suo.endpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		suo.endpoints[ids[i]] = struct{}{}
+	}
+	return suo
+}
+
+// AddEndpoints adds the endpoints edges to ServiceEndpoint.
+func (suo *ServiceUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdateOne {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.AddEndpointIDs(ids...)
 }
 
 // ClearType clears the type edge to ServiceType.
@@ -985,26 +992,6 @@ func (suo *ServiceUpdateOne) RemoveProperties(p ...*Property) *ServiceUpdateOne 
 	return suo.RemovePropertyIDs(ids...)
 }
 
-// RemoveTerminationPointIDs removes the termination_points edge to Equipment by ids.
-func (suo *ServiceUpdateOne) RemoveTerminationPointIDs(ids ...string) *ServiceUpdateOne {
-	if suo.removedTerminationPoints == nil {
-		suo.removedTerminationPoints = make(map[string]struct{})
-	}
-	for i := range ids {
-		suo.removedTerminationPoints[ids[i]] = struct{}{}
-	}
-	return suo
-}
-
-// RemoveTerminationPoints removes termination_points edges to Equipment.
-func (suo *ServiceUpdateOne) RemoveTerminationPoints(e ...*Equipment) *ServiceUpdateOne {
-	ids := make([]string, len(e))
-	for i := range e {
-		ids[i] = e[i].ID
-	}
-	return suo.RemoveTerminationPointIDs(ids...)
-}
-
 // RemoveLinkIDs removes the links edge to Link by ids.
 func (suo *ServiceUpdateOne) RemoveLinkIDs(ids ...string) *ServiceUpdateOne {
 	if suo.removedLinks == nil {
@@ -1043,6 +1030,26 @@ func (suo *ServiceUpdateOne) RemoveCustomer(c ...*Customer) *ServiceUpdateOne {
 		ids[i] = c[i].ID
 	}
 	return suo.RemoveCustomerIDs(ids...)
+}
+
+// RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
+func (suo *ServiceUpdateOne) RemoveEndpointIDs(ids ...string) *ServiceUpdateOne {
+	if suo.removedEndpoints == nil {
+		suo.removedEndpoints = make(map[string]struct{})
+	}
+	for i := range ids {
+		suo.removedEndpoints[ids[i]] = struct{}{}
+	}
+	return suo
+}
+
+// RemoveEndpoints removes endpoints edges to ServiceEndpoint.
+func (suo *ServiceUpdateOne) RemoveEndpoints(s ...*ServiceEndpoint) *ServiceUpdateOne {
+	ids := make([]string, len(s))
+	for i := range s {
+		ids[i] = s[i].ID
+	}
+	return suo.RemoveEndpointIDs(ids...)
 }
 
 // Save executes the query and returns the updated entity.
@@ -1308,46 +1315,6 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 			}
 		}
 	}
-	if len(suo.removedTerminationPoints) > 0 {
-		eids := make([]int, len(suo.removedTerminationPoints))
-		for eid := range suo.removedTerminationPoints {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Delete(service.TerminationPointsTable).
-			Where(sql.InInts(service.TerminationPointsPrimaryKey[0], ids...)).
-			Where(sql.InInts(service.TerminationPointsPrimaryKey[1], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(suo.termination_points) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range suo.termination_points {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
-			}
-		}
-		builder := builder.Insert(service.TerminationPointsTable).
-			Columns(service.TerminationPointsPrimaryKey[0], service.TerminationPointsPrimaryKey[1])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
 	if len(suo.removedLinks) > 0 {
 		eids := make([]int, len(suo.removedLinks))
 		for eid := range suo.removedLinks {
@@ -1426,6 +1393,52 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 		query, args := builder.Query()
 		if err := tx.Exec(ctx, query, args, &res); err != nil {
 			return nil, rollback(tx, err)
+		}
+	}
+	if len(suo.removedEndpoints) > 0 {
+		eids := make([]int, len(suo.removedEndpoints))
+		for eid := range suo.removedEndpoints {
+			eid, serr := strconv.Atoi(eid)
+			if serr != nil {
+				err = rollback(tx, serr)
+				return
+			}
+			eids = append(eids, eid)
+		}
+		query, args := builder.Update(service.EndpointsTable).
+			SetNull(service.EndpointsColumn).
+			Where(sql.InInts(service.EndpointsColumn, ids...)).
+			Where(sql.InInts(serviceendpoint.FieldID, eids...)).
+			Query()
+		if err := tx.Exec(ctx, query, args, &res); err != nil {
+			return nil, rollback(tx, err)
+		}
+	}
+	if len(suo.endpoints) > 0 {
+		for _, id := range ids {
+			p := sql.P()
+			for eid := range suo.endpoints {
+				eid, serr := strconv.Atoi(eid)
+				if serr != nil {
+					err = rollback(tx, serr)
+					return
+				}
+				p.Or().EQ(serviceendpoint.FieldID, eid)
+			}
+			query, args := builder.Update(service.EndpointsTable).
+				Set(service.EndpointsColumn, id).
+				Where(sql.And(p, sql.IsNull(service.EndpointsColumn))).
+				Query()
+			if err := tx.Exec(ctx, query, args, &res); err != nil {
+				return nil, rollback(tx, err)
+			}
+			affected, err := res.RowsAffected()
+			if err != nil {
+				return nil, rollback(tx, err)
+			}
+			if int(affected) < len(suo.endpoints) {
+				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"endpoints\" %v already connected to a different \"Service\"", keys(suo.endpoints))})
+			}
 		}
 	}
 	if err = tx.Commit(); err != nil {

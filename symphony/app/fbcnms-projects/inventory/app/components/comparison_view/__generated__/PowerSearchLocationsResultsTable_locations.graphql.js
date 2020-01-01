@@ -14,7 +14,7 @@
 
 /*::
 import type { ReaderFragment } from 'relay-runtime';
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchLocationsResultsTable_locations$ref: FragmentReference;
 declare export opaque type PowerSearchLocationsResultsTable_locations$fragmentType: PowerSearchLocationsResultsTable_locations$ref;
@@ -52,6 +52,10 @@ export type PowerSearchLocationsResultsTable_locations = $ReadOnlyArray<{|
       +name: string,
     |},
     +locationValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+    +serviceValue: ?{|
       +id: string,
       +name: string,
     |},
@@ -255,6 +259,16 @@ return {
         {
           "kind": "LinkedField",
           "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": (v10/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
           "name": "propertyType",
           "storageKey": null,
           "args": null,
@@ -325,5 +339,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'fb5082a37e66230f492b97837d2287d5';
+(node/*: any*/).hash = '9d38c67661728822a327bdc6b1b3ce23';
 module.exports = node;

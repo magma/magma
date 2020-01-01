@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_equipment$ref: FragmentReference;
@@ -217,9 +217,14 @@ export type EquipmentPortsTable_equipment = {|
           +id: string,
           +name: string,
         |},
+        +serviceValue: ?{|
+          +id: string,
+          +name: string,
+        |},
       |}>,
       +services: $ReadOnlyArray<?{|
-        +id: string
+        +id: string,
+        +name: string,
       |}>,
     |},
     +properties: $ReadOnlyArray<{|
@@ -246,6 +251,10 @@ export type EquipmentPortsTable_equipment = {|
         +name: string,
       |},
       +locationValue: ?{|
+        +id: string,
+        +name: string,
+      |},
+      +serviceValue: ?{|
         +id: string,
         +name: string,
       |},
@@ -400,9 +409,14 @@ export type EquipmentPortsTable_equipment = {|
               +id: string,
               +name: string,
             |},
+            +serviceValue: ?{|
+              +id: string,
+              +name: string,
+            |},
           |}>,
           +services: $ReadOnlyArray<?{|
-            +id: string
+            +id: string,
+            +name: string,
           |}>,
         |},
         +properties: $ReadOnlyArray<{|
@@ -429,6 +443,10 @@ export type EquipmentPortsTable_equipment = {|
             +name: string,
           |},
           +locationValue: ?{|
+            +id: string,
+            +name: string,
+          |},
+          +serviceValue: ?{|
             +id: string,
             +name: string,
           |},
@@ -591,9 +609,14 @@ export type EquipmentPortsTable_equipment = {|
                   +id: string,
                   +name: string,
                 |},
+                +serviceValue: ?{|
+                  +id: string,
+                  +name: string,
+                |},
               |}>,
               +services: $ReadOnlyArray<?{|
-                +id: string
+                +id: string,
+                +name: string,
               |}>,
             |},
             +properties: $ReadOnlyArray<{|
@@ -620,6 +643,10 @@ export type EquipmentPortsTable_equipment = {|
                 +name: string,
               |},
               +locationValue: ?{|
+                +id: string,
+                +name: string,
+              |},
+              +serviceValue: ?{|
                 +id: string,
                 +name: string,
               |},
@@ -782,9 +809,14 @@ export type EquipmentPortsTable_equipment = {|
                       +id: string,
                       +name: string,
                     |},
+                    +serviceValue: ?{|
+                      +id: string,
+                      +name: string,
+                    |},
                   |}>,
                   +services: $ReadOnlyArray<?{|
-                    +id: string
+                    +id: string,
+                    +name: string,
                   |}>,
                 |},
                 +properties: $ReadOnlyArray<{|
@@ -811,6 +843,10 @@ export type EquipmentPortsTable_equipment = {|
                     +name: string,
                   |},
                   +locationValue: ?{|
+                    +id: string,
+                    +name: string,
+                  |},
+                  +serviceValue: ?{|
                     +id: string,
                     +name: string,
                   |},
@@ -973,9 +1009,14 @@ export type EquipmentPortsTable_equipment = {|
                           +id: string,
                           +name: string,
                         |},
+                        +serviceValue: ?{|
+                          +id: string,
+                          +name: string,
+                        |},
                       |}>,
                       +services: $ReadOnlyArray<?{|
-                        +id: string
+                        +id: string,
+                        +name: string,
                       |}>,
                     |},
                     +properties: $ReadOnlyArray<{|
@@ -1002,6 +1043,10 @@ export type EquipmentPortsTable_equipment = {|
                         +name: string,
                       |},
                       +locationValue: ?{|
+                        +id: string,
+                        +name: string,
+                      |},
+                      +serviceValue: ?{|
                         +id: string,
                         +name: string,
                       |},
@@ -1286,6 +1331,16 @@ v23 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v19/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v19/*: any*/)
     }
   ]
 },
@@ -1476,9 +1531,7 @@ v24 = {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v19/*: any*/)
         }
       ]
     },

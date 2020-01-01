@@ -53,6 +53,13 @@ const (
 	PropertiesInverseTable = "properties"
 	// PropertiesColumn is the table column denoting the properties relation/edge.
 	PropertiesColumn = "equipment_port_id"
+	// EndpointsTable is the table the holds the endpoints relation/edge.
+	EndpointsTable = "service_endpoints"
+	// EndpointsInverseTable is the table name for the ServiceEndpoint entity.
+	// It exists in this package in order to avoid circular dependency with the "serviceendpoint" package.
+	EndpointsInverseTable = "service_endpoints"
+	// EndpointsColumn is the table column denoting the endpoints relation/edge.
+	EndpointsColumn = "port_id"
 )
 
 // Columns holds all SQL columns are equipmentport fields.

@@ -90,25 +90,27 @@ const useStyles = makeStyles(_ => ({
 
 const serviceTypeQuery = graphql`
   query AddServiceDetailsServiceTypeQuery($serviceTypeId: ID!) {
-    serviceType(id: $serviceTypeId) {
-      id
-      name
-      propertyTypes {
+    serviceType: node(id: $serviceTypeId) {
+      ... on ServiceType {
         id
         name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
-        isMandatory
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          rangeFromValue
+          rangeToValue
+          isEditable
+          isInstanceProperty
+          isMandatory
+        }
       }
     }
   }
@@ -189,7 +191,6 @@ const AddServiceDetails = (props: Props) => {
         customerId: customer?.id,
         properties: toPropertyInput(properties),
         upstreamServiceIds: [],
-        terminationPointIds: [],
       },
     };
 

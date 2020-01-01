@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/sm"
-	"github.com/fiorix/go-diameter/diam/sm/smpeer"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 )
 
 // ConnectionManager holds a map of connections keyed by the server ip/protocol

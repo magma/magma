@@ -64,6 +64,7 @@ const EquipmentBreadcrumbs = (props: Props) => {
     onParentLocationClicked,
     size,
     showSelfEquipment,
+    textClassName,
     variant,
   } = props;
 
@@ -125,7 +126,12 @@ const EquipmentBreadcrumbs = (props: Props) => {
       : []),
   ];
   return (
-    <Breadcrumbs breadcrumbs={breadcrumbs} size={size} variant={variant} />
+    <Breadcrumbs
+      breadcrumbs={breadcrumbs}
+      size={size}
+      variant={variant}
+      textClassName={textClassName}
+    />
   );
 };
 

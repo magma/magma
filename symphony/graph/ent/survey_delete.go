@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 )
@@ -41,23 +43,23 @@ func (sd *SurveyDelete) ExecX(ctx context.Context) int {
 }
 
 func (sd *SurveyDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(sd.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(survey.Table))
-	for _, p := range sd.predicates {
-		p(selector)
+	spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: survey.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: survey.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(survey.Table).FromSelect(selector).Query()
-	if err := sd.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := sd.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, sd.driver, spec)
 }
 
 // SurveyDeleteOne is the builder for deleting a single Survey entity.

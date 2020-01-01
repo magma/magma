@@ -15,7 +15,7 @@
 /*::
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type PowerSearchPortsResultsTable_ports$ref: FragmentReference;
 declare export opaque type PowerSearchPortsResultsTable_ports$fragmentType: PowerSearchPortsResultsTable_ports$ref;

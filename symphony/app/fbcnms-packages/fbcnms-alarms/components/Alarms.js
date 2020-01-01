@@ -12,7 +12,7 @@ import AlertRules from './AlertRules';
 import AppBar from '@material-ui/core/AppBar';
 import FiringAlerts from './prometheus/FiringAlerts';
 import React from 'react';
-import Receivers from './prometheus/Receivers';
+import Receivers from './prometheus/Receivers/Receivers';
 import Routes from './prometheus/Routes';
 import Suppressions from './prometheus/Suppressions';
 import Tab from '@material-ui/core/Tab';

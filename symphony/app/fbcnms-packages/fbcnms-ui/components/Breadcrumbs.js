@@ -67,12 +67,13 @@ const MAX_NUM_BREADCRUMBS = 3;
 type Props = {
   breadcrumbs: Array<BreadcrumbData>,
   className?: string,
+  textClassName?: string,
   size?: 'default' | 'small' | 'large',
   variant?: TextVariant,
 };
 
 const Breadcrumbs = (props: Props) => {
-  const {breadcrumbs, size, className, variant} = props;
+  const {breadcrumbs, size, className, textClassName, variant} = props;
   const classes = useStyles();
 
   const [isBreadcrumbsMenuOpen, toggleBreadcrumbsMenuOpen] = useState(false);
@@ -99,6 +100,7 @@ const Breadcrumbs = (props: Props) => {
           isLastBreadcrumb={false}
           size={size}
           onClick={b.onClick}
+          className={textClassName}
           variant={variant}
         />
       ))}
@@ -127,6 +129,7 @@ const Breadcrumbs = (props: Props) => {
           isLastBreadcrumb={i === endBreadcrumbs.length - 1}
           size={size}
           variant={variant}
+          className={textClassName}
         />
       ))}
       <Popover

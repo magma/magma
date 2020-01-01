@@ -19,7 +19,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 )
 
 // The Handler interface allow arbitrary objects to be

@@ -176,6 +176,7 @@ const EquipmentPortsTable = (props: Props) => {
   if (ports.length === 0) {
     return null;
   }
+  const servicesEnabled = isFeatureEnabled('services');
   const linkStatusEnabled = isFeatureEnabled('planned_equipment');
   const propNames = uniqBy(
     ports
@@ -201,6 +202,7 @@ const EquipmentPortsTable = (props: Props) => {
     {label: 'Connected Equipment Type', key: 'connected_eq_type'},
     {label: 'Connected Port', key: 'connected_port'},
     {label: 'Link Properties', key: 'link_props'},
+    servicesEnabled ? {label: 'Services', key: 'services'} : null,
     linkStatusEnabled ? {label: 'Link Status', key: 'link_status'} : null,
     {label: null, key: 'actions'},
   ].filter(Boolean);
@@ -310,6 +312,14 @@ const EquipmentPortsTable = (props: Props) => {
                         </>
                       )}
                     </TableCell>
+                    {servicesEnabled && (
+                      <TableCell>
+                        {port.link &&
+                          port.link.services.map(service => (
+                            <Box>{service.name}</Box>
+                          ))}
+                      </TableCell>
+                    )}
                     {linkStatusEnabled && (
                       <TableCell>
                         <Link
@@ -467,6 +477,7 @@ graphql`
     }
     services {
       id
+      name
     }
   }
 `;

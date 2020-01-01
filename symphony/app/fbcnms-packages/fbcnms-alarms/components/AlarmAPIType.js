@@ -32,12 +32,18 @@ export type FiringAlarmStatus = {
 
 export type AlertReceiver = {
   name: string,
-  email_configs?: Array<ReceiversEmailConfig>,
+  email_configs?: Array<ReceiverEmailConfig>,
   slack_configs?: Array<ReceiverSlackConfig>,
-  webhook_configs?: Array<ReceiversWebhookConfig>,
+  webhook_configs?: Array<ReceiverWebhookConfig>,
 };
 
-export type ReceiversEmailConfig = {
+// names of all the <type>_configs lists for a receiver
+export type ReceiverConfigListName =
+  | 'email_configs'
+  | 'slack_configs'
+  | 'webhook_configs';
+
+export type ReceiverEmailConfig = {
   auth_identity?: string,
   auth_password?: string,
   auth_secret?: string,
@@ -96,7 +102,7 @@ export type SlackConfirmField = {
   dismiss_text: string,
 };
 
-export type ReceiversWebhookConfig = {
+export type ReceiverWebhookConfig = {
   http_config?: HTTPConfig,
   send_resolved?: boolean,
   url: string,

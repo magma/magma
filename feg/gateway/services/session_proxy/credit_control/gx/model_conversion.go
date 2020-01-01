@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"

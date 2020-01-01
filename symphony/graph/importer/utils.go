@@ -137,6 +137,42 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			PropertyTypeID: propertyType.ID,
 			BooleanValue:   &b,
 		}, nil
+	case "location":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID:  propertyType.ID,
+				LocationIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID:  propertyType.ID,
+				LocationIDValue: nil,
+			}, nil
+		}
+	case "equipment":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID:   propertyType.ID,
+				EquipmentIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID:   propertyType.ID,
+				EquipmentIDValue: nil,
+			}, nil
+		}
+	case "service":
+		if value != "" {
+			return &models.PropertyInput{
+				PropertyTypeID: propertyType.ID,
+				ServiceIDValue: &value,
+			}, nil
+		} else {
+			return &models.PropertyInput{
+				PropertyTypeID: propertyType.ID,
+				ServiceIDValue: nil,
+			}, nil
+		}
 	default:
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,

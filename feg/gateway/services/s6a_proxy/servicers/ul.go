@@ -19,10 +19,10 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/s6a_proxy/metrics"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"google.golang.org/grpc/codes"
 )
 
@@ -88,7 +88,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 
 	if err != nil {
 		metrics.ULRSendFailures.Inc()
-		log.Printf("Error sending AIR with SID %s: %v", sid, err)
+		log.Printf("Error sending ULR with SID %s: %v", sid, err)
 	}
 
 	if err == nil {

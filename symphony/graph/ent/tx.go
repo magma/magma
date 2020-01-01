@@ -66,6 +66,8 @@ type Tx struct {
 	PropertyType *PropertyTypeClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
+	ServiceEndpoint *ServiceEndpointClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -130,6 +132,7 @@ func (tx *Tx) Client() *Client {
 		Property:                    NewPropertyClient(tx.config),
 		PropertyType:                NewPropertyTypeClient(tx.config),
 		Service:                     NewServiceClient(tx.config),
+		ServiceEndpoint:             NewServiceEndpointClient(tx.config),
 		ServiceType:                 NewServiceTypeClient(tx.config),
 		Survey:                      NewSurveyClient(tx.config),
 		SurveyCellScan:              NewSurveyCellScanClient(tx.config),

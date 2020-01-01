@@ -108,6 +108,10 @@ export const LogEvents = {
     'view_equipment_service_button_clicked',
   ADD_EQUIPMENT_LINK_BUTTON_CLICKED: 'add_equipment_link_button_clicked',
   DELETE_SERVICE_LINK_BUTTON_CLICKED: 'delete_service_link_button_clicked',
+  ADD_CONSUMER_ENDPOINT_BUTTON_CLICKED: 'add_consumer_endpoint_button_clicked',
+  ADD_PROVIDER_ENDPOINT_BUTTON_CLICKED: 'add_provider_endpoint_button_clicked',
+  DELETE_SERVICE_ENDPOINT_BUTTON_CLICKED:
+    'delete_service_endpoint_button_clicked',
 };
 
 export const ServerLogger = ServerLog('inventory');

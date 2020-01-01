@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a7497aafcb282d4c44d2f151cfaf3646
+ * @relayHash f5b1748a95e53583f1f6f2ec59d0cfef
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type EquipmentFilterType = "EQUIPMENT_TYPE" | "EQUIP_INST_NAME" | "LOCATION_INST" | "PROPERTY" | "%future added value";
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type EquipmentFilterInput = {|
   filterType: EquipmentFilterType,
   operator: FilterOperator,

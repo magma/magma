@@ -91,7 +91,7 @@ const useStyles = makeStyles({
   suffix: {
     display: 'flex',
     alignItems: 'center',
-    marginRight: '4px',
+    marginRight: '-2px',
     marginLeft: '8px',
   },
 });

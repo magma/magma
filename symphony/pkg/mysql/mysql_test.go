@@ -27,14 +27,12 @@ func TestOpen(t *testing.T) {
 	if !ok {
 		t.Skip("MYSQL_DSN not provided")
 	}
-
 	e := &testExporter{}
 	trace.RegisterExporter(e)
 	defer trace.UnregisterExporter(e)
 
 	db := Open(dsn)
 	require.NotNil(t, db)
-
 	ctx, span := trace.StartSpan(context.Background(), "test",
 		trace.WithSampler(trace.AlwaysSample()),
 	)
@@ -42,7 +40,6 @@ func TestOpen(t *testing.T) {
 	assert.NoError(t, err)
 	span.End()
 	assert.Len(t, e.spans, 2)
-
 	err = db.Close()
 	assert.NoError(t, err)
 }

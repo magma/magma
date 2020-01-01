@@ -650,15 +650,15 @@ int mme_app_handle_sgsap_location_update_acc(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-/*******************************************************************************
+/******************************************************************************
  **
- ** Name:                mme_app_handle_sgs_location_update_rej()             **
- ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ               **
- **                      Based on the state, invoke state machine handlers    **
- **                                                                           **
- ** Inputs:              nas_sgs_location_update_rej                          **
+ ** Name:                mme_app_handle_sgs_location_update_rej()            **
+ ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ              **
+ **                      Based on the state, invoke state machine handlers   **
+ **                                                                          **
+ ** Inputs:              nas_sgs_location_update_rej                         **
  **
-********************************************************************************/
+*******************************************************************************/
 int mme_app_handle_sgsap_location_update_rej(
   mme_app_desc_t* mme_app_desc_p,
   itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej)
@@ -707,15 +707,15 @@ int mme_app_handle_sgsap_location_update_rej(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-/**********************************************************************************
+/******************************************************************************
  **
- ** Name:                sgs_fsm_null_loc_updt_acc()                             **
- ** Description          Handling of SGS_LOCATION UPDATE ACCEPT in NULL          **
- **                      state                                                   **
- **                                                                              **
- ** Inputs:              sgs_fsm_t                                               **
- **                                                                              **
-***********************************************************************************/
+ ** Name:                sgs_fsm_null_loc_updt_acc()                         **
+ ** Description          Handling of SGS_LOCATION UPDATE ACCEPT in NULL      **
+ **                      state                                               **
+ **                                                                          **
+ ** Inputs:              sgs_fsm_t                                           **
+ **                                                                          **
+*******************************************************************************/
 int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt)
 {
   int rc = RETURNok;

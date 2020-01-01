@@ -18,7 +18,7 @@ import (
 	relay_mocks "magma/feg/gateway/services/session_proxy/relay/mocks"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

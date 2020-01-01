@@ -22,7 +22,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -42,7 +41,6 @@ type EquipmentCreate struct {
 	ports           map[string]struct{}
 	work_order      map[string]struct{}
 	properties      map[string]struct{}
-	service         map[string]struct{}
 	files           map[string]struct{}
 }
 
@@ -260,26 +258,6 @@ func (ec *EquipmentCreate) AddProperties(p ...*Property) *EquipmentCreate {
 		ids[i] = p[i].ID
 	}
 	return ec.AddPropertyIDs(ids...)
-}
-
-// AddServiceIDs adds the service edge to Service by ids.
-func (ec *EquipmentCreate) AddServiceIDs(ids ...string) *EquipmentCreate {
-	if ec.service == nil {
-		ec.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		ec.service[ids[i]] = struct{}{}
-	}
-	return ec
-}
-
-// AddService adds the service edges to Service.
-func (ec *EquipmentCreate) AddService(s ...*Service) *EquipmentCreate {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return ec.AddServiceIDs(ids...)
 }
 
 // AddFileIDs adds the files edge to File by ids.
@@ -553,29 +531,6 @@ func (ec *EquipmentCreate) sqlSave(ctx context.Context) (*Equipment, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeString,
 					Column: property.FieldID,
-				},
-			},
-		}
-		for k, _ := range nodes {
-			k, err := strconv.Atoi(k)
-			if err != nil {
-				return nil, err
-			}
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		spec.Edges = append(spec.Edges, edge)
-	}
-	if nodes := ec.service; len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
-			Inverse: true,
-			Table:   equipment.ServiceTable,
-			Columns: equipment.ServicePrimaryKey,
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: &sqlgraph.FieldSpec{
-					Type:   field.TypeString,
-					Column: service.FieldID,
 				},
 			},
 		}

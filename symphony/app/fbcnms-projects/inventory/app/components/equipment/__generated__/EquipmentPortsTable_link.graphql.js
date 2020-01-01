@@ -16,7 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_link$ref: FragmentReference;
@@ -102,9 +102,14 @@ export type EquipmentPortsTable_link = {|
       +id: string,
       +name: string,
     |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
   |}>,
   +services: $ReadOnlyArray<?{|
-    +id: string
+    +id: string,
+    +name: string,
   |}>,
   +$refType: EquipmentPortsTable_link$ref,
 |};
@@ -448,6 +453,16 @@ return {
           "concreteType": "Location",
           "plural": false,
           "selections": (v16/*: any*/)
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "serviceValue",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": (v16/*: any*/)
         }
       ]
     },
@@ -459,13 +474,11 @@ return {
       "args": null,
       "concreteType": "Service",
       "plural": true,
-      "selections": [
-        (v0/*: any*/)
-      ]
+      "selections": (v16/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'becaecab8da3c7407c4afef303f0e537';
+(node/*: any*/).hash = '305eb52ae1d04d26954b2a42bc4c81ac';
 module.exports = node;

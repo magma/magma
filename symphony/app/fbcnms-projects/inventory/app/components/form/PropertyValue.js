@@ -53,6 +53,19 @@ const PropertyValue = ({property}: Props) => {
           </Button>
         );
       }
+    case 'service':
+      const serviceValue = property.serviceValue;
+      if (serviceValue) {
+        return (
+          <Button
+            variant="text"
+            onClick={() =>
+              history.push(InventoryAPIUrls.service(serviceValue.id))
+            }>
+            {serviceValue.name}
+          </Button>
+        );
+      }
     default:
       return getPropertyValue(property) ?? '';
   }

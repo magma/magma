@@ -102,11 +102,6 @@ func (e *Equipment) QueryProperties() *PropertyQuery {
 	return (&EquipmentClient{e.config}).QueryProperties(e)
 }
 
-// QueryService queries the service edge of the Equipment.
-func (e *Equipment) QueryService() *ServiceQuery {
-	return (&EquipmentClient{e.config}).QueryService(e)
-}
-
 // QueryFiles queries the files edge of the Equipment.
 func (e *Equipment) QueryFiles() *FileQuery {
 	return (&EquipmentClient{e.config}).QueryFiles(e)

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5441baf634104359d9cf8668822513f6
+ * @relayHash 566f20b3ed8e8830178dacc795159d75
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type AddEditLocationTypeCard_editingLocationType$ref = any;
 type LocationTypeItem_locationType$ref = any;
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
 export type SurveyQuestionType = "BOOL" | "CELLULAR" | "COORDS" | "DATE" | "EMAIL" | "FLOAT" | "INTEGER" | "PHONE" | "PHOTO" | "TEXT" | "TEXTAREA" | "WIFI" | "%future added value";
 export type AddLocationTypeInput = {|
   name: string,

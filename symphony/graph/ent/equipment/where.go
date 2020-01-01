@@ -1085,36 +1085,6 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Equipment {
 	)
 }
 
-// HasService applies the HasEdge predicate on the "service" edge.
-func HasService() predicate.Equipment {
-	return predicate.Equipment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ServiceTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ServiceTable, ServicePrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	},
-	)
-}
-
-// HasServiceWith applies the HasEdge predicate on the "service" edge with a given conditions (other predicates).
-func HasServiceWith(preds ...predicate.Service) predicate.Equipment {
-	return predicate.Equipment(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(ServiceInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ServiceTable, ServicePrimaryKey...),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	},
-	)
-}
-
 // HasFiles applies the HasEdge predicate on the "files" edge.
 func HasFiles() predicate.Equipment {
 	return predicate.Equipment(func(s *sql.Selector) {
