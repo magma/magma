@@ -157,7 +157,7 @@ const WorkOrderComparisonView = () => {
               navigateToWorkOrder(selectedWorkOrderCardId)
             }
             workOrderKey={workOrderKey}
-            resultsDisplayMode={
+            displayMode={
               resultsDisplayMode === DisplayOptions.map
                 ? DisplayOptions.map
                 : DisplayOptions.table

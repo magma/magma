@@ -14,10 +14,12 @@ import ProjectsTableView from './ProjectsTableView';
 import React from 'react';
 import SearchIcon from '@material-ui/icons/Search';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {DisplayOptions} from '../InventoryViewHeader';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 
 import classNames from 'classnames';
+import type {DisplayOptionTypes} from '../InventoryViewHeader';
 import type {FilterValue} from '../comparison_view/ComparisonViewTypes';
 
 const useStyles = makeStyles(theme => ({
@@ -57,9 +59,8 @@ type Props = {
   className?: string,
   limit?: number,
   filters: Array<FilterValue>,
-  displayMode: ?'map' | 'table',
+  displayMode?: DisplayOptionTypes,
   onProjectSelected: (projectID: string) => void,
-  resultsDisplayMode: ?'map' | 'table',
 };
 
 const projectSearchQuery = graphql`
@@ -76,13 +77,7 @@ const projectSearchQuery = graphql`
 
 const ProjectComparisonViewQueryRenderer = (props: Props) => {
   const classes = useStyles();
-  const {
-    filters,
-    limit,
-    onProjectSelected,
-    resultsDisplayMode,
-    className,
-  } = props;
+  const {filters, limit, onProjectSelected, displayMode, className} = props;
 
   return (
     <InventoryQueryRenderer
@@ -112,7 +107,7 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
         }
         return (
           <div className={classNames(classes.root, className)}>
-            {resultsDisplayMode === 'map' ? (
+            {displayMode === DisplayOptions.map ? (
               <ProjectsMap projects={projectSearch} />
             ) : (
               <ProjectsTableView

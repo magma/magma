@@ -51,6 +51,7 @@ const useStyles = makeStyles({
   },
 });
 
+export type DisplayOptionTypes = 'table' | 'map';
 export const DisplayOptions = {
   table: 'table',
   map: 'map',

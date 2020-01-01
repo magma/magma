@@ -113,11 +113,10 @@ const ProjectComparisonView = () => {
             }
             limit={50}
             filters={[]}
-            displayMode={'table'}
             onProjectSelected={selectedProjectCardId =>
               navigateToProject(selectedProjectCardId)
             }
-            resultsDisplayMode={
+            displayMode={
               resultsDisplayMode === DisplayOptions.map
                 ? DisplayOptions.map
                 : DisplayOptions.table
