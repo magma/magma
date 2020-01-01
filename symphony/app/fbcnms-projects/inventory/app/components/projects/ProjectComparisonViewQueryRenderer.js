@@ -23,6 +23,8 @@ import type {FilterValue} from '../comparison_view/ComparisonViewTypes';
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
+    width: '100%',
+    height: '100%',
   },
   noResultsRoot: {
     display: 'flex',
@@ -45,9 +47,6 @@ const useStyles = makeStyles(theme => ({
   groupButtons: {
     display: 'flex',
     justifyContent: 'flex-end',
-  },
-  projectsTable: {
-    padding: '24px',
   },
   buttonContent: {
     paddingTop: '4px',
@@ -117,7 +116,6 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
               <ProjectsMap projects={projectSearch} />
             ) : (
               <ProjectsTableView
-                className={classes.projectsTable}
                 projects={projectSearch}
                 onProjectSelected={onProjectSelected}
               />

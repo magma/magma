@@ -19,6 +19,7 @@ import * as React from 'react';
 import CSVFileExport from '../CSVFileExport';
 import FiltersTypeahead from '../comparison_view/FiltersTypeahead';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {useRef, useState} from 'react';
 
@@ -86,6 +87,7 @@ type Props = {
   header?: React.Node,
   footer?: ?string,
   exportPath?: ?string,
+  className?: string,
   onFiltersChanged: (filters: Array<FilterValue>) => void,
   onFilterRemoved?: (filter: FilterValue) => void,
   onFilterBlurred?: (filter: FilterValue) => void,
@@ -146,7 +148,7 @@ const PowerSearchBar = (props: Props) => {
   };
 
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, props.className)}>
       <div className={classes.headerContainer}>{header != null && header}</div>
       <div className={classes.searchBarContainer}>
         <div className={classes.searchTypeahead}>
