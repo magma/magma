@@ -86,7 +86,7 @@ const Text = (props: Props) => {
       className={classNames(
         classes[variant],
         classes[`${color ?? 'regular'}Color`],
-        classes[`${weight ? weight : 'inhreit'}Weight`],
+        classes[`${weight ? weight : 'regular'}Weight`],
         className,
       )}>
       {children}
