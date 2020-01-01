@@ -40,8 +40,7 @@ const ServiceEquipmentTopology = (props: Props) => {
     const port = endpoint.port;
     const positionHierarchySize = port.parentEquipment.positionHierarchy.length;
     if (positionHierarchySize > 0) {
-      return port.parentEquipment.positionHierarchy[positionHierarchySize - 1]
-        .parentEquipment.id;
+      return port.parentEquipment.positionHierarchy[0].parentEquipment.id;
     }
     return port.parentEquipment.id;
   };
