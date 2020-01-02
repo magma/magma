@@ -12,6 +12,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -59,6 +60,8 @@ const (
 	grandParentLocation        = "grandParentLocation"
 	parentLocation             = "parentLocation"
 	childLocation              = "childLocation"
+	firstServiceName           = "S1"
+	secondServiceName          = "S2"
 	MethodAdd           method = "ADD"
 	MethodEdit          method = "EDIT"
 )
@@ -110,6 +113,11 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 					parentEquipment(equipmentType): with portType1 (has 2 string props)
 					childEquipment(equipmentType2): (no props props)
 					these ports are linked together
+	services:
+		firstService:
+				endpoints: parentEquipment consumer, childEquipment provider
+		secondService:
+				endpoints: parentEquipment consumer
 */
 func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	mr := r.Mutation()
@@ -281,4 +289,39 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		Properties: []*models.PropertyTypeInput{&propertyInput},
 	})
 	require.NoError(t, err)
+
+	portID1, err := parentEquipment.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyID(ctx)
+	require.NoError(t, err)
+	portID2, err := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef2.ID))).OnlyID(ctx)
+	require.NoError(t, err)
+
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	s1, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          firstServiceName,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	s2, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          secondServiceName,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+
+	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: portID1,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s2.ID,
+		PortID: portID1,
+		Role:   models.ServiceEndpointRoleConsumer,
+	})
+	_, _ = mr.AddServiceEndpoint(ctx, models.AddServiceEndpointInput{
+		ID:     s1.ID,
+		PortID: portID2,
+		Role:   models.ServiceEndpointRoleProvider,
+	})
 }

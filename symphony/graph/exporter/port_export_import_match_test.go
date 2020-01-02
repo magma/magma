@@ -15,10 +15,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
-	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
@@ -48,8 +49,11 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 		} else {
 			newLine = line
 			if line[1] == portName1 {
-				newLine[16] = "new-prop-value"
-				newLine[17] = "new-prop-value2"
+				newLine[18] = "new-prop-value"
+				newLine[19] = "new-prop-value2"
+			} else if line[1] == portName2 {
+				newLine[16] = secondServiceName
+				newLine[17] = ""
 			}
 			lines[i] = newLine
 		}
@@ -136,6 +140,9 @@ func TestImportAndEditPorts(t *testing.T) {
 		case portName2:
 			typ, _ := def.QueryEquipmentPortType().Only(ctx)
 			require.Nil(t, typ)
+			s := port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleConsumer.String())).QueryService().OnlyX(ctx)
+			require.Equal(t, s.Name, secondServiceName)
+			require.False(t, port.QueryEndpoints().Where(serviceendpoint.Role(models.ServiceEndpointRoleProvider.String())).ExistX(ctx))
 		}
 	}
 }

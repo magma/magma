@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -34,6 +35,11 @@ const (
 	locationL    = "locationL"
 	locationM    = "locationM"
 	locationS    = "locationS"
+
+	svcName  = "serviceName"
+	svc2Name = "serviceName2"
+	svc3Name = "serviceName3"
+	svc4Name = "serviceName4"
 )
 
 type portData struct {
@@ -166,6 +172,29 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 	}
 }
 
+func prepareSvcData(ctx context.Context, t *testing.T, r TestImporterResolver) {
+	mr := r.importer.r.Mutation()
+	serviceType, _ := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "L2 Service", HasCustomer: false})
+	_, err := mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svcName,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc2Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          svc3Name,
+		ServiceTypeID: serviceType.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
+}
+
 func TestPortTitleInputValidation(t *testing.T) {
 	r, err := newImporterTestResolver(t)
 	require.NoError(t, err)
@@ -177,6 +206,7 @@ func TestPortTitleInputValidation(t *testing.T) {
 		portDataHeader = [...]string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
+		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
 	)
 	prepareBasicData(ctx, t, *r)
 
@@ -187,11 +217,11 @@ func TestPortTitleInputValidation(t *testing.T) {
 	err = importer.inputValidationsPorts(ctx, NewImportHeader(linkDataHeader[:], ImportEntityPort))
 	require.Error(t, err)
 
-	locationTypeNotInOrder := append(append(append(portDataHeader[:], []string{locTypeNameS, locTypeNameM, locTypeNameL}...), parentsHeader[:]...), linkDataHeader[:]...)
+	locationTypeNotInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameS, locTypeNameM, locTypeNameL}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
 	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeNotInOrder, ImportEntityPort))
 	require.Error(t, err)
 
-	locationTypeInOrder := append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...)
+	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
 	err = importer.inputValidationsPorts(ctx, NewImportHeader(locationTypeInOrder, ImportEntityPort))
 	require.NoError(t, err)
 }
@@ -204,6 +234,7 @@ func TestGeneralPortsImport(t *testing.T) {
 
 	ctx := newImportContext(viewertest.NewContext(r.client))
 	ids := preparePortTypeData(ctx, t, *r)
+	prepareSvcData(ctx, t, *r)
 
 	def1 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef1)
 	typ1 := def1.QueryEquipmentPortType().OnlyX(ctx)
@@ -219,12 +250,15 @@ func TestGeneralPortsImport(t *testing.T) {
 		portDataHeader = [...]string{"Port ID", "Port Name", "Port Type", "Equipment Name", "Equipment Type"}
 		parentsHeader  = [...]string{"Parent Equipment (3)", "Parent Equipment (2)", "Parent Equipment", "Equipment Position"}
 		linkDataHeader = [...]string{"Linked Port ID", "Linked Port Name", "Linked Equipment ID", "Linked Equipment"}
-		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", "updateVal", "54", "", ""}
-		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name, "updateVal2", "55", "", ""}
-		row3           = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, "pos", ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name, "", "", "1988-01-01", "true"}
+		servicesHeader = [...]string{"Consumer Endpoint for These Services", "Provider Endpoint for These Services"}
+		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
+		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name,
+			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
+		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, "pos", ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
+			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 
-	locationTypeInOrder := append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...)
+	locationTypeInOrder := append(append(append(append(portDataHeader[:], []string{locTypeNameL, locTypeNameM, locTypeNameS}...), parentsHeader[:]...), linkDataHeader[:]...), servicesHeader[:]...)
 	titleWithProperties := append(locationTypeInOrder, propNameStr, propNameInt, propNameDate, propNameBool)
 
 	fl := NewImportHeader(titleWithProperties, ImportEntityPort)
@@ -252,6 +286,11 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
+	consumers, providers, err := importer.validateServicesForPortEndpoints(ctx, r1)
+	require.NoError(t, err)
+	require.Len(t, consumers, 2)
+	require.Len(t, providers, 1)
+
 	r2 := NewImportRecord(row2, fl)
 
 	port2, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst2, r2)
@@ -273,6 +312,8 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
+	_, _, err = importer.validateServicesForPortEndpoints(ctx, r2)
+	require.Error(t, err)
 
 	r3 := NewImportRecord(row3, fl)
 
@@ -295,4 +336,6 @@ func TestGeneralPortsImport(t *testing.T) {
 			require.Fail(t, "property type name should be one of the two")
 		}
 	}
+	_, _, err = importer.validateServicesForPortEndpoints(ctx, r3)
+	require.Error(t, err)
 }

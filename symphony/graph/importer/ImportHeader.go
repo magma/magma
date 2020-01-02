@@ -92,7 +92,7 @@ func (l ImportHeader) PropertyStartIdx() int {
 	case ImportEntityEquipment:
 		return l.PositionIdx() + 1
 	case ImportEntityPort:
-		return l.PositionIdx() + 5
+		return l.PositionIdx() + 7
 	case ImportEntityService:
 		return l.StatusIdx() + 1
 	case ImportEntityLink:
@@ -143,6 +143,22 @@ func (l ImportHeader) PortAIDIdx() int {
 func (l ImportHeader) PortBIDIdx() int {
 	if l.entity == ImportEntityLink {
 		return findIndex(l.line, "Port B ID")
+	}
+	return -1
+}
+
+// ConsumerPortsServicesIdx is the index of the list of services where the port is their consumer endpoint
+func (l ImportHeader) ConsumerPortsServicesIdx() int {
+	if l.entity == ImportEntityPort {
+		return l.PositionIdx() + 5
+	}
+	return -1
+}
+
+// ProviderPortsServicesIdx is the index of the list of services where the port is their provider endpoint
+func (l ImportHeader) ProviderPortsServicesIdx() int {
+	if l.entity == ImportEntityPort {
+		return l.ConsumerPortsServicesIdx() + 1
 	}
 	return -1
 }
