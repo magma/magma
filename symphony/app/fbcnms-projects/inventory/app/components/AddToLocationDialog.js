@@ -96,6 +96,9 @@ class AddToLocationDialog extends React.Component<Props, State> {
     const portsExportImportEnabled = this.context.isFeatureEnabled(
       'import_exported_ports',
     );
+    const linksExportImportEnabled = this.context.isFeatureEnabled(
+      'import_exported_links',
+    );
     const servicesEnabled = this.context.isFeatureEnabled('services');
     return (
       <Dialog maxWidth="sm" open={this.props.open} onClose={this.props.onClose}>
@@ -346,6 +349,23 @@ class AddToLocationDialog extends React.Component<Props, State> {
                         this.setState({isLoading: false, errorMessage: null})
                       }
                       uploadPath={UploadAPIUrls.exported_ports()}
+                      onUploadFailed={msg =>
+                        this.setState({errorMessage: msg, isLoading: false})
+                      }
+                    />
+                  )}
+                  {linksExportImportEnabled && (
+                    <CSVFileUpload
+                      button={
+                        <Button variant="text">Upload Exported Links</Button>
+                      }
+                      onProgress={() =>
+                        this.setState({isLoading: true, errorMessage: null})
+                      }
+                      onFileUploaded={() =>
+                        this.setState({isLoading: false, errorMessage: null})
+                      }
+                      uploadPath={UploadAPIUrls.exported_links()}
                       onUploadFailed={msg =>
                         this.setState({errorMessage: msg, isLoading: false})
                       }

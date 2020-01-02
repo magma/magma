@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
 
@@ -25,6 +26,8 @@ const (
 	ImportEntityEquipment ImportEntity = "EQUIPMENT"
 	// ImportEntityPort specifies a port for import
 	ImportEntityPort ImportEntity = "PORT"
+	// ImportEntityLink specifies a link for import
+	ImportEntityLink ImportEntity = "LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
 )
@@ -172,4 +175,30 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 		return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
 	}
 	return &equip.ID, &def.ID, nil
+}
+
+func (m *importer) validatePropertiesForPortType(ctx context.Context, line ImportRecord, portType *ent.EquipmentPortType, entity ImportEntity) ([]*models.PropertyInput, error) {
+	var pInputs []*models.PropertyInput
+	var propTypes []*ent.PropertyType
+	var err error
+	switch entity {
+	case ImportEntityPort:
+		propTypes, err = portType.QueryPropertyTypes().All(ctx)
+	case ImportEntityLink:
+		propTypes, err = portType.QueryLinkPropertyTypes().All(ctx)
+	default:
+		return nil, errors.New(fmt.Sprintf("ImportEntity not supported %s", entity))
+	}
+	if ent.MaskNotFound(err) != nil {
+		return nil, errors.Wrap(err, "can't query property types for port type")
+	}
+	for _, ptype := range propTypes {
+		ptypeName := ptype.Name
+		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, portType, ptypeName)
+		if err != nil {
+			return nil, err
+		}
+		pInputs = append(pInputs, pInput)
+	}
+	return pInputs, nil
 }

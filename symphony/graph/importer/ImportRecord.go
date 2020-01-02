@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -19,6 +20,15 @@ import (
 type ImportRecord struct {
 	line  []string
 	title ImportHeader
+}
+
+type LinkPortData struct {
+	ID                string
+	Name              string
+	TypeName          string
+	EquipmentID       string
+	EquipmentName     string
+	EquipmentTypeName string
 }
 
 func NewImportRecord(line []string, title ImportHeader) ImportRecord {
@@ -40,7 +50,8 @@ func (l ImportRecord) Header() ImportHeader {
 	return l.title
 }
 
-func (l ImportRecord) GetPropertyInput(m *importer, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
+// GetPropertyInput returns a PropertyInput model from a proptypeName
+func (l ImportRecord) GetPropertyInput(client *ent.Client, ctx context.Context, typ interface{}, proptypeName string) (*models.PropertyInput, error) {
 	var pTyp *ent.PropertyType
 	var err error
 	switch l.entity() {
@@ -50,6 +61,9 @@ func (l ImportRecord) GetPropertyInput(m *importer, ctx context.Context, typ int
 	case ImportEntityPort:
 		typ := typ.(*ent.EquipmentPortType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
+	case ImportEntityLink:
+		typ := typ.(*ent.EquipmentPortType)
+		pTyp, err = typ.QueryLinkPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
 	case ImportEntityService:
 		typ := typ.(*ent.ServiceType)
 		pTyp, err = typ.QueryPropertyTypes().Where(propertytype.Name(proptypeName)).Only(ctx)
@@ -66,7 +80,7 @@ func (l ImportRecord) GetPropertyInput(m *importer, ctx context.Context, typ int
 	}
 	value := l.line[idx]
 	if pTyp.Type == "service" && value != "" {
-		if value, err = m.ClientFrom(ctx).Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
+		if value, err = client.Service.Query().Where(service.Name(value)).OnlyID(ctx); err != nil {
 			return nil, errors.Wrapf(err, "service name does not exist %q", l.line[idx])
 		}
 	}
@@ -136,8 +150,14 @@ func (l ImportRecord) LocationsRangeArr() []string {
 	return l.line[s:e]
 }
 
-func (l ImportRecord) PropertiesSlice() []string {
-	return l.line[l.title.PropertyStartIdx():]
+func (l ImportRecord) PropertiesMap() map[string]string {
+	valueSlice := l.line[l.title.PropertyStartIdx():]
+	typeSlice := l.title.line[l.title.PropertyStartIdx():]
+	ret := make(map[string]string, len(valueSlice))
+	for i, typ := range typeSlice {
+		ret[typ] = valueSlice[i]
+	}
+	return ret
 }
 
 // ServiceExternalID is the external id of the service (used in other systems)
@@ -158,4 +178,27 @@ func (l ImportRecord) CustomerExternalID() string {
 // Status is the status of the service (can be of types enum ServiceType in graphql)
 func (l ImportRecord) Status() string {
 	return l.line[l.title.StatusIdx()]
+}
+
+func (l ImportRecord) LinkPortData(side string) (*LinkPortData, error) {
+	if l.title.entity == ImportEntityLink {
+		var idIndex int
+		switch side {
+		case "A":
+			idIndex = l.title.PortAIDIdx()
+		case "B":
+			idIndex = l.title.PortBIDIdx()
+		default:
+			return nil, errors.New("missing port side")
+		}
+		return &LinkPortData{
+			ID:                l.line[idIndex],
+			Name:              l.line[idIndex+1],
+			TypeName:          l.line[idIndex+2],
+			EquipmentID:       l.line[idIndex+3],
+			EquipmentName:     l.line[idIndex+4],
+			EquipmentTypeName: l.line[idIndex+5],
+		}, nil
+	}
+	return nil, errors.New("unsupported entity for link port Data")
 }

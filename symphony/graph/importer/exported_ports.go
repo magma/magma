@@ -82,8 +82,7 @@ func (m *importer) processExportedPorts(w http.ResponseWriter, r *http.Request) 
 				definition := port.QueryDefinition().OnlyX(ctx)
 				portType, _ := definition.QueryEquipmentPortType().Only(ctx)
 				if portType != nil && importLine.Len() > importHeader.PropertyStartIdx() {
-					propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType)
-					// TODO: Set ID of the existing property to edit properties and not re-create them
+					propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityPort)
 					if err != nil {
 						log.Warn("validating property for type", zap.Error(err))
 						http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", portType.Name, numRows, err.Error()), http.StatusBadRequest)
@@ -182,21 +181,4 @@ func (m *importer) inputValidationsPorts(ctx context.Context, importHeader Impor
 	}
 	err := m.validateAllLocationTypeExist(ctx, 5, importHeader.LocationTypesRangeArr(), false)
 	return err
-}
-
-func (m *importer) validatePropertiesForPortType(ctx context.Context, line ImportRecord, portType *ent.EquipmentPortType) ([]*models.PropertyInput, error) {
-	var pInputs []*models.PropertyInput
-	propTypes, err := portType.QueryPropertyTypes().All(ctx)
-	if ent.MaskNotFound(err) != nil {
-		return nil, errors.Wrap(err, "can't query property types for port type")
-	}
-	for _, ptype := range propTypes {
-		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(m, ctx, portType, ptypeName)
-		if err != nil {
-			return nil, err
-		}
-		pInputs = append(pInputs, pInput)
-	}
-	return pInputs, nil
 }

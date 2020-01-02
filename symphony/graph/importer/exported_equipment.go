@@ -148,7 +148,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				props := ic.equipmentTypeIDToProperties[typ.ID]
 				var inputs []*models.PropertyInput
 				for _, propName := range props {
-					inp, err := importLine.GetPropertyInput(m, ctx, typ, propName)
+					inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
 					propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
 					if err != nil {
 						log.Warn("getting property input", zap.Error(err), importLine.ZapField())
@@ -224,7 +224,7 @@ func (m *importer) validatePropertiesForEquipmentType(ctx context.Context, line 
 	var pInputs []*models.PropertyInput
 	propTypeNames := ic.equipmentTypeIDToProperties[equipType.ID]
 	for _, ptypeName := range propTypeNames {
-		pInput, err := line.GetPropertyInput(m, ctx, equipType, ptypeName)
+		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, equipType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

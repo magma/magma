@@ -95,6 +95,8 @@ func (l ImportHeader) PropertyStartIdx() int {
 		return l.PositionIdx() + 5
 	case ImportEntityService:
 		return l.StatusIdx() + 1
+	case ImportEntityLink:
+		return minimalLinksLineLength()
 	}
 	return -1
 }
@@ -127,6 +129,20 @@ func (l ImportHeader) CustomerExternalIDIdx() int {
 func (l ImportHeader) StatusIdx() int {
 	if l.entity == ImportEntityService {
 		return 6
+	}
+	return -1
+}
+
+func (l ImportHeader) PortAIDIdx() int {
+	if l.entity == ImportEntityLink {
+		return findIndex(l.line, "Port A ID")
+	}
+	return -1
+}
+
+func (l ImportHeader) PortBIDIdx() int {
+	if l.entity == ImportEntityLink {
+		return findIndex(l.line, "Port B ID")
 	}
 	return -1
 }

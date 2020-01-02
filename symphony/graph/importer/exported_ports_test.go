@@ -235,7 +235,7 @@ func TestGeneralPortsImport(t *testing.T) {
 
 	port1, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst1, r1)
 	require.NoError(t, err)
-	ptypes, err := importer.validatePropertiesForPortType(ctx, r1, port1.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx))
+	ptypes, err := importer.validatePropertiesForPortType(ctx, r1, port1.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)
 	require.NoError(t, err)
 	require.Len(t, ptypes, 2)
 	require.NotEqual(t, ptypes[0].PropertyTypeID, ptypes[1].PropertyTypeID)
@@ -256,7 +256,7 @@ func TestGeneralPortsImport(t *testing.T) {
 
 	port2, err := importer.validateLineForExistingPort(ctx, ids.parentPortInst2, r2)
 	require.NoError(t, err)
-	ptypes2, err := importer.validatePropertiesForPortType(ctx, r2, port2.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx))
+	ptypes2, err := importer.validatePropertiesForPortType(ctx, r2, port2.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)
 	require.NoError(t, err)
 	require.Len(t, ptypes2, 2)
 	require.NotEqual(t, ptypes2[0].PropertyTypeID, ptypes2[1].PropertyTypeID)
@@ -278,7 +278,7 @@ func TestGeneralPortsImport(t *testing.T) {
 
 	port3, err := importer.validateLineForExistingPort(ctx, ids.childPortInst1, r3)
 	require.NoError(t, err)
-	ptypes3, err := importer.validatePropertiesForPortType(ctx, r3, port3.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx))
+	ptypes3, err := importer.validatePropertiesForPortType(ctx, r3, port3.QueryDefinition().QueryEquipmentPortType().OnlyX(ctx), ImportEntityPort)
 	require.NoError(t, err)
 	require.Len(t, ptypes3, 2)
 	require.NotEqual(t, ptypes3[0].PropertyTypeID, ptypes3[1].PropertyTypeID)
