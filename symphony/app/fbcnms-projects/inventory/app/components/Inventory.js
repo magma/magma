@@ -21,7 +21,7 @@ import LocationsMap from './map/LocationsMap';
 import MainNavListItems from './MainNavListItems';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import RelayEnvironment from '../common/RelayEnvironment.js';
-import ServiceComparisonView from './services/ServiceComparisonView';
+import ServicesMain from './services/ServicesMain';
 import Settings from './Settings';
 
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -79,10 +79,7 @@ function Index() {
                 : EquipmentComparisonView
             }
           />
-          <Route
-            path={relativeUrl('/services')}
-            component={ServiceComparisonView}
-          />
+          <Route path={relativeUrl('/services')} component={ServicesMain} />
           <Route path={relativeUrl('/settings')} component={Settings} />
           <Redirect exact from="/" to={relativeUrl('/inventory')} />
           <Redirect exact from="/inventory" to={relativeUrl('/inventory')} />
