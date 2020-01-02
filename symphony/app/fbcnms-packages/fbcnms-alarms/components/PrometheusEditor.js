@@ -237,12 +237,18 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   );
 
   const parsedExpression = React.useMemo(() => {
-    return Parse(props.rule?.expression);
+    try {
+      return Parse(props.rule?.expression);
+    } catch {
+      return null;
+    }
     // We only want to parse the expression on the first
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   React.useEffect(() => {
-    if (parsedExpression) {
+    if (!props.rule?.expression) {
+      setAdvancedEditorMode(false);
+    } else if (parsedExpression) {
       const newThresholdExpression = getThresholdExpression(parsedExpression);
       if (newThresholdExpression) {
         setAdvancedEditorMode(false);
@@ -253,6 +259,9 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     } else {
       enqueueSnackbar(
         "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
+        {
+          variant: 'error',
+        },
       );
     }
   }, [enqueueSnackbar, parsedExpression]);
