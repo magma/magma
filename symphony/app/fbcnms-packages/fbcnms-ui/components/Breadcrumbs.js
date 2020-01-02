@@ -127,6 +127,9 @@ const Breadcrumbs = (props: Props) => {
           key={b.id}
           data={b}
           isLastBreadcrumb={i === endBreadcrumbs.length - 1}
+          useEllipsis={
+            startBreadcrumbs.length + i > 0 && i < endBreadcrumbs.length - 1
+          }
           size={size}
           variant={variant}
           className={textClassName}

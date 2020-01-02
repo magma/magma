@@ -318,6 +318,7 @@ export default createFragmentContainer(ServiceDetailsPanel, {
           longitudeValue
           rangeFromValue
           rangeToValue
+          isMandatory
         }
       }
       properties {

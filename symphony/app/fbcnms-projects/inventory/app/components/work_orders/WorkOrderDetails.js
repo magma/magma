@@ -98,6 +98,7 @@ const styles = (theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
+    height: '100%',
   },
   input: {
     paddingBottom: '24px',
@@ -107,7 +108,7 @@ const styles = (theme: Theme) => ({
   },
   cards: {
     overflowY: 'auto',
-    overflow: 'hidden',
+    overflowX: 'hidden',
     flexGrow: 1,
   },
   card: {

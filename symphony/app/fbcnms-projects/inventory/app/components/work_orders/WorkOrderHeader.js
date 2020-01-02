@@ -28,10 +28,17 @@ const useStyles = makeStyles(_theme => ({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: '24px',
+    paddingBottom: '24px',
+    overflow: 'hidden',
+    flexBasis: 'auto',
   },
   breadcrumbs: {
     flexGrow: 1,
+    width: '10px',
+  },
+  actionButtons: {
+    display: 'flex',
+    flexDirection: 'row',
   },
   deleteButton: {
     marginRight: '8px',
@@ -91,23 +98,25 @@ const WorkOrderHeader = (props: Props) => {
           size="large"
         />
       </div>
-      <WorkOrderDeleteButton
-        className={classes.deleteButton}
-        workOrder={workOrder}
-        onWorkOrderRemoved={onWorkOrderRemoved}
-      />
-      <Button
-        className={classes.cancelButton}
-        skin="regular"
-        onClick={onCancelClicked}>
-        Cancel
-      </Button>
-      <WorkOrderSaveButton
-        workOrder={workOrder}
-        properties={properties}
-        checklist={checklist}
-        locationId={locationId}
-      />
+      <div className={classes.actionButtons}>
+        <WorkOrderDeleteButton
+          className={classes.deleteButton}
+          workOrder={workOrder}
+          onWorkOrderRemoved={onWorkOrderRemoved}
+        />
+        <Button
+          className={classes.cancelButton}
+          skin="regular"
+          onClick={onCancelClicked}>
+          Cancel
+        </Button>
+        <WorkOrderSaveButton
+          workOrder={workOrder}
+          properties={properties}
+          checklist={checklist}
+          locationId={locationId}
+        />
+      </div>
     </div>
   );
 };

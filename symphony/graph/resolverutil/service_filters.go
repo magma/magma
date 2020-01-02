@@ -32,8 +32,6 @@ func handleServiceFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput)
 		return externalIDFilter(q, filter)
 	case models.ServiceFilterTypeServiceInstCustomerName:
 		return customerNameFilter(q, filter)
-	case models.ServiceFilterTypeServiceInstProperty:
-		return servicePropertyFilter(q, filter)
 	default:
 		return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
 	}
@@ -72,6 +70,13 @@ func customerNameFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) 
 		return q.Where(service.HasCustomerWith(customer.NameContainsFold(*filter.StringValue))), nil
 	}
 	return nil, errors.Errorf("operation %q not supported", filter.Operator)
+}
+
+func handleServicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.FilterType == models.ServiceFilterTypeProperty {
+		return servicePropertyFilter(q, filter)
+	}
+	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
 }
 
 func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
