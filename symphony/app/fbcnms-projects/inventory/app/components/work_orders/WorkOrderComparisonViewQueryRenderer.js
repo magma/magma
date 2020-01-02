@@ -14,8 +14,11 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import WorkOrdersMap from './WorkOrdersMap';
 import WorkOrdersView from './WorkOrdersView';
 import classNames from 'classnames';
+import {DisplayOptions} from '../InventoryViewHeader';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
+
+import type {DisplayOptionTypes} from '../InventoryViewHeader';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -44,7 +47,7 @@ type Props = {
   limit?: number,
   filters: Array<any>,
   workOrderKey: number,
-  resultsDisplayMode: ?'map' | 'table',
+  displayMode?: DisplayOptionTypes,
 };
 
 const workOrderSearchQuery = graphql`
@@ -66,7 +69,7 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
     limit,
     onWorkOrderSelected,
     workOrderKey,
-    resultsDisplayMode,
+    displayMode,
     className,
   } = props;
 
@@ -98,7 +101,7 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
         }
         return (
           <div className={classNames(classes.root, className)}>
-            {resultsDisplayMode === 'map' ? (
+            {displayMode === DisplayOptions.map ? (
               <WorkOrdersMap workOrders={workOrderSearch} />
             ) : (
               <WorkOrdersView

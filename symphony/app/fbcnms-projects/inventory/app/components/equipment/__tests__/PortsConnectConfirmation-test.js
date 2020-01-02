@@ -81,6 +81,7 @@ describe('<PortsConnectConfirmation />', () => {
       },
       parentEquipment: eq(ename, tname),
       properties: [],
+      serviceEndpoints: [],
     };
   };
 

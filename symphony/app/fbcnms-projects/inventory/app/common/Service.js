@@ -43,6 +43,7 @@ export type ServiceEndpoint = {
   id: string,
   port: EquipmentPort,
   role: ServiceEndpointRole,
+  service: Service,
 };
 
 export type Service = {

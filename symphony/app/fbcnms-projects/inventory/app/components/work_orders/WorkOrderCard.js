@@ -33,15 +33,9 @@ type State = {
 const styles = theme => ({
   root: {
     height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
+    width: '100%',
     padding: '40px 32px',
-  },
-  contentRoot: {
-    position: 'relative',
-    flexGrow: 1,
-    overflow: 'auto',
-    display: 'flex',
+    overflow: 'hidden',
   },
   tabs: {
     backgroundColor: theme.palette.common.white,
@@ -102,14 +96,12 @@ class WorkOrderCard extends React.Component<Props, State> {
           const {workOrder} = props;
           return (
             <div className={classes.root}>
-              <div className={classes.contentRoot}>
-                <WorkOrderDetails
-                  workOrder={workOrder}
-                  onWorkOrderRemoved={onWorkOrderRemoved}
-                  onWorkOrderExecuted={onWorkOrderExecuted}
-                  onCancelClicked={this.navigateToMainPage}
-                />
-              </div>
+              <WorkOrderDetails
+                workOrder={workOrder}
+                onWorkOrderRemoved={onWorkOrderRemoved}
+                onWorkOrderExecuted={onWorkOrderExecuted}
+                onCancelClicked={this.navigateToMainPage}
+              />
             </div>
           );
         }}

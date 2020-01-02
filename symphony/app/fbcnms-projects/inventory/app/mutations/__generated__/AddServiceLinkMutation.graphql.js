@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9f4de6ae164e6538fca2edddaebafc3f
+ * @relayHash ec5bb89a61ef81dbfbf62ff34b178dc1
  */
 
 /* eslint-disable */
@@ -132,6 +132,7 @@ fragment ServiceDetailsPanel_service on Service {
       longitudeValue
       rangeFromValue
       rangeToValue
+      isMandatory
     }
   }
   properties {
@@ -367,11 +368,18 @@ v14 = {
   "args": null,
   "storageKey": null
 },
-v15 = [
+v15 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v16 = [
   (v2/*: any*/),
   (v3/*: any*/)
 ],
-v16 = {
+v17 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "definition",
@@ -379,9 +387,9 @@ v16 = {
   "args": null,
   "concreteType": "EquipmentPortDefinition",
   "plural": false,
-  "selections": (v15/*: any*/)
+  "selections": (v16/*: any*/)
 },
-v17 = {
+v18 = {
   "kind": "LinkedField",
   "alias": null,
   "name": "equipmentType",
@@ -389,17 +397,17 @@ v17 = {
   "args": null,
   "concreteType": "EquipmentType",
   "plural": false,
-  "selections": (v15/*: any*/)
+  "selections": (v16/*: any*/)
 },
-v18 = {
+v19 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "__typename",
   "args": null,
   "storageKey": null
 },
-v19 = [
-  (v18/*: any*/),
+v20 = [
+  (v19/*: any*/),
   (v2/*: any*/)
 ];
 return {
@@ -500,7 +508,8 @@ return {
                   (v11/*: any*/),
                   (v12/*: any*/),
                   (v13/*: any*/),
-                  (v14/*: any*/)
+                  (v14/*: any*/),
+                  (v15/*: any*/)
                 ]
               }
             ]
@@ -535,13 +544,7 @@ return {
                     "storageKey": null
                   },
                   (v5/*: any*/),
-                  {
-                    "kind": "ScalarField",
-                    "alias": null,
-                    "name": "isMandatory",
-                    "args": null,
-                    "storageKey": null
-                  },
+                  (v15/*: any*/),
                   (v7/*: any*/)
                 ]
               },
@@ -561,7 +564,7 @@ return {
                 "args": null,
                 "concreteType": "Equipment",
                 "plural": false,
-                "selections": (v15/*: any*/)
+                "selections": (v16/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -571,7 +574,7 @@ return {
                 "args": null,
                 "concreteType": "Location",
                 "plural": false,
-                "selections": (v15/*: any*/)
+                "selections": (v16/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -581,7 +584,7 @@ return {
                 "args": null,
                 "concreteType": "Service",
                 "plural": false,
-                "selections": (v15/*: any*/)
+                "selections": (v16/*: any*/)
               }
             ]
           },
@@ -619,9 +622,9 @@ return {
                     "args": null,
                     "concreteType": "Equipment",
                     "plural": false,
-                    "selections": (v15/*: any*/)
+                    "selections": (v16/*: any*/)
                   },
-                  (v16/*: any*/),
+                  (v17/*: any*/),
                   (v2/*: any*/)
                 ]
               }
@@ -657,7 +660,7 @@ return {
                     "selections": [
                       (v3/*: any*/),
                       (v2/*: any*/),
-                      (v17/*: any*/),
+                      (v18/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
@@ -722,14 +725,14 @@ return {
                             "selections": [
                               (v2/*: any*/),
                               (v3/*: any*/),
-                              (v17/*: any*/)
+                              (v18/*: any*/)
                             ]
                           }
                         ]
                       }
                     ]
                   },
-                  (v16/*: any*/),
+                  (v17/*: any*/),
                   (v2/*: any*/)
                 ]
               },
@@ -760,7 +763,7 @@ return {
                 "concreteType": null,
                 "plural": true,
                 "selections": [
-                  (v18/*: any*/),
+                  (v19/*: any*/),
                   (v2/*: any*/),
                   {
                     "kind": "InlineFragment",
@@ -788,7 +791,7 @@ return {
                     "args": null,
                     "concreteType": null,
                     "plural": false,
-                    "selections": (v19/*: any*/)
+                    "selections": (v20/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -798,7 +801,7 @@ return {
                     "args": null,
                     "concreteType": null,
                     "plural": false,
-                    "selections": (v19/*: any*/)
+                    "selections": (v20/*: any*/)
                   }
                 ]
               }
@@ -812,7 +815,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceLinkMutation",
     "id": null,
-    "text": "mutation AddServiceLinkMutation(\n  $id: ID!\n  $linkId: ID!\n) {\n  addServiceLink(id: $id, linkId: $linkId) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n  endpoints {\n    ...ServiceEquipmentTopology_endpoints\n    id\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEndpointsView_endpoints on ServiceEndpoint {\n  id\n  port {\n    parentEquipment {\n      name\n      ...EquipmentBreadcrumbs_equipment\n      id\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n  role\n}\n\nfragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {\n  role\n  port {\n    parentEquipment {\n      id\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  endpoints {\n    ...ServiceEndpointsView_endpoints\n    id\n  }\n}\n",
+    "text": "mutation AddServiceLinkMutation(\n  $id: ID!\n  $linkId: ID!\n) {\n  addServiceLink(id: $id, linkId: $linkId) {\n    ...ServiceCard_service\n    id\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment ForceNetworkTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    id\n  }\n  links {\n    source {\n      __typename\n      id\n    }\n    target {\n      __typename\n      id\n    }\n  }\n}\n\nfragment ServiceCard_service on Service {\n  id\n  name\n  ...ServiceDetailsPanel_service\n  ...ServicePanel_service\n  topology {\n    ...ServiceEquipmentTopology_topology\n  }\n  endpoints {\n    ...ServiceEquipmentTopology_endpoints\n    id\n  }\n}\n\nfragment ServiceDetailsPanel_service on Service {\n  id\n  name\n  externalId\n  customer {\n    name\n    id\n  }\n  serviceType {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      index\n      isInstanceProperty\n      type\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isMandatory\n    }\n  }\n  properties {\n    id\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isInstanceProperty\n      isMandatory\n      stringValue\n    }\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    serviceValue {\n      id\n      name\n    }\n  }\n}\n\nfragment ServiceEndpointsView_endpoints on ServiceEndpoint {\n  id\n  port {\n    parentEquipment {\n      name\n      ...EquipmentBreadcrumbs_equipment\n      id\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n  role\n}\n\nfragment ServiceEquipmentTopology_endpoints on ServiceEndpoint {\n  role\n  port {\n    parentEquipment {\n      id\n      positionHierarchy {\n        parentEquipment {\n          id\n        }\n        id\n      }\n    }\n    id\n  }\n}\n\nfragment ServiceEquipmentTopology_topology on NetworkTopology {\n  nodes {\n    __typename\n    ... on Equipment {\n      id\n      name\n    }\n    id\n  }\n  ...ForceNetworkTopology_topology\n}\n\nfragment ServiceLinksView_links on Link {\n  id\n  ports {\n    parentEquipment {\n      id\n      name\n    }\n    definition {\n      id\n      name\n    }\n    id\n  }\n}\n\nfragment ServicePanel_service on Service {\n  id\n  name\n  externalId\n  status\n  customer {\n    name\n    id\n  }\n  serviceType {\n    name\n    id\n  }\n  links {\n    id\n    ...ServiceLinksView_links\n  }\n  endpoints {\n    ...ServiceEndpointsView_endpoints\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
