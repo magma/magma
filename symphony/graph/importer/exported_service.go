@@ -170,7 +170,7 @@ func (m *importer) validateLineForExistingService(ctx context.Context, serviceID
 	}
 	typ := service.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Errorf("wrong service type. should be %v, but %v", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong service type. should be %v, but %v", typ.Name, importLine.TypeName())
 	}
 	return service, nil
 }
