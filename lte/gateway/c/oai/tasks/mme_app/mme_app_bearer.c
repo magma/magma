@@ -817,9 +817,7 @@ void mme_app_handle_delete_session_rsp(
    * send pdn disconnect response to NAS.
    * NAS will trigger deactivate Bearer Context Req to UE
    */
-  if (
-    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1) &&
-    (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+  if (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect) {
     pdn_disconnect_rsp.ue_id = ue_context_p->mme_ue_s1ap_id;
     pdn_disconnect_rsp.lbi = delete_sess_resp_pP->lbi;
     if ((nas_proc_pdn_disconnect_rsp(&pdn_disconnect_rsp)) != RETURNok) {
