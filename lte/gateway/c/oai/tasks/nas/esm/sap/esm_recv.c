@@ -495,6 +495,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   const pdn_disconnect_request_msg* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  pdn_cid_t pid = MAX_APN_PER_UE;
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   ue_mm_context_t* ue_mm_context_p = NULL;
   ue_mm_context_p =
@@ -555,46 +556,65 @@ esm_cause_t esm_recv_pdn_disconnect_request(
    * Execute the PDN disconnect procedure requested by the UE
    */
 
-  pdn_cid_t pid =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-      ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]
-      ->pdn_cx_id;
-
-  if (pid < MAX_APN_PER_UE) {
-    /* If VoLTE is enabled, send ITTI message to MME APP
-     * MME APP will trigger Delete session towards SGW
-     * to release the session
-     */
-    if (mme_config.eps_network_feature_support
-          .ims_voice_over_ps_session_in_s1) {
-      OAILOG_INFO(
+  if (ue_mm_context_p
+        ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]) {
+    pid = ue_mm_context_p
+            ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]
+            ->pdn_cx_id;
+    if (pid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR(
         LOG_NAS_ESM,
-        "ESM-SAP   - Sending PDN Disconnect Request message "
-        "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
-        ue_mm_context_p->mme_ue_s1ap_id,
-        pid,
+        "ESM-PROC  - No PDN connection found (lbi=%u)\n",
         msg->linkedepsbeareridentity);
-      mme_app_send_delete_session_request(
-        ue_mm_context_p, msg->linkedepsbeareridentity, pid);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
     }
+    // Check if the LBI received matches with the default bearer ID
+    if (
+      msg->linkedepsbeareridentity !=
+      ue_mm_context_p->pdn_contexts[pid]->default_ebi) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot perform PDN disconnect for dedicated bearer "
+        "(lbi=%u)\n",
+        msg->linkedepsbeareridentity);
 
-    /*
-     * Release the associated default EPS bearer context
-     */
-    int bid = 0;
-    int rc = esm_proc_eps_bearer_context_deactivate(
-      emm_context, false, msg->linkedepsbeareridentity, &pid, &bid, &esm_cause);
-
-    if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
     }
   } else {
     OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-PROC  - No PDN connection found (lbi=%u)\n",
+      "ESM-PROC  - No bearer context found, invalid bearer id (lbi=%u)\n",
       msg->linkedepsbeareridentity);
-    esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+  }
+
+  /* If VoLTE is enabled, send ITTI message to MME APP
+   * MME APP will trigger Delete session towards SGW
+   * to release the session
+   */
+  if (mme_config.eps_network_feature_support
+        .ims_voice_over_ps_session_in_s1) {
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      "ESM-SAP   - Sending PDN Disconnect Request message "
+      "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
+      ue_mm_context_p->mme_ue_s1ap_id,
+      pid,
+      msg->linkedepsbeareridentity);
+    mme_app_send_delete_session_request(
+      ue_mm_context_p, msg->linkedepsbeareridentity, pid);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  }
+
+  /*
+   * Release the associated default EPS bearer context
+   */
+  int bid = 0;
+  int rc = esm_proc_eps_bearer_context_deactivate(
+    emm_context, false, msg->linkedepsbeareridentity, &pid, &bid, &esm_cause);
+
+  if (rc != RETURNerror) {
+    esm_cause = ESM_CAUSE_SUCCESS;
   }
 
   /*
