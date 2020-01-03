@@ -37,6 +37,7 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_pdn_context.h"
 #include "mme_app_apn_selection.h"
+#include "mme_app_defs.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 
@@ -71,8 +72,8 @@ static void mme_app_pdn_context_init(
     memset(pdn_context, 0, sizeof(*pdn_context));
     pdn_context->is_active = false;
     for (int i = 0; i < BEARERS_PER_UE; i++) {
-      pdn_context->bearer_contexts[i] =
-        -1; // contains bearer indexes in ue_mm_context_t.bearer_contexts[]
+      // contains bearer indexes in ue_mm_context_t.bearer_contexts[]
+      pdn_context->bearer_contexts[i] = INVALID_BEARER_INDEX;
     }
   }
 }
