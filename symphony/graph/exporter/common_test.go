@@ -30,36 +30,40 @@ import (
 var debug = flag.Bool("debug", false, "run database driver on debug mode")
 
 const (
-	tenantHeader        = "x-auth-organization"
-	equipmentTypeName   = "equipmentType"
-	equipmentType2Name  = "equipmentType2"
-	parentEquip         = "parentEquipmentName"
-	currEquip           = "currEquipmentName"
-	currEquip2          = "currEquipmentName2"
-	positionName        = "Position"
-	portName1           = "port1"
-	portName2           = "port2"
-	portName3           = "port3"
-	propNameStr         = "propNameStr"
-	propNameDate        = "propNameDate"
-	propNameBool        = "propNameBool"
-	propNameInt         = "propNameInt"
-	externalIDL         = "11"
-	externalIDM         = "22"
-	lat                 = 32.109
-	long                = 34.855
-	newPropNameStr      = "newPropNameStr"
-	propDefValue        = "defaultVal"
-	propDefValue2       = "defaultVal2"
-	propDevValInt       = 15
-	propInstanceValue   = "newVal"
-	locTypeNameL        = "locTypeLarge"
-	locTypeNameM        = "locTypeMedium"
-	locTypeNameS        = "locTypeSmall"
-	grandParentLocation = "grandParentLocation"
-	parentLocation      = "parentLocation"
-	childLocation       = "childLocation"
+	tenantHeader               = "x-auth-organization"
+	equipmentTypeName          = "equipmentType"
+	equipmentType2Name         = "equipmentType2"
+	parentEquip                = "parentEquipmentName"
+	currEquip                  = "currEquipmentName"
+	currEquip2                 = "currEquipmentName2"
+	positionName               = "Position"
+	portName1                  = "port1"
+	portName2                  = "port2"
+	portName3                  = "port3"
+	propNameStr                = "propNameStr"
+	propNameDate               = "propNameDate"
+	propNameBool               = "propNameBool"
+	propNameInt                = "propNameInt"
+	externalIDL                = "11"
+	externalIDM                = "22"
+	lat                        = 32.109
+	long                       = 34.855
+	newPropNameStr             = "newPropNameStr"
+	propDefValue               = "defaultVal"
+	propDefValue2              = "defaultVal2"
+	propDevValInt              = 15
+	propInstanceValue          = "newVal"
+	locTypeNameL               = "locTypeLarge"
+	locTypeNameM               = "locTypeMedium"
+	locTypeNameS               = "locTypeSmall"
+	grandParentLocation        = "grandParentLocation"
+	parentLocation             = "parentLocation"
+	childLocation              = "childLocation"
+	MethodAdd           method = "ADD"
+	MethodEdit          method = "EDIT"
 )
+
+type method string
 
 func TestMain(m *testing.M) {
 	flag.Parse()
@@ -98,6 +102,15 @@ func newResolver(t *testing.T, drv dialect.Driver) (*TestExporterResolver, error
 	return &TestExporterResolver{r, drv, client, e}, nil
 }
 
+/*
+	helper: data now is of type:
+	loc(grandParent):
+		loc(parent):
+			loc(child):
+					parentEquipment(equipmentType): with portType1 (has 2 string props)
+					childEquipment(equipmentType2): (no props props)
+					these ports are linked together
+*/
 func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	mr := r.Mutation()
 

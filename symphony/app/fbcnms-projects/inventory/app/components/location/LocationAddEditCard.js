@@ -162,6 +162,10 @@ const locationAddEditCardQuery = graphql`
             id
             name
           }
+          serviceValue {
+            id
+            name
+          }
         }
       }
     }
@@ -370,12 +374,17 @@ class LocationAddEditCard extends React.Component<Props, State> {
       }
 
       const parentProxy = store.get(parentId);
-      parentProxy.setValue(
-        parentProxy.getValue('numChildren') + 1,
-        'numChildren',
-      );
-      const currNodes = parentProxy.getLinkedRecords('children') || [];
-      parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
+      const currNodes = parentProxy.getLinkedRecords('children');
+      const parentLoaded =
+        currNodes !== null &&
+        (currNodes.length === 0 || !!currNodes.find(node => node != undefined));
+      if (parentLoaded) {
+        parentProxy.setLinkedRecords([...currNodes, newNode], 'children');
+        parentProxy.setValue(
+          parentProxy.getValue('numChildren') + 1,
+          'numChildren',
+        );
+      }
     };
 
     AddLocationMutation(variables, callbacks, updater);

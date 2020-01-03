@@ -26,7 +26,6 @@ const COLLIDE_RADIUS = 1;
 const LINK_DISTANCE = 200;
 const NODE_RADIUS = 20;
 const PADDING = 24;
-const TEXT_FONT_SIZE = 12;
 
 const styles = theme => ({
   root: {
@@ -55,26 +54,12 @@ const styles = theme => ({
     stroke: theme.palette.grey[300],
     strokeWidth: 1,
   },
-  nodeText: {
-    ...symphony.typography.caption,
-    fontWeight: 500,
-    fill: symphony.palette.D900,
-    fontSize: TEXT_FONT_SIZE,
-    cursor: 'pointer',
-    pointerEvents: 'none',
-    stroke: 'none',
-    textAnchor: 'middle',
-  },
-  nodeRect: {
-    fill: symphony.palette.D10,
-  },
 });
 
 type Props = {
   topology: ForceNetworkTopology_topology,
   className?: string,
   renderNode: (id: string) => React.Node,
-  renderNodeName: (id: string) => string,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -98,14 +83,17 @@ class ForceNetworkTopology extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.topology === prevProps.topology) {
+    if (
+      this.props.topology === prevProps.topology &&
+      this.props.renderNode === prevProps.renderNode
+    ) {
       return;
     }
     this.calculateGraph();
   }
 
   calculateGraph() {
-    const {classes, topology, renderNode, renderNodeName} = this.props;
+    const {classes, topology, renderNode} = this.props;
 
     const container = nullthrows(this._topologyContainer?.current);
     const height = container.clientHeight - PADDING;
@@ -169,30 +157,19 @@ class ForceNetworkTopology extends React.Component<Props, State> {
       .attr('height', NODE_RADIUS * 2)
       .call(this._drag(simulation));
 
-    const newNode = node.append('g').attr('transform', 'translate(-8 -8)');
-
-    newNode.html(d => renderToStaticMarkup(renderNode(d.id)));
-
-    const text = newNode
-      .append('text')
-      .text(d => renderNodeName(d.id))
-      .attr('transform', 'translate(8 40)')
-      .attr('class', classes.nodeText);
-
+    const newNode = node.html(d => renderToStaticMarkup(renderNode(d.id)));
+    const text = newNode.select('text');
     const textBoxes = text.nodes().map(node => node.getBBox());
-
     newNode
-      .insert('rect', 'text')
+      .select('#textBox')
+      .select('rect')
       .attr(
         'transform',
-        (d, i) => `translate(-${textBoxes[i].width / 2 + 6} 24)`,
+        (d, i) => `translate(-${textBoxes[i].width / 2 + 16} -16)`,
       )
-      .attr('rx', 10)
-      .attr('ry', 10)
       .data(textBoxes)
       .attr('width', (d, i) => textBoxes[i].width + 30)
-      .attr('height', (d, i) => textBoxes[i].height + 12)
-      .attr('class', classes.nodeRect);
+      .attr('height', (d, i) => textBoxes[i].height + 12);
 
     const positionNodes = () => {
       node.attr('transform', d => `translate(${d.x} ${d.y})`);

@@ -16,7 +16,6 @@ const useStyles = makeStyles(theme => ({
     background: theme.palette.background.default,
     padding: 0,
     border: 0,
-    margin: '10px',
     borderStyle: 'solid',
     borderRadius: '4px',
     display: 'inline-block',

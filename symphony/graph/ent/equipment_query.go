@@ -22,7 +22,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
-	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -141,18 +140,6 @@ func (eq *EquipmentQuery) QueryProperties() *PropertyQuery {
 		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipment.PropertiesTable, equipment.PropertiesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
-	return query
-}
-
-// QueryService chains the current query on the service edge.
-func (eq *EquipmentQuery) QueryService() *ServiceQuery {
-	query := &ServiceQuery{config: eq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, eq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
 	)
 	query.sql = sqlgraph.SetNeighbors(eq.driver.Dialect(), step)
 	return query

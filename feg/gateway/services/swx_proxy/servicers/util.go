@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -191,15 +191,15 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
     RETURNok) {
     OAILOG_DEBUG(
       LOG_MME_APP,
-      "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: "
-      "%s %d \n",
+      "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
+      " imsi_len: %d \n",
       imsi,
       imsi_len);
   } else {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to send ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: "
-      "%s %d \n",
+      "Failed to send ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
+      " imsi_len: %d \n",
       imsi,
       imsi_len);
   }
@@ -603,7 +603,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     OAILOG_DEBUG(
       LOG_MME_APP,
       "MME APP : Sent SGsAP Location Update Request and Started Ts6-1 timer "
-      "for UE id  %d \n",
+      "for ue_id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -662,15 +662,15 @@ int mme_app_handle_sgsap_location_update_acc(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-/*******************************************************************************
+/******************************************************************************
  **
- ** Name:                mme_app_handle_sgs_location_update_rej()             **
- ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ               **
- **                      Based on the state, invoke state machine handlers    **
- **                                                                           **
- ** Inputs:              nas_sgs_location_update_rej                          **
+ ** Name:                mme_app_handle_sgs_location_update_rej()            **
+ ** Description          Upon receiving SGS_LOCATION_UPDATE_REJ              **
+ **                      Based on the state, invoke state machine handlers   **
+ **                                                                          **
+ ** Inputs:              nas_sgs_location_update_rej                         **
  **
-********************************************************************************/
+*******************************************************************************/
 int mme_app_handle_sgsap_location_update_rej(
   mme_app_desc_t* mme_app_desc_p,
   itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej)
@@ -718,15 +718,15 @@ int mme_app_handle_sgsap_location_update_rej(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-/**********************************************************************************
+/******************************************************************************
  **
- ** Name:                sgs_fsm_null_loc_updt_acc()                             **
- ** Description          Handling of SGS_LOCATION UPDATE ACCEPT in NULL          **
- **                      state                                                   **
- **                                                                              **
- ** Inputs:              sgs_fsm_t                                               **
- **                                                                              **
-***********************************************************************************/
+ ** Name:                sgs_fsm_null_loc_updt_acc()                         **
+ ** Description          Handling of SGS_LOCATION UPDATE ACCEPT in NULL      **
+ **                      state                                               **
+ **                                                                          **
+ ** Inputs:              sgs_fsm_t                                           **
+ **                                                                          **
+*******************************************************************************/
 int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt)
 {
   int rc = RETURNok;

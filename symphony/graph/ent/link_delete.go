@@ -10,6 +10,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -41,23 +43,23 @@ func (ld *LinkDelete) ExecX(ctx context.Context) int {
 }
 
 func (ld *LinkDelete) sqlExec(ctx context.Context) (int, error) {
-	var (
-		res     sql.Result
-		builder = sql.Dialect(ld.driver.Dialect())
-	)
-	selector := builder.Select().From(sql.Table(link.Table))
-	for _, p := range ld.predicates {
-		p(selector)
+	spec := &sqlgraph.DeleteSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table: link.Table,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: link.FieldID,
+			},
+		},
 	}
-	query, args := builder.Delete(link.Table).FromSelect(selector).Query()
-	if err := ld.driver.Exec(ctx, query, args, &res); err != nil {
-		return 0, err
+	if ps := ld.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
 	}
-	affected, err := res.RowsAffected()
-	if err != nil {
-		return 0, err
-	}
-	return int(affected), nil
+	return sqlgraph.DeleteNodes(ctx, ld.driver, spec)
 }
 
 // LinkDeleteOne is the builder for deleting a single Link entity.

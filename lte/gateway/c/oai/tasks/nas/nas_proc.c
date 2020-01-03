@@ -767,6 +767,7 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
 /****************************************************************************
  **                                                                        **
  ** Name:    nas_proc_cs_service_notification()                            **
@@ -783,7 +784,6 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-
 int nas_proc_cs_service_notification(
   mme_ue_s1ap_id_t ue_id,
   uint8_t paging_id,
@@ -899,11 +899,10 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental)
       default: break;
     }
   }
-
   return NAS_CAUSE_NETWORK_FAILURE;
 }
 
-/* Handle CS domain MM-Information request from MSC/VLR */
+// Handle CS domain MM-Information request from MSC/VLR
 
 int nas_proc_cs_domain_mm_information_request(
   itti_sgsap_mm_information_req_t *const mm_information_req_pP)
@@ -917,7 +916,6 @@ int nas_proc_cs_domain_mm_information_request(
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
-
 
 /****************************************************************************
  **                                                                        **

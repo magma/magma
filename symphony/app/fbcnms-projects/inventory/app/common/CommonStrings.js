@@ -20,6 +20,16 @@ const Strings = {
       'Unassigned',
       'Text to be displayed in case an assignable item was not assigned yet',
     )}`,
+    cancelButton: `${fbt(
+      'Cancel',
+      'Text for button that cancels current operation',
+    )}`,
+    nextButton: `${fbt('Next', 'Text for button that go to next operation')}`,
+    backButton: `${fbt(
+      'Back',
+      'Text for button that go to previous operation',
+    )}`,
+    addButton: `${fbt('Add', 'Text for button that adds an item')}`,
   },
 };
 

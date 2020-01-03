@@ -16,7 +16,8 @@
 import type { ReaderFragment } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
-export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "string" | "%future added value";
+export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type EquipmentPortsTable_port$ref: FragmentReference;
@@ -166,9 +167,14 @@ export type EquipmentPortsTable_port = {|
         +id: string,
         +name: string,
       |},
+      +serviceValue: ?{|
+        +id: string,
+        +name: string,
+      |},
     |}>,
     +services: $ReadOnlyArray<?{|
-      +id: string
+      +id: string,
+      +name: string,
     |}>,
   |},
   +properties: $ReadOnlyArray<{|
@@ -197,6 +203,16 @@ export type EquipmentPortsTable_port = {|
     +locationValue: ?{|
       +id: string,
       +name: string,
+    |},
+    +serviceValue: ?{|
+      +id: string,
+      +name: string,
+    |},
+  |}>,
+  +serviceEndpoints: $ReadOnlyArray<{|
+    +role: ServiceEndpointRole,
+    +service: {|
+      +name: string
     |},
   |}>,
   +$refType: EquipmentPortsTable_port$ref,
@@ -432,6 +448,16 @@ v22 = {
       "concreteType": "Location",
       "plural": false,
       "selections": (v18/*: any*/)
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceValue",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "Service",
+      "plural": false,
+      "selections": (v18/*: any*/)
     }
   ]
 };
@@ -649,16 +675,44 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": true,
-          "selections": [
-            (v0/*: any*/)
-          ]
+          "selections": (v18/*: any*/)
         }
       ]
     },
-    (v22/*: any*/)
+    (v22/*: any*/),
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "serviceEndpoints",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ServiceEndpoint",
+      "plural": true,
+      "selections": [
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "role",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "LinkedField",
+          "alias": null,
+          "name": "service",
+          "storageKey": null,
+          "args": null,
+          "concreteType": "Service",
+          "plural": false,
+          "selections": [
+            (v1/*: any*/)
+          ]
+        }
+      ]
+    }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '0e65bfca0c169e994ba481bb9bbd4f0f';
+(node/*: any*/).hash = '187128933f87bbeaf4e56c9e7f988232';
 module.exports = node;

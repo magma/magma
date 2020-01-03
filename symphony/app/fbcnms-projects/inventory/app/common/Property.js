@@ -29,6 +29,7 @@ export type Property = {|
   rangeToValue?: ?number,
   equipmentValue?: ?{id: string, name: string},
   locationValue?: ?{id: string, name: string},
+  serviceValue?: ?{id: string, name: string},
   isInstanceProperty?: ?boolean,
 |};
 
@@ -87,6 +88,8 @@ export const getPropertyValue = (property: Property | PropertyType) => {
         return property.propertyType ? property.equipmentValue?.name : null;
       case 'location':
         return property.propertyType ? property.locationValue?.name : null;
+      case 'service':
+        return property.propertyType ? property.serviceValue?.name : null;
     }
   }
 };
@@ -114,5 +117,7 @@ export const toPropertyInput = (properties: Array<Property>): Array<any> => {
       equipmentIDValue: property.equipmentValue?.id ?? null,
       locationValue: undefined,
       locationIDValue: property.locationValue?.id ?? null,
+      serviceValue: undefined,
+      serviceIDValue: property.serviceValue?.id ?? null,
     }));
 };

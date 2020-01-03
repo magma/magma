@@ -79,12 +79,14 @@ void itti_free_msg_content(MessageDef* const message_p)
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
       itti_mme_app_connection_establishment_cnf_t mme_app_est_cnf = {0};
       mme_app_est_cnf = message_p->ittiMsg.mme_app_connection_establishment_cnf;
-      bdestroy_wrapper(&mme_app_est_cnf.nas_pdu[0]);
+      for (uint8_t index = 0; index < BEARERS_PER_UE; index++) {
+        bdestroy_wrapper(&mme_app_est_cnf.nas_pdu[index]);
+      }
       for (uint8_t index = 0; index < mme_app_est_cnf.no_of_e_rabs; index++) {
         bdestroy_wrapper(&(mme_app_est_cnf.transport_layer_address[index]));
       }
-      break;
-    }
+      bdestroy_wrapper(&mme_app_est_cnf.ue_radio_capability);
+    } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: break;
 

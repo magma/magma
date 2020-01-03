@@ -13,6 +13,7 @@ import (
 
 	"contrib.go.opencensus.io/integrations/ocsql"
 	"github.com/facebookincubator/symphony/pkg/log"
+	"github.com/facebookincubator/symphony/pkg/telemetry"
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )
@@ -56,5 +57,8 @@ func (connector) Driver() driver.Driver {
 		ocsql.WithRowsClose(false),
 		ocsql.WithRowsNext(false),
 		ocsql.WithDisableErrSkip(true),
+		ocsql.WithSampler(
+			telemetry.WithoutNameSampler("sql:prepare"),
+		),
 	)
 }

@@ -167,6 +167,12 @@ type AddProjectTypeInput struct {
 	WorkOrders  []*WorkOrderDefinitionInput `json:"workOrders"`
 }
 
+type AddServiceEndpointInput struct {
+	ID     string              `json:"id"`
+	PortID string              `json:"portId"`
+	Role   ServiceEndpointRole `json:"role"`
+}
+
 type AddWorkOrderInput struct {
 	Name            string                `json:"name"`
 	Description     *string               `json:"description"`
@@ -516,6 +522,7 @@ type PropertyInput struct {
 	RangeToValue       *float64 `json:"rangeToValue"`
 	EquipmentIDValue   *string  `json:"equipmentIDValue"`
 	LocationIDValue    *string  `json:"locationIDValue"`
+	ServiceIDValue     *string  `json:"serviceIDValue"`
 	IsEditable         *bool    `json:"isEditable"`
 	IsInstanceProperty *bool    `json:"isInstanceProperty"`
 }
@@ -565,25 +572,23 @@ type SearchEntryEdge struct {
 }
 
 type ServiceCreateData struct {
-	Name                string           `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	Status              *ServiceStatus   `json:"status"`
-	ServiceTypeID       string           `json:"serviceTypeId"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	Name               string           `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	ServiceTypeID      string           `json:"serviceTypeId"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceEditData struct {
-	ID                  string           `json:"id"`
-	Name                *string          `json:"name"`
-	ExternalID          *string          `json:"externalId"`
-	Status              *ServiceStatus   `json:"status"`
-	CustomerID          *string          `json:"customerId"`
-	UpstreamServiceIds  []string         `json:"upstreamServiceIds"`
-	Properties          []*PropertyInput `json:"properties"`
-	TerminationPointIds []string         `json:"terminationPointIds"`
+	ID                 string           `json:"id"`
+	Name               *string          `json:"name"`
+	ExternalID         *string          `json:"externalId"`
+	Status             *ServiceStatus   `json:"status"`
+	CustomerID         *string          `json:"customerId"`
+	UpstreamServiceIds []string         `json:"upstreamServiceIds"`
+	Properties         []*PropertyInput `json:"properties"`
 }
 
 type ServiceFilterInput struct {
@@ -1219,6 +1224,7 @@ const (
 	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
 	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
 	PortFilterTypeProperty          PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1227,11 +1233,12 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
 	PortFilterTypeProperty,
+	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false
@@ -1358,6 +1365,7 @@ const (
 	PropertyKindGpsLocation   PropertyKind = "gps_location"
 	PropertyKindEquipment     PropertyKind = "equipment"
 	PropertyKindLocation      PropertyKind = "location"
+	PropertyKindService       PropertyKind = "service"
 	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
 )
 
@@ -1373,12 +1381,13 @@ var AllPropertyKind = []PropertyKind{
 	PropertyKindGpsLocation,
 	PropertyKindEquipment,
 	PropertyKindLocation,
+	PropertyKindService,
 	PropertyKindDatetimeLocal,
 }
 
 func (e PropertyKind) IsValid() bool {
 	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindDatetimeLocal:
+	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindEquipment, PropertyKindLocation, PropertyKindService, PropertyKindDatetimeLocal:
 		return true
 	}
 	return false
@@ -1405,6 +1414,47 @@ func (e PropertyKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+type ServiceEndpointRole string
+
+const (
+	ServiceEndpointRoleConsumer ServiceEndpointRole = "CONSUMER"
+	ServiceEndpointRoleProvider ServiceEndpointRole = "PROVIDER"
+)
+
+var AllServiceEndpointRole = []ServiceEndpointRole{
+	ServiceEndpointRoleConsumer,
+	ServiceEndpointRoleProvider,
+}
+
+func (e ServiceEndpointRole) IsValid() bool {
+	switch e {
+	case ServiceEndpointRoleConsumer, ServiceEndpointRoleProvider:
+		return true
+	}
+	return false
+}
+
+func (e ServiceEndpointRole) String() string {
+	return string(e)
+}
+
+func (e *ServiceEndpointRole) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ServiceEndpointRole(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ServiceEndpointRole", str)
+	}
+	return nil
+}
+
+func (e ServiceEndpointRole) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // what filters should we apply on services
 type ServiceFilterType string
 
@@ -1414,7 +1464,7 @@ const (
 	ServiceFilterTypeServiceType             ServiceFilterType = "SERVICE_TYPE"
 	ServiceFilterTypeServiceInstExternalID   ServiceFilterType = "SERVICE_INST_EXTERNAL_ID"
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
-	ServiceFilterTypeServiceInstProperty     ServiceFilterType = "SERVICE_INST_PROPERTY"
+	ServiceFilterTypeProperty                ServiceFilterType = "PROPERTY"
 	ServiceFilterTypeLocationInst            ServiceFilterType = "LOCATION_INST"
 	ServiceFilterTypeEquipmentInService      ServiceFilterType = "EQUIPMENT_IN_SERVICE"
 )
@@ -1425,14 +1475,14 @@ var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceType,
 	ServiceFilterTypeServiceInstExternalID,
 	ServiceFilterTypeServiceInstCustomerName,
-	ServiceFilterTypeServiceInstProperty,
+	ServiceFilterTypeProperty,
 	ServiceFilterTypeLocationInst,
 	ServiceFilterTypeEquipmentInService,
 }
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeServiceInstProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false

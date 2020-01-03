@@ -197,15 +197,18 @@ export default function InventoryTreeNode(props: Props) {
   } = props;
   const defaultIsSelected =
     extractEntityIdFromUrl('location', location.search) === element.id;
-  const defaultIsExpanded = selectedHierarchy.includes(props.element.id);
 
   const classes = useStyles();
   const {history} = useRouter();
 
-  const [userExpanded, setUserExpanded] = useState<?boolean>(null);
+  const [isExpanded, setIsExpanded] = useState<?boolean>(null);
   const [selected, setSelected] = useState(defaultIsSelected);
 
-  const isExpanded = userExpanded ?? defaultIsExpanded;
+  useEffect(() => {
+    if (selectedHierarchy.includes(element.id)) {
+      setIsExpanded(true);
+    }
+  }, [selectedHierarchy, element.id]);
 
   useEffect(() => {
     const unlistener = history.listen(location => {
@@ -240,7 +243,7 @@ export default function InventoryTreeNode(props: Props) {
           <ArrowRightIcon
             data-testid={'inventory-expand-' + element.id}
             className={classes.arrowRightIcon}
-            onClick={() => setUserExpanded(!isExpanded)}
+            onClick={() => setIsExpanded(!isExpanded)}
           />
         ) : null}
         <div

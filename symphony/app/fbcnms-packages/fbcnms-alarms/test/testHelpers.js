@@ -8,6 +8,7 @@
  * @format
  */
 
+import {act, render} from '@testing-library/react';
 import type {ApiUtil} from '../components/AlarmsApi';
 
 /**
@@ -48,4 +49,13 @@ export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
     },
     merge || {},
   );
+}
+
+// eslint-disable-next-line flowtype/no-weak-types
+export async function renderAsync(...renderArgs: Array<any>): Promise<any> {
+  let result;
+  await act(async () => {
+    result = await render(...renderArgs);
+  });
+  return result;
 }

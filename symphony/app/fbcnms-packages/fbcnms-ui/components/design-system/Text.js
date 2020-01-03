@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import symphony from '../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles({
+export const typographyStyles = makeStyles({
   h1: symphony.typography.h1,
   h2: symphony.typography.h2,
   h3: symphony.typography.h3,
@@ -79,14 +79,14 @@ type Props = {
 
 const Text = (props: Props) => {
   const {children, variant, className, color, weight, ...rest} = props;
-  const classes = useStyles();
+  const classes = typographyStyles();
   return (
     <span
       {...rest}
       className={classNames(
         classes[variant],
         classes[`${color ?? 'regular'}Color`],
-        classes[`${weight ? weight : 'inhreit'}Weight`],
+        classes[`${weight ? weight : 'regular'}Weight`],
         className,
       )}>
       {children}

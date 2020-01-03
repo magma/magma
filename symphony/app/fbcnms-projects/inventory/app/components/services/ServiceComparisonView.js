@@ -9,8 +9,6 @@
  */
 
 import type {FilterConfig} from '../comparison_view/ComparisonViewTypes';
-import type {PropertyType} from '../../common/PropertyType';
-import type {ServiceComparisonViewQueryRendererPropertiesQueryResponse} from './__generated__/ServiceComparisonViewQueryRendererPropertiesQuery.graphql.js';
 
 import AddServiceDialog from './AddServiceDialog';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -21,23 +19,20 @@ import CardFooter from '@fbcnms/ui/components/CardFooter';
 import InventoryErrorBoundary from '../../common/InventoryErrorBoundary';
 import PowerSearchBar from '../power_search/PowerSearchBar';
 import React, {useCallback, useContext, useMemo, useState} from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment';
 import ServiceCardQueryRenderer from './ServiceCardQueryRenderer';
 import ServiceComparisonViewQueryRenderer from './ServiceComparisonViewQueryRenderer';
 import symphony from '@fbcnms/ui/theme/symphony';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
+import usePropertyFilters from '../comparison_view/hooks/propertiesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
-import {SERVICE_PROPERTY_FILTER_NAME} from './PowerSearchServicePropertyFilter';
+import {ServiceSearchConfig} from './ServiceSearchConfig';
 import {
-  ServiceSearchConfig,
-  buildServicePropertyFilterConfigs,
-} from './ServiceSearchConfig';
+  buildPropertyFilterConfigs,
+  getPossibleProperties,
+  getSelectedFilter,
+} from '../comparison_view/FilterUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
-import {getInitialFilterValue} from '../comparison_view/FilterUtils';
-import {graphql} from 'relay-runtime';
-import {groupBy} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
-import {useGraphQL} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
   cardRoot: {
@@ -73,41 +68,6 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
-const servicePropertiesQuery = graphql`
-  query ServiceComparisonViewQueryRendererPropertiesQuery {
-    possibleProperties(entityType: SERVICE) {
-      name
-      type
-      stringValue
-    }
-  }
-`;
-
-function getPossibleProperties(
-  data: ?ServiceComparisonViewQueryRendererPropertiesQueryResponse,
-): Array<PropertyType> {
-  if (data == null || data.possibleProperties == null) {
-    return [];
-  }
-  const propertiesGroup: {[string]: Array<PropertyType>} = groupBy(
-    data.possibleProperties
-      .filter(prop => prop.type !== 'gps_location' && prop.type !== 'range')
-      .map((prop, index) => ({
-        id: prop.name + prop.type,
-        type: prop.type,
-        name: prop.name,
-        index: index,
-        stringValue: prop.stringValue,
-      })),
-    prop => prop.name + prop.type,
-  );
-  const supportedProperties: Array<PropertyType> = [];
-  for (const k in propertiesGroup) {
-    supportedProperties.push(propertiesGroup[k][0]);
-  }
-  return supportedProperties;
-}
-
 const QUERY_LIMIT = 100;
 
 const ServiceComparisonView = () => {
@@ -127,15 +87,11 @@ const ServiceComparisonView = () => {
     [location],
   );
 
-  const serviceDataResponse = useGraphQL(
-    RelayEnvironment,
-    servicePropertiesQuery,
-    {},
-  );
+  const serviceDataResponse = usePropertyFilters('service');
   const possibleProperties = getPossibleProperties(
     serviceDataResponse.response,
   );
-  const servicePropertiesFilterConfigs = buildServicePropertyFilterConfigs(
+  const servicePropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
 
@@ -183,16 +139,7 @@ const ServiceComparisonView = () => {
                   filterConfigs={filterConfigs}
                   searchConfig={ServiceSearchConfig}
                   getSelectedFilter={(filterConfig: FilterConfig) =>
-                    getInitialFilterValue(
-                      filterConfig.key,
-                      filterConfig.name,
-                      filterConfig.defaultOperator,
-                      filterConfig.name === SERVICE_PROPERTY_FILTER_NAME
-                        ? possibleProperties.find(
-                            propDef => propDef.name === filterConfig.label,
-                          )
-                        : null,
-                    )
+                    getSelectedFilter(filterConfig, possibleProperties)
                   }
                   onFiltersChanged={filters => setFilters(filters)}
                   filters={filters}
