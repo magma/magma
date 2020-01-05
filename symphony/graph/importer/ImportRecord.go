@@ -7,6 +7,8 @@ package importer
 import (
 	"context"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -22,11 +24,12 @@ type ImportRecord struct {
 	title ImportHeader
 }
 
-type LinkPortData struct {
+// PortData is the data structure for PortData function
+type PortData struct {
 	ID                string
 	Name              string
 	TypeName          string
-	EquipmentID       string
+	EquipmentID       *string
 	EquipmentName     string
 	EquipmentTypeName string
 }
@@ -180,10 +183,20 @@ func (l ImportRecord) Status() string {
 	return l.line[l.title.StatusIdx()]
 }
 
-func (l ImportRecord) LinkPortData(side string) (*LinkPortData, error) {
-	if l.title.entity == ImportEntityLink {
+// PortData returns the relevant info for the port from the CSV
+func (l ImportRecord) PortData(side *string) (*PortData, error) {
+	switch l.title.entity {
+	case ImportEntityPort:
+		return &PortData{
+			ID:                l.ID(),
+			Name:              l.Name(),
+			TypeName:          l.TypeName(),
+			EquipmentName:     l.PortEquipmentName(),
+			EquipmentTypeName: l.PortEquipmentTypeName(),
+		}, nil
+	case ImportEntityLink:
 		var idIndex int
-		switch side {
+		switch *side {
 		case "A":
 			idIndex = l.title.PortAIDIdx()
 		case "B":
@@ -191,11 +204,11 @@ func (l ImportRecord) LinkPortData(side string) (*LinkPortData, error) {
 		default:
 			return nil, errors.New("missing port side")
 		}
-		return &LinkPortData{
+		return &PortData{
 			ID:                l.line[idIndex],
 			Name:              l.line[idIndex+1],
 			TypeName:          l.line[idIndex+2],
-			EquipmentID:       l.line[idIndex+3],
+			EquipmentID:       pointer.ToString(l.line[idIndex+3]),
 			EquipmentName:     l.line[idIndex+4],
 			EquipmentTypeName: l.line[idIndex+5],
 		}, nil

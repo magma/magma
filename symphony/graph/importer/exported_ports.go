@@ -140,40 +140,18 @@ func (m *importer) validateLineForExistingPort(ctx context.Context, portID strin
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment port")
 	}
-	def, err := port.QueryDefinition().Only(ctx)
+	portData, err := importLine.PortData(nil)
 	if err != nil {
-		return nil, errors.Wrapf(err, "fetching equipment port definition")
-	}
-	if def.Name != importLine.Name() {
-		return nil, errors.Wrapf(err, "wrong port type. should be %q, but %q", importLine.TypeName(), def.Name)
-	}
-	portType, err := def.QueryEquipmentPortType().Only(ctx)
-	if ent.MaskNotFound(err) != nil {
-		return nil, errors.Wrapf(err, "fetching equipment port type")
-	}
-	var tempPortType string
-	if ent.IsNotFound(err) {
-		tempPortType = ""
-	} else {
-		tempPortType = portType.Name
-	}
-	if tempPortType != importLine.TypeName() {
-		return nil, errors.Wrapf(err, "wrong port type. should be %q, but %q", importLine.TypeName(), tempPortType)
+		return nil, errors.New("error while calculating port data")
 	}
 
+	err = m.validatePort(ctx, *portData, *port)
+	if err != nil {
+		return nil, err
+	}
 	equipment, err := port.QueryParent().Only(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "fetching equipment for port")
-	}
-	if equipment.Name != importLine.PortEquipmentName() {
-		return nil, errors.Wrapf(err, "wrong equipment. should be %q, but %q", importLine.PortEquipmentName(), equipment.Name)
-	}
-	equipmentType, err := equipment.QueryType().Only(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "fetching equipment type for equipment")
-	}
-	if equipmentType.Name != importLine.PortEquipmentTypeName() {
-		return nil, errors.Wrapf(err, "wrong equipment type. should be %q, but %q", importLine.PortEquipmentTypeName(), equipmentType.Name)
 	}
 	err = m.verifyPositionHierarchy(ctx, equipment, importLine)
 	if err != nil {

@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -129,11 +131,11 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 	if len(ports) != 2 {
 		return nil, errors.New("link must have two ports")
 	}
-	portAData, err := importLine.LinkPortData("A")
+	portAData, err := importLine.PortData(pointer.ToString("A"))
 	if err != nil {
 		return nil, errors.New("error while calculating port A data")
 	}
-	portBData, err := importLine.LinkPortData("B")
+	portBData, err := importLine.PortData(pointer.ToString("B"))
 	if err != nil {
 		return nil, errors.New("error while calculating port B data")
 	}
@@ -142,35 +144,24 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 		return nil, errors.New("same port for Port A and port B")
 	}
 	for _, port := range ports {
-		var portData LinkPortData
 		switch port.ID {
 		case portAData.ID:
-			portData = *portAData
+			err = m.validatePort(ctx, *portAData, *port)
 		case portBData.ID:
-			portData = *portBData
+			err = m.validatePort(ctx, *portBData, *port)
 		default:
 			return nil, errors.Errorf("missing port %v on file for link %v", port.ID, linkID)
+		}
+		if err != nil {
+			return nil, err
 		}
 		def, err := port.QueryDefinition().Only(ctx)
 		if err != nil {
 			return nil, errors.Wrapf(err, "fetching equipment port definition")
 		}
-		if def.Name != portData.Name {
-			return nil, errors.Wrapf(err, "wrong port type. should be %q, but %q", def.Name, portData.Name)
-		}
 		portType, err := def.QueryEquipmentPortType().Only(ctx)
 		if ent.MaskNotFound(err) != nil {
 			return nil, errors.Wrapf(err, "fetching equipment port type")
-		}
-
-		var portTypeName string
-		if ent.IsNotFound(err) {
-			portTypeName = ""
-		} else {
-			portTypeName = portType.Name
-		}
-		if portTypeName != portData.TypeName {
-			return nil, errors.Wrapf(err, "wrong port type. should be %q, but %q", portTypeName, portData.TypeName)
 		}
 		if portType != nil {
 			for propTypName, value := range importLine.PropertiesMap() {
@@ -183,24 +174,6 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 					}
 				}
 			}
-		}
-
-		equipment, err := port.QueryParent().Only(ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "fetching equipment for port")
-		}
-		if equipment.Name != portData.EquipmentName {
-			return nil, errors.Wrapf(err, "wrong equipment name. should be %q, but %q", equipment.Name, portData.EquipmentName)
-		}
-		if equipment.ID != portData.EquipmentID {
-			return nil, errors.Wrapf(err, "wrong equipment ID. should be %q, but %q", equipment.ID, portData.EquipmentID)
-		}
-		equipmentType, err := equipment.QueryType().Only(ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "fetching equipment type for equipment")
-		}
-		if equipmentType.Name != portData.EquipmentTypeName {
-			return nil, errors.Wrapf(err, "wrong equipment type. should be %q, but %q", equipmentType.Name, portData.EquipmentTypeName)
 		}
 	}
 	return link, nil
