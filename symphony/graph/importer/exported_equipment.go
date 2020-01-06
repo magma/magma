@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
@@ -167,6 +166,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					}
 					inputs = append(inputs, inp)
 				}
+				count++
 				_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
 				if err != nil {
 					log.Warn("editing equipment", zap.Error(err), importLine.ZapField())
@@ -178,8 +178,11 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	}
 	log.Debug("Exported Equipment - Done")
 	w.WriteHeader(http.StatusOK)
-	msg := fmt.Sprintf("Created %q instances, out of %q", strconv.FormatInt(int64(count), 10), strconv.FormatInt(int64(numRows), 10))
-	w.Write([]byte(msg))
+	err := writeSuccessMessage(w, count, numRows)
+	if err != nil {
+		errorReturn(w, "cannot marshal message", log, err)
+		return
+	}
 }
 
 func (m *importer) validateLineForExistingEquipment(ctx context.Context, equipID string, importLine ImportRecord) (*ent.Equipment, error) {

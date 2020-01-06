@@ -12,7 +12,6 @@ import (
 
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -159,8 +158,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	msg := fmt.Sprintf("Created %q instances, out of %q", strconv.FormatInt(int64(count), 10), strconv.FormatInt(int64(numRows), 10))
-	w.Write([]byte(msg))
+	err := writeSuccessMessage(w, count, numRows)
+	if err != nil {
+		errorReturn(w, "cannot marshal message", log, err)
+		return
+	}
 }
 
 func (m *importer) validateLineForExistingService(ctx context.Context, serviceID string, importLine ImportRecord) (*ent.Service, error) {

@@ -6,7 +6,9 @@ package importer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -31,6 +33,27 @@ const (
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
 )
+
+// SuccessMessage is the type returns to client on success import
+type SuccessMessage struct {
+	MessageCode  int `json:"messageCode"`
+	SuccessLines int `json:"successLines"`
+	AllLines     int `json:"allLines"`
+}
+
+func writeSuccessMessage(w http.ResponseWriter, success, all int) error {
+	w.Header().Set("Content-Type", "application/json")
+	msg, err := json.Marshal(SuccessMessage{
+		MessageCode:  int(SuccessfullyUploaded),
+		SuccessLines: success,
+		AllLines:     all,
+	})
+	if err != nil {
+		return err
+	}
+	w.Write(msg)
+	return nil
+}
 
 // nolint: unparam
 func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int, locations []string, ignoreHierarchy bool) error {
