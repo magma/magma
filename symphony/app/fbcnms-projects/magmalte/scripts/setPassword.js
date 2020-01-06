@@ -39,6 +39,7 @@ async function createUser(userObject: UserObject) {
     email: email.toLowerCase(),
     password: passwordHash,
     role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
+    readOnly: false,
   });
 }
 

@@ -45,6 +45,7 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
 		trace.StringAttribute("viewer.tenant", v.Tenant),
 		trace.StringAttribute("viewer.user", v.User),
+		trace.BoolAttribute("viewer.readonly", v.ReadOnly),
 	}
 }
 
