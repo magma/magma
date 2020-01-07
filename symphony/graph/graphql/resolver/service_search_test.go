@@ -420,7 +420,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, all.Services, 2)
 	f := models.ServiceFilterInput{
-		FilterType: models.ServiceFilterTypeServiceInstProperty,
+		FilterType: models.ServiceFilterTypeProperty,
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "service_str_prop",

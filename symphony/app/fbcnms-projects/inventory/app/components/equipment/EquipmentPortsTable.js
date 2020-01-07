@@ -318,6 +318,11 @@ const EquipmentPortsTable = (props: Props) => {
                           port.link.services.map(service => (
                             <Box>{service.name}</Box>
                           ))}
+                        {port.serviceEndpoints.map(endpoint => (
+                          <Box>{`${endpoint.service.name}: ${lowerCase(
+                            endpoint.role,
+                          )}`}</Box>
+                        ))}
                       </TableCell>
                     )}
                     {linkStatusEnabled && (
@@ -457,6 +462,12 @@ graphql`
     }
     properties {
       ...PropertyFormField_property @relay(mask: false)
+    }
+    serviceEndpoints {
+      role
+      service {
+        name
+      }
     }
   }
 `;

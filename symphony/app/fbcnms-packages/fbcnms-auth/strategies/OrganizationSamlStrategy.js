@@ -60,6 +60,7 @@ export default function OrganizationSamlStrategy(config: Config) {
             // Hardcoded role for now, should be configurable
             role: AccessRoles.SUPERUSER,
             ssoDefaultNetworkIDs,
+            readOnly: false,
           });
           user = await User.create(createArgs);
         }

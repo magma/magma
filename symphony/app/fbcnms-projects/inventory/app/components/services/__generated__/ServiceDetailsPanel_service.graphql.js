@@ -42,6 +42,7 @@ export type ServiceDetailsPanel_service = {|
       +longitudeValue: ?number,
       +rangeFromValue: ?number,
       +rangeToValue: ?number,
+      +isMandatory: ?boolean,
     |}>,
   |},
   +properties: $ReadOnlyArray<?{|
@@ -171,7 +172,14 @@ v11 = {
   "args": null,
   "storageKey": null
 },
-v12 = [
+v12 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isMandatory",
+  "args": null,
+  "storageKey": null
+},
+v13 = [
   (v0/*: any*/),
   (v1/*: any*/)
 ];
@@ -241,7 +249,8 @@ return {
             (v8/*: any*/),
             (v9/*: any*/),
             (v10/*: any*/),
-            (v11/*: any*/)
+            (v11/*: any*/),
+            (v12/*: any*/)
           ]
         }
       ]
@@ -276,13 +285,7 @@ return {
               "storageKey": null
             },
             (v2/*: any*/),
-            {
-              "kind": "ScalarField",
-              "alias": null,
-              "name": "isMandatory",
-              "args": null,
-              "storageKey": null
-            },
+            (v12/*: any*/),
             (v4/*: any*/)
           ]
         },
@@ -302,7 +305,7 @@ return {
           "args": null,
           "concreteType": "Equipment",
           "plural": false,
-          "selections": (v12/*: any*/)
+          "selections": (v13/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -312,7 +315,7 @@ return {
           "args": null,
           "concreteType": "Location",
           "plural": false,
-          "selections": (v12/*: any*/)
+          "selections": (v13/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -322,7 +325,7 @@ return {
           "args": null,
           "concreteType": "Service",
           "plural": false,
-          "selections": (v12/*: any*/)
+          "selections": (v13/*: any*/)
         }
       ]
     }
@@ -330,5 +333,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '676fbae125b6fd1111f3a3c4aceb9c00';
+(node/*: any*/).hash = 'bdb3a82d89b11109f9cf4200d4e85e78';
 module.exports = node;

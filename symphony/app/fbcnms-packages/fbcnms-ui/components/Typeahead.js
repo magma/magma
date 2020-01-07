@@ -43,11 +43,9 @@ const autoSuggestStyles = theme => ({
     fontFamily: theme.typography.subtitle1.fontFamily,
     fontSize: theme.typography.subtitle1.fontSize,
     fontWeight: theme.typography.subtitle1.fontWeight,
-    position: 'absolute',
-    top: '32px',
-    minWidth: '100%',
-    zIndex: '2',
+    position: 'fixed',
     boxShadow: theme.shadows[2],
+    zIndex: 2,
   },
   suggestionsList: {
     margin: 0,

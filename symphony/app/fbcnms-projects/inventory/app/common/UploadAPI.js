@@ -23,5 +23,6 @@ export const UploadAPIUrls = {
   rural_legacy_locations: () => '/graph/import/rural_legacy_locations',
   exported_equipment: () => '/graph/import/export_equipment',
   exported_ports: () => '/graph/import/export_ports',
+  exported_links: () => '/graph/import/export_links',
   exported_service: () => '/graph/import/export_service',
 };

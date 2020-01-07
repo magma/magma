@@ -267,6 +267,10 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 			if query, err = handleServiceFilter(query, f); err != nil {
 				return nil, err
 			}
+		case strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
+			if query, err = handleServicePropertyFilter(query, f); err != nil {
+				return nil, err
+			}
 		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
 			if query, err = handleServiceLocationFilter(query, f); err != nil {
 				return nil, err
