@@ -30,7 +30,7 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         ue_id = req.ue_id
         # Declare an array of len 15 as the bearer id ranges from 5-15
         length = 15
-        bearer_idx = [0]*length
+        bearer_idx = [0] * length
         print(
             "************************* Running End to End attach for UE id ",
             ue_id,
@@ -71,12 +71,14 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         pdn_disconnect_req.ue_Id = ue_id
         # Find an unassigned bearer id
         # Start from 5th index as the bearer id ranges from 5-15
-        for i in range(5,15):
-            if (bearer_idx[i]==0):
+        for i in range(5, 15):
+            if bearer_idx[i] == 0:
                 pdn_disconnect_req.epsBearerId = i
                 break
-        print("****** Sending PDN disconnect for bearer id",
-                pdn_disconnect_req.epsBearerId)
+        print(
+            "****** Sending PDN disconnect for bearer id",
+            pdn_disconnect_req.epsBearerId,
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
         )

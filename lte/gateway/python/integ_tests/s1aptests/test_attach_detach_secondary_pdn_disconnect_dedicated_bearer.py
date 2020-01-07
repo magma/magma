@@ -55,7 +55,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             )
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
-                attach_accept.esmInfo.epsBearerId
+                attach_accept.esmInfo.epsBearerId,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
