@@ -43,8 +43,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 		first, reader, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityLink)
 		if err != nil {
-			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
-			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 			return
 		}
 

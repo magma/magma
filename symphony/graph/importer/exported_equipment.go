@@ -42,8 +42,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		first, reader, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityEquipment)
 		if err != nil {
-			log.Warn("creating csv reader", zap.Error(err), zap.String("filename", fileName))
-			http.Error(w, fmt.Sprintf("cannot handle file: %q. file name: %q", err, fileName), http.StatusInternalServerError)
+			errorReturn(w, fmt.Sprintf("cannot handle file: %q", fileName), log, err)
 			return
 		}
 		//
@@ -51,8 +50,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		//	indexToLocationTypeID
 		//
 		if err = m.inputValidations(ctx, importHeader); err != nil {
-			log.Warn("first line validation error", zap.Error(err))
-			http.Error(w, fmt.Sprintf("first line validation error: %q", err), http.StatusBadRequest)
+			errorReturn(w, "first line validation error", log, err)
 			return
 		}
 		//
@@ -63,8 +61,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		//
 		err = m.populateEquipmentTypeNameToIDMap(ctx, importHeader, true)
 		if err != nil {
-			log.Warn("data fetching error", zap.Error(err))
-			http.Error(w, fmt.Sprintf("data fetching error: %s", err.Error()), http.StatusInternalServerError)
+			errorReturn(w, "data fetching error", log, err)
 			return
 		}
 		ic := getImportContext(ctx)
@@ -83,8 +80,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 			equipTypName := importLine.TypeName()
 			equipType, err := client.EquipmentType.Query().Where(equipmenttype.Name(equipTypName)).Only(ctx)
 			if err != nil {
-				log.Warn("couldn't find equipment type", zap.Error(err), zap.String("equipment_type", equipTypName))
-				http.Error(w, fmt.Sprintf("couldn't find equipment type %q (row #%d). %q ", equipTypName, numRows, err), http.StatusBadRequest)
+				errorReturn(w, fmt.Sprintf("couldn't find equipment type %q (row #%d) ", equipTypName, numRows), log, err)
 				return
 			}
 
@@ -94,14 +90,12 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				// new equip
 				parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, importLine)
 				if err != nil {
-					log.Warn("creating location hierarchy", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("creating location hierarchy (row #%d). %q", numRows, err), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("creating location hierarchy (row #%d).", numRows), log, err)
 					return
 				}
 				parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine)
 				if err != nil {
-					log.Warn("creating equipment hierarchy", zap.Error(err), zap.Int("line_number", numRows), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("creating equipment hierarchy (row #%d). %q", numRows, err), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("creating equipment hierarchy (row #%d)", numRows), log, err)
 					return
 				}
 				if parentEquipmentID != nil && positionDefinitionID != nil {
@@ -111,21 +105,18 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				if importLine.Len() > importHeader.PropertyStartIdx() {
 					propInputs, err = m.validatePropertiesForEquipmentType(ctx, importLine, equipType)
 					if err != nil {
-						log.Warn("validating property for type", zap.Error(err))
-						http.Error(w, fmt.Sprintf("validating property for type %q (row #%d). %q", equipType.Name, numRows, err.Error()), http.StatusBadRequest)
+						errorReturn(w, fmt.Sprintf("validating property for type %q (row #%d)", equipType.Name, numRows), log, err)
 						return
 					}
 				}
 				pos, err := resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID)
 				if err != nil {
-					log.Warn("creating equipment position", zap.Error(err), zap.Int("line_number", numRows), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("creating equipment position (row #%d). %q", numRows, err), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("creating equipment position (row #%d)", numRows), log, err)
 					return
 				}
 				equip, created, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), name, equipType, &externalID, parentLoc, pos, propInputs)
 				if err != nil {
-					log.Warn("creating/fetching equipment", zap.Error(err), zap.Int("line_number", numRows), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("creating/fetching equipment (row #%d). %q", numRows, err), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("creating/fetching equipment (row #%d)", numRows), log, err)
 					return
 				}
 				if created {
@@ -139,8 +130,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				// existingEquip
 				equipment, err := m.validateLineForExistingEquipment(ctx, id, importLine)
 				if err != nil {
-					log.Warn("validating existing equipment", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("%q: validating existing equipment: id %q (row #%d)", err, id, numRows), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("validating existing equipment: id %q (row #%d)", id, numRows), log, nil)
 					return
 				}
 				typ := equipment.QueryType().OnlyX(ctx)
@@ -150,15 +140,13 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					inp, err := importLine.GetPropertyInput(m.ClientFrom(ctx), ctx, typ, propName)
 					propType := typ.QueryPropertyTypes().Where(propertytype.Name(propName)).OnlyX(ctx)
 					if err != nil {
-						log.Warn("getting property input", zap.Error(err), importLine.ZapField())
-						http.Error(w, fmt.Sprintf("%q: getting property input: prop %q (row #%d)", err, propName, numRows), http.StatusBadRequest)
+						errorReturn(w, fmt.Sprintf("getting property input: prop %q (row #%d)", propName, numRows), log, nil)
 						return
 					}
 					propID, err := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(propType.ID))).OnlyID(ctx)
 					if err != nil {
 						if !ent.IsNotFound(err) {
-							log.Warn("property fetching error", zap.Error(err), importLine.ZapField())
-							http.Error(w, fmt.Sprintf("%q: property fetching error: property name %q (row #%d)", err, propName, numRows), http.StatusBadRequest)
+							errorReturn(w, fmt.Sprintf("property fetching error: property name %q (row #%d)", propName, numRows), log, nil)
 							return
 						}
 					} else {
@@ -169,8 +157,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				count++
 				_, err = m.r.Mutation().EditEquipment(ctx, models.EditEquipmentInput{ID: id, Name: name, Properties: inputs, ExternalID: &externalID})
 				if err != nil {
-					log.Warn("editing equipment", zap.Error(err), importLine.ZapField())
-					http.Error(w, fmt.Sprintf("editing equipment: id %q (row #%d). %q: ", id, numRows, err), http.StatusBadRequest)
+					errorReturn(w, fmt.Sprintf("editing equipment: id %q (row #%d)", id, numRows), log, nil)
 					return
 				}
 			}
