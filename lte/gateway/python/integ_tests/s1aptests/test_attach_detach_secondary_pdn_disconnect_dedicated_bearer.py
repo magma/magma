@@ -38,7 +38,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 ue_id,
             )
             # Attach
-            self._s1ap_wrapper.s1_util.attach(
+            attach_accept = self._s1ap_wrapper.s1_util.attach(
                 ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
@@ -54,7 +54,8 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach_accept.esmInfo.epsBearerId
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -68,6 +69,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
 
+            print("********************* Sleeping for 5 seconds")
             time.sleep(5)
             # Send PDN Connectivity Request
             apn = "ims"
@@ -106,6 +108,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
 
+            print("********************* Sleeping for 5 seconds")
             time.sleep(5)
             # Send PDN Disconnect for dedicated bearer
             print(

@@ -28,18 +28,22 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
+        # Declare an array of len 15 as the bearer id ranges from 5-15
+        length = 15
+        bearer_idx = [0]*length
         print(
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach_accept = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
-
+        # Set the bearer index to 1
+        bearer_idx[attach_accept.esmInfo.epsBearerId] = 1
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
@@ -51,18 +55,28 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
-
+        act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+        # Set the bearer index to 1
+        bearer_idx[act_def_bearer_req.m.pdnInfo.epsBearerId] = 1
         print(
             "************************* Sending Activate default EPS bearer "
             "context accept for UE id ",
             ue_id,
         )
 
+        print("********************* Sleeping for 5 seconds")
         time.sleep(5)
         # Send PDN Disconnect with invalid bearer id 9
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
         pdn_disconnect_req.ue_Id = ue_id
-        pdn_disconnect_req.epsBearerId = 9
+        # Find an unassigned bearer id
+        # Start from 5th index as the bearer id ranges from 5-15
+        for i in range(5,15):
+            if (bearer_idx[i]==0):
+                pdn_disconnect_req.epsBearerId = i
+                break
+        print("****** Sending PDN disconnect for bearer id",
+                pdn_disconnect_req.epsBearerId)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
         )

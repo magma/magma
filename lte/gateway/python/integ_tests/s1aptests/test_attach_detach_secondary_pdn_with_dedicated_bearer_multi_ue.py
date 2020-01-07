@@ -74,6 +74,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             )
             bearer_ids.append(act_def_bearer_req.m.pdnInfo.epsBearerId)
 
+            print("********************* Sleeping for 2 seconds")
             time.sleep(2)
             # Add dedicated bearer to IMS PDN
             print("********************** Adding dedicated bearer to IMS PDN")
@@ -98,6 +99,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
                 act_ded_ber_ctxt_req.bearerId,
             )
 
+        print("********************* Sleeping for 5 seconds")
         time.sleep(5)
         self._s1ap_wrapper._ue_idx = 0
         for i in range(num_ues):
@@ -132,6 +134,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
                 "******************* Deleted IMS PDN with bearer ID",
                 bearer_ids[i],
             )
+        print("********************* Sleeping for 5 seconds")
         time.sleep(2)
         # Now detach the UE
         for ue in ue_ids:
