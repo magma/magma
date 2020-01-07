@@ -8,6 +8,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
@@ -166,6 +168,12 @@ func handlePortServiceFilter(q *ent.EquipmentPortQuery, filter *models.PortFilte
 }
 
 func portServiceFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
-	// TODO: add the query
-	return q, nil
+	query := equipmentport.HasEndpointsWith(serviceendpoint.HasServiceWith(service.IDIn(filter.IDSet...)))
+	switch filter.Operator {
+	case models.FilterOperatorIsOneOf:
+		return q.Where(query), nil
+	case models.FilterOperatorIsNotOneOf:
+		return q.Where(equipmentport.Not(query)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

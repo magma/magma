@@ -419,6 +419,36 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.EquipmentPort {
 	)
 }
 
+// HasEndpoints applies the HasEdge predicate on the "endpoints" edge.
+func HasEndpoints() predicate.EquipmentPort {
+	return predicate.EquipmentPort(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, EndpointsTable, EndpointsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasEndpointsWith applies the HasEdge predicate on the "endpoints" edge with a given conditions (other predicates).
+func HasEndpointsWith(preds ...predicate.ServiceEndpoint) predicate.EquipmentPort {
+	return predicate.EquipmentPort(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, EndpointsTable, EndpointsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.EquipmentPort) predicate.EquipmentPort {
 	return predicate.EquipmentPort(

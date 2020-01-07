@@ -44,7 +44,6 @@ type EquipmentUpdate struct {
 	ports                 map[string]struct{}
 	work_order            map[string]struct{}
 	properties            map[string]struct{}
-	service               map[string]struct{}
 	files                 map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
@@ -53,7 +52,6 @@ type EquipmentUpdate struct {
 	removedPorts          map[string]struct{}
 	clearedWorkOrder      bool
 	removedProperties     map[string]struct{}
-	removedService        map[string]struct{}
 	removedFiles          map[string]struct{}
 	predicates            []predicate.Equipment
 }
@@ -273,26 +271,6 @@ func (eu *EquipmentUpdate) AddProperties(p ...*Property) *EquipmentUpdate {
 	return eu.AddPropertyIDs(ids...)
 }
 
-// AddServiceIDs adds the service edge to Service by ids.
-func (eu *EquipmentUpdate) AddServiceIDs(ids ...string) *EquipmentUpdate {
-	if eu.service == nil {
-		eu.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		eu.service[ids[i]] = struct{}{}
-	}
-	return eu
-}
-
-// AddService adds the service edges to Service.
-func (eu *EquipmentUpdate) AddService(s ...*Service) *EquipmentUpdate {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return eu.AddServiceIDs(ids...)
-}
-
 // AddFileIDs adds the files edge to File by ids.
 func (eu *EquipmentUpdate) AddFileIDs(ids ...string) *EquipmentUpdate {
 	if eu.files == nil {
@@ -395,26 +373,6 @@ func (eu *EquipmentUpdate) RemoveProperties(p ...*Property) *EquipmentUpdate {
 		ids[i] = p[i].ID
 	}
 	return eu.RemovePropertyIDs(ids...)
-}
-
-// RemoveServiceIDs removes the service edge to Service by ids.
-func (eu *EquipmentUpdate) RemoveServiceIDs(ids ...string) *EquipmentUpdate {
-	if eu.removedService == nil {
-		eu.removedService = make(map[string]struct{})
-	}
-	for i := range ids {
-		eu.removedService[ids[i]] = struct{}{}
-	}
-	return eu
-}
-
-// RemoveService removes service edges to Service.
-func (eu *EquipmentUpdate) RemoveService(s ...*Service) *EquipmentUpdate {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return eu.RemoveServiceIDs(ids...)
 }
 
 // RemoveFileIDs removes the files edge to File by ids.
@@ -798,46 +756,6 @@ func (eu *EquipmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
-	if len(eu.removedService) > 0 {
-		eids := make([]int, len(eu.removedService))
-		for eid := range eu.removedService {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Delete(equipment.ServiceTable).
-			Where(sql.InInts(equipment.ServicePrimaryKey[1], ids...)).
-			Where(sql.InInts(equipment.ServicePrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(eu.service) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range eu.service {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
-			}
-		}
-		builder := builder.Insert(equipment.ServiceTable).
-			Columns(equipment.ServicePrimaryKey[1], equipment.ServicePrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
 	if len(eu.removedFiles) > 0 {
 		eids := make([]int, len(eu.removedFiles))
 		for eid := range eu.removedFiles {
@@ -910,7 +828,6 @@ type EquipmentUpdateOne struct {
 	ports                 map[string]struct{}
 	work_order            map[string]struct{}
 	properties            map[string]struct{}
-	service               map[string]struct{}
 	files                 map[string]struct{}
 	clearedType           bool
 	clearedLocation       bool
@@ -919,7 +836,6 @@ type EquipmentUpdateOne struct {
 	removedPorts          map[string]struct{}
 	clearedWorkOrder      bool
 	removedProperties     map[string]struct{}
-	removedService        map[string]struct{}
 	removedFiles          map[string]struct{}
 }
 
@@ -1132,26 +1048,6 @@ func (euo *EquipmentUpdateOne) AddProperties(p ...*Property) *EquipmentUpdateOne
 	return euo.AddPropertyIDs(ids...)
 }
 
-// AddServiceIDs adds the service edge to Service by ids.
-func (euo *EquipmentUpdateOne) AddServiceIDs(ids ...string) *EquipmentUpdateOne {
-	if euo.service == nil {
-		euo.service = make(map[string]struct{})
-	}
-	for i := range ids {
-		euo.service[ids[i]] = struct{}{}
-	}
-	return euo
-}
-
-// AddService adds the service edges to Service.
-func (euo *EquipmentUpdateOne) AddService(s ...*Service) *EquipmentUpdateOne {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return euo.AddServiceIDs(ids...)
-}
-
 // AddFileIDs adds the files edge to File by ids.
 func (euo *EquipmentUpdateOne) AddFileIDs(ids ...string) *EquipmentUpdateOne {
 	if euo.files == nil {
@@ -1254,26 +1150,6 @@ func (euo *EquipmentUpdateOne) RemoveProperties(p ...*Property) *EquipmentUpdate
 		ids[i] = p[i].ID
 	}
 	return euo.RemovePropertyIDs(ids...)
-}
-
-// RemoveServiceIDs removes the service edge to Service by ids.
-func (euo *EquipmentUpdateOne) RemoveServiceIDs(ids ...string) *EquipmentUpdateOne {
-	if euo.removedService == nil {
-		euo.removedService = make(map[string]struct{})
-	}
-	for i := range ids {
-		euo.removedService[ids[i]] = struct{}{}
-	}
-	return euo
-}
-
-// RemoveService removes service edges to Service.
-func (euo *EquipmentUpdateOne) RemoveService(s ...*Service) *EquipmentUpdateOne {
-	ids := make([]string, len(s))
-	for i := range s {
-		ids[i] = s[i].ID
-	}
-	return euo.RemoveServiceIDs(ids...)
 }
 
 // RemoveFileIDs removes the files edge to File by ids.
@@ -1669,46 +1545,6 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 			if int(affected) < len(euo.properties) {
 				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Equipment\"", keys(euo.properties))})
 			}
-		}
-	}
-	if len(euo.removedService) > 0 {
-		eids := make([]int, len(euo.removedService))
-		for eid := range euo.removedService {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Delete(equipment.ServiceTable).
-			Where(sql.InInts(equipment.ServicePrimaryKey[1], ids...)).
-			Where(sql.InInts(equipment.ServicePrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(euo.service) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range euo.service {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
-			}
-		}
-		builder := builder.Insert(equipment.ServiceTable).
-			Columns(equipment.ServicePrimaryKey[1], equipment.ServicePrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
 		}
 	}
 	if len(euo.removedFiles) > 0 {

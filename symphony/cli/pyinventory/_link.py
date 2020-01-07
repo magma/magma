@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 from gql.gql.client import OperationException
 
-from .consts import Equipment, Link
+from .consts import Equipment, EquipmentPort, Link
 from .exceptions import (
     EquipmentPortIsNotUniqueException,
     EquipmentPortNotFoundException,
@@ -53,6 +53,13 @@ def _find_port_definition_id(
         raise PortAlreadyOccupiedException(equipment.name, port_name)
 
     return port.definition.id
+
+
+def get_port(
+    client: GraphqlClient, equipment: Equipment, port_name: str
+) -> EquipmentPort:
+    port = _find_port_info(client, equipment, port_name)
+    return EquipmentPort(id=port.id)
 
 
 def add_link(

@@ -110,6 +110,7 @@ function UsersSettings(props: Props) {
       <TableCell>
         {row.role == UserRoles.USER ? 'User' : 'Super User'}
       </TableCell>
+      <TableCell>{row.readOnly ? 'True' : 'False'}</TableCell>
       <TableCell>{renderList(row.networkIDs || [])}</TableCell>
       <TableCell>
         <IconButton onClick={() => deleteUser(row)}>
@@ -138,6 +139,7 @@ function UsersSettings(props: Props) {
             <TableRow>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Read Only</TableCell>
               <TableCell>Accessible Networks</TableCell>
               <TableCell />
             </TableRow>

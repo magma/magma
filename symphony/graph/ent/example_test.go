@@ -221,7 +221,7 @@ func ExampleEquipment() {
 		SetStringVal("string").
 		SaveX(ctx)
 	log.Println("property created:", pr6)
-	f8 := client.File.
+	f7 := client.File.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
@@ -234,7 +234,7 @@ func ExampleEquipment() {
 		SetStoreKey("string").
 		SetCategory("string").
 		SaveX(ctx)
-	log.Println("file created:", f8)
+	log.Println("file created:", f7)
 
 	// create equipment vertex with its edges.
 	e := client.Equipment.
@@ -250,7 +250,7 @@ func ExampleEquipment() {
 		AddPorts(ep4).
 		SetWorkOrder(wo5).
 		AddProperties(pr6).
-		AddFiles(f8).
+		AddFiles(f7).
 		SaveX(ctx)
 	log.Println("equipment created:", e)
 
@@ -285,11 +285,11 @@ func ExampleEquipment() {
 	}
 	log.Println("properties found:", pr6)
 
-	f8, err = e.QueryFiles().First(ctx)
+	f7, err = e.QueryFiles().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying files: %v", err)
 	}
-	log.Println("files found:", f8)
+	log.Println("files found:", f7)
 
 	// Output:
 }
@@ -1549,31 +1549,28 @@ func ExampleService() {
 		SetStringVal("string").
 		SaveX(ctx)
 	log.Println("property created:", pr3)
-	e4 := client.Equipment.
-		Create().
-		SetCreateTime(time.Now()).
-		SetUpdateTime(time.Now()).
-		SetName("string").
-		SetFutureState("string").
-		SetDeviceID("string").
-		SetExternalID("string").
-		SaveX(ctx)
-	log.Println("equipment created:", e4)
-	l5 := client.Link.
+	l4 := client.Link.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetFutureState("string").
 		SaveX(ctx)
-	log.Println("link created:", l5)
-	c6 := client.Customer.
+	log.Println("link created:", l4)
+	c5 := client.Customer.
 		Create().
 		SetCreateTime(time.Now()).
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetExternalID("string").
 		SaveX(ctx)
-	log.Println("customer created:", c6)
+	log.Println("customer created:", c5)
+	se6 := client.ServiceEndpoint.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetRole("string").
+		SaveX(ctx)
+	log.Println("serviceendpoint created:", se6)
 
 	// create service vertex with its edges.
 	s := client.Service.
@@ -1586,9 +1583,9 @@ func ExampleService() {
 		SetType(st0).
 		AddUpstream(s2).
 		AddProperties(pr3).
-		AddTerminationPoints(e4).
-		AddLinks(l5).
-		AddCustomer(c6).
+		AddLinks(l4).
+		AddCustomer(c5).
+		AddEndpoints(se6).
 		SaveX(ctx)
 	log.Println("service created:", s)
 
@@ -1611,23 +1608,61 @@ func ExampleService() {
 	}
 	log.Println("properties found:", pr3)
 
-	e4, err = s.QueryTerminationPoints().First(ctx)
-	if err != nil {
-		log.Fatalf("failed querying termination_points: %v", err)
-	}
-	log.Println("termination_points found:", e4)
-
-	l5, err = s.QueryLinks().First(ctx)
+	l4, err = s.QueryLinks().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying links: %v", err)
 	}
-	log.Println("links found:", l5)
+	log.Println("links found:", l4)
 
-	c6, err = s.QueryCustomer().First(ctx)
+	c5, err = s.QueryCustomer().First(ctx)
 	if err != nil {
 		log.Fatalf("failed querying customer: %v", err)
 	}
-	log.Println("customer found:", c6)
+	log.Println("customer found:", c5)
+
+	se6, err = s.QueryEndpoints().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying endpoints: %v", err)
+	}
+	log.Println("endpoints found:", se6)
+
+	// Output:
+}
+func ExampleServiceEndpoint() {
+	if dsn == "" {
+		return
+	}
+	ctx := context.Background()
+	drv, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("failed creating database client: %v", err)
+	}
+	defer drv.Close()
+	client := NewClient(Driver(drv))
+	// creating vertices for the serviceendpoint's edges.
+	ep0 := client.EquipmentPort.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SaveX(ctx)
+	log.Println("equipmentport created:", ep0)
+
+	// create serviceendpoint vertex with its edges.
+	se := client.ServiceEndpoint.
+		Create().
+		SetCreateTime(time.Now()).
+		SetUpdateTime(time.Now()).
+		SetRole("string").
+		SetPort(ep0).
+		SaveX(ctx)
+	log.Println("serviceendpoint created:", se)
+
+	// query edges.
+	ep0, err = se.QueryPort().First(ctx)
+	if err != nil {
+		log.Fatalf("failed querying port: %v", err)
+	}
+	log.Println("port found:", ep0)
 
 	// Output:
 }

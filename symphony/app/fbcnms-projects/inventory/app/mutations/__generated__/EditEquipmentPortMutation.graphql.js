@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2c938eb03c56290841eed38fef460d6a
+ * @relayHash b6af8bdc07a270c7e3034b77edeb504d
  */
 
 /* eslint-disable */
@@ -18,6 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 type EquipmentBreadcrumbs_equipment$ref = any;
 export type FutureState = "INSTALL" | "REMOVE" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
+export type ServiceEndpointRole = "CONSUMER" | "PROVIDER" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
 export type EditEquipmentPortInput = {|
   side: LinkSide,
@@ -235,6 +236,12 @@ export type EditEquipmentPortMutationResponse = {|
         +name: string,
       |},
     |}>,
+    +serviceEndpoints: $ReadOnlyArray<{|
+      +role: ServiceEndpointRole,
+      +service: {|
+        +name: string
+      |},
+    |}>,
   |}
 |};
 export type EditEquipmentPortMutation = {|
@@ -435,6 +442,14 @@ mutation EditEquipmentPortMutation(
         id
         name
       }
+    }
+    serviceEndpoints {
+      role
+      service {
+        name
+        id
+      }
+      id
     }
   }
 }
@@ -862,7 +877,18 @@ v29 = {
   "concreteType": "Service",
   "plural": true,
   "selections": (v21/*: any*/)
-};
+},
+v30 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "role",
+  "args": null,
+  "storageKey": null
+},
+v31 = [
+  (v3/*: any*/),
+  (v2/*: any*/)
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -958,7 +984,31 @@ return {
               (v29/*: any*/)
             ]
           },
-          (v28/*: any*/)
+          (v28/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "serviceEndpoints",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "ServiceEndpoint",
+            "plural": true,
+            "selections": [
+              (v30/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "service",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Service",
+                "plural": false,
+                "selections": [
+                  (v3/*: any*/)
+                ]
+              }
+            ]
+          }
         ]
       }
     ]
@@ -1060,10 +1110,7 @@ return {
                             "args": null,
                             "concreteType": "LocationType",
                             "plural": false,
-                            "selections": [
-                              (v3/*: any*/),
-                              (v2/*: any*/)
-                            ]
+                            "selections": (v31/*: any*/)
                           }
                         ]
                       },
@@ -1125,7 +1172,30 @@ return {
               (v29/*: any*/)
             ]
           },
-          (v28/*: any*/)
+          (v28/*: any*/),
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "serviceEndpoints",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "ServiceEndpoint",
+            "plural": true,
+            "selections": [
+              (v30/*: any*/),
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "service",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Service",
+                "plural": false,
+                "selections": (v31/*: any*/)
+              },
+              (v2/*: any*/)
+            ]
+          }
         ]
       }
     ]
@@ -1134,7 +1204,7 @@ return {
     "operationKind": "mutation",
     "name": "EditEquipmentPortMutation",
     "id": null,
-    "text": "mutation EditEquipmentPortMutation(\n  $input: EditEquipmentPortInput!\n) {\n  editEquipmentPort(input: $input) {\n    id\n    definition {\n      id\n      name\n      index\n      visibleLabel\n      portType {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          portType {\n            id\n            name\n          }\n          bandwidth\n        }\n      }\n    }\n    link {\n      id\n      futureState\n      ports {\n        id\n        definition {\n          id\n          name\n          visibleLabel\n          portType {\n            linkPropertyTypes {\n              id\n              name\n              type\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n            }\n            id\n          }\n        }\n        parentEquipment {\n          id\n          name\n          futureState\n          equipmentType {\n            id\n            name\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              bandwidth\n              portType {\n                id\n                name\n              }\n            }\n          }\n          ...EquipmentBreadcrumbs_equipment\n        }\n      }\n      workOrder {\n        id\n        status\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          isEditable\n          isMandatory\n          isInstanceProperty\n          stringValue\n        }\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n        serviceValue {\n          id\n          name\n        }\n      }\n      services {\n        id\n        name\n      }\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "mutation EditEquipmentPortMutation(\n  $input: EditEquipmentPortInput!\n) {\n  editEquipmentPort(input: $input) {\n    id\n    definition {\n      id\n      name\n      index\n      visibleLabel\n      portType {\n        id\n        name\n        propertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n        linkPropertyTypes {\n          id\n          name\n          type\n          index\n          stringValue\n          intValue\n          booleanValue\n          floatValue\n          latitudeValue\n          longitudeValue\n          rangeFromValue\n          rangeToValue\n          isEditable\n          isInstanceProperty\n          isMandatory\n        }\n      }\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n        portDefinitions {\n          id\n          name\n          visibleLabel\n          portType {\n            id\n            name\n          }\n          bandwidth\n        }\n      }\n    }\n    link {\n      id\n      futureState\n      ports {\n        id\n        definition {\n          id\n          name\n          visibleLabel\n          portType {\n            linkPropertyTypes {\n              id\n              name\n              type\n              index\n              stringValue\n              intValue\n              booleanValue\n              floatValue\n              latitudeValue\n              longitudeValue\n              rangeFromValue\n              rangeToValue\n              isEditable\n              isInstanceProperty\n              isMandatory\n            }\n            id\n          }\n        }\n        parentEquipment {\n          id\n          name\n          futureState\n          equipmentType {\n            id\n            name\n            portDefinitions {\n              id\n              name\n              visibleLabel\n              bandwidth\n              portType {\n                id\n                name\n              }\n            }\n          }\n          ...EquipmentBreadcrumbs_equipment\n        }\n      }\n      workOrder {\n        id\n        status\n      }\n      properties {\n        id\n        propertyType {\n          id\n          name\n          type\n          isEditable\n          isMandatory\n          isInstanceProperty\n          stringValue\n        }\n        stringValue\n        intValue\n        floatValue\n        booleanValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        equipmentValue {\n          id\n          name\n        }\n        locationValue {\n          id\n          name\n        }\n        serviceValue {\n          id\n          name\n        }\n      }\n      services {\n        id\n        name\n      }\n    }\n    properties {\n      id\n      propertyType {\n        id\n        name\n        type\n        isEditable\n        isMandatory\n        isInstanceProperty\n        stringValue\n      }\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      equipmentValue {\n        id\n        name\n      }\n      locationValue {\n        id\n        name\n      }\n      serviceValue {\n        id\n        name\n      }\n    }\n    serviceEndpoints {\n      role\n      service {\n        name\n        id\n      }\n      id\n    }\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

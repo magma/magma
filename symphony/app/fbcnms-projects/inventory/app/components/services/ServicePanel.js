@@ -9,18 +9,28 @@
  */
 
 import type {
+  AddServiceEndpointMutationResponse,
+  AddServiceEndpointMutationVariables,
+  ServiceEndpointRole,
+} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
+import type {
   AddServiceLinkMutationResponse,
   AddServiceLinkMutationVariables,
 } from '../../mutations/__generated__/AddServiceLinkMutation.graphql';
 import type {EquipmentPort, Link} from '../../common/Equipment';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {
+  RemoveServiceEndpointMutationResponse,
+  RemoveServiceEndpointMutationVariables,
+} from '../../mutations/__generated__/RemoveServiceEndpointMutation.graphql';
+import type {
   RemoveServiceLinkMutationResponse,
   RemoveServiceLinkMutationVariables,
 } from '../../mutations/__generated__/RemoveServiceLinkMutation.graphql';
+import type {ServiceEndpoint, ServiceStatus} from '../../common/Service';
 import type {ServicePanel_service} from './__generated__/ServicePanel_service.graphql';
-import type {ServiceStatus} from '../../common/Service';
 
+import AddServiceEndpointMutation from '../../mutations/AddServiceEndpointMutation';
 import AddServiceLinkMutation from '../../mutations/AddServiceLinkMutation';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -28,9 +38,11 @@ import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import EditServiceMutation from '../../mutations/EditServiceMutation';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import React, {useContext, useState} from 'react';
+import RemoveServiceEndpointMutation from '../../mutations/RemoveServiceEndpointMutation';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
 import Select from '@fbcnms/ui/components/design-system/ContexualLayer/Select';
 import ServiceEndpointsMenu from './ServiceEndpointsMenu';
+import ServiceEndpointsView from './ServiceEndpointsView';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';
 import ServiceLinksView from './ServiceLinksView';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -67,6 +79,7 @@ const useStyles = makeStyles({
   panel: {
     '&$expanded': {
       margin: '0px 0px',
+      padding: '24px 0px 18px 0px',
     },
     boxShadow: 'none',
   },
@@ -129,11 +142,20 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
     'service_endpoints',
   );
 
-  const onAddEndpoint = (
-    _port: EquipmentPort,
-    _role: 'consumer' | 'provider',
-  ) => {
-    // TODO: add the mutation
+  const onAddEndpoint = (port: EquipmentPort, role: ServiceEndpointRole) => {
+    const variables: AddServiceEndpointMutationVariables = {
+      input: {
+        id: service.id,
+        portId: port.id,
+        role: role,
+      },
+    };
+    const callbacks: MutationCallbacks<AddServiceEndpointMutationResponse> = {
+      onCompleted: () => {
+        setEndpointsExpanded(true);
+      },
+    };
+    AddServiceEndpointMutation(variables, callbacks);
   };
 
   const onAddLink = (link: Link) => {
@@ -160,6 +182,18 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
       },
     };
     RemoveServiceLinkMutation(variables, callbacks);
+  };
+
+  const onDeleteEndpoint = (endpoint: ServiceEndpoint) => {
+    const variables: RemoveServiceEndpointMutationVariables = {
+      serviceEndpointId: endpoint.id,
+    };
+    const callbacks: MutationCallbacks<RemoveServiceEndpointMutationResponse> = {
+      onCompleted: () => {
+        setEndpointsExpanded(true);
+      },
+    };
+    RemoveServiceEndpointMutation(variables, callbacks);
   };
 
   const onStatusChange = (status: ServiceStatus) => {
@@ -253,13 +287,16 @@ const ServicePanel = React.forwardRef((props: Props, ref) => {
                 onAddEndpoint={onAddEndpoint}
               />
             }>
-            <div />
+            <ServiceEndpointsView
+              endpoints={service.endpoints}
+              onDeleteEndpoint={onDeleteEndpoint}
+            />
           </ExpandingPanel>
         </>
       )}
       <div className={classes.separator} />
       <ExpandingPanel
-        title="Links & Subservices"
+        title="Links"
         defaultExpanded={false}
         expandedClassName={classes.expanded}
         className={classes.panel}
@@ -296,6 +333,9 @@ export default createFragmentContainer(ServicePanel, {
       links {
         id
         ...ServiceLinksView_links
+      }
+      endpoints {
+        ...ServiceEndpointsView_endpoints
       }
     }
   `,

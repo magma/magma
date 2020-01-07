@@ -15,6 +15,7 @@ import * as React from 'react';
 import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
 import ActiveEquipmentInLocationIcon from '@fbcnms/ui/icons/ActiveEquipmentInLocationIcon';
 import ForceNetworkTopology from '../topology/ForceNetworkTopology';
+import TopologyTextBox from '../topology/TopologyTextBox';
 import {createFragmentContainer, graphql} from 'react-relay';
 
 type Props = {
@@ -28,16 +29,18 @@ const LocationEquipmentTopology = (props: Props) => {
   return (
     <ForceNetworkTopology
       topology={topology}
-      renderNode={(id: string) =>
-        rootIds.includes(id) ? (
-          <ActiveEquipmentInLocationIcon />
-        ) : (
-          <ActiveEquipmentIcon />
-        )
-      }
-      renderNodeName={(id: string) => {
-        const nodes = topology.nodes.filter(node => node.id === id);
-        return nodes[0].name;
+      renderNode={(id: string) => {
+        const node = topology.nodes.find(node => node.id === id);
+        return (
+          <g transform="translate(-8 -8)">
+            {rootIds.includes(id) ? (
+              <ActiveEquipmentInLocationIcon />
+            ) : (
+              <ActiveEquipmentIcon />
+            )}
+            <TopologyTextBox transform="translate(8 40)" text={node?.name} />
+          </g>
+        );
       }}
     />
   );

@@ -9,6 +9,7 @@
  */
 
 import type {Equipment, EquipmentPort} from '../../common/Equipment';
+import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailablePortsTable from './AvailablePortsTable';
@@ -27,6 +28,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {WizardContextProvider} from '@fbcnms/ui/components/design-system/Wizard/WizardContext';
 import {graphql} from 'react-relay';
+import {lowerCase} from 'lodash';
 import {withRouter} from 'react-router-dom';
 import {withStyles} from '@material-ui/core/styles';
 
@@ -63,7 +65,7 @@ type Props = {
   service: {id: string, name: string},
   onClose: () => void,
   onAddEndpoint: (port: EquipmentPort) => void,
-  endpointRole: 'consumer' | 'provider',
+  endpointRole: ServiceEndpointRole,
 } & WithStyles<typeof styles>;
 
 type State = {
@@ -205,7 +207,7 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
           <Text className={classes.title} variant="h6">
             {`${fbt(
               'Add ' +
-                fbt.param('service endpoint role', endpointRole) +
+                fbt.param('service endpoint role', lowerCase(endpointRole)) +
                 ' endpoint to ' +
                 fbt.param('service name', service.name),
               'Title of dialog for adding an endpoint to a service',

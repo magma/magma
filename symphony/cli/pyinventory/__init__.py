@@ -76,9 +76,11 @@ class InventoryClient(GraphqlClient):
         add_link,
         get_link_in_port_of_equipment,
         get_all_links_and_port_names_of_equipment,
+        get_port,
     )
     from ._service import (
         add_service,
+        add_service_endpoint,
         add_service_type,
         get_service,
         delete_service_type_with_services,

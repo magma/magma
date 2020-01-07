@@ -15,11 +15,11 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
-	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
@@ -107,18 +107,6 @@ func (sq *ServiceQuery) QueryProperties() *PropertyQuery {
 	return query
 }
 
-// QueryTerminationPoints chains the current query on the termination_points edge.
-func (sq *ServiceQuery) QueryTerminationPoints() *EquipmentQuery {
-	query := &EquipmentQuery{config: sq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
-	)
-	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
-	return query
-}
-
 // QueryLinks chains the current query on the links edge.
 func (sq *ServiceQuery) QueryLinks() *LinkQuery {
 	query := &LinkQuery{config: sq.config}
@@ -138,6 +126,18 @@ func (sq *ServiceQuery) QueryCustomer() *CustomerQuery {
 		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
 		sqlgraph.To(customer.Table, customer.FieldID),
 		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
+	)
+	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
+	return query
+}
+
+// QueryEndpoints chains the current query on the endpoints edge.
+func (sq *ServiceQuery) QueryEndpoints() *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: sq.config}
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, sq.sqlQuery()),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
 	)
 	query.sql = sqlgraph.SetNeighbors(sq.driver.Dialect(), step)
 	return query

@@ -11,86 +11,39 @@ import useRouter from '@fbcnms/ui/hooks/useRouter';
 
 import AddProjectCard from './AddProjectCard';
 import AddProjectDialog from './AddProjectDialog';
-import Button from '@fbcnms/ui/components/design-system/Button';
 import ErrorBoundary from '@fbcnms/ui/components/ErrorBoundary/ErrorBoundary';
-import ListAltIcon from '@material-ui/icons/ListAlt';
-import MapButtonGroup from '@fbcnms/ui/components/map/MapButtonGroup';
-import MapIcon from '@material-ui/icons/Map';
+import InventoryViewHeader, {DisplayOptions} from '../InventoryViewHeader';
 import ProjectCard from './ProjectCard';
 import ProjectComparisonViewQueryRenderer from './ProjectComparisonViewQueryRenderer';
 import React, {useMemo, useState} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import classNames from 'classnames';
-import symphony from '@fbcnms/ui/theme/symphony';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
-  cardRoot: {
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    paddingLeft: '0px',
-    paddingRight: '0px',
-  },
-  cardContent: {
-    paddingLeft: '0px',
-    paddingRight: '0px',
-    paddingTop: '0px',
-    flexGrow: 1,
-    width: '100%',
-    backgroundColor: symphony.palette.background,
-  },
+const useStyles = makeStyles({
   root: {
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: theme.palette.common.white,
     height: '100%',
   },
   searchResults: {
     flexGrow: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    backgroundColor: symphony.palette.background,
+    paddingTop: '8px',
   },
-  addProjectButton: {
-    alignSelf: 'flex-end',
+  searchResultsTable: {
+    paddingLeft: '24px',
+    paddingRight: '24px',
   },
-  bar: {
-    display: 'flex',
-    flexDirection: 'row',
-    boxShadow: '0px 2px 2px 0px rgba(0, 0, 0, 0.1)',
-  },
-  groupButtons: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-  },
-  buttonContent: {
-    paddingTop: '4px',
-  },
-  titleContainer: {
-    margin: '32px',
-    display: 'flex',
-  },
-  title: {
-    flexGrow: 1,
-    display: 'block',
-  },
-  searchBar: {
-    flexGrow: 1,
-  },
-  comparisionViewTable: {
-    margin: '0px 32px',
-  },
-}));
+});
 
 const ProjectComparisonView = () => {
   const classes = useStyles();
   const [dialogKey, setDialogKey] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const {match, history, location} = useRouter();
-  const [resultsDisplayMode, setResultsDisplayMode] = useState('table');
+  const [resultsDisplayMode, setResultsDisplayMode] = useState(
+    DisplayOptions.table,
+  );
 
   const selectedProjectTypeId = useMemo(
     () => extractEntityIdFromUrl('projectType', location.search),
@@ -136,56 +89,42 @@ const ProjectComparisonView = () => {
   }
   return (
     <ErrorBoundary>
-      <div className={classes.cardRoot}>
-        <div className={classes.root}>
-          <div className={classes.bar}>
-            <div className={classes.searchBar} />
-            <MapButtonGroup
-              onIconClicked={id => {
-                setResultsDisplayMode(id === 'table' ? 'table' : 'map');
-              }}
-              buttons={[
-                {
-                  item: <ListAltIcon className={classes.buttonContent} />,
-                  id: 'table',
-                },
-                {
-                  item: <MapIcon className={classes.buttonContent} />,
-                  id: 'map',
-                },
-              ]}
-            />
-          </div>
-          <div className={classes.searchResults}>
-            <div className={classes.titleContainer}>
-              <Text className={classes.title} variant="h6">
-                Projects
-              </Text>
-              <Button
-                className={classes.addProjectButton}
-                onClick={() => {
-                  setDialogOpen(true);
-                  setDialogKey(dialogKey + 1);
-                  ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
-                }}>
-                Add Project
-              </Button>
-            </div>
-            <ProjectComparisonViewQueryRenderer
-              className={classNames({
-                [classes.comparisionViewTable]: resultsDisplayMode === 'table',
-              })}
-              limit={50}
-              filters={[]}
-              displayMode={'table'}
-              onProjectSelected={selectedProjectCardId =>
-                navigateToProject(selectedProjectCardId)
-              }
-              resultsDisplayMode={resultsDisplayMode}
-            />
-          </div>
+      <div className={classes.root}>
+        <InventoryViewHeader
+          title="Projects"
+          onViewToggleClicked={setResultsDisplayMode}
+          actionButtons={[
+            {
+              title: 'Add Project',
+              action: () => {
+                setDialogOpen(true);
+                setDialogKey(dialogKey + 1);
+                ServerLogger.info(LogEvents.ADD_PROJECT_BUTTON_CLICKED);
+              },
+            },
+          ]}
+        />
+        <div className={classes.searchResults}>
+          <ProjectComparisonViewQueryRenderer
+            className={
+              resultsDisplayMode === DisplayOptions.table
+                ? classes.searchResultsTable
+                : ''
+            }
+            limit={50}
+            filters={[]}
+            onProjectSelected={selectedProjectCardId =>
+              navigateToProject(selectedProjectCardId)
+            }
+            displayMode={
+              resultsDisplayMode === DisplayOptions.map
+                ? DisplayOptions.map
+                : DisplayOptions.table
+            }
+          />
         </div>
       </div>
+
       <AddProjectDialog
         key={`new_project_${dialogKey}`}
         open={dialogOpen}

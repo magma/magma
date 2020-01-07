@@ -38,6 +38,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -110,6 +111,8 @@ type Client struct {
 	PropertyType *PropertyTypeClient
 	// Service is the client for interacting with the Service builders.
 	Service *ServiceClient
+	// ServiceEndpoint is the client for interacting with the ServiceEndpoint builders.
+	ServiceEndpoint *ServiceEndpointClient
 	// ServiceType is the client for interacting with the ServiceType builders.
 	ServiceType *ServiceTypeClient
 	// Survey is the client for interacting with the Survey builders.
@@ -169,6 +172,7 @@ func NewClient(opts ...Option) *Client {
 		Property:                    NewPropertyClient(c),
 		PropertyType:                NewPropertyTypeClient(c),
 		Service:                     NewServiceClient(c),
+		ServiceEndpoint:             NewServiceEndpointClient(c),
 		ServiceType:                 NewServiceTypeClient(c),
 		Survey:                      NewSurveyClient(c),
 		SurveyCellScan:              NewSurveyCellScanClient(c),
@@ -236,6 +240,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -290,6 +295,7 @@ func (c *Client) Debug() *Client {
 		Property:                    NewPropertyClient(cfg),
 		PropertyType:                NewPropertyTypeClient(cfg),
 		Service:                     NewServiceClient(cfg),
+		ServiceEndpoint:             NewServiceEndpointClient(cfg),
 		ServiceType:                 NewServiceTypeClient(cfg),
 		Survey:                      NewSurveyClient(cfg),
 		SurveyCellScan:              NewSurveyCellScanClient(cfg),
@@ -833,20 +839,6 @@ func (c *EquipmentClient) QueryProperties(e *Equipment) *PropertyQuery {
 	return query
 }
 
-// QueryService queries the service edge of a Equipment.
-func (c *EquipmentClient) QueryService(e *Equipment) *ServiceQuery {
-	query := &ServiceQuery{config: c.config}
-	id := e.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(equipment.Table, equipment.FieldID, id),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, equipment.ServiceTable, equipment.ServicePrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(e.driver.Dialect(), step)
-
-	return query
-}
-
 // QueryFiles queries the files edge of a Equipment.
 func (c *EquipmentClient) QueryFiles(e *Equipment) *FileQuery {
 	query := &FileQuery{config: c.config}
@@ -1053,6 +1045,20 @@ func (c *EquipmentPortClient) QueryProperties(ep *EquipmentPort) *PropertyQuery 
 		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
 		sqlgraph.To(property.Table, property.FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, equipmentport.PropertiesTable, equipmentport.PropertiesColumn),
+	)
+	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a EquipmentPort.
+func (c *EquipmentPortClient) QueryEndpoints(ep *EquipmentPort) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := ep.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(equipmentport.Table, equipmentport.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, equipmentport.EndpointsTable, equipmentport.EndpointsColumn),
 	)
 	query.sql = sqlgraph.Neighbors(ep.driver.Dialect(), step)
 
@@ -3113,20 +3119,6 @@ func (c *ServiceClient) QueryProperties(s *Service) *PropertyQuery {
 	return query
 }
 
-// QueryTerminationPoints queries the termination_points edge of a Service.
-func (c *ServiceClient) QueryTerminationPoints(s *Service) *EquipmentQuery {
-	query := &EquipmentQuery{config: c.config}
-	id := s.id()
-	step := sqlgraph.NewStep(
-		sqlgraph.From(service.Table, service.FieldID, id),
-		sqlgraph.To(equipment.Table, equipment.FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, false, service.TerminationPointsTable, service.TerminationPointsPrimaryKey...),
-	)
-	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
-
-	return query
-}
-
 // QueryLinks queries the links edge of a Service.
 func (c *ServiceClient) QueryLinks(s *Service) *LinkQuery {
 	query := &LinkQuery{config: c.config}
@@ -3151,6 +3143,112 @@ func (c *ServiceClient) QueryCustomer(s *Service) *CustomerQuery {
 		sqlgraph.Edge(sqlgraph.M2M, false, service.CustomerTable, service.CustomerPrimaryKey...),
 	)
 	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryEndpoints queries the endpoints edge of a Service.
+func (c *ServiceClient) QueryEndpoints(s *Service) *ServiceEndpointQuery {
+	query := &ServiceEndpointQuery{config: c.config}
+	id := s.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(service.Table, service.FieldID, id),
+		sqlgraph.To(serviceendpoint.Table, serviceendpoint.FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, service.EndpointsTable, service.EndpointsColumn),
+	)
+	query.sql = sqlgraph.Neighbors(s.driver.Dialect(), step)
+
+	return query
+}
+
+// ServiceEndpointClient is a client for the ServiceEndpoint schema.
+type ServiceEndpointClient struct {
+	config
+}
+
+// NewServiceEndpointClient returns a client for the ServiceEndpoint from the given config.
+func NewServiceEndpointClient(c config) *ServiceEndpointClient {
+	return &ServiceEndpointClient{config: c}
+}
+
+// Create returns a create builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Create() *ServiceEndpointCreate {
+	return &ServiceEndpointCreate{config: c.config}
+}
+
+// Update returns an update builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Update() *ServiceEndpointUpdate {
+	return &ServiceEndpointUpdate{config: c.config}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ServiceEndpointClient) UpdateOne(se *ServiceEndpoint) *ServiceEndpointUpdateOne {
+	return c.UpdateOneID(se.ID)
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ServiceEndpointClient) UpdateOneID(id string) *ServiceEndpointUpdateOne {
+	return &ServiceEndpointUpdateOne{config: c.config, id: id}
+}
+
+// Delete returns a delete builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Delete() *ServiceEndpointDelete {
+	return &ServiceEndpointDelete{config: c.config}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *ServiceEndpointClient) DeleteOne(se *ServiceEndpoint) *ServiceEndpointDeleteOne {
+	return c.DeleteOneID(se.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *ServiceEndpointClient) DeleteOneID(id string) *ServiceEndpointDeleteOne {
+	return &ServiceEndpointDeleteOne{c.Delete().Where(serviceendpoint.ID(id))}
+}
+
+// Create returns a query builder for ServiceEndpoint.
+func (c *ServiceEndpointClient) Query() *ServiceEndpointQuery {
+	return &ServiceEndpointQuery{config: c.config}
+}
+
+// Get returns a ServiceEndpoint entity by its id.
+func (c *ServiceEndpointClient) Get(ctx context.Context, id string) (*ServiceEndpoint, error) {
+	return c.Query().Where(serviceendpoint.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ServiceEndpointClient) GetX(ctx context.Context, id string) *ServiceEndpoint {
+	se, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return se
+}
+
+// QueryPort queries the port edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryPort(se *ServiceEndpoint) *EquipmentPortQuery {
+	query := &EquipmentPortQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(equipmentport.Table, equipmentport.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, false, serviceendpoint.PortTable, serviceendpoint.PortColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
+
+	return query
+}
+
+// QueryService queries the service edge of a ServiceEndpoint.
+func (c *ServiceEndpointClient) QueryService(se *ServiceEndpoint) *ServiceQuery {
+	query := &ServiceQuery{config: c.config}
+	id := se.id()
+	step := sqlgraph.NewStep(
+		sqlgraph.From(serviceendpoint.Table, serviceendpoint.FieldID, id),
+		sqlgraph.To(service.Table, service.FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, serviceendpoint.ServiceTable, serviceendpoint.ServiceColumn),
+	)
+	query.sql = sqlgraph.Neighbors(se.driver.Dialect(), step)
 
 	return query
 }

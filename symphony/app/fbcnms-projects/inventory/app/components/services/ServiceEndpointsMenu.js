@@ -9,6 +9,7 @@
  */
 
 import type {EquipmentPort} from '../../common/Equipment';
+import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 
 import AddEndpointToServiceDialog from './AddEndpointToServiceDialog';
 import React, {useState} from 'react';
@@ -18,15 +19,14 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 
 type Props = {
   service: {id: string, name: string},
-  onAddEndpoint: (port: EquipmentPort, role: 'consumer' | 'provider') => void,
+  onAddEndpoint: (port: EquipmentPort, role: ServiceEndpointRole) => void,
 };
 
 const ServiceEndpointsMenu = (props: Props) => {
   const {service, onAddEndpoint} = props;
-  const [addingEndpoint, setAddingEndpoint] = useState<?(
-    | 'consumer'
-    | 'provider'
-  )>(null);
+  const [addingEndpoint, setAddingEndpoint] = useState<?ServiceEndpointRole>(
+    null,
+  );
 
   return (
     <ServiceMenu
@@ -40,7 +40,7 @@ const ServiceEndpointsMenu = (props: Props) => {
           ),
           onClick: () => {
             ServerLogger.info(LogEvents.ADD_CONSUMER_ENDPOINT_BUTTON_CLICKED);
-            setAddingEndpoint('consumer');
+            setAddingEndpoint('CONSUMER');
           },
         },
         {
@@ -50,7 +50,7 @@ const ServiceEndpointsMenu = (props: Props) => {
           ),
           onClick: () => {
             ServerLogger.info(LogEvents.ADD_PROVIDER_ENDPOINT_BUTTON_CLICKED);
-            setAddingEndpoint('provider');
+            setAddingEndpoint('PROVIDER');
           },
         },
       ]}>
@@ -63,7 +63,7 @@ const ServiceEndpointsMenu = (props: Props) => {
             setAddingEndpoint(null);
           }
         }}
-        endpointRole={addingEndpoint ?? 'consumer'}
+        endpointRole={addingEndpoint ?? 'CONSUMER'}
       />
     </ServiceMenu>
   );

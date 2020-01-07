@@ -12,17 +12,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/ent/file"
-
-	"github.com/facebookincubator/symphony/graph/ent/service"
-
-	"github.com/pkg/errors"
-
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
+	"github.com/facebookincubator/symphony/graph/ent/file"
+	"github.com/facebookincubator/symphony/graph/ent/link"
+	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+	"github.com/pkg/errors"
 )
 
 type equipmentPortResolver struct{}
+
+func (r equipmentPortResolver) ServiceEndpoints(ctx context.Context, obj *ent.EquipmentPort) ([]*ent.ServiceEndpoint, error) {
+	return obj.QueryEndpoints().All(ctx)
+}
 
 func (equipmentPortResolver) Definition(ctx context.Context, obj *ent.EquipmentPort) (*ent.EquipmentPortDefinition, error) {
 	return obj.QueryDefinition().Only(ctx)
@@ -237,10 +243,22 @@ func checkinTimeIsUp(checkinTime int64, buffer time.Duration) bool {
 	return checkinTime/1000+int64(buffer.Seconds()) > time.Now().Unix()
 }
 
-func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
-	services, err := obj.QueryService().All(ctx)
+func (r equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*ent.Service, error) {
+	eqPred := resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 4)
+	endpoints, err := r.ClientFrom(ctx).ServiceEndpoint.Query().Where(
+		serviceendpoint.HasPortWith(equipmentport.HasParentWith(eqPred))).All(ctx)
+
 	if err != nil {
-		return nil, errors.Wrap(err, "querying services where equipment is termination point")
+		return nil, errors.Wrap(err, "querying service endpoints")
+	}
+	eids := make([]string, len(endpoints))
+	for _, ep := range endpoints {
+		eids = append(eids, ep.ID)
+	}
+
+	services, err := r.ClientFrom(ctx).Service.Query().Where(service.HasEndpointsWith(serviceendpoint.IDIn(eids...))).All(ctx)
+	if err != nil {
+		return nil, errors.Wrap(err, "querying services where equipment port is an endpoint")
 	}
 
 	ids := make([]string, len(services))
@@ -248,7 +266,10 @@ func (equipmentResolver) Services(ctx context.Context, obj *ent.Equipment) ([]*e
 		ids[i] = svc.ID
 	}
 
-	linkServices, err := obj.QueryPorts().QueryLink().QueryService().Where(service.Not(service.IDIn(ids...))).All(ctx)
+	linkServices, err := r.ClientFrom(ctx).Service.Query().Where(
+		service.HasLinksWith(link.HasPortsWith(equipmentport.HasParentWith(
+			resolverutil.BuildGeneralEquipmentAncestorFilter(equipment.ID(obj.ID), 1, 3)))),
+		service.Not(service.IDIn(ids...))).All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying services where equipment connected to link of service")
 	}

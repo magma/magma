@@ -35,6 +35,8 @@ const linkEID = "Linked Equipment ID"
 const linkEName = "Linked Equipment"
 const propStr = "propStr"
 const propStr2 = "propStr2"
+const consumerEndpointServices = "Consumer Endpoint for These Services"
+const providerEndpointServices = "Provider Endpoint for These Services"
 
 func TestEmptyPortsDataExport(t *testing.T) {
 	r, err := newExporterTestResolver(t)
@@ -75,6 +77,8 @@ func TestEmptyPortsDataExport(t *testing.T) {
 			linkPName,
 			linkEID,
 			linkEName,
+			consumerEndpointServices,
+			providerEndpointServices,
 		}, ln)
 	}
 }
@@ -125,6 +129,8 @@ func TestPortsExport(t *testing.T) {
 				linkPName,
 				linkEID,
 				linkEName,
+				consumerEndpointServices,
+				providerEndpointServices,
 				propStr,
 				propStr2,
 			}, ln)
@@ -147,6 +153,8 @@ func TestPortsExport(t *testing.T) {
 				"port2",
 				"--",
 				currEquip,
+				"S1;S2",
+				"",
 				"t1",
 				"",
 			})
@@ -169,6 +177,8 @@ func TestPortsExport(t *testing.T) {
 				portName1,
 				"--",
 				parentEquip,
+				"",
+				"S1",
 				"",
 				"",
 			})
@@ -276,6 +286,8 @@ func TestPortWithFilters(t *testing.T) {
 						parentEquip,
 						"",
 						"",
+						"",
+						"",
 					}, ln[1:])
 					require.Equal(t, 2, linesCount)
 				}
@@ -300,6 +312,8 @@ func TestPortWithFilters(t *testing.T) {
 						"port2",
 						"--",
 						currEquip,
+						"S1;S2",
+						"",
 						"t1",
 						"",
 					}, ln[1:])

@@ -535,20 +535,18 @@ func TestSearchLinksByService(t *testing.T) {
 		Name: "Internet Access", HasCustomer: false})
 
 	s1, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2a",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "Internet Access Room 2a",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s1.ID, data.l1)
 	require.NoError(t, err)
 
 	s2, err := mr.AddService(ctx, models.ServiceCreateData{
-		Name:                "Internet Access Room 2b",
-		ServiceTypeID:       st.ID,
-		TerminationPointIds: []string{},
-		Status:              pointerToServiceStatus(models.ServiceStatusPending),
+		Name:          "Internet Access Room 2b",
+		ServiceTypeID: st.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
 	})
 	require.NoError(t, err)
 	_, err = mr.AddServiceLink(ctx, s2.ID, data.l1)

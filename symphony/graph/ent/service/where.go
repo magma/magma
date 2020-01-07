@@ -831,36 +831,6 @@ func HasPropertiesWith(preds ...predicate.Property) predicate.Service {
 	)
 }
 
-// HasTerminationPoints applies the HasEdge predicate on the "termination_points" edge.
-func HasTerminationPoints() predicate.Service {
-	return predicate.Service(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TerminationPointsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, TerminationPointsTable, TerminationPointsPrimaryKey...),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	},
-	)
-}
-
-// HasTerminationPointsWith applies the HasEdge predicate on the "termination_points" edge with a given conditions (other predicates).
-func HasTerminationPointsWith(preds ...predicate.Equipment) predicate.Service {
-	return predicate.Service(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(TerminationPointsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, false, TerminationPointsTable, TerminationPointsPrimaryKey...),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	},
-	)
-}
-
 // HasLinks applies the HasEdge predicate on the "links" edge.
 func HasLinks() predicate.Service {
 	return predicate.Service(func(s *sql.Selector) {
@@ -911,6 +881,36 @@ func HasCustomerWith(preds ...predicate.Customer) predicate.Service {
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CustomerInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, CustomerTable, CustomerPrimaryKey...),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	},
+	)
+}
+
+// HasEndpoints applies the HasEdge predicate on the "endpoints" edge.
+func HasEndpoints() predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointsTable, EndpointsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	},
+	)
+}
+
+// HasEndpointsWith applies the HasEdge predicate on the "endpoints" edge with a given conditions (other predicates).
+func HasEndpointsWith(preds ...predicate.ServiceEndpoint) predicate.Service {
+	return predicate.Service(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(EndpointsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, EndpointsTable, EndpointsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
