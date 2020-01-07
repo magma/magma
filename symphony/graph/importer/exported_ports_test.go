@@ -51,6 +51,7 @@ type portData struct {
 	parentPortInst2 string
 	portDef2        string
 	childPortInst1  string
+	linkID          string
 }
 
 func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolver) portData {
@@ -65,6 +66,12 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 				Type:        models.PropertyKindString,
 				StringValue: pointer.ToString("t1"),
 			},
+			{
+				Name: propNameInt,
+				Type: models.PropertyKindInt,
+			},
+		},
+		LinkProperties: []*models.PropertyTypeInput{
 			{
 				Name: propNameInt,
 				Type: models.PropertyKindInt,
@@ -97,6 +104,18 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 			{
 				Name: propNameBool,
 				Type: models.PropertyKindBool,
+			},
+		},
+		LinkProperties: []*models.PropertyTypeInput{
+			{
+				Name:        propNameDate,
+				Type:        models.PropertyKindDate,
+				StringValue: pointer.ToString("2020-01-01"),
+			},
+			{
+				Name:         propNameBool,
+				Type:         models.PropertyKindBool,
+				BooleanValue: pointer.ToBool(true),
 			},
 		},
 	})
@@ -150,7 +169,7 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 
 	childPortInst1 := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef2.ID))).OnlyX(ctx)
 
-	_, _ = mr.AddLink(ctx, models.AddLinkInput{
+	l, _ := mr.AddLink(ctx, models.AddLinkInput{
 		Sides: []*models.LinkSide{
 			{Equipment: childEquip.ID, Port: portDef2.ID},
 			{Equipment: parentEquip2.ID, Port: portDef1.ID},
@@ -169,6 +188,7 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		parentPortInst2: parentPortInst2.ID,
 		portDef2:        portDef2.ID,
 		childPortInst1:  childPortInst1.ID,
+		linkID:          l.ID,
 	}
 }
 

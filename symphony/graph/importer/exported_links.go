@@ -14,16 +14,15 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/link"
-	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 )
 
-var fixedFirstLine = []string{"Link ID", "Port A ID", "Port A Name", "Port A Type", "Equipment A ID", "Equipment A Name", "Equipment A Type", "Port B ID", "Port B Name", "Port B Type", "Equipment B ID", "Equipment B Name", "Equipment B Type", "Service Names"}
+var fixedFirstLineLink = []string{"Link ID", "Port A ID", "Port A Name", "Port A Type", "Equipment A ID", "Equipment A Name", "Equipment A Type", "Port B ID", "Port B Name", "Port B Type", "Equipment B ID", "Equipment B Name", "Equipment B Type", "Service Names"}
 
 func minimalLinksLineLength() int {
-	return len(fixedFirstLine)
+	return len(fixedFirstLineLink)
 }
 
 // processExportedLinks imports links csv generated from the export feature
@@ -146,6 +145,7 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 	if portAData.ID == portBData.ID {
 		return nil, errors.New("same port for Port A and port B")
 	}
+	var linkPropNames []string
 	for _, port := range ports {
 		switch port.ID {
 		case portAData.ID:
@@ -166,16 +166,18 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 		if ent.MaskNotFound(err) != nil {
 			return nil, errors.Wrapf(err, "fetching equipment port type")
 		}
-		if portType != nil {
-			for propTypName, value := range importLine.PropertiesMap() {
-				if value != "" {
-					switch exist, err := portType.QueryLinkPropertyTypes().Where(propertytype.Name(propTypName)).Exist(ctx); {
-					case err != nil:
-						return nil, errors.Wrapf(err, "querying link properties for link %v", linkID)
-					case !exist:
-						return nil, errors.Errorf("link property %v does not exist on portType %v", propTypName, portType.Name)
-					}
-				}
+		lps, err := portType.QueryLinkPropertyTypes().All(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "fetching links port type properties")
+		}
+		for _, value := range lps {
+			linkPropNames = append(linkPropNames, value.Name)
+		}
+	}
+	for propTypName, value := range importLine.PropertiesMap() {
+		if value != "" {
+			if findIndex(linkPropNames, propTypName) == -1 {
+				return nil, errors.Errorf("link property %v does not exist on either portType", propTypName)
 			}
 		}
 	}
@@ -185,11 +187,11 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 func (m *importer) inputValidationsLinks(ctx context.Context, importHeader ImportHeader) error {
 	firstLine := importHeader.line
 	if len(firstLine) < minimalLinksLineLength() {
-		return errors.Errorf("first line too short. should include: %q", fixedFirstLine)
+		return errors.Errorf("first line too short. should include: %q", fixedFirstLineLink)
 	}
 	propStart := importHeader.PropertyStartIdx()
-	if !equal(firstLine[:propStart], fixedFirstLine) {
-		return errors.Errorf("first line misses sequence: %q ", fixedFirstLine)
+	if !equal(firstLine[:propStart], fixedFirstLineLink) {
+		return errors.Errorf("first line misses sequence: %q ", fixedFirstLineLink)
 	}
 	return nil
 }
