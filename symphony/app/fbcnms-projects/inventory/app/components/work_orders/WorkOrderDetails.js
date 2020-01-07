@@ -62,8 +62,8 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {createFragmentContainer, graphql} from 'react-relay';
 import {formatDateForTextInput} from '@fbcnms/ui/utils/displayUtils';
+import {priorityValues, statusValues} from '../../common/WorkOrder';
 import {sortPropertiesByIndex} from '../../common/Property';
-import {statusValues} from '../../common/WorkOrder';
 import {withRouter} from 'react-router-dom';
 import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core/styles';
@@ -291,6 +291,34 @@ class WorkOrderDetails extends React.Component<Props, State> {
                                   this._setWorkOrderDetail('project', project)
                                 }
                               />
+                            </FormField>
+                          </Grid>
+                          <Grid item xs={12} sm={6} lg={4} xl={4}>
+                            <FormField label="Priority">
+                              <TextField
+                                select
+                                className={classes.gridInput}
+                                variant="outlined"
+                                value={workOrder.priority}
+                                InputProps={{
+                                  classes: {
+                                    input: classes.dense,
+                                  },
+                                }}
+                                onChange={event => {
+                                  this._setWorkOrderDetail(
+                                    'priority',
+                                    event.target.value,
+                                  );
+                                }}>
+                                {priorityValues.map(option => (
+                                  <MenuItem
+                                    key={option.value}
+                                    value={option.value}>
+                                    {option.label}
+                                  </MenuItem>
+                                ))}
+                              </TextField>
                             </FormField>
                           </Grid>
                           <Grid item xs={12} sm={6} lg={4} xl={4}>
