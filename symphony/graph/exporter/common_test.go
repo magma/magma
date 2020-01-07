@@ -5,10 +5,21 @@
 package exporter
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"flag"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/facebookincubator/symphony/graph/importer"
+
+	"github.com/facebookincubator/symphony/graph/viewer"
+	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
 
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -213,6 +224,22 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 				Type: "string",
 			},
 		},
+		LinkProperties: []*models.PropertyTypeInput{
+			{
+				Name:        propNameStr,
+				Type:        "string",
+				StringValue: pointer.ToString("t1"),
+			},
+			{
+				Name: propNameBool,
+				Type: "bool",
+			},
+			{
+				Name:     propNameInt,
+				Type:     "int",
+				IntValue: pointer.ToInt(100),
+			},
+		},
 	})
 	port1 := models.EquipmentPortInput{
 		Name:       portName1,
@@ -324,4 +351,57 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		PortID: portID2,
 		Role:   models.ServiceEndpointRoleProvider,
 	})
+}
+
+func prepareLinksPortsAndExport(t *testing.T, r *TestExporterResolver, e http.Handler) (context.Context, *http.Response) {
+	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+
+	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
+	req.Header.Set(tenantHeader, "fb-test")
+
+	ctx := viewertest.NewContext(r.client)
+	prepareData(ctx, t, *r)
+	locs := r.client.Location.Query().AllX(ctx)
+	require.Len(t, locs, 3)
+	res, err := http.DefaultClient.Do(req)
+	require.NoError(t, err)
+	return ctx, res
+}
+
+func importLinksPortsFile(t *testing.T, client *ent.Client, r io.Reader, entity importer.ImportEntity) {
+	readr := csv.NewReader(r)
+	var buf *bytes.Buffer
+	var contentType, url string
+	switch entity {
+	case importer.ImportEntityLink:
+		buf, contentType = writeModifiedLinksCSV(t, readr)
+	case importer.ImportEntityPort:
+		buf, contentType = writeModifiedPortsCSV(t, readr)
+		fmt.Println("contentType", contentType)
+	}
+
+	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
+	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
+	server := httptest.NewServer(th)
+	defer server.Close()
+	switch entity {
+	case importer.ImportEntityLink:
+		url = server.URL + "/export_links"
+	case importer.ImportEntityPort:
+		fmt.Println("server.URL", server.URL)
+		url = server.URL + "/export_ports"
+	}
+	req, err := http.NewRequest(http.MethodPost, url, buf)
+	require.Nil(t, err)
+
+	req.Header.Set(tenantHeader, "fb-test")
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := http.DefaultClient.Do(req)
+	require.Nil(t, err)
+	require.Equal(t, resp.StatusCode, http.StatusOK)
+	resp.Body.Close()
 }

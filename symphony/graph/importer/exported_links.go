@@ -166,12 +166,14 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 		if ent.MaskNotFound(err) != nil {
 			return nil, errors.Wrapf(err, "fetching equipment port type")
 		}
-		lps, err := portType.QueryLinkPropertyTypes().All(ctx)
-		if err != nil {
-			return nil, errors.Wrapf(err, "fetching links port type properties")
-		}
-		for _, value := range lps {
-			linkPropNames = append(linkPropNames, value.Name)
+		if portType != nil {
+			lps, err := portType.QueryLinkPropertyTypes().All(ctx)
+			if err != nil {
+				return nil, errors.Wrapf(err, "fetching links port type properties")
+			}
+			for _, value := range lps {
+				linkPropNames = append(linkPropNames, value.Name)
+			}
 		}
 	}
 	for propTypName, value := range importLine.PropertiesMap() {
