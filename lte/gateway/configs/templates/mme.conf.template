@@ -214,12 +214,12 @@ MME :
         # Log level choice in { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "TRACE"}
         SCTP_LOG_LEVEL     = "ERROR";
         GTPV1U_LOG_LEVEL   = "{{ oai_log_level }}";
-        SPGW_APP_LOG_LEVEL = "DEBUG";
-        PGW_APP_LOG_LEVEL  = "DEBUG";
+        SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
+        PGW_APP_LOG_LEVEL  = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";
         S1AP_LOG_LEVEL     = "{{ oai_log_level }}";
         NAS_LOG_LEVEL      = "{{ oai_log_level }}";
-        MME_APP_LOG_LEVEL  = "DEBUG";
+        MME_APP_LOG_LEVEL  = "{{ oai_log_level }}";
         S6A_LOG_LEVEL      = "{{ oai_log_level }}";
         UTIL_LOG_LEVEL     = "{{ oai_log_level }}";
         MSC_LOG_LEVEL      = "ERROR";

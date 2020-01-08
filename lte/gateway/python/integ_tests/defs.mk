@@ -28,6 +28,7 @@ s1aptests/test_attach_service_ue_radio_capability.py \
 s1aptests/test_attach_service_multi_ue.py \
 s1aptests/test_attach_ipv4v6_pdn_type.py \
 s1aptests/test_service_info.py \
+s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
 s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
@@ -41,6 +42,8 @@ s1aptests/test_attach_detach_ps_service_not_available.py \
 s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
+s1aptests/test_enb_partial_reset_con_dereg.py \
+s1aptests/test_enb_partial_reset.py \
 s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_incorrect_plmn.py \

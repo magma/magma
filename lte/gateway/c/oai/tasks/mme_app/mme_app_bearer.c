@@ -2185,8 +2185,7 @@ int mme_app_handle_nas_extended_service_req(
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "ERROR***** Invalid UE Id received from NAS in Extended Service "
-      "Request\n");
+      "ERROR***** Invalid UE Id received in Extended Service Request \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   mme_app_desc_p = get_mme_nas_state(false);
@@ -2263,6 +2262,7 @@ int mme_app_handle_nas_extended_service_req(
             LOG_MME_APP,
             "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
       } else if (
         csfb_response == CSFB_ACCEPTED_BY_UE) {

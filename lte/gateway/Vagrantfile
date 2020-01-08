@@ -31,7 +31,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
     magma.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-dev18"
+      vb.name = "magma-dev"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
@@ -59,7 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vbguest.auto_update = false
 
     magma_trfserver.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-trfserver18"
+      vb.name = "magma-trfserver"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "256"]
       vb.customize ["modifyvm", :id, "--cpus", "1"]
@@ -90,7 +90,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.ssh.forward_agent = true
 
     magma_test.vm.provider "virtualbox" do |vb|
-      vb.name = "magma_test18"
+      vb.name = "magma_test"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "1024"]
       vb.customize ["modifyvm", :id, "--cpus", "1"]
@@ -120,7 +120,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_oai.vm.network "private_network", ip: "192.168.60.145", nic_type: "82540EM"
 
     magma_oai.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-oai18"
+      vb.name = "magma-oai"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "4096"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
