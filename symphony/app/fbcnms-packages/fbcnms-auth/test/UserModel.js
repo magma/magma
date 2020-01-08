@@ -18,6 +18,7 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
+    readOnly: false,
   },
   {
     id: '2',
@@ -25,6 +26,7 @@ export const USERS = [
     organization: 'nottakenintoconsideration',
     role: AccessRoles.USER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
+    readOnly: false,
   },
   {
     id: '3',
@@ -32,6 +34,7 @@ export const USERS = [
     organization: 'validorg',
     role: AccessRoles.SUPERUSER,
     password: bcrypt.hashSync('password1234', bcrypt.genSaltSync(1)),
+    readOnly: false,
   },
 ];
 
@@ -43,6 +46,7 @@ export const USERS_EXPECTED = [
     organization: 'validorg',
     role: 0,
     tabs: [],
+    readOnly: false,
   },
   {
     networkIDs: [],
@@ -51,6 +55,7 @@ export const USERS_EXPECTED = [
     organization: 'nottakenintoconsideration',
     role: 0,
     tabs: [],
+    readOnly: false,
   },
   {
     networkIDs: [],
@@ -59,5 +64,6 @@ export const USERS_EXPECTED = [
     organization: 'validorg',
     role: 3,
     tabs: [],
+    readOnly: false,
   },
 ];

@@ -9,6 +9,12 @@
 
 #include <devmand/channels/Channel.h>
 #include <devmand/channels/ping/Engine.h>
+#include <gtest/gtest_prod.h>
+namespace devmand {
+  namespace test {
+    class PingChannelTest_checkSequenceIdGeneration_Test;
+  }
+}
 
 namespace devmand {
 namespace channels {
@@ -28,14 +34,17 @@ class Channel : public channels::Channel {
   folly::Future<Rtt> ping();
 
  private:
+  friend devmand::test::PingChannelTest_checkSequenceIdGeneration_Test;
+  // this was not working?
+  // FRIEND_TEST(PingChannelTest, checkSequenceIdGeneration);
   RequestId getSequence();
   icmphdr makeIcmpPacket();
+  RequestId genRandomRequestId();
 
  private:
   Engine& engine;
   folly::IPAddress target;
-  // TODO BOOTCAMP make this randomly initilized to minimize collisions.
-  RequestId sequence{0};
+  RequestId sequence;
 };
 
 } // namespace ping

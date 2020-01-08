@@ -12,12 +12,13 @@ import Autosuggest from 'react-autosuggest';
 import CancelIcon from '@material-ui/icons/Cancel';
 import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import InputAffix from './design-system/Input/InputAffix';
-import React, {useContext, useState} from 'react';
+import React, {useContext, useRef, useState} from 'react';
 import Text from './design-system/Text';
 import TextInput from './design-system/Input/TextInput';
 import Tooltip from '@material-ui/core/Tooltip';
 import emptyFunction from '@fbcnms/util/emptyFunction';
 import symphony from '../theme/symphony';
+import useFollowElement from './useFollowElement';
 import {blue05} from '../theme/colors';
 import {makeStyles, useTheme} from '@material-ui/styles';
 
@@ -45,6 +46,8 @@ const autoSuggestStyles = theme => ({
     fontWeight: theme.typography.subtitle1.fontWeight,
     position: 'fixed',
     boxShadow: theme.shadows[2],
+    zIndex: 2,
+    transition: 'top 100ms ease-out 0s',
   },
   suggestionsList: {
     margin: 0,
@@ -127,6 +130,10 @@ const Typeahead = (props: Props) => {
   const classes = useStyles();
   const theme = useTheme();
 
+  const inputContainer = useRef(null);
+  const dropdownContainer = useRef(null);
+  useFollowElement(dropdownContainer, inputContainer);
+
   const validationContext = useContext(FormValidationContext);
   const disabled = props.disabled || validationContext.editLock.detected;
   return (
@@ -174,6 +181,16 @@ const Typeahead = (props: Props) => {
           onSuggestionsFetchRequested={({value}) => {
             onSuggestionsFetchRequested(value);
           }}
+          renderSuggestionsContainer={({containerProps, children}) => (
+            <div
+              {...containerProps}
+              ref={refInput => {
+                dropdownContainer.current = refInput;
+                containerProps.ref && containerProps.ref(refInput);
+              }}>
+              {children}
+            </div>
+          )}
           onSuggestionsClearRequested={emptyFunction}
           renderSuggestion={suggestion => (
             <div className={classes.suggestionRoot}>
@@ -189,16 +206,17 @@ const Typeahead = (props: Props) => {
           }}
           theme={autoSuggestStyles(theme)}
           renderInputComponent={inputProps => (
-            <TextInput
-              type="string"
-              placeholder={placeholder ?? ''}
-              {...inputProps}
-            />
+            <div ref={inputContainer}>
+              <TextInput
+                type="string"
+                placeholder={placeholder ?? 'Search...'}
+                {...inputProps}
+              />
+            </div>
           )}
           inputProps={{
             style: {},
             required: !!required,
-            placeholder: placeholder ?? 'Search...',
             value: searchTerm,
             margin,
             onChange: (_e, {newValue}) => setSearchTerm(newValue),

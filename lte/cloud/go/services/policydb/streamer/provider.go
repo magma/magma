@@ -148,7 +148,7 @@ func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) 
 		return nil, errors.Wrap(err, "failed to load base names")
 	}
 
-	policiesBySid, err := r.getActivePoliciesBySid(ruleEnts, bnEnts)
+	policiesBySid, err := r.getAssignedPoliciesBySid(ruleEnts, bnEnts)
 	if err != nil {
 		return nil, err
 	}
@@ -167,19 +167,19 @@ func (r *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) 
 	return ret, nil
 }
 
-func (r *RuleMappingsProvider) getActivePoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.ActivePolicies, error) {
+func (r *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.AssignedPolicies, error) {
 	allEnts := make([]configurator.NetworkEntity, 0, len(policyRules)+len(baseNames))
 	allEnts = append(allEnts, policyRules...)
 	allEnts = append(allEnts, baseNames...)
 
-	policiesBySid := map[string]*lteProtos.ActivePolicies{}
+	policiesBySid := map[string]*lteProtos.AssignedPolicies{}
 	for _, ent := range allEnts {
 		for _, tk := range ent.Associations {
 			switch tk.Type {
 			case lte.SubscriberEntityType:
 				policies, found := policiesBySid[tk.Key]
 				if !found {
-					policies = &lteProtos.ActivePolicies{}
+					policies = &lteProtos.AssignedPolicies{}
 					policiesBySid[tk.Key] = policies
 				}
 

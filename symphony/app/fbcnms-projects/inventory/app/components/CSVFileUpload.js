@@ -12,6 +12,7 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import axios from 'axios';
+import fbt from 'fbt';
 import {withStyles} from '@material-ui/core/styles';
 
 const styles = {
@@ -29,12 +30,15 @@ const styles = {
   },
 };
 
+const SUCCESS_RESPONSE = 0;
+
 type Props = {
   button: React.Element<any>,
   onProgress: () => void,
-  onFileUploaded: () => void,
+  onFileUploaded: string => void,
   onUploadFailed?: any => void,
   uploadPath: string,
+  entity?: string,
 } & WithStyles<typeof styles>;
 
 class CSVFileUpload extends React.Component<Props> {
@@ -93,8 +97,26 @@ class CSVFileUpload extends React.Component<Props> {
       idx++;
     });
     try {
-      await axios.post(this.props.uploadPath, formData, config);
-      this.props.onFileUploaded();
+      const response = await axios.post(
+        this.props.uploadPath,
+        formData,
+        config,
+      );
+      let msg = '';
+      const responseData = response.data;
+      if (responseData.messageCode == SUCCESS_RESPONSE) {
+        const entity = this.props.entity ? this.props.entity : '';
+        msg = fbt(
+          'Successfully uploaded' +
+            fbt.param('number of saved lines', responseData.successLines) +
+            ' of ' +
+            fbt.param('number of all lines', responseData.allLines) +
+            fbt.param('type that was saved', entity) +
+            'items',
+          'message for a successful import',
+        );
+      }
+      this.props.onFileUploaded(msg);
     } catch (error) {
       const message = error.response?.data;
       this.props.onUploadFailed && this.props.onUploadFailed(message);

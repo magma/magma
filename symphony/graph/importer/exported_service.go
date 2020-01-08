@@ -12,7 +12,6 @@ import (
 
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
@@ -159,8 +158,11 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	msg := fmt.Sprintf("Created %q instances, out of %q", strconv.FormatInt(int64(count), 10), strconv.FormatInt(int64(numRows), 10))
-	w.Write([]byte(msg))
+	err := writeSuccessMessage(w, count, numRows)
+	if err != nil {
+		errorReturn(w, "cannot marshal message", log, err)
+		return
+	}
 }
 
 func (m *importer) validateLineForExistingService(ctx context.Context, serviceID string, importLine ImportRecord) (*ent.Service, error) {
@@ -170,7 +172,7 @@ func (m *importer) validateLineForExistingService(ctx context.Context, serviceID
 	}
 	typ := service.QueryType().OnlyX(ctx)
 	if typ.Name != importLine.TypeName() {
-		return nil, errors.Errorf("wrong service type. should be %v, but %v", importLine.TypeName(), typ.Name)
+		return nil, errors.Errorf("wrong service type. should be %v, but %v", typ.Name, importLine.TypeName())
 	}
 	return service, nil
 }
@@ -196,7 +198,7 @@ func (m *importer) validatePropertiesForServiceType(ctx context.Context, line Im
 	}
 	for _, ptype := range propTypes {
 		ptypeName := ptype.Name
-		pInput, err := line.GetPropertyInput(m, ctx, serviceType, ptypeName)
+		pInput, err := line.GetPropertyInput(m.ClientFrom(ctx), ctx, serviceType, ptypeName)
 		if err != nil {
 			return nil, err
 		}

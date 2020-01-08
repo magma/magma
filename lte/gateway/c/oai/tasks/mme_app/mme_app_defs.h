@@ -41,6 +41,8 @@
 #include "mme_app_sgs_fsm.h"
 #include "emm_proc.h"
 
+#define INVALID_BEARER_INDEX -1
+
 int mme_app_handle_s1ap_ue_capabilities_ind(mme_app_desc_t *mme_app_desc_p,
   const itti_s1ap_ue_cap_ind_t const *s1ap_ue_cap_ind_pP);
 

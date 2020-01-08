@@ -19,7 +19,6 @@ import {withStyles} from '@material-ui/core/styles';
 const styles = theme => ({
   root: {
     display: 'flex',
-    whiteSpace: 'nowrap',
   },
   labelName: {
     color: theme.palette.grey.A700,
@@ -29,7 +28,6 @@ const styles = theme => ({
   value: {
     textOverflow: 'ellipsis',
     overflowWrap: 'break-word',
-    whiteSpace: 'nowrap',
     overflow: 'hidden',
   },
 });

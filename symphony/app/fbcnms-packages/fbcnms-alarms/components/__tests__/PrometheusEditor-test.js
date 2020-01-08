@@ -9,16 +9,15 @@
  */
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import PrometheusEditor from '../PrometheusEditor';
-import defaultTheme from '@fbcnms/ui/theme/default';
-import {MemoryRouter} from 'react-router-dom';
-import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SnackbarProvider} from 'notistack';
+import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {cleanup, render} from '@testing-library/react';
 import {mockApiUtil} from '../../test/testHelpers';
 import type {AlertConfig} from '../AlarmAPIType';
 import type {GenericRule} from '../RuleInterface';
+
+import 'jest-dom/extend-expect';
+import {parseTimeString} from '../PrometheusEditor';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -47,18 +46,6 @@ jest.mock('@material-ui/core/TextField', () => {
   );
 });
 
-function Wrapper(props: {route?: string, children: React.Node}) {
-  return (
-    <MemoryRouter initialEntries={[props.route || '/']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <SnackbarProvider>{props.children}</SnackbarProvider>
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
-}
-
 const commonProps = {
   apiUtil: mockApiUtil(),
   onRuleUpdated: () => {},
@@ -78,16 +65,16 @@ test('editing a threshold alert opens the PrometheusEditor with the threshold ex
     expression: 'metric > 123',
   };
   const {getByDisplayValue} = render(
-    <Wrapper>
+    <SymphonyWrapper>
       <PrometheusEditor {...commonProps} rule={testThresholdRule} />
-    </Wrapper>,
+    </SymphonyWrapper>,
   );
   expect(getByDisplayValue('metric')).toBeInTheDocument();
   expect(getByDisplayValue('123')).toBeInTheDocument();
 });
 
 test('editing a non-threshold alert opens the PrometheusEditor with the advanced editor enabled', async () => {
-  const nonThresholdRule: GenericRule<AlertConfig> = {
+  const testThresholdRule: GenericRule<AlertConfig> = {
     severity: '',
     ruleType: '',
     rawRule: {alert: '', expr: 'vector(1)'},
@@ -97,9 +84,23 @@ test('editing a non-threshold alert opens the PrometheusEditor with the advanced
     expression: 'vector(1)',
   };
   const {getByDisplayValue} = render(
-    <Wrapper>
-      <PrometheusEditor {...commonProps} rule={nonThresholdRule} />
-    </Wrapper>,
+    <SymphonyWrapper>
+      <PrometheusEditor {...commonProps} rule={testThresholdRule} />
+    </SymphonyWrapper>,
   );
   expect(getByDisplayValue('vector(1)')).toBeInTheDocument();
+});
+
+describe('Duration Parser', () => {
+  const testCases = [
+    ['empty input', '', {hours: 0, minutes: 0, seconds: 0}],
+    ['out of order units', '1s2m3h', {hours: 0, minutes: 0, seconds: 0}],
+    ['all units', '1h2m3s', {hours: 1, minutes: 2, seconds: 3}],
+    ['hour', '1h', {hours: 1, minutes: 0, seconds: 0}],
+    ['minute', '1m', {hours: 0, minutes: 1, seconds: 0}],
+    ['second', '1s', {hours: 0, minutes: 0, seconds: 1}],
+  ];
+  test.each(testCases)('%s', (name, input, expectedDuration) => {
+    expect(parseTimeString(input)).toEqual(expectedDuration);
+  });
 });
