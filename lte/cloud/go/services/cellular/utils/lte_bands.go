@@ -37,13 +37,27 @@ var bands = [...]LTEBand{
 	{ID: 4, Mode: FDDMode, StartEarfcnDl: 1950, StartEarfcnUl: 19950, CountEarfcn: 450},
 	{ID: 28, Mode: FDDMode, StartEarfcnDl: 9210, StartEarfcnUl: 27210, CountEarfcn: 450},
 	// TDDMode
+	{ID: 33, Mode: TDDMode, StartEarfcnDl: 36000, CountEarfcn: 200},
+	{ID: 34, Mode: TDDMode, StartEarfcnDl: 36200, CountEarfcn: 150},
+	{ID: 35, Mode: TDDMode, StartEarfcnDl: 36350, CountEarfcn: 600},
+	{ID: 36, Mode: TDDMode, StartEarfcnDl: 36950, CountEarfcn: 600},
+	{ID: 37, Mode: TDDMode, StartEarfcnDl: 37550, CountEarfcn: 200},
 	{ID: 38, Mode: TDDMode, StartEarfcnDl: 37750, CountEarfcn: 500},
 	{ID: 39, Mode: TDDMode, StartEarfcnDl: 38250, CountEarfcn: 400},
 	{ID: 40, Mode: TDDMode, StartEarfcnDl: 38650, CountEarfcn: 1000},
 	{ID: 41, Mode: TDDMode, StartEarfcnDl: 39650, CountEarfcn: 1940},
 	{ID: 42, Mode: TDDMode, StartEarfcnDl: 41590, CountEarfcn: 2000},
 	{ID: 43, Mode: TDDMode, StartEarfcnDl: 43590, CountEarfcn: 2000},
+	{ID: 44, Mode: TDDMode, StartEarfcnDl: 45590, CountEarfcn: 1000},
+	{ID: 45, Mode: TDDMode, StartEarfcnDl: 46590, CountEarfcn: 200},
+	{ID: 46, Mode: TDDMode, StartEarfcnDl: 46790, CountEarfcn: 7750},
+	{ID: 47, Mode: TDDMode, StartEarfcnDl: 54540, CountEarfcn: 700},
 	{ID: 48, Mode: TDDMode, StartEarfcnDl: 55240, CountEarfcn: 1500},
+	{ID: 49, Mode: TDDMode, StartEarfcnDl: 56740, CountEarfcn: 1500},
+	{ID: 50, Mode: TDDMode, StartEarfcnDl: 58240, CountEarfcn: 850},
+	{ID: 51, Mode: TDDMode, StartEarfcnDl: 59090, CountEarfcn: 50},
+	{ID: 52, Mode: TDDMode, StartEarfcnDl: 59140, CountEarfcn: 1000},
+	{ID: 53, Mode: TDDMode, StartEarfcnDl: 60140, CountEarfcn: 115},
 }
 
 // EarfcnDLInRange checks that an EARFCN-DL belongs to a band
