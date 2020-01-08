@@ -30,6 +30,7 @@ const FIELD_MAP = {
   password: 'password',
   superUser: 'role',
   tabs: 'tabs',
+  readOnly: 'readOnly',
 };
 
 export function addQueryParamsToUrl(
@@ -128,6 +129,13 @@ export async function getPropsToUpdate(
             break;
           }
           throw new Error('Invalid tab name');
+        case 'readOnly':
+          const readOnlyUnsafe = body[prop];
+          if (typeof readOnlyUnsafe !== 'boolean') {
+            throw new Error('Invalid read only value');
+          }
+          userProperties[prop] = readOnlyUnsafe;
+          break;
         default:
           userProperties[prop] = body[prop];
           break;

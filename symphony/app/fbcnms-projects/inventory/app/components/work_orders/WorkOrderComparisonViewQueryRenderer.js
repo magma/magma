@@ -22,6 +22,8 @@ import type {DisplayOptionTypes} from '../InventoryViewHeader';
 
 const useStyles = makeStyles(theme => ({
   root: {
+    height: '100%',
+    width: '100%',
     flexGrow: 1,
   },
   noResultsRoot: {
@@ -38,6 +40,10 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.grey[600],
     marginBottom: '6px',
     fontSize: '36px',
+  },
+  tableViewContainer: {
+    paddingRight: '24px',
+    paddingLeft: '24px',
   },
 }));
 
@@ -107,6 +113,7 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
               <WorkOrdersView
                 workOrder={workOrderSearch}
                 onWorkOrderSelected={onWorkOrderSelected}
+                className={classes.tableViewContainer}
               />
             )}
           </div>

@@ -26,6 +26,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 	"github.com/facebookincubator/symphony/graph/ent/survey"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -1151,11 +1152,23 @@ func (r mutationResolver) EditLink(
 	if err != nil {
 		return nil, errors.Wrapf(err, "querying link: id=%q", input.ID)
 	}
+
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := l.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range input.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := l.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}
@@ -1378,6 +1391,11 @@ func (r mutationResolver) removeEquipment(ctx context.Context, e *ent.Equipment)
 		Where(link.HasPortsWith(equipmentport.HasParentWith(equipment.ID(e.ID)))).
 		Exec(ctx); err != nil {
 		return errors.Wrapf(err, "delete links of equipment e=%q", e.ID)
+	}
+	if _, err := client.ServiceEndpoint.Delete().
+		Where(serviceendpoint.HasPortWith(equipmentport.HasParentWith(equipment.ID(e.ID)))).
+		Exec(ctx); err != nil {
+		return errors.Wrapf(err, "delete service endpoints of equipment e=%q", e.ID)
 	}
 	if _, err := client.EquipmentPort.Delete().
 		Where(equipmentport.HasParentWith(equipment.ID(e.ID))).
@@ -1714,10 +1732,21 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 	}
 
 	var added, edited []*models.PropertyInput
+	directPropertiesTypes, err := s.QueryProperties().QueryType().IDs(ctx)
+	if err != nil {
+		return nil, err
+	}
 	for _, input := range data.Properties {
-		if input.ID == nil {
+		if r.isNewProp(directPropertiesTypes, input.ID, input.PropertyTypeID) {
 			added = append(added, input)
 		} else {
+			if input.ID == nil {
+				propID, err := s.QueryProperties().Where(property.HasTypeWith(propertytype.ID(input.PropertyTypeID))).OnlyID(ctx)
+				if err != nil {
+					return nil, err
+				}
+				input.ID = &propID
+			}
 			edited = append(edited, input)
 		}
 	}

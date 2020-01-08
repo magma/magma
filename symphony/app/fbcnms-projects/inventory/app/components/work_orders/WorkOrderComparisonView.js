@@ -41,7 +41,7 @@ const useStyles = makeStyles({
   },
   searchResults: {
     flexGrow: 1,
-    padding: '8px 24px',
+    paddingTop: '8px',
   },
 });
 

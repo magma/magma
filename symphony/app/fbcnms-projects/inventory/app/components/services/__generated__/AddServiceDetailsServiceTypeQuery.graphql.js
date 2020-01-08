@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 47828c1032e2a232d709772dd6f50d08
+ * @relayHash dfa8baa6d8365f832db16ea2f3ef91a3
  */
 
 /* eslint-disable */
@@ -21,9 +21,9 @@ export type AddServiceDetailsServiceTypeQueryVariables = {|
 |};
 export type AddServiceDetailsServiceTypeQueryResponse = {|
   +serviceType: ?{|
-    +id?: string,
-    +name?: string,
-    +propertyTypes?: $ReadOnlyArray<?{|
+    +id: string,
+    +name: string,
+    +propertyTypes: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
       +type: PropertyKind,
@@ -53,30 +53,26 @@ export type AddServiceDetailsServiceTypeQuery = {|
 query AddServiceDetailsServiceTypeQuery(
   $serviceTypeId: ID!
 ) {
-  serviceType: node(id: $serviceTypeId) {
-    __typename
-    ... on ServiceType {
+  serviceType(id: $serviceTypeId) {
+    id
+    name
+    propertyTypes {
       id
       name
-      propertyTypes {
-        id
-        name
-        type
-        index
-        stringValue
-        intValue
-        booleanValue
-        floatValue
-        latitudeValue
-        longitudeValue
-        rangeFromValue
-        rangeToValue
-        isEditable
-        isInstanceProperty
-        isMandatory
-      }
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      rangeFromValue
+      rangeToValue
+      isEditable
+      isInstanceProperty
+      isMandatory
     }
-    id
   }
 }
 */
@@ -90,131 +86,145 @@ var v0 = [
     "defaultValue": null
   }
 ],
-v1 = [
-  {
-    "kind": "Variable",
-    "name": "id",
-    "variableName": "serviceTypeId"
-  }
-],
-v2 = {
+v1 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
-v3 = {
+v2 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
 },
-v4 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "propertyTypes",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "PropertyType",
-  "plural": true,
-  "selections": [
-    (v2/*: any*/),
-    (v3/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "type",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "index",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "stringValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "intValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "booleanValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "floatValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "latitudeValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "longitudeValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "rangeFromValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "rangeToValue",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "isEditable",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "isInstanceProperty",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "isMandatory",
-      "args": null,
-      "storageKey": null
-    }
-  ]
-};
+v3 = [
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "serviceType",
+    "storageKey": null,
+    "args": [
+      {
+        "kind": "Variable",
+        "name": "id",
+        "variableName": "serviceTypeId"
+      }
+    ],
+    "concreteType": "ServiceType",
+    "plural": false,
+    "selections": [
+      (v1/*: any*/),
+      (v2/*: any*/),
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "propertyTypes",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "PropertyType",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          (v2/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "type",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "index",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "stringValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "intValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "booleanValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "floatValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "latitudeValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "longitudeValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "rangeFromValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "rangeToValue",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isEditable",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isInstanceProperty",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isMandatory",
+            "args": null,
+            "storageKey": null
+          }
+        ]
+      }
+    ]
+  }
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -223,72 +233,23 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": "serviceType",
-        "name": "node",
-        "storageKey": null,
-        "args": (v1/*: any*/),
-        "concreteType": null,
-        "plural": false,
-        "selections": [
-          {
-            "kind": "InlineFragment",
-            "type": "ServiceType",
-            "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/),
-              (v4/*: any*/)
-            ]
-          }
-        ]
-      }
-    ]
+    "selections": (v3/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "AddServiceDetailsServiceTypeQuery",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": "serviceType",
-        "name": "node",
-        "storageKey": null,
-        "args": (v1/*: any*/),
-        "concreteType": null,
-        "plural": false,
-        "selections": [
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "__typename",
-            "args": null,
-            "storageKey": null
-          },
-          (v2/*: any*/),
-          {
-            "kind": "InlineFragment",
-            "type": "ServiceType",
-            "selections": [
-              (v3/*: any*/),
-              (v4/*: any*/)
-            ]
-          }
-        ]
-      }
-    ]
+    "selections": (v3/*: any*/)
   },
   "params": {
     "operationKind": "query",
     "name": "AddServiceDetailsServiceTypeQuery",
     "id": null,
-    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  serviceType: node(id: $serviceTypeId) {\n    __typename\n    ... on ServiceType {\n      id\n      name\n      propertyTypes {\n        id\n        name\n        type\n        index\n        stringValue\n        intValue\n        booleanValue\n        floatValue\n        latitudeValue\n        longitudeValue\n        rangeFromValue\n        rangeToValue\n        isEditable\n        isInstanceProperty\n        isMandatory\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query AddServiceDetailsServiceTypeQuery(\n  $serviceTypeId: ID!\n) {\n  serviceType(id: $serviceTypeId) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd517d6791052a46b78b4890e801a646b';
+(node/*: any*/).hash = 'bfca811a8364844684b9c089fdc47f62';
 module.exports = node;

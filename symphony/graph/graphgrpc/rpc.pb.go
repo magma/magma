@@ -14,8 +14,6 @@ import (
 	empty "github.com/golang/protobuf/ptypes/empty"
 	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 	grpc "google.golang.org/grpc"
-	codes "google.golang.org/grpc/codes"
-	status "google.golang.org/grpc/status"
 	math "math"
 )
 
@@ -299,26 +297,6 @@ type TenantServiceServer interface {
 	Delete(context.Context, *wrappers.StringValue) (*empty.Empty, error)
 }
 
-// UnimplementedTenantServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedTenantServiceServer struct {
-}
-
-func (*UnimplementedTenantServiceServer) Create(ctx context.Context, req *wrappers.StringValue) (*Tenant, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
-func (*UnimplementedTenantServiceServer) List(ctx context.Context, req *empty.Empty) (*TenantList, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method List not implemented")
-}
-func (*UnimplementedTenantServiceServer) Get(ctx context.Context, req *wrappers.StringValue) (*Tenant, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
-}
-func (*UnimplementedTenantServiceServer) Truncate(ctx context.Context, req *wrappers.StringValue) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Truncate not implemented")
-}
-func (*UnimplementedTenantServiceServer) Delete(ctx context.Context, req *wrappers.StringValue) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
-}
-
 func RegisterTenantServiceServer(s *grpc.Server, srv TenantServiceServer) {
 	s.RegisterService(&_TenantService_serviceDesc, srv)
 }
@@ -469,14 +447,6 @@ func (c *actionsAlertServiceClient) Trigger(ctx context.Context, in *AlertPayloa
 // ActionsAlertServiceServer is the server API for ActionsAlertService service.
 type ActionsAlertServiceServer interface {
 	Trigger(context.Context, *AlertPayload) (*empty.Empty, error)
-}
-
-// UnimplementedActionsAlertServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedActionsAlertServiceServer struct {
-}
-
-func (*UnimplementedActionsAlertServiceServer) Trigger(ctx context.Context, req *AlertPayload) (*empty.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Trigger not implemented")
 }
 
 func RegisterActionsAlertServiceServer(s *grpc.Server, srv ActionsAlertServiceServer) {

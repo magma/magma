@@ -23,15 +23,17 @@ type UserObject = {
   email: string,
   password: string,
   superUser: boolean,
+  readOnly: boolean,
 };
 
 async function updateUser(user: User, userObject: UserObject) {
-  const {password, superUser} = userObject;
+  const {password, superUser, readOnly} = userObject;
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
   const passwordHash = await bcrypt.hash(password, salt);
   await user.update({
     password: passwordHash,
     role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
+    readOnly: readOnly,
   });
 }
 
@@ -46,6 +48,7 @@ async function createUser(userObject: UserObject) {
     role: superUser ? AccessRoles.SUPERUSER : AccessRoles.USER,
     networkIDs: [],
     organization: org.name,
+    readOnly: false,
   });
 }
 
@@ -101,6 +104,7 @@ function main() {
     email: args[1],
     password: args[2],
     superUser: true,
+    readOnly: false,
   };
   console.log(
     'Creating a new user: email=' +

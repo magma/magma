@@ -36,6 +36,9 @@ const proxyMiddleware = () => {
         const organization = await srcReq.organization();
         proxyReqOpts.headers['x-auth-organization'] = organization.name;
         proxyReqOpts.headers['x-auth-user-email'] = srcReq.user.email;
+        proxyReqOpts.headers['x-auth-user-readonly'] = srcReq.user.readOnly
+          ? 'TRUE'
+          : 'FALSE';
 
         return proxyReqOpts;
       },

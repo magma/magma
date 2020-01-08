@@ -16,6 +16,8 @@ import (
 	"reflect"
 
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Identity type names table. Every Identity type should add a unique type name
@@ -184,6 +186,16 @@ func GetClientCertExpiration(ctx context.Context) int64 {
 		return expTime
 	}
 	return 0
+}
+
+// GetGatewayIdentity returns the identity of the Gateway caller.
+// Returns an error if the gateway is not registered.
+func GetGatewayIdentity(ctx context.Context) (*Identity_Gateway, error) {
+	id := GetClientGateway(ctx)
+	if id == nil || !id.Registered() {
+		return nil, status.Errorf(codes.PermissionDenied, "Gateway not registered")
+	}
+	return id, nil
 }
 
 // GetClientIdentity returns Identity of the RPC caller retrieved from GRPC/HTTP

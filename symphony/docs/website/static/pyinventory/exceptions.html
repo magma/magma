@@ -63,6 +63,7 @@
 <li><a title="pyinventory.exceptions.PortAlreadyOccupiedException" href="#pyinventory.exceptions.PortAlreadyOccupiedException">PortAlreadyOccupiedException</a></li>
 <li><a title="pyinventory.exceptions.EquipmentPortNotFoundException" href="#pyinventory.exceptions.EquipmentPortNotFoundException">EquipmentPortNotFoundException</a></li>
 <li><a title="pyinventory.exceptions.EquipmentPortIsNotUniqueException" href="#pyinventory.exceptions.EquipmentPortIsNotUniqueException">EquipmentPortIsNotUniqueException</a></li>
+<li><a title="pyinventory.exceptions.LocationCannotBeDeletedWithDependency" href="#pyinventory.exceptions.LocationCannotBeDeletedWithDependency">LocationCannotBeDeletedWithDependency</a></li>
 </ul>
 </dd>
 <dt id="pyinventory.exceptions.EquipmentIsNotUniqueException"><code class="flex name class">
@@ -169,6 +170,19 @@
 <li>builtins.BaseException</li>
 </ul>
 </dd>
+<dt id="pyinventory.exceptions.LocationCannotBeDeletedWithDependency"><code class="flex name class">
+<span>class <span class="ident">LocationCannotBeDeletedWithDependency</span></span>
+<span>(</span><span>location_name, dependency)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Common base class for all non-exit exceptions.</p></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyinventory.exceptions.CustomException" href="#pyinventory.exceptions.CustomException">CustomException</a></li>
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+</dd>
 <dt id="pyinventory.exceptions.LocationIsNotUniqueException"><code class="flex name class">
 <span>class <span class="ident">LocationIsNotUniqueException</span></span>
 <span>(</span><span>location_name=None, location_type=None, external_id=None)</span>
@@ -255,6 +269,9 @@
 </li>
 <li>
 <h4><code><a title="pyinventory.exceptions.LinkNotFoundException" href="#pyinventory.exceptions.LinkNotFoundException">LinkNotFoundException</a></code></h4>
+</li>
+<li>
+<h4><code><a title="pyinventory.exceptions.LocationCannotBeDeletedWithDependency" href="#pyinventory.exceptions.LocationCannotBeDeletedWithDependency">LocationCannotBeDeletedWithDependency</a></code></h4>
 </li>
 <li>
 <h4><code><a title="pyinventory.exceptions.LocationIsNotUniqueException" href="#pyinventory.exceptions.LocationIsNotUniqueException">LocationIsNotUniqueException</a></code></h4>

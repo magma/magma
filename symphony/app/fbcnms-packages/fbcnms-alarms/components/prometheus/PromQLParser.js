@@ -18,15 +18,11 @@ export function Parser() {
 
 export function Parse(input: ?string): ?Expression {
   if (!input) {
-    return null;
+    throw 'empty input to parser';
   }
-  try {
-    const parser = Parser().feed(input);
-    // parser returns array of all possible parsing trees, so access the first
-    // element of results since this grammar should only produce 1 for each
-    // input
-    return parser.results[0];
-  } catch {
-    return null;
-  }
+  const parser = Parser().feed(input);
+  // parser returns array of all possible parsing trees, so access the first
+  // element of results since this grammar should only produce 1 for each
+  // input
+  return parser.results[0];
 }

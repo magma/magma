@@ -227,6 +227,7 @@ func (s *swxProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*or
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
+	s.cache.ClearAll()
 	s.connMan.DisableFor(time.Duration(req.DisablePeriodSecs) * time.Second)
 	return &orcprotos.Void{}, nil
 }
