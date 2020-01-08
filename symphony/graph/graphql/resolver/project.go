@@ -200,18 +200,34 @@ func (r queryResolver) ProjectTypes(
 	before *relay.Cursor, last *int,
 ) (*models.ProjectTypeConnection, error) {
 	types, err := r.ClientFrom(ctx).ProjectType.Query().All(ctx)
-	if err != nil {
+	switch {
+	case err != nil:
 		return nil, xerrors.Errorf("querying project types: %w", err)
+	case len(types) == 0:
+		return &models.ProjectTypeConnection{
+			Edges:    []*models.ProjectTypeEdge{},
+			PageInfo: &relay.PageInfo{},
+		}, nil
 	}
-	conn := &models.ProjectTypeConnection{
-		Edges: make([]*models.ProjectTypeEdge, len(types)),
-	}
+	edges := make([]*models.ProjectTypeEdge, len(types))
 	for i, typ := range types {
-		conn.Edges[i] = &models.ProjectTypeEdge{
+		edges[i] = &models.ProjectTypeEdge{
 			Node: typ,
+			Cursor: relay.Cursor{
+				ID:     typ.ID,
+				Offset: i,
+			},
 		}
 	}
-	return conn, nil
+	return &models.ProjectTypeConnection{
+		Edges: edges,
+		PageInfo: &relay.PageInfo{
+			HasNextPage:     false,
+			HasPreviousPage: false,
+			StartCursor:     edges[0].Cursor,
+			EndCursor:       edges[len(edges)-1].Cursor,
+		},
+	}, nil
 }
 
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
