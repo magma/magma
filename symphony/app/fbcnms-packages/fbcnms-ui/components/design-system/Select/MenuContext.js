@@ -13,10 +13,12 @@ import emptyFunction from '@fbcnms/util/emptyFunction';
 
 export type MenuContextValue = {
   onClose: () => void,
+  shown: boolean,
 };
 
 const MenuContext = React.createContext<MenuContextValue>({
   onClose: emptyFunction,
+  shown: false,
 });
 
 type Props = {

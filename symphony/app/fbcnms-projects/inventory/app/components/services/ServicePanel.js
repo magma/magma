@@ -40,7 +40,7 @@ import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import React, {useContext, useState} from 'react';
 import RemoveServiceEndpointMutation from '../../mutations/RemoveServiceEndpointMutation';
 import RemoveServiceLinkMutation from '../../mutations/RemoveServiceLinkMutation';
-import Select from '@fbcnms/ui/components/design-system/ContexualLayer/Select';
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import ServiceEndpointsMenu from './ServiceEndpointsMenu';
 import ServiceEndpointsView from './ServiceEndpointsView';
 import ServiceLinksSubservicesMenu from './ServiceLinksSubservicesMenu';

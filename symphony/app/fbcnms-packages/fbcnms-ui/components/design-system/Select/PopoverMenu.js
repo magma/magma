@@ -12,7 +12,7 @@ import type {ButtonVariant} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
-import BasePopoverTrigger from './BasePopoverTrigger';
+import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
 import SelectMenu from './SelectMenu';
 import {makeStyles} from '@material-ui/styles';
@@ -31,6 +31,8 @@ type Props<TValue> = {
   variant?: ButtonVariant,
   leftIcon?: React$ComponentType<SvgIconExports>,
   rightIcon?: React$ComponentType<SvgIconExports>,
+  searchable?: boolean,
+  onOptionsFetchRequested?: (searchTerm: string) => void,
 };
 
 const PopoverMenu = <TValue>({
