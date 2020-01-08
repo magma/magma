@@ -508,12 +508,15 @@ directive @goModel(
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Cursor
 scalar Cursor
   @goModel(
-    model: "github.com/facebookincubator/symphony/graph/graphql/models.Cursor"
+    model: "github.com/facebookincubator/symphony/pkg/graphql/relay.Cursor"
   )
 
 # Information for paginating a connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo
-type PageInfo {
+type PageInfo
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/graphql/relay.PageInfo"
+  ) {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
   startCursor: Cursor!

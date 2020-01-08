@@ -187,7 +187,7 @@ func TestRuleMappingsProvider(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	expectedProtos := []*protos.ActivePolicies{
+	expectedProtos := []*protos.AssignedPolicies{
 		{
 			AssignedBaseNames: []string{"b1", "b3"},
 			AssignedPolicies:  []string{"r1", "r3"},
@@ -199,7 +199,7 @@ func TestRuleMappingsProvider(t *testing.T) {
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(ap *protos.ActivePolicies) *orcprotos.DataUpdate {
+		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
 			data, err := proto.Marshal(ap)
 			assert.NoError(t, err)
 			return &orcprotos.DataUpdate{Value: data}

@@ -6,25 +6,17 @@ package exporter
 
 import (
 	"bytes"
-	"context"
 	"encoding/csv"
 	"io"
 	"mime/multipart"
-	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/importer"
-	"github.com/facebookincubator/symphony/graph/viewer"
-	"github.com/facebookincubator/symphony/graph/viewer/viewertest"
-	"github.com/facebookincubator/symphony/pkg/log/logtest"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,55 +59,16 @@ func writeModifiedPortsCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 	return &buf, ct
 }
 
-func importPortsFile(t *testing.T, client *ent.Client, r io.Reader, method method) {
-	readr := csv.NewReader(r)
-	buf, contentType := writeModifiedPortsCSV(t, readr)
-
-	h, _ := importer.NewHandler(logtest.NewTestLogger(t))
-	th := viewer.TenancyHandler(h, viewer.NewFixedTenancy(client))
-	server := httptest.NewServer(th)
-	defer server.Close()
-
-	req, err := http.NewRequest(http.MethodPost, server.URL+"/export_ports", buf)
-	require.Nil(t, err)
-
-	req.Header.Set(tenantHeader, "fb-test")
-	req.Header.Set("Content-Type", contentType)
-
-	resp, err := http.DefaultClient.Do(req)
-	require.Nil(t, err)
-	require.Equal(t, resp.StatusCode, http.StatusOK)
-	resp.Body.Close()
-}
-
-func preparePortsAndExport(t *testing.T, r *TestExporterResolver) (context.Context, *http.Response) {
-	log := r.exporter.log
-
-	e := &exporter{log, portsRower{log}}
-	th := viewer.TenancyHandler(e, viewer.NewFixedTenancy(r.client))
-	server := httptest.NewServer(th)
-	defer server.Close()
-
-	req, err := http.NewRequest(http.MethodGet, server.URL, nil)
-	require.NoError(t, err)
-	req.Header.Set(tenantHeader, "fb-test")
-
-	ctx := viewertest.NewContext(r.client)
-	prepareData(ctx, t, *r)
-	locs := r.client.Location.Query().AllX(ctx)
-	require.Len(t, locs, 3)
-
-	res, err := http.DefaultClient.Do(req)
-	require.NoError(t, err)
-	return ctx, res
-}
-
 func TestImportAndEditPorts(t *testing.T) {
 	r, err := newExporterTestResolver(t)
 	require.NoError(t, err)
-	ctx, res := preparePortsAndExport(t, r)
+
+	log := r.exporter.log
+	e := &exporter{log, portsRower{log}}
+	ctx, res := prepareLinksPortsAndExport(t, r, e)
+
 	defer res.Body.Close()
-	importPortsFile(t, r.client, res.Body, MethodEdit)
+	importLinksPortsFile(t, r.client, res.Body, importer.ImportEntityPort)
 	locs := r.client.Location.Query().AllX(ctx)
 	require.Len(t, locs, 3)
 	ports, err := r.Query().PortSearch(ctx, nil, nil)

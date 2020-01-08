@@ -32,15 +32,19 @@
 <dl>
 <dt id="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput"><code class="flex name class">
 <span>class <span class="ident">AddEquipmentInput</span></span>
-<span>(</span><span>name, type, properties, location=None, parent=None, positionDefinition=None, workOrder=None)</span>
+<span>(</span><span>name, type, properties, location=None, parent=None, positionDefinition=None, workOrder=None, externalId=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddEquipmentInput(name: str, type: str, properties: List[pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.PropertyInput], location: Union[str, NoneType] = None, parent: Union[str, NoneType] = None, positionDefinition: Union[str, NoneType] = None, workOrder: Union[str, NoneType] = None)</p></section>
+<section class="desc"><p>AddEquipmentInput(name: str, type: str, properties: List[pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.PropertyInput], location: Union[str, NoneType] = None, parent: Union[str, NoneType] = None, positionDefinition: Union[str, NoneType] = None, workOrder: Union[str, NoneType] = None, externalId: Union[str, NoneType] = None)</p></section>
 <h3>Class variables</h3>
 <dl>
 <dt id="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.PropertyInput"><code class="name">var <span class="ident">PropertyInput</span></code></dt>
 <dd>
-<section class="desc"><p>PropertyInput(propertyTypeID: str, id: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, equipmentIDValue: Union[str, NoneType] = None, locationIDValue: Union[str, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None)</p></section>
+<section class="desc"><p>PropertyInput(propertyTypeID: str, id: Union[str, NoneType] = None, stringValue: Union[str, NoneType] = None, intValue: Union[int, NoneType] = None, booleanValue: Union[bool, NoneType] = None, floatValue: Union[float, NoneType] = None, latitudeValue: Union[float, NoneType] = None, longitudeValue: Union[float, NoneType] = None, rangeFromValue: Union[float, NoneType] = None, rangeToValue: Union[float, NoneType] = None, equipmentIDValue: Union[str, NoneType] = None, locationIDValue: Union[str, NoneType] = None, serviceIDValue: Union[str, NoneType] = None, isEditable: Union[bool, NoneType] = None, isInstanceProperty: Union[bool, NoneType] = None)</p></section>
+</dd>
+<dt id="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.externalId"><code class="name">var <span class="ident">externalId</span></code></dt>
+<dd>
+<section class="desc"></section>
 </dd>
 <dt id="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.location"><code class="name">var <span class="ident">location</span></code></dt>
 <dd>
@@ -180,6 +184,7 @@
 <h4><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput">AddEquipmentInput</a></code></h4>
 <ul class="two-column">
 <li><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.PropertyInput" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.PropertyInput">PropertyInput</a></code></li>
+<li><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.externalId" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.externalId">externalId</a></code></li>
 <li><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.from_dict" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.from_dict">from_dict</a></code></li>
 <li><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.from_json" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.from_json">from_json</a></code></li>
 <li><code><a title="pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.location" href="#pyinventory.graphql.add_equipment_mutation.AddEquipmentInput.location">location</a></code></li>

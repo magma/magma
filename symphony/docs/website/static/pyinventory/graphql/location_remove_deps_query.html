@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.7.2" />
-<title>pyinventory.graphql.add_service_link_mutation API documentation</title>
+<title>pyinventory.graphql.location_remove_deps_query API documentation</title>
 <meta name="description" content="" />
 <link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
 <link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
@@ -17,7 +17,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>pyinventory.graphql.add_service_link_mutation</code></h1>
+<h1 class="title">Module <code>pyinventory.graphql.location_remove_deps_query</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -26,61 +26,52 @@
 <section>
 </section>
 <section>
-<h2 class="section-title" id="header-functions">Functions</h2>
-<dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.enum_field"><code class="name flex">
-<span>def <span class="ident">enum_field</span></span>(<span>enum_type)</span>
-</code></dt>
-<dd>
-<section class="desc"></section>
-</dd>
-</dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation"><code class="flex name class">
-<span>class <span class="ident">AddServiceLinkMutation</span></span>
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery"><code class="flex name class">
+<span>class <span class="ident">LocationRemoveDepsQuery</span></span>
 <span>(</span><span>data=None, errors=None)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>AddServiceLinkMutation(data: Union[pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData, NoneType] = None, errors: Any = None)</p></section>
+<section class="desc"><p>LocationRemoveDepsQuery(data: Union[pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData, NoneType] = None, errors: Any = None)</p></section>
 <h3>Class variables</h3>
 <dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData"><code class="name">var <span class="ident">AddServiceLinkMutationData</span></code></dt>
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData"><code class="name">var <span class="ident">LocationRemoveDepsQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>AddServiceLinkMutationData(addServiceLink: Union[pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData.Service, NoneType] = None)</p></section>
+<section class="desc"><p>LocationRemoveDepsQueryData(location: Union[pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData.Node, NoneType] = None)</p></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data"><code class="name">var <span class="ident">data</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.errors"><code class="name">var <span class="ident">errors</span></code></dt>
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors"><code class="name">var <span class="ident">errors</span></code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
 </dl>
 <h3>Static methods</h3>
 <dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.execute"><code class="name flex">
-<span>def <span class="ident">execute</span></span>(<span>client, id, linkId)</span>
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute"><code class="name flex">
+<span>def <span class="ident">execute</span></span>(<span>client, id)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_dict"><code class="name flex">
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict"><code class="name flex">
 <span>def <span class="ident">from_dict</span></span>(<span>kvs, *, infer_missing=False)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_json"><code class="name flex">
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json"><code class="name flex">
 <span>def <span class="ident">from_json</span></span>(<span>s, *, encoding=None, parse_float=None, parse_int=None, parse_constant=None, infer_missing=False, **kw)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema"><code class="name flex">
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema"><code class="name flex">
 <span>def <span class="ident">schema</span></span>(<span>*, infer_missing=False, only=None, exclude=(), many=False, context=None, load_only=(), dump_only=(), partial=False, unknown=None)</span>
 </code></dt>
 <dd>
@@ -89,39 +80,17 @@
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_dict"><code class="name flex">
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict"><code class="name flex">
 <span>def <span class="ident">to_dict</span></span>(<span>self, encode_json=False)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
 </dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json"><code class="name flex">
+<dt id="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json"><code class="name flex">
 <span>def <span class="ident">to_json</span></span>(<span>self, *, skipkeys=False, ensure_ascii=True, check_circular=True, allow_nan=True, indent=None, separators=None, default=None, sort_keys=False, **kw)</span>
 </code></dt>
 <dd>
 <section class="desc"></section>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole"><code class="flex name class">
-<span>class <span class="ident">ServiceEndpointRole</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER"><code class="name">var <span class="ident">CONSUMER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
-</dd>
-<dt id="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER"><code class="name">var <span class="ident">PROVIDER</span></code></dt>
-<dd>
-<section class="desc"><p>An enumeration.</p></section>
 </dd>
 </dl>
 </dd>
@@ -139,32 +108,20 @@
 <li><code><a title="pyinventory.graphql" href="index.html">pyinventory.graphql</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.enum_field" href="#pyinventory.graphql.add_service_link_mutation.enum_field">enum_field</a></code></li>
-</ul>
-</li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation">AddServiceLinkMutation</a></code></h4>
+<h4><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery">LocationRemoveDepsQuery</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.AddServiceLinkMutationData">AddServiceLinkMutationData</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.data" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.data">data</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.errors" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.errors">errors</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.execute" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.execute">execute</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_dict" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_dict">from_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_json" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.from_json">from_json</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.schema">schema</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_dict" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_dict">to_dict</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json" href="#pyinventory.graphql.add_service_link_mutation.AddServiceLinkMutation.to_json">to_json</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole">ServiceEndpointRole</a></code></h4>
-<ul class="">
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.CONSUMER">CONSUMER</a></code></li>
-<li><code><a title="pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER" href="#pyinventory.graphql.add_service_link_mutation.ServiceEndpointRole.PROVIDER">PROVIDER</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.LocationRemoveDepsQueryData">LocationRemoveDepsQueryData</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.data">data</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.errors">errors</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.execute">execute</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_dict">from_dict</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.from_json">from_json</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.schema">schema</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_dict">to_dict</a></code></li>
+<li><code><a title="pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json" href="#pyinventory.graphql.location_remove_deps_query.LocationRemoveDepsQuery.to_json">to_json</a></code></li>
 </ul>
 </li>
 </ul>

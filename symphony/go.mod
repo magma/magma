@@ -23,7 +23,7 @@ require (
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9 // indirect
 	github.com/golang/protobuf v1.3.2
-	github.com/google/addlicense v0.0.0-20190907113143-be125746c2c4 // indirect
+	github.com/google/addlicense v0.0.0-20191205215950-c6b7f1e7f34a // indirect
 	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/google/uuid v1.1.1
 	github.com/google/wire v0.3.0
@@ -41,6 +41,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
 	github.com/stretchr/testify v1.4.0
+	github.com/ugorji/go/codec v1.1.7
 	github.com/unrolled/render v1.0.1
 	github.com/vektah/gqlparser v1.2.0
 	github.com/volatiletech/authboss v2.3.0+incompatible
@@ -49,13 +50,12 @@ require (
 	go.uber.org/zap v1.12.0
 	gocloud.dev v0.18.0
 	golang.org/x/crypto v0.0.0-20191106202628-ed6320f186d4 // indirect
-	golang.org/x/net v0.0.0-20191105084925-a882066a44e0
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20191105231009-c1f44814a5cd // indirect
 	golang.org/x/text v0.3.2
 	golang.org/x/tools v0.0.0-20191127201027-ecd32218bd7f // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898
-	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.25.0
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
