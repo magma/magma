@@ -12,7 +12,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import argparse
 
 from lte.protos.subscriberdb_pb2 import GSMSubscription, LTESubscription, \
-    SubscriberData, SubscriberState, SubscriberUpdate
+    SubscriberData, SubscriberState, SubscriberUpdate, Non3GPPUserProfile
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from orc8r.protos.common_pb2 import Void
 
@@ -25,6 +25,7 @@ def add_subscriber(client, args):
     gsm = GSMSubscription()
     lte = LTESubscription()
     state = SubscriberState()
+    apn = Non3GPPUserProfile()
 
     if len(args.gsm_auth_tuple) != 0:
         gsm.state = GSMSubscription.ACTIVE
@@ -41,8 +42,15 @@ def add_subscriber(client, args):
     if args.lte_auth_opc is not None:
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
 
+    if args.apn_name is not None:
+        apn.apn_config.service_selection = args.apn_name
+
+    if args.qci is not None:
+        print("qci", args.qci)
+        apn.apn_config.qos_profile.class_id = args.qci
+
     data = SubscriberData(sid=SIDUtils.to_pb(args.sid), gsm=gsm,
-            lte=lte, state=state)
+            lte=lte, state=state, non_3gpp=apn)
     client.AddSubscriber(data)
 
 
@@ -123,6 +131,11 @@ def create_parser():
         cmd.add_argument('--lte-auth-opc', help='LTE authentication opc')
         cmd.add_argument('--lte-auth-next-seq', type=int,
                          help='LTE authentication seq number (hex digits)')
+        cmd.add_argument('--apn-name',
+                         help='Name of the APN (ims/internet)')
+        cmd.add_argument('--qci', type=int,
+                         help='QCI for the APN')
+
 
     # Add function callbacks
     parser_add.set_defaults(func=add_subscriber)

@@ -21,11 +21,12 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     gRPC based server for the S6aProxy.
     """
 
-    def __init__(self, lte_processor):
+    def __init__(self, lte_processor, store):
         """
         Store should be thread-safe since we use a thread pool for requests.
         """
         self.lte_processor = lte_processor
+        self.store = store
         logging.info("starting s6a_proxy servicer")
 
     def add_to_server(self, server):
@@ -90,6 +91,12 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
             logging.warning('Subscriber not found for ULR: %s', e)
             return ula
+        try:
+            subs = self.store.get_subscriber_data(imsi)
+        except SubscriberNotFoundError as e:
+            ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
+            logging.warning('Subscriber not found for ULR: %s', e)
+            return ula
 
         ula.error_code = s6a_proxy_pb2.SUCCESS
         ula.default_context_id = 0
@@ -113,8 +120,10 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         # ims apn
         apn_ims = ula.apn.add()
         apn_ims.context_id = 1
-        apn_ims.service_selection = 'ims'
-        apn_ims.qos_profile.class_id = 5
+        apn_ims.service_selection = subs.non_3gpp.apn_config.service_selection
+        apn_ims.qos_profile.class_id = subs.non_3gpp.apn_config.qos_profile.class_id
+        logging.warning("APN name in ula %s", apn_ims.service_selection);
+        logging.warning("APN qci ula %s", apn_ims.qos_profile.class_id);
         apn_ims.qos_profile.priority_level = 15
         apn_ims.qos_profile.preemption_capability = 1
         apn_ims.qos_profile.preemption_vulnerability = 0
