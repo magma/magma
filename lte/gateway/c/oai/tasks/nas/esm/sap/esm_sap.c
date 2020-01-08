@@ -680,7 +680,7 @@ static int _esm_sap_recv(
             "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
             ue_id);
           rc = esm_send_pdn_connectivity_reject(
-              pti, &esm_msg.pdn_connectivity_reject, esm_cause);
+            pti, &esm_msg.pdn_connectivity_reject, esm_cause);
           /*
            * Setup the callback function used to send PDN connectivity
            * * * * reject message to UE
@@ -728,8 +728,8 @@ static int _esm_sap_recv(
            * send deactivate_eps_bearer_context_req after
            * receiving delete session response from SGW
            */
-            emm_context->esm_ctx.is_pdn_disconnect = true;
-            OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
+          emm_context->esm_ctx.is_pdn_disconnect = true;
+          OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
         }
 
         break;
