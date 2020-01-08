@@ -78,7 +78,7 @@ type FormState = {
   ruleName: string,
   expression: string,
   severity: string,
-  timeNumber: string,
+  timeNumber: number,
   timeUnit: string,
   description: string,
 };
@@ -128,7 +128,7 @@ function SeverityEditor(props: {
 
 function TimeEditor(props: {
   onChange: InputChangeFunc,
-  timeNumber: string,
+  timeNumber: number,
   timeUnit: string,
 }) {
   return (
@@ -162,13 +162,13 @@ function TimeEditor(props: {
 
 function TimeNumberEditor(props: {
   onChange: InputChangeFunc,
-  timeNumber: string,
+  timeNumber: number,
 }) {
   return (
     <TextField
       type="number"
-      value={props.timeNumber}
-      onChange={props.onChange(val => ({timeNumber: val}))}
+      value={isNaN(props.timeNumber) ? '' : props.timeNumber}
+      onChange={props.onChange(val => ({timeNumber: parseInt(val, 10)}))}
       label="Duration"
       fullWidth
     />
@@ -237,12 +237,18 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   );
 
   const parsedExpression = React.useMemo(() => {
-    return Parse(props.rule?.expression);
+    try {
+      return Parse(props.rule?.expression);
+    } catch {
+      return null;
+    }
     // We only want to parse the expression on the first
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   React.useEffect(() => {
-    if (parsedExpression) {
+    if (!props.rule?.expression) {
+      setAdvancedEditorMode(false);
+    } else if (parsedExpression) {
       const newThresholdExpression = getThresholdExpression(parsedExpression);
       if (newThresholdExpression) {
         setAdvancedEditorMode(false);
@@ -253,6 +259,9 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     } else {
       enqueueSnackbar(
         "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
+        {
+          variant: 'error',
+        },
       );
     }
   }, [enqueueSnackbar, parsedExpression]);
@@ -418,18 +427,20 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
       expression: '',
       severity: '',
       description: '',
-      timeNumber: '',
+      timeNumber: 0,
       timeUnit: '',
     };
   }
   const timeString = rule.for ?? '';
-  const {timeNumber, timeUnit} = parseTimeString(timeString);
+  const {timeNumber, timeUnit} = getMostSignificantTime(
+    parseTimeString(timeString),
+  );
   return {
     ruleName: rule.alert || '',
     expression: rule.expr || '',
     severity: rule.labels?.severity || '',
     description: rule.annotations?.description || '',
-    timeNumber,
+    timeNumber: timeNumber,
     timeUnit,
   };
 }
@@ -448,30 +459,37 @@ function toAlertConfig(form: FormState): AlertConfig {
   };
 }
 
-/***
- * When editing a rule with a duration like 1h, the api will return a duration
- * string like 1h0m0s instead of just 1h. Since the editor only allows for
- * one duration and time unit pair, take the most significant pair and return
- * only that. For example: 1h0m0s we'll just return
- * { timeNumber: 1, timeUnit: h}
- */
-function parseTimeString(
-  timeStamp: string,
-): {timeNumber: string, timeUnit: string} {
-  const units = new Set(['h', 'm', 's']);
-  let duration = '';
-  let unit = '';
-  for (const char of timeStamp) {
-    if (units.has(char)) {
-      unit = char;
-      break;
-    }
-    duration += char;
+export type Duration = {
+  hours: number,
+  minutes: number,
+  seconds: number,
+};
+
+export function parseTimeString(timeStamp: string): Duration {
+  if (timeStamp === '') {
+    return {hours: 0, minutes: 0, seconds: 0};
   }
-  return {
-    timeNumber: duration,
-    timeUnit: unit,
-  };
+  const durationRegex = /^((\d+)h)*((\d+)m)*((\d+)s)*$/;
+  const duration = timeStamp.match(durationRegex);
+  if (!duration) {
+    return {hours: 0, minutes: 0, seconds: 0};
+  }
+  // Index is corresponding capture group from regex
+  const hours = parseInt(duration[2], 10) || 0;
+  const minutes = parseInt(duration[4], 10) || 0;
+  const seconds = parseInt(duration[6], 10) || 0;
+  return {hours, minutes, seconds};
+}
+
+function getMostSignificantTime(
+  duration: Duration,
+): {timeNumber: number, timeUnit: string} {
+  if (duration.hours) {
+    return {timeNumber: duration.hours, timeUnit: 'h'};
+  } else if (duration.minutes) {
+    return {timeNumber: duration.minutes, timeUnit: 'm'};
+  }
+  return {timeNumber: duration.seconds, timeUnit: 's'};
 }
 
 function getThresholdExpression(exp: PromQL.Expression): ?ThresholdExpression {

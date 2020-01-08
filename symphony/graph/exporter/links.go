@@ -143,7 +143,7 @@ func linkToSlice(ctx context.Context, link *ent.Link, propertyTypes []string) ([
 	for _, service := range services {
 		servicesList = append(servicesList, service.Name)
 	}
-	servicesStr := strings.Join(servicesList, ", ")
+	servicesStr := strings.Join(servicesList, ";")
 	row = append(row, servicesStr)
 	row = append(row, properties...)
 	return row, nil

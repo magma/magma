@@ -26,7 +26,7 @@ const EquipmentIcon = (props: Props) => (
       transform="translate(1 1)"
       fill="#EDF0F9"
       stroke="#B8C2D3"
-      stroke-width="2">
+      strokeWidth="2">
       <g>
         <circle cx="8" cy="8" r="8" />
       </g>

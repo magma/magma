@@ -17,7 +17,8 @@ from magma.common.streamer import StreamerClient
 from magma.policydb.rpc_servicer import SessionRpcServicer
 
 from .streamer_callback import PolicyDBStreamerCallback, \
-    RuleMappingsStreamerCallback
+    RuleMappingsStreamerCallback, BaseNamesStreamerCallback
+from .basename_store import BaseNameDict
 
 
 def main():
@@ -37,6 +38,7 @@ def main():
             {
                 'policydb': PolicyDBStreamerCallback(),
                 'rule_mappings': RuleMappingsStreamerCallback(),
+                'base_names': BaseNamesStreamerCallback(BaseNameDict()),
             },
             service.loop,
         )

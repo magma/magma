@@ -35,6 +35,7 @@ export type EditUser = {
   role: number,
   networkIDs?: string[],
   organization?: string,
+  readOnly: boolean,
 };
 
 type SaveUserData = {
@@ -42,6 +43,7 @@ type SaveUserData = {
   password?: string,
   superUser: boolean,
   networkIds?: string[],
+  readOnly: boolean,
 };
 
 type Props = {
@@ -77,6 +79,9 @@ export default function EditUserDialog(props: Props) {
   const [isSuperUser, setIsSuperUser] = useState<boolean>(
     props.editingUser?.role === UserRoles.SUPERUSER,
   );
+  const [isReadOnly, setIsReadOnly] = useState<boolean>(
+    props.editingUser?.readOnly ?? false,
+  );
   const [networkIds, setNetworkIds] = useState<Set<string>>(
     getInitialNetworkIDs(props.editingUser?.networkIDs, allNetworkIDs),
   );
@@ -102,6 +107,7 @@ export default function EditUserDialog(props: Props) {
       password,
       superUser: isSuperUser,
       networkIDs: isSuperUser ? [] : Array.from(networkIds),
+      readOnly: isReadOnly,
     };
 
     // remove the password field if we are editing a user and the password isn't
@@ -115,7 +121,15 @@ export default function EditUserDialog(props: Props) {
     } else {
       props.onCreateUser(payload);
     }
-  }, [password, confirmPassword, email, isSuperUser, networkIds, props]);
+  }, [
+    password,
+    confirmPassword,
+    props,
+    email,
+    isSuperUser,
+    networkIds,
+    isReadOnly,
+  ]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
@@ -159,6 +173,16 @@ export default function EditUserDialog(props: Props) {
             />
           }
           label="Super User"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isReadOnly}
+              onChange={({target}) => setIsReadOnly(target.checked)}
+              color="primary"
+            />
+          }
+          label="Read Only"
         />
         {allNetworkIDs && (
           <FormControl className={classes.input}>

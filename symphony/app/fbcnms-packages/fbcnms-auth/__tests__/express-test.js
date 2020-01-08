@@ -289,6 +289,7 @@ describe('user tests', () => {
             organization: 'validorg',
             role: 0,
             tabs: ['validtab'],
+            readOnly: false,
           },
         })
         .expect(200);

@@ -310,7 +310,7 @@ func TestLinksExport(t *testing.T) {
 				"--",
 				currEquip,
 				equipmentType2Name,
-				"S1, S2",
+				"S1;S2",
 				"t1",
 				"p2",
 			})
@@ -437,7 +437,7 @@ func TestLinksWithFilters(t *testing.T) {
 					"--",
 					currEquip,
 					equipmentType2Name,
-					"S1, S2",
+					"S1;S2",
 					"t1",
 					"p2",
 				}, ln[2:])

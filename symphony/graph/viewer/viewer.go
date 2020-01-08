@@ -7,6 +7,7 @@ package viewer
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/log"
@@ -21,18 +22,22 @@ const (
 	TenantHeader = "x-auth-organization"
 	// UserHeader is the http user header.
 	UserHeader = "x-auth-user-email"
+	// ReadOnlyHeader is the http readonly permission header.
+	ReadOnlyHeader = "x-auth-user-readonly"
 )
 
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant string
-	User   string
+	Tenant   string
+	User     string
+	ReadOnly bool
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
 func (v *Viewer) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("tenant", v.Tenant)
 	enc.AddString("user", v.User)
+	enc.AddBool("readonly", v.ReadOnly)
 	return nil
 }
 
@@ -40,6 +45,7 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 	return []trace.Attribute{
 		trace.StringAttribute("viewer.tenant", v.Tenant),
 		trace.StringAttribute("viewer.user", v.User),
+		trace.BoolAttribute("viewer.readonly", v.ReadOnly),
 	}
 }
 
@@ -53,6 +59,10 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 
 		v := &Viewer{Tenant: tenant, User: r.Header.Get(UserHeader)}
+		if ro, err := strconv.ParseBool(r.Header.Get(ReadOnlyHeader)); err == nil {
+			v.ReadOnly = ro
+		}
+
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
 		trace.FromContext(ctx).AddAttributes(v.traceAttrs()...)
 		ctx = NewContext(ctx, v)
@@ -62,6 +72,9 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			if err != nil {
 				http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
 				return
+			}
+			if v.ReadOnly {
+				client = client.ReadOnly()
 			}
 			ctx = ent.NewContext(ctx, client)
 		}

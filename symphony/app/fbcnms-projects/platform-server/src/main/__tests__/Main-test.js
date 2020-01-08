@@ -42,6 +42,7 @@ describe('login csrf token tests', () => {
       organization: 'myorg',
       password: 'password',
       role: 0,
+      readOnly: false,
     });
   });
 
