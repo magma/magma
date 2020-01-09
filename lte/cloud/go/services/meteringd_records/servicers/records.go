@@ -41,7 +41,7 @@ func NewMeteringdRecordsServer(storage storage.MeteringRecordsStorage) *Metering
 // into the record table.
 func (srv *MeteringdRecordsServer) UpdateFlows(ctx context.Context, tbl *protos.FlowTable) (*orcprotos.Void, error) {
 	ret := &orcprotos.Void{}
-	id, err := getGatewayIdentity(ctx)
+	id, err := orcprotos.GetGatewayIdentity(ctx)
 	if err != nil {
 		return ret, err
 	}
@@ -80,14 +80,6 @@ func (srv *MeteringdRecordsServer) GetRecord(ctx context.Context, query *protos.
 	}
 
 	return srv.storage.GetRecord(query.GetNetworkId(), query.GetRecordId())
-}
-
-func getGatewayIdentity(ctx context.Context) (*orcprotos.Identity_Gateway, error) {
-	id := orcprotos.GetClientGateway(ctx)
-	if id == nil || !id.Registered() {
-		return nil, status.Errorf(codes.PermissionDenied, "Gateway not registered")
-	}
-	return id, nil
 }
 
 func fillFlowsWithGatewayId(tbl *protos.FlowTable, gatewayId string) *protos.FlowTable {

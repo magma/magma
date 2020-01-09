@@ -363,5 +363,5 @@ func (m *importer) trimLine(line []string) []string {
 
 func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
 	log.Warn(msg, zap.Error(err))
-	http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusUnprocessableEntity)
+	http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
 }

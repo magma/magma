@@ -10,10 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 import logging
 from typing import Any, List
 
-from lte.protos.policydb_pb2 import ActivePolicies, PolicyRule
+from lte.protos.policydb_pb2 import AssignedPolicies, PolicyRule, \
+    ChargingRuleNameSet
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
 
+from .basename_store import BaseNameDict
 from .rule_store import PolicyRuleDict
 
 
@@ -57,6 +59,29 @@ class PolicyDBStreamerCallback(StreamerClient.Callback):
             del self._policy_dict[rule]
 
 
+class BaseNamesStreamerCallback(StreamerClient.Callback):
+    """
+    Callback for the base names streamer policy which persists the basenames
+    and rules associated to the basename
+    """
+    def __init__(
+        self,
+        basenames_dict: BaseNameDict,
+    ):
+        self._basenames = basenames_dict
+
+    def get_request_args(self, stream_name: str) -> Any:
+        return None
+
+    def process_update(self, stream_name: str, updates: List[DataUpdate],
+                       resync: bool):
+        logging.info('Processing %d basename -> policy updates', len(updates))
+        for update in updates:
+            basename = ChargingRuleNameSet()
+            basename.ParseFromString(update.value)
+            self._basenames[update.key] = basename
+
+
 class RuleMappingsStreamerCallback(StreamerClient.Callback):
     """
     Callback for the rule mapping streamer policy which persists the policies
@@ -73,7 +98,7 @@ class RuleMappingsStreamerCallback(StreamerClient.Callback):
         logging.info('Processing %d SID -> policy updates', len(updates))
         policies_by_sid = {}
         for update in updates:
-            policies = ActivePolicies()
+            policies = AssignedPolicies()
             policies.ParseFromString(update.value)
             policies_by_sid[update.key] = policies
 
