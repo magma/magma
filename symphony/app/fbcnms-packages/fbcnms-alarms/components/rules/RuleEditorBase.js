@@ -25,15 +25,16 @@ import Typography from '@material-ui/core/Typography';
 import {useAlertRuleReceiver, useForm} from '../hooks';
 import type {ApiUtil} from '../AlarmsApi';
 import type {Props as EditorProps} from '../common/Editor';
-import type {GenericRule} from '../RuleInterface';
+import type {GenericRule} from './RuleInterface';
 
 type Props = EditorProps & {
-  onChange: (form: RuleEditorForm) => void,
+  onChange: (form: RuleEditorBaseFields) => void,
   rule: ?GenericRule<*>,
   apiUtil: ApiUtil,
 };
 
-export type RuleEditorForm = {
+// Fields for inputs which are standard between different rule editors
+export type RuleEditorBaseFields = {
   name: string,
   description: string,
 };
@@ -64,9 +65,9 @@ export default function RuleEditorBase({
 
   return (
     <Editor
-      title={isNew ? 'New Alert Rule' : rule?.name}
-      description="Configure rules to fire alerts"
       {...props}
+      title={rule?.name ?? 'New Alert Rule'}
+      description="Configure rules to fire alerts"
       isNew={isNew}
       onSave={handleSave}>
       <Grid container item spacing={4}>
@@ -149,19 +150,16 @@ export default function RuleEditorBase({
               </CardContent>
             </Card>
           </Grid>
-          <Grid item>
-            <Card>
-              <CardHeader title="Labels" />
-              <CardContent>labels</CardContent>
-            </Card>
-          </Grid>
         </Grid>
       </Grid>
     </Editor>
   );
 }
 
-function getInitialState(rule: ?GenericRule<*>): RuleEditorForm {
+/**
+ * map from GenericRule -> RuleEditorBaseFields or provide a default state
+ */
+function getInitialState(rule: ?GenericRule<*>): RuleEditorBaseFields {
   if (rule) {
     return {
       name: rule.name,

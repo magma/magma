@@ -9,14 +9,14 @@
  */
 import 'jest-dom/extend-expect';
 import * as React from 'react';
-import AddEditAlert from '../AddEditAlert';
+import AddEditRule from '../AddEditRule';
 import RuleEditorBase from '../RuleEditorBase';
 import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {mockApiUtil, renderAsync} from '../../../test/testHelpers';
 import {mockPrometheusRule} from '../../../test/data';
 
-import type {RuleEditorProps} from '../../RuleInterface';
+import type {RuleEditorProps} from '../RuleInterface';
 
 const commonProps = {
   apiUtil: mockApiUtil(),
@@ -60,7 +60,7 @@ describe('Receiver select', () => {
     });
     const {getByLabelText} = await renderAsync(
       <SymphonyWrapper>
-        <AddEditAlert
+        <AddEditRule
           {...commonProps}
           initialConfig={mockPrometheusRule({
             name: 'TESTRULE',
@@ -91,7 +91,7 @@ describe('Receiver select', () => {
     });
     const {getByTestId, getByLabelText, getByText} = render(
       <SymphonyWrapper>
-        <AddEditAlert {...commonProps} />
+        <AddEditRule {...commonProps} />
       </SymphonyWrapper>,
     );
     act(() => {
@@ -117,7 +117,7 @@ describe('Receiver select', () => {
 
     const {getByLabelText, getByText, getByTestId} = render(
       <SymphonyWrapper>
-        <AddEditAlert {...commonProps} />
+        <AddEditRule {...commonProps} />
       </SymphonyWrapper>,
     );
 
@@ -166,7 +166,7 @@ describe('Receiver select', () => {
 
     const {getByLabelText, getByText, getByTestId} = render(
       <SymphonyWrapper>
-        <AddEditAlert {...commonProps} />
+        <AddEditRule {...commonProps} />
       </SymphonyWrapper>,
       {baseElement: document.body},
     );
@@ -215,7 +215,7 @@ describe('Receiver select', () => {
     const editRouteTreeMock = jest.spyOn(commonProps.apiUtil, 'editRouteTree');
     const {getByLabelText, getByText, getByTestId} = render(
       <SymphonyWrapper>
-        <AddEditAlert {...commonProps} />
+        <AddEditRule {...commonProps} />
       </SymphonyWrapper>,
       {baseElement: document.body},
     );

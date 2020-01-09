@@ -8,11 +8,11 @@
  * @format
  */
 import * as React from 'react';
-import AddEditAlert from './rules/AddEditAlert';
+import AddEditRule from './rules/AddEditRule';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import PrometheusEditor from './PrometheusEditor';
+import PrometheusEditor from './rules/PrometheusEditor';
 import SimpleTable from './SimpleTable';
 import TableActionDialog from './TableActionDialog';
 import TableAddButton from './common/TableAddButton';
@@ -24,7 +24,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import type {AlertConfig} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
 import type {ColumnData} from './SimpleTable';
-import type {GenericRule, RuleInterfaceMap} from './RuleInterface';
+import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
 type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
@@ -195,7 +195,7 @@ export default function AlertRules<TRuleUnion>(props: Props<TRuleUnion>) {
 
   if (isAddEditAlert) {
     return (
-      <AddEditAlert
+      <AddEditRule
         apiUtil={props.apiUtil}
         ruleMap={ruleMap || {}}
         initialConfig={selectedRow}

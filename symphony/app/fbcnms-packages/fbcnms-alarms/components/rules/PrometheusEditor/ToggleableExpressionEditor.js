@@ -8,7 +8,7 @@
  * @format
  */
 
-import * as PromQL from './prometheus/PromQL';
+import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Button from '@material-ui/core/Button';
@@ -30,8 +30,8 @@ import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks/index';
 
-import type {ApiUtil} from './AlarmsApi';
-import type {BinaryComparator} from './prometheus/PromQLTypes';
+import type {ApiUtil} from '../../AlarmsApi';
+import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {InputChangeFunc} from './PrometheusEditor';
 import type {prometheus_labelset} from '@fbcnms/magma-api';
 

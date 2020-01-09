@@ -12,9 +12,9 @@ import * as React from 'react';
 import PrometheusEditor from '../PrometheusEditor';
 import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {cleanup, render} from '@testing-library/react';
-import {mockApiUtil} from '../../test/testHelpers';
-import type {AlertConfig} from '../AlarmAPIType';
-import type {GenericRule} from '../RuleInterface';
+import {mockApiUtil} from '../../../../test/testHelpers';
+import type {AlertConfig} from '../../../AlarmAPIType';
+import type {GenericRule} from '../../RuleInterface';
 
 import 'jest-dom/extend-expect';
 import {parseTimeString} from '../PrometheusEditor';

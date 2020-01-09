@@ -9,8 +9,8 @@
  */
 
 import * as React from 'react';
-import type {ApiRequest} from './AlarmsApi';
-import type {ApiUtil} from './AlarmsApi';
+import type {ApiRequest} from '../AlarmsApi';
+import type {ApiUtil} from '../AlarmsApi';
 export type RuleEditorProps<TRule> = {
   apiUtil: ApiUtil,
   rule: ?GenericRule<TRule>,

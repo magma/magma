@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {GenericRule} from '../components/RuleInterface';
+import type {GenericRule} from '../components/rules/RuleInterface';
 
 export function mockPrometheusRule(merge?: $Shape<GenericRule<{}>>) {
   return {

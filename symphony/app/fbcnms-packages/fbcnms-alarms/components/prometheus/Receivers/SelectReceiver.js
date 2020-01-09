@@ -16,7 +16,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {ApiUtil} from '../../AlarmsApi';
 
-export type Props = {
+type Props = {
   apiUtil: ApiUtil,
   onChange: (receiverName: string) => void,
   receiver: ?string,

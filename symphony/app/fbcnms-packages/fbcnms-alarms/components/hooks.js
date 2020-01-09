@@ -15,7 +15,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertRoutingTree} from './AlarmAPIType';
 import type {ApiUtil} from './AlarmsApi';
-import type {GenericRule, RuleInterfaceMap} from './RuleInterface';
+import type {GenericRule, RuleInterfaceMap} from './rules/RuleInterface';
 
 /**
  * Loads alert rules for each rule type. Rules are loaded in parallel and if one

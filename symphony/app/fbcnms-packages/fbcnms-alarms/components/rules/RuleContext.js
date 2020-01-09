@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react';
-import type {RuleInterfaceMap} from '../RuleInterface';
+import type {RuleInterfaceMap} from './RuleInterface';
 
 export type RuleContext<TRuleUnion> = {
   ruleMap: RuleInterfaceMap<TRuleUnion>,

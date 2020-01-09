@@ -8,29 +8,28 @@
  * @format
  */
 
-import * as PromQL from './prometheus/PromQL';
+import * as PromQL from '../../prometheus/PromQL';
 import * as React from 'react';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
-import RuleEditorBase from './rules/RuleEditorBase';
+import RuleEditorBase from '../RuleEditorBase';
 import TextField from '@material-ui/core/TextField';
 import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
   thresholdToPromQL,
 } from './ToggleableExpressionEditor';
 import Tooltip from '@material-ui/core/Tooltip';
-import {BINARY_COMPARATORS} from './prometheus/PromQLTypes';
-import {Labels} from './prometheus/PromQL';
-import {Parse} from './prometheus/PromQLParser';
-import {SEVERITY} from './Severity';
-import {makeStyles} from '@material-ui/styles';
+import {BINARY_COMPARATORS} from '../../prometheus/PromQLTypes';
+import {Labels} from '../../prometheus/PromQL';
+import {Parse} from '../../prometheus/PromQLParser';
+import {SEVERITY} from '../../Severity';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-import type {AlertConfig} from './AlarmAPIType';
-import type {BinaryComparator} from './prometheus/PromQLTypes';
-import type {GenericRule, RuleEditorProps} from './RuleInterface';
+import type {AlertConfig} from '../../AlarmAPIType';
+import type {BinaryComparator} from '../../prometheus/PromQLTypes';
+import type {GenericRule, RuleEditorProps} from '../RuleInterface';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
 type MenuItemProps = {key: string, value: string, children: string};
@@ -55,12 +54,6 @@ const timeUnits: Array<TimeUnit> = [
     label: 'hours',
   },
 ];
-
-const useStyles = makeStyles(_theme => ({
-  helpButton: {
-    color: 'black',
-  },
-}));
 
 /**
  * An easier to edit representation of the form's state, then convert
@@ -177,7 +170,6 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const _classes = useStyles();
   const [formState, setFormState] = React.useState<FormState>(
     fromAlertConfig(rule ? rule.rawRule : null),
   );

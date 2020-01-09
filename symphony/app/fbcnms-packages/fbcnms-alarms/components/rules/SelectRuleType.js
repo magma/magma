@@ -12,7 +12,7 @@ import * as React from 'react';
 import MenuItem from '@material-ui/core/MenuItem';
 import TextField from '@material-ui/core/TextField';
 import {makeStyles} from '@material-ui/styles';
-import type {RuleInterfaceMap} from '../RuleInterface';
+import type {RuleInterfaceMap} from './RuleInterface';
 
 const useRuleTypeStyles = makeStyles(_theme => ({
   select: {

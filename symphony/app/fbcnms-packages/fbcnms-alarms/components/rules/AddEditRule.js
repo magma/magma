@@ -14,7 +14,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
 import type {ApiUtil} from '../AlarmsApi';
-import type {GenericRule, RuleInterfaceMap} from '../RuleInterface';
+import type {GenericRule, RuleInterfaceMap} from '../rules/RuleInterface';
 
 type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
@@ -33,7 +33,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-export default function AddEditAlert<TRuleUnion>(props: Props<TRuleUnion>) {
+export default function AddEditRule<TRuleUnion>(props: Props<TRuleUnion>) {
   const {isNew, apiUtil, ruleMap, onExit} = props;
   const classes = useStyles();
   const [rule, setRule] = useState<?GenericRule<TRuleUnion>>(

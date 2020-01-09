@@ -13,7 +13,7 @@ import * as React from 'react';
 import {cleanup} from '@testing-library/react';
 import {act as hooksAct, renderHook} from '@testing-library/react-hooks';
 import {useForm, useLoadRules} from '../hooks';
-import type {GenericRule, RuleInterface} from '../RuleInterface';
+import type {GenericRule, RuleInterface} from '../rules/RuleInterface';
 
 jest.useFakeTimers();
 afterEach(() => {
