@@ -99,7 +99,10 @@ LTE_BAND_INFO = {
     50: LTEBandInfo(DuplexMode.TDD, range(58240, 59089), 1432),
     51: LTEBandInfo(DuplexMode.TDD, range(59090, 59139), 1427),
     52: LTEBandInfo(DuplexMode.TDD, range(59140, 60139), 3300),
-    53: LTEBandInfo(DuplexMode.TDD, range(60140, 60254), 2483.5),
+    # For the band #53 start_freq_dl is float value which require some changes
+    # in the code
+    # 53: LTEBandInfo(DuplexMode.TDD, range(60140, 60254), 2483.5),
+
 }
 # TODO - add remaining FDD LTE bands
 

@@ -35,7 +35,7 @@ func TestGetBand(t *testing.T) {
 }
 
 func TestGetBandError(t *testing.T) {
-	expectedErr := [...]uint32{45590, 45591}
+	expectedErr := [...]uint32{60255, 61250}
 
 	for _, earfcndl := range expectedErr {
 		_, err := utils.GetBand(earfcndl)

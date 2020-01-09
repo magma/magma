@@ -57,7 +57,9 @@ var bands = [...]LTEBand{
 	{ID: 50, Mode: TDDMode, StartEarfcnDl: 58240, CountEarfcn: 850},
 	{ID: 51, Mode: TDDMode, StartEarfcnDl: 59090, CountEarfcn: 50},
 	{ID: 52, Mode: TDDMode, StartEarfcnDl: 59140, CountEarfcn: 1000},
-	{ID: 53, Mode: TDDMode, StartEarfcnDl: 60140, CountEarfcn: 115},
+	// Adding Band #53 require changes in the python code cause it's
+	// start_freq_dl is float value.
+	//{ID: 53, Mode: TDDMode, StartEarfcnDl: 60140, CountEarfcn: 115},
 }
 
 // EarfcnDLInRange checks that an EARFCN-DL belongs to a band
