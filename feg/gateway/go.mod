@@ -7,8 +7,6 @@
 module magma/feg/gateway
 
 replace (
-	github.com/fiorix/go-diameter/v4 => ./third-party/go/src/github.com/fiorix/go-diameter
-
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
 
@@ -18,7 +16,7 @@ replace (
 )
 
 require (
-	github.com/fiorix/go-diameter/v4 v4.0.1
+	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200102140015-a6c006d17e34
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.2
