@@ -12,8 +12,8 @@ import * as React from 'react';
 import AlertRules from '../AlertRules';
 import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
-import {apiMock, mockApiUtil} from '../../test/testHelpers';
-import type {GenericRule} from '../RuleInterface';
+import {mockApiUtil} from '../../test/testHelpers';
+import {mockPrometheusRule} from '../../test/data';
 
 jest.mock('@fbcnms/ui/hooks/useSnackbar');
 jest.mock('@fbcnms/ui/hooks/useRouter');
@@ -57,7 +57,7 @@ const commonProps = {
 
 test('renders rules returned by api', () => {
   useLoadRulesMock.mockReturnValueOnce({
-    rules: [mockRule()],
+    rules: [mockPrometheusRule()],
     isLoading: false,
   });
   const {getByText} = render(
@@ -71,7 +71,7 @@ test('renders rules returned by api', () => {
 
 test('clicking the add alert icon displays the AddEditAlert view', () => {
   useLoadRulesMock.mockReturnValueOnce({
-    rules: [mockRule()],
+    rules: [mockPrometheusRule()],
     isLoading: false,
   });
   const {queryByTestId, getByTestId} = render(
@@ -110,16 +110,11 @@ test('clicking close button when AddEditAlert is open closes the panel', () => {
 });
 
 test('clicking the "edit" button in the table menu opens AddEditAlert for that alert', async () => {
-  useLoadRulesMock.mockReturnValueOnce({
-    rules: [
-      mockRule({
-        rawRule: {
-          alert: 'test',
-        },
-      }),
-    ],
+  const resp = {
+    rules: [mockPrometheusRule()],
     isLoading: false,
-  });
+  };
+  useLoadRulesMock.mockReturnValueOnce(resp);
   const {getByText, getByLabelText} = render(
     <SymphonyWrapper>
       <AlertRules {...commonProps} />
@@ -134,7 +129,7 @@ test('clicking the "edit" button in the table menu opens AddEditAlert for that a
   act(() => {
     fireEvent.click(getByText(/edit/i));
   });
-  expect(getByLabelText(/rule name/i).value).toBe('test');
+  expect(getByLabelText(/rule name/i).value).toBe('<<test>>');
 });
 
 /**
@@ -143,11 +138,15 @@ test('clicking the "edit" button in the table menu opens AddEditAlert for that a
  */
 describe('AddEditAlert > Prometheus Editor', () => {
   test('Filling the form and clicking Add will post to the endpoint', async () => {
+    const createAlertRuleMock = jest.spyOn(
+      commonProps.apiUtil,
+      'createAlertRule',
+    );
     useLoadRulesMock.mockReturnValueOnce({
-      rules: [mockRule()],
+      rules: [mockPrometheusRule()],
       isLoading: false,
     });
-    const {getByText, getByTestId, getByLabelText} = render(
+    const {getByTestId, getByLabelText} = render(
       <SymphonyWrapper>
         <AlertRules {...commonProps} />
       </SymphonyWrapper>,
@@ -182,9 +181,9 @@ describe('AddEditAlert > Prometheus Editor', () => {
     });
     // This triggers an async call so must be awaited
     await act(async () => {
-      fireEvent.click(getByText(/add/i));
+      fireEvent.submit(getByTestId('editor-form'));
     });
-    expect(apiMock.mock.calls.slice(-2)[0][0]).toMatchObject({
+    expect(createAlertRuleMock.mock.calls.slice(-2)[0][0]).toMatchObject({
       networkId: 'test',
       rule: {
         alert: '<<ALERTNAME>>',
@@ -209,7 +208,7 @@ describe('AddEditAlert > Prometheus Editor', () => {
         data: {message: 'an error message'},
       },
     });
-    const {getByText, getByTestId} = render(
+    const {getByTestId} = render(
       <SymphonyWrapper>
         <AlertRules {...commonProps} />
       </SymphonyWrapper>,
@@ -219,22 +218,9 @@ describe('AddEditAlert > Prometheus Editor', () => {
     });
 
     await act(async () => {
-      fireEvent.click(getByText(/add/i));
+      fireEvent.submit(getByTestId('editor-form'));
     });
 
     expect(enqueueMock).toHaveBeenCalled();
   });
 });
-
-function mockRule(merge?: $Shape<GenericRule<{}>>) {
-  return {
-    name: '<<test>>',
-    severity: 'info',
-    description: '<<test description>>',
-    expression: 'up == 0',
-    period: '1m',
-    ruleType: 'prometheus',
-    rawRule: {},
-    ...(merge || {}),
-  };
-}

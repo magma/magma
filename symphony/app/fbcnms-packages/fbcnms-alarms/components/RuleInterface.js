@@ -14,9 +14,12 @@ import type {ApiUtil} from './AlarmsApi';
 export type RuleEditorProps<TRule> = {
   apiUtil: ApiUtil,
   rule: ?GenericRule<TRule>,
+  // invoked when rule is modified locally
   onRuleUpdated: (rule: GenericRule<TRule>) => void,
   onExit: () => void,
   isNew: boolean,
+  // component used to swap rule types, used by AddEditAlert
+  ruleTypeSelector?: ?React.Node,
 };
 
 export type RuleViewerProps<_TRule> = {};

@@ -22,9 +22,6 @@ export const useMagmaAPIMock = jest.fn<any, any>(() => ({
   error: null,
 }));
 
-// eslint-disable-next-line flowtype/no-weak-types
-export const apiMock = jest.fn<any, any>();
-
 /**
  * Make sure when adding new functions to ApiUtil to add their mocks here
  */
@@ -32,20 +29,20 @@ export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
   return Object.assign(
     {
       useAlarmsApi: useMagmaAPIMock,
-      viewFiringAlerts: apiMock,
-      viewMatchingAlerts: apiMock,
-      createAlertRule: apiMock,
-      editAlertRule: apiMock,
-      getAlertRules: apiMock,
-      deleteAlertRule: apiMock,
-      createReceiver: apiMock,
-      editReceiver: apiMock,
-      getReceivers: apiMock,
-      deleteReceiver: apiMock,
-      getRouteTree: apiMock,
-      editRouteTree: apiMock,
-      getSuppressions: apiMock,
-      getMetricSeries: apiMock,
+      viewFiringAlerts: jest.fn(),
+      viewMatchingAlerts: jest.fn(),
+      createAlertRule: jest.fn(),
+      editAlertRule: jest.fn(),
+      getAlertRules: jest.fn(),
+      deleteAlertRule: jest.fn(),
+      createReceiver: jest.fn(),
+      editReceiver: jest.fn(),
+      getReceivers: jest.fn(),
+      deleteReceiver: jest.fn(),
+      getRouteTree: jest.fn(),
+      editRouteTree: jest.fn(),
+      getSuppressions: jest.fn(),
+      getMetricSeries: jest.fn(),
     },
     merge || {},
   );

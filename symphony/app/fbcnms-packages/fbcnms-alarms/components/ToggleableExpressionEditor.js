@@ -106,7 +106,7 @@ export default function ToggleableExpressionEditor(props: {
         />
       </Grid>
       {props.toggleOn ? (
-        <Grid item xs={4}>
+        <Grid item xs={12}>
           <AdvancedExpressionEditor
             onChange={props.onChange}
             expression={props.stringExpression}

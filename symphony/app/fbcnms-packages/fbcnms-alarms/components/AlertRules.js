@@ -8,7 +8,7 @@
  * @format
  */
 import * as React from 'react';
-import AddEditAlert from './AddEditAlert';
+import AddEditAlert from './rules/AddEditAlert';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';

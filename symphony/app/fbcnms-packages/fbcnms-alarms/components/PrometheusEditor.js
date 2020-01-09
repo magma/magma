@@ -10,10 +10,10 @@
 
 import * as PromQL from './prometheus/PromQL';
 import * as React from 'react';
-import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import MenuItem from '@material-ui/core/MenuItem';
+import RuleEditorBase from './rules/RuleEditorBase';
 import TextField from '@material-ui/core/TextField';
 import ToggleableExpressionEditor, {
   AdvancedExpressionEditor,
@@ -24,7 +24,6 @@ import {BINARY_COMPARATORS} from './prometheus/PromQLTypes';
 import {Labels} from './prometheus/PromQL';
 import {Parse} from './prometheus/PromQLParser';
 import {SEVERITY} from './Severity';
-
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -57,14 +56,7 @@ const timeUnits: Array<TimeUnit> = [
   },
 ];
 
-const useStyles = makeStyles(theme => ({
-  button: {
-    marginRight: theme.spacing(1),
-  },
-  instructions: {
-    marginTop: theme.spacing(1),
-    marginBottom: theme.spacing(1),
-  },
+const useStyles = makeStyles(_theme => ({
   helpButton: {
     color: 'black',
   },
@@ -86,25 +78,6 @@ type FormState = {
 export type InputChangeFunc = (
   formUpdate: (val: string) => $Shape<FormState>,
 ) => (event: SyntheticInputEvent<HTMLElement>) => void;
-
-function RuleNameEditor({
-  ruleName,
-  ...props
-}: {
-  onChange: InputChangeFunc,
-  ruleName: string,
-}) {
-  return (
-    <TextField
-      required
-      label="Rule Name"
-      placeholder="Ex: Service Down"
-      value={ruleName}
-      onChange={props.onChange(value => ({ruleName: value}))}
-      fullWidth
-    />
-  );
-}
 
 function SeverityEditor(props: {
   onChange: InputChangeFunc,
@@ -196,20 +169,6 @@ function TimeUnitEditor(props: {
   );
 }
 
-function DescriptionEditor(props: {
-  onChange: InputChangeFunc,
-  description: string,
-}) {
-  return (
-    <TextField
-      value={props.description}
-      onChange={props.onChange(val => ({description: val}))}
-      label="Description"
-      fullWidth
-    />
-  );
-}
-
 type PrometheusEditorProps = {
   ...RuleEditorProps<AlertConfig>,
   thresholdEditorEnabled?: ?boolean,
@@ -218,60 +177,43 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const classes = useStyles();
+  const _classes = useStyles();
   const [formState, setFormState] = React.useState<FormState>(
     fromAlertConfig(rule ? rule.rawRule : null),
   );
-  const [
+
+  const {
+    advancedEditorMode,
+    setAdvancedEditorMode,
     thresholdExpression,
     setThresholdExpression,
-  ] = React.useState<ThresholdExpression>({
-    metricName: '',
-    comparator: '==',
-    value: 0,
-    filters: new Labels(),
+  } = useThresholdExpressionEditorState({
+    expression: props.rule?.expression,
+    thresholdEditorEnabled: props.thresholdEditorEnabled,
   });
 
-  const [advancedEditorMode, setAdvancedEditorMode] = React.useState<boolean>(
-    !props.thresholdEditorEnabled,
-  );
-
-  const parsedExpression = React.useMemo(() => {
-    try {
-      return Parse(props.rule?.expression);
-    } catch {
-      return null;
-    }
-    // We only want to parse the expression on the first
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  React.useEffect(() => {
-    if (!props.rule?.expression) {
-      setAdvancedEditorMode(false);
-    } else if (parsedExpression) {
-      const newThresholdExpression = getThresholdExpression(parsedExpression);
-      if (newThresholdExpression) {
-        setAdvancedEditorMode(false);
-        setThresholdExpression(newThresholdExpression);
-      } else {
-        setAdvancedEditorMode(true);
-      }
-    } else {
-      enqueueSnackbar(
-        "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
-        {
-          variant: 'error',
+  /**
+   * Handles when the RuleEditorBase form changes, map this from
+   * RuleEditorForm -> AlertConfig
+   */
+  const handleEditorBaseChange = React.useCallback(
+    editorBaseState => {
+      setFormState({
+        ...formState,
+        ...{
+          ruleName: editorBaseState.name,
+          description: editorBaseState.description,
         },
-      );
-    }
-  }, [enqueueSnackbar, parsedExpression]);
+      });
+    },
+    [formState, setFormState],
+  );
 
   const saveAlert = async () => {
     try {
-      if (!rule) {
+      if (!formState) {
         throw new Error('Alert config empty');
       }
-
       const request = {
         networkId: match.params.networkId,
         rule: toAlertConfig(formState),
@@ -337,7 +279,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
         ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
       });
     },
-    [formState, onRuleUpdated, rule],
+    [formState, onRuleUpdated, rule, setThresholdExpression],
   );
 
   const severityOptions = React.useMemo<Array<MenuItemProps>>(
@@ -351,72 +293,47 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   );
 
   return (
-    <Grid container spacing={3}>
-      <Grid container item direction="column" spacing={2} wrap="nowrap">
-        <Grid item xs={12} sm={3}>
-          <RuleNameEditor
+    <RuleEditorBase
+      apiUtil={apiUtil}
+      rule={rule}
+      onChange={handleEditorBaseChange}
+      onSave={saveAlert}
+      onExit={onExit}
+      isNew={isNew}>
+      {props.thresholdEditorEnabled ? (
+        <ToggleableExpressionEditor
+          apiUtil={props.apiUtil}
+          onChange={handleInputChange}
+          onThresholdExpressionChange={updateThresholdExpression}
+          expression={thresholdExpression}
+          stringExpression={formState.expression}
+          toggleOn={advancedEditorMode}
+          onToggleChange={val => setAdvancedEditorMode(val)}
+        />
+      ) : (
+        <Grid item xs={4}>
+          <AdvancedExpressionEditor
+            expression={formState.expression}
             onChange={handleInputChange}
-            ruleName={formState.ruleName}
-            disabled={!isNew}
           />
         </Grid>
-        {props.thresholdEditorEnabled ? (
-          <ToggleableExpressionEditor
-            apiUtil={props.apiUtil}
-            onChange={handleInputChange}
-            onThresholdExpressionChange={updateThresholdExpression}
-            expression={thresholdExpression}
-            stringExpression={formState.expression}
-            toggleOn={advancedEditorMode}
-            onToggleChange={val => setAdvancedEditorMode(val)}
-          />
-        ) : (
-          <Grid item xs={4}>
-            <AdvancedExpressionEditor
-              expression={formState.expression}
-              onChange={handleInputChange}
-            />
-          </Grid>
-        )}
+      )}
 
-        <Grid item xs={12} sm={3}>
-          <SeverityEditor
-            onChange={handleInputChange}
-            options={severityOptions}
-            severity={formState.severity}
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <TimeEditor
-            onChange={handleInputChange}
-            timeNumber={formState.timeNumber}
-            timeUnit={formState.timeUnit}
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <DescriptionEditor
-            onChange={handleInputChange}
-            description={formState.description}
-          />
-        </Grid>
+      <Grid item xs={12}>
+        <SeverityEditor
+          onChange={handleInputChange}
+          options={severityOptions}
+          severity={formState.severity}
+        />
       </Grid>
-
-      <Grid item>
-        <Button
-          variant="outlined"
-          onClick={() => onExit()}
-          className={classes.button}>
-          Close
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => saveAlert()}
-          className={classes.button}>
-          {isNew ? 'Add' : 'Edit'}
-        </Button>
+      <Grid item xs={12}>
+        <TimeEditor
+          onChange={handleInputChange}
+          timeNumber={formState.timeNumber}
+          timeUnit={formState.timeUnit}
+        />
       </Grid>
-    </Grid>
+    </RuleEditorBase>
   );
 }
 
@@ -524,4 +441,76 @@ function getBinaryComparator(str: string): ?BinaryComparator {
     return BINARY_COMPARATORS[BINARY_COMPARATORS.indexOf(str)];
   }
   return null;
+}
+
+function useThresholdExpressionEditorState({
+  expression,
+  thresholdEditorEnabled,
+}: {
+  expression: ?string,
+  thresholdEditorEnabled: ?boolean,
+}): {
+  thresholdExpression: ThresholdExpression,
+  setThresholdExpression: ThresholdExpression => void,
+  advancedEditorMode: boolean,
+  setAdvancedEditorMode: boolean => void,
+} {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [
+    thresholdExpression,
+    setThresholdExpression,
+  ] = React.useState<ThresholdExpression>({
+    metricName: '',
+    comparator: '==',
+    value: 0,
+    filters: new Labels(),
+  });
+
+  const [advancedEditorMode, setAdvancedEditorMode] = React.useState<boolean>(
+    !thresholdEditorEnabled,
+  );
+
+  // Parse the expression string once when the component mounts
+  const parsedExpression = React.useMemo(() => {
+    try {
+      return Parse(expression);
+    } catch {
+      return null;
+    }
+    // We only want to parse the expression on the first
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /**
+   * After parsing the expression, caches the threshold expression in state. If
+   * the expression cannot be parsed, swaps to the advanced editor mode.
+   */
+  React.useEffect(() => {
+    if (!expression) {
+      setAdvancedEditorMode(false);
+    } else if (parsedExpression) {
+      const newThresholdExpression = getThresholdExpression(parsedExpression);
+      if (newThresholdExpression) {
+        setAdvancedEditorMode(false);
+        setThresholdExpression(newThresholdExpression);
+      } else {
+        setAdvancedEditorMode(true);
+      }
+    } else {
+      enqueueSnackbar(
+        "Error parsing alert expression. You can still edit this using the advanced editor, but you won't be able to use the UI expression editor.",
+        {
+          variant: 'error',
+        },
+      );
+    }
+    // we only want this to run when the parsedExpression changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedExpression]);
+
+  return {
+    thresholdExpression,
+    setThresholdExpression,
+    advancedEditorMode,
+    setAdvancedEditorMode,
+  };
 }

@@ -52,6 +52,7 @@ const commonProps = {
   onExit: () => {},
   isNew: false,
   thresholdEditorEnabled: true,
+  onRuleSaved: jest.fn(),
 };
 
 test('editing a threshold alert opens the PrometheusEditor with the threshold expression editor enabled', async () => {
