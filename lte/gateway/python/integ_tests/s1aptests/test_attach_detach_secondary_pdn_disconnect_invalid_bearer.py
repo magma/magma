@@ -66,7 +66,7 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
 
         print("********************* Sleeping for 5 seconds")
         time.sleep(5)
-        # Send PDN Disconnect with invalid bearer id 9
+        # Send PDN Disconnect for a non-existent bearer
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
         pdn_disconnect_req.ue_Id = ue_id
         # Find an unassigned bearer id

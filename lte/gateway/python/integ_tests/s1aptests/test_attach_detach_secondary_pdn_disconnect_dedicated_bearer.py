@@ -48,7 +48,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-            # Add dedicated bearer for default bearer 5
+            # Add dedicated bearer for default bearer
             print(
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
