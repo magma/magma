@@ -201,6 +201,34 @@ func TestRouteJSONWrapper_ToPrometheusConfig(t *testing.T) {
 	assert.Equal(t, expectedRoute, route)
 }
 
+func TestNewRouteJSONWrapper(t *testing.T) {
+	fiveSeconds, _ := model.ParseDuration("5s")
+	sixSeconds, _ := model.ParseDuration("6s")
+	sevenSeconds, _ := model.ParseDuration("7s")
+
+	origRoute := config.Route{
+		Receiver:       "receiver",
+		GroupByStr:     []string{"groupBy"},
+		Match:          map[string]string{"match": "value"},
+		Continue:       true,
+		GroupWait:      &fiveSeconds,
+		GroupInterval:  &sixSeconds,
+		RepeatInterval: &sevenSeconds,
+	}
+
+	expectedJSONRoute := RouteJSONWrapper{
+		Receiver:       "receiver",
+		GroupByStr:     []string{"groupBy"},
+		Match:          map[string]string{"match": "value"},
+		Continue:       true,
+		GroupWait:      "5s",
+		GroupInterval:  "6s",
+		RepeatInterval: "7s",
+	}
+	wrappedRoute := NewRouteJSONWrapper(origRoute)
+	assert.Equal(t, expectedJSONRoute, *wrappedRoute)
+}
+
 // TestMarshalYamlEmailConfig checks that all EmailConfigs are marshaled with
 // requireTLS set to false
 func TestMarshalYamlEmailConfig(t *testing.T) {

@@ -171,7 +171,7 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 		_ = json.NewDecoder(resp.Body).Decode(&body)
 		return obsidian.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
 	}
-	var route config.Route
+	var route receivers.RouteJSONWrapper
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
 		return obsidian.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)

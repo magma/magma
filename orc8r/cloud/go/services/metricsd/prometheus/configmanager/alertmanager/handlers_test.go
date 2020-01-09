@@ -11,6 +11,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -48,6 +50,8 @@ var (
 		}},
 	}
 
+	fiveSeconds, _ = model.ParseDuration("5s")
+
 	sampleRoute = config.Route{
 		Receiver: "testSlackReceiver",
 		Match:    map[string]string{"networkID": testNID},
@@ -55,6 +59,9 @@ var (
 			Receiver: "childReceiver",
 			Match:    map[string]string{"severity": "critical"},
 		}},
+		GroupWait:      &fiveSeconds,
+		GroupInterval:  &fiveSeconds,
+		RepeatInterval: &fiveSeconds,
 	}
 )
 
@@ -200,6 +207,11 @@ func TestGetGetRouteHandler(t *testing.T) {
 	err := GetGetRouteHandler(client)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
+	var retrievedRoute receivers.RouteJSONWrapper
+	body, _ := ioutil.ReadAll(rec.Body)
+	err = json.Unmarshal(body, &retrievedRoute)
+	assert.NoError(t, err)
+	assert.Equal(t, *receivers.NewRouteJSONWrapper(sampleRoute), retrievedRoute)
 	client.AssertExpectations(t)
 
 	// Client Error
@@ -274,7 +286,7 @@ func TestDecodeRoutePostRequest(t *testing.T) {
 		Receiver bool `json:"receiver"`
 	}{false}, http.MethodPost, "/", ReceiverPath, testNID)
 	conf, err = decodeRoutePostRequest(c)
-	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field Route.receiver of type string`)
+	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field RouteJSONWrapper.receiver of type string`)
 }
 
 func buildContext(body interface{}, method, target, path, networkID string) (echo.Context, *httptest.ResponseRecorder) {
