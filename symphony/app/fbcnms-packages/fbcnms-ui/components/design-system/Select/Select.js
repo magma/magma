@@ -64,8 +64,8 @@ const Select = <TValue>({
           disabled={disabled}
           rightIcon={ArrowDropDownIcon}>
           <span className={classes.label}>{label}</span>
-          {selectedValue ? ': ' : null}
-          {selectedValue ? (
+          {selectedValue != null ? ': ' : null}
+          {selectedValue != null ? (
             <span className={classes.value}>
               {options.find(option => option.value === selectedValue)?.label ??
                 ''}
