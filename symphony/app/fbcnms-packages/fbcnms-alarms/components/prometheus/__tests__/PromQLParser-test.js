@@ -388,6 +388,20 @@ const testCases = [
       '>',
     ),
   ],
+  [
+    'simple equality expression',
+    `up == 0`,
+    [
+      {value: 'up', type: 'word'},
+      {value: '==', type: 'binOp'},
+      {value: 0, type: 'scalar'},
+    ],
+    new PromQL.BinaryOperation(
+      new PromQL.InstantSelector('up'),
+      new PromQL.Scalar(0),
+      '==',
+    ),
+  ],
 ];
 
 describe('Tokenize', () => {
