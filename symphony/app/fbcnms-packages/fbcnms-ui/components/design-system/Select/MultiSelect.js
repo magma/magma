@@ -8,15 +8,15 @@
  * @format
  */
 
-import type {ButtonProps} from '../Button';
 import type {OptionProps} from './SelectMenu';
 
 import * as React from 'react';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import BasePopoverTrigger from './BasePopoverTrigger';
+import BasePopoverTrigger from '../ContexualLayer/BasePopoverTrigger';
 import Button from '../Button';
-import SelectMenu from './SelectMenu';
+import MultiSelectMenu from './MultiSelectMenu';
 import classNames from 'classnames';
+import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles({
@@ -39,36 +39,50 @@ type Props<TValue> = {
   className?: string,
   label: React.Node,
   options: Array<OptionProps<TValue>>,
-  onChange: (value: TValue) => void | (() => void),
-  selectedValue: ?TValue,
-  ...ButtonProps,
+  onChange: (option: OptionProps<TValue>) => void | (() => void),
+  selectedValues: Array<OptionProps<TValue>>,
+  onOptionsFetchRequested?: (searchTerm: string) => void,
+  searchable?: boolean,
 };
 
-const Select = <TValue>({
+const MultiSelect = <TValue>({
   label,
   className,
   ...selectMenuProps
 }: Props<TValue>) => {
   const classes = useStyles();
-  const {options, selectedValue, skin, variant, disabled} = selectMenuProps;
+  const {selectedValues} = selectMenuProps;
   return (
     <BasePopoverTrigger
-      popover={<SelectMenu {...selectMenuProps} className={classes.menu} />}>
+      popover={
+        <MultiSelectMenu
+          {...selectMenuProps}
+          className={classes.menu}
+          size="normal"
+        />
+      }>
       {(onShow, contextRef) => (
         <Button
           className={classNames(classes.root, className)}
           ref={contextRef}
           onClick={onShow}
-          skin={skin ?? 'regular'}
-          variant={variant}
-          disabled={disabled}
+          skin="regular"
           rightIcon={ArrowDropDownIcon}>
           <span className={classes.label}>{label}</span>
-          {selectedValue ? ': ' : null}
-          {selectedValue ? (
+          {selectedValues.length > 0 ? ': ' : null}
+          {selectedValues.length === 1 ? (
+            <span className={classes.value} key={String(selectedValues[0])}>
+              {selectedValues[0].label ?? ''}
+            </span>
+          ) : null}
+          {selectedValues.length > 1 ? (
             <span className={classes.value}>
-              {options.find(option => option.value === selectedValue)?.label ??
-                ''}
+              <fbt desc="Amount of selected items">
+                <fbt:param name="num_selected" number={true}>
+                  {selectedValues.length}
+                </fbt:param>
+                Selected
+              </fbt>
             </span>
           ) : null}
         </Button>
@@ -77,4 +91,4 @@ const Select = <TValue>({
   );
 };
 
-export default Select;
+export default MultiSelect;
