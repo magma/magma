@@ -110,7 +110,6 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
       "Bearer context is null, did not send S11_MODIFY_BEARER_REQUEST for ebi"
       "%u\n",
       ebi);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -118,7 +117,6 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
   pdn_context_t* pdn_context_p = ue_context_p->pdn_contexts[cid];
   if (pdn_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Did not find PDN context for ebi %u\n", ebi);
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -127,7 +125,6 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
   if (message_p == NULL) {
     OAILOG_ERROR(
       LOG_MME_APP, "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -193,7 +190,6 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     "Sending S11_MODIFY_BEARER_REQUEST to SGW for ue" MME_UE_S1AP_ID_FMT "\n",
     ue_id);
   itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
-  unlock_ue_contexts(ue_context_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -2241,8 +2237,7 @@ int mme_app_handle_nas_extended_service_req(
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "ERROR***** Invalid UE Id received from NAS in Extended Service "
-      "Request\n");
+      "ERROR***** Invalid UE Id received in Extended Service Request \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   mme_app_desc_p = get_mme_nas_state(false);
@@ -2318,6 +2313,7 @@ int mme_app_handle_nas_extended_service_req(
             LOG_MME_APP,
             "sgs_context is null for IMSI" IMSI_64_FMT "\n",
             ue_context_p->emm_context._imsi64);
+           OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
         }
       } else if (
         csfb_response == CSFB_ACCEPTED_BY_UE) {
