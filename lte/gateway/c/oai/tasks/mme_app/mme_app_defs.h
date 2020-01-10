@@ -250,7 +250,7 @@ int mme_app_send_sgsap_paging_reject(
   uint8_t imsi_len,
   SgsCause_t sgs_cause);
 
-int mme_app_notify_service_reject_to_nas(
+void mme_app_notify_service_reject_to_nas(
   mme_ue_s1ap_id_t ue_id,
   uint8_t emm_cause,
   uint8_t failed_procedure);

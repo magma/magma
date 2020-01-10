@@ -485,7 +485,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case SGSAP_MM_INFORMATION_REQ: {
-        /*Received SGSAP MM Information Request message from SGS task*/
+        // Received SGSAP MM Information Request message from SGS task
         nas_proc_cs_domain_mm_information_request(
           &SGSAP_MM_INFORMATION_REQ(received_message_p));
       } break;

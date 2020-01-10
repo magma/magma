@@ -70,8 +70,6 @@
  ** inputs:  ue_context_p: Pointer to UE context                           **
  **          emm_casue: failed cause                                       **
  **                                                                        **
- ** outputs:                                                               **
- **                                                                        **
  ***************************************************************************/
 void mme_app_itti_ue_context_release(
   struct ue_mm_context_s *ue_context_p,
@@ -389,8 +387,6 @@ int mme_app_send_s11_create_session_req(
  **          tai_pP: TAI of UE                                             **
  **          ecgi_pP: ecgi of UE                                           **
  **                                                                        **
- ** outputs:                                                               **
- **                                                                        **
  ***************************************************************************/
 void nas_itti_sgsap_uplink_unitdata(
   const char *const imsi,
@@ -498,8 +494,6 @@ void nas_itti_sgsap_uplink_unitdata(
  ** inputs:  imsi : IMSI of UE                                             **
  **          imsi_len : Length of IMSI                                     **
  **                                                                        **
- ** outputs:                                                               **
- **                                                                        **
  ***************************************************************************/
 void mme_app_itti_sgsap_tmsi_reallocation_comp(
   const char *imsi,
@@ -547,8 +541,6 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
  **             to SGS task                                                **
  ** inputs:  imsi : IMSI of UE                                             **
  **          imsi_len : Length of IMSI                                     **
- **                                                                        **
- ** outputs:                                                               **
  **                                                                        **
  ***************************************************************************/
 void mme_app_itti_sgsap_ue_activity_ind(
