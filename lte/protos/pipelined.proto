@@ -92,6 +92,16 @@ message UEMacFlowRequest {
   string mac_addr = 2;
 }
 
+message SubscriberQuotaUpdate{
+  SubscriberID sid = 1;
+  enum Type {
+    VALID_QUOTA = 0;
+    NO_QUOTA = 1;
+    TERMINATE = 2;
+  }
+  Type update_type = 2;
+}
+
 message TableAssignment {
   string app_name = 1;
   uint64 main_table = 2;
@@ -147,6 +157,13 @@ service Pipelined {
 
   // Update flow stats
   rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
+
+  // ----------------
+  // Quota Check App:
+  // ----------------
+
+  // Synchronize subscribers quota check flows
+  rpc UpdateSubscriberQuotaState (SubscriberQuotaUpdate) returns (FlowResponse) {}
 
   // -----------
   // UE MAC App:

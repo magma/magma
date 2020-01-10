@@ -107,6 +107,11 @@ monitored_ifaces: ['cwag_br0',
 # Whether pipelined should cleanup flows on restarts
 clean_restart: true
 
+# Information for cwf check quota servers
+quota_check_ip: '192.168.128.99'
+has_quota_port: 51115
+no_quota_port: 51125
+
 ###############
 ## IMPORTANT ##
 ###############
