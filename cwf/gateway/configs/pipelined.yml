@@ -29,6 +29,7 @@ log_level: INFO
 static_services: [
   'ue_mac',
   'arpd',
+  'check_quota',
   'access_control',
   'tunnel_learn',
   'ryu_rest_service',
