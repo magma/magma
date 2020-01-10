@@ -8,8 +8,10 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -65,7 +67,9 @@ func NewHandler(logger log.Logger, orc8rClient *http.Client) (http.Handler, erro
 				handler.Tracer(tracer.New()),
 				handler.ErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
 					gqlerr := graphql.DefaultErrorPresenter(ctx, err)
-					if _, ok := err.(*gqlerror.Error); !ok {
+					if strings.Contains(err.Error(), ent.ErrReadOnly.Error()) {
+						gqlerr.Message = "Permission denied"
+					} else if _, ok := err.(*gqlerror.Error); !ok {
 						logger.For(ctx).Error("graphql internal error", zap.Error(err))
 						gqlerr.Message = "Sorry, something went wrong"
 					}

@@ -137,19 +137,19 @@ const arrayConfigs = [
   {
     id: 'import_exported_equipemnt',
     title: 'Imported Exported Equipment',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'import_exported_links',
     title: 'Imported Exported Links',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'import_exported_ports',
     title: 'Imported Exported Ports',
-    enabledByDefault: false,
+    enabledByDefault: true,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
@@ -197,7 +197,7 @@ const arrayConfigs = [
   {
     id: 'external_id',
     title: 'External ID',
-    enabledByDefault: false,
+    enabledByDefault: true,
   },
   {
     id: 'service_endpoints',

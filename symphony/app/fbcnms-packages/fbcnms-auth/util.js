@@ -28,9 +28,8 @@ const FIELD_MAP = {
   networkIDs: 'networkIDs',
   organization: 'organization',
   password: 'password',
-  superUser: 'role',
+  role: 'role',
   tabs: 'tabs',
-  readOnly: 'readOnly',
 };
 
 export function addQueryParamsToUrl(
@@ -93,9 +92,13 @@ export async function getPropsToUpdate(
             String(body[prop]),
           );
           break;
-        case 'superUser':
-          userProperties.role =
-            body[prop] == true ? AccessRoles.SUPERUSER : AccessRoles.USER;
+        case 'role':
+          userProperties[prop] =
+            body[prop] === AccessRoles.SUPERUSER
+              ? AccessRoles.SUPERUSER
+              : body[prop] === AccessRoles.READ_ONLY_USER
+              ? AccessRoles.READ_ONLY_USER
+              : AccessRoles.USER;
           break;
         case 'networkIDs':
           const networkIDsunsafe = body[prop];
@@ -129,13 +132,6 @@ export async function getPropsToUpdate(
             break;
           }
           throw new Error('Invalid tab name');
-        case 'readOnly':
-          const readOnlyUnsafe = body[prop];
-          if (typeof readOnlyUnsafe !== 'boolean') {
-            throw new Error('Invalid read only value');
-          }
-          userProperties[prop] = readOnlyUnsafe;
-          break;
         default:
           userProperties[prop] = body[prop];
           break;

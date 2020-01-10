@@ -15,18 +15,17 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormLabel from '@material-ui/core/FormLabel';
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import Select from '@material-ui/core/Select';
+import SymphonySelect from '@fbcnms/ui/components/design-system/Select/Select';
 import TextField from '@material-ui/core/TextField';
-import {UserRoles} from '@fbcnms/auth/types';
-
 import renderList from '@fbcnms/util/renderList';
+import {UserRoles} from '@fbcnms/auth/types';
 import {makeStyles} from '@material-ui/styles';
 
 export type EditUser = {
@@ -35,15 +34,13 @@ export type EditUser = {
   role: number,
   networkIDs?: string[],
   organization?: string,
-  readOnly: boolean,
 };
 
 type SaveUserData = {
   email: string,
   password?: string,
-  superUser: boolean,
+  role: number,
   networkIds?: string[],
-  readOnly: boolean,
 };
 
 type Props = {
@@ -62,6 +59,9 @@ const useStyles = makeStyles({
     margin: '5px 0',
     width: '100%',
   },
+  select: {
+    marginTop: '16px',
+  },
 });
 
 function getInitialNetworkIDs(userNetworkIds, allNetworkIDs): Set<string> {
@@ -76,15 +76,13 @@ export default function EditUserDialog(props: Props) {
   const [email, setEmail] = useState<string>(props.editingUser?.email || '');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [isSuperUser, setIsSuperUser] = useState<boolean>(
-    props.editingUser?.role === UserRoles.SUPERUSER,
-  );
-  const [isReadOnly, setIsReadOnly] = useState<boolean>(
-    props.editingUser?.readOnly ?? false,
+  const [role, setRole] = useState<$Values<typeof UserRoles>>(
+    props.editingUser?.role ?? UserRoles.USER,
   );
   const [networkIds, setNetworkIds] = useState<Set<string>>(
     getInitialNetworkIDs(props.editingUser?.networkIDs, allNetworkIDs),
   );
+  const isSuperUser = useMemo(() => role === UserRoles.SUPERUSER, [role]);
 
   const onSave = useCallback(() => {
     if (password !== confirmPassword) {
@@ -105,9 +103,8 @@ export default function EditUserDialog(props: Props) {
     const payload: SaveUserData = {
       email,
       password,
-      superUser: isSuperUser,
+      role,
       networkIDs: isSuperUser ? [] : Array.from(networkIds),
-      readOnly: isReadOnly,
     };
 
     // remove the password field if we are editing a user and the password isn't
@@ -121,15 +118,7 @@ export default function EditUserDialog(props: Props) {
     } else {
       props.onCreateUser(payload);
     }
-  }, [
-    password,
-    confirmPassword,
-    props,
-    email,
-    isSuperUser,
-    networkIds,
-    isReadOnly,
-  ]);
+  }, [password, confirmPassword, props, email, role, isSuperUser, networkIds]);
 
   return (
     <Dialog open={props.open} onClose={props.onClose}>
@@ -164,25 +153,26 @@ export default function EditUserDialog(props: Props) {
             />
           </>
         )}
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isSuperUser}
-              onChange={({target}) => setIsSuperUser(target.checked)}
-              color="primary"
-            />
-          }
-          label="Super User"
-        />
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isReadOnly}
-              onChange={({target}) => setIsReadOnly(target.checked)}
-              color="primary"
-            />
-          }
-          label="Read Only"
+        <SymphonySelect
+          className={classes.select}
+          skin="gray"
+          label="Role"
+          options={[
+            {
+              label: 'User',
+              value: UserRoles.USER,
+            },
+            {
+              label: 'Read Only User',
+              value: UserRoles.READ_ONLY_USER,
+            },
+            {
+              label: 'Super User',
+              value: UserRoles.SUPERUSER,
+            },
+          ]}
+          selectedValue={role}
+          onChange={value => setRole(value)}
         />
         {allNetworkIDs && (
           <FormControl className={classes.input}>
