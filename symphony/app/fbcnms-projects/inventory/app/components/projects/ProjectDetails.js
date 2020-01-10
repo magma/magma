@@ -432,6 +432,14 @@ export default withRouter(
                 longitudeValue
                 rangeFromValue
                 rangeToValue
+                equipmentValue {
+                  id
+                  name
+                }
+                locationValue {
+                  id
+                  name
+                }
                 propertyType {
                   id
                   name

@@ -9,7 +9,7 @@
  */
 
 import React, {useState} from 'react';
-import SelectMenu from '../../components/design-system/ContexualLayer/SelectMenu';
+import SelectMenu from '../../components/design-system/Select/SelectMenu';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';

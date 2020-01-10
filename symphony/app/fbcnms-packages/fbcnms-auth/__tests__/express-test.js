@@ -195,6 +195,7 @@ describe('user tests', () => {
       networkIDs: [],
       superUser: false,
       verificationType: 0,
+      role: 0,
     };
 
     describe('as superuser', () => {
@@ -209,12 +210,13 @@ describe('user tests', () => {
           .expect(stripDates)
           .expect({
             user: {
-              id: 4,
               isSuperUser: false,
+              isReadOnlyUser: false,
               email: params.email,
               organization: 'validorg',
               networkIDs: params.networkIDs,
               role: 0,
+              id: 5,
               tabs: [],
             },
           });
@@ -289,7 +291,6 @@ describe('user tests', () => {
             organization: 'validorg',
             role: 0,
             tabs: ['validtab'],
-            readOnly: false,
           },
         })
         .expect(200);

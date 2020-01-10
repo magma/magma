@@ -129,12 +129,11 @@ func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	// Start s6a diameter server
 	result := make(chan error)
 	hss := test.NewTestHomeSubscriberServer(t)
-	serverCfg := hss.Config.Server
-	started := make(chan struct{})
+	started := make(chan string)
 	go func() {
 		err := hss.Start(started)
 		if err != nil {
-			fmt.Printf("getConnectionToTestHSS Error: %v for address: %s\n", err, serverCfg.Address)
+			fmt.Printf("getConnectionToTestHSS Error: %v for address: %s\n", err, hss.Config.Server.Address)
 			result <- err
 		}
 	}()
@@ -144,7 +143,10 @@ func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	case err := <-result:
 		assert.Fail(t, "%v", err)
 		return nil
-	case <-started:
+	case localAddr := <-started:
+		// Overwrite server address with actual local address in case, the test HSS was started
+		// without a configured port # (for example: 127.0.0.1:0)
+		hss.Config.Server.Address = localAddr
 	}
 	return hss
 }

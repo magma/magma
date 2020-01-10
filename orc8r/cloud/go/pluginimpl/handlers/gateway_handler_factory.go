@@ -277,7 +277,18 @@ func GetDeleteGatewayHandler(path string, gatewayType string) obsidian.Handler {
 				return nerr
 			}
 
-			err := configurator.DeleteEntities(
+			existingEnt, err := configurator.LoadEntity(
+				nid, orc8r.MagmadGatewayType, gid,
+				configurator.EntityLoadCriteria{LoadMetadata: true},
+			)
+			switch {
+			case err == merrors.ErrNotFound:
+				return echo.ErrNotFound
+			case err != nil:
+				return obsidian.HttpError(errors.Wrap(err, "failed to load gateway"), http.StatusInternalServerError)
+			}
+
+			err = configurator.DeleteEntities(
 				nid,
 				[]storage.TypeAndKey{
 					{Type: orc8r.MagmadGatewayType, Key: gid},
@@ -285,8 +296,20 @@ func GetDeleteGatewayHandler(path string, gatewayType string) obsidian.Handler {
 				},
 			)
 			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
+				return obsidian.HttpError(errors.Wrap(err, "failed to delete gateway"), http.StatusInternalServerError)
 			}
+
+			// Now we delete the associated device. Even though we error out
+			// request if this fails, failing on this specific step is non-
+			// blocking because gateway registration handles the case where a
+			// device already exists and is unassigned.
+			if existingEnt.PhysicalID != "" {
+				err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, existingEnt.PhysicalID)
+				if err != nil {
+					return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway. no further action is required"), http.StatusInternalServerError)
+				}
+			}
+
 			return c.NoContent(http.StatusNoContent)
 		},
 	}

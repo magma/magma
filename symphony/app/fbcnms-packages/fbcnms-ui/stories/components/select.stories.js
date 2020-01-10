@@ -9,7 +9,7 @@
  */
 
 import React, {useState} from 'react';
-import Select from '../../components/design-system/ContexualLayer/Select';
+import Select from '../../components/design-system/Select/Select';
 import Text from '../../components/design-system/Text';
 import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
