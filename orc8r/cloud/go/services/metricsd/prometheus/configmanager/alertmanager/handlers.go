@@ -110,7 +110,7 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		return c.JSON(http.StatusOK, route)
+		return c.JSON(http.StatusOK, receivers.NewRouteJSONWrapper(*route))
 	}
 }
 
@@ -155,7 +155,17 @@ func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 	route := config.Route{}
 	err = json.Unmarshal(body, &route)
 	if err != nil {
-		return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
+		// Try decoding into a JSON-compatible struct
+		wrappedRoute := receivers.RouteJSONWrapper{}
+		err = json.Unmarshal(body, &wrappedRoute)
+		if err != nil {
+			return config.Route{}, fmt.Errorf("error unmarshalling route: %v", err)
+		}
+		unwrappedRoute, err := wrappedRoute.ToPrometheusConfig()
+		if err != nil {
+			return config.Route{}, fmt.Errorf("error handling route: %v", err)
+		}
+		return unwrappedRoute, nil
 	}
 	return route, nil
 }

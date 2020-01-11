@@ -183,6 +183,40 @@ type RouteJSONWrapper struct {
 	RepeatInterval string `yaml:"repeat_interval,omitempty" json:"repeat_interval,omitempty"`
 }
 
+// NewRouteJSONWrapper converts a config.Route to a json-compatible route
+func NewRouteJSONWrapper(r config.Route) *RouteJSONWrapper {
+	var childRoutes []*RouteJSONWrapper
+	for _, child := range r.Routes {
+		if child != nil {
+			childRoutes = append(childRoutes, NewRouteJSONWrapper(*child))
+		}
+	}
+	var groupWaitStr, groupIntervalStr, repeatIntervalStr string
+	if r.GroupWait != nil {
+		groupWaitStr = r.GroupWait.String()
+	}
+	if r.GroupInterval != nil {
+		groupIntervalStr = r.GroupInterval.String()
+	}
+	if r.RepeatInterval != nil {
+		repeatIntervalStr = r.RepeatInterval.String()
+	}
+
+	return &RouteJSONWrapper{
+		Receiver:       r.Receiver,
+		GroupByStr:     r.GroupByStr,
+		GroupBy:        r.GroupBy,
+		GroupByAll:     r.GroupByAll,
+		Match:          r.Match,
+		MatchRE:        r.MatchRE,
+		Continue:       r.Continue,
+		Routes:         childRoutes,
+		GroupWait:      groupWaitStr,
+		GroupInterval:  groupIntervalStr,
+		RepeatInterval: repeatIntervalStr,
+	}
+}
+
 // ToPrometheusConfig converts a json-compatible route specification to a
 // prometheus route config
 func (r *RouteJSONWrapper) ToPrometheusConfig() (config.Route, error) {

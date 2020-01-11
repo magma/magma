@@ -24,7 +24,6 @@ type UserRawInitType = {
   role: number,
   networkIDs?: Array<string>,
   tabs?: Array<string>,
-  readOnly: boolean,
 };
 
 // This is the type read back
@@ -32,7 +31,8 @@ export type UserRawType = {
   id: number,
   networkIDs: Array<string>,
   isSuperUser: boolean,
-  readOnly: boolean,
+  isReadOnlyUser: boolean,
+  role: number,
 } & UserRawInitType;
 
 type UserModel = Model<UserRawType, UserRawInitType>;
@@ -50,7 +50,6 @@ export default (
       organization: types.STRING,
       password: types.STRING,
       role: types.INTEGER,
-      readOnly: types.BOOLEAN,
       networkIDs: {
         type: types.JSON,
         allowNull: false,
@@ -71,6 +70,9 @@ export default (
       getterMethods: {
         isSuperUser() {
           return this.role === AccessRoles.SUPERUSER;
+        },
+        isReadOnlyUser() {
+          return this.role === AccessRoles.READ_ONLY_USER;
         },
       },
     },

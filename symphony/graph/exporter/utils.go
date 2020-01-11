@@ -140,7 +140,7 @@ func locationHierarchy(ctx context.Context, location *ent.Location, orderedLocTy
 			if ent.IsNotFound(err) {
 				break
 			}
-			return nil, errors.Wrapf(err, "error querying parent location for location: %s", currLoc.Name)
+			return nil, errors.Wrapf(err, "querying parent location for location: %s", parents[idx])
 		}
 	}
 	return parents, nil

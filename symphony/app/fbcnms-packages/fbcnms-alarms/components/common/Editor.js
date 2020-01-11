@@ -13,13 +13,16 @@
 import * as React from 'react';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
-type Props = {
+export type Props = {
   children: React.Node,
   onExit: () => void,
-  onSave: () => void,
+  onSave: () => Promise<void> | void,
   isNew: boolean,
+  title?: string,
+  description?: string,
 };
 const useStyles = makeStyles(theme => ({
   gridContainer: {
@@ -35,6 +38,8 @@ export default function Editor({
   isNew,
   onExit,
   onSave,
+  title,
+  description,
   ...props
 }: Props) {
   const classes = useStyles();
@@ -46,36 +51,54 @@ export default function Editor({
           onSubmit={e => {
             e.preventDefault();
             onSave();
-          }}>
-          <Grid container spacing={3}>
-            <Grid
-              container
-              item
-              direction="column"
-              spacing={2}
-              wrap="nowrap"
-              xs={12}
-              sm={4}>
-              {children}
-            </Grid>
-            <Grid container item spacing={1} xs={12}>
-              <Grid item>
-                <Button
-                  variant="outlined"
-                  onClick={() => onExit()}
-                  className={classes.button}>
-                  Close
-                </Button>
+          }}
+          data-testid="editor-form">
+          <Grid container spacing={4} direction="column" wrap="nowrap">
+            <Grid container item wrap="nowrap" xs={12}>
+              <Grid item xs={6}>
+                <Typography variant="h5" noWrap>
+                  {title}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" noWrap>
+                  {description}
+                </Typography>
               </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  type="submit"
-                  className={classes.button}
-                  data-testid="editor-submit-button">
-                  {isNew ? 'Add' : 'Save'}
-                </Button>
+              <Grid
+                container
+                item
+                spacing={1}
+                xs={6}
+                justify="flex-end"
+                alignItems="center">
+                <Grid item>
+                  <Button
+                    variant="outlined"
+                    onClick={() => onExit()}
+                    className={classes.button}>
+                    Close
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    type="submit"
+                    className={classes.button}
+                    data-testid="editor-submit-button">
+                    {isNew ? 'Add' : 'Save'}
+                  </Button>
+                </Grid>
+              </Grid>
+            </Grid>
+            <Grid container item spacing={3}>
+              <Grid
+                container
+                item
+                direction="column"
+                spacing={2}
+                wrap="nowrap"
+                xs={12}>
+                {children}
               </Grid>
             </Grid>
           </Grid>

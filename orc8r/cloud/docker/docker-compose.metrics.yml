@@ -44,6 +44,7 @@ services:
       - ALERTMANAGER_CONFIG_PORT=9101
       - ALERTMANAGER_CONF_PATH=/etc/configs/alertmanager.yml
       - ALERTMANAGER_URL=alertmanager:9093
+      - MULTITENANT=true
     restart: always
 
   grafana:
