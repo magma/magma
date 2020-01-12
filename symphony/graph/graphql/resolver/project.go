@@ -226,8 +226,8 @@ func (r queryResolver) ProjectTypes(
 		PageInfo: &relay.PageInfo{
 			HasNextPage:     false,
 			HasPreviousPage: false,
-			StartCursor:     edges[0].Cursor,
-			EndCursor:       edges[len(edges)-1].Cursor,
+			StartCursor:     &edges[0].Cursor,
+			EndCursor:       &edges[len(edges)-1].Cursor,
 		},
 	}, nil
 }
