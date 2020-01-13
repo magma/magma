@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3fb86990a5e9cbec6dcb49e559451a97
+ * @relayHash 0b3836abfa14329581dc6f8bdf1896c2
  */
 
 /* eslint-disable */
@@ -51,7 +51,13 @@ query WorkOrderProjectTypesQuery {
         id
         ...ProjectTypeCard_projectType
         ...AddEditProjectTypeCard_editingProjectType
+        __typename
       }
+      cursor
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
     }
   }
   workOrderTypes(first: 50) {
@@ -112,30 +118,69 @@ fragment ProjectTypeWorkOrderTemplatesPanel_workOrderTypes on WorkOrderType {
 */
 
 const node/*: ConcreteRequest*/ = (function(){
-var v0 = [
-  {
-    "kind": "Literal",
-    "name": "first",
-    "value": 50
-  }
-],
-v1 = {
+var v0 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
   "args": null,
   "storageKey": null
 },
+v1 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "__typename",
+  "args": null,
+  "storageKey": null
+},
 v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "cursor",
+  "args": null,
+  "storageKey": null
+},
+v3 = {
+  "kind": "LinkedField",
+  "alias": null,
+  "name": "pageInfo",
+  "storageKey": null,
+  "args": null,
+  "concreteType": "PageInfo",
+  "plural": false,
+  "selections": [
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "endCursor",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "hasNextPage",
+      "args": null,
+      "storageKey": null
+    }
+  ]
+},
+v4 = [
+  {
+    "kind": "Literal",
+    "name": "first",
+    "value": 50
+  }
+],
+v5 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "name",
   "args": null,
   "storageKey": null
 },
-v3 = [
-  (v1/*: any*/),
-  (v2/*: any*/)
+v6 = [
+  (v0/*: any*/),
+  (v5/*: any*/)
 ];
 return {
   "kind": "Request",
@@ -148,10 +193,10 @@ return {
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": null,
-        "name": "projectTypes",
-        "storageKey": "projectTypes(first:50)",
-        "args": (v0/*: any*/),
+        "alias": "projectTypes",
+        "name": "__WorkOrderProjectTypesQuery_projectTypes_connection",
+        "storageKey": null,
+        "args": null,
         "concreteType": "ProjectTypeConnection",
         "plural": false,
         "selections": [
@@ -173,6 +218,7 @@ return {
                 "concreteType": "ProjectType",
                 "plural": false,
                 "selections": [
+                  (v0/*: any*/),
                   (v1/*: any*/),
                   {
                     "kind": "FragmentSpread",
@@ -185,9 +231,11 @@ return {
                     "args": null
                   }
                 ]
-              }
+              },
+              (v2/*: any*/)
             ]
-          }
+          },
+          (v3/*: any*/)
         ]
       },
       {
@@ -195,7 +243,7 @@ return {
         "alias": null,
         "name": "workOrderTypes",
         "storageKey": "workOrderTypes(first:50)",
-        "args": (v0/*: any*/),
+        "args": (v4/*: any*/),
         "concreteType": "WorkOrderTypeConnection",
         "plural": false,
         "selections": [
@@ -240,7 +288,7 @@ return {
         "alias": null,
         "name": "projectTypes",
         "storageKey": "projectTypes(first:50)",
-        "args": (v0/*: any*/),
+        "args": (v4/*: any*/),
         "concreteType": "ProjectTypeConnection",
         "plural": false,
         "selections": [
@@ -262,8 +310,8 @@ return {
                 "concreteType": "ProjectType",
                 "plural": false,
                 "selections": [
-                  (v1/*: any*/),
-                  (v2/*: any*/),
+                  (v0/*: any*/),
+                  (v5/*: any*/),
                   {
                     "kind": "ScalarField",
                     "alias": null,
@@ -287,7 +335,7 @@ return {
                     "concreteType": "WorkOrderDefinition",
                     "plural": true,
                     "selections": [
-                      (v1/*: any*/),
+                      (v0/*: any*/),
                       {
                         "kind": "LinkedField",
                         "alias": null,
@@ -296,7 +344,7 @@ return {
                         "args": null,
                         "concreteType": "WorkOrderType",
                         "plural": false,
-                        "selections": (v3/*: any*/)
+                        "selections": (v6/*: any*/)
                       }
                     ]
                   },
@@ -309,8 +357,8 @@ return {
                     "concreteType": "PropertyType",
                     "plural": true,
                     "selections": [
-                      (v1/*: any*/),
-                      (v2/*: any*/),
+                      (v0/*: any*/),
+                      (v5/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
@@ -410,19 +458,31 @@ return {
                         "storageKey": null
                       }
                     ]
-                  }
+                  },
+                  (v1/*: any*/)
                 ]
-              }
+              },
+              (v2/*: any*/)
             ]
-          }
+          },
+          (v3/*: any*/)
         ]
+      },
+      {
+        "kind": "LinkedHandle",
+        "alias": null,
+        "name": "projectTypes",
+        "args": (v4/*: any*/),
+        "handle": "connection",
+        "key": "WorkOrderProjectTypesQuery_projectTypes",
+        "filters": null
       },
       {
         "kind": "LinkedField",
         "alias": null,
         "name": "workOrderTypes",
         "storageKey": "workOrderTypes(first:50)",
-        "args": (v0/*: any*/),
+        "args": (v4/*: any*/),
         "concreteType": "WorkOrderTypeConnection",
         "plural": false,
         "selections": [
@@ -443,7 +503,7 @@ return {
                 "args": null,
                 "concreteType": "WorkOrderType",
                 "plural": false,
-                "selections": (v3/*: any*/)
+                "selections": (v6/*: any*/)
               }
             ]
           }
@@ -455,11 +515,22 @@ return {
     "operationKind": "query",
     "name": "WorkOrderProjectTypesQuery",
     "id": null,
-    "text": "query WorkOrderProjectTypesQuery {\n  projectTypes(first: 50) {\n    edges {\n      node {\n        id\n        ...ProjectTypeCard_projectType\n        ...AddEditProjectTypeCard_editingProjectType\n      }\n    }\n  }\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes\n        id\n      }\n    }\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n\nfragment ProjectTypeWorkOrderTemplatesPanel_workOrderTypes on WorkOrderType {\n  id\n  name\n}\n",
-    "metadata": {}
+    "text": "query WorkOrderProjectTypesQuery {\n  projectTypes(first: 50) {\n    edges {\n      node {\n        id\n        ...ProjectTypeCard_projectType\n        ...AddEditProjectTypeCard_editingProjectType\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  workOrderTypes(first: 50) {\n    edges {\n      node {\n        ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes\n        id\n      }\n    }\n  }\n}\n\nfragment AddEditProjectTypeCard_editingProjectType on ProjectType {\n  id\n  name\n  description\n  workOrders {\n    id\n    type {\n      id\n      name\n    }\n  }\n  properties {\n    id\n    name\n    type\n    index\n    stringValue\n    intValue\n    booleanValue\n    floatValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    isEditable\n    isMandatory\n    isInstanceProperty\n    isDeleted\n  }\n}\n\nfragment ProjectTypeCard_projectType on ProjectType {\n  id\n  name\n  description\n  numberOfProjects\n  workOrders {\n    id\n  }\n}\n\nfragment ProjectTypeWorkOrderTemplatesPanel_workOrderTypes on WorkOrderType {\n  id\n  name\n}\n",
+    "metadata": {
+      "connection": [
+        {
+          "count": null,
+          "cursor": null,
+          "direction": "forward",
+          "path": [
+            "projectTypes"
+          ]
+        }
+      ]
+    }
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3aa14506b4c26d8a3e7faa8497e463ed';
+(node/*: any*/).hash = '510f622e6e5b237f445a90a4a3e2531d';
 module.exports = node;
