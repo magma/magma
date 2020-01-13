@@ -338,4 +338,10 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
   pthread_rwlock_wrlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_unlock(mMEsTATS) pthread_rwlock_unlock(&(mMEsTATS)->rw_lock)
 
+#define mme_app_compare_tmsi(_tmsi1, _tmsi2) \
+  ( \
+    (_tmsi1.tmsi[0] != _tmsi2.tmsi[0]) || (_tmsi1.tmsi[1] != _tmsi2.tmsi[1]) ||\
+    (_tmsi1.tmsi[2] != _tmsi2.tmsi[2]) || (_tmsi1.tmsi[3] != _tmsi2.tmsi[3])) \
+    ? (RETURNerror) : (RETURNok)
+
 #endif /* MME_APP_DEFS_H_ */
