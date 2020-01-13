@@ -62,8 +62,7 @@ graphql`
 
 const projectTypesQuery = graphql`
   query ProjectTypesListQuery {
-    projectTypes(first: 50)
-      @connection(key: "ProjectTypesListQuery_projectTypes") {
+    projectTypes(first: 50) {
       edges {
         node {
           ...ProjectTypesListQuery_projectType @relay(mask: false)
