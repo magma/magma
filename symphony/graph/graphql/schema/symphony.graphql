@@ -519,8 +519,8 @@ type PageInfo
   ) {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
-  startCursor: Cursor!
-  endCursor: Cursor!
+  startCursor: Cursor
+  endCursor: Cursor
 }
 
 # service type connection.
