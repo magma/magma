@@ -79,15 +79,32 @@ LTE_BAND_INFO = {
     28: LTEBandInfo(DuplexMode.FDD, range(9210, 9660), 758, 27210, 703),
     # TDD bands
     # duplex_mode, EARFCNDL, start_freq_dl
+    33: LTEBandInfo(DuplexMode.TDD, range(36000, 36199), 1900),
+    34: LTEBandInfo(DuplexMode.TDD, range(36200, 36349), 2010),
+    35: LTEBandInfo(DuplexMode.TDD, range(36350, 36949), 1850),
+    36: LTEBandInfo(DuplexMode.TDD, range(36950, 37549), 1930),
+    37: LTEBandInfo(DuplexMode.TDD, range(37550, 37750), 1910),
     38: LTEBandInfo(DuplexMode.TDD, range(37750, 38250), 2570),
     39: LTEBandInfo(DuplexMode.TDD, range(38250, 38650), 1880),
     40: LTEBandInfo(DuplexMode.TDD, range(38650, 39650), 2300),
     41: LTEBandInfo(DuplexMode.TDD, range(39650, 41590), 2496),
     42: LTEBandInfo(DuplexMode.TDD, range(41590, 43590), 3400),
     43: LTEBandInfo(DuplexMode.TDD, range(43590, 45590), 3600),
+    44: LTEBandInfo(DuplexMode.TDD, range(45590, 46589), 703),
+    45: LTEBandInfo(DuplexMode.TDD, range(46590, 46789), 1447),
+    46: LTEBandInfo(DuplexMode.TDD, range(46790, 54539), 5150),
+    47: LTEBandInfo(DuplexMode.TDD, range(54540, 55239), 5855),
     48: LTEBandInfo(DuplexMode.TDD, range(55240, 56740), 3550),
+    49: LTEBandInfo(DuplexMode.TDD, range(56740, 58239), 3550),
+    50: LTEBandInfo(DuplexMode.TDD, range(58240, 59089), 1432),
+    51: LTEBandInfo(DuplexMode.TDD, range(59090, 59139), 1427),
+    52: LTEBandInfo(DuplexMode.TDD, range(59140, 60139), 3300),
+    # For the band #53 start_freq_dl is float value which require some changes
+    # in the code
+    # 53: LTEBandInfo(DuplexMode.TDD, range(60140, 60254), 2483.5),
+
 }
-# TODO - add remaining LTE bands
+# TODO - add remaining FDD LTE bands
 
 
 def map_earfcndl_to_duplex_mode(earfcndl: int) -> Optional[DuplexMode]:
