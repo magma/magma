@@ -5,12 +5,21 @@
 package resolverutil
 
 import (
+	"context"
+
+	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/pkg/errors"
 )
+
+type AddPropertyArgs struct {
+	Context    context.Context
+	EntSetter  func(*ent.PropertyCreate)
+	IsTemplate *bool
+}
 
 // GetPropertyPredicate returns the property predicate for the filter
 func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error) {

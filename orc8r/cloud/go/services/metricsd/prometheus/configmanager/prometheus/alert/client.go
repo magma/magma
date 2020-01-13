@@ -90,6 +90,12 @@ func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
 	if err != nil {
 		return err
 	}
+	if c.multitenancy {
+		err = SecureRule(filePrefix, &rule)
+		if err != nil {
+			return err
+		}
+	}
 	ruleFile.AddRule(rule)
 
 	err = c.writeRuleFile(ruleFile, filename)
