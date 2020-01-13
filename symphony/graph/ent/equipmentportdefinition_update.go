@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
@@ -263,174 +264,214 @@ func (epdu *EquipmentPortDefinitionUpdate) ExecX(ctx context.Context) {
 }
 
 func (epdu *EquipmentPortDefinitionUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(epdu.driver.Dialect())
-		selector = builder.Select(equipmentportdefinition.FieldID).From(builder.Table(equipmentportdefinition.Table))
-	)
-	for _, p := range epdu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentportdefinition.Table,
+			Columns: equipmentportdefinition.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentportdefinition.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = epdu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := epdu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := epdu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(equipmentportdefinition.Table)
-	)
-	updater = updater.Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
 	if value := epdu.update_time; value != nil {
-		updater.Set(equipmentportdefinition.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldUpdateTime,
+		})
 	}
 	if value := epdu.name; value != nil {
-		updater.Set(equipmentportdefinition.FieldName, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldName,
+		})
 	}
 	if value := epdu.index; value != nil {
-		updater.Set(equipmentportdefinition.FieldIndex, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if value := epdu.addindex; value != nil {
-		updater.Add(equipmentportdefinition.FieldIndex, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if epdu.clearindex {
-		updater.SetNull(equipmentportdefinition.FieldIndex)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if value := epdu.bandwidth; value != nil {
-		updater.Set(equipmentportdefinition.FieldBandwidth, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldBandwidth,
+		})
 	}
 	if epdu.clearbandwidth {
-		updater.SetNull(equipmentportdefinition.FieldBandwidth)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: equipmentportdefinition.FieldBandwidth,
+		})
 	}
 	if value := epdu.visibility_label; value != nil {
-		updater.Set(equipmentportdefinition.FieldVisibilityLabel, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldVisibilityLabel,
+		})
 	}
 	if epdu.clearvisibility_label {
-		updater.SetNull(equipmentportdefinition.FieldVisibilityLabel)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: equipmentportdefinition.FieldVisibilityLabel,
+		})
 	}
 	if epdu.clearedEquipmentPortType {
-		query, args := builder.Update(equipmentportdefinition.EquipmentPortTypeTable).
-			SetNull(equipmentportdefinition.EquipmentPortTypeColumn).
-			Where(sql.InInts(equipmentporttype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentportdefinition.EquipmentPortTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentPortTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentporttype.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(epdu.equipment_port_type) > 0 {
-		for eid := range epdu.equipment_port_type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmentportdefinition.EquipmentPortTypeTable).
-				Set(equipmentportdefinition.EquipmentPortTypeColumn, eid).
-				Where(sql.InInts(equipmentportdefinition.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := epdu.equipment_port_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentportdefinition.EquipmentPortTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentPortTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentporttype.FieldID,
+				},
+			},
 		}
-	}
-	if len(epdu.removedPorts) > 0 {
-		eids := make([]int, len(epdu.removedPorts))
-		for eid := range epdu.removedPorts {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(equipmentportdefinition.PortsTable).
-			SetNull(equipmentportdefinition.PortsColumn).
-			Where(sql.InInts(equipmentportdefinition.PortsColumn, ids...)).
-			Where(sql.InInts(equipmentport.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(epdu.ports) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range epdu.ports {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentport.FieldID, eid)
-			}
-			query, args := builder.Update(equipmentportdefinition.PortsTable).
-				Set(equipmentportdefinition.PortsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmentportdefinition.PortsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(epdu.ports) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epdu.ports))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := epdu.removedPorts; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentportdefinition.PortsTable,
+			Columns: []string{equipmentportdefinition.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := epdu.ports; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentportdefinition.PortsTable,
+			Columns: []string{equipmentportdefinition.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if epdu.clearedEquipmentType {
-		query, args := builder.Update(equipmentportdefinition.EquipmentTypeTable).
-			SetNull(equipmentportdefinition.EquipmentTypeColumn).
-			Where(sql.InInts(equipmenttype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentportdefinition.EquipmentTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(epdu.equipment_type) > 0 {
-		for eid := range epdu.equipment_type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmentportdefinition.EquipmentTypeTable).
-				Set(equipmentportdefinition.EquipmentTypeColumn, eid).
-				Where(sql.InInts(equipmentportdefinition.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := epdu.equipment_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentportdefinition.EquipmentTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, epdu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // EquipmentPortDefinitionUpdateOne is the builder for updating a single EquipmentPortDefinition entity.
@@ -669,186 +710,208 @@ func (epduo *EquipmentPortDefinitionUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd *EquipmentPortDefinition, err error) {
-	var (
-		builder  = sql.Dialect(epduo.driver.Dialect())
-		selector = builder.Select(equipmentportdefinition.Columns...).From(builder.Table(equipmentportdefinition.Table))
-	)
-	equipmentportdefinition.ID(epduo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = epduo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentportdefinition.Table,
+			Columns: equipmentportdefinition.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  epduo.id,
+				Type:   field.TypeString,
+				Column: equipmentportdefinition.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		epd = &EquipmentPortDefinition{config: epduo.config}
-		if err := epd.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into EquipmentPortDefinition: %v", err)
-		}
-		id = epd.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("EquipmentPortDefinition with id: %v", epduo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one EquipmentPortDefinition with the same id: %v", epduo.id)
-	}
-
-	tx, err := epduo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(equipmentportdefinition.Table)
-	)
-	updater = updater.Where(sql.InInts(equipmentportdefinition.FieldID, ids...))
 	if value := epduo.update_time; value != nil {
-		updater.Set(equipmentportdefinition.FieldUpdateTime, *value)
-		epd.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldUpdateTime,
+		})
 	}
 	if value := epduo.name; value != nil {
-		updater.Set(equipmentportdefinition.FieldName, *value)
-		epd.Name = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldName,
+		})
 	}
 	if value := epduo.index; value != nil {
-		updater.Set(equipmentportdefinition.FieldIndex, *value)
-		epd.Index = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if value := epduo.addindex; value != nil {
-		updater.Add(equipmentportdefinition.FieldIndex, *value)
-		epd.Index += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if epduo.clearindex {
-		var value int
-		epd.Index = value
-		updater.SetNull(equipmentportdefinition.FieldIndex)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Column: equipmentportdefinition.FieldIndex,
+		})
 	}
 	if value := epduo.bandwidth; value != nil {
-		updater.Set(equipmentportdefinition.FieldBandwidth, *value)
-		epd.Bandwidth = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldBandwidth,
+		})
 	}
 	if epduo.clearbandwidth {
-		var value string
-		epd.Bandwidth = value
-		updater.SetNull(equipmentportdefinition.FieldBandwidth)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: equipmentportdefinition.FieldBandwidth,
+		})
 	}
 	if value := epduo.visibility_label; value != nil {
-		updater.Set(equipmentportdefinition.FieldVisibilityLabel, *value)
-		epd.VisibilityLabel = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmentportdefinition.FieldVisibilityLabel,
+		})
 	}
 	if epduo.clearvisibility_label {
-		var value string
-		epd.VisibilityLabel = value
-		updater.SetNull(equipmentportdefinition.FieldVisibilityLabel)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: equipmentportdefinition.FieldVisibilityLabel,
+		})
 	}
 	if epduo.clearedEquipmentPortType {
-		query, args := builder.Update(equipmentportdefinition.EquipmentPortTypeTable).
-			SetNull(equipmentportdefinition.EquipmentPortTypeColumn).
-			Where(sql.InInts(equipmentporttype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentportdefinition.EquipmentPortTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentPortTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentporttype.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(epduo.equipment_port_type) > 0 {
-		for eid := range epduo.equipment_port_type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmentportdefinition.EquipmentPortTypeTable).
-				Set(equipmentportdefinition.EquipmentPortTypeColumn, eid).
-				Where(sql.InInts(equipmentportdefinition.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := epduo.equipment_port_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmentportdefinition.EquipmentPortTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentPortTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentporttype.FieldID,
+				},
+			},
 		}
-	}
-	if len(epduo.removedPorts) > 0 {
-		eids := make([]int, len(epduo.removedPorts))
-		for eid := range epduo.removedPorts {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(equipmentportdefinition.PortsTable).
-			SetNull(equipmentportdefinition.PortsColumn).
-			Where(sql.InInts(equipmentportdefinition.PortsColumn, ids...)).
-			Where(sql.InInts(equipmentport.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(epduo.ports) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range epduo.ports {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentport.FieldID, eid)
-			}
-			query, args := builder.Update(equipmentportdefinition.PortsTable).
-				Set(equipmentportdefinition.PortsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmentportdefinition.PortsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(epduo.ports) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"EquipmentPortDefinition\"", keys(epduo.ports))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := epduo.removedPorts; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentportdefinition.PortsTable,
+			Columns: []string{equipmentportdefinition.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := epduo.ports; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmentportdefinition.PortsTable,
+			Columns: []string{equipmentportdefinition.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if epduo.clearedEquipmentType {
-		query, args := builder.Update(equipmentportdefinition.EquipmentTypeTable).
-			SetNull(equipmentportdefinition.EquipmentTypeColumn).
-			Where(sql.InInts(equipmenttype.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentportdefinition.EquipmentTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(epduo.equipment_type) > 0 {
-		for eid := range epduo.equipment_type {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmentportdefinition.EquipmentTypeTable).
-				Set(equipmentportdefinition.EquipmentTypeColumn, eid).
-				Where(sql.InInts(equipmentportdefinition.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := epduo.equipment_type; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   equipmentportdefinition.EquipmentTypeTable,
+			Columns: []string{equipmentportdefinition.EquipmentTypeColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmenttype.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	epd = &EquipmentPortDefinition{config: epduo.config}
+	spec.Assign = epd.assignValues
+	spec.ScanValues = epd.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, epduo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return epd, nil

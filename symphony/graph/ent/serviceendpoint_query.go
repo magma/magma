@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -291,45 +292,31 @@ func (seq *ServiceEndpointQuery) Select(field string, fields ...string) *Service
 }
 
 func (seq *ServiceEndpointQuery) sqlAll(ctx context.Context) ([]*ServiceEndpoint, error) {
-	rows := &sql.Rows{}
-	selector := seq.sqlQuery()
-	if unique := seq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*ServiceEndpoint
+		spec  = seq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &ServiceEndpoint{config: seq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := seq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, seq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ses ServiceEndpoints
-	if err := ses.FromRows(rows); err != nil {
-		return nil, err
-	}
-	ses.config(seq.config)
-	return ses, nil
+	return nodes, nil
 }
 
 func (seq *ServiceEndpointQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := seq.sqlQuery()
-	unique := []string{serviceendpoint.FieldID}
-	if len(seq.unique) > 0 {
-		unique = seq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := seq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := seq.querySpec()
+	return sqlgraph.CountNodes(ctx, seq.driver, spec)
 }
 
 func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +325,42 @@ func (seq *ServiceEndpointQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (seq *ServiceEndpointQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   serviceendpoint.Table,
+			Columns: serviceendpoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: serviceendpoint.FieldID,
+			},
+		},
+		From:   seq.sql,
+		Unique: true,
+	}
+	if ps := seq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := seq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := seq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := seq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (seq *ServiceEndpointQuery) sqlQuery() *sql.Selector {
@@ -611,7 +634,7 @@ func (ses *ServiceEndpointSelect) sqlScan(ctx context.Context, v interface{}) er
 }
 
 func (ses *ServiceEndpointSelect) sqlQuery() sql.Querier {
-	view := "serviceendpoint_view"
-	return sql.Dialect(ses.driver.Dialect()).
-		Select(ses.fields...).From(ses.sql.As(view))
+	selector := ses.sql
+	selector.Select(selector.Columns(ses.fields...)...)
+	return selector
 }

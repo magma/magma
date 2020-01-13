@@ -13,8 +13,11 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/customer"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 )
 
 // CustomerUpdate is the builder for updating Customer entities.
@@ -145,103 +148,103 @@ func (cu *CustomerUpdate) ExecX(ctx context.Context) {
 }
 
 func (cu *CustomerUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(cu.driver.Dialect())
-		selector = builder.Select(customer.FieldID).From(builder.Table(customer.Table))
-	)
-	for _, p := range cu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   customer.Table,
+			Columns: customer.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: customer.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = cu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := cu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := cu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(customer.Table)
-	)
-	updater = updater.Where(sql.InInts(customer.FieldID, ids...))
 	if value := cu.update_time; value != nil {
-		updater.Set(customer.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: customer.FieldUpdateTime,
+		})
 	}
 	if value := cu.name; value != nil {
-		updater.Set(customer.FieldName, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldName,
+		})
 	}
 	if value := cu.external_id; value != nil {
-		updater.Set(customer.FieldExternalID, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldExternalID,
+		})
 	}
 	if cu.clearexternal_id {
-		updater.SetNull(customer.FieldExternalID)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: customer.FieldExternalID,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := cu.removedServices; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   customer.ServicesTable,
+			Columns: customer.ServicesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-	}
-	if len(cu.removedServices) > 0 {
-		eids := make([]int, len(cu.removedServices))
-		for eid := range cu.removedServices {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
 			}
-			eids = append(eids, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Delete(customer.ServicesTable).
-			Where(sql.InInts(customer.ServicesPrimaryKey[1], ids...)).
-			Where(sql.InInts(customer.ServicesPrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(cu.services) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range cu.services {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
+	if nodes := cu.services; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   customer.ServicesTable,
+			Columns: customer.ServicesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
 			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		builder := builder.Insert(customer.ServicesTable).
-			Columns(customer.ServicesPrimaryKey[1], customer.ServicesPrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // CustomerUpdateOne is the builder for updating a single Customer entity.
@@ -366,107 +369,97 @@ func (cuo *CustomerUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err error) {
-	var (
-		builder  = sql.Dialect(cuo.driver.Dialect())
-		selector = builder.Select(customer.Columns...).From(builder.Table(customer.Table))
-	)
-	customer.ID(cuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = cuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   customer.Table,
+			Columns: customer.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  cuo.id,
+				Type:   field.TypeString,
+				Column: customer.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		c = &Customer{config: cuo.config}
-		if err := c.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Customer: %v", err)
-		}
-		id = c.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Customer with id: %v", cuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Customer with the same id: %v", cuo.id)
-	}
-
-	tx, err := cuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(customer.Table)
-	)
-	updater = updater.Where(sql.InInts(customer.FieldID, ids...))
 	if value := cuo.update_time; value != nil {
-		updater.Set(customer.FieldUpdateTime, *value)
-		c.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: customer.FieldUpdateTime,
+		})
 	}
 	if value := cuo.name; value != nil {
-		updater.Set(customer.FieldName, *value)
-		c.Name = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldName,
+		})
 	}
 	if value := cuo.external_id; value != nil {
-		updater.Set(customer.FieldExternalID, *value)
-		c.ExternalID = value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: customer.FieldExternalID,
+		})
 	}
 	if cuo.clearexternal_id {
-		c.ExternalID = nil
-		updater.SetNull(customer.FieldExternalID)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: customer.FieldExternalID,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := cuo.removedServices; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   customer.ServicesTable,
+			Columns: customer.ServicesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
-	}
-	if len(cuo.removedServices) > 0 {
-		eids := make([]int, len(cuo.removedServices))
-		for eid := range cuo.removedServices {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
 			}
-			eids = append(eids, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Delete(customer.ServicesTable).
-			Where(sql.InInts(customer.ServicesPrimaryKey[1], ids...)).
-			Where(sql.InInts(customer.ServicesPrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(cuo.services) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range cuo.services {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
+	if nodes := cuo.services; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   customer.ServicesTable,
+			Columns: customer.ServicesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
 			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		builder := builder.Insert(customer.ServicesTable).
-			Columns(customer.ServicesPrimaryKey[1], customer.ServicesPrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	c = &Customer{config: cuo.config}
+	spec.Assign = c.assignValues
+	spec.ScanValues = c.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, cuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return c, nil

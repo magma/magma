@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
 )
 
 // SurveyQuestion is the model entity for the SurveyQuestion schema.
@@ -62,78 +63,145 @@ type SurveyQuestion struct {
 	DateData time.Time `json:"date_data,omitempty"`
 }
 
-// FromRows scans the sql response data into SurveyQuestion.
-func (sq *SurveyQuestion) FromRows(rows *sql.Rows) error {
-	var scansq struct {
-		ID               int
-		CreateTime       sql.NullTime
-		UpdateTime       sql.NullTime
-		FormName         sql.NullString
-		FormDescription  sql.NullString
-		FormIndex        sql.NullInt64
-		QuestionType     sql.NullString
-		QuestionFormat   sql.NullString
-		QuestionText     sql.NullString
-		QuestionIndex    sql.NullInt64
-		BoolData         sql.NullBool
-		EmailData        sql.NullString
-		Latitude         sql.NullFloat64
-		Longitude        sql.NullFloat64
-		LocationAccuracy sql.NullFloat64
-		Altitude         sql.NullFloat64
-		PhoneData        sql.NullString
-		TextData         sql.NullString
-		FloatData        sql.NullFloat64
-		IntData          sql.NullInt64
-		DateData         sql.NullTime
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyQuestion) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullBool{},
+		&sql.NullString{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullFloat64{},
+		&sql.NullInt64{},
+		&sql.NullTime{},
 	}
-	// the order here should be the same as in the `surveyquestion.Columns`.
-	if err := rows.Scan(
-		&scansq.ID,
-		&scansq.CreateTime,
-		&scansq.UpdateTime,
-		&scansq.FormName,
-		&scansq.FormDescription,
-		&scansq.FormIndex,
-		&scansq.QuestionType,
-		&scansq.QuestionFormat,
-		&scansq.QuestionText,
-		&scansq.QuestionIndex,
-		&scansq.BoolData,
-		&scansq.EmailData,
-		&scansq.Latitude,
-		&scansq.Longitude,
-		&scansq.LocationAccuracy,
-		&scansq.Altitude,
-		&scansq.PhoneData,
-		&scansq.TextData,
-		&scansq.FloatData,
-		&scansq.IntData,
-		&scansq.DateData,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyQuestion fields.
+func (sq *SurveyQuestion) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveyquestion.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	sq.ID = strconv.Itoa(scansq.ID)
-	sq.CreateTime = scansq.CreateTime.Time
-	sq.UpdateTime = scansq.UpdateTime.Time
-	sq.FormName = scansq.FormName.String
-	sq.FormDescription = scansq.FormDescription.String
-	sq.FormIndex = int(scansq.FormIndex.Int64)
-	sq.QuestionType = scansq.QuestionType.String
-	sq.QuestionFormat = scansq.QuestionFormat.String
-	sq.QuestionText = scansq.QuestionText.String
-	sq.QuestionIndex = int(scansq.QuestionIndex.Int64)
-	sq.BoolData = scansq.BoolData.Bool
-	sq.EmailData = scansq.EmailData.String
-	sq.Latitude = scansq.Latitude.Float64
-	sq.Longitude = scansq.Longitude.Float64
-	sq.LocationAccuracy = scansq.LocationAccuracy.Float64
-	sq.Altitude = scansq.Altitude.Float64
-	sq.PhoneData = scansq.PhoneData.String
-	sq.TextData = scansq.TextData.String
-	sq.FloatData = scansq.FloatData.Float64
-	sq.IntData = int(scansq.IntData.Int64)
-	sq.DateData = scansq.DateData.Time
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	sq.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		sq.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		sq.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field form_name", values[2])
+	} else if value.Valid {
+		sq.FormName = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field form_description", values[3])
+	} else if value.Valid {
+		sq.FormDescription = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field form_index", values[4])
+	} else if value.Valid {
+		sq.FormIndex = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_type", values[5])
+	} else if value.Valid {
+		sq.QuestionType = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_format", values[6])
+	} else if value.Valid {
+		sq.QuestionFormat = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field question_text", values[7])
+	} else if value.Valid {
+		sq.QuestionText = value.String
+	}
+	if value, ok := values[8].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field question_index", values[8])
+	} else if value.Valid {
+		sq.QuestionIndex = int(value.Int64)
+	}
+	if value, ok := values[9].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_data", values[9])
+	} else if value.Valid {
+		sq.BoolData = value.Bool
+	}
+	if value, ok := values[10].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field email_data", values[10])
+	} else if value.Valid {
+		sq.EmailData = value.String
+	}
+	if value, ok := values[11].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[11])
+	} else if value.Valid {
+		sq.Latitude = value.Float64
+	}
+	if value, ok := values[12].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[12])
+	} else if value.Valid {
+		sq.Longitude = value.Float64
+	}
+	if value, ok := values[13].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field location_accuracy", values[13])
+	} else if value.Valid {
+		sq.LocationAccuracy = value.Float64
+	}
+	if value, ok := values[14].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field altitude", values[14])
+	} else if value.Valid {
+		sq.Altitude = value.Float64
+	}
+	if value, ok := values[15].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field phone_data", values[15])
+	} else if value.Valid {
+		sq.PhoneData = value.String
+	}
+	if value, ok := values[16].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text_data", values[16])
+	} else if value.Valid {
+		sq.TextData = value.String
+	}
+	if value, ok := values[17].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_data", values[17])
+	} else if value.Valid {
+		sq.FloatData = value.Float64
+	}
+	if value, ok := values[18].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_data", values[18])
+	} else if value.Valid {
+		sq.IntData = int(value.Int64)
+	}
+	if value, ok := values[19].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field date_data", values[19])
+	} else if value.Valid {
+		sq.DateData = value.Time
+	}
 	return nil
 }
 
@@ -232,18 +300,6 @@ func (sq *SurveyQuestion) id() int {
 
 // SurveyQuestions is a parsable slice of SurveyQuestion.
 type SurveyQuestions []*SurveyQuestion
-
-// FromRows scans the sql response data into SurveyQuestions.
-func (sq *SurveyQuestions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scansq := &SurveyQuestion{}
-		if err := scansq.FromRows(rows); err != nil {
-			return err
-		}
-		*sq = append(*sq, scansq)
-	}
-	return nil
-}
 
 func (sq SurveyQuestions) config(cfg config) {
 	for _i := range sq {

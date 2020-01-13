@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -12,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
 )
 
 // Todo is the model entity for the Todo schema.
@@ -23,21 +20,31 @@ type Todo struct {
 	Text string `json:"text,omitempty"`
 }
 
-// FromRows scans the sql response data into Todo.
-func (t *Todo) FromRows(rows *sql.Rows) error {
-	var scant struct {
-		ID   int
-		Text sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Todo) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `todo.Columns`.
-	if err := rows.Scan(
-		&scant.ID,
-		&scant.Text,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Todo fields.
+func (t *Todo) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(todo.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	t.ID = strconv.Itoa(scant.ID)
-	t.Text = scant.Text.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	t.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text", values[0])
+	} else if value.Valid {
+		t.Text = value.String
+	}
 	return nil
 }
 
@@ -78,18 +85,6 @@ func (t *Todo) id() int {
 
 // Todos is a parsable slice of Todo.
 type Todos []*Todo
-
-// FromRows scans the sql response data into Todos.
-func (t *Todos) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scant := &Todo{}
-		if err := scant.FromRows(rows); err != nil {
-			return err
-		}
-		*t = append(*t, scant)
-	}
-	return nil
-}
 
 func (t Todos) config(cfg config) {
 	for _i := range t {

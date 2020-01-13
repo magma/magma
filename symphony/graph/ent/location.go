@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/location"
 )
 
 // Location is the model entity for the Location schema.
@@ -36,39 +37,67 @@ type Location struct {
 	SiteSurveyNeeded bool `json:"site_survey_needed,omitempty" gqlgen:"siteSurveyNeeded"`
 }
 
-// FromRows scans the sql response data into Location.
-func (l *Location) FromRows(rows *sql.Rows) error {
-	var scanl struct {
-		ID               int
-		CreateTime       sql.NullTime
-		UpdateTime       sql.NullTime
-		Name             sql.NullString
-		ExternalID       sql.NullString
-		Latitude         sql.NullFloat64
-		Longitude        sql.NullFloat64
-		SiteSurveyNeeded sql.NullBool
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Location) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullBool{},
 	}
-	// the order here should be the same as in the `location.Columns`.
-	if err := rows.Scan(
-		&scanl.ID,
-		&scanl.CreateTime,
-		&scanl.UpdateTime,
-		&scanl.Name,
-		&scanl.ExternalID,
-		&scanl.Latitude,
-		&scanl.Longitude,
-		&scanl.SiteSurveyNeeded,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Location fields.
+func (l *Location) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(location.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	l.ID = strconv.Itoa(scanl.ID)
-	l.CreateTime = scanl.CreateTime.Time
-	l.UpdateTime = scanl.UpdateTime.Time
-	l.Name = scanl.Name.String
-	l.ExternalID = scanl.ExternalID.String
-	l.Latitude = scanl.Latitude.Float64
-	l.Longitude = scanl.Longitude.Float64
-	l.SiteSurveyNeeded = scanl.SiteSurveyNeeded.Bool
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	l.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		l.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		l.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		l.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[3])
+	} else if value.Valid {
+		l.ExternalID = value.String
+	}
+	if value, ok := values[4].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[4])
+	} else if value.Valid {
+		l.Latitude = value.Float64
+	}
+	if value, ok := values[5].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[5])
+	} else if value.Valid {
+		l.Longitude = value.Float64
+	}
+	if value, ok := values[6].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field site_survey_needed", values[6])
+	} else if value.Valid {
+		l.SiteSurveyNeeded = value.Bool
+	}
 	return nil
 }
 
@@ -176,18 +205,6 @@ func (l *Location) id() int {
 
 // Locations is a parsable slice of Location.
 type Locations []*Location
-
-// FromRows scans the sql response data into Locations.
-func (l *Locations) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanl := &Location{}
-		if err := scanl.FromRows(rows); err != nil {
-			return err
-		}
-		*l = append(*l, scanl)
-	}
-	return nil
-}
 
 func (l Locations) config(cfg config) {
 	for _i := range l {

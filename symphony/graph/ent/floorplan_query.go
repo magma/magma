@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
@@ -317,45 +318,31 @@ func (fpq *FloorPlanQuery) Select(field string, fields ...string) *FloorPlanSele
 }
 
 func (fpq *FloorPlanQuery) sqlAll(ctx context.Context) ([]*FloorPlan, error) {
-	rows := &sql.Rows{}
-	selector := fpq.sqlQuery()
-	if unique := fpq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*FloorPlan
+		spec  = fpq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &FloorPlan{config: fpq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := fpq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, fpq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var fps FloorPlans
-	if err := fps.FromRows(rows); err != nil {
-		return nil, err
-	}
-	fps.config(fpq.config)
-	return fps, nil
+	return nodes, nil
 }
 
 func (fpq *FloorPlanQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := fpq.sqlQuery()
-	unique := []string{floorplan.FieldID}
-	if len(fpq.unique) > 0 {
-		unique = fpq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := fpq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := fpq.querySpec()
+	return sqlgraph.CountNodes(ctx, fpq.driver, spec)
 }
 
 func (fpq *FloorPlanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -364,6 +351,42 @@ func (fpq *FloorPlanQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (fpq *FloorPlanQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplan.Table,
+			Columns: floorplan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplan.FieldID,
+			},
+		},
+		From:   fpq.sql,
+		Unique: true,
+	}
+	if ps := fpq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := fpq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := fpq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := fpq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (fpq *FloorPlanQuery) sqlQuery() *sql.Selector {
@@ -637,7 +660,7 @@ func (fps *FloorPlanSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (fps *FloorPlanSelect) sqlQuery() sql.Querier {
-	view := "floorplan_view"
-	return sql.Dialect(fps.driver.Dialect()).
-		Select(fps.fields...).From(fps.sql.As(view))
+	selector := fps.sql
+	selector.Select(selector.Columns(fps.fields...)...)
+	return selector
 }

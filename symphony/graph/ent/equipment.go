@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipment"
 )
 
 // Equipment is the model entity for the Equipment schema.
@@ -34,36 +35,61 @@ type Equipment struct {
 	ExternalID string `json:"external_id,omitempty"`
 }
 
-// FromRows scans the sql response data into Equipment.
-func (e *Equipment) FromRows(rows *sql.Rows) error {
-	var scane struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		FutureState sql.NullString
-		DeviceID    sql.NullString
-		ExternalID  sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Equipment) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `equipment.Columns`.
-	if err := rows.Scan(
-		&scane.ID,
-		&scane.CreateTime,
-		&scane.UpdateTime,
-		&scane.Name,
-		&scane.FutureState,
-		&scane.DeviceID,
-		&scane.ExternalID,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Equipment fields.
+func (e *Equipment) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipment.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	e.ID = strconv.Itoa(scane.ID)
-	e.CreateTime = scane.CreateTime.Time
-	e.UpdateTime = scane.UpdateTime.Time
-	e.Name = scane.Name.String
-	e.FutureState = scane.FutureState.String
-	e.DeviceID = scane.DeviceID.String
-	e.ExternalID = scane.ExternalID.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	e.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		e.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		e.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		e.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field future_state", values[3])
+	} else if value.Valid {
+		e.FutureState = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field device_id", values[4])
+	} else if value.Valid {
+		e.DeviceID = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[5])
+	} else if value.Valid {
+		e.ExternalID = value.String
+	}
 	return nil
 }
 
@@ -154,18 +180,6 @@ func (e *Equipment) id() int {
 
 // EquipmentSlice is a parsable slice of Equipment.
 type EquipmentSlice []*Equipment
-
-// FromRows scans the sql response data into EquipmentSlice.
-func (e *EquipmentSlice) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scane := &Equipment{}
-		if err := scane.FromRows(rows); err != nil {
-			return err
-		}
-		*e = append(*e, scane)
-	}
-	return nil
-}
 
 func (e EquipmentSlice) config(cfg config) {
 	for _i := range e {

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/property"
 )
 
 // Property is the model entity for the Property schema.
@@ -42,48 +43,85 @@ type Property struct {
 	StringVal string `json:"string_val,omitempty" gqlgen:"stringValue"`
 }
 
-// FromRows scans the sql response data into Property.
-func (pr *Property) FromRows(rows *sql.Rows) error {
-	var scanpr struct {
-		ID           int
-		CreateTime   sql.NullTime
-		UpdateTime   sql.NullTime
-		IntVal       sql.NullInt64
-		BoolVal      sql.NullBool
-		FloatVal     sql.NullFloat64
-		LatitudeVal  sql.NullFloat64
-		LongitudeVal sql.NullFloat64
-		RangeFromVal sql.NullFloat64
-		RangeToVal   sql.NullFloat64
-		StringVal    sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Property) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullInt64{},
+		&sql.NullBool{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `property.Columns`.
-	if err := rows.Scan(
-		&scanpr.ID,
-		&scanpr.CreateTime,
-		&scanpr.UpdateTime,
-		&scanpr.IntVal,
-		&scanpr.BoolVal,
-		&scanpr.FloatVal,
-		&scanpr.LatitudeVal,
-		&scanpr.LongitudeVal,
-		&scanpr.RangeFromVal,
-		&scanpr.RangeToVal,
-		&scanpr.StringVal,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Property fields.
+func (pr *Property) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(property.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	pr.ID = strconv.Itoa(scanpr.ID)
-	pr.CreateTime = scanpr.CreateTime.Time
-	pr.UpdateTime = scanpr.UpdateTime.Time
-	pr.IntVal = int(scanpr.IntVal.Int64)
-	pr.BoolVal = scanpr.BoolVal.Bool
-	pr.FloatVal = scanpr.FloatVal.Float64
-	pr.LatitudeVal = scanpr.LatitudeVal.Float64
-	pr.LongitudeVal = scanpr.LongitudeVal.Float64
-	pr.RangeFromVal = scanpr.RangeFromVal.Float64
-	pr.RangeToVal = scanpr.RangeToVal.Float64
-	pr.StringVal = scanpr.StringVal.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pr.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pr.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pr.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_val", values[2])
+	} else if value.Valid {
+		pr.IntVal = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_val", values[3])
+	} else if value.Valid {
+		pr.BoolVal = value.Bool
+	}
+	if value, ok := values[4].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_val", values[4])
+	} else if value.Valid {
+		pr.FloatVal = value.Float64
+	}
+	if value, ok := values[5].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude_val", values[5])
+	} else if value.Valid {
+		pr.LatitudeVal = value.Float64
+	}
+	if value, ok := values[6].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude_val", values[6])
+	} else if value.Valid {
+		pr.LongitudeVal = value.Float64
+	}
+	if value, ok := values[7].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_from_val", values[7])
+	} else if value.Valid {
+		pr.RangeFromVal = value.Float64
+	}
+	if value, ok := values[8].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_to_val", values[8])
+	} else if value.Valid {
+		pr.RangeToVal = value.Float64
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field string_val", values[9])
+	} else if value.Valid {
+		pr.StringVal = value.String
+	}
 	return nil
 }
 
@@ -197,18 +235,6 @@ func (pr *Property) id() int {
 
 // Properties is a parsable slice of Property.
 type Properties []*Property
-
-// FromRows scans the sql response data into Properties.
-func (pr *Properties) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpr := &Property{}
-		if err := scanpr.FromRows(rows); err != nil {
-			return err
-		}
-		*pr = append(*pr, scanpr)
-	}
-	return nil
-}
 
 func (pr Properties) config(cfg config) {
 	for _i := range pr {

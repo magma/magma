@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -291,45 +292,31 @@ func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceType
 }
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
-	rows := &sql.Rows{}
-	selector := stq.sqlQuery()
-	if unique := stq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*ServiceType
+		spec  = stq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &ServiceType{config: stq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := stq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, stq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var sts ServiceTypes
-	if err := sts.FromRows(rows); err != nil {
-		return nil, err
-	}
-	sts.config(stq.config)
-	return sts, nil
+	return nodes, nil
 }
 
 func (stq *ServiceTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := stq.sqlQuery()
-	unique := []string{servicetype.FieldID}
-	if len(stq.unique) > 0 {
-		unique = stq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := stq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := stq.querySpec()
+	return sqlgraph.CountNodes(ctx, stq.driver, spec)
 }
 
 func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +325,42 @@ func (stq *ServiceTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (stq *ServiceTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   servicetype.Table,
+			Columns: servicetype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: servicetype.FieldID,
+			},
+		},
+		From:   stq.sql,
+		Unique: true,
+	}
+	if ps := stq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := stq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := stq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := stq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (stq *ServiceTypeQuery) sqlQuery() *sql.Selector {
@@ -611,7 +634,7 @@ func (sts *ServiceTypeSelect) sqlScan(ctx context.Context, v interface{}) error 
 }
 
 func (sts *ServiceTypeSelect) sqlQuery() sql.Querier {
-	view := "servicetype_view"
-	return sql.Dialect(sts.driver.Dialect()).
-		Select(sts.fields...).From(sts.sql.As(view))
+	selector := sts.sql
+	selector.Select(selector.Columns(sts.fields...)...)
+	return selector
 }
