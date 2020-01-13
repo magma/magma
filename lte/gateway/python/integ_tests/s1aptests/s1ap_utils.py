@@ -21,7 +21,6 @@ from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 
-
 class S1ApUtil(object):
     """
     Helper class to wrap the initialization and API interface of S1APTester
@@ -80,6 +79,7 @@ class S1ApUtil(object):
 
         # Maintain a map of UE IDs to IPs
         self._ue_ip_map = {}
+
 
     def cleanup(self):
         """
@@ -292,12 +292,24 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
+    def add_sub_with_apn(self, num_ues, apn, qci, num_apn):
+        """ Add subscribers to the EPC, is blocking """
+        # Add the default IMSI used for the tests
+        subscribers = []
+        for _ in range(num_ues):
+            sid = self._gen_next_sid()
+            self._subscriber_client.add_subscriber_with_apn(sid, apn, qci,
+                    num_apn)
+            subscribers.append(self._get_s1ap_sub(sid))
+        self._subscriber_client.wait_for_changes()
+        return subscribers
+
+
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
         # block until changes propagate
         self._subscriber_client.wait_for_changes()
-
 
 class MagmadUtil(object):
     def __init__(self, magmad_client):
@@ -423,3 +435,5 @@ class SpgwUtil(object):
             sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)
+
+

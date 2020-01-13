@@ -13,13 +13,11 @@ import time
 import abc
 import base64
 import grpc
-#import swagger_client
 from orc8r.protos.common_pb2 import Void
 from lte.protos.subscriberdb_pb2 import LTESubscription, SubscriberData, \
-    SubscriberState, SubscriberID
+    SubscriberState, SubscriberID, Non3GPPUserProfile, APNConfiguration
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
-#from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
 
@@ -132,6 +130,32 @@ class SubscriberDbGrpc(SubscriberDbClient):
         state.lte_auth_next_seq = 1
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
+    @staticmethod
+    def _get_subscriberdb_data_with_apn(sid, apn, qci, num_apn):
+        """
+        Get subscriber data in protobuf format.
+
+        Args:
+            sid (str): string representation of the subscriber id
+        Returns:
+            subscriber_data (protos.subscriberdb_pb2.SubscriberData):
+                full subscriber information for :sid: in protobuf format.
+        """
+        sub_db_sid = SIDUtils.to_pb(sid)
+        lte = LTESubscription()
+        lte.state = LTESubscription.ACTIVE
+        lte.auth_key = bytes.fromhex(KEY)
+        state = SubscriberState()
+        state.lte_auth_next_seq = 1
+        #APN
+        sub = Non3GPPUserProfile()
+        for i in range(num_apn):
+            apn_config = sub.apn_config.add()
+            apn_config.service_selection = apn[i]
+            apn_config.qos_profile.class_id = qci[i]
+        return SubscriberData(sid=sub_db_sid, lte=lte, state=state,
+                non_3gpp = sub)
+
     def _check_invariants(self):
         """
         Assert preservation of invariants.
@@ -162,6 +186,15 @@ class SubscriberDbGrpc(SubscriberDbClient):
             lambda: self._subscriber_stub.ListSubscribers(Void()).sids)
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
+
+    def add_subscriber_with_apn(self, sid, apn, qci, num_apn):
+        logging.info("Adding subscriber : %s", sid)
+        self._added_sids.add(sid)
+        sub_data = self._get_subscriberdb_data_with_apn(sid, apn, qci, num_apn)
+        SubscriberDbGrpc._try_to_call(
+            lambda: self._subscriber_stub.AddSubscriber(sub_data))
+        self._check_invariants()
+
 
     def clean_up(self):
         # Remove all sids

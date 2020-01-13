@@ -25,7 +25,7 @@ def add_subscriber(client, args):
     gsm = GSMSubscription()
     lte = LTESubscription()
     state = SubscriberState()
-    apn = Non3GPPUserProfile()
+    sub_data = Non3GPPUserProfile()
 
     if len(args.gsm_auth_tuple) != 0:
         gsm.state = GSMSubscription.ACTIVE
@@ -42,15 +42,21 @@ def add_subscriber(client, args):
     if args.lte_auth_opc is not None:
         lte.auth_opc = bytes.fromhex(args.lte_auth_opc)
 
-    if args.apn_name is not None:
-        apn.apn_config.service_selection = args.apn_name
+    # As of now we support only 2 APNs
+    if args.apn_name1 is not None:
+        apn_config = sub.apn_config.add()
+        apn_config.service_selection = args.apn_name1
+    if args.qci1 is not None:
+        apn_config.qos_profile.class_id = args.qci1
 
-    if args.qci is not None:
-        print("qci", args.qci)
-        apn.apn_config.qos_profile.class_id = args.qci
+    if args.apn_name2 is not None:
+        apn_config = sub_data.apn_config.add()
+        apn_config.service_selection = args.apn_name2
+    if args.qci2 is not None:
+        apn_config.qos_profile.class_id = args.qci2
 
     data = SubscriberData(sid=SIDUtils.to_pb(args.sid), gsm=gsm,
-            lte=lte, state=state, non_3gpp=apn)
+            lte=lte, state=state, non_3gpp=sub_data)
     client.AddSubscriber(data)
 
 
@@ -131,10 +137,16 @@ def create_parser():
         cmd.add_argument('--lte-auth-opc', help='LTE authentication opc')
         cmd.add_argument('--lte-auth-next-seq', type=int,
                          help='LTE authentication seq number (hex digits)')
-        cmd.add_argument('--apn-name',
-                         help='Name of the APN (ims/internet)')
-        cmd.add_argument('--qci', type=int,
-                         help='QCI for the APN')
+        cmd.add_argument('--num-apn', type=int,
+                         help='Number of APNs to be configured')
+        cmd.add_argument('--apn-name1',
+                         help='Name of the 1st APN (ims/internet)')
+        cmd.add_argument('--apn-name2',
+                         help='Name of the 2nd APN (ims/internet)')
+        cmd.add_argument('--qci1', type=int,
+                         help='QCI for the 1st APN')
+        cmd.add_argument('--qci2', type=int,
+                         help='QCI for the 2nd APN')
 
 
     # Add function callbacks

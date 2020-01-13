@@ -14,19 +14,20 @@ from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
+from magma.subscriberdb.store.cached_store import CachedStore
 
+from lte.protos.subscriberdb_pb2 import Non3GPPUserProfile
 
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
     gRPC based server for the S6aProxy.
     """
 
-    def __init__(self, lte_processor, store):
+    def __init__(self, lte_processor):
         """
         Store should be thread-safe since we use a thread pool for requests.
         """
         self.lte_processor = lte_processor
-        self.store = store
         logging.info("starting s6a_proxy servicer")
 
     def add_to_server(self, server):
@@ -91,13 +92,13 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
             logging.warning('Subscriber not found for ULR: %s', e)
             return ula
+
         try:
-            subs = self.store.get_subscriber_data(imsi)
+            sub_data = self.lte_processor.get_sub_data(imsi)
         except SubscriberNotFoundError as e:
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
             logging.warning('Subscriber not found for ULR: %s', e)
             return ula
-
         ula.error_code = s6a_proxy_pb2.SUCCESS
         ula.default_context_id = 0
         ula.total_ambr.max_bandwidth_ul = profile.max_ul_bit_rate
@@ -116,34 +117,18 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
-        # TODO - Add APN config through CLI
-        # ims apn
-        apn_ims = ula.apn.add()
-        apn_ims.context_id = 1
-        apn_ims.service_selection = subs.non_3gpp.apn_config.service_selection
-        apn_ims.qos_profile.class_id = subs.non_3gpp.apn_config.qos_profile.class_id
-        logging.warning("APN name in ula %s", apn_ims.service_selection);
-        logging.warning("APN qci ula %s", apn_ims.qos_profile.class_id);
-        apn_ims.qos_profile.priority_level = 15
-        apn_ims.qos_profile.preemption_capability = 1
-        apn_ims.qos_profile.preemption_vulnerability = 0
+        num_apn = len(subs.non_3gpp.apn_config)
+        for i in range(num_apn):
+            apn_ims = ula.apn.add()
+            # Context id 0 is assigned to oai.ipv4 apn. So start from 1
+            apn_ims.context_id = i+1
+            apn_ims.service_selection = sub_data.non_3gpp.apn_config[i].service_selection
+            apn_ims.qos_profile.class_id = sub_data.non_3gpp.apn_config[i].qos_profile.class_id
+            apn_ims.qos_profile.priority_level = 15
+            apn_ims.qos_profile.preemption_capability = 1
+            apn_ims.qos_profile.preemption_vulnerability = 0
 
-        apn_ims.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
-        apn_ims.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
-        apn_ims.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
-
-        # internet apn
-        apn_internet = ula.apn.add()
-        apn_internet.context_id = 2
-        apn_internet.service_selection = 'internet'
-        apn_internet.qos_profile.class_id = 1
-        apn_internet.qos_profile.priority_level = 5
-        apn_internet.qos_profile.preemption_capability = 1
-        apn_internet.qos_profile.preemption_vulnerability = 0
-
-        apn_internet.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
-        apn_internet.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
-        apn_internet.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
-
-
+            apn_ims.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
+            apn_ims.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+            apn_ims.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
         return ula

@@ -262,6 +262,18 @@ class Processor(GSMProcessor, LTEProcessor):
         with self._store.edit_subscriber(sid) as subs:
             subs.state.lte_auth_next_seq = seq
 
+    def get_sub_data(self, imsi):
+        """
+        Returns the complete subscription profile for subscriber.
+        Args:
+            imsi: IMSI string
+        Returns:
+            SubscriberData proto struct
+        """
+        sid = SIDUtils.to_str(SubscriberID(id=imsi, type=SubscriberID.IMSI))
+        sub_data = self._store.get_subscriber_data(sid)
+        return sub_data
+
     @classmethod
     def seq_to_sqn(cls, seq, ind=0):
         """Compute the 48 bit SQN given a seq given the formula defined in
