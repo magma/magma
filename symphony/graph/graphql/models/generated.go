@@ -14,7 +14,6 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
 )
 
 type ActionsAction struct {
@@ -223,12 +222,12 @@ type CommentInput struct {
 
 type CustomerConnection struct {
 	Edges    []*CustomerEdge `json:"edges"`
-	PageInfo *relay.PageInfo `json:"pageInfo"`
+	PageInfo *PageInfo       `json:"pageInfo"`
 }
 
 type CustomerEdge struct {
 	Node   *ent.Customer `json:"node"`
-	Cursor relay.Cursor  `json:"cursor"`
+	Cursor Cursor        `json:"cursor"`
 }
 
 type Device struct {
@@ -342,12 +341,12 @@ type EquipmentFilterInput struct {
 
 type EquipmentPortDefinitionConnection struct {
 	Edges    []*EquipmentPortDefinitionEdge `json:"edges"`
-	PageInfo *relay.PageInfo                `json:"pageInfo"`
+	PageInfo *PageInfo                      `json:"pageInfo"`
 }
 
 type EquipmentPortDefinitionEdge struct {
 	Node   *ent.EquipmentPortDefinition `json:"node"`
-	Cursor relay.Cursor                 `json:"cursor"`
+	Cursor Cursor                       `json:"cursor"`
 }
 
 type EquipmentPortInput struct {
@@ -361,12 +360,12 @@ type EquipmentPortInput struct {
 
 type EquipmentPortTypeConnection struct {
 	Edges    []*EquipmentPortTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo          `json:"pageInfo"`
+	PageInfo *PageInfo                `json:"pageInfo"`
 }
 
 type EquipmentPortTypeEdge struct {
 	Node   *ent.EquipmentPortType `json:"node"`
-	Cursor relay.Cursor           `json:"cursor"`
+	Cursor Cursor                 `json:"cursor"`
 }
 
 type EquipmentPositionInput struct {
@@ -383,12 +382,12 @@ type EquipmentSearchResult struct {
 
 type EquipmentTypeConnection struct {
 	Edges    []*EquipmentTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo      `json:"pageInfo"`
+	PageInfo *PageInfo            `json:"pageInfo"`
 }
 
 type EquipmentTypeEdge struct {
 	Node   *ent.EquipmentType `json:"node"`
-	Cursor relay.Cursor       `json:"cursor"`
+	Cursor Cursor             `json:"cursor"`
 }
 
 type FileInput struct {
@@ -427,12 +426,12 @@ type LinkSide struct {
 
 type LocationConnection struct {
 	Edges    []*LocationEdge `json:"edges"`
-	PageInfo *relay.PageInfo `json:"pageInfo"`
+	PageInfo *PageInfo       `json:"pageInfo"`
 }
 
 type LocationEdge struct {
 	Node   *ent.Location `json:"node"`
-	Cursor relay.Cursor  `json:"cursor"`
+	Cursor Cursor        `json:"cursor"`
 }
 
 type LocationFilterInput struct {
@@ -452,12 +451,12 @@ type LocationSearchResult struct {
 
 type LocationTypeConnection struct {
 	Edges    []*LocationTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo     `json:"pageInfo"`
+	PageInfo *PageInfo           `json:"pageInfo"`
 }
 
 type LocationTypeEdge struct {
 	Node   *ent.LocationType `json:"node"`
-	Cursor relay.Cursor      `json:"cursor"`
+	Cursor Cursor            `json:"cursor"`
 }
 
 type LocationTypeIndex struct {
@@ -468,6 +467,13 @@ type LocationTypeIndex struct {
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
+}
+
+type PageInfo struct {
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *Cursor `json:"startCursor"`
+	EndCursor       *Cursor `json:"endCursor"`
 }
 
 type PortFilterInput struct {
@@ -493,12 +499,12 @@ type ProjectFilterInput struct {
 
 type ProjectTypeConnection struct {
 	Edges    []*ProjectTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo    `json:"pageInfo"`
+	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
 type ProjectTypeEdge struct {
 	Node   *ent.ProjectType `json:"node"`
-	Cursor relay.Cursor     `json:"cursor"`
+	Cursor Cursor           `json:"cursor"`
 }
 
 type PropertyInput struct {
@@ -548,7 +554,7 @@ type PythonPackage struct {
 
 type SearchEntriesConnection struct {
 	Edges    []*SearchEntryEdge `json:"edges"`
-	PageInfo *relay.PageInfo    `json:"pageInfo"`
+	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
 type SearchEntry struct {
@@ -560,7 +566,7 @@ type SearchEntry struct {
 
 type SearchEntryEdge struct {
 	Node   *SearchEntry `json:"node"`
-	Cursor relay.Cursor `json:"cursor"`
+	Cursor Cursor       `json:"cursor"`
 }
 
 type ServiceCreateData struct {
@@ -599,7 +605,7 @@ type ServiceSearchResult struct {
 
 type ServiceTypeConnection struct {
 	Edges    []*ServiceTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo    `json:"pageInfo"`
+	PageInfo *PageInfo          `json:"pageInfo"`
 }
 
 type ServiceTypeCreateData struct {
@@ -610,7 +616,7 @@ type ServiceTypeCreateData struct {
 
 type ServiceTypeEdge struct {
 	Node   *ent.ServiceType `json:"node"`
-	Cursor relay.Cursor     `json:"cursor"`
+	Cursor Cursor           `json:"cursor"`
 }
 
 type ServiceTypeEditData struct {
@@ -716,7 +722,7 @@ type TopologyLink struct {
 
 type WorkOrderConnection struct {
 	Edges    []*WorkOrderEdge `json:"edges"`
-	PageInfo *relay.PageInfo  `json:"pageInfo"`
+	PageInfo *PageInfo        `json:"pageInfo"`
 }
 
 type WorkOrderDefinitionInput struct {
@@ -727,7 +733,7 @@ type WorkOrderDefinitionInput struct {
 
 type WorkOrderEdge struct {
 	Node   *ent.WorkOrder `json:"node"`
-	Cursor relay.Cursor   `json:"cursor"`
+	Cursor Cursor         `json:"cursor"`
 }
 
 type WorkOrderExecutionResult struct {
@@ -750,12 +756,12 @@ type WorkOrderFilterInput struct {
 
 type WorkOrderTypeConnection struct {
 	Edges    []*WorkOrderTypeEdge `json:"edges"`
-	PageInfo *relay.PageInfo      `json:"pageInfo"`
+	PageInfo *PageInfo            `json:"pageInfo"`
 }
 
 type WorkOrderTypeEdge struct {
 	Node   *ent.WorkOrderType `json:"node"`
-	Cursor relay.Cursor       `json:"cursor"`
+	Cursor Cursor             `json:"cursor"`
 }
 
 type CellularNetworkType string
