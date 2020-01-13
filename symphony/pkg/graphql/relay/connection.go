@@ -15,10 +15,10 @@ import (
 
 // PageInfo of a connection type.
 type PageInfo struct {
-	HasNextPage     bool   `json:"hasNextPage"`
-	HasPreviousPage bool   `json:"hasPreviousPage"`
-	StartCursor     Cursor `json:"startCursor"`
-	EndCursor       Cursor `json:"endCursor"`
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *Cursor `json:"startCursor"`
+	EndCursor       *Cursor `json:"endCursor"`
 }
 
 // Cursor of a relay edge type.

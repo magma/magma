@@ -14,8 +14,10 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/graphql/relay"
 
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"golang.org/x/xerrors"
@@ -224,8 +226,8 @@ func (r queryResolver) ProjectTypes(
 		PageInfo: &relay.PageInfo{
 			HasNextPage:     false,
 			HasPreviousPage: false,
-			StartCursor:     edges[0].Cursor,
-			EndCursor:       edges[len(edges)-1].Cursor,
+			StartCursor:     &edges[0].Cursor,
+			EndCursor:       &edges[len(edges)-1].Cursor,
 		},
 	}, nil
 }
@@ -271,7 +273,7 @@ func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project)
 }
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
-	properties, err := r.AddProperties(ctx, input.Properties, nil)
+	properties, err := r.AddProperties(input.Properties, resolverutil.AddPropertyArgs{Context: ctx, IsTemplate: pointer.ToBool(true)})
 	if err != nil {
 		return nil, xerrors.Errorf("creating properties: %w", err)
 	}
@@ -322,7 +324,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 				stringValue = &p.StringVal
 			}
 
-			_, err = r.AddProperty(ctx, &models.PropertyInput{
+			newProp := &models.PropertyInput{
 				PropertyTypeID: p.ID,
 				StringValue:    stringValue,
 				IntValue:       &p.IntVal,
@@ -332,7 +334,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 				LongitudeValue: &p.LongitudeVal,
 				RangeFromValue: &p.RangeFromVal,
 				RangeToValue:   &p.RangeToVal,
-			}, func(b *ent.PropertyCreate) { b.SetWorkOrder(w) })
+			}
+			addPropertyArgs := resolverutil.AddPropertyArgs{
+				Context:    ctx,
+				EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrder(w) },
+				IsTemplate: pointer.ToBool(true),
+			}
+
+			_, err = r.AddProperty(newProp, addPropertyArgs)
 			if err != nil {
 				return nil, xerrors.Errorf("creating work order properties", err)
 			}
@@ -385,9 +394,13 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		}
 	}
 	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetProjectID(p.ID)
-		}); err != nil {
+		added,
+		resolverutil.AddPropertyArgs{
+			Context:    ctx,
+			EntSetter:  func(b *ent.PropertyCreate) { b.SetProjectID(p.ID) },
+			IsTemplate: pointer.ToBool(true),
+		},
+	); err != nil {
 		return nil, err
 	}
 	ptID, err := p.QueryType().OnlyID(ctx)

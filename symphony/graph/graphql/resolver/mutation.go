@@ -96,20 +96,22 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 }
 
 func (r mutationResolver) AddProperty(
-	ctx context.Context, input *models.PropertyInput,
-	entSetter func(*ent.PropertyCreate),
+	input *models.PropertyInput,
+	args resolverutil.AddPropertyArgs,
 ) (*ent.Property, error) {
+	ctx := args.Context
 	client := r.ClientFrom(ctx)
 	propType, err := client.PropertyType.Get(ctx, input.PropertyTypeID)
 	if err != nil {
 		return nil, err
 	}
-	if !propType.IsInstanceProperty {
+	isTemplate := args.IsTemplate != nil && *args.IsTemplate
+	if !isTemplate && !propType.IsInstanceProperty {
 		return nil, nil
 	}
 	query := client.Property.Create()
-	if entSetter != nil {
-		entSetter(query)
+	if args.EntSetter != nil {
+		args.EntSetter(query)
 	}
 	p, err := query.
 		SetTypeID(input.PropertyTypeID).
@@ -131,13 +133,10 @@ func (r mutationResolver) AddProperty(
 	return p, nil
 }
 
-func (r mutationResolver) AddProperties(
-	ctx context.Context, inputs []*models.PropertyInput,
-	entSetter func(*ent.PropertyCreate),
-) ([]*ent.Property, error) {
+func (r mutationResolver) AddProperties(inputs []*models.PropertyInput, args resolverutil.AddPropertyArgs) ([]*ent.Property, error) {
 	properties := make([]*ent.Property, 0, len(inputs))
 	for _, input := range inputs {
-		p, err := r.AddProperty(ctx, input, entSetter)
+		p, err := r.AddProperty(input, args)
 		if err != nil {
 			return nil, err
 		}
@@ -447,11 +446,8 @@ func (r mutationResolver) AddLocation(
 	if err != nil {
 		return nil, errors.Wrap(err, "creating location")
 	}
-	if _, err := r.AddProperties(
-		ctx, input.Properties,
-		func(b *ent.PropertyCreate) {
-			b.SetLocation(l)
-		}); err != nil {
+	funcSetLocation := func(b *ent.PropertyCreate) { b.SetLocation(l) }
+	if _, err := r.AddProperties(input.Properties, resolverutil.AddPropertyArgs{Context: ctx, EntSetter: funcSetLocation}); err != nil {
 		return nil, errors.Wrap(err, "creating location properties")
 	}
 	return l, nil
@@ -604,11 +600,11 @@ func (r mutationResolver) addEquipment(
 	if err != nil {
 		return nil, errors.Wrap(err, "creating equipment")
 	}
-	if _, err := r.AddProperties(
-		ctx, input.Properties, func(b *ent.PropertyCreate) {
-			b.SetEquipment(e)
-		},
-	); err != nil {
+	addPropertyArgs := resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetEquipment(e) },
+	}
+	if _, err := r.AddProperties(input.Properties, addPropertyArgs); err != nil {
 		return nil, errors.Wrap(err, "creating equipment properties")
 	}
 	if _, err := r.AddEquipmentPorts(ctx, typ, e); err != nil {
@@ -832,10 +828,10 @@ func (r mutationResolver) EditLocation(
 			edited = append(edited, input)
 		}
 	}
-	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetLocation(l)
-		}); err != nil {
+	if _, err := r.AddProperties(added, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetLocation(l) },
+	}); err != nil {
 		return nil, err
 	}
 	for _, input := range edited {
@@ -1136,9 +1132,10 @@ func (r mutationResolver) AddLink(
 	if err != nil {
 		return nil, errors.Wrapf(err, "creating link: ports=%v", ids)
 	}
-	if _, err := r.AddProperties(ctx, input.Properties,
-		func(b *ent.PropertyCreate) { b.SetLink(l) },
-	); err != nil {
+	if _, err := r.AddProperties(input.Properties, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetLink(l) },
+	}); err != nil {
 		return nil, errors.Wrap(err, "creating link properties")
 	}
 	return l, err
@@ -1172,9 +1169,10 @@ func (r mutationResolver) EditLink(
 			edited = append(edited, input)
 		}
 	}
-	if _, err := r.AddProperties(ctx, added,
-		func(b *ent.PropertyCreate) { b.SetLinkID(l.ID) },
-	); err != nil {
+	if _, err := r.AddProperties(added, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetLinkID(l.ID) },
+	}); err != nil {
 		return nil, err
 	}
 	for _, input := range edited {
@@ -1672,7 +1670,10 @@ func (r mutationResolver) AddService(ctx context.Context, data models.ServiceCre
 	if err != nil {
 		return nil, errors.Wrap(err, "creating service")
 	}
-	if _, err := r.AddProperties(ctx, data.Properties, func(b *ent.PropertyCreate) { b.SetService(s) }); err != nil {
+	if _, err := r.AddProperties(data.Properties, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetService(s) },
+	}); err != nil {
 		return nil, errors.Wrap(err, "creating service properties")
 	}
 	return s, nil
@@ -1750,10 +1751,10 @@ func (r mutationResolver) EditService(ctx context.Context, data models.ServiceEd
 			edited = append(edited, input)
 		}
 	}
-	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetService(s)
-		}); err != nil {
+	if _, err := r.AddProperties(added, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetService(s) },
+	}); err != nil {
 		return nil, err
 	}
 	for _, input := range edited {
@@ -1902,11 +1903,10 @@ func (r mutationResolver) EditEquipment(
 			edited = append(edited, input)
 		}
 	}
-	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetEquipment(e)
-		},
-	); err != nil {
+	if _, err := r.AddProperties(added, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetEquipment(e) },
+	}); err != nil {
 		return nil, err
 	}
 
@@ -2000,9 +2000,10 @@ func (r mutationResolver) EditEquipmentPort(
 			edited = append(edited, input)
 		}
 	}
-	if _, err = r.AddProperties(ctx, added,
-		func(b *ent.PropertyCreate) { b.SetEquipmentPort(p) },
-	); err != nil {
+	if _, err = r.AddProperties(added, resolverutil.AddPropertyArgs{
+		Context:   ctx,
+		EntSetter: func(b *ent.PropertyCreate) { b.SetEquipmentPort(p) },
+	}); err != nil {
 		return nil, err
 	}
 
