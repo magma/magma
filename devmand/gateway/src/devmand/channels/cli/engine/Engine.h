@@ -55,6 +55,7 @@ class Engine : public channels::Engine {
     sshCli,
     paCli,
     rcCli,
+    tcCli,
     ttCli,
     lCli,
     qCli,

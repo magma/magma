@@ -21,9 +21,9 @@ namespace channels {
 namespace cli {
 
 SemiFuture<Unit> PromptAwareCli::resolvePrompt() {
-  return sharedCliFlavour->resolver
+  return sharedCliFlavour->getResolver()
       ->resolvePrompt(
-          sharedSession, sharedCliFlavour->newline, sharedTimekeeper)
+          sharedSession, sharedCliFlavour->getNewline(), sharedTimekeeper)
       .thenValue([params = promptAwareParameters](string _prompt) {
         boost::mutex::scoped_lock scoped_lock(params->promptMutex);
         params->prompt = _prompt;
@@ -31,7 +31,7 @@ SemiFuture<Unit> PromptAwareCli::resolvePrompt() {
 }
 
 SemiFuture<Unit> PromptAwareCli::initializeCli(const string secret) {
-  return sharedCliFlavour->initializer->initialize(sharedSession, secret);
+  return sharedCliFlavour->getInitializer()->initialize(sharedSession, secret);
 }
 
 SemiFuture<std::string> PromptAwareCli::executeRead(const ReadCommand cmd) {
@@ -57,7 +57,7 @@ SemiFuture<std::string> PromptAwareCli::executeRead(const ReadCommand cmd) {
         if (auto _session = params->session.lock()) {
           if (auto _cliFlavour = params->cliFlavour.lock()) {
             if (auto _executor = params->executor.lock()) {
-              return _session->write(_cliFlavour->newline)
+              return _session->write(_cliFlavour->getNewline())
                   .via(_executor.get())
                   .thenValue([params, output, cmd](...) {
                     MLOG(MDEBUG) << "[" << params->id << "] (" << cmd
@@ -141,7 +141,7 @@ SemiFuture<std::string> PromptAwareCli::executeWrite(const WriteCommand cmd) {
             if (auto _session = params->session.lock()) {
               if (auto _executor = params->executor.lock()) {
                 if (auto _cliFlavour = params->cliFlavour.lock()) {
-                  return _session->write(_cliFlavour->newline)
+                  return _session->write(_cliFlavour->getNewline())
                       .via(_executor.get())
                       .thenValue([id = params->id, output, command, cmd](...) {
                         MLOG(MDEBUG)
