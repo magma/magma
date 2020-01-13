@@ -222,9 +222,8 @@ type CommentInput struct {
 }
 
 type CustomerConnection struct {
-	TotalCount int             `json:"totalCount"`
-	Edges      []*CustomerEdge `json:"edges"`
-	PageInfo   *relay.PageInfo `json:"pageInfo"`
+	Edges    []*CustomerEdge `json:"edges"`
+	PageInfo *relay.PageInfo `json:"pageInfo"`
 }
 
 type CustomerEdge struct {
@@ -493,9 +492,8 @@ type ProjectFilterInput struct {
 }
 
 type ProjectTypeConnection struct {
-	TotalCount int                `json:"totalCount"`
-	Edges      []*ProjectTypeEdge `json:"edges"`
-	PageInfo   *relay.PageInfo    `json:"pageInfo"`
+	Edges    []*ProjectTypeEdge `json:"edges"`
+	PageInfo *relay.PageInfo    `json:"pageInfo"`
 }
 
 type ProjectTypeEdge struct {

@@ -51,7 +51,6 @@ type ResolverRoot interface {
 	ActionsTrigger() ActionsTriggerResolver
 	CheckListItem() CheckListItemResolver
 	CheckListItemDefinition() CheckListItemDefinitionResolver
-	CustomerConnection() CustomerConnectionResolver
 	Equipment() EquipmentResolver
 	EquipmentPort() EquipmentPortResolver
 	EquipmentPortDefinition() EquipmentPortDefinitionResolver
@@ -66,7 +65,6 @@ type ResolverRoot interface {
 	Mutation() MutationResolver
 	Project() ProjectResolver
 	ProjectType() ProjectTypeResolver
-	ProjectTypeConnection() ProjectTypeConnectionResolver
 	Property() PropertyResolver
 	PropertyType() PropertyTypeResolver
 	Query() QueryResolver
@@ -183,9 +181,8 @@ type ComplexityRoot struct {
 	}
 
 	CustomerConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	CustomerEdge struct {
@@ -541,9 +538,8 @@ type ComplexityRoot struct {
 	}
 
 	ProjectTypeConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	ProjectTypeEdge struct {
@@ -901,9 +897,6 @@ type CheckListItemResolver interface {
 type CheckListItemDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.CheckListItemDefinition) (models.CheckListItemType, error)
 }
-type CustomerConnectionResolver interface {
-	TotalCount(ctx context.Context, obj *models.CustomerConnection) (int, error)
-}
 type EquipmentResolver interface {
 	ParentLocation(ctx context.Context, obj *ent.Equipment) (*ent.Location, error)
 	ParentPosition(ctx context.Context, obj *ent.Equipment) (*ent.EquipmentPosition, error)
@@ -1070,9 +1063,6 @@ type ProjectTypeResolver interface {
 	NumberOfProjects(ctx context.Context, obj *ent.ProjectType) (int, error)
 	Properties(ctx context.Context, obj *ent.ProjectType) ([]*ent.PropertyType, error)
 	WorkOrders(ctx context.Context, obj *ent.ProjectType) ([]*ent.WorkOrderDefinition, error)
-}
-type ProjectTypeConnectionResolver interface {
-	TotalCount(ctx context.Context, obj *models.ProjectTypeConnection) (int, error)
 }
 type PropertyResolver interface {
 	PropertyType(ctx context.Context, obj *ent.Property) (*ent.PropertyType, error)
@@ -1593,13 +1583,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CustomerConnection.PageInfo(childComplexity), true
-
-	case "CustomerConnection.totalCount":
-		if e.complexity.CustomerConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.CustomerConnection.TotalCount(childComplexity), true
 
 	case "CustomerEdge.cursor":
 		if e.complexity.CustomerEdge.Cursor == nil {
@@ -3615,13 +3598,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProjectTypeConnection.PageInfo(childComplexity), true
-
-	case "ProjectTypeConnection.totalCount":
-		if e.complexity.ProjectTypeConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.ProjectTypeConnection.TotalCount(childComplexity), true
 
 	case "ProjectTypeEdge.cursor":
 		if e.complexity.ProjectTypeEdge.Cursor == nil {
@@ -6413,7 +6389,6 @@ directive @goField(
 # project type connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type ProjectTypeConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [ProjectTypeEdge!]
   pageInfo: PageInfo!
 }
@@ -6632,7 +6607,6 @@ input ProjectFilterInput {
 # customer connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type CustomerConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [CustomerEdge!]
   pageInfo: PageInfo!
 }
@@ -11402,43 +11376,6 @@ func (ec *executionContext) _Customer_externalId(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _CustomerConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *models.CustomerConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "CustomerConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.CustomerConnection().TotalCount(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CustomerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.CustomerConnection) (ret graphql.Marshaler) {
@@ -20527,43 +20464,6 @@ func (ec *executionContext) _ProjectType_workOrders(ctx context.Context, field g
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNWorkOrderDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderDefinition(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ProjectTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeConnection) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "ProjectTypeConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ProjectTypeConnection().TotalCount(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProjectTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeConnection) (ret graphql.Marshaler) {
@@ -34613,26 +34513,12 @@ func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CustomerConnection")
-		case "totalCount":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._CustomerConnection_totalCount(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "edges":
 			out.Values[i] = ec._CustomerConnection_edges(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._CustomerConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -37028,26 +36914,12 @@ func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProjectTypeConnection")
-		case "totalCount":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ProjectTypeConnection_totalCount(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "edges":
 			out.Values[i] = ec._ProjectTypeConnection_edges(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._ProjectTypeConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

@@ -61,16 +61,6 @@ func (projectTypeResolver) WorkOrders(ctx context.Context, obj *ent.ProjectType)
 	return properties, nil
 }
 
-func (projectTypeResolver) TotalCount(
-	ctx context.Context, _ *models.ProjectTypeConnection,
-) (int, error) {
-	count, err := ent.FromContext(ctx).ProjectType.Query().Count(ctx)
-	if err != nil {
-		return 0, xerrors.Errorf("querying project types count: %w", err)
-	}
-	return count, nil
-}
-
 func (r mutationResolver) CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error) {
 	properties, err := r.AddPropertyTypes(ctx, input.Properties...)
 	if err != nil {

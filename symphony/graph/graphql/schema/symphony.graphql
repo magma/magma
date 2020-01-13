@@ -880,7 +880,6 @@ directive @goField(
 # project type connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type ProjectTypeConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [ProjectTypeEdge!]
   pageInfo: PageInfo!
 }
@@ -1099,7 +1098,6 @@ input ProjectFilterInput {
 # customer connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type CustomerConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [CustomerEdge!]
   pageInfo: PageInfo!
 }
