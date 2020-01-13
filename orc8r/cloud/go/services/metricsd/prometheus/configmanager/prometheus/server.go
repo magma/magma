@@ -47,6 +47,7 @@ func main() {
 	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
 	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
 	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
+
 	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
 
 	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
