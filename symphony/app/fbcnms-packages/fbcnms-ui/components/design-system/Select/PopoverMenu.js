@@ -53,7 +53,7 @@ const PopoverMenu = <TValue>({
           className={classes.menu}
         />
       }>
-      {(onShow, contextRef) => (
+      {(onShow, _onHide, contextRef) => (
         <Button
           onClick={onShow}
           ref={contextRef}

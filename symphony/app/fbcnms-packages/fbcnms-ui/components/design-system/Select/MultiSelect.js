@@ -61,7 +61,7 @@ const MultiSelect = <TValue>({
           size="normal"
         />
       }>
-      {(onShow, contextRef) => (
+      {(onShow, _onHide, contextRef) => (
         <Button
           className={classNames(classes.root, className)}
           ref={contextRef}
