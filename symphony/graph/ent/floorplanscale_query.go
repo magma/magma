@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -264,45 +266,31 @@ func (fpsq *FloorPlanScaleQuery) Select(field string, fields ...string) *FloorPl
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlAll(ctx context.Context) ([]*FloorPlanScale, error) {
-	rows := &sql.Rows{}
-	selector := fpsq.sqlQuery()
-	if unique := fpsq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*FloorPlanScale
+		spec  = fpsq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &FloorPlanScale{config: fpsq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := fpsq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, fpsq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var fpsSlice FloorPlanScales
-	if err := fpsSlice.FromRows(rows); err != nil {
-		return nil, err
-	}
-	fpsSlice.config(fpsq.config)
-	return fpsSlice, nil
+	return nodes, nil
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := fpsq.sqlQuery()
-	unique := []string{floorplanscale.FieldID}
-	if len(fpsq.unique) > 0 {
-		unique = fpsq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := fpsq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := fpsq.querySpec()
+	return sqlgraph.CountNodes(ctx, fpsq.driver, spec)
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +299,42 @@ func (fpsq *FloorPlanScaleQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (fpsq *FloorPlanScaleQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanscale.Table,
+			Columns: floorplanscale.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanscale.FieldID,
+			},
+		},
+		From:   fpsq.sql,
+		Unique: true,
+	}
+	if ps := fpsq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := fpsq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := fpsq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := fpsq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (fpsq *FloorPlanScaleQuery) sqlQuery() *sql.Selector {
@@ -584,7 +608,7 @@ func (fpss *FloorPlanScaleSelect) sqlScan(ctx context.Context, v interface{}) er
 }
 
 func (fpss *FloorPlanScaleSelect) sqlQuery() sql.Querier {
-	view := "floorplanscale_view"
-	return sql.Dialect(fpss.driver.Dialect()).
-		Select(fpss.fields...).From(fpss.sql.As(view))
+	selector := fpss.sql
+	selector.Select(selector.Columns(fpss.fields...)...)
+	return selector
 }

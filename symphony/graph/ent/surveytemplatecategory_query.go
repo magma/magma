@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -278,45 +279,31 @@ func (stcq *SurveyTemplateCategoryQuery) Select(field string, fields ...string) 
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlAll(ctx context.Context) ([]*SurveyTemplateCategory, error) {
-	rows := &sql.Rows{}
-	selector := stcq.sqlQuery()
-	if unique := stcq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*SurveyTemplateCategory
+		spec  = stcq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &SurveyTemplateCategory{config: stcq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := stcq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, stcq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var stcs SurveyTemplateCategories
-	if err := stcs.FromRows(rows); err != nil {
-		return nil, err
-	}
-	stcs.config(stcq.config)
-	return stcs, nil
+	return nodes, nil
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := stcq.sqlQuery()
-	unique := []string{surveytemplatecategory.FieldID}
-	if len(stcq.unique) > 0 {
-		unique = stcq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := stcq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := stcq.querySpec()
+	return sqlgraph.CountNodes(ctx, stcq.driver, spec)
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +312,42 @@ func (stcq *SurveyTemplateCategoryQuery) sqlExist(ctx context.Context) (bool, er
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (stcq *SurveyTemplateCategoryQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveytemplatecategory.Table,
+			Columns: surveytemplatecategory.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveytemplatecategory.FieldID,
+			},
+		},
+		From:   stcq.sql,
+		Unique: true,
+	}
+	if ps := stcq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := stcq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := stcq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := stcq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (stcq *SurveyTemplateCategoryQuery) sqlQuery() *sql.Selector {
@@ -598,7 +621,7 @@ func (stcs *SurveyTemplateCategorySelect) sqlScan(ctx context.Context, v interfa
 }
 
 func (stcs *SurveyTemplateCategorySelect) sqlQuery() sql.Querier {
-	view := "surveytemplatecategory_view"
-	return sql.Dialect(stcs.driver.Dialect()).
-		Select(stcs.fields...).From(stcs.sql.As(view))
+	selector := stcs.sql
+	selector.Select(selector.Columns(stcs.fields...)...)
+	return selector
 }

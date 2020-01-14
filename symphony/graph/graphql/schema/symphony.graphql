@@ -508,19 +508,16 @@ directive @goModel(
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Cursor
 scalar Cursor
   @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/graphql/relay.Cursor"
+    model: "github.com/facebookincubator/symphony/graph/graphql/models.Cursor"
   )
 
 # Information for paginating a connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo
-type PageInfo
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/graphql/relay.PageInfo"
-  ) {
+type PageInfo {
   hasNextPage: Boolean!
   hasPreviousPage: Boolean!
-  startCursor: Cursor!
-  endCursor: Cursor!
+  startCursor: Cursor
+  endCursor: Cursor
 }
 
 # service type connection.
@@ -880,7 +877,6 @@ directive @goField(
 # project type connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type ProjectTypeConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [ProjectTypeEdge!]
   pageInfo: PageInfo!
 }
@@ -1099,7 +1095,6 @@ input ProjectFilterInput {
 # customer connection.
 # ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
 type CustomerConnection {
-  totalCount: Int! @goField(forceResolver: true)
   edges: [CustomerEdge!]
   pageInfo: PageInfo!
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/comment"
 )
 
 // Comment is the model entity for the Comment schema.
@@ -30,30 +31,49 @@ type Comment struct {
 	Text string `json:"text,omitempty"`
 }
 
-// FromRows scans the sql response data into Comment.
-func (c *Comment) FromRows(rows *sql.Rows) error {
-	var scanc struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		AuthorName sql.NullString
-		Text       sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Comment) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `comment.Columns`.
-	if err := rows.Scan(
-		&scanc.ID,
-		&scanc.CreateTime,
-		&scanc.UpdateTime,
-		&scanc.AuthorName,
-		&scanc.Text,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Comment fields.
+func (c *Comment) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(comment.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	c.ID = strconv.Itoa(scanc.ID)
-	c.CreateTime = scanc.CreateTime.Time
-	c.UpdateTime = scanc.UpdateTime.Time
-	c.AuthorName = scanc.AuthorName.String
-	c.Text = scanc.Text.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	c.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		c.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		c.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field author_name", values[2])
+	} else if value.Valid {
+		c.AuthorName = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text", values[3])
+	} else if value.Valid {
+		c.Text = value.String
+	}
 	return nil
 }
 
@@ -100,18 +120,6 @@ func (c *Comment) id() int {
 
 // Comments is a parsable slice of Comment.
 type Comments []*Comment
-
-// FromRows scans the sql response data into Comments.
-func (c *Comments) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanc := &Comment{}
-		if err := scanc.FromRows(rows); err != nil {
-			return err
-		}
-		*c = append(*c, scanc)
-	}
-	return nil
-}
 
 func (c Comments) config(cfg config) {
 	for _i := range c {

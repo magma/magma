@@ -8,36 +8,82 @@ package ent
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
+	"fmt"
+	"io"
+	"strings"
 
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
+	"github.com/ugorji/go/codec"
 )
+
+// PageInfo of a connection type.
+type PageInfo struct {
+	HasNextPage     bool    `json:"hasNextPage"`
+	HasPreviousPage bool    `json:"hasPreviousPage"`
+	StartCursor     *Cursor `json:"startCursor"`
+	EndCursor       *Cursor `json:"endCursor"`
+}
+
+// Cursor of an edge type.
+type Cursor struct {
+	ID int
+}
 
 // ErrInvalidPagination error is returned when paginating with invalid parameters.
 var ErrInvalidPagination = errors.New("ent: invalid pagination parameters")
 
+var quote = []byte(`"`)
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (c Cursor) MarshalGQL(w io.Writer) {
+	w.Write(quote)
+	defer w.Write(quote)
+	wc := base64.NewEncoder(base64.StdEncoding, w)
+	defer wc.Close()
+	_ = codec.NewEncoder(wc, &codec.MsgpackHandle{}).Encode(c)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (c *Cursor) UnmarshalGQL(v interface{}) error {
+	s, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("%T is not a string", v)
+	}
+	if err := codec.NewDecoder(
+		base64.NewDecoder(
+			base64.StdEncoding,
+			strings.NewReader(s),
+		),
+		&codec.MsgpackHandle{},
+	).Decode(c); err != nil {
+		return fmt.Errorf("decode cursor: %w", err)
+	}
+	return nil
+}
+
 // TodoEdge is the edge representation of Todo.
 type TodoEdge struct {
-	Node   *Todo         `json:"node"`
-	Cursor *relay.Cursor `json:"cursor"`
+	Node   *Todo   `json:"node"`
+	Cursor *Cursor `json:"cursor"`
 }
 
 // TodoConnection is the connection containing edges to Todo.
 type TodoConnection struct {
-	Edges    []*TodoEdge     `json:"edges"`
-	PageInfo *relay.PageInfo `json:"pageInfo"`
+	Edges    []*TodoEdge `json:"edges"`
+	PageInfo *PageInfo   `json:"pageInfo"`
 }
 
 func newTodoConnection() *TodoConnection {
 	return &TodoConnection{
 		Edges:    []*TodoEdge{},
-		PageInfo: &relay.PageInfo{},
+		PageInfo: &PageInfo{},
 	}
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Todo.
-func (t *TodoQuery) Paginate(ctx context.Context, after *relay.Cursor, first *int, before *relay.Cursor, last *int) (*TodoConnection, error) {
+func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*TodoConnection, error) {
 	if first != nil && last != nil {
 		return nil, ErrInvalidPagination
 	}
@@ -79,7 +125,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *relay.Cursor, first *in
 		}
 	}
 
-	info := &relay.PageInfo{}
+	info := &PageInfo{}
 	if first != nil && len(nodes) > *first {
 		info.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -91,7 +137,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *relay.Cursor, first *in
 	for i, node := range nodes {
 		edges[i] = &TodoEdge{
 			Node: node,
-			Cursor: &relay.Cursor{
+			Cursor: &Cursor{
 				ID: node.ID,
 			},
 		}

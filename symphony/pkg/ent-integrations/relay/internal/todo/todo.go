@@ -7,8 +7,7 @@ package todo
 import (
 	"context"
 
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
 )
 
 func New(client *ent.Client) Config {
@@ -21,11 +20,11 @@ func New(client *ent.Client) Config {
 
 type resolvers struct{ client *ent.TodoClient }
 
-func (r *resolvers) Todo(ctx context.Context, id string) (*ent.Todo, error) {
+func (r *resolvers) Todo(ctx context.Context, id int) (*ent.Todo, error) {
 	return r.client.Get(ctx, id)
 }
 
-func (r *resolvers) Todos(ctx context.Context, after *relay.Cursor, first *int, before *relay.Cursor, last *int) (*ent.TodoConnection, error) {
+func (r *resolvers) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.TodoConnection, error) {
 	return r.client.Query().Paginate(ctx, after, first, before, last)
 }
 

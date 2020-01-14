@@ -8,10 +8,11 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 )
@@ -157,84 +158,107 @@ func (fpsu *FloorPlanScaleUpdate) ExecX(ctx context.Context) {
 }
 
 func (fpsu *FloorPlanScaleUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(fpsu.driver.Dialect())
-		selector = builder.Select(floorplanscale.FieldID).From(builder.Table(floorplanscale.Table))
-	)
-	for _, p := range fpsu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanscale.Table,
+			Columns: floorplanscale.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: floorplanscale.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fpsu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := fpsu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := fpsu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(floorplanscale.Table)
-	)
-	updater = updater.Where(sql.InInts(floorplanscale.FieldID, ids...))
 	if value := fpsu.update_time; value != nil {
-		updater.Set(floorplanscale.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanscale.FieldUpdateTime,
+		})
 	}
 	if value := fpsu.reference_point1_x; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint1X, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1X,
+		})
 	}
 	if value := fpsu.addreference_point1_x; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint1X, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1X,
+		})
 	}
 	if value := fpsu.reference_point1_y; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint1Y, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1Y,
+		})
 	}
 	if value := fpsu.addreference_point1_y; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint1Y, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1Y,
+		})
 	}
 	if value := fpsu.reference_point2_x; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint2X, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2X,
+		})
 	}
 	if value := fpsu.addreference_point2_x; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint2X, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2X,
+		})
 	}
 	if value := fpsu.reference_point2_y; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint2Y, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2Y,
+		})
 	}
 	if value := fpsu.addreference_point2_y; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint2Y, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2Y,
+		})
 	}
 	if value := fpsu.scale_in_meters; value != nil {
-		updater.Set(floorplanscale.FieldScaleInMeters, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanscale.FieldScaleInMeters,
+		})
 	}
 	if value := fpsu.addscale_in_meters; value != nil {
-		updater.Add(floorplanscale.FieldScaleInMeters, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanscale.FieldScaleInMeters,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, fpsu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // FloorPlanScaleUpdateOne is the builder for updating a single FloorPlanScale entity.
@@ -372,95 +396,101 @@ func (fpsuo *FloorPlanScaleUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPlanScale, err error) {
-	var (
-		builder  = sql.Dialect(fpsuo.driver.Dialect())
-		selector = builder.Select(floorplanscale.Columns...).From(builder.Table(floorplanscale.Table))
-	)
-	floorplanscale.ID(fpsuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = fpsuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   floorplanscale.Table,
+			Columns: floorplanscale.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  fpsuo.id,
+				Type:   field.TypeString,
+				Column: floorplanscale.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		fps = &FloorPlanScale{config: fpsuo.config}
-		if err := fps.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into FloorPlanScale: %v", err)
-		}
-		id = fps.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("FloorPlanScale with id: %v", fpsuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one FloorPlanScale with the same id: %v", fpsuo.id)
-	}
-
-	tx, err := fpsuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(floorplanscale.Table)
-	)
-	updater = updater.Where(sql.InInts(floorplanscale.FieldID, ids...))
 	if value := fpsuo.update_time; value != nil {
-		updater.Set(floorplanscale.FieldUpdateTime, *value)
-		fps.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: floorplanscale.FieldUpdateTime,
+		})
 	}
 	if value := fpsuo.reference_point1_x; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint1X, *value)
-		fps.ReferencePoint1X = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1X,
+		})
 	}
 	if value := fpsuo.addreference_point1_x; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint1X, *value)
-		fps.ReferencePoint1X += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1X,
+		})
 	}
 	if value := fpsuo.reference_point1_y; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint1Y, *value)
-		fps.ReferencePoint1Y = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1Y,
+		})
 	}
 	if value := fpsuo.addreference_point1_y; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint1Y, *value)
-		fps.ReferencePoint1Y += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint1Y,
+		})
 	}
 	if value := fpsuo.reference_point2_x; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint2X, *value)
-		fps.ReferencePoint2X = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2X,
+		})
 	}
 	if value := fpsuo.addreference_point2_x; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint2X, *value)
-		fps.ReferencePoint2X += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2X,
+		})
 	}
 	if value := fpsuo.reference_point2_y; value != nil {
-		updater.Set(floorplanscale.FieldReferencePoint2Y, *value)
-		fps.ReferencePoint2Y = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2Y,
+		})
 	}
 	if value := fpsuo.addreference_point2_y; value != nil {
-		updater.Add(floorplanscale.FieldReferencePoint2Y, *value)
-		fps.ReferencePoint2Y += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: floorplanscale.FieldReferencePoint2Y,
+		})
 	}
 	if value := fpsuo.scale_in_meters; value != nil {
-		updater.Set(floorplanscale.FieldScaleInMeters, *value)
-		fps.ScaleInMeters = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanscale.FieldScaleInMeters,
+		})
 	}
 	if value := fpsuo.addscale_in_meters; value != nil {
-		updater.Add(floorplanscale.FieldScaleInMeters, *value)
-		fps.ScaleInMeters += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeFloat64,
+			Value:  *value,
+			Column: floorplanscale.FieldScaleInMeters,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	fps = &FloorPlanScale{config: fpsuo.config}
+	spec.Assign = fps.assignValues
+	spec.ScanValues = fps.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, fpsuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return fps, nil

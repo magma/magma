@@ -21,7 +21,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/viewer"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"golang.org/x/xerrors"
@@ -67,7 +66,7 @@ func (r queryResolver) LocationType(ctx context.Context, id string) (*ent.Locati
 }
 
 func (r queryResolver) LocationTypes(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.LocationTypeConnection, error) {
 	return resolverutil.LocationTypes(ctx, r.ClientFrom(ctx))
 }
@@ -75,7 +74,7 @@ func (r queryResolver) LocationTypes(
 func (r queryResolver) Locations(
 	ctx context.Context, onlyTopLevel *bool,
 	types []string, name *string, needsSiteSurvey *bool,
-	_ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	_ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
 	if onlyTopLevel != nil && *onlyTopLevel {
@@ -133,8 +132,8 @@ func (r queryResolver) EquipmentType(ctx context.Context, id string) (*ent.Equip
 
 func (r queryResolver) EquipmentTypes(
 	ctx context.Context,
-	_ *relay.Cursor, _ *int,
-	_ *relay.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
 ) (*models.EquipmentTypeConnection, error) {
 	return resolverutil.EquipmentTypes(ctx, r.ClientFrom(ctx))
 }
@@ -148,12 +147,12 @@ func (r queryResolver) EquipmentPortType(ctx context.Context, id string) (*ent.E
 }
 
 func (r queryResolver) EquipmentPortTypes(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.EquipmentPortTypeConnection, error) {
 	return resolverutil.EquipmentPortTypes(ctx, r.ClientFrom(ctx))
 }
 
-func (r queryResolver) EquipmentPortDefinitions(ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int) (*models.EquipmentPortDefinitionConnection, error) {
+func (r queryResolver) EquipmentPortDefinitions(ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int) (*models.EquipmentPortDefinitionConnection, error) {
 	eds, err := r.ClientFrom(ctx).EquipmentPortDefinition.Query().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "querying equipment definitions")
@@ -175,8 +174,8 @@ func (r queryResolver) WorkOrder(ctx context.Context, id string) (*ent.WorkOrder
 
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
-	_ *relay.Cursor, _ *int,
-	_ *relay.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
 	showCompleted *bool,
 ) (*models.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
@@ -206,7 +205,7 @@ func (r queryResolver) WorkOrderType(ctx context.Context, id string) (*ent.WorkO
 }
 
 func (r queryResolver) WorkOrderTypes(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.WorkOrderTypeConnection, error) {
 	ets, err := r.ClientFrom(ctx).
 		WorkOrderType.Query().
@@ -223,8 +222,8 @@ func (r queryResolver) WorkOrderTypes(
 
 func (r queryResolver) SearchForEntity(
 	ctx context.Context, name string,
-	_ *relay.Cursor, limit *int,
-	_ *relay.Cursor, _ *int,
+	_ *models.Cursor, limit *int,
+	_ *models.Cursor, _ *int,
 ) (*models.SearchEntriesConnection, error) {
 	if limit == nil {
 		return nil, errors.New("first is a mandatory param")
@@ -321,7 +320,7 @@ func (r queryResolver) PossibleProperties(ctx context.Context, entityType models
 }
 
 func (r queryResolver) Surveys(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) ([]*ent.Survey, error) {
 	surveys, err := r.ClientFrom(ctx).Survey.Query().All(ctx)
 	if err != nil {
@@ -347,7 +346,7 @@ func (r queryResolver) ServiceType(ctx context.Context, id string) (*ent.Service
 }
 
 func (r queryResolver) ServiceTypes(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.ServiceTypeConnection, error) {
 	return resolverutil.ServiceTypes(ctx, r.ClientFrom(ctx))
 }
@@ -361,7 +360,7 @@ func (r queryResolver) Customer(ctx context.Context, id string) (*ent.Customer, 
 }
 
 func (r queryResolver) Customers(
-	ctx context.Context, _ *relay.Cursor, _ *int, _ *relay.Cursor, _ *int,
+	ctx context.Context, _ *models.Cursor, _ *int, _ *models.Cursor, _ *int,
 ) (*models.CustomerConnection, error) {
 	sts, err := r.ClientFrom(ctx).Customer.Query().All(ctx)
 	if err != nil {
@@ -377,14 +376,14 @@ func (r queryResolver) Customers(
 func (r queryResolver) ActionsRules(
 	ctx context.Context,
 ) (*models.ActionsRulesSearchResult, error) {
-	actions, err := r.ClientFrom(ctx).ActionsRule.Query().All(ctx)
+	results, err := r.ClientFrom(ctx).ActionsRule.Query().All(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to query action rules")
 	}
 
 	return &models.ActionsRulesSearchResult{
-		Results: actions,
-		Count:   len(actions),
+		Results: results,
+		Count:   len(results),
 	}, nil
 }
 
@@ -452,7 +451,7 @@ func (r queryResolver) FindLocationWithDuplicateProperties(ctx context.Context, 
 	return values, nil
 }
 
-func (queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error) {
+func (queryResolver) LatestPythonPackage(context.Context) (*models.LatestPythonPackageResult, error) {
 	var packages []models.PythonPackage
 	if err := json.Unmarshal([]byte(PyinventoryConsts), &packages); err != nil {
 		return nil, errors.Wrap(err, "decoding python packages")

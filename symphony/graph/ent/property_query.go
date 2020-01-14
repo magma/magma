@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
@@ -405,45 +406,31 @@ func (pq *PropertyQuery) Select(field string, fields ...string) *PropertySelect 
 }
 
 func (pq *PropertyQuery) sqlAll(ctx context.Context) ([]*Property, error) {
-	rows := &sql.Rows{}
-	selector := pq.sqlQuery()
-	if unique := pq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*Property
+		spec  = pq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &Property{config: pq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := pq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, pq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var prs Properties
-	if err := prs.FromRows(rows); err != nil {
-		return nil, err
-	}
-	prs.config(pq.config)
-	return prs, nil
+	return nodes, nil
 }
 
 func (pq *PropertyQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := pq.sqlQuery()
-	unique := []string{property.FieldID}
-	if len(pq.unique) > 0 {
-		unique = pq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := pq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := pq.querySpec()
+	return sqlgraph.CountNodes(ctx, pq.driver, spec)
 }
 
 func (pq *PropertyQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -452,6 +439,42 @@ func (pq *PropertyQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (pq *PropertyQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   property.Table,
+			Columns: property.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: property.FieldID,
+			},
+		},
+		From:   pq.sql,
+		Unique: true,
+	}
+	if ps := pq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := pq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := pq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := pq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (pq *PropertyQuery) sqlQuery() *sql.Selector {
@@ -725,7 +748,7 @@ func (ps *PropertySelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ps *PropertySelect) sqlQuery() sql.Querier {
-	view := "property_view"
-	return sql.Dialect(ps.driver.Dialect()).
-		Select(ps.fields...).From(ps.sql.As(view))
+	selector := ps.sql
+	selector.Select(selector.Columns(ps.fields...)...)
+	return selector
 }

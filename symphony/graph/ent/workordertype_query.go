@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -317,45 +318,31 @@ func (wotq *WorkOrderTypeQuery) Select(field string, fields ...string) *WorkOrde
 }
 
 func (wotq *WorkOrderTypeQuery) sqlAll(ctx context.Context) ([]*WorkOrderType, error) {
-	rows := &sql.Rows{}
-	selector := wotq.sqlQuery()
-	if unique := wotq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*WorkOrderType
+		spec  = wotq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &WorkOrderType{config: wotq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := wotq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, wotq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var wots WorkOrderTypes
-	if err := wots.FromRows(rows); err != nil {
-		return nil, err
-	}
-	wots.config(wotq.config)
-	return wots, nil
+	return nodes, nil
 }
 
 func (wotq *WorkOrderTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := wotq.sqlQuery()
-	unique := []string{workordertype.FieldID}
-	if len(wotq.unique) > 0 {
-		unique = wotq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := wotq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := wotq.querySpec()
+	return sqlgraph.CountNodes(ctx, wotq.driver, spec)
 }
 
 func (wotq *WorkOrderTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -364,6 +351,42 @@ func (wotq *WorkOrderTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (wotq *WorkOrderTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   workordertype.Table,
+			Columns: workordertype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workordertype.FieldID,
+			},
+		},
+		From:   wotq.sql,
+		Unique: true,
+	}
+	if ps := wotq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := wotq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := wotq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := wotq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (wotq *WorkOrderTypeQuery) sqlQuery() *sql.Selector {
@@ -637,7 +660,7 @@ func (wots *WorkOrderTypeSelect) sqlScan(ctx context.Context, v interface{}) err
 }
 
 func (wots *WorkOrderTypeSelect) sqlQuery() sql.Querier {
-	view := "workordertype_view"
-	return sql.Dialect(wots.driver.Dialect()).
-		Select(wots.fields...).From(wots.sql.As(view))
+	selector := wots.sql
+	selector.Select(selector.Columns(wots.fields...)...)
+	return selector
 }

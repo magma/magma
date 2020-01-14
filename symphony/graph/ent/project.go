@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/project"
 )
 
 // Project is the model entity for the Project schema.
@@ -32,38 +33,56 @@ type Project struct {
 	Creator *string `json:"creator,omitempty"`
 }
 
-// FromRows scans the sql response data into Project.
-func (pr *Project) FromRows(rows *sql.Rows) error {
-	var scanpr struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
-		Creator     sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Project) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `project.Columns`.
-	if err := rows.Scan(
-		&scanpr.ID,
-		&scanpr.CreateTime,
-		&scanpr.UpdateTime,
-		&scanpr.Name,
-		&scanpr.Description,
-		&scanpr.Creator,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Project fields.
+func (pr *Project) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(project.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	pr.ID = strconv.Itoa(scanpr.ID)
-	pr.CreateTime = scanpr.CreateTime.Time
-	pr.UpdateTime = scanpr.UpdateTime.Time
-	pr.Name = scanpr.Name.String
-	if scanpr.Description.Valid {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pr.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pr.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pr.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		pr.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
 		pr.Description = new(string)
-		*pr.Description = scanpr.Description.String
+		*pr.Description = value.String
 	}
-	if scanpr.Creator.Valid {
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field creator", values[4])
+	} else if value.Valid {
 		pr.Creator = new(string)
-		*pr.Creator = scanpr.Creator.String
+		*pr.Creator = value.String
 	}
 	return nil
 }
@@ -142,18 +161,6 @@ func (pr *Project) id() int {
 
 // Projects is a parsable slice of Project.
 type Projects []*Project
-
-// FromRows scans the sql response data into Projects.
-func (pr *Projects) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpr := &Project{}
-		if err := scanpr.FromRows(rows); err != nil {
-			return err
-		}
-		*pr = append(*pr, scanpr)
-	}
-	return nil
-}
 
 func (pr Projects) config(cfg config) {
 	for _i := range pr {
