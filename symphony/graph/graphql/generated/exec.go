@@ -699,6 +699,7 @@ type ComplexityRoot struct {
 
 	Survey struct {
 		CompletionTimestamp func(childComplexity int) int
+		CreationTimestamp   func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		LocationID          func(childComplexity int) int
 		Name                func(childComplexity int) int
@@ -1139,6 +1140,7 @@ type ServiceTypeResolver interface {
 	NumberOfServices(ctx context.Context, obj *ent.ServiceType) (int, error)
 }
 type SurveyResolver interface {
+	CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error)
 	CompletionTimestamp(ctx context.Context, obj *ent.Survey) (int, error)
 	LocationID(ctx context.Context, obj *ent.Survey) (string, error)
 	SourceFile(ctx context.Context, obj *ent.Survey) (*ent.File, error)
@@ -4571,6 +4573,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Survey.CompletionTimestamp(childComplexity), true
 
+	case "Survey.creationTimestamp":
+		if e.complexity.Survey.CreationTimestamp == nil {
+			break
+		}
+
+		return e.complexity.Survey.CreationTimestamp(childComplexity), true
+
 	case "Survey.id":
 		if e.complexity.Survey.ID == nil {
 			break
@@ -6724,15 +6733,24 @@ input AddServiceEndpointInput {
 input SurveyCreateData {
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
+  status: SurveyStatus
   locationID: ID!
   surveyResponses: [SurveyQuestionResponse!]!
+}
+
+enum SurveyStatus {
+  PLANNED
+  INPROGRESS
+  COMPLETED
 }
 
 type Survey implements Node {
   id: ID!
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
   locationID: ID!
   sourceFile: File
@@ -24971,6 +24989,40 @@ func (ec *executionContext) _Survey_ownerName(ctx context.Context, field graphql
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Survey_creationTimestamp(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Survey",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Survey().CreationTimestamp(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Survey_completionTimestamp(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -33353,9 +33405,21 @@ func (ec *executionContext) unmarshalInputSurveyCreateData(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "creationTimestamp":
+			var err error
+			it.CreationTimestamp, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "completionTimestamp":
 			var err error
 			it.CompletionTimestamp, err = ec.unmarshalNInt2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalOSurveyStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -38226,6 +38290,17 @@ func (ec *executionContext) _Survey(ctx context.Context, sel ast.SelectionSet, o
 			}
 		case "ownerName":
 			out.Values[i] = ec._Survey_ownerName(ctx, field, obj)
+		case "creationTimestamp":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Survey_creationTimestamp(ctx, field, obj)
+				return res
+			})
 		case "completionTimestamp":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -44630,6 +44705,30 @@ func (ec *executionContext) unmarshalOSurveyQuestionType2ᚖgithubᚗcomᚋfaceb
 }
 
 func (ec *executionContext) marshalOSurveyQuestionType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyQuestionType(ctx context.Context, sel ast.SelectionSet, v *models.SurveyQuestionType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOSurveyStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx context.Context, v interface{}) (models.SurveyStatus, error) {
+	var res models.SurveyStatus
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalOSurveyStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx context.Context, sel ast.SelectionSet, v models.SurveyStatus) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalOSurveyStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx context.Context, v interface{}) (*models.SurveyStatus, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOSurveyStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOSurveyStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSurveyStatus(ctx context.Context, sel ast.SelectionSet, v *models.SurveyStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

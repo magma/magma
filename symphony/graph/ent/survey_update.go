@@ -26,18 +26,20 @@ import (
 type SurveyUpdate struct {
 	config
 
-	update_time          *time.Time
-	name                 *string
-	owner_name           *string
-	clearowner_name      bool
-	completion_timestamp *time.Time
-	location             map[string]struct{}
-	source_file          map[string]struct{}
-	questions            map[string]struct{}
-	clearedLocation      bool
-	clearedSourceFile    bool
-	removedQuestions     map[string]struct{}
-	predicates           []predicate.Survey
+	update_time             *time.Time
+	name                    *string
+	owner_name              *string
+	clearowner_name         bool
+	creation_timestamp      *time.Time
+	clearcreation_timestamp bool
+	completion_timestamp    *time.Time
+	location                map[string]struct{}
+	source_file             map[string]struct{}
+	questions               map[string]struct{}
+	clearedLocation         bool
+	clearedSourceFile       bool
+	removedQuestions        map[string]struct{}
+	predicates              []predicate.Survey
 }
 
 // Where adds a new predicate for the builder.
@@ -70,6 +72,27 @@ func (su *SurveyUpdate) SetNillableOwnerName(s *string) *SurveyUpdate {
 func (su *SurveyUpdate) ClearOwnerName() *SurveyUpdate {
 	su.owner_name = nil
 	su.clearowner_name = true
+	return su
+}
+
+// SetCreationTimestamp sets the creation_timestamp field.
+func (su *SurveyUpdate) SetCreationTimestamp(t time.Time) *SurveyUpdate {
+	su.creation_timestamp = &t
+	return su
+}
+
+// SetNillableCreationTimestamp sets the creation_timestamp field if the given value is not nil.
+func (su *SurveyUpdate) SetNillableCreationTimestamp(t *time.Time) *SurveyUpdate {
+	if t != nil {
+		su.SetCreationTimestamp(*t)
+	}
+	return su
+}
+
+// ClearCreationTimestamp clears the value of creation_timestamp.
+func (su *SurveyUpdate) ClearCreationTimestamp() *SurveyUpdate {
+	su.creation_timestamp = nil
+	su.clearcreation_timestamp = true
 	return su
 }
 
@@ -257,6 +280,19 @@ func (su *SurveyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: survey.FieldOwnerName,
 		})
 	}
+	if value := su.creation_timestamp; value != nil {
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreationTimestamp,
+		})
+	}
+	if su.clearcreation_timestamp {
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: survey.FieldCreationTimestamp,
+		})
+	}
 	if value := su.completion_timestamp; value != nil {
 		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeTime,
@@ -402,17 +438,19 @@ type SurveyUpdateOne struct {
 	config
 	id string
 
-	update_time          *time.Time
-	name                 *string
-	owner_name           *string
-	clearowner_name      bool
-	completion_timestamp *time.Time
-	location             map[string]struct{}
-	source_file          map[string]struct{}
-	questions            map[string]struct{}
-	clearedLocation      bool
-	clearedSourceFile    bool
-	removedQuestions     map[string]struct{}
+	update_time             *time.Time
+	name                    *string
+	owner_name              *string
+	clearowner_name         bool
+	creation_timestamp      *time.Time
+	clearcreation_timestamp bool
+	completion_timestamp    *time.Time
+	location                map[string]struct{}
+	source_file             map[string]struct{}
+	questions               map[string]struct{}
+	clearedLocation         bool
+	clearedSourceFile       bool
+	removedQuestions        map[string]struct{}
 }
 
 // SetName sets the name field.
@@ -439,6 +477,27 @@ func (suo *SurveyUpdateOne) SetNillableOwnerName(s *string) *SurveyUpdateOne {
 func (suo *SurveyUpdateOne) ClearOwnerName() *SurveyUpdateOne {
 	suo.owner_name = nil
 	suo.clearowner_name = true
+	return suo
+}
+
+// SetCreationTimestamp sets the creation_timestamp field.
+func (suo *SurveyUpdateOne) SetCreationTimestamp(t time.Time) *SurveyUpdateOne {
+	suo.creation_timestamp = &t
+	return suo
+}
+
+// SetNillableCreationTimestamp sets the creation_timestamp field if the given value is not nil.
+func (suo *SurveyUpdateOne) SetNillableCreationTimestamp(t *time.Time) *SurveyUpdateOne {
+	if t != nil {
+		suo.SetCreationTimestamp(*t)
+	}
+	return suo
+}
+
+// ClearCreationTimestamp clears the value of creation_timestamp.
+func (suo *SurveyUpdateOne) ClearCreationTimestamp() *SurveyUpdateOne {
+	suo.creation_timestamp = nil
+	suo.clearcreation_timestamp = true
 	return suo
 }
 
@@ -618,6 +677,19 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: survey.FieldOwnerName,
+		})
+	}
+	if value := suo.creation_timestamp; value != nil {
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreationTimestamp,
+		})
+	}
+	if suo.clearcreation_timestamp {
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Column: survey.FieldCreationTimestamp,
 		})
 	}
 	if value := suo.completion_timestamp; value != nil {

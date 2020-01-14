@@ -13,6 +13,14 @@ import (
 
 type surveyResolver struct{}
 
+func (surveyResolver) CreationTimestamp(ctx context.Context, obj *ent.Survey) (*int, error) {
+	timestamp := int(obj.CreationTimestamp.Unix())
+	if timestamp < 0 {
+		return nil, nil
+	}
+	return &timestamp, nil
+}
+
 func (surveyResolver) CompletionTimestamp(ctx context.Context, obj *ent.Survey) (int, error) {
 	return int(obj.CompletionTimestamp.Unix()), nil
 }

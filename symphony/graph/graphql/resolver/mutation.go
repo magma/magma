@@ -308,13 +308,18 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*string, error) {
 	client := r.ClientFrom(ctx)
-	srv, err := client.Survey.
+	query := client.Survey.
 		Create().
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(r.User(ctx).email).
-		Save(ctx)
+		SetOwnerName(r.User(ctx).email)
+	if data.CreationTimestamp != nil {
+		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
+	}
+
+	srv, err := query.Save(ctx)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "creating survey")
 	}

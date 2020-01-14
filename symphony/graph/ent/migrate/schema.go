@@ -951,6 +951,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "owner_name", Type: field.TypeString, Nullable: true},
+		{Name: "creation_timestamp", Type: field.TypeTime, Nullable: true},
 		{Name: "completion_timestamp", Type: field.TypeTime},
 		{Name: "location_id", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_source_file_id", Type: field.TypeInt, Nullable: true},
@@ -963,14 +964,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "surveys_locations_location",
-				Columns: []*schema.Column{SurveysColumns[6]},
+				Columns: []*schema.Column{SurveysColumns[7]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "surveys_files_source_file",
-				Columns: []*schema.Column{SurveysColumns[7]},
+				Columns: []*schema.Column{SurveysColumns[8]},
 
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.SetNull,

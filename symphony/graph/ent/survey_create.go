@@ -27,6 +27,7 @@ type SurveyCreate struct {
 	update_time          *time.Time
 	name                 *string
 	owner_name           *string
+	creation_timestamp   *time.Time
 	completion_timestamp *time.Time
 	location             map[string]struct{}
 	source_file          map[string]struct{}
@@ -77,6 +78,20 @@ func (sc *SurveyCreate) SetOwnerName(s string) *SurveyCreate {
 func (sc *SurveyCreate) SetNillableOwnerName(s *string) *SurveyCreate {
 	if s != nil {
 		sc.SetOwnerName(*s)
+	}
+	return sc
+}
+
+// SetCreationTimestamp sets the creation_timestamp field.
+func (sc *SurveyCreate) SetCreationTimestamp(t time.Time) *SurveyCreate {
+	sc.creation_timestamp = &t
+	return sc
+}
+
+// SetNillableCreationTimestamp sets the creation_timestamp field if the given value is not nil.
+func (sc *SurveyCreate) SetNillableCreationTimestamp(t *time.Time) *SurveyCreate {
+	if t != nil {
+		sc.SetCreationTimestamp(*t)
 	}
 	return sc
 }
@@ -227,6 +242,14 @@ func (sc *SurveyCreate) sqlSave(ctx context.Context) (*Survey, error) {
 			Column: survey.FieldOwnerName,
 		})
 		s.OwnerName = *value
+	}
+	if value := sc.creation_timestamp; value != nil {
+		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: survey.FieldCreationTimestamp,
+		})
+		s.CreationTimestamp = *value
 	}
 	if value := sc.completion_timestamp; value != nil {
 		spec.Fields = append(spec.Fields, &sqlgraph.FieldSpec{

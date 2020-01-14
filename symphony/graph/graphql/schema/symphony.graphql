@@ -1214,15 +1214,24 @@ input AddServiceEndpointInput {
 input SurveyCreateData {
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
+  status: SurveyStatus
   locationID: ID!
   surveyResponses: [SurveyQuestionResponse!]!
+}
+
+enum SurveyStatus {
+  PLANNED
+  INPROGRESS
+  COMPLETED
 }
 
 type Survey implements Node {
   id: ID!
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
   locationID: ID!
   sourceFile: File
