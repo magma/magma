@@ -24,8 +24,12 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
     def test_seconday_pdn_conn_req(self):
         """ Attach a single UE , send standalone PDN Connectivity
         Request and detach without sending PDN Disconnect """
-
-        self._s1ap_wrapper.configUEDevice(1)
+        apn = ["ims"]
+        # qci 1-ims
+        qci = [1]
+        num_apns = 1
+        num_ue = 1
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci, num_apns)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(

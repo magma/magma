@@ -30,7 +30,8 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
         # qci 1-ims
         qci = [1]
         num_apns = 1
-        self._s1ap_wrapper.configUEDeviceWithAPN(1, apn, qci, num_apns)
+        num_ue = 1
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci, num_apns)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(

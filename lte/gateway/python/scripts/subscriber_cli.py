@@ -44,7 +44,7 @@ def add_subscriber(client, args):
 
     # As of now we support only 2 APNs
     if args.apn_name1 is not None:
-        apn_config = sub.apn_config.add()
+        apn_config = sub_data.apn_config.add()
         apn_config.service_selection = args.apn_name1
     if args.qci1 is not None:
         apn_config.qos_profile.class_id = args.qci1

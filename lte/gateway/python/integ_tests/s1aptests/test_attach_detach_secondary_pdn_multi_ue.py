@@ -26,7 +26,12 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
         num_ues = 4
         ue_ids = []
         bearer_ids = []
-        self._s1ap_wrapper.configUEDevice(num_ues)
+        apn = ["ims"]
+        # qci 1-ims
+        qci = [1]
+        num_apns = 1
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci, num_apns)
+
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             ue_id = req.ue_id

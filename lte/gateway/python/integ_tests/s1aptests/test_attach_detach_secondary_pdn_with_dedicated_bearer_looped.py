@@ -29,7 +29,11 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
         repeat 3 times """
         num_ues = 1
         loop = 3
-        self._s1ap_wrapper.configUEDevice(num_ues)
+        apn = ["ims"]
+        # qci 1-ims
+        qci = [1]
+        num_apns = 1
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci, num_apns)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req

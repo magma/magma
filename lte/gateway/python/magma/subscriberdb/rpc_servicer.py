@@ -40,9 +40,6 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         Adds a subscriber to the store
         """
         sid = SIDUtils.to_str(request.sid)
-        logging.info("APN name %s",request.non_3gpp.apn_config.service_selection)
-        logging.info("APN qci %d",request.non_3gpp.apn_config.qos_profile.class_id)
-        logging.info("Add subscriber rpc for sid: %s", sid)
         try:
             self._store.add_subscriber(request)
         except DuplicateSubscriberError:

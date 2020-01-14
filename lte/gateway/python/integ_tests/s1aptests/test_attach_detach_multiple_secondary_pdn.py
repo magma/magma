@@ -26,7 +26,9 @@ class TestMultipleSecondaryPdnConnReq(unittest.TestCase):
         num_pdns = 2
         bearer_ids = []
         apn = ["ims", "internet"]
-        self._s1ap_wrapper.configUEDevice(1)
+        qci = [1, 9]
+        num_ue = 1
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci, num_pdns)
 
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
