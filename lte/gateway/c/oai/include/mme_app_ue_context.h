@@ -457,7 +457,7 @@ typedef struct ue_mm_context_s {
   bool location_info_confirmed_in_hss;
   /* S6a- update location request guard timer */
   struct mme_app_timer_t ulr_response_timer;
-  sgs_context_t *sgs_context;
+  sgs_context_t* sgs_context;
   uint8_t attach_type;
   lai_t lai;
   int cs_fallback_indicator;

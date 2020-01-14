@@ -994,7 +994,9 @@ void mme_app_handle_delete_session_rsp(
           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
         (ue_context_p->sgs_context->ts9_timer.id ==
          MME_APP_TIMER_INACTIVE_ID)) {
-        // Notify S1AP to send UE Context Release Command to eNB or free s1 context locally.
+        /* Notify S1AP to send UE Context Release Command to eNB or free
+         * s1 context locally.
+         */
         mme_app_itti_ue_context_release(
           ue_context_p, ue_context_p->ue_context_rel_cause);
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;

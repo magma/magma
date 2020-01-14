@@ -211,8 +211,8 @@ int mme_app_handle_nw_initiated_detach_request(
   uint8_t detach_type);
 
 int mme_app_handle_nas_cs_domain_location_update_req(
-  mme_app_desc_t *mme_app_desc_p,
-  itti_nas_cs_domain_location_update_req_t *const itti_nas_location_update_req);
+  ue_mm_context_t* ue_context_p,
+  uint8_t msg_type);
 
 int mme_app_handle_sgsap_location_update_acc(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_location_update_acc_t *const itti_sgsap_location_update_acc);
@@ -222,10 +222,6 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context);
 int mme_app_handle_sgsap_location_update_rej(mme_app_desc_t *mme_app_desc_p,
   itti_sgsap_location_update_rej_t *const itti_sgsap_location_update_rej);
 
-int send_cs_domain_loc_updt_fail_to_nas(
-  SgsRejectCause_t cause,
-  lai_t *lai,
-  mme_ue_s1ap_id_t mme_ue_s1ap_id);
 void mme_app_handle_ts6_1_timer_expiry(struct ue_mm_context_s *ue_context_p);
 
 int mme_app_handle_sgsap_reset_indication(mme_app_desc_t *mme_app_desc_p,
@@ -305,23 +301,47 @@ void mme_app_handle_path_switch_req_ack(
 void mme_app_handle_path_switch_req_failure(
     struct ue_mm_context_s *ue_context_p);
 
+void mme_app_send_itti_sgsap_ue_activity_ind(
+  const char* imsi,
+  const unsigned int imsi_len);
+
+int emm_send_cs_domain_attach_or_tau_accept(
+  struct ue_mm_context_s* ue_context_p);
+
 void mme_app_update_paging_tai_list(
   paging_tai_list_t* p_tai_list,
   partial_tai_list_t* tai_list,
   uint8_t num_of_tac);
 
 void send_delete_dedicated_bearer_rsp(
-  struct ue_mm_context_s *ue_context_p,
+  struct ue_mm_context_s* ue_context_p,
   bool delete_default_bearer,
   ebi_t ebi[],
   uint32_t num_bearer_context,
   teid_t s_gw_teid_s11_s4,
   gtpv2c_cause_value_t cause);
 
+int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p);
+
+int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
+
+#define ATTACH_REQ (1 << 0)
+#define TAU_REQUEST (1 << 1)
+#define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
+#define UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED 0x01
+#define MME_APP_PAGING_ID_IMSI 0X00
+#define MME_APP_PAGING_ID_TMSI 0X01
+
 #define mme_stats_read_lock(mMEsTATS)                                          \
   pthread_rwlock_rdlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_write_lock(mMEsTATS)                                         \
   pthread_rwlock_wrlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_unlock(mMEsTATS) pthread_rwlock_unlock(&(mMEsTATS)->rw_lock)
+
+#define MME_APP_COMPARE_TMSI(_tmsi1, _tmsi2) \
+  ( \
+    (_tmsi1.tmsi[0] != _tmsi2.tmsi[0]) || (_tmsi1.tmsi[1] != _tmsi2.tmsi[1]) ||\
+    (_tmsi1.tmsi[2] != _tmsi2.tmsi[2]) || (_tmsi1.tmsi[3] != _tmsi2.tmsi[3])) \
+    ? (RETURNerror) : (RETURNok)
 
 #endif /* MME_APP_DEFS_H_ */

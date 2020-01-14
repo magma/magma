@@ -709,129 +709,27 @@ int encode_mobileid_imsi_tmsi(
 
 //------------------------------------------------------------------------------
 int nas_proc_cs_domain_location_updt_fail(
-  itti_nas_cs_domain_location_update_fail_t *itti_nas_location_update_fail_p)
+  SgsRejectCause_t cause,
+  lai_t *lai,
+  mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
+  emm_cn_cs_domain_location_updt_fail_t cs_location_updt_fail = {0};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL;
+  cs_location_updt_fail =
+    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail;
 
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.ue_id =
-    itti_nas_location_update_fail_p->ue_id;
-  //LAI
-  if (itti_nas_location_update_fail_p->presencemask & LAI) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit2 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit2;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit1 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit1;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit3 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit3;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit3 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit3;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit2 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit2;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit1 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit1;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.lac =
-      itti_nas_location_update_fail_p->laicsfb.lac;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.presencemask = LAI;
+  cs_location_updt_fail.ue_id = mme_ue_s1ap_id;
+  // LAI
+  if (lai) {
+    memcpy(&(cs_location_updt_fail.laicsfb), lai, sizeof (lai_t));
+    cs_location_updt_fail.presencemask = LAI;
   }
-  //SGS cause
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.reject_cause =
-    itti_nas_location_update_fail_p->reject_cause;
-
-  rc = emm_sap_send(&emm_sap);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-//------------------------------------------------------------------------------
-int nas_proc_cs_domain_location_updt_acc(
-  itti_nas_cs_domain_location_update_acc_t *itti_nas_location_update_acc_p)
-{
-  int rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap.primitive = EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC;
-
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.ue_id =
-    itti_nas_location_update_acc_p->ue_id;
-  /*If is_sgs_assoc_exists is true no all the IEs*/
-  if (true == itti_nas_location_update_acc_p->is_sgs_assoc_exists) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.is_sgs_assoc_exists =
-      itti_nas_location_update_acc_p->is_sgs_assoc_exists;
-    if (itti_nas_location_update_acc_p->presencemask & ADD_UPDT_TYPE) {
-      emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.add_updt_res =
-        itti_nas_location_update_acc_p->add_updt_res;
-      emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.presencemask |=
-        ADD_UPDT_TYPE;
-    }
-    rc = emm_sap_send(&emm_sap);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-  //LAI
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit2 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit2;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit1 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit1;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit3 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit3;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit3 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit3;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit2 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit2;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit1 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit1;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.lac =
-    itti_nas_location_update_acc_p->laicsfb.lac;
-
-  //Mobile Identity
-
-  if (itti_nas_location_update_acc_p->presencemask & MOBILE_IDENTITY) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.presencemask |=
-      MOBILE_IDENTITY;
-    if (
-      itti_nas_location_update_acc_p->mobileid.imsi.typeofidentity ==
-      MOBILE_IDENTITY_IMSI) {
-      memcpy(
-        &emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.imsi,
-        &itti_nas_location_update_acc_p->mobileid.imsi,
-        sizeof(itti_nas_location_update_acc_p->mobileid.imsi));
-    } else if (
-      itti_nas_location_update_acc_p->mobileid.tmsi.typeofidentity ==
-      MOBILE_IDENTITY_TMSI) {
-      memcpy(
-        &emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi,
-        &itti_nas_location_update_acc_p->mobileid.tmsi,
-        sizeof(itti_nas_location_update_acc_p->mobileid.tmsi));
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit1 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[0]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit2 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[1]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit3 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[2]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit4 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[3]);
-    }
-  }
-  //Additional Update Result
-  if (itti_nas_location_update_acc_p->presencemask & ADD_UPDT_TYPE) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.add_updt_res =
-      itti_nas_location_update_acc_p->add_updt_res;
-  }
+  // SGS Reject Cause
+  cs_location_updt_fail.reject_cause = map_sgs_emm_cause(cause);
 
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

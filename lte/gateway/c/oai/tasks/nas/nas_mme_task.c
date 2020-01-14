@@ -62,22 +62,6 @@ static void *nas_intertask_interface(void *args_p)
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
       } break;
 
-      case NAS_CS_DOMAIN_LOCATION_UPDATE_ACC: {
-        itti_nas_cs_domain_location_update_acc_t
-          *itti_nas_location_update_acc_p = NULL;
-        itti_nas_location_update_acc_p =
-          &received_message_p->ittiMsg.nas_cs_domain_location_update_acc;
-        nas_proc_cs_domain_location_updt_acc(itti_nas_location_update_acc_p);
-      } break;
-
-      case NAS_CS_DOMAIN_LOCATION_UPDATE_FAIL: {
-        itti_nas_cs_domain_location_update_fail_t
-          *itti_nas_location_update_fail_p = NULL;
-        itti_nas_location_update_fail_p =
-          &received_message_p->ittiMsg.nas_cs_domain_location_update_fail;
-        nas_proc_cs_domain_location_updt_fail(itti_nas_location_update_fail_p);
-      } break;
-
       case SGSAP_DOWNLINK_UNITDATA: {
         /*
          * We received the Downlink Unitdata from MSC, trigger a
