@@ -30,8 +30,7 @@ class TestMaximumBearersPerUe(unittest.TestCase):
         apn = ["ims"]
         # qci 1-ims
         qci = [1]
-        num_apns = 1
-        self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci, num_apns)
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ues, apn, qci)
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
         loop = 8
 

@@ -27,9 +27,8 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         apn = ["ims"]
         # qci 1-ims
         qci = [1]
-        num_apns = 1
         num_ue = 1
-        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci, num_apns)
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(

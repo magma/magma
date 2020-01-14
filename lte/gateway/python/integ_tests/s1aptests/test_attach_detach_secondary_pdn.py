@@ -12,8 +12,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SubscriberUtil
-from integ_tests.common.subscriber_db_client import SubscriberDbGrpc
+
 
 class TestSecondaryPdnConnReq(unittest.TestCase):
     def setUp(self):
@@ -29,9 +28,8 @@ class TestSecondaryPdnConnReq(unittest.TestCase):
         apn = ["ims"]
         # qci 1-ims
         qci = [1]
-        num_apns = 1
         num_ue = 1
-        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci, num_apns)
+        self._s1ap_wrapper.configUEDeviceWithAPN(num_ue, apn, qci)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(

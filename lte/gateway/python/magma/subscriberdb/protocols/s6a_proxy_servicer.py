@@ -94,7 +94,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             sub_data = self.lte_processor.get_sub_data(imsi)
         except SubscriberNotFoundError as e:
             ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
-            logging.warning('Subscriber not found for ULR: %s', e)
+            logging.warning("Subscriber not found for ULR: %s", e)
             return ula
         ula.error_code = s6a_proxy_pb2.SUCCESS
         ula.default_context_id = 0
@@ -114,18 +114,24 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
-        num_apn = len(sub_data.non_3gpp.apn_config)
-        for i in range(num_apn):
-            apn_ims = ula.apn.add()
+        num_sec_apn = len(sub_data.non_3gpp.apn_config)
+        for idx in range(num_sec_apn):
+            sec_apn = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
-            apn_ims.context_id = i+1
-            apn_ims.service_selection = sub_data.non_3gpp.apn_config[i].service_selection
-            apn_ims.qos_profile.class_id = sub_data.non_3gpp.apn_config[i].qos_profile.class_id
-            apn_ims.qos_profile.priority_level = 15
-            apn_ims.qos_profile.preemption_capability = 1
-            apn_ims.qos_profile.preemption_vulnerability = 0
+            sec_apn.context_id = idx + 1
+            sec_apn.service_selection = sub_data.non_3gpp.apn_config[
+                idx
+            ].service_selection
+            sec_apn.qos_profile.class_id = sub_data.non_3gpp.apn_config[
+                idx
+            ].qos_profile.class_id
+            sec_apn.qos_profile.priority_level = 15
+            sec_apn.qos_profile.preemption_capability = 1
+            sec_apn.qos_profile.preemption_vulnerability = 0
 
-            apn_ims.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
-            apn_ims.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
-            apn_ims.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+            sec_apn.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
+            sec_apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
+            sec_apn.pdn = (
+                s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+            )
         return ula

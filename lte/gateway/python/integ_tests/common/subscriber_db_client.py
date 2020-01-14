@@ -150,14 +150,16 @@ class SubscriberDbGrpc(SubscriberDbClient):
         lte.auth_key = bytes.fromhex(KEY)
         state = SubscriberState()
         state.lte_auth_next_seq = 1
-        #APN
-        sub = Non3GPPUserProfile()
+        # APN
+        usr_prof = Non3GPPUserProfile()
         for i in range(num_apn):
-            apn_config = sub.apn_config.add()
+            apn_config = usr_prof.apn_config.add()
             apn_config.service_selection = apn[i]
             apn_config.qos_profile.class_id = qci[i]
+            logging.info("Configuring APN : %s", apn[i])
+            logging.info("Configuring QCI : %d", qci[i])
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state,
-                non_3gpp = sub)
+                              non_3gpp=usr_prof)
 
     def _check_invariants(self):
         """
@@ -190,9 +192,10 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
-    def add_subscriber_with_apn(self, sid, apn, qci, num_apn):
+    def add_subscriber_with_apn(self, sid, apn, qci):
         logging.info("Adding subscriber : %s", sid)
         self._added_sids.add(sid)
+        num_apn = len(apn)
         sub_data = self._get_subscriberdb_data_with_apn(sid, apn, qci, num_apn)
         SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.AddSubscriber(sub_data))

@@ -141,10 +141,10 @@ def create_parser():
                          help='Number of APNs to be configured')
         cmd.add_argument('--apn-name1',
                          help='Name of the 1st APN (ims/internet)')
-        cmd.add_argument('--apn-name2',
-                         help='Name of the 2nd APN (ims/internet)')
         cmd.add_argument('--qci1', type=int,
                          help='QCI for the 1st APN')
+        cmd.add_argument('--apn-name2',
+                         help='Name of the 2nd APN (ims/internet)')
         cmd.add_argument('--qci2', type=int,
                          help='QCI for the 2nd APN')
 
