@@ -298,6 +298,7 @@ class WorkOrderDetails extends React.Component<Props, State> {
                               <TextField
                                 select
                                 className={classes.gridInput}
+                                disabled={validationContext.editLock.detected}
                                 variant="outlined"
                                 value={workOrder.priority}
                                 InputProps={{

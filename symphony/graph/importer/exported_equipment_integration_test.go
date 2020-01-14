@@ -36,7 +36,7 @@ var locStruct map[string]*ent.Location
 func importEquipmentExportedData(ctx context.Context, t *testing.T, organization string, r *TestImporterResolver) int {
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
-
+	bw.WriteField("skip_lines", "[5,6]")
 	file, err := os.Open("testdata/exportedEquipmentData.csv")
 	require.Nil(t, err)
 

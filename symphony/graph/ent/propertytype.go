@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 )
 
 // PropertyType is the model entity for the PropertyType schema.
@@ -58,72 +59,133 @@ type PropertyType struct {
 	Deleted bool `json:"deleted,omitempty" gqlgen:"isDeleted"`
 }
 
-// FromRows scans the sql response data into PropertyType.
-func (pt *PropertyType) FromRows(rows *sql.Rows) error {
-	var scanpt struct {
-		ID                 int
-		CreateTime         sql.NullTime
-		UpdateTime         sql.NullTime
-		Type               sql.NullString
-		Name               sql.NullString
-		Index              sql.NullInt64
-		Category           sql.NullString
-		IntVal             sql.NullInt64
-		BoolVal            sql.NullBool
-		FloatVal           sql.NullFloat64
-		LatitudeVal        sql.NullFloat64
-		LongitudeVal       sql.NullFloat64
-		StringVal          sql.NullString
-		RangeFromVal       sql.NullFloat64
-		RangeToVal         sql.NullFloat64
-		IsInstanceProperty sql.NullBool
-		Editable           sql.NullBool
-		Mandatory          sql.NullBool
-		Deleted            sql.NullBool
+// scanValues returns the types for scanning values from sql.Rows.
+func (*PropertyType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullBool{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullString{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
+		&sql.NullBool{},
+		&sql.NullBool{},
+		&sql.NullBool{},
+		&sql.NullBool{},
 	}
-	// the order here should be the same as in the `propertytype.Columns`.
-	if err := rows.Scan(
-		&scanpt.ID,
-		&scanpt.CreateTime,
-		&scanpt.UpdateTime,
-		&scanpt.Type,
-		&scanpt.Name,
-		&scanpt.Index,
-		&scanpt.Category,
-		&scanpt.IntVal,
-		&scanpt.BoolVal,
-		&scanpt.FloatVal,
-		&scanpt.LatitudeVal,
-		&scanpt.LongitudeVal,
-		&scanpt.StringVal,
-		&scanpt.RangeFromVal,
-		&scanpt.RangeToVal,
-		&scanpt.IsInstanceProperty,
-		&scanpt.Editable,
-		&scanpt.Mandatory,
-		&scanpt.Deleted,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the PropertyType fields.
+func (pt *PropertyType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(propertytype.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	pt.ID = strconv.Itoa(scanpt.ID)
-	pt.CreateTime = scanpt.CreateTime.Time
-	pt.UpdateTime = scanpt.UpdateTime.Time
-	pt.Type = scanpt.Type.String
-	pt.Name = scanpt.Name.String
-	pt.Index = int(scanpt.Index.Int64)
-	pt.Category = scanpt.Category.String
-	pt.IntVal = int(scanpt.IntVal.Int64)
-	pt.BoolVal = scanpt.BoolVal.Bool
-	pt.FloatVal = scanpt.FloatVal.Float64
-	pt.LatitudeVal = scanpt.LatitudeVal.Float64
-	pt.LongitudeVal = scanpt.LongitudeVal.Float64
-	pt.StringVal = scanpt.StringVal.String
-	pt.RangeFromVal = scanpt.RangeFromVal.Float64
-	pt.RangeToVal = scanpt.RangeToVal.Float64
-	pt.IsInstanceProperty = scanpt.IsInstanceProperty.Bool
-	pt.Editable = scanpt.Editable.Bool
-	pt.Mandatory = scanpt.Mandatory.Bool
-	pt.Deleted = scanpt.Deleted.Bool
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	pt.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		pt.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		pt.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[2])
+	} else if value.Valid {
+		pt.Type = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[3])
+	} else if value.Valid {
+		pt.Name = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[4])
+	} else if value.Valid {
+		pt.Index = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category", values[5])
+	} else if value.Valid {
+		pt.Category = value.String
+	}
+	if value, ok := values[6].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field int_val", values[6])
+	} else if value.Valid {
+		pt.IntVal = int(value.Int64)
+	}
+	if value, ok := values[7].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field bool_val", values[7])
+	} else if value.Valid {
+		pt.BoolVal = value.Bool
+	}
+	if value, ok := values[8].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field float_val", values[8])
+	} else if value.Valid {
+		pt.FloatVal = value.Float64
+	}
+	if value, ok := values[9].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude_val", values[9])
+	} else if value.Valid {
+		pt.LatitudeVal = value.Float64
+	}
+	if value, ok := values[10].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude_val", values[10])
+	} else if value.Valid {
+		pt.LongitudeVal = value.Float64
+	}
+	if value, ok := values[11].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field string_val", values[11])
+	} else if value.Valid {
+		pt.StringVal = value.String
+	}
+	if value, ok := values[12].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_from_val", values[12])
+	} else if value.Valid {
+		pt.RangeFromVal = value.Float64
+	}
+	if value, ok := values[13].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field range_to_val", values[13])
+	} else if value.Valid {
+		pt.RangeToVal = value.Float64
+	}
+	if value, ok := values[14].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field is_instance_property", values[14])
+	} else if value.Valid {
+		pt.IsInstanceProperty = value.Bool
+	}
+	if value, ok := values[15].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field editable", values[15])
+	} else if value.Valid {
+		pt.Editable = value.Bool
+	}
+	if value, ok := values[16].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field mandatory", values[16])
+	} else if value.Valid {
+		pt.Mandatory = value.Bool
+	}
+	if value, ok := values[17].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field deleted", values[17])
+	} else if value.Valid {
+		pt.Deleted = value.Bool
+	}
 	return nil
 }
 
@@ -238,18 +300,6 @@ func (pt *PropertyType) id() int {
 
 // PropertyTypes is a parsable slice of PropertyType.
 type PropertyTypes []*PropertyType
-
-// FromRows scans the sql response data into PropertyTypes.
-func (pt *PropertyTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanpt := &PropertyType{}
-		if err := scanpt.FromRows(rows); err != nil {
-			return err
-		}
-		*pt = append(*pt, scanpt)
-	}
-	return nil
-}
 
 func (pt PropertyTypes) config(cfg config) {
 	for _i := range pt {

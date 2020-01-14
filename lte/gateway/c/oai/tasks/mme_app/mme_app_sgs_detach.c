@@ -50,7 +50,6 @@
 #include "mme_app_sgs_fsm.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
-#include "emm_proc.h"
 
 /**
  * Function to send a SGS EPS detach indication to SGSAP in either the initial case
@@ -457,18 +456,14 @@ void mme_app_handle_sgs_detach_req(
     OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %d )\n", detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
       switch (detach_type) {
-        /*
-         * Handle Ue initiated EPS detach towards SGS
-         */
+        // Handle Ue initiated EPS detach towards SGS
         case EMM_SGS_UE_INITIATED_EPS_DETACH: {
           ue_context_p->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
             ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_EPS_DETACH_IND;
         } break;
-        /*
-         * Handle Ue initiated IMSI detach towards SGS
-         */
+        // Handle Ue initiated IMSI detach towards SGS
         case EMM_SGS_UE_INITIATED_EXPLICIT_NONEPS_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS;
@@ -476,9 +471,7 @@ void mme_app_handle_sgs_detach_req(
             ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_IMSI_DETACH_IND;
         } break;
-        /*
-         * Handle Ue initiated Combined EPS/IMSI detach towards SGS
-         */
+        // Handle Ue initiated Combined EPS/IMSI detach towards SGS
         case EMM_SGS_UE_INITIATED_COMBINED_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
@@ -486,18 +479,14 @@ void mme_app_handle_sgs_detach_req(
             ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_IMSI_DETACH_IND;
         } break;
-        /*
-         * Handle Network initiated EPS detach towards SGS
-         */
+        // Handle Network initiated EPS detach towards SGS
         case EMM_SGS_NW_INITIATED_EPS_DETACH: {
           ue_context_p->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
           mme_app_send_sgs_eps_detach_indication(
             ue_context_p, ue_context_p->sgs_detach_type);
           evnt.primitive = _SGS_EPS_DETACH_IND;
         } break;
-        /*
-         * Handle Network initiated Implicit IMSI detach towards SGS
-         */
+        // Handle Network initiated Implicit IMSI detach towards SGS
         case EMM_SGS_NW_INITIATED_IMPLICIT_NONEPS_DETACH: {
           ue_context_p->sgs_detach_type =
             SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
@@ -514,9 +503,8 @@ void mme_app_handle_sgs_detach_req(
           break;
       }
       /*
-       * Call the SGS FSM process function to
-       * process the respective message in different state
-       * and update the SGS State based on event
+       * Call the SGS FSM to process the respective message
+       * in different state and update the SGS State based on event
        */
       sgs_fsm_process(&evnt);
     }

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
@@ -303,45 +304,31 @@ func (eptq *EquipmentPortTypeQuery) Select(field string, fields ...string) *Equi
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlAll(ctx context.Context) ([]*EquipmentPortType, error) {
-	rows := &sql.Rows{}
-	selector := eptq.sqlQuery()
-	if unique := eptq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*EquipmentPortType
+		spec  = eptq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &EquipmentPortType{config: eptq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := eptq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, eptq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var epts EquipmentPortTypes
-	if err := epts.FromRows(rows); err != nil {
-		return nil, err
-	}
-	epts.config(eptq.config)
-	return epts, nil
+	return nodes, nil
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := eptq.sqlQuery()
-	unique := []string{equipmentporttype.FieldID}
-	if len(eptq.unique) > 0 {
-		unique = eptq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := eptq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := eptq.querySpec()
+	return sqlgraph.CountNodes(ctx, eptq.driver, spec)
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -350,6 +337,42 @@ func (eptq *EquipmentPortTypeQuery) sqlExist(ctx context.Context) (bool, error) 
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (eptq *EquipmentPortTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmentporttype.Table,
+			Columns: equipmentporttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmentporttype.FieldID,
+			},
+		},
+		From:   eptq.sql,
+		Unique: true,
+	}
+	if ps := eptq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := eptq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := eptq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := eptq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (eptq *EquipmentPortTypeQuery) sqlQuery() *sql.Selector {
@@ -623,7 +646,7 @@ func (epts *EquipmentPortTypeSelect) sqlScan(ctx context.Context, v interface{})
 }
 
 func (epts *EquipmentPortTypeSelect) sqlQuery() sql.Querier {
-	view := "equipmentporttype_view"
-	return sql.Dialect(epts.driver.Dialect()).
-		Select(epts.fields...).From(epts.sql.As(view))
+	selector := epts.sql
+	selector.Select(selector.Columns(epts.fields...)...)
+	return selector
 }

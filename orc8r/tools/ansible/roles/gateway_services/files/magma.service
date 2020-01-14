@@ -11,6 +11,7 @@ Description=Magma %i service
 Type=simple
 EnvironmentFile=/etc/environment
 ExecStart=/usr/bin/env python3 -m magma.%i.main
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py %i
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=%i

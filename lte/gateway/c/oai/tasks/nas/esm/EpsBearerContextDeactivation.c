@@ -515,11 +515,8 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
           UE_NOT_RESPONDING);
       }
       // Reset is_pdn_disconnect flag
-      if (mme_config.eps_network_feature_support
-            .ims_voice_over_ps_session_in_s1) {
-        if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
-          ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect = false;
-        }
+      if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
+        ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect = false;
       }
 
       /*

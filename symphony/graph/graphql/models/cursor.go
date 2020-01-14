@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package relay
+package models
 
 import (
 	"encoding/base64"
@@ -12,14 +12,6 @@ import (
 
 	"github.com/ugorji/go/codec"
 )
-
-// PageInfo of a connection type.
-type PageInfo struct {
-	HasNextPage     bool   `json:"hasNextPage"`
-	HasPreviousPage bool   `json:"hasPreviousPage"`
-	StartCursor     Cursor `json:"startCursor"`
-	EndCursor       Cursor `json:"endCursor"`
-}
 
 // Cursor of a relay edge type.
 type Cursor struct {

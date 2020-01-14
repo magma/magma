@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
 )
 
 // EquipmentPortDefinition is the model entity for the EquipmentPortDefinition schema.
@@ -34,36 +35,61 @@ type EquipmentPortDefinition struct {
 	VisibilityLabel string `json:"visibility_label,omitempty" gqlgen:"visibleLabel"`
 }
 
-// FromRows scans the sql response data into EquipmentPortDefinition.
-func (epd *EquipmentPortDefinition) FromRows(rows *sql.Rows) error {
-	var scanepd struct {
-		ID              int
-		CreateTime      sql.NullTime
-		UpdateTime      sql.NullTime
-		Name            sql.NullString
-		Index           sql.NullInt64
-		Bandwidth       sql.NullString
-		VisibilityLabel sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPortDefinition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `equipmentportdefinition.Columns`.
-	if err := rows.Scan(
-		&scanepd.ID,
-		&scanepd.CreateTime,
-		&scanepd.UpdateTime,
-		&scanepd.Name,
-		&scanepd.Index,
-		&scanepd.Bandwidth,
-		&scanepd.VisibilityLabel,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPortDefinition fields.
+func (epd *EquipmentPortDefinition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentportdefinition.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	epd.ID = strconv.Itoa(scanepd.ID)
-	epd.CreateTime = scanepd.CreateTime.Time
-	epd.UpdateTime = scanepd.UpdateTime.Time
-	epd.Name = scanepd.Name.String
-	epd.Index = int(scanepd.Index.Int64)
-	epd.Bandwidth = scanepd.Bandwidth.String
-	epd.VisibilityLabel = scanepd.VisibilityLabel.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	epd.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		epd.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		epd.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		epd.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[3])
+	} else if value.Valid {
+		epd.Index = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field bandwidth", values[4])
+	} else if value.Valid {
+		epd.Bandwidth = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field visibility_label", values[5])
+	} else if value.Valid {
+		epd.VisibilityLabel = value.String
+	}
 	return nil
 }
 
@@ -129,18 +155,6 @@ func (epd *EquipmentPortDefinition) id() int {
 
 // EquipmentPortDefinitions is a parsable slice of EquipmentPortDefinition.
 type EquipmentPortDefinitions []*EquipmentPortDefinition
-
-// FromRows scans the sql response data into EquipmentPortDefinitions.
-func (epd *EquipmentPortDefinitions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanepd := &EquipmentPortDefinition{}
-		if err := scanepd.FromRows(rows); err != nil {
-			return err
-		}
-		*epd = append(*epd, scanepd)
-	}
-	return nil
-}
 
 func (epd EquipmentPortDefinitions) config(cfg config) {
 	for _i := range epd {

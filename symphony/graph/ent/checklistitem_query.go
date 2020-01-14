@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
@@ -278,45 +279,31 @@ func (cliq *CheckListItemQuery) Select(field string, fields ...string) *CheckLis
 }
 
 func (cliq *CheckListItemQuery) sqlAll(ctx context.Context) ([]*CheckListItem, error) {
-	rows := &sql.Rows{}
-	selector := cliq.sqlQuery()
-	if unique := cliq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*CheckListItem
+		spec  = cliq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &CheckListItem{config: cliq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := cliq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, cliq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var clis CheckListItems
-	if err := clis.FromRows(rows); err != nil {
-		return nil, err
-	}
-	clis.config(cliq.config)
-	return clis, nil
+	return nodes, nil
 }
 
 func (cliq *CheckListItemQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := cliq.sqlQuery()
-	unique := []string{checklistitem.FieldID}
-	if len(cliq.unique) > 0 {
-		unique = cliq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := cliq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := cliq.querySpec()
+	return sqlgraph.CountNodes(ctx, cliq.driver, spec)
 }
 
 func (cliq *CheckListItemQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -325,6 +312,42 @@ func (cliq *CheckListItemQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (cliq *CheckListItemQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   checklistitem.Table,
+			Columns: checklistitem.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: checklistitem.FieldID,
+			},
+		},
+		From:   cliq.sql,
+		Unique: true,
+	}
+	if ps := cliq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := cliq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := cliq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := cliq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (cliq *CheckListItemQuery) sqlQuery() *sql.Selector {
@@ -598,7 +621,7 @@ func (clis *CheckListItemSelect) sqlScan(ctx context.Context, v interface{}) err
 }
 
 func (clis *CheckListItemSelect) sqlQuery() sql.Querier {
-	view := "checklistitem_view"
-	return sql.Dialect(clis.driver.Dialect()).
-		Select(clis.fields...).From(clis.sql.As(view))
+	selector := clis.sql
+	selector.Select(selector.Columns(clis.fields...)...)
+	return selector
 }

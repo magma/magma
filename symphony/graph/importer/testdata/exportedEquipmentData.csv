@@ -3,3 +3,5 @@
 ,B,EquipType2,BB,Israel,,b2,,,,,,,val2,13
 ,C,EquipType3,CC,Israel,Jerusalem,b3,,,,,,,,
 ,D,EquipType4,,Israel,Jerusalem,b3,,,,,C,pos1,,
+123,E-skip,EquipType4,,Israel,Jerusalem,b3,,,,,C,pos1,,
+,E-skip,EquipType4,,Israel,Jerusalem,b3,,,,,C,pos1,,

@@ -112,6 +112,8 @@ github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymF
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/facebookincubator/ent v0.0.0-20191219111751-762af0817669 h1:UJ+0yzmvLghglpiI2LY4fQEnMCDgmC5VJhdTfcSZfX4=
 github.com/facebookincubator/ent v0.0.0-20191219111751-762af0817669/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
+github.com/facebookincubator/ent v0.0.0-20200112090205-cd366c07e2c1 h1:dbula3PfmHCX9utM/EkrzjBAEffRk6zDzoq2t2eUckQ=
+github.com/facebookincubator/ent v0.0.0-20200112090205-cd366c07e2c1/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fortytw2/leaktest v1.2.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=

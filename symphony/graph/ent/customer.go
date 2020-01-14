@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/customer"
 )
 
 // Customer is the model entity for the Customer schema.
@@ -30,32 +31,49 @@ type Customer struct {
 	ExternalID *string `json:"external_id,omitempty"`
 }
 
-// FromRows scans the sql response data into Customer.
-func (c *Customer) FromRows(rows *sql.Rows) error {
-	var scanc struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
-		ExternalID sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Customer) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `customer.Columns`.
-	if err := rows.Scan(
-		&scanc.ID,
-		&scanc.CreateTime,
-		&scanc.UpdateTime,
-		&scanc.Name,
-		&scanc.ExternalID,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Customer fields.
+func (c *Customer) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(customer.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	c.ID = strconv.Itoa(scanc.ID)
-	c.CreateTime = scanc.CreateTime.Time
-	c.UpdateTime = scanc.UpdateTime.Time
-	c.Name = scanc.Name.String
-	if scanc.ExternalID.Valid {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	c.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		c.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		c.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		c.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field external_id", values[3])
+	} else if value.Valid {
 		c.ExternalID = new(string)
-		*c.ExternalID = scanc.ExternalID.String
+		*c.ExternalID = value.String
 	}
 	return nil
 }
@@ -110,18 +128,6 @@ func (c *Customer) id() int {
 
 // Customers is a parsable slice of Customer.
 type Customers []*Customer
-
-// FromRows scans the sql response data into Customers.
-func (c *Customers) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanc := &Customer{}
-		if err := scanc.FromRows(rows); err != nil {
-			return err
-		}
-		*c = append(*c, scanc)
-	}
-	return nil
-}
 
 func (c Customers) config(cfg config) {
 	for _i := range c {

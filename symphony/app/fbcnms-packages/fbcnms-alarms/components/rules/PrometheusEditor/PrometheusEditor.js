@@ -25,6 +25,7 @@ import {Labels} from '../../prometheus/PromQL';
 import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../Severity';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useForm} from '../../hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertConfig} from '../../AlarmAPIType';
@@ -170,9 +171,26 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   const {apiUtil, isNew, onRuleUpdated, onExit, rule} = props;
   const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [formState, setFormState] = React.useState<FormState>(
-    fromAlertConfig(rule ? rule.rawRule : null),
+
+  /**
+   * after the user types into the form, map back from FormState and
+   * notify the parent component
+   */
+  const handleFormUpdated = React.useCallback(
+    (state: FormState) => {
+      const updatedConfig = toAlertConfig(state);
+      onRuleUpdated({
+        ...rule,
+        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
+      });
+    },
+    [onRuleUpdated, rule],
   );
+
+  const {formState, handleInputChange, updateFormState} = useForm({
+    initialState: fromAlertConfig(rule ? rule.rawRule : null),
+    onFormUpdated: handleFormUpdated,
+  });
 
   const {
     advancedEditorMode,
@@ -190,15 +208,12 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
    */
   const handleEditorBaseChange = React.useCallback(
     editorBaseState => {
-      setFormState({
-        ...formState,
-        ...{
-          ruleName: editorBaseState.name,
-          description: editorBaseState.description,
-        },
+      updateFormState({
+        ruleName: editorBaseState.name,
+        description: editorBaseState.description,
       });
     },
-    [formState, setFormState],
+    [updateFormState],
   );
 
   const saveAlert = async () => {
@@ -231,47 +246,13 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
     }
   };
 
-  /**
-   * Passes the event value to an updater function which returns an update
-   * object to be merged into the form. After the internal form state is
-   * updated, the parent component is notified of the updated AlertConfig
-   */
-  const handleInputChange = React.useCallback(
-    (formUpdate: (val: string) => $Shape<FormState>) => (
-      event: SyntheticInputEvent<HTMLElement>,
-    ) => {
-      const value = event.target.value;
-      const updatedForm = {
-        ...formState,
-        ...formUpdate(value),
-      };
-      setFormState(updatedForm);
-      const updatedConfig = toAlertConfig(updatedForm);
-      onRuleUpdated({
-        ...rule,
-        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
-      });
-    },
-    [formState, onRuleUpdated, rule],
-  );
-
-  // TODO: pull out common functionality between this and handleInputChange
   const updateThresholdExpression = React.useCallback(
     (expression: ThresholdExpression) => {
       setThresholdExpression(expression);
       const stringExpression = thresholdToPromQL(expression);
-      const updatedForm = {
-        ...formState,
-        expression: stringExpression,
-      };
-      setFormState(updatedForm);
-      const updatedConfig = toAlertConfig(updatedForm);
-      onRuleUpdated({
-        ...rule,
-        ...({rawRule: updatedConfig}: $Shape<GenericRule<AlertConfig>>),
-      });
+      updateFormState({expression: stringExpression});
     },
-    [formState, onRuleUpdated, rule, setThresholdExpression],
+    [setThresholdExpression, updateFormState],
   );
 
   const severityOptions = React.useMemo<Array<MenuItemProps>>(

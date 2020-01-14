@@ -134,7 +134,7 @@ describe('<Gateways />', () => {
   });
 
   it('shows prompt when delete is clicked', async () => {
-    MagmaAPIBindings.deleteNetworksByNetworkIdGatewaysByGatewayId.mockResolvedValueOnce(
+    MagmaAPIBindings.deleteLteByNetworkIdGatewaysByGatewayId.mockResolvedValueOnce(
       {},
     );
 
@@ -151,7 +151,7 @@ describe('<Gateways />', () => {
     fireEvent.click(getByText('Confirm'));
     await wait();
     expect(
-      MagmaAPIBindings.deleteNetworksByNetworkIdGatewaysByGatewayId,
+      MagmaAPIBindings.deleteLteByNetworkIdGatewaysByGatewayId,
     ).toHaveBeenCalledTimes(1);
 
     axiosMock.delete.mockClear();
