@@ -80,7 +80,6 @@ class S1ApUtil(object):
         # Maintain a map of UE IDs to IPs
         self._ue_ip_map = {}
 
-
     def cleanup(self):
         """
         Cleanup the dll loaded explicitly so the next run doesn't reuse the
@@ -304,7 +303,6 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
@@ -435,5 +433,3 @@ class SpgwUtil(object):
             sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)
-
-

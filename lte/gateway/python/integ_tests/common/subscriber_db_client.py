@@ -15,7 +15,7 @@ import base64
 import grpc
 from orc8r.protos.common_pb2 import Void
 from lte.protos.subscriberdb_pb2 import LTESubscription, SubscriberData, \
-    SubscriberState, SubscriberID, Non3GPPUserProfile, APNConfiguration
+    SubscriberState, SubscriberID, Non3GPPUserProfile
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
@@ -137,6 +137,9 @@ class SubscriberDbGrpc(SubscriberDbClient):
 
         Args:
             sid (str): string representation of the subscriber id
+            apn : APN/s names
+            qci : qci value/s for the APN/s
+            num_apn : number of APN/s to be configures
         Returns:
             subscriber_data (protos.subscriberdb_pb2.SubscriberData):
                 full subscriber information for :sid: in protobuf format.
@@ -194,7 +197,6 @@ class SubscriberDbGrpc(SubscriberDbClient):
         SubscriberDbGrpc._try_to_call(
             lambda: self._subscriber_stub.AddSubscriber(sub_data))
         self._check_invariants()
-
 
     def clean_up(self):
         # Remove all sids

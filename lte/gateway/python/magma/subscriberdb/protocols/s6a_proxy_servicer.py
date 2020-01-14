@@ -14,9 +14,6 @@ from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 
 from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
-from magma.subscriberdb.store.cached_store import CachedStore
-
-from lte.protos.subscriberdb_pb2 import Non3GPPUserProfile
 
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     """
@@ -117,7 +114,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
 
-        num_apn = len(subs.non_3gpp.apn_config)
+        num_apn = len(sub_data.non_3gpp.apn_config)
         for i in range(num_apn):
             apn_ims = ula.apn.add()
             # Context id 0 is assigned to oai.ipv4 apn. So start from 1
