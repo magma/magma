@@ -15,6 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	parentsAHeader = []string{"Parent Equipment (3) A", "Position (3) A", "Parent Equipment (2) A", "Position (2) A", "Parent Equipment A", "Equipment Position A"}
+	parentsBHeader = []string{"Parent Equipment (3) B", "Position (3) B", "Parent Equipment (2) B", "Position (2) B", "Parent Equipment B", "Equipment Position B"}
+)
+
 func TestLinkTitleInputValidation(t *testing.T) {
 	r, err := newImporterTestResolver(t)
 	require.NoError(t, err)
@@ -26,9 +31,10 @@ func TestLinkTitleInputValidation(t *testing.T) {
 
 	err = importer.inputValidationsLinks(ctx, NewImportHeader([]string{"aa"}, ImportEntityLink))
 	require.Error(t, err)
-	err = importer.inputValidationsLinks(ctx, NewImportHeader(fixedFirstLineLink[:5], ImportEntityLink))
+	err = importer.inputValidationsLinks(ctx, NewImportHeader(fixedFirstPortLink, ImportEntityLink))
 	require.Error(t, err)
-	err = importer.inputValidationsLinks(ctx, NewImportHeader(fixedFirstLineLink, ImportEntityLink))
+	minimalRow := append(append(append(append(fixedFirstPortLink, parentsAHeader...), fixedSecondPortLink...), parentsBHeader...), "Service Names")
+	err = importer.inputValidationsLinks(ctx, NewImportHeader(minimalRow, ImportEntityLink))
 	require.NoError(t, err)
 }
 
@@ -42,19 +48,22 @@ func TestGeneralLinksImport(t *testing.T) {
 	ids := preparePortTypeData(ctx, t, *r)
 
 	def1 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef1)
-	typ1 := def1.QueryEquipmentPortType().OnlyX(ctx)
 	equip2 := r.client.Equipment.GetX(ctx, ids.equipParent2ID)
 	etyp1 := equip2.QueryType().OnlyX(ctx)
 
 	def2 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef2)
-	typ2 := def2.QueryEquipmentPortType().OnlyX(ctx)
 	childEquip := r.client.Equipment.GetX(ctx, ids.equipChildID)
 	etyp2 := childEquip.QueryType().OnlyX(ctx)
 	var (
-		row1 = []string{ids.linkID, ids.parentPortInst2, def1.Name, typ1.Name, equip2.ID, equip2.Name, etyp1.Name, ids.childPortInst1, def2.Name, typ2.Name, childEquip.ID, childEquip.Name, etyp2.Name, "", "44", "2019-01-01", "FALSE"}
+		row1 = []string{ids.linkID, def1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip, posName, "", "44", "2019-01-01", "FALSE"}
 	)
+	firstPortHeader := append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...)
+	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
 
-	header := append(fixedFirstLineLink, []string{propNameInt, propNameDate, propNameBool}...)
+	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
+	//		append(append(append(append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...), fixedSecondPortLink...), parentsBHeader...), "Service Names")
+
+	//header := append(minimalRow, []string{propNameInt, propNameDate, propNameBool}...)
 	fl := NewImportHeader(header, ImportEntityLink)
 	err = importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)

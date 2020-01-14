@@ -36,10 +36,10 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 			lines[0] = line
 		} else {
 			newLine = line
-			if line[2] == portName1 {
-				newLine[14] = "new-prop-value"
-				newLine[15] = "true"
-				newLine[16] = "10"
+			if line[1] == portName1 {
+				newLine[26] = "new-prop-value"
+				newLine[27] = "true"
+				newLine[28] = "10"
 			}
 			lines[i] = newLine
 		}
@@ -55,7 +55,6 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 }
 
 func TestImportAndEditLinks(t *testing.T) {
-	t.Skip("skipping until supporting import - T60494923")
 	r, err := newExporterTestResolver(t)
 	require.NoError(t, err)
 	log := r.exporter.log
@@ -74,11 +73,11 @@ func TestImportAndEditLinks(t *testing.T) {
 		for _, prop := range props {
 			switch prop.QueryType().OnlyX(ctx).Name {
 			case propNameInt:
-				require.Equal(t, prop.IntVal, 10)
+				require.Equal(t, 10, prop.IntVal)
 			case propNameBool:
-				require.Equal(t, prop.BoolVal, true)
+				require.Equal(t, true, prop.BoolVal)
 			case propNameStr:
-				require.Equal(t, prop.StringVal, "new-prop-value")
+				require.Equal(t, "new-prop-value", prop.StringVal)
 			}
 		}
 	}

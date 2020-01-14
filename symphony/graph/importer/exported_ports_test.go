@@ -28,6 +28,7 @@ const (
 	portName1   = "port1"
 	portName2   = "port2"
 	propNameStr = "propNameStr"
+	posName     = "pos"
 
 	propNameDate = "propNameDate"
 	propNameBool = "propNameBool"
@@ -83,7 +84,7 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		PortTypeID: &ptyp.ID,
 	}
 	pos1 := models.EquipmentPositionInput{
-		Name: "pos",
+		Name: posName,
 	}
 	etype, _ := r.client.EquipmentType.Get(ctx, ids.equipTypeID)
 	etype, _ = mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
@@ -274,7 +275,7 @@ func TestGeneralPortsImport(t *testing.T) {
 		row1           = []string{ids.parentPortInst1, def1.Name, typ1.Name, equip1.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", "", "", strings.Join([]string{svcName, svc2Name}, ";"), svc3Name, "updateVal", "54"}
 		row2           = []string{ids.parentPortInst2, def1.Name, typ1.Name, equip2.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", ids.childPortInst1, def2.Name, childEquip.ID, childEquip.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc3Name, svc4Name}, ";"), "updateVal2", "55", "", ""}
-		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, "pos", ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
+		row3 = []string{ids.childPortInst1, def2.Name, typ2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", equip1.Name, posName, ids.parentPortInst2, def1.Name, equip2.ID, equip2.Name,
 			strings.Join([]string{svcName, svc2Name}, ";"), strings.Join([]string{svc2Name, svc3Name}, ";"), "", "", "1988-01-01", "true"}
 	)
 

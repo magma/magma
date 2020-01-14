@@ -7,8 +7,6 @@ package importer
 import (
 	"context"
 
-	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent/service"
 
 	"github.com/facebookincubator/symphony/graph/ent"
@@ -99,7 +97,7 @@ func (l ImportRecord) ID() string {
 }
 
 func (l ImportRecord) Name() string {
-	return l.line[1]
+	return l.line[l.Header().NameIdx()]
 }
 
 func (l ImportRecord) TypeName() string {
@@ -107,17 +105,11 @@ func (l ImportRecord) TypeName() string {
 }
 
 func (l ImportRecord) PortEquipmentName() string {
-	if l.entity() == ImportEntityPort {
-		return l.line[3]
-	}
-	return ""
+	return l.line[l.Header().PortEquipmentNameIdx()]
 }
 
 func (l ImportRecord) PortEquipmentTypeName() string {
-	if l.entity() == ImportEntityPort {
-		return l.line[4]
-	}
-	return ""
+	return l.line[l.Header().PortEquipmentTypeNameIdx()]
 }
 
 func (l ImportRecord) ExternalID() string {
@@ -185,32 +177,13 @@ func (l ImportRecord) Status() string {
 
 // PortData returns the relevant info for the port from the CSV
 func (l ImportRecord) PortData(side *string) (*PortData, error) {
-	switch l.title.entity {
-	case ImportEntityPort:
+	if l.entity() == ImportEntityPort {
 		return &PortData{
 			ID:                l.ID(),
 			Name:              l.Name(),
 			TypeName:          l.TypeName(),
 			EquipmentName:     l.PortEquipmentName(),
 			EquipmentTypeName: l.PortEquipmentTypeName(),
-		}, nil
-	case ImportEntityLink:
-		var idIndex int
-		switch *side {
-		case "A":
-			idIndex = l.title.PortAIDIdx()
-		case "B":
-			idIndex = l.title.PortBIDIdx()
-		default:
-			return nil, errors.New("missing port side")
-		}
-		return &PortData{
-			ID:                l.line[idIndex],
-			Name:              l.line[idIndex+1],
-			TypeName:          l.line[idIndex+2],
-			EquipmentID:       pointer.ToString(l.line[idIndex+3]),
-			EquipmentName:     l.line[idIndex+4],
-			EquipmentTypeName: l.line[idIndex+5],
 		}, nil
 	}
 	return nil, errors.New("unsupported entity for link port Data")
@@ -224,4 +197,12 @@ func (l ImportRecord) ConsumerPortsServices() string {
 // ProviderPortsServices is the list of services where the port is their provider endpoint
 func (l ImportRecord) ProviderPortsServices() string {
 	return l.line[l.title.ProviderPortsServicesIdx()]
+}
+
+func (l ImportRecord) LinkGetTwoPortsSlices() [][]string {
+	if l.entity() == ImportEntityLink {
+		idxA, idxB := l.Header().LinkGetTwoPortsRange()
+		return [][]string{l.line[idxA[0]:idxA[1]], l.line[idxB[0]:idxB[1]]}
+	}
+	return nil
 }
