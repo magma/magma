@@ -193,8 +193,8 @@ touch metricsd.yml
   - <span class="hljs-string">"http://orc8r-prometheus-cache:9091/metrics"</span>
 
 <span class="hljs-symbol">alertmanagerApiURL:</span> <span class="hljs-string">"http://orc8r-alertmanager:9093/api/v2/alerts"</span>
-<span class="hljs-symbol">prometheusConfigServiceURL:</span> <span class="hljs-string">"http://orc8r-config-manager:9100"</span>
-<span class="hljs-symbol">alertmanagerConfigServiceURL:</span> <span class="hljs-string">"http://orc8r-config-manager:9101"</span>
+<span class="hljs-symbol">prometheusConfigServiceURL:</span> <span class="hljs-string">"http://orc8r-prometheus-configurer:9100"</span>
+<span class="hljs-symbol">alertmanagerConfigServiceURL:</span> <span class="hljs-string">"http://orc8r-alertmanager-configurer:9101"</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="initial-helm-deploy"></a><a href="#initial-helm-deploy" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Initial Helm Deploy</h2>
 <p>Copy your secrets into the Helm subchart where you cloned Magma:</p>
@@ -276,10 +276,18 @@ with the correct values for your docker registry and Orchestrator hostname:</p>
     <span class="hljs-attr">nodeSelector:</span>
       <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
 
-  <span class="hljs-attr">configmanager:</span>
+  <span class="hljs-attr">alertmanagerConfigurer:</span>
     <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
     <span class="hljs-attr">image:</span>
-      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/config-manager</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/alertmanager-configurer</span>
+      <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
+    <span class="hljs-attr">nodeSelector:</span>
+      <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
+      
+  <span class="hljs-attr">prometheusConfigurer:</span>
+    <span class="hljs-attr">create:</span> <span class="hljs-literal">true</span>
+    <span class="hljs-attr">image:</span>
+      <span class="hljs-attr">repository:</span> <span class="hljs-string">YOUR-DOCKER-REGISTRY/prometheus-configurer</span>
       <span class="hljs-attr">tag:</span> <span class="hljs-string">YOUR-CONTAINER-TAG</span>
     <span class="hljs-attr">nodeSelector:</span>
       <span class="hljs-attr">worker-type:</span> <span class="hljs-string">metrics</span>
@@ -353,16 +361,17 @@ helm install --name orc8r --namespace magma . --values=PATH_TO_VALS/vals.yml
 <p>First, find a <code>orc8r-controller-</code> pod in k8s:</p>
 <pre><code class="hljs css language-bash">$ kubectl -n magma get pods
 
-NAME                                      READY   STATUS    RESTARTS   AGE
-orc8r-configmanager-896d784bc-chqr7       1/1     Running   0          X
-orc8r-controller-7757567bf5-cm4wn         1/1     Running   0          X
-orc8r-controller-7757567bf5-jshpv         1/1     Running   0          X
-orc8r-alertmanager-c8dc7cdb5-crzpl        1/1     Running   0          X
-orc8r-grafana-6446b97885-ck6g8            1/1     Running   0          X
-orc8r-prometheus-6c67bcc9d8-6lx22         1/1     Running   0          X
-orc8r-prometheus-cache-6bf7648446-9t9hx   1/1     Running   0          X
-orc8r-proxy-57cf989fcc-cg54z              1/1     Running   0          X
-orc8r-proxy-57cf989fcc-xn2cw              1/1     Running   0          X
+NAME                                              READY   STATUS    RESTARTS   AGE
+orc8r-alertmanager-configurer-c8dc7cdb5-crzpl     1/1     Running   0          X
+orc8r-controller-7757567bf5-cm4wn                 1/1     Running   0          X
+orc8r-controller-7757567bf5-jshpv                 1/1     Running   0          X
+orc8r-alertmanager-c8dc7cdb5-crzpl                1/1     Running   0          X
+orc8r-grafana-6446b97885-ck6g8                    1/1     Running   0          X
+orc8r-prometheus-6c67bcc9d8-6lx22                 1/1     Running   0          X
+orc8r-prometheus-cache-6bf7648446-9t9hx           1/1     Running   0          X
+orc8r-prometheus-configurer-896d784bc-chqr7       1/1     Running   0          X
+orc8r-proxy-57cf989fcc-cg54z                      1/1     Running   0          X
+orc8r-proxy-57cf989fcc-xn2cw                      1/1     Running   0          X
 </code></pre>
 <p>Then:</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
