@@ -84,6 +84,8 @@ type ResolverRoot interface {
 type DirectiveRoot struct {
 	Length func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
 
+	Range func(ctx context.Context, obj interface{}, next graphql.Resolver, min *float64, max *float64) (res interface{}, err error)
+
 	UniqueField func(ctx context.Context, obj interface{}, next graphql.Resolver, typ string, field string) (res interface{}, err error)
 }
 
@@ -6345,6 +6347,12 @@ directive @length(
   max: Int
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
+# enforces range constraint on numeric value
+directive @range(
+  min: Float
+  max: Float
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 type ProjectType implements Node {
   id: ID!
   name: String! @length(min: 1)
@@ -7417,6 +7425,28 @@ func (ec *executionContext) dir_length_args(ctx context.Context, rawArgs map[str
 	var arg1 *int
 	if tmp, ok := rawArgs["max"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["max"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) dir_range_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *float64
+	if tmp, ok := rawArgs["min"]; ok {
+		arg0, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["min"] = arg0
+	var arg1 *float64
+	if tmp, ok := rawArgs["max"]; ok {
+		arg1, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}

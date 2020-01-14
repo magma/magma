@@ -837,6 +837,12 @@ directive @length(
   max: Int
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
+# enforces range constraint on numeric value
+directive @range(
+  min: Float
+  max: Float
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 type ProjectType implements Node {
   id: ID!
   name: String! @length(min: 1)
