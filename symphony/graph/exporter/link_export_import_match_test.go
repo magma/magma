@@ -55,6 +55,7 @@ func writeModifiedLinksCSV(t *testing.T, r *csv.Reader) (*bytes.Buffer, string) 
 }
 
 func TestImportAndEditLinks(t *testing.T) {
+	t.Skip("skipping until supporting import - T60494923")
 	r, err := newExporterTestResolver(t)
 	require.NoError(t, err)
 	log := r.exporter.log
