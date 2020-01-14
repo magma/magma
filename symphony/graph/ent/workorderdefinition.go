@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 )
 
 // WorkOrderDefinition is the model entity for the WorkOrderDefinition schema.
@@ -28,27 +29,43 @@ type WorkOrderDefinition struct {
 	Index int `json:"index,omitempty"`
 }
 
-// FromRows scans the sql response data into WorkOrderDefinition.
-func (wod *WorkOrderDefinition) FromRows(rows *sql.Rows) error {
-	var scanwod struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Index      sql.NullInt64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*WorkOrderDefinition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullInt64{},
 	}
-	// the order here should be the same as in the `workorderdefinition.Columns`.
-	if err := rows.Scan(
-		&scanwod.ID,
-		&scanwod.CreateTime,
-		&scanwod.UpdateTime,
-		&scanwod.Index,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the WorkOrderDefinition fields.
+func (wod *WorkOrderDefinition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(workorderdefinition.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	wod.ID = strconv.Itoa(scanwod.ID)
-	wod.CreateTime = scanwod.CreateTime.Time
-	wod.UpdateTime = scanwod.UpdateTime.Time
-	wod.Index = int(scanwod.Index.Int64)
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	wod.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		wod.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		wod.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[2])
+	} else if value.Valid {
+		wod.Index = int(value.Int64)
+	}
 	return nil
 }
 
@@ -103,18 +120,6 @@ func (wod *WorkOrderDefinition) id() int {
 
 // WorkOrderDefinitions is a parsable slice of WorkOrderDefinition.
 type WorkOrderDefinitions []*WorkOrderDefinition
-
-// FromRows scans the sql response data into WorkOrderDefinitions.
-func (wod *WorkOrderDefinitions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanwod := &WorkOrderDefinition{}
-		if err := scanwod.FromRows(rows); err != nil {
-			return err
-		}
-		*wod = append(*wod, scanwod)
-	}
-	return nil
-}
 
 func (wod WorkOrderDefinitions) config(cfg config) {
 	for _i := range wod {

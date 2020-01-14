@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9a7a269ba2b87fa44be1bdaeba3f4926
+ * @relayHash 84fba803c4925f2657bf471b985477db
  */
 
 /* eslint-disable */
@@ -100,6 +100,14 @@ fragment ProjectDetails_project on Project {
     longitudeValue
     rangeFromValue
     rangeToValue
+    equipmentValue {
+      id
+      name
+    }
+    locationValue {
+      id
+      name
+    }
     propertyType {
       id
       name
@@ -252,7 +260,11 @@ v13 = {
   "name": "rangeToValue",
   "args": null,
   "storageKey": null
-};
+},
+v14 = [
+  (v2/*: any*/),
+  (v3/*: any*/)
+];
 return {
   "kind": "Request",
   "fragment": {
@@ -424,6 +436,26 @@ return {
               {
                 "kind": "LinkedField",
                 "alias": null,
+                "name": "equipmentValue",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Equipment",
+                "plural": false,
+                "selections": (v14/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "locationValue",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Location",
+                "plural": false,
+                "selections": (v14/*: any*/)
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
                 "name": "propertyType",
                 "storageKey": null,
                 "args": null,
@@ -572,7 +604,7 @@ return {
     "operationKind": "query",
     "name": "ProjectCardQuery",
     "id": null,
-    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n",
+    "text": "query ProjectCardQuery(\n  $projectId: ID!\n) {\n  project(id: $projectId) {\n    ...ProjectMoreActionsButton_project\n    ...ProjectDetails_project\n    id\n  }\n}\n\nfragment CommentsBox_comments on Comment {\n  ...CommentsLog_comments\n}\n\nfragment CommentsLog_comments on Comment {\n  id\n  ...TextCommentPost_comment\n}\n\nfragment LocationBreadcrumbsTitle_locationDetails on Location {\n  id\n  name\n  locationType {\n    name\n    id\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n\nfragment ProjectDetails_project on Project {\n  id\n  name\n  description\n  creator\n  type {\n    name\n    id\n  }\n  location {\n    id\n    name\n    latitude\n    longitude\n    locationType {\n      mapType\n      mapZoomLevel\n      id\n    }\n    ...LocationBreadcrumbsTitle_locationDetails\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    equipmentValue {\n      id\n      name\n    }\n    locationValue {\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      isEditable\n      isMandatory\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  workOrders {\n    ...ProjectWorkOrdersList_workOrders\n    id\n  }\n  comments {\n    ...CommentsBox_comments\n    id\n  }\n}\n\nfragment ProjectMoreActionsButton_project on Project {\n  id\n  name\n  numberOfWorkOrders\n}\n\nfragment ProjectWorkOrdersList_workOrders on WorkOrder {\n  id\n  workOrderType {\n    name\n    id\n  }\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  priority\n}\n\nfragment TextCommentPost_comment on Comment {\n  id\n  authorName\n  text\n  createTime\n}\n",
     "metadata": {}
   }
 };

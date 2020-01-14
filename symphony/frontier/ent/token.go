@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent/token"
 )
 
 // Token is the model entity for the Token schema.
@@ -27,27 +28,43 @@ type Token struct {
 	Value string `json:"-"`
 }
 
-// FromRows scans the sql response data into Token.
-func (t *Token) FromRows(rows *sql.Rows) error {
-	var scant struct {
-		ID        int
-		CreatedAt sql.NullTime
-		UpdatedAt sql.NullTime
-		Value     sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Token) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `token.Columns`.
-	if err := rows.Scan(
-		&scant.ID,
-		&scant.CreatedAt,
-		&scant.UpdatedAt,
-		&scant.Value,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Token fields.
+func (t *Token) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(token.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	t.ID = scant.ID
-	t.CreatedAt = scant.CreatedAt.Time
-	t.UpdatedAt = scant.UpdatedAt.Time
-	t.Value = scant.Value.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	t.ID = int(value.Int64)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field created_at", values[0])
+	} else if value.Valid {
+		t.CreatedAt = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field updated_at", values[1])
+	} else if value.Valid {
+		t.UpdatedAt = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field value", values[2])
+	} else if value.Valid {
+		t.Value = value.String
+	}
 	return nil
 }
 
@@ -90,18 +107,6 @@ func (t *Token) String() string {
 
 // Tokens is a parsable slice of Token.
 type Tokens []*Token
-
-// FromRows scans the sql response data into Tokens.
-func (t *Tokens) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scant := &Token{}
-		if err := scant.FromRows(rows); err != nil {
-			return err
-		}
-		*t = append(*t, scant)
-	}
-	return nil
-}
 
 func (t Tokens) config(cfg config) {
 	for _i := range t {

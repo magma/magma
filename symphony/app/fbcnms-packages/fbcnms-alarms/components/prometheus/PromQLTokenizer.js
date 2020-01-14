@@ -42,8 +42,8 @@ const lexerRules = {
   }, // matches floating point and integers
   aggOp: AGGREGATION_OPERATORS,
   functionName: FUNCTION_NAMES,
-  labelOp: LABEL_OPERATORS,
   binOp: BINARY_OPERATORS,
+  labelOp: LABEL_OPERATORS,
   word: new RegExp(`\\w+`),
   string: {match: new RegExp(`"[^"]*"`), value: s => s.slice(1, -1)}, // strip quotes from string
 };

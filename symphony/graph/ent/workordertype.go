@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // WorkOrderType is the model entity for the WorkOrderType schema.
@@ -30,30 +31,49 @@ type WorkOrderType struct {
 	Description string `json:"description,omitempty"`
 }
 
-// FromRows scans the sql response data into WorkOrderType.
-func (wot *WorkOrderType) FromRows(rows *sql.Rows) error {
-	var scanwot struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		Description sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*WorkOrderType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `workordertype.Columns`.
-	if err := rows.Scan(
-		&scanwot.ID,
-		&scanwot.CreateTime,
-		&scanwot.UpdateTime,
-		&scanwot.Name,
-		&scanwot.Description,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the WorkOrderType fields.
+func (wot *WorkOrderType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(workordertype.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	wot.ID = strconv.Itoa(scanwot.ID)
-	wot.CreateTime = scanwot.CreateTime.Time
-	wot.UpdateTime = scanwot.UpdateTime.Time
-	wot.Name = scanwot.Name.String
-	wot.Description = scanwot.Description.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	wot.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		wot.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		wot.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		wot.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[3])
+	} else if value.Valid {
+		wot.Description = value.String
+	}
 	return nil
 }
 
@@ -120,18 +140,6 @@ func (wot *WorkOrderType) id() int {
 
 // WorkOrderTypes is a parsable slice of WorkOrderType.
 type WorkOrderTypes []*WorkOrderType
-
-// FromRows scans the sql response data into WorkOrderTypes.
-func (wot *WorkOrderTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanwot := &WorkOrderType{}
-		if err := scanwot.FromRows(rows); err != nil {
-			return err
-		}
-		*wot = append(*wot, scanwot)
-	}
-	return nil
-}
 
 func (wot WorkOrderTypes) config(cfg config) {
 	for _i := range wot {

@@ -13,6 +13,8 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 )
@@ -264,45 +266,31 @@ func (alq *AuditLogQuery) Select(field string, fields ...string) *AuditLogSelect
 }
 
 func (alq *AuditLogQuery) sqlAll(ctx context.Context) ([]*AuditLog, error) {
-	rows := &sql.Rows{}
-	selector := alq.sqlQuery()
-	if unique := alq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*AuditLog
+		spec  = alq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &AuditLog{config: alq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := alq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, alq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var als AuditLogs
-	if err := als.FromRows(rows); err != nil {
-		return nil, err
-	}
-	als.config(alq.config)
-	return als, nil
+	return nodes, nil
 }
 
 func (alq *AuditLogQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := alq.sqlQuery()
-	unique := []string{auditlog.FieldID}
-	if len(alq.unique) > 0 {
-		unique = alq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := alq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := alq.querySpec()
+	return sqlgraph.CountNodes(ctx, alq.driver, spec)
 }
 
 func (alq *AuditLogQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +299,42 @@ func (alq *AuditLogQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (alq *AuditLogQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   auditlog.Table,
+			Columns: auditlog.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: auditlog.FieldID,
+			},
+		},
+		From:   alq.sql,
+		Unique: true,
+	}
+	if ps := alq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := alq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := alq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := alq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (alq *AuditLogQuery) sqlQuery() *sql.Selector {
@@ -584,7 +608,7 @@ func (als *AuditLogSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (als *AuditLogSelect) sqlQuery() sql.Querier {
-	view := "auditlog_view"
-	return sql.Dialect(als.driver.Dialect()).
-		Select(als.fields...).From(als.sql.As(view))
+	selector := als.sql
+	selector.Select(selector.Columns(als.fields...)...)
+	return selector
 }

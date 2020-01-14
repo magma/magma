@@ -1191,6 +1191,10 @@ static int _emm_as_encode(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int bytes = 0;
 
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  EMM_GET_BYTE_ALIGNED_LENGTH(length);
   if (msg->header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
     emm_msg_header_t *header = &msg->security_protected.plain.emm.header;
 

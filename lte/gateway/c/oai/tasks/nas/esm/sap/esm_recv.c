@@ -347,9 +347,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         ue_id);
   }
 
-  if (
-    (is_standalone) &&
-    (mme_config.eps_network_feature_support.ims_voice_over_ps_session_in_s1)) {
+  if (is_standalone) {
     mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
     ue_mm_context_t* ue_mm_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       &mme_app_desc_p->mme_ue_contexts, ue_id);
@@ -426,39 +424,11 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     mme_app_send_s11_create_session_req(
       mme_app_desc_p, ue_mm_context_p, pdn_cid);
-    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  } else {
+    mme_app_send_s6a_update_location_req(
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
+    esm_cause = ESM_CAUSE_SUCCESS;
   }
-
-#if ORIGINAL_CODE
-  /*
-   * Execute the PDN connectivity procedure requested by the UE
-   */
-  int pid = esm_proc_pdn_connectivity_request(
-    emm_context,
-    pti,
-    emm_ctx->esm_ctx.esm_proc_data->request_type,
-    &esm_data->apn,
-    esm_data->pdn_type,
-    &esm_data->pdn_addr,
-    &esm_data->qos,
-    &esm_cause);
-
-  if (pid != RETURNerror) {
-    /*
-     * Create local default EPS bearer context
-     */
-    int rc = esm_proc_default_eps_bearer_context(
-      emm_ctx, pid, new_ebi, &esm_data->qos, &esm_cause);
-
-    if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
-    }
-  }
-#else
-  mme_app_send_s6a_update_location_req(
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
-  esm_cause = ESM_CAUSE_SUCCESS;
-#endif
   /*
    * Return the ESM cause value
    */
@@ -537,21 +507,19 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
-  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
-
   /* Send PDN disconnect reject if there is only one PDN connection*/
   if (emm_context->esm_ctx.n_pdns == 1) {
     OAILOG_FUNC_RETURN(
       LOG_NAS_ESM, ESM_CAUSE_LAST_PDN_DISCONNECTION_NOT_ALLOWED);
   }
-  esm_data->pti = pti;
-
   /*
    * Message processing
    */
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
+  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
+  esm_data->pti = pti;
 
   if (ue_mm_context_p
         ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]) {
@@ -585,34 +553,15 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
-  /* If VoLTE is enabled, send ITTI message to MME APP
-   * MME APP will trigger Delete session towards SGW
-   * to release the session
-   */
-  if (mme_config.eps_network_feature_support
-        .ims_voice_over_ps_session_in_s1) {
-    OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-SAP   - Sending PDN Disconnect Request message "
-      "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
-      ue_mm_context_p->mme_ue_s1ap_id,
-      pid,
-      msg->linkedepsbeareridentity);
-    mme_app_send_delete_session_request(
-      ue_mm_context_p, msg->linkedepsbeareridentity, pid);
-    OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
-  }
-
-  /*
-   * Release the associated default EPS bearer context
-   */
-  int bid = 0;
-  int rc = esm_proc_eps_bearer_context_deactivate(
-    emm_context, false, msg->linkedepsbeareridentity, &pid, &bid, &esm_cause);
-
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
-  }
+  OAILOG_INFO(
+    LOG_NAS_ESM,
+    "ESM-SAP   - Sending Delete session req message "
+    "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
+    ue_mm_context_p->mme_ue_s1ap_id,
+    pid,
+    msg->linkedepsbeareridentity);
+  mme_app_send_delete_session_request(
+    ue_mm_context_p, msg->linkedepsbeareridentity, pid);
 
   /*
    * Return the ESM cause value

@@ -136,7 +136,9 @@ export default function AddEditReceiver(props: Props) {
       isNew={isNew}
       onSave={handleSave}
       onExit={onExit}
-      data-testid="add-edit-receiver">
+      data-testid="add-edit-receiver"
+      title={receiver?.name || 'New Receiver'}
+      description="Configure channels to notify when an alert fires">
       <Grid item>
         <TextField
           required

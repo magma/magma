@@ -18,6 +18,8 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
+
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"go.uber.org/zap"
@@ -139,9 +141,12 @@ func (r mutationResolver) AddWorkOrder(
 	if err != nil {
 		return nil, errors.Wrap(err, "creating work order")
 	}
-	if _, err := r.AddProperties(
-		ctx, input.Properties,
-		func(b *ent.PropertyCreate) { b.SetWorkOrderID(wo.ID) },
+	if _, err := r.AddProperties(input.Properties,
+		resolverutil.AddPropertyArgs{
+			Context:    ctx,
+			EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrderID(wo.ID) },
+			IsTemplate: pointer.ToBool(true),
+		},
 	); err != nil {
 		return nil, errors.Wrap(err, "creating work order properties")
 	}
@@ -207,10 +212,13 @@ func (r mutationResolver) EditWorkOrder(
 			edited = append(edited, input)
 		}
 	}
-	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetWorkOrderID(input.ID)
-		}); err != nil {
+	if _, err := r.AddProperties(added,
+		resolverutil.AddPropertyArgs{
+			Context:    ctx,
+			EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrderID(input.ID) },
+			IsTemplate: pointer.ToBool(true),
+		},
+	); err != nil {
 		return nil, err
 	}
 	for _, input := range edited {

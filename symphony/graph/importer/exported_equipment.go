@@ -6,6 +6,7 @@ package importer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,6 +29,8 @@ const minimalEquipmentLineLength = 9
 func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := m.log.For(ctx)
+	var err error
+	nextLineToSkipIndex := -1
 	client := m.ClientFrom(ctx)
 
 	log.Debug("Exported Equipment - started")
@@ -37,7 +40,23 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	count, numRows := 0, 0
+	err = r.ParseForm()
+	if err != nil {
+		errorReturn(w, "can't parse form", log, err)
+	}
+	var skipLines []int
+	arg := r.FormValue("skip_lines")
+	if arg != "" {
+		err = json.Unmarshal([]byte(arg), &skipLines)
+		if err != nil {
+			errorReturn(w, "can't parse skipped lines", log, err)
+		}
+	}
 
+	if len(skipLines) > 0 {
+		skipLines = sortSlice(skipLines, true)
+		nextLineToSkipIndex = 0
+	}
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
 		importHeader := NewImportHeader(first, ImportEntityEquipment)
@@ -75,6 +94,11 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 				continue
 			}
 			numRows++
+			if shouldSkipLine(skipLines, numRows, nextLineToSkipIndex) {
+				log.Warn("skipping line", zap.Error(err), zap.Int("line_number", numRows))
+				nextLineToSkipIndex++
+				continue
+			}
 			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
 			name := importLine.Name()
 			equipTypName := importLine.TypeName()
@@ -165,7 +189,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 	}
 	log.Debug("Exported Equipment - Done")
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows)
+	err = writeSuccessMessage(w, count, numRows)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/servicetype"
 )
 
 // ServiceType is the model entity for the ServiceType schema.
@@ -30,30 +31,49 @@ type ServiceType struct {
 	HasCustomer bool `json:"has_customer,omitempty"`
 }
 
-// FromRows scans the sql response data into ServiceType.
-func (st *ServiceType) FromRows(rows *sql.Rows) error {
-	var scanst struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Name        sql.NullString
-		HasCustomer sql.NullBool
+// scanValues returns the types for scanning values from sql.Rows.
+func (*ServiceType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullBool{},
 	}
-	// the order here should be the same as in the `servicetype.Columns`.
-	if err := rows.Scan(
-		&scanst.ID,
-		&scanst.CreateTime,
-		&scanst.UpdateTime,
-		&scanst.Name,
-		&scanst.HasCustomer,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the ServiceType fields.
+func (st *ServiceType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(servicetype.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	st.ID = strconv.Itoa(scanst.ID)
-	st.CreateTime = scanst.CreateTime.Time
-	st.UpdateTime = scanst.UpdateTime.Time
-	st.Name = scanst.Name.String
-	st.HasCustomer = scanst.HasCustomer.Bool
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	st.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		st.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		st.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		st.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field has_customer", values[3])
+	} else if value.Valid {
+		st.HasCustomer = value.Bool
+	}
 	return nil
 }
 
@@ -110,18 +130,6 @@ func (st *ServiceType) id() int {
 
 // ServiceTypes is a parsable slice of ServiceType.
 type ServiceTypes []*ServiceType
-
-// FromRows scans the sql response data into ServiceTypes.
-func (st *ServiceTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanst := &ServiceType{}
-		if err := scanst.FromRows(rows); err != nil {
-			return err
-		}
-		*st = append(*st, scanst)
-	}
-	return nil
-}
 
 func (st ServiceTypes) config(cfg config) {
 	for _i := range st {

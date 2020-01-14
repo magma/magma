@@ -198,9 +198,8 @@ function userMiddleware(options: Options): express.Router {
           'email',
           'networkIDs',
           'password',
-          'superUser',
+          'role',
           'tabs',
-          'readOnly',
         ];
         let userProperties = await getPropsToUpdate(
           allowedProps,
@@ -242,13 +241,7 @@ function userMiddleware(options: Options): express.Router {
         }
 
         // Create object to pass into update()
-        const allowedProps = [
-          'networkIDs',
-          'password',
-          'superUser',
-          'tabs',
-          'readOnly',
-        ];
+        const allowedProps = ['networkIDs', 'password', 'role', 'tabs'];
 
         const userProperties = await getPropsToUpdate(
           allowedProps,

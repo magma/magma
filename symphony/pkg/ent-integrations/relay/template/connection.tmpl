@@ -1,0 +1,148 @@
+{{ define "connection" }}
+{{ template "header" $ }}
+
+import (
+    "github.com/ugorji/go/codec"
+)
+
+// PageInfo of a connection type.
+type PageInfo struct {
+    HasNextPage     bool    `json:"hasNextPage"`
+    HasPreviousPage bool    `json:"hasPreviousPage"`
+    StartCursor     *Cursor `json:"startCursor"`
+    EndCursor       *Cursor `json:"endCursor"`
+}
+
+// Cursor of an edge type.
+type Cursor struct {
+    ID {{ $.IDType }}
+}
+
+// ErrInvalidPagination error is returned when paginating with invalid parameters.
+var ErrInvalidPagination = errors.New("ent: invalid pagination parameters")
+
+var quote = []byte(`"`)
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (c Cursor) MarshalGQL(w io.Writer) {
+    w.Write(quote)
+    defer w.Write(quote)
+    wc := base64.NewEncoder(base64.StdEncoding, w)
+    defer wc.Close()
+    _ = codec.NewEncoder(wc, &codec.MsgpackHandle{}).Encode(c)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (c *Cursor) UnmarshalGQL(v interface{}) error {
+    s, ok := v.(string)
+    if !ok {
+        return fmt.Errorf("%T is not a string", v)
+    }
+    if err := codec.NewDecoder(
+        base64.NewDecoder(
+            base64.StdEncoding,
+            strings.NewReader(s),
+        ),
+        &codec.MsgpackHandle{},
+    ).Decode(c); err != nil {
+        return fmt.Errorf("decode cursor: %w", err)
+    }
+    return nil
+}
+
+{{ range $node := $.Nodes -}}
+{{ $edge := print $node.Name "Edge" -}}
+// {{ $edge }} is the edge representation of {{ $node.Name }}.
+type {{ $edge }} struct {
+    Node *{{ $node.Name }} `json:"node"`
+    Cursor *Cursor         `json:"cursor"`
+}
+
+{{ $conn := print $node.Name "Connection" -}}
+// {{ $conn }} is the connection containing edges to {{ $node.Name }}.
+type {{ $conn }} struct {
+    Edges []*{{ $edge }} `json:"edges"`
+    PageInfo *PageInfo   `json:"pageInfo"`
+}
+
+func new{{ $conn }}() *{{ $conn }} {
+    return &{{ $conn }}{
+        Edges: []*{{ $edge }}{},
+        PageInfo: &PageInfo{},
+    }
+}
+
+{{ $query := print $node.Name "Query" -}}
+{{ $receiver := $node.Receiver -}}
+{{ $pkg := $node.Package -}}
+// Paginate executes the query and returns a relay based cursor connection to {{ $node.Name }}.
+func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*{{ $conn }}, error) {
+    if first != nil && last != nil {
+        return nil, ErrInvalidPagination
+    }
+    if first != nil {
+        if *first == 0 {
+            return new{{ $conn }}(), nil
+        } else if *first < 0 {
+            return nil, ErrInvalidPagination
+        }
+    }
+    if last != nil {
+        if *last == 0 {
+            return new{{ $conn }}(), nil
+        } else if *last < 0 {
+            return nil, ErrInvalidPagination
+        }
+    }
+
+    if after != nil {
+        {{ $receiver }} = {{ $receiver }}.Where({{ $pkg }}.IDGT(after.ID))
+    }
+    if before != nil {
+        {{ $receiver }} = {{ $receiver }}.Where({{ $pkg }}.IDLT(before.ID))
+    }
+    if first != nil {
+        {{ $receiver }} = {{ $receiver }}.Order(Asc({{ $pkg }}.FieldID)).Limit(*first + 1)
+    }
+    if last != nil {
+        {{ $receiver }} = {{ $receiver }}.Order(Desc({{ $pkg }}.FieldID)).Limit(*last + 1)
+    }
+
+    nodes, err := {{ $receiver }}.All(ctx)
+    if err != nil || len(nodes) == 0 {
+        return new{{ $conn }}(), err
+    }
+    if last != nil {
+        for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+            nodes[left], nodes[right] = nodes[right], nodes[left]
+        }
+    }
+
+    info := &PageInfo{}
+    if first != nil && len(nodes) > *first {
+        info.HasNextPage = true
+        nodes = nodes[:len(nodes)-1]
+    } else if last != nil && len(nodes) > *last {
+        info.HasPreviousPage = true
+        nodes = nodes[1:]
+    }
+    edges := make([]*{{ $edge }}, len(nodes))
+    for i, node := range nodes {
+        edges[i] = &{{ $edge }}{
+            Node: node,
+            Cursor: &Cursor{
+                ID: node.ID,
+            },
+        }
+    }
+    info.StartCursor = edges[0].Cursor
+    info.EndCursor = edges[len(edges)-1].Cursor
+
+    return &{{ $conn }}{
+        Edges: edges,
+        PageInfo: info,
+    }, nil
+}
+
+{{ end }}
+{{ end }}

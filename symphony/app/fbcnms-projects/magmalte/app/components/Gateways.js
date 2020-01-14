@@ -218,7 +218,7 @@ class Gateways extends React.Component<Props, State> {
         if (!confirmed) {
           return;
         }
-        MagmaV1API.deleteNetworksByNetworkIdGatewaysByGatewayId({
+        MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({
           networkId: nullthrows(match.params.networkId),
           gatewayId: gateway.logicalID,
         }).then(() =>

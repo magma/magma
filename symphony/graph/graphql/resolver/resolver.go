@@ -166,14 +166,6 @@ func (resolver) ProjectType() generated.ProjectTypeResolver {
 	return projectTypeResolver{}
 }
 
-func (resolver) ProjectTypeConnection() generated.ProjectTypeConnectionResolver {
-	return projectTypeResolver{}
-}
-
-func (resolver) CustomerConnection() generated.CustomerConnectionResolver {
-	return customerResolver{}
-}
-
 func (resolver) CheckListItem() generated.CheckListItemResolver {
 	return checkListItemResolver{}
 }

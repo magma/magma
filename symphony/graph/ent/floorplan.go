@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/floorplan"
 )
 
 // FloorPlan is the model entity for the FloorPlan schema.
@@ -28,27 +29,43 @@ type FloorPlan struct {
 	Name string `json:"name,omitempty"`
 }
 
-// FromRows scans the sql response data into FloorPlan.
-func (fp *FloorPlan) FromRows(rows *sql.Rows) error {
-	var scanfp struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*FloorPlan) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `floorplan.Columns`.
-	if err := rows.Scan(
-		&scanfp.ID,
-		&scanfp.CreateTime,
-		&scanfp.UpdateTime,
-		&scanfp.Name,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the FloorPlan fields.
+func (fp *FloorPlan) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(floorplan.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	fp.ID = strconv.Itoa(scanfp.ID)
-	fp.CreateTime = scanfp.CreateTime.Time
-	fp.UpdateTime = scanfp.UpdateTime.Time
-	fp.Name = scanfp.Name.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	fp.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		fp.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		fp.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		fp.Name = value.String
+	}
 	return nil
 }
 
@@ -113,18 +130,6 @@ func (fp *FloorPlan) id() int {
 
 // FloorPlans is a parsable slice of FloorPlan.
 type FloorPlans []*FloorPlan
-
-// FromRows scans the sql response data into FloorPlans.
-func (fp *FloorPlans) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanfp := &FloorPlan{}
-		if err := scanfp.FromRows(rows); err != nil {
-			return err
-		}
-		*fp = append(*fp, scanfp)
-	}
-	return nil
-}
 
 func (fp FloorPlans) config(cfg config) {
 	for _i := range fp {

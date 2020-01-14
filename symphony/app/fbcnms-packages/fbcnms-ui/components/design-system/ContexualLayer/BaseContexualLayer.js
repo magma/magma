@@ -16,6 +16,7 @@ import {useCallback, useLayoutEffect, useRef, useState} from 'react';
 const useStyles = makeStyles({
   root: {
     position: 'absolute',
+    zIndex: 1400,
   },
 });
 

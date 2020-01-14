@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/service"
@@ -139,107 +140,122 @@ func (seu *ServiceEndpointUpdate) ExecX(ctx context.Context) {
 }
 
 func (seu *ServiceEndpointUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(seu.driver.Dialect())
-		selector = builder.Select(serviceendpoint.FieldID).From(builder.Table(serviceendpoint.Table))
-	)
-	for _, p := range seu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   serviceendpoint.Table,
+			Columns: serviceendpoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: serviceendpoint.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = seu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := seu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := seu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(serviceendpoint.Table)
-	)
-	updater = updater.Where(sql.InInts(serviceendpoint.FieldID, ids...))
 	if value := seu.update_time; value != nil {
-		updater.Set(serviceendpoint.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: serviceendpoint.FieldUpdateTime,
+		})
 	}
 	if value := seu.role; value != nil {
-		updater.Set(serviceendpoint.FieldRole, *value)
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: serviceendpoint.FieldRole,
+		})
 	}
 	if seu.clearedPort {
-		query, args := builder.Update(serviceendpoint.PortTable).
-			SetNull(serviceendpoint.PortColumn).
-			Where(sql.InInts(equipmentport.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.PortTable,
+			Columns: []string{serviceendpoint.PortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(seu.port) > 0 {
-		for eid := range seu.port {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(serviceendpoint.PortTable).
-				Set(serviceendpoint.PortColumn, eid).
-				Where(sql.InInts(serviceendpoint.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := seu.port; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.PortTable,
+			Columns: []string{serviceendpoint.PortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if seu.clearedService {
-		query, args := builder.Update(serviceendpoint.ServiceTable).
-			SetNull(serviceendpoint.ServiceColumn).
-			Where(sql.InInts(service.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.ServiceTable,
+			Columns: []string{serviceendpoint.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(seu.service) > 0 {
-		for eid := range seu.service {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(serviceendpoint.ServiceTable).
-				Set(serviceendpoint.ServiceColumn, eid).
-				Where(sql.InInts(serviceendpoint.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := seu.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.ServiceTable,
+			Columns: []string{serviceendpoint.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, seu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // ServiceEndpointUpdateOne is the builder for updating a single ServiceEndpoint entity.
@@ -355,109 +371,116 @@ func (seuo *ServiceEndpointUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceEndpoint, err error) {
-	var (
-		builder  = sql.Dialect(seuo.driver.Dialect())
-		selector = builder.Select(serviceendpoint.Columns...).From(builder.Table(serviceendpoint.Table))
-	)
-	serviceendpoint.ID(seuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = seuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   serviceendpoint.Table,
+			Columns: serviceendpoint.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  seuo.id,
+				Type:   field.TypeString,
+				Column: serviceendpoint.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		se = &ServiceEndpoint{config: seuo.config}
-		if err := se.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into ServiceEndpoint: %v", err)
-		}
-		id = se.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("ServiceEndpoint with id: %v", seuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one ServiceEndpoint with the same id: %v", seuo.id)
-	}
-
-	tx, err := seuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(serviceendpoint.Table)
-	)
-	updater = updater.Where(sql.InInts(serviceendpoint.FieldID, ids...))
 	if value := seuo.update_time; value != nil {
-		updater.Set(serviceendpoint.FieldUpdateTime, *value)
-		se.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: serviceendpoint.FieldUpdateTime,
+		})
 	}
 	if value := seuo.role; value != nil {
-		updater.Set(serviceendpoint.FieldRole, *value)
-		se.Role = *value
-	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: serviceendpoint.FieldRole,
+		})
 	}
 	if seuo.clearedPort {
-		query, args := builder.Update(serviceendpoint.PortTable).
-			SetNull(serviceendpoint.PortColumn).
-			Where(sql.InInts(equipmentport.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.PortTable,
+			Columns: []string{serviceendpoint.PortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(seuo.port) > 0 {
-		for eid := range seuo.port {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(serviceendpoint.PortTable).
-				Set(serviceendpoint.PortColumn, eid).
-				Where(sql.InInts(serviceendpoint.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := seuo.port; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   serviceendpoint.PortTable,
+			Columns: []string{serviceendpoint.PortColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if seuo.clearedService {
-		query, args := builder.Update(serviceendpoint.ServiceTable).
-			SetNull(serviceendpoint.ServiceColumn).
-			Where(sql.InInts(service.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.ServiceTable,
+			Columns: []string{serviceendpoint.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(seuo.service) > 0 {
-		for eid := range seuo.service {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(serviceendpoint.ServiceTable).
-				Set(serviceendpoint.ServiceColumn, eid).
-				Where(sql.InInts(serviceendpoint.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := seuo.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   serviceendpoint.ServiceTable,
+			Columns: []string{serviceendpoint.ServiceColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	se = &ServiceEndpoint{config: seuo.config}
+	spec.Assign = se.assignValues
+	spec.ScanValues = se.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, seuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return se, nil
