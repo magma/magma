@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
 )
 
 // SurveyCellScan is the model entity for the SurveyCellScan schema.
@@ -66,84 +67,157 @@ type SurveyCellScan struct {
 	Longitude float64 `json:"longitude,omitempty"`
 }
 
-// FromRows scans the sql response data into SurveyCellScan.
-func (scs *SurveyCellScan) FromRows(rows *sql.Rows) error {
-	var scanscs struct {
-		ID                    int
-		CreateTime            sql.NullTime
-		UpdateTime            sql.NullTime
-		NetworkType           sql.NullString
-		SignalStrength        sql.NullInt64
-		Timestamp             sql.NullTime
-		BaseStationID         sql.NullString
-		NetworkID             sql.NullString
-		SystemID              sql.NullString
-		CellID                sql.NullString
-		LocationAreaCode      sql.NullString
-		MobileCountryCode     sql.NullString
-		MobileNetworkCode     sql.NullString
-		PrimaryScramblingCode sql.NullString
-		Operator              sql.NullString
-		Arfcn                 sql.NullInt64
-		PhysicalCellID        sql.NullString
-		TrackingAreaCode      sql.NullString
-		TimingAdvance         sql.NullInt64
-		Earfcn                sql.NullInt64
-		Uarfcn                sql.NullInt64
-		Latitude              sql.NullFloat64
-		Longitude             sql.NullFloat64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyCellScan) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullInt64{},
+		&sql.NullInt64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
 	}
-	// the order here should be the same as in the `surveycellscan.Columns`.
-	if err := rows.Scan(
-		&scanscs.ID,
-		&scanscs.CreateTime,
-		&scanscs.UpdateTime,
-		&scanscs.NetworkType,
-		&scanscs.SignalStrength,
-		&scanscs.Timestamp,
-		&scanscs.BaseStationID,
-		&scanscs.NetworkID,
-		&scanscs.SystemID,
-		&scanscs.CellID,
-		&scanscs.LocationAreaCode,
-		&scanscs.MobileCountryCode,
-		&scanscs.MobileNetworkCode,
-		&scanscs.PrimaryScramblingCode,
-		&scanscs.Operator,
-		&scanscs.Arfcn,
-		&scanscs.PhysicalCellID,
-		&scanscs.TrackingAreaCode,
-		&scanscs.TimingAdvance,
-		&scanscs.Earfcn,
-		&scanscs.Uarfcn,
-		&scanscs.Latitude,
-		&scanscs.Longitude,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyCellScan fields.
+func (scs *SurveyCellScan) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveycellscan.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	scs.ID = strconv.Itoa(scanscs.ID)
-	scs.CreateTime = scanscs.CreateTime.Time
-	scs.UpdateTime = scanscs.UpdateTime.Time
-	scs.NetworkType = scanscs.NetworkType.String
-	scs.SignalStrength = int(scanscs.SignalStrength.Int64)
-	scs.Timestamp = scanscs.Timestamp.Time
-	scs.BaseStationID = scanscs.BaseStationID.String
-	scs.NetworkID = scanscs.NetworkID.String
-	scs.SystemID = scanscs.SystemID.String
-	scs.CellID = scanscs.CellID.String
-	scs.LocationAreaCode = scanscs.LocationAreaCode.String
-	scs.MobileCountryCode = scanscs.MobileCountryCode.String
-	scs.MobileNetworkCode = scanscs.MobileNetworkCode.String
-	scs.PrimaryScramblingCode = scanscs.PrimaryScramblingCode.String
-	scs.Operator = scanscs.Operator.String
-	scs.Arfcn = int(scanscs.Arfcn.Int64)
-	scs.PhysicalCellID = scanscs.PhysicalCellID.String
-	scs.TrackingAreaCode = scanscs.TrackingAreaCode.String
-	scs.TimingAdvance = int(scanscs.TimingAdvance.Int64)
-	scs.Earfcn = int(scanscs.Earfcn.Int64)
-	scs.Uarfcn = int(scanscs.Uarfcn.Int64)
-	scs.Latitude = scanscs.Latitude.Float64
-	scs.Longitude = scanscs.Longitude.Float64
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	scs.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		scs.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		scs.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field network_type", values[2])
+	} else if value.Valid {
+		scs.NetworkType = value.String
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field signal_strength", values[3])
+	} else if value.Valid {
+		scs.SignalStrength = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field timestamp", values[4])
+	} else if value.Valid {
+		scs.Timestamp = value.Time
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field base_station_id", values[5])
+	} else if value.Valid {
+		scs.BaseStationID = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field network_id", values[6])
+	} else if value.Valid {
+		scs.NetworkID = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field system_id", values[7])
+	} else if value.Valid {
+		scs.SystemID = value.String
+	}
+	if value, ok := values[8].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field cell_id", values[8])
+	} else if value.Valid {
+		scs.CellID = value.String
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field location_area_code", values[9])
+	} else if value.Valid {
+		scs.LocationAreaCode = value.String
+	}
+	if value, ok := values[10].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field mobile_country_code", values[10])
+	} else if value.Valid {
+		scs.MobileCountryCode = value.String
+	}
+	if value, ok := values[11].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field mobile_network_code", values[11])
+	} else if value.Valid {
+		scs.MobileNetworkCode = value.String
+	}
+	if value, ok := values[12].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field primary_scrambling_code", values[12])
+	} else if value.Valid {
+		scs.PrimaryScramblingCode = value.String
+	}
+	if value, ok := values[13].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field operator", values[13])
+	} else if value.Valid {
+		scs.Operator = value.String
+	}
+	if value, ok := values[14].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field arfcn", values[14])
+	} else if value.Valid {
+		scs.Arfcn = int(value.Int64)
+	}
+	if value, ok := values[15].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field physical_cell_id", values[15])
+	} else if value.Valid {
+		scs.PhysicalCellID = value.String
+	}
+	if value, ok := values[16].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field tracking_area_code", values[16])
+	} else if value.Valid {
+		scs.TrackingAreaCode = value.String
+	}
+	if value, ok := values[17].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field timing_advance", values[17])
+	} else if value.Valid {
+		scs.TimingAdvance = int(value.Int64)
+	}
+	if value, ok := values[18].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field earfcn", values[18])
+	} else if value.Valid {
+		scs.Earfcn = int(value.Int64)
+	}
+	if value, ok := values[19].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field uarfcn", values[19])
+	} else if value.Valid {
+		scs.Uarfcn = int(value.Int64)
+	}
+	if value, ok := values[20].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[20])
+	} else if value.Valid {
+		scs.Latitude = value.Float64
+	}
+	if value, ok := values[21].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[21])
+	} else if value.Valid {
+		scs.Longitude = value.Float64
+	}
 	return nil
 }
 
@@ -236,18 +310,6 @@ func (scs *SurveyCellScan) id() int {
 
 // SurveyCellScans is a parsable slice of SurveyCellScan.
 type SurveyCellScans []*SurveyCellScan
-
-// FromRows scans the sql response data into SurveyCellScans.
-func (scs *SurveyCellScans) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanscs := &SurveyCellScan{}
-		if err := scanscs.FromRows(rows); err != nil {
-			return err
-		}
-		*scs = append(*scs, scanscs)
-	}
-	return nil
-}
 
 func (scs SurveyCellScans) config(cfg config) {
 	for _i := range scs {

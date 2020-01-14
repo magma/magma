@@ -8,11 +8,12 @@ package ent
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
@@ -120,106 +121,97 @@ func (stcu *SurveyTemplateCategoryUpdate) ExecX(ctx context.Context) {
 }
 
 func (stcu *SurveyTemplateCategoryUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(stcu.driver.Dialect())
-		selector = builder.Select(surveytemplatecategory.FieldID).From(builder.Table(surveytemplatecategory.Table))
-	)
-	for _, p := range stcu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveytemplatecategory.Table,
+			Columns: surveytemplatecategory.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveytemplatecategory.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = stcu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := stcu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := stcu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(surveytemplatecategory.Table)
-	)
-	updater = updater.Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
 	if value := stcu.update_time; value != nil {
-		updater.Set(surveytemplatecategory.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldUpdateTime,
+		})
 	}
 	if value := stcu.category_title; value != nil {
-		updater.Set(surveytemplatecategory.FieldCategoryTitle, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryTitle,
+		})
 	}
 	if value := stcu.category_description; value != nil {
-		updater.Set(surveytemplatecategory.FieldCategoryDescription, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryDescription,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := stcu.removedSurveyTemplateQuestions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveytemplatecategory.SurveyTemplateQuestionsTable,
+			Columns: []string{surveytemplatecategory.SurveyTemplateQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatequestion.FieldID,
+				},
+			},
 		}
-	}
-	if len(stcu.removedSurveyTemplateQuestions) > 0 {
-		eids := make([]int, len(stcu.removedSurveyTemplateQuestions))
-		for eid := range stcu.removedSurveyTemplateQuestions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(surveytemplatecategory.SurveyTemplateQuestionsTable).
-			SetNull(surveytemplatecategory.SurveyTemplateQuestionsColumn).
-			Where(sql.InInts(surveytemplatecategory.SurveyTemplateQuestionsColumn, ids...)).
-			Where(sql.InInts(surveytemplatequestion.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(stcu.survey_template_questions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stcu.survey_template_questions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveytemplatequestion.FieldID, eid)
-			}
-			query, args := builder.Update(surveytemplatecategory.SurveyTemplateQuestionsTable).
-				Set(surveytemplatecategory.SurveyTemplateQuestionsColumn, id).
-				Where(sql.And(p, sql.IsNull(surveytemplatecategory.SurveyTemplateQuestionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(stcu.survey_template_questions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcu.survey_template_questions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := stcu.survey_template_questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveytemplatecategory.SurveyTemplateQuestionsTable,
+			Columns: []string{surveytemplatecategory.SurveyTemplateQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatequestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, stcu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // SurveyTemplateCategoryUpdateOne is the builder for updating a single SurveyTemplateCategory entity.
@@ -318,109 +310,91 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc *SurveyTemplateCategory, err error) {
-	var (
-		builder  = sql.Dialect(stcuo.driver.Dialect())
-		selector = builder.Select(surveytemplatecategory.Columns...).From(builder.Table(surveytemplatecategory.Table))
-	)
-	surveytemplatecategory.ID(stcuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = stcuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveytemplatecategory.Table,
+			Columns: surveytemplatecategory.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  stcuo.id,
+				Type:   field.TypeString,
+				Column: surveytemplatecategory.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		stc = &SurveyTemplateCategory{config: stcuo.config}
-		if err := stc.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into SurveyTemplateCategory: %v", err)
-		}
-		id = stc.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("SurveyTemplateCategory with id: %v", stcuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one SurveyTemplateCategory with the same id: %v", stcuo.id)
-	}
-
-	tx, err := stcuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(surveytemplatecategory.Table)
-	)
-	updater = updater.Where(sql.InInts(surveytemplatecategory.FieldID, ids...))
 	if value := stcuo.update_time; value != nil {
-		updater.Set(surveytemplatecategory.FieldUpdateTime, *value)
-		stc.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldUpdateTime,
+		})
 	}
 	if value := stcuo.category_title; value != nil {
-		updater.Set(surveytemplatecategory.FieldCategoryTitle, *value)
-		stc.CategoryTitle = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryTitle,
+		})
 	}
 	if value := stcuo.category_description; value != nil {
-		updater.Set(surveytemplatecategory.FieldCategoryDescription, *value)
-		stc.CategoryDescription = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: surveytemplatecategory.FieldCategoryDescription,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := stcuo.removedSurveyTemplateQuestions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveytemplatecategory.SurveyTemplateQuestionsTable,
+			Columns: []string{surveytemplatecategory.SurveyTemplateQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatequestion.FieldID,
+				},
+			},
 		}
-	}
-	if len(stcuo.removedSurveyTemplateQuestions) > 0 {
-		eids := make([]int, len(stcuo.removedSurveyTemplateQuestions))
-		for eid := range stcuo.removedSurveyTemplateQuestions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(surveytemplatecategory.SurveyTemplateQuestionsTable).
-			SetNull(surveytemplatecategory.SurveyTemplateQuestionsColumn).
-			Where(sql.InInts(surveytemplatecategory.SurveyTemplateQuestionsColumn, ids...)).
-			Where(sql.InInts(surveytemplatequestion.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(stcuo.survey_template_questions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range stcuo.survey_template_questions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(surveytemplatequestion.FieldID, eid)
-			}
-			query, args := builder.Update(surveytemplatecategory.SurveyTemplateQuestionsTable).
-				Set(surveytemplatecategory.SurveyTemplateQuestionsColumn, id).
-				Where(sql.And(p, sql.IsNull(surveytemplatecategory.SurveyTemplateQuestionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(stcuo.survey_template_questions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"survey_template_questions\" %v already connected to a different \"SurveyTemplateCategory\"", keys(stcuo.survey_template_questions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := stcuo.survey_template_questions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveytemplatecategory.SurveyTemplateQuestionsTable,
+			Columns: []string{surveytemplatecategory.SurveyTemplateQuestionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: surveytemplatequestion.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	stc = &SurveyTemplateCategory{config: stcuo.config}
+	spec.Assign = stc.assignValues
+	spec.ScanValues = stc.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, stcuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return stc, nil

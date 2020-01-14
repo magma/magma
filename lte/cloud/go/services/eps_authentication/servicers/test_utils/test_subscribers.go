@@ -19,13 +19,50 @@ const (
 	defaultMaxDlBitRate = uint64(200000000)
 )
 
-// GetTestSubscribers returns a slice of SubscriberData protos to be used
-// for testing authentication.
+// GetTestSubscribers returns SubscriberData protos with different settings
+// to be used for testing authentication. More users can be added.
 func GetTestSubscribers() []*protos.SubscriberData {
 	subs := make([]*protos.SubscriberData, 0)
 
+	// Default subscriber
+	sub := generateDefaultSub("sub1")
+	subs = append(subs, sub)
+
+	// Default Subs with a blank AAA server
+	sub = generateDefaultSub("sub1_noAAAsrv")
+	sub.State.TgppAaaServerName = ""
+	subs = append(subs, sub)
+
+	// Empty sub
+	sub = &protos.SubscriberData{
+		Sid:       &protos.SubscriberID{Id: "empty_sub"},
+		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
+	}
+	subs = append(subs, sub)
+
+	// Subscriber without auth key
+	sub = &protos.SubscriberData{
+		Sid:       &protos.SubscriberID{Id: "missing_auth_key"},
+		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
+		Lte: &protos.LTESubscription{
+			State:    protos.LTESubscription_ACTIVE,
+			AuthAlgo: protos.LTESubscription_MILENAGE,
+			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
+		},
+		State: &protos.SubscriberState{
+			LteAuthNextSeq:    7350,
+			TgppAaaServerName: defaultServerHost,
+		},
+	}
+	subs = append(subs, sub)
+
+	return subs
+}
+
+func generateDefaultSub(subscriberID string) *protos.SubscriberData{
+	// Default user
 	sub := &protos.SubscriberData{
-		Sid:       &protos.SubscriberID{Id: "sub1"},
+		Sid:       &protos.SubscriberID{Id: subscriberID},
 		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
 		Lte: &protos.LTESubscription{
 			State:    protos.LTESubscription_ACTIVE,
@@ -64,28 +101,6 @@ func GetTestSubscribers() []*protos.SubscriberData {
 		},
 		SubProfile: "test_profile",
 	}
-	subs = append(subs, sub)
 
-	sub = &protos.SubscriberData{
-		Sid:       &protos.SubscriberID{Id: "empty_sub"},
-		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
-	}
-	subs = append(subs, sub)
-
-	sub = &protos.SubscriberData{
-		Sid:       &protos.SubscriberID{Id: "missing_auth_key"},
-		NetworkId: &orc8rprotos.NetworkID{Id: "test"},
-		Lte: &protos.LTESubscription{
-			State:    protos.LTESubscription_ACTIVE,
-			AuthAlgo: protos.LTESubscription_MILENAGE,
-			AuthOpc:  []byte("\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"),
-		},
-		State: &protos.SubscriberState{
-			LteAuthNextSeq:    7350,
-			TgppAaaServerName: defaultServerHost,
-		},
-	}
-	subs = append(subs, sub)
-
-	return subs
+	return sub
 }

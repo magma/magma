@@ -9,15 +9,17 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/property"
+	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -249,217 +251,227 @@ func (lu *LinkUpdate) ExecX(ctx context.Context) {
 }
 
 func (lu *LinkUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(lu.driver.Dialect())
-		selector = builder.Select(link.FieldID).From(builder.Table(link.Table))
-	)
-	for _, p := range lu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   link.Table,
+			Columns: link.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: link.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = lu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := lu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := lu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(link.Table)
-	)
-	updater = updater.Where(sql.InInts(link.FieldID, ids...))
 	if value := lu.update_time; value != nil {
-		updater.Set(link.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: link.FieldUpdateTime,
+		})
 	}
 	if value := lu.future_state; value != nil {
-		updater.Set(link.FieldFutureState, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: link.FieldFutureState,
+		})
 	}
 	if lu.clearfuture_state {
-		updater.SetNull(link.FieldFutureState)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: link.FieldFutureState,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := lu.removedPorts; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   link.PortsTable,
+			Columns: []string{link.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
-	}
-	if len(lu.removedPorts) > 0 {
-		eids := make([]int, len(lu.removedPorts))
-		for eid := range lu.removedPorts {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(link.PortsTable).
-			SetNull(link.PortsColumn).
-			Where(sql.InInts(link.PortsColumn, ids...)).
-			Where(sql.InInts(equipmentport.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(lu.ports) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range lu.ports {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentport.FieldID, eid)
-			}
-			query, args := builder.Update(link.PortsTable).
-				Set(link.PortsColumn, id).
-				Where(sql.And(p, sql.IsNull(link.PortsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(lu.ports) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(lu.ports))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := lu.ports; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   link.PortsTable,
+			Columns: []string{link.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if lu.clearedWorkOrder {
-		query, args := builder.Update(link.WorkOrderTable).
-			SetNull(link.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   link.WorkOrderTable,
+			Columns: []string{link.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(lu.work_order) > 0 {
-		for eid := range lu.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(link.WorkOrderTable).
-				Set(link.WorkOrderColumn, eid).
-				Where(sql.InInts(link.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := lu.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   link.WorkOrderTable,
+			Columns: []string{link.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-	}
-	if len(lu.removedProperties) > 0 {
-		eids := make([]int, len(lu.removedProperties))
-		for eid := range lu.removedProperties {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(link.PropertiesTable).
-			SetNull(link.PropertiesColumn).
-			Where(sql.InInts(link.PropertiesColumn, ids...)).
-			Where(sql.InInts(property.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(lu.properties) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range lu.properties {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(property.FieldID, eid)
-			}
-			query, args := builder.Update(link.PropertiesTable).
-				Set(link.PropertiesColumn, id).
-				Where(sql.And(p, sql.IsNull(link.PropertiesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(lu.properties) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(lu.properties))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if len(lu.removedService) > 0 {
-		eids := make([]int, len(lu.removedService))
-		for eid := range lu.removedService {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
+	if nodes := lu.removedProperties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   link.PropertiesTable,
+			Columns: []string{link.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
 			}
-			eids = append(eids, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Delete(link.ServiceTable).
-			Where(sql.InInts(link.ServicePrimaryKey[1], ids...)).
-			Where(sql.InInts(link.ServicePrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(lu.service) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range lu.service {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
+	if nodes := lu.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   link.PropertiesTable,
+			Columns: []string{link.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
 			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		builder := builder.Insert(link.ServiceTable).
-			Columns(link.ServicePrimaryKey[1], link.ServicePrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := lu.removedService; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   link.ServiceTable,
+			Columns: link.ServicePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := lu.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   link.ServiceTable,
+			Columns: link.ServicePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if n, err = sqlgraph.UpdateNodes(ctx, lu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // LinkUpdateOne is the builder for updating a single Link entity.
@@ -684,221 +696,221 @@ func (luo *LinkUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
-	var (
-		builder  = sql.Dialect(luo.driver.Dialect())
-		selector = builder.Select(link.Columns...).From(builder.Table(link.Table))
-	)
-	link.ID(luo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = luo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   link.Table,
+			Columns: link.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  luo.id,
+				Type:   field.TypeString,
+				Column: link.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		l = &Link{config: luo.config}
-		if err := l.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Link: %v", err)
-		}
-		id = l.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Link with id: %v", luo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Link with the same id: %v", luo.id)
-	}
-
-	tx, err := luo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(link.Table)
-	)
-	updater = updater.Where(sql.InInts(link.FieldID, ids...))
 	if value := luo.update_time; value != nil {
-		updater.Set(link.FieldUpdateTime, *value)
-		l.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: link.FieldUpdateTime,
+		})
 	}
 	if value := luo.future_state; value != nil {
-		updater.Set(link.FieldFutureState, *value)
-		l.FutureState = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: link.FieldFutureState,
+		})
 	}
 	if luo.clearfuture_state {
-		var value string
-		l.FutureState = value
-		updater.SetNull(link.FieldFutureState)
+		spec.Fields.Clear = append(spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: link.FieldFutureState,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := luo.removedPorts; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   link.PortsTable,
+			Columns: []string{link.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
 		}
-	}
-	if len(luo.removedPorts) > 0 {
-		eids := make([]int, len(luo.removedPorts))
-		for eid := range luo.removedPorts {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(link.PortsTable).
-			SetNull(link.PortsColumn).
-			Where(sql.InInts(link.PortsColumn, ids...)).
-			Where(sql.InInts(equipmentport.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(luo.ports) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range luo.ports {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentport.FieldID, eid)
-			}
-			query, args := builder.Update(link.PortsTable).
-				Set(link.PortsColumn, id).
-				Where(sql.And(p, sql.IsNull(link.PortsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(luo.ports) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"ports\" %v already connected to a different \"Link\"", keys(luo.ports))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := luo.ports; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   link.PortsTable,
+			Columns: []string{link.PortsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentport.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if luo.clearedWorkOrder {
-		query, args := builder.Update(link.WorkOrderTable).
-			SetNull(link.WorkOrderColumn).
-			Where(sql.InInts(workorder.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   link.WorkOrderTable,
+			Columns: []string{link.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(luo.work_order) > 0 {
-		for eid := range luo.work_order {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(link.WorkOrderTable).
-				Set(link.WorkOrderColumn, eid).
-				Where(sql.InInts(link.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := luo.work_order; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   link.WorkOrderTable,
+			Columns: []string{link.WorkOrderColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: workorder.FieldID,
+				},
+			},
 		}
-	}
-	if len(luo.removedProperties) > 0 {
-		eids := make([]int, len(luo.removedProperties))
-		for eid := range luo.removedProperties {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(link.PropertiesTable).
-			SetNull(link.PropertiesColumn).
-			Where(sql.InInts(link.PropertiesColumn, ids...)).
-			Where(sql.InInts(property.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(luo.properties) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range luo.properties {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(property.FieldID, eid)
-			}
-			query, args := builder.Update(link.PropertiesTable).
-				Set(link.PropertiesColumn, id).
-				Where(sql.And(p, sql.IsNull(link.PropertiesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(luo.properties) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"properties\" %v already connected to a different \"Link\"", keys(luo.properties))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if len(luo.removedService) > 0 {
-		eids := make([]int, len(luo.removedService))
-		for eid := range luo.removedService {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
+	if nodes := luo.removedProperties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   link.PropertiesTable,
+			Columns: []string{link.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
 			}
-			eids = append(eids, eid)
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		query, args := builder.Delete(link.ServiceTable).
-			Where(sql.InInts(link.ServicePrimaryKey[1], ids...)).
-			Where(sql.InInts(link.ServicePrimaryKey[0], eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(luo.service) > 0 {
-		values := make([][]int, 0, len(ids))
-		for _, id := range ids {
-			for eid := range luo.service {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				values = append(values, []int{id, eid})
+	if nodes := luo.properties; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   link.PropertiesTable,
+			Columns: []string{link.PropertiesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: property.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
 			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		builder := builder.Insert(link.ServiceTable).
-			Columns(link.ServicePrimaryKey[1], link.ServicePrimaryKey[0])
-		for _, v := range values {
-			builder.Values(v[0], v[1])
-		}
-		query, args := builder.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if nodes := luo.removedService; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   link.ServiceTable,
+			Columns: link.ServicePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := luo.service; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   link.ServiceTable,
+			Columns: link.ServicePrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: service.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	l = &Link{config: luo.config}
+	spec.Assign = l.assignValues
+	spec.ScanValues = l.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, luo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return l, nil

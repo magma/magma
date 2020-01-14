@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent/tenant"
 )
 
 // Tenant is the model entity for the Tenant schema.
@@ -40,57 +41,88 @@ type Tenant struct {
 	SSOIssuer string `json:"SSOIssuer,omitempty"`
 }
 
-// FromRows scans the sql response data into Tenant.
-func (t *Tenant) FromRows(rows *sql.Rows) error {
-	var scant struct {
-		ID            int
-		CreatedAt     sql.NullTime
-		UpdatedAt     sql.NullTime
-		Name          sql.NullString
-		Domains       []byte
-		Networks      []byte
-		Tabs          []byte
-		SSOCert       sql.NullString
-		SSOEntryPoint sql.NullString
-		SSOIssuer     sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Tenant) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&[]byte{},
+		&[]byte{},
+		&[]byte{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `tenant.Columns`.
-	if err := rows.Scan(
-		&scant.ID,
-		&scant.CreatedAt,
-		&scant.UpdatedAt,
-		&scant.Name,
-		&scant.Domains,
-		&scant.Networks,
-		&scant.Tabs,
-		&scant.SSOCert,
-		&scant.SSOEntryPoint,
-		&scant.SSOIssuer,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Tenant fields.
+func (t *Tenant) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(tenant.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	t.ID = scant.ID
-	t.CreatedAt = scant.CreatedAt.Time
-	t.UpdatedAt = scant.UpdatedAt.Time
-	t.Name = scant.Name.String
-	if value := scant.Domains; len(value) > 0 {
-		if err := json.Unmarshal(value, &t.Domains); err != nil {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	t.ID = int(value.Int64)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field created_at", values[0])
+	} else if value.Valid {
+		t.CreatedAt = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field updated_at", values[1])
+	} else if value.Valid {
+		t.UpdatedAt = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		t.Name = value.String
+	}
+
+	if value, ok := values[3].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field domains", values[3])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &t.Domains); err != nil {
 			return fmt.Errorf("unmarshal field domains: %v", err)
 		}
 	}
-	if value := scant.Networks; len(value) > 0 {
-		if err := json.Unmarshal(value, &t.Networks); err != nil {
+
+	if value, ok := values[4].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field networks", values[4])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &t.Networks); err != nil {
 			return fmt.Errorf("unmarshal field networks: %v", err)
 		}
 	}
-	if value := scant.Tabs; len(value) > 0 {
-		if err := json.Unmarshal(value, &t.Tabs); err != nil {
+
+	if value, ok := values[5].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field tabs", values[5])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &t.Tabs); err != nil {
 			return fmt.Errorf("unmarshal field tabs: %v", err)
 		}
 	}
-	t.SSOCert = scant.SSOCert.String
-	t.SSOEntryPoint = scant.SSOEntryPoint.String
-	t.SSOIssuer = scant.SSOIssuer.String
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field SSOCert", values[6])
+	} else if value.Valid {
+		t.SSOCert = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field SSOEntryPoint", values[7])
+	} else if value.Valid {
+		t.SSOEntryPoint = value.String
+	}
+	if value, ok := values[8].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field SSOIssuer", values[8])
+	} else if value.Valid {
+		t.SSOIssuer = value.String
+	}
 	return nil
 }
 
@@ -141,18 +173,6 @@ func (t *Tenant) String() string {
 
 // Tenants is a parsable slice of Tenant.
 type Tenants []*Tenant
-
-// FromRows scans the sql response data into Tenants.
-func (t *Tenants) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scant := &Tenant{}
-		if err := scant.FromRows(rows); err != nil {
-			return err
-		}
-		*t = append(*t, scant)
-	}
-	return nil
-}
 
 func (t Tenants) config(cfg config) {
 	for _i := range t {

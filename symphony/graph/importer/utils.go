@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/textproto"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -36,6 +37,16 @@ func findIndex(a []string, x string) int {
 		}
 	}
 	return -1
+}
+
+func sortSlice(a []int, acs bool) []int {
+	sort.Slice(a, func(i, j int) bool {
+		if acs {
+			return a[i] < a[j]
+		}
+		return a[i] > a[j]
+	})
+	return a
 }
 
 func findIndexForSimilar(a []string, x string) int {
@@ -363,5 +374,9 @@ func (m *importer) trimLine(line []string) []string {
 
 func errorReturn(w http.ResponseWriter, msg string, log *zap.Logger, err error) {
 	log.Warn(msg, zap.Error(err))
-	http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
+	if err == nil {
+		http.Error(w, msg, http.StatusBadRequest)
+	} else {
+		http.Error(w, fmt.Sprintf("%s %q", msg, err), http.StatusBadRequest)
+	}
 }

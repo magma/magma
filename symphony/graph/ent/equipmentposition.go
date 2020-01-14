@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
 )
 
 // EquipmentPosition is the model entity for the EquipmentPosition schema.
@@ -26,24 +27,37 @@ type EquipmentPosition struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 }
 
-// FromRows scans the sql response data into EquipmentPosition.
-func (ep *EquipmentPosition) FromRows(rows *sql.Rows) error {
-	var scanep struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPosition) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
 	}
-	// the order here should be the same as in the `equipmentposition.Columns`.
-	if err := rows.Scan(
-		&scanep.ID,
-		&scanep.CreateTime,
-		&scanep.UpdateTime,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPosition fields.
+func (ep *EquipmentPosition) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentposition.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	ep.ID = strconv.Itoa(scanep.ID)
-	ep.CreateTime = scanep.CreateTime.Time
-	ep.UpdateTime = scanep.UpdateTime.Time
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ep.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ep.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ep.UpdateTime = value.Time
+	}
 	return nil
 }
 
@@ -101,18 +115,6 @@ func (ep *EquipmentPosition) id() int {
 
 // EquipmentPositions is a parsable slice of EquipmentPosition.
 type EquipmentPositions []*EquipmentPosition
-
-// FromRows scans the sql response data into EquipmentPositions.
-func (ep *EquipmentPositions) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanep := &EquipmentPosition{}
-		if err := scanep.FromRows(rows); err != nil {
-			return err
-		}
-		*ep = append(*ep, scanep)
-	}
-	return nil
-}
 
 func (ep EquipmentPositions) config(cfg config) {
 	for _i := range ep {

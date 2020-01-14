@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/project"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
@@ -304,45 +305,31 @@ func (ptq *ProjectTypeQuery) Select(field string, fields ...string) *ProjectType
 }
 
 func (ptq *ProjectTypeQuery) sqlAll(ctx context.Context) ([]*ProjectType, error) {
-	rows := &sql.Rows{}
-	selector := ptq.sqlQuery()
-	if unique := ptq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*ProjectType
+		spec  = ptq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &ProjectType{config: ptq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := ptq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, ptq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var pts ProjectTypes
-	if err := pts.FromRows(rows); err != nil {
-		return nil, err
-	}
-	pts.config(ptq.config)
-	return pts, nil
+	return nodes, nil
 }
 
 func (ptq *ProjectTypeQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := ptq.sqlQuery()
-	unique := []string{projecttype.FieldID}
-	if len(ptq.unique) > 0 {
-		unique = ptq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := ptq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := ptq.querySpec()
+	return sqlgraph.CountNodes(ctx, ptq.driver, spec)
 }
 
 func (ptq *ProjectTypeQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -351,6 +338,42 @@ func (ptq *ProjectTypeQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (ptq *ProjectTypeQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   projecttype.Table,
+			Columns: projecttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: projecttype.FieldID,
+			},
+		},
+		From:   ptq.sql,
+		Unique: true,
+	}
+	if ps := ptq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := ptq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := ptq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := ptq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (ptq *ProjectTypeQuery) sqlQuery() *sql.Selector {
@@ -624,7 +647,7 @@ func (pts *ProjectTypeSelect) sqlScan(ctx context.Context, v interface{}) error 
 }
 
 func (pts *ProjectTypeSelect) sqlQuery() sql.Querier {
-	view := "projecttype_view"
-	return sql.Dialect(pts.driver.Dialect()).
-		Select(pts.fields...).From(pts.sql.As(view))
+	selector := pts.sql
+	selector.Select(selector.Columns(pts.fields...)...)
+	return selector
 }

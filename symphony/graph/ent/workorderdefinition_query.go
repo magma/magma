@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
@@ -291,45 +292,31 @@ func (wodq *WorkOrderDefinitionQuery) Select(field string, fields ...string) *Wo
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlAll(ctx context.Context) ([]*WorkOrderDefinition, error) {
-	rows := &sql.Rows{}
-	selector := wodq.sqlQuery()
-	if unique := wodq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*WorkOrderDefinition
+		spec  = wodq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &WorkOrderDefinition{config: wodq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := wodq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, wodq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var wods WorkOrderDefinitions
-	if err := wods.FromRows(rows); err != nil {
-		return nil, err
-	}
-	wods.config(wodq.config)
-	return wods, nil
+	return nodes, nil
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := wodq.sqlQuery()
-	unique := []string{workorderdefinition.FieldID}
-	if len(wodq.unique) > 0 {
-		unique = wodq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := wodq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := wodq.querySpec()
+	return sqlgraph.CountNodes(ctx, wodq.driver, spec)
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +325,42 @@ func (wodq *WorkOrderDefinitionQuery) sqlExist(ctx context.Context) (bool, error
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (wodq *WorkOrderDefinitionQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   workorderdefinition.Table,
+			Columns: workorderdefinition.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: workorderdefinition.FieldID,
+			},
+		},
+		From:   wodq.sql,
+		Unique: true,
+	}
+	if ps := wodq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := wodq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := wodq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := wodq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (wodq *WorkOrderDefinitionQuery) sqlQuery() *sql.Selector {
@@ -611,7 +634,7 @@ func (wods *WorkOrderDefinitionSelect) sqlScan(ctx context.Context, v interface{
 }
 
 func (wods *WorkOrderDefinitionSelect) sqlQuery() sql.Querier {
-	view := "workorderdefinition_view"
-	return sql.Dialect(wods.driver.Dialect()).
-		Select(wods.fields...).From(wods.sql.As(view))
+	selector := wods.sql
+	selector.Select(selector.Columns(wods.fields...)...)
+	return selector
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
 )
 
 // FloorPlanReferencePoint is the model entity for the FloorPlanReferencePoint schema.
@@ -34,36 +35,61 @@ type FloorPlanReferencePoint struct {
 	Longitude float64 `json:"longitude,omitempty"`
 }
 
-// FromRows scans the sql response data into FloorPlanReferencePoint.
-func (fprp *FloorPlanReferencePoint) FromRows(rows *sql.Rows) error {
-	var scanfprp struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		X          sql.NullInt64
-		Y          sql.NullInt64
-		Latitude   sql.NullFloat64
-		Longitude  sql.NullFloat64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*FloorPlanReferencePoint) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullInt64{},
+		&sql.NullInt64{},
+		&sql.NullFloat64{},
+		&sql.NullFloat64{},
 	}
-	// the order here should be the same as in the `floorplanreferencepoint.Columns`.
-	if err := rows.Scan(
-		&scanfprp.ID,
-		&scanfprp.CreateTime,
-		&scanfprp.UpdateTime,
-		&scanfprp.X,
-		&scanfprp.Y,
-		&scanfprp.Latitude,
-		&scanfprp.Longitude,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the FloorPlanReferencePoint fields.
+func (fprp *FloorPlanReferencePoint) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(floorplanreferencepoint.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	fprp.ID = strconv.Itoa(scanfprp.ID)
-	fprp.CreateTime = scanfprp.CreateTime.Time
-	fprp.UpdateTime = scanfprp.UpdateTime.Time
-	fprp.X = int(scanfprp.X.Int64)
-	fprp.Y = int(scanfprp.Y.Int64)
-	fprp.Latitude = scanfprp.Latitude.Float64
-	fprp.Longitude = scanfprp.Longitude.Float64
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	fprp.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		fprp.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		fprp.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field x", values[2])
+	} else if value.Valid {
+		fprp.X = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field y", values[3])
+	} else if value.Valid {
+		fprp.Y = int(value.Int64)
+	}
+	if value, ok := values[4].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field latitude", values[4])
+	} else if value.Valid {
+		fprp.Latitude = value.Float64
+	}
+	if value, ok := values[5].(*sql.NullFloat64); !ok {
+		return fmt.Errorf("unexpected type %T for field longitude", values[5])
+	} else if value.Valid {
+		fprp.Longitude = value.Float64
+	}
 	return nil
 }
 
@@ -114,18 +140,6 @@ func (fprp *FloorPlanReferencePoint) id() int {
 
 // FloorPlanReferencePoints is a parsable slice of FloorPlanReferencePoint.
 type FloorPlanReferencePoints []*FloorPlanReferencePoint
-
-// FromRows scans the sql response data into FloorPlanReferencePoints.
-func (fprp *FloorPlanReferencePoints) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanfprp := &FloorPlanReferencePoint{}
-		if err := scanfprp.FromRows(rows); err != nil {
-			return err
-		}
-		*fprp = append(*fprp, scanfprp)
-	}
-	return nil
-}
 
 func (fprp FloorPlanReferencePoints) config(cfg config) {
 	for _i := range fprp {

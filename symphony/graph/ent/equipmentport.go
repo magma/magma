@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 )
 
 // EquipmentPort is the model entity for the EquipmentPort schema.
@@ -26,24 +27,37 @@ type EquipmentPort struct {
 	UpdateTime time.Time `json:"update_time,omitempty"`
 }
 
-// FromRows scans the sql response data into EquipmentPort.
-func (ep *EquipmentPort) FromRows(rows *sql.Rows) error {
-	var scanep struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentPort) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
 	}
-	// the order here should be the same as in the `equipmentport.Columns`.
-	if err := rows.Scan(
-		&scanep.ID,
-		&scanep.CreateTime,
-		&scanep.UpdateTime,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentPort fields.
+func (ep *EquipmentPort) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmentport.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	ep.ID = strconv.Itoa(scanep.ID)
-	ep.CreateTime = scanep.CreateTime.Time
-	ep.UpdateTime = scanep.UpdateTime.Time
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	ep.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		ep.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		ep.UpdateTime = value.Time
+	}
 	return nil
 }
 
@@ -111,18 +125,6 @@ func (ep *EquipmentPort) id() int {
 
 // EquipmentPorts is a parsable slice of EquipmentPort.
 type EquipmentPorts []*EquipmentPort
-
-// FromRows scans the sql response data into EquipmentPorts.
-func (ep *EquipmentPorts) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanep := &EquipmentPort{}
-		if err := scanep.FromRows(rows); err != nil {
-			return err
-		}
-		*ep = append(*ep, scanep)
-	}
-	return nil
-}
 
 func (ep EquipmentPorts) config(cfg config) {
 	for _i := range ep {

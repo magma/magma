@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/link"
 )
 
 // Link is the model entity for the Link schema.
@@ -28,27 +29,43 @@ type Link struct {
 	FutureState string `json:"future_state,omitempty"`
 }
 
-// FromRows scans the sql response data into Link.
-func (l *Link) FromRows(rows *sql.Rows) error {
-	var scanl struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		FutureState sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Link) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `link.Columns`.
-	if err := rows.Scan(
-		&scanl.ID,
-		&scanl.CreateTime,
-		&scanl.UpdateTime,
-		&scanl.FutureState,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Link fields.
+func (l *Link) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(link.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	l.ID = strconv.Itoa(scanl.ID)
-	l.CreateTime = scanl.CreateTime.Time
-	l.UpdateTime = scanl.UpdateTime.Time
-	l.FutureState = scanl.FutureState.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	l.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		l.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		l.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field future_state", values[2])
+	} else if value.Valid {
+		l.FutureState = value.String
+	}
 	return nil
 }
 
@@ -113,18 +130,6 @@ func (l *Link) id() int {
 
 // Links is a parsable slice of Link.
 type Links []*Link
-
-// FromRows scans the sql response data into Links.
-func (l *Links) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanl := &Link{}
-		if err := scanl.FromRows(rows); err != nil {
-			return err
-		}
-		*l = append(*l, scanl)
-	}
-	return nil
-}
 
 func (l Links) config(cfg config) {
 	for _i := range l {

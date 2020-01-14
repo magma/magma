@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/locationtype"
 )
 
 // LocationType is the model entity for the LocationType schema.
@@ -36,39 +37,67 @@ type LocationType struct {
 	Index int `json:"index,omitempty"`
 }
 
-// FromRows scans the sql response data into LocationType.
-func (lt *LocationType) FromRows(rows *sql.Rows) error {
-	var scanlt struct {
-		ID           int
-		CreateTime   sql.NullTime
-		UpdateTime   sql.NullTime
-		Site         sql.NullBool
-		Name         sql.NullString
-		MapType      sql.NullString
-		MapZoomLevel sql.NullInt64
-		Index        sql.NullInt64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*LocationType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullBool{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullInt64{},
 	}
-	// the order here should be the same as in the `locationtype.Columns`.
-	if err := rows.Scan(
-		&scanlt.ID,
-		&scanlt.CreateTime,
-		&scanlt.UpdateTime,
-		&scanlt.Site,
-		&scanlt.Name,
-		&scanlt.MapType,
-		&scanlt.MapZoomLevel,
-		&scanlt.Index,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the LocationType fields.
+func (lt *LocationType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(locationtype.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	lt.ID = strconv.Itoa(scanlt.ID)
-	lt.CreateTime = scanlt.CreateTime.Time
-	lt.UpdateTime = scanlt.UpdateTime.Time
-	lt.Site = scanlt.Site.Bool
-	lt.Name = scanlt.Name.String
-	lt.MapType = scanlt.MapType.String
-	lt.MapZoomLevel = int(scanlt.MapZoomLevel.Int64)
-	lt.Index = int(scanlt.Index.Int64)
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	lt.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		lt.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		lt.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field site", values[2])
+	} else if value.Valid {
+		lt.Site = value.Bool
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[3])
+	} else if value.Valid {
+		lt.Name = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field map_type", values[4])
+	} else if value.Valid {
+		lt.MapType = value.String
+	}
+	if value, ok := values[5].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field map_zoom_level", values[5])
+	} else if value.Valid {
+		lt.MapZoomLevel = int(value.Int64)
+	}
+	if value, ok := values[6].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[6])
+	} else if value.Valid {
+		lt.Index = int(value.Int64)
+	}
 	return nil
 }
 
@@ -136,18 +165,6 @@ func (lt *LocationType) id() int {
 
 // LocationTypes is a parsable slice of LocationType.
 type LocationTypes []*LocationType
-
-// FromRows scans the sql response data into LocationTypes.
-func (lt *LocationTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanlt := &LocationType{}
-		if err := scanlt.FromRows(rows); err != nil {
-			return err
-		}
-		*lt = append(*lt, scanlt)
-	}
-	return nil
-}
 
 func (lt LocationTypes) config(cfg config) {
 	for _i := range lt {

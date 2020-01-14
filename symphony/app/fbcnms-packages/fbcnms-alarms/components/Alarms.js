@@ -25,7 +25,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import type {ApiUtil} from './AlarmsApi';
 import type {FiringAlarm, Labels} from './AlarmAPIType';
 import type {Match} from 'react-router-dom';
-import type {RuleInterfaceMap} from './RuleInterface';
+import type {RuleInterfaceMap} from './rules/RuleInterface';
 
 const useStyles = makeStyles(_theme => ({
   appBar: {

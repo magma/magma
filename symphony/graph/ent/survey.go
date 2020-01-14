@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/survey"
 )
 
 // Survey is the model entity for the Survey schema.
@@ -32,33 +33,55 @@ type Survey struct {
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
 }
 
-// FromRows scans the sql response data into Survey.
-func (s *Survey) FromRows(rows *sql.Rows) error {
-	var scans struct {
-		ID                  int
-		CreateTime          sql.NullTime
-		UpdateTime          sql.NullTime
-		Name                sql.NullString
-		OwnerName           sql.NullString
-		CompletionTimestamp sql.NullTime
+// scanValues returns the types for scanning values from sql.Rows.
+func (*Survey) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullTime{},
 	}
-	// the order here should be the same as in the `survey.Columns`.
-	if err := rows.Scan(
-		&scans.ID,
-		&scans.CreateTime,
-		&scans.UpdateTime,
-		&scans.Name,
-		&scans.OwnerName,
-		&scans.CompletionTimestamp,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the Survey fields.
+func (s *Survey) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(survey.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	s.ID = strconv.Itoa(scans.ID)
-	s.CreateTime = scans.CreateTime.Time
-	s.UpdateTime = scans.UpdateTime.Time
-	s.Name = scans.Name.String
-	s.OwnerName = scans.OwnerName.String
-	s.CompletionTimestamp = scans.CompletionTimestamp.Time
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	s.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		s.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		s.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		s.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field owner_name", values[3])
+	} else if value.Valid {
+		s.OwnerName = value.String
+	}
+	if value, ok := values[4].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field completion_timestamp", values[4])
+	} else if value.Valid {
+		s.CompletionTimestamp = value.Time
+	}
 	return nil
 }
 
@@ -122,18 +145,6 @@ func (s *Survey) id() int {
 
 // Surveys is a parsable slice of Survey.
 type Surveys []*Survey
-
-// FromRows scans the sql response data into Surveys.
-func (s *Surveys) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scans := &Survey{}
-		if err := scans.FromRows(rows); err != nil {
-			return err
-		}
-		*s = append(*s, scans)
-	}
-	return nil
-}
 
 func (s Surveys) config(cfg config) {
 	for _i := range s {

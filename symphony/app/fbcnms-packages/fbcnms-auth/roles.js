@@ -12,5 +12,6 @@ export type AccessRoleLevel = 0 | 3;
 
 export const AccessRoles = {
   USER: 0,
+  READ_ONLY_USER: 1,
   SUPERUSER: 3,
 };

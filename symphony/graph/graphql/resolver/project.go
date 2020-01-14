@@ -14,8 +14,9 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 
+	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
 	"github.com/vektah/gqlparser/gqlerror"
 	"golang.org/x/xerrors"
@@ -57,16 +58,6 @@ func (projectTypeResolver) WorkOrders(ctx context.Context, obj *ent.ProjectType)
 		return nil, xerrors.Errorf("querying work order definitions: %w", err)
 	}
 	return properties, nil
-}
-
-func (projectTypeResolver) TotalCount(
-	ctx context.Context, _ *models.ProjectTypeConnection,
-) (int, error) {
-	count, err := ent.FromContext(ctx).ProjectType.Query().Count(ctx)
-	if err != nil {
-		return 0, xerrors.Errorf("querying project types count: %w", err)
-	}
-	return count, nil
 }
 
 func (r mutationResolver) CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error) {
@@ -196,8 +187,8 @@ func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.Project
 
 func (r queryResolver) ProjectTypes(
 	ctx context.Context,
-	after *relay.Cursor, first *int,
-	before *relay.Cursor, last *int,
+	_ *models.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
 ) (*models.ProjectTypeConnection, error) {
 	types, err := r.ClientFrom(ctx).ProjectType.Query().All(ctx)
 	switch {
@@ -206,14 +197,14 @@ func (r queryResolver) ProjectTypes(
 	case len(types) == 0:
 		return &models.ProjectTypeConnection{
 			Edges:    []*models.ProjectTypeEdge{},
-			PageInfo: &relay.PageInfo{},
+			PageInfo: &models.PageInfo{},
 		}, nil
 	}
 	edges := make([]*models.ProjectTypeEdge, len(types))
 	for i, typ := range types {
 		edges[i] = &models.ProjectTypeEdge{
 			Node: typ,
-			Cursor: relay.Cursor{
+			Cursor: models.Cursor{
 				ID:     typ.ID,
 				Offset: i,
 			},
@@ -221,11 +212,11 @@ func (r queryResolver) ProjectTypes(
 	}
 	return &models.ProjectTypeConnection{
 		Edges: edges,
-		PageInfo: &relay.PageInfo{
+		PageInfo: &models.PageInfo{
 			HasNextPage:     false,
 			HasPreviousPage: false,
-			StartCursor:     edges[0].Cursor,
-			EndCursor:       edges[len(edges)-1].Cursor,
+			StartCursor:     &edges[0].Cursor,
+			EndCursor:       &edges[len(edges)-1].Cursor,
 		},
 	}, nil
 }
@@ -271,7 +262,7 @@ func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project)
 }
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
-	properties, err := r.AddProperties(ctx, input.Properties, nil)
+	properties, err := r.AddProperties(input.Properties, resolverutil.AddPropertyArgs{Context: ctx, IsTemplate: pointer.ToBool(true)})
 	if err != nil {
 		return nil, xerrors.Errorf("creating properties: %w", err)
 	}
@@ -322,7 +313,7 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 				stringValue = &p.StringVal
 			}
 
-			_, err = r.AddProperty(ctx, &models.PropertyInput{
+			newProp := &models.PropertyInput{
 				PropertyTypeID: p.ID,
 				StringValue:    stringValue,
 				IntValue:       &p.IntVal,
@@ -332,7 +323,14 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 				LongitudeValue: &p.LongitudeVal,
 				RangeFromValue: &p.RangeFromVal,
 				RangeToValue:   &p.RangeToVal,
-			}, func(b *ent.PropertyCreate) { b.SetWorkOrder(w) })
+			}
+			addPropertyArgs := resolverutil.AddPropertyArgs{
+				Context:    ctx,
+				EntSetter:  func(b *ent.PropertyCreate) { b.SetWorkOrder(w) },
+				IsTemplate: pointer.ToBool(true),
+			}
+
+			_, err = r.AddProperty(newProp, addPropertyArgs)
 			if err != nil {
 				return nil, xerrors.Errorf("creating work order properties", err)
 			}
@@ -385,9 +383,13 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		}
 	}
 	if _, err := r.AddProperties(
-		ctx, added, func(b *ent.PropertyCreate) {
-			b.SetProjectID(p.ID)
-		}); err != nil {
+		added,
+		resolverutil.AddPropertyArgs{
+			Context:    ctx,
+			EntSetter:  func(b *ent.PropertyCreate) { b.SetProjectID(p.ID) },
+			IsTemplate: pointer.ToBool(true),
+		},
+	); err != nil {
 		return nil, err
 	}
 	ptID, err := p.QueryType().OnlyID(ctx)
