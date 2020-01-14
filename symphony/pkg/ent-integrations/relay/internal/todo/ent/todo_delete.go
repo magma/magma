@@ -12,8 +12,8 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 )
 
 // TodoDelete is the builder for deleting a Todo entity.
@@ -47,7 +47,7 @@ func (td *TodoDelete) sqlExec(ctx context.Context) (int, error) {
 		Node: &sqlgraph.NodeSpec{
 			Table: todo.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: todo.FieldID,
 			},
 		},

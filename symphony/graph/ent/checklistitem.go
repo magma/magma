@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 )
 
 // CheckListItem is the model entity for the CheckListItem schema.
@@ -35,41 +36,67 @@ type CheckListItem struct {
 	HelpText *string `json:"help_text,omitempty" gqlgen:"helpText"`
 }
 
-// FromRows scans the sql response data into CheckListItem.
-func (cli *CheckListItem) FromRows(rows *sql.Rows) error {
-	var scancli struct {
-		ID         int
-		Title      sql.NullString
-		Type       sql.NullString
-		Index      sql.NullInt64
-		Checked    sql.NullBool
-		StringVal  sql.NullString
-		EnumValues sql.NullString
-		HelpText   sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*CheckListItem) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullBool{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `checklistitem.Columns`.
-	if err := rows.Scan(
-		&scancli.ID,
-		&scancli.Title,
-		&scancli.Type,
-		&scancli.Index,
-		&scancli.Checked,
-		&scancli.StringVal,
-		&scancli.EnumValues,
-		&scancli.HelpText,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the CheckListItem fields.
+func (cli *CheckListItem) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(checklistitem.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	cli.ID = strconv.Itoa(scancli.ID)
-	cli.Title = scancli.Title.String
-	cli.Type = scancli.Type.String
-	cli.Index = int(scancli.Index.Int64)
-	cli.Checked = scancli.Checked.Bool
-	cli.StringVal = scancli.StringVal.String
-	cli.EnumValues = scancli.EnumValues.String
-	if scancli.HelpText.Valid {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	cli.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field title", values[0])
+	} else if value.Valid {
+		cli.Title = value.String
+	}
+	if value, ok := values[1].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[1])
+	} else if value.Valid {
+		cli.Type = value.String
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[2])
+	} else if value.Valid {
+		cli.Index = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullBool); !ok {
+		return fmt.Errorf("unexpected type %T for field checked", values[3])
+	} else if value.Valid {
+		cli.Checked = value.Bool
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field string_val", values[4])
+	} else if value.Valid {
+		cli.StringVal = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field enum_values", values[5])
+	} else if value.Valid {
+		cli.EnumValues = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field help_text", values[6])
+	} else if value.Valid {
 		cli.HelpText = new(string)
-		*cli.HelpText = scancli.HelpText.String
+		*cli.HelpText = value.String
 	}
 	return nil
 }
@@ -130,18 +157,6 @@ func (cli *CheckListItem) id() int {
 
 // CheckListItems is a parsable slice of CheckListItem.
 type CheckListItems []*CheckListItem
-
-// FromRows scans the sql response data into CheckListItems.
-func (cli *CheckListItems) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scancli := &CheckListItem{}
-		if err := scancli.FromRows(rows); err != nil {
-			return err
-		}
-		*cli = append(*cli, scancli)
-	}
-	return nil
-}
 
 func (cli CheckListItems) config(cfg config) {
 	for _i := range cli {

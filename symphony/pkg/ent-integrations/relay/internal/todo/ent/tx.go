@@ -10,7 +10,7 @@ import (
 	"context"
 
 	"github.com/facebookincubator/ent/dialect"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/migrate"
 )
 
 // Tx is a transactional client that is created by calling Client.Tx().

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
@@ -406,45 +407,31 @@ func (lq *LocationQuery) Select(field string, fields ...string) *LocationSelect 
 }
 
 func (lq *LocationQuery) sqlAll(ctx context.Context) ([]*Location, error) {
-	rows := &sql.Rows{}
-	selector := lq.sqlQuery()
-	if unique := lq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*Location
+		spec  = lq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &Location{config: lq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := lq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, lq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ls Locations
-	if err := ls.FromRows(rows); err != nil {
-		return nil, err
-	}
-	ls.config(lq.config)
-	return ls, nil
+	return nodes, nil
 }
 
 func (lq *LocationQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := lq.sqlQuery()
-	unique := []string{location.FieldID}
-	if len(lq.unique) > 0 {
-		unique = lq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := lq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := lq.querySpec()
+	return sqlgraph.CountNodes(ctx, lq.driver, spec)
 }
 
 func (lq *LocationQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -453,6 +440,42 @@ func (lq *LocationQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (lq *LocationQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   location.Table,
+			Columns: location.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: location.FieldID,
+			},
+		},
+		From:   lq.sql,
+		Unique: true,
+	}
+	if ps := lq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := lq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := lq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := lq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (lq *LocationQuery) sqlQuery() *sql.Selector {
@@ -726,7 +749,7 @@ func (ls *LocationSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ls *LocationSelect) sqlQuery() sql.Querier {
-	view := "location_view"
-	return sql.Dialect(ls.driver.Dialect()).
-		Select(ls.fields...).From(ls.sql.As(view))
+	selector := ls.sql
+	selector.Select(selector.Columns(ls.fields...)...)
+	return selector
 }

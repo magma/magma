@@ -15,7 +15,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay"
 
 	"github.com/AlekSi/pointer"
 	"github.com/pkg/errors"
@@ -59,16 +58,6 @@ func (projectTypeResolver) WorkOrders(ctx context.Context, obj *ent.ProjectType)
 		return nil, xerrors.Errorf("querying work order definitions: %w", err)
 	}
 	return properties, nil
-}
-
-func (projectTypeResolver) TotalCount(
-	ctx context.Context, _ *models.ProjectTypeConnection,
-) (int, error) {
-	count, err := ent.FromContext(ctx).ProjectType.Query().Count(ctx)
-	if err != nil {
-		return 0, xerrors.Errorf("querying project types count: %w", err)
-	}
-	return count, nil
 }
 
 func (r mutationResolver) CreateProjectType(ctx context.Context, input models.AddProjectTypeInput) (*ent.ProjectType, error) {
@@ -198,8 +187,8 @@ func (r queryResolver) ProjectType(ctx context.Context, id string) (*ent.Project
 
 func (r queryResolver) ProjectTypes(
 	ctx context.Context,
-	after *relay.Cursor, first *int,
-	before *relay.Cursor, last *int,
+	_ *models.Cursor, _ *int,
+	_ *models.Cursor, _ *int,
 ) (*models.ProjectTypeConnection, error) {
 	types, err := r.ClientFrom(ctx).ProjectType.Query().All(ctx)
 	switch {
@@ -208,14 +197,14 @@ func (r queryResolver) ProjectTypes(
 	case len(types) == 0:
 		return &models.ProjectTypeConnection{
 			Edges:    []*models.ProjectTypeEdge{},
-			PageInfo: &relay.PageInfo{},
+			PageInfo: &models.PageInfo{},
 		}, nil
 	}
 	edges := make([]*models.ProjectTypeEdge, len(types))
 	for i, typ := range types {
 		edges[i] = &models.ProjectTypeEdge{
 			Node: typ,
-			Cursor: relay.Cursor{
+			Cursor: models.Cursor{
 				ID:     typ.ID,
 				Offset: i,
 			},
@@ -223,7 +212,7 @@ func (r queryResolver) ProjectTypes(
 	}
 	return &models.ProjectTypeConnection{
 		Edges: edges,
-		PageInfo: &relay.PageInfo{
+		PageInfo: &models.PageInfo{
 			HasNextPage:     false,
 			HasPreviousPage: false,
 			StartCursor:     &edges[0].Cursor,

@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
@@ -368,45 +369,31 @@ func (eq *EquipmentQuery) Select(field string, fields ...string) *EquipmentSelec
 }
 
 func (eq *EquipmentQuery) sqlAll(ctx context.Context) ([]*Equipment, error) {
-	rows := &sql.Rows{}
-	selector := eq.sqlQuery()
-	if unique := eq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*Equipment
+		spec  = eq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &Equipment{config: eq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := eq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, eq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var es EquipmentSlice
-	if err := es.FromRows(rows); err != nil {
-		return nil, err
-	}
-	es.config(eq.config)
-	return es, nil
+	return nodes, nil
 }
 
 func (eq *EquipmentQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := eq.sqlQuery()
-	unique := []string{equipment.FieldID}
-	if len(eq.unique) > 0 {
-		unique = eq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := eq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := eq.querySpec()
+	return sqlgraph.CountNodes(ctx, eq.driver, spec)
 }
 
 func (eq *EquipmentQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -415,6 +402,42 @@ func (eq *EquipmentQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (eq *EquipmentQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipment.Table,
+			Columns: equipment.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipment.FieldID,
+			},
+		},
+		From:   eq.sql,
+		Unique: true,
+	}
+	if ps := eq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := eq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := eq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := eq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (eq *EquipmentQuery) sqlQuery() *sql.Selector {
@@ -688,7 +711,7 @@ func (es *EquipmentSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (es *EquipmentSelect) sqlQuery() sql.Querier {
-	view := "equipment_view"
-	return sql.Dialect(es.driver.Dialect()).
-		Select(es.fields...).From(es.sql.As(view))
+	selector := es.sql
+	selector.Select(selector.Columns(es.fields...)...)
+	return selector
 }

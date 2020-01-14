@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
@@ -291,45 +292,31 @@ func (scsq *SurveyCellScanQuery) Select(field string, fields ...string) *SurveyC
 }
 
 func (scsq *SurveyCellScanQuery) sqlAll(ctx context.Context) ([]*SurveyCellScan, error) {
-	rows := &sql.Rows{}
-	selector := scsq.sqlQuery()
-	if unique := scsq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*SurveyCellScan
+		spec  = scsq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &SurveyCellScan{config: scsq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := scsq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, scsq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var scsSlice SurveyCellScans
-	if err := scsSlice.FromRows(rows); err != nil {
-		return nil, err
-	}
-	scsSlice.config(scsq.config)
-	return scsSlice, nil
+	return nodes, nil
 }
 
 func (scsq *SurveyCellScanQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := scsq.sqlQuery()
-	unique := []string{surveycellscan.FieldID}
-	if len(scsq.unique) > 0 {
-		unique = scsq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := scsq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := scsq.querySpec()
+	return sqlgraph.CountNodes(ctx, scsq.driver, spec)
 }
 
 func (scsq *SurveyCellScanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +325,42 @@ func (scsq *SurveyCellScanQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (scsq *SurveyCellScanQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveycellscan.Table,
+			Columns: surveycellscan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveycellscan.FieldID,
+			},
+		},
+		From:   scsq.sql,
+		Unique: true,
+	}
+	if ps := scsq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := scsq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := scsq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := scsq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (scsq *SurveyCellScanQuery) sqlQuery() *sql.Selector {
@@ -611,7 +634,7 @@ func (scss *SurveyCellScanSelect) sqlScan(ctx context.Context, v interface{}) er
 }
 
 func (scss *SurveyCellScanSelect) sqlQuery() sql.Querier {
-	view := "surveycellscan_view"
-	return sql.Dialect(scss.driver.Dialect()).
-		Select(scss.fields...).From(scss.sql.As(view))
+	selector := scss.sql
+	selector.Select(selector.Columns(scss.fields...)...)
+	return selector
 }

@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
 )
 
 // SurveyTemplateCategory is the model entity for the SurveyTemplateCategory schema.
@@ -30,30 +31,49 @@ type SurveyTemplateCategory struct {
 	CategoryDescription string `json:"category_description,omitempty"`
 }
 
-// FromRows scans the sql response data into SurveyTemplateCategory.
-func (stc *SurveyTemplateCategory) FromRows(rows *sql.Rows) error {
-	var scanstc struct {
-		ID                  int
-		CreateTime          sql.NullTime
-		UpdateTime          sql.NullTime
-		CategoryTitle       sql.NullString
-		CategoryDescription sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*SurveyTemplateCategory) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `surveytemplatecategory.Columns`.
-	if err := rows.Scan(
-		&scanstc.ID,
-		&scanstc.CreateTime,
-		&scanstc.UpdateTime,
-		&scanstc.CategoryTitle,
-		&scanstc.CategoryDescription,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the SurveyTemplateCategory fields.
+func (stc *SurveyTemplateCategory) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(surveytemplatecategory.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	stc.ID = strconv.Itoa(scanstc.ID)
-	stc.CreateTime = scanstc.CreateTime.Time
-	stc.UpdateTime = scanstc.UpdateTime.Time
-	stc.CategoryTitle = scanstc.CategoryTitle.String
-	stc.CategoryDescription = scanstc.CategoryDescription.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	stc.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		stc.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		stc.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category_title", values[2])
+	} else if value.Valid {
+		stc.CategoryTitle = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category_description", values[3])
+	} else if value.Valid {
+		stc.CategoryDescription = value.String
+	}
 	return nil
 }
 
@@ -105,18 +125,6 @@ func (stc *SurveyTemplateCategory) id() int {
 
 // SurveyTemplateCategories is a parsable slice of SurveyTemplateCategory.
 type SurveyTemplateCategories []*SurveyTemplateCategory
-
-// FromRows scans the sql response data into SurveyTemplateCategories.
-func (stc *SurveyTemplateCategories) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanstc := &SurveyTemplateCategory{}
-		if err := scanstc.FromRows(rows); err != nil {
-			return err
-		}
-		*stc = append(*stc, scanstc)
-	}
-	return nil
-}
 
 func (stc SurveyTemplateCategories) config(cfg config) {
 	for _i := range stc {

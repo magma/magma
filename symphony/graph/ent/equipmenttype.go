@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
 )
 
 // EquipmentType is the model entity for the EquipmentType schema.
@@ -28,27 +29,43 @@ type EquipmentType struct {
 	Name string `json:"name,omitempty"`
 }
 
-// FromRows scans the sql response data into EquipmentType.
-func (et *EquipmentType) FromRows(rows *sql.Rows) error {
-	var scanet struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Name       sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*EquipmentType) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `equipmenttype.Columns`.
-	if err := rows.Scan(
-		&scanet.ID,
-		&scanet.CreateTime,
-		&scanet.UpdateTime,
-		&scanet.Name,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the EquipmentType fields.
+func (et *EquipmentType) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(equipmenttype.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	et.ID = strconv.Itoa(scanet.ID)
-	et.CreateTime = scanet.CreateTime.Time
-	et.UpdateTime = scanet.UpdateTime.Time
-	et.Name = scanet.Name.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	et.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		et.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		et.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		et.Name = value.String
+	}
 	return nil
 }
 
@@ -118,18 +135,6 @@ func (et *EquipmentType) id() int {
 
 // EquipmentTypes is a parsable slice of EquipmentType.
 type EquipmentTypes []*EquipmentType
-
-// FromRows scans the sql response data into EquipmentTypes.
-func (et *EquipmentTypes) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanet := &EquipmentType{}
-		if err := scanet.FromRows(rows); err != nil {
-			return err
-		}
-		*et = append(*et, scanet)
-	}
-	return nil
-}
 
 func (et EquipmentTypes) config(cfg config) {
 	for _i := range et {

@@ -55,6 +55,13 @@ func writeSuccessMessage(w http.ResponseWriter, success, all int) error {
 	return nil
 }
 
+func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
+	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
+		return currRow == a[nextLineToSkipIndex]
+	}
+	return false
+}
+
 // nolint: unparam
 func (m *importer) validateAllLocationTypeExist(ctx context.Context, offset int, locations []string, ignoreHierarchy bool) error {
 	currIndex := -1

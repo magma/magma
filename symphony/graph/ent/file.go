@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 )
 
 // File is the model entity for the File schema.
@@ -42,48 +43,85 @@ type File struct {
 	Category string `json:"category,omitempty"`
 }
 
-// FromRows scans the sql response data into File.
-func (f *File) FromRows(rows *sql.Rows) error {
-	var scanf struct {
-		ID          int
-		CreateTime  sql.NullTime
-		UpdateTime  sql.NullTime
-		Type        sql.NullString
-		Name        sql.NullString
-		Size        sql.NullInt64
-		ModifiedAt  sql.NullTime
-		UploadedAt  sql.NullTime
-		ContentType sql.NullString
-		StoreKey    sql.NullString
-		Category    sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*File) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `file.Columns`.
-	if err := rows.Scan(
-		&scanf.ID,
-		&scanf.CreateTime,
-		&scanf.UpdateTime,
-		&scanf.Type,
-		&scanf.Name,
-		&scanf.Size,
-		&scanf.ModifiedAt,
-		&scanf.UploadedAt,
-		&scanf.ContentType,
-		&scanf.StoreKey,
-		&scanf.Category,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the File fields.
+func (f *File) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(file.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	f.ID = strconv.Itoa(scanf.ID)
-	f.CreateTime = scanf.CreateTime.Time
-	f.UpdateTime = scanf.UpdateTime.Time
-	f.Type = scanf.Type.String
-	f.Name = scanf.Name.String
-	f.Size = int(scanf.Size.Int64)
-	f.ModifiedAt = scanf.ModifiedAt.Time
-	f.UploadedAt = scanf.UploadedAt.Time
-	f.ContentType = scanf.ContentType.String
-	f.StoreKey = scanf.StoreKey.String
-	f.Category = scanf.Category.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	f.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		f.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		f.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field type", values[2])
+	} else if value.Valid {
+		f.Type = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[3])
+	} else if value.Valid {
+		f.Name = value.String
+	}
+	if value, ok := values[4].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field size", values[4])
+	} else if value.Valid {
+		f.Size = int(value.Int64)
+	}
+	if value, ok := values[5].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field modified_at", values[5])
+	} else if value.Valid {
+		f.ModifiedAt = value.Time
+	}
+	if value, ok := values[6].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field uploaded_at", values[6])
+	} else if value.Valid {
+		f.UploadedAt = value.Time
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field content_type", values[7])
+	} else if value.Valid {
+		f.ContentType = value.String
+	}
+	if value, ok := values[8].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field store_key", values[8])
+	} else if value.Valid {
+		f.StoreKey = value.String
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field category", values[9])
+	} else if value.Valid {
+		f.Category = value.String
+	}
 	return nil
 }
 
@@ -142,18 +180,6 @@ func (f *File) id() int {
 
 // Files is a parsable slice of File.
 type Files []*File
-
-// FromRows scans the sql response data into Files.
-func (f *Files) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanf := &File{}
-		if err := scanf.FromRows(rows); err != nil {
-			return err
-		}
-		*f = append(*f, scanf)
-	}
-	return nil
-}
 
 func (f Files) config(cfg config) {
 	for _i := range f {

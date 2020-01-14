@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 )
 
 // AuditLog is the model entity for the AuditLog schema.
@@ -48,61 +49,106 @@ type AuditLog struct {
 	StatusCode string `json:"status_code,omitempty"`
 }
 
-// FromRows scans the sql response data into AuditLog.
-func (al *AuditLog) FromRows(rows *sql.Rows) error {
-	var scanal struct {
-		ID                int
-		CreatedAt         sql.NullTime
-		UpdatedAt         sql.NullTime
-		ActingUserID      sql.NullInt64
-		Organization      sql.NullString
-		MutationType      sql.NullString
-		ObjectID          sql.NullString
-		ObjectType        sql.NullString
-		ObjectDisplayName sql.NullString
-		MutationData      []byte
-		URL               sql.NullString
-		IPAddress         sql.NullString
-		Status            sql.NullString
-		StatusCode        sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*AuditLog) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullInt64{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&[]byte{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `auditlog.Columns`.
-	if err := rows.Scan(
-		&scanal.ID,
-		&scanal.CreatedAt,
-		&scanal.UpdatedAt,
-		&scanal.ActingUserID,
-		&scanal.Organization,
-		&scanal.MutationType,
-		&scanal.ObjectID,
-		&scanal.ObjectType,
-		&scanal.ObjectDisplayName,
-		&scanal.MutationData,
-		&scanal.URL,
-		&scanal.IPAddress,
-		&scanal.Status,
-		&scanal.StatusCode,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the AuditLog fields.
+func (al *AuditLog) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(auditlog.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	al.ID = scanal.ID
-	al.CreatedAt = scanal.CreatedAt.Time
-	al.UpdatedAt = scanal.UpdatedAt.Time
-	al.ActingUserID = int(scanal.ActingUserID.Int64)
-	al.Organization = scanal.Organization.String
-	al.MutationType = scanal.MutationType.String
-	al.ObjectID = scanal.ObjectID.String
-	al.ObjectType = scanal.ObjectType.String
-	al.ObjectDisplayName = scanal.ObjectDisplayName.String
-	if value := scanal.MutationData; len(value) > 0 {
-		if err := json.Unmarshal(value, &al.MutationData); err != nil {
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	al.ID = int(value.Int64)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field created_at", values[0])
+	} else if value.Valid {
+		al.CreatedAt = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field updated_at", values[1])
+	} else if value.Valid {
+		al.UpdatedAt = value.Time
+	}
+	if value, ok := values[2].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field acting_user_id", values[2])
+	} else if value.Valid {
+		al.ActingUserID = int(value.Int64)
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field organization", values[3])
+	} else if value.Valid {
+		al.Organization = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field mutation_type", values[4])
+	} else if value.Valid {
+		al.MutationType = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field object_id", values[5])
+	} else if value.Valid {
+		al.ObjectID = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field object_type", values[6])
+	} else if value.Valid {
+		al.ObjectType = value.String
+	}
+	if value, ok := values[7].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field object_display_name", values[7])
+	} else if value.Valid {
+		al.ObjectDisplayName = value.String
+	}
+
+	if value, ok := values[8].(*[]byte); !ok {
+		return fmt.Errorf("unexpected type %T for field mutation_data", values[8])
+	} else if value != nil && len(*value) > 0 {
+		if err := json.Unmarshal(*value, &al.MutationData); err != nil {
 			return fmt.Errorf("unmarshal field mutation_data: %v", err)
 		}
 	}
-	al.URL = scanal.URL.String
-	al.IPAddress = scanal.IPAddress.String
-	al.Status = scanal.Status.String
-	al.StatusCode = scanal.StatusCode.String
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field url", values[9])
+	} else if value.Valid {
+		al.URL = value.String
+	}
+	if value, ok := values[10].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field ip_address", values[10])
+	} else if value.Valid {
+		al.IPAddress = value.String
+	}
+	if value, ok := values[11].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field status", values[11])
+	} else if value.Valid {
+		al.Status = value.String
+	}
+	if value, ok := values[12].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field status_code", values[12])
+	} else if value.Valid {
+		al.StatusCode = value.String
+	}
 	return nil
 }
 
@@ -161,18 +207,6 @@ func (al *AuditLog) String() string {
 
 // AuditLogs is a parsable slice of AuditLog.
 type AuditLogs []*AuditLog
-
-// FromRows scans the sql response data into AuditLogs.
-func (al *AuditLogs) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanal := &AuditLog{}
-		if err := scanal.FromRows(rows); err != nil {
-			return err
-		}
-		*al = append(*al, scanal)
-	}
-	return nil
-}
 
 func (al AuditLogs) config(cfg config) {
 	for _i := range al {

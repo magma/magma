@@ -1442,10 +1442,8 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->peer_ip.s_addr =
       delete_session_req_pP->peer_ip.s_addr;
 
-    if (mme_config.eps_network_feature_support
-          .ims_voice_over_ps_session_in_s1) {
-      delete_session_resp_p->lbi = delete_session_req_pP->lbi;
-    }
+    delete_session_resp_p->lbi = delete_session_req_pP->lbi;
+
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 

@@ -12,7 +12,7 @@ import (
 	"github.com/99designs/gqlgen/client"
 	"github.com/99designs/gqlgen/handler"
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/suite"
 )

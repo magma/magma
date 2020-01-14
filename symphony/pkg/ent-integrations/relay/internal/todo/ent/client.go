@@ -11,9 +11,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/migrate"
 
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 
 	"github.com/facebookincubator/ent/dialect"
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -121,7 +121,7 @@ func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TodoClient) UpdateOneID(id string) *TodoUpdateOne {
+func (c *TodoClient) UpdateOneID(id int) *TodoUpdateOne {
 	return &TodoUpdateOne{config: c.config, id: id}
 }
 
@@ -136,7 +136,7 @@ func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *TodoClient) DeleteOneID(id string) *TodoDeleteOne {
+func (c *TodoClient) DeleteOneID(id int) *TodoDeleteOne {
 	return &TodoDeleteOne{c.Delete().Where(todo.ID(id))}
 }
 
@@ -146,12 +146,12 @@ func (c *TodoClient) Query() *TodoQuery {
 }
 
 // Get returns a Todo entity by its id.
-func (c *TodoClient) Get(ctx context.Context, id string) (*Todo, error) {
+func (c *TodoClient) Get(ctx context.Context, id int) (*Todo, error) {
 	return c.Query().Where(todo.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TodoClient) GetX(ctx context.Context, id string) *Todo {
+func (c *TodoClient) GetX(ctx context.Context, id int) *Todo {
 	t, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)

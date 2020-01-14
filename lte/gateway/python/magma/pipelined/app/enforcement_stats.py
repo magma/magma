@@ -65,7 +65,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # No need to report usage if relay mode is not enabled.
         self._relay_enabled = kwargs['mconfig'].relay_enabled
         if not self._relay_enabled:
-            self.init_finished = True
             self.logger.info('Relay mode is not enabled. '
                              'enforcement_stats will not report usage.')
             return

@@ -9,11 +9,12 @@ package ent
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
@@ -277,266 +278,267 @@ func (etu *EquipmentTypeUpdate) ExecX(ctx context.Context) {
 }
 
 func (etu *EquipmentTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(etu.driver.Dialect())
-		selector = builder.Select(equipmenttype.FieldID).From(builder.Table(equipmenttype.Table))
-	)
-	for _, p := range etu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmenttype.Table,
+			Columns: equipmenttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: equipmenttype.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = etu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := etu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := etu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(equipmenttype.Table)
-	)
-	updater = updater.Where(sql.InInts(equipmenttype.FieldID, ids...))
 	if value := etu.update_time; value != nil {
-		updater.Set(equipmenttype.FieldUpdateTime, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmenttype.FieldUpdateTime,
+		})
 	}
 	if value := etu.name; value != nil {
-		updater.Set(equipmenttype.FieldName, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmenttype.FieldName,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if nodes := etu.removedPortDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PortDefinitionsTable,
+			Columns: []string{equipmenttype.PortDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentportdefinition.FieldID,
+				},
+			},
 		}
-	}
-	if len(etu.removedPortDefinitions) > 0 {
-		eids := make([]int, len(etu.removedPortDefinitions))
-		for eid := range etu.removedPortDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(equipmenttype.PortDefinitionsTable).
-			SetNull(equipmenttype.PortDefinitionsColumn).
-			Where(sql.InInts(equipmenttype.PortDefinitionsColumn, ids...)).
-			Where(sql.InInts(equipmentportdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(etu.port_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etu.port_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentportdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PortDefinitionsTable).
-				Set(equipmenttype.PortDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PortDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(etu.port_definitions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.port_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etu.removedPositionDefinitions) > 0 {
-		eids := make([]int, len(etu.removedPositionDefinitions))
-		for eid := range etu.removedPositionDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etu.port_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PortDefinitionsTable,
+			Columns: []string{equipmenttype.PortDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentportdefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.PositionDefinitionsTable).
-			SetNull(equipmenttype.PositionDefinitionsColumn).
-			Where(sql.InInts(equipmenttype.PositionDefinitionsColumn, ids...)).
-			Where(sql.InInts(equipmentpositiondefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(etu.position_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etu.position_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentpositiondefinition.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PositionDefinitionsTable).
-				Set(equipmenttype.PositionDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PositionDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(etu.position_definitions) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etu.position_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if len(etu.removedPropertyTypes) > 0 {
-		eids := make([]int, len(etu.removedPropertyTypes))
-		for eid := range etu.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etu.removedPositionDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PositionDefinitionsTable,
+			Columns: []string{equipmenttype.PositionDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentpositiondefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.PropertyTypesTable).
-			SetNull(equipmenttype.PropertyTypesColumn).
-			Where(sql.InInts(equipmenttype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(etu.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etu.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PropertyTypesTable).
-				Set(equipmenttype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(etu.property_types) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etu.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etu.removedEquipment) > 0 {
-		eids := make([]int, len(etu.removedEquipment))
-		for eid := range etu.removedEquipment {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etu.position_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PositionDefinitionsTable,
+			Columns: []string{equipmenttype.PositionDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentpositiondefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.EquipmentTable).
-			SetNull(equipmenttype.EquipmentColumn).
-			Where(sql.InInts(equipmenttype.EquipmentColumn, ids...)).
-			Where(sql.InInts(equipment.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
-		}
-	}
-	if len(etu.equipment) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etu.equipment {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipment.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.EquipmentTable).
-				Set(equipmenttype.EquipmentColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.EquipmentColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return 0, rollback(tx, err)
+				return 0, err
 			}
-			if int(affected) < len(etu.equipment) {
-				return 0, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etu.equipment))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := etu.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PropertyTypesTable,
+			Columns: []string{equipmenttype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := etu.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PropertyTypesTable,
+			Columns: []string{equipmenttype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := etu.removedEquipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmenttype.EquipmentTable,
+			Columns: []string{equipmenttype.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := etu.equipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmenttype.EquipmentTable,
+			Columns: []string{equipmenttype.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if etu.clearedCategory {
-		query, args := builder.Update(equipmenttype.CategoryTable).
-			SetNull(equipmenttype.CategoryColumn).
-			Where(sql.InInts(equipmentcategory.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmenttype.CategoryTable,
+			Columns: []string{equipmenttype.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentcategory.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etu.category) > 0 {
-		for eid := range etu.category {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmenttype.CategoryTable).
-				Set(equipmenttype.CategoryColumn, eid).
-				Where(sql.InInts(equipmenttype.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return 0, rollback(tx, err)
-			}
+	if nodes := etu.category; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmenttype.CategoryTable,
+			Columns: []string{equipmenttype.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentcategory.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return 0, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	if n, err = sqlgraph.UpdateNodes(ctx, etu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // EquipmentTypeUpdateOne is the builder for updating a single EquipmentType entity.
@@ -787,268 +789,261 @@ func (etuo *EquipmentTypeUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentType, err error) {
-	var (
-		builder  = sql.Dialect(etuo.driver.Dialect())
-		selector = builder.Select(equipmenttype.Columns...).From(builder.Table(equipmenttype.Table))
-	)
-	equipmenttype.ID(etuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = etuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   equipmenttype.Table,
+			Columns: equipmenttype.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  etuo.id,
+				Type:   field.TypeString,
+				Column: equipmenttype.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		et = &EquipmentType{config: etuo.config}
-		if err := et.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into EquipmentType: %v", err)
-		}
-		id = et.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("EquipmentType with id: %v", etuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one EquipmentType with the same id: %v", etuo.id)
-	}
-
-	tx, err := etuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(equipmenttype.Table)
-	)
-	updater = updater.Where(sql.InInts(equipmenttype.FieldID, ids...))
 	if value := etuo.update_time; value != nil {
-		updater.Set(equipmenttype.FieldUpdateTime, *value)
-		et.UpdateTime = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: equipmenttype.FieldUpdateTime,
+		})
 	}
 	if value := etuo.name; value != nil {
-		updater.Set(equipmenttype.FieldName, *value)
-		et.Name = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: equipmenttype.FieldName,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	if nodes := etuo.removedPortDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PortDefinitionsTable,
+			Columns: []string{equipmenttype.PortDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentportdefinition.FieldID,
+				},
+			},
 		}
-	}
-	if len(etuo.removedPortDefinitions) > 0 {
-		eids := make([]int, len(etuo.removedPortDefinitions))
-		for eid := range etuo.removedPortDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
-		}
-		query, args := builder.Update(equipmenttype.PortDefinitionsTable).
-			SetNull(equipmenttype.PortDefinitionsColumn).
-			Where(sql.InInts(equipmenttype.PortDefinitionsColumn, ids...)).
-			Where(sql.InInts(equipmentportdefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(etuo.port_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etuo.port_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentportdefinition.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PortDefinitionsTable).
-				Set(equipmenttype.PortDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PortDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(etuo.port_definitions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"port_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.port_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etuo.removedPositionDefinitions) > 0 {
-		eids := make([]int, len(etuo.removedPositionDefinitions))
-		for eid := range etuo.removedPositionDefinitions {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etuo.port_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PortDefinitionsTable,
+			Columns: []string{equipmenttype.PortDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentportdefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.PositionDefinitionsTable).
-			SetNull(equipmenttype.PositionDefinitionsColumn).
-			Where(sql.InInts(equipmenttype.PositionDefinitionsColumn, ids...)).
-			Where(sql.InInts(equipmentpositiondefinition.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(etuo.position_definitions) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etuo.position_definitions {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipmentpositiondefinition.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PositionDefinitionsTable).
-				Set(equipmenttype.PositionDefinitionsColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PositionDefinitionsColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(etuo.position_definitions) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"position_definitions\" %v already connected to a different \"EquipmentType\"", keys(etuo.position_definitions))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if len(etuo.removedPropertyTypes) > 0 {
-		eids := make([]int, len(etuo.removedPropertyTypes))
-		for eid := range etuo.removedPropertyTypes {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etuo.removedPositionDefinitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PositionDefinitionsTable,
+			Columns: []string{equipmenttype.PositionDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentpositiondefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.PropertyTypesTable).
-			SetNull(equipmenttype.PropertyTypesColumn).
-			Where(sql.InInts(equipmenttype.PropertyTypesColumn, ids...)).
-			Where(sql.InInts(propertytype.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(etuo.property_types) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etuo.property_types {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(propertytype.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.PropertyTypesTable).
-				Set(equipmenttype.PropertyTypesColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.PropertyTypesColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(etuo.property_types) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"property_types\" %v already connected to a different \"EquipmentType\"", keys(etuo.property_types))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etuo.removedEquipment) > 0 {
-		eids := make([]int, len(etuo.removedEquipment))
-		for eid := range etuo.removedEquipment {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			eids = append(eids, eid)
+	if nodes := etuo.position_definitions; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PositionDefinitionsTable,
+			Columns: []string{equipmenttype.PositionDefinitionsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentpositiondefinition.FieldID,
+				},
+			},
 		}
-		query, args := builder.Update(equipmenttype.EquipmentTable).
-			SetNull(equipmenttype.EquipmentColumn).
-			Where(sql.InInts(equipmenttype.EquipmentColumn, ids...)).
-			Where(sql.InInts(equipment.FieldID, eids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
-		}
-	}
-	if len(etuo.equipment) > 0 {
-		for _, id := range ids {
-			p := sql.P()
-			for eid := range etuo.equipment {
-				eid, serr := strconv.Atoi(eid)
-				if serr != nil {
-					err = rollback(tx, serr)
-					return
-				}
-				p.Or().EQ(equipment.FieldID, eid)
-			}
-			query, args := builder.Update(equipmenttype.EquipmentTable).
-				Set(equipmenttype.EquipmentColumn, id).
-				Where(sql.And(p, sql.IsNull(equipmenttype.EquipmentColumn))).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
-			affected, err := res.RowsAffected()
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
 			if err != nil {
-				return nil, rollback(tx, err)
+				return nil, err
 			}
-			if int(affected) < len(etuo.equipment) {
-				return nil, rollback(tx, &ConstraintError{msg: fmt.Sprintf("one of \"equipment\" %v already connected to a different \"EquipmentType\"", keys(etuo.equipment))})
-			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := etuo.removedPropertyTypes; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PropertyTypesTable,
+			Columns: []string{equipmenttype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := etuo.property_types; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   equipmenttype.PropertyTypesTable,
+			Columns: []string{equipmenttype.PropertyTypesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: propertytype.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
+	}
+	if nodes := etuo.removedEquipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmenttype.EquipmentTable,
+			Columns: []string{equipmenttype.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
+	}
+	if nodes := etuo.equipment; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   equipmenttype.EquipmentTable,
+			Columns: []string{equipmenttype.EquipmentColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipment.FieldID,
+				},
+			},
+		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
 	if etuo.clearedCategory {
-		query, args := builder.Update(equipmenttype.CategoryTable).
-			SetNull(equipmenttype.CategoryColumn).
-			Where(sql.InInts(equipmentcategory.FieldID, ids...)).
-			Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmenttype.CategoryTable,
+			Columns: []string{equipmenttype.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentcategory.FieldID,
+				},
+			},
 		}
+		spec.Edges.Clear = append(spec.Edges.Clear, edge)
 	}
-	if len(etuo.category) > 0 {
-		for eid := range etuo.category {
-			eid, serr := strconv.Atoi(eid)
-			if serr != nil {
-				err = rollback(tx, serr)
-				return
-			}
-			query, args := builder.Update(equipmenttype.CategoryTable).
-				Set(equipmenttype.CategoryColumn, eid).
-				Where(sql.InInts(equipmenttype.FieldID, ids...)).
-				Query()
-			if err := tx.Exec(ctx, query, args, &res); err != nil {
-				return nil, rollback(tx, err)
-			}
+	if nodes := etuo.category; len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   equipmenttype.CategoryTable,
+			Columns: []string{equipmenttype.CategoryColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: equipmentcategory.FieldID,
+				},
+			},
 		}
+		for k, _ := range nodes {
+			k, err := strconv.Atoi(k)
+			if err != nil {
+				return nil, err
+			}
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		spec.Edges.Add = append(spec.Edges.Add, edge)
 	}
-	if err = tx.Commit(); err != nil {
+	et = &EquipmentType{config: etuo.config}
+	spec.Assign = et.assignValues
+	spec.ScanValues = et.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, etuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
+		}
 		return nil, err
 	}
 	return et, nil

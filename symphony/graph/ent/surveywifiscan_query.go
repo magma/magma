@@ -14,6 +14,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/location"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
@@ -291,45 +292,31 @@ func (swfsq *SurveyWiFiScanQuery) Select(field string, fields ...string) *Survey
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlAll(ctx context.Context) ([]*SurveyWiFiScan, error) {
-	rows := &sql.Rows{}
-	selector := swfsq.sqlQuery()
-	if unique := swfsq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*SurveyWiFiScan
+		spec  = swfsq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &SurveyWiFiScan{config: swfsq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := swfsq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, swfsq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var swfsSlice SurveyWiFiScans
-	if err := swfsSlice.FromRows(rows); err != nil {
-		return nil, err
-	}
-	swfsSlice.config(swfsq.config)
-	return swfsSlice, nil
+	return nodes, nil
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := swfsq.sqlQuery()
-	unique := []string{surveywifiscan.FieldID}
-	if len(swfsq.unique) > 0 {
-		unique = swfsq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := swfsq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := swfsq.querySpec()
+	return sqlgraph.CountNodes(ctx, swfsq.driver, spec)
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -338,6 +325,42 @@ func (swfsq *SurveyWiFiScanQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (swfsq *SurveyWiFiScanQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   surveywifiscan.Table,
+			Columns: surveywifiscan.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeString,
+				Column: surveywifiscan.FieldID,
+			},
+		},
+		From:   swfsq.sql,
+		Unique: true,
+	}
+	if ps := swfsq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := swfsq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := swfsq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := swfsq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (swfsq *SurveyWiFiScanQuery) sqlQuery() *sql.Selector {
@@ -611,7 +634,7 @@ func (swfss *SurveyWiFiScanSelect) sqlScan(ctx context.Context, v interface{}) e
 }
 
 func (swfss *SurveyWiFiScanSelect) sqlQuery() sql.Querier {
-	view := "surveywifiscan_view"
-	return sql.Dialect(swfss.driver.Dialect()).
-		Select(swfss.fields...).From(swfss.sql.As(view))
+	selector := swfss.sql
+	selector.Select(selector.Columns(swfss.fields...)...)
+	return selector
 }

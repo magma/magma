@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
 )
 
 // ServiceEndpoint is the model entity for the ServiceEndpoint schema.
@@ -28,27 +29,43 @@ type ServiceEndpoint struct {
 	Role string `json:"role,omitempty"`
 }
 
-// FromRows scans the sql response data into ServiceEndpoint.
-func (se *ServiceEndpoint) FromRows(rows *sql.Rows) error {
-	var scanse struct {
-		ID         int
-		CreateTime sql.NullTime
-		UpdateTime sql.NullTime
-		Role       sql.NullString
+// scanValues returns the types for scanning values from sql.Rows.
+func (*ServiceEndpoint) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
 	}
-	// the order here should be the same as in the `serviceendpoint.Columns`.
-	if err := rows.Scan(
-		&scanse.ID,
-		&scanse.CreateTime,
-		&scanse.UpdateTime,
-		&scanse.Role,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the ServiceEndpoint fields.
+func (se *ServiceEndpoint) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(serviceendpoint.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	se.ID = strconv.Itoa(scanse.ID)
-	se.CreateTime = scanse.CreateTime.Time
-	se.UpdateTime = scanse.UpdateTime.Time
-	se.Role = scanse.Role.String
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	se.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		se.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		se.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field role", values[2])
+	} else if value.Valid {
+		se.Role = value.String
+	}
 	return nil
 }
 
@@ -103,18 +120,6 @@ func (se *ServiceEndpoint) id() int {
 
 // ServiceEndpoints is a parsable slice of ServiceEndpoint.
 type ServiceEndpoints []*ServiceEndpoint
-
-// FromRows scans the sql response data into ServiceEndpoints.
-func (se *ServiceEndpoints) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanse := &ServiceEndpoint{}
-		if err := scanse.FromRows(rows); err != nil {
-			return err
-		}
-		*se = append(*se, scanse)
-	}
-	return nil
-}
 
 func (se ServiceEndpoints) config(cfg config) {
 	for _i := range se {

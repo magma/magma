@@ -13,8 +13,10 @@ import (
 	"math"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 )
 
 // TodoQuery is the builder for querying Todo entities.
@@ -75,8 +77,8 @@ func (tq *TodoQuery) FirstX(ctx context.Context) *Todo {
 }
 
 // FirstID returns the first Todo id in the query. Returns *ErrNotFound when no id was found.
-func (tq *TodoQuery) FirstID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TodoQuery) FirstID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
@@ -88,7 +90,7 @@ func (tq *TodoQuery) FirstID(ctx context.Context) (id string, err error) {
 }
 
 // FirstXID is like FirstID, but panics if an error occurs.
-func (tq *TodoQuery) FirstXID(ctx context.Context) string {
+func (tq *TodoQuery) FirstXID(ctx context.Context) int {
 	id, err := tq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -122,8 +124,8 @@ func (tq *TodoQuery) OnlyX(ctx context.Context) *Todo {
 }
 
 // OnlyID returns the only Todo id in the query, returns an error if not exactly one id was returned.
-func (tq *TodoQuery) OnlyID(ctx context.Context) (id string, err error) {
-	var ids []string
+func (tq *TodoQuery) OnlyID(ctx context.Context) (id int, err error) {
+	var ids []int
 	if ids, err = tq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -139,7 +141,7 @@ func (tq *TodoQuery) OnlyID(ctx context.Context) (id string, err error) {
 }
 
 // OnlyXID is like OnlyID, but panics if an error occurs.
-func (tq *TodoQuery) OnlyXID(ctx context.Context) string {
+func (tq *TodoQuery) OnlyXID(ctx context.Context) int {
 	id, err := tq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -162,8 +164,8 @@ func (tq *TodoQuery) AllX(ctx context.Context) []*Todo {
 }
 
 // IDs executes the query and returns a list of Todo ids.
-func (tq *TodoQuery) IDs(ctx context.Context) ([]string, error) {
-	var ids []string
+func (tq *TodoQuery) IDs(ctx context.Context) ([]int, error) {
+	var ids []int
 	if err := tq.Select(todo.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
@@ -171,7 +173,7 @@ func (tq *TodoQuery) IDs(ctx context.Context) ([]string, error) {
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (tq *TodoQuery) IDsX(ctx context.Context) []string {
+func (tq *TodoQuery) IDsX(ctx context.Context) []int {
 	ids, err := tq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -264,45 +266,31 @@ func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {
 }
 
 func (tq *TodoQuery) sqlAll(ctx context.Context) ([]*Todo, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	if unique := tq.unique; len(unique) == 0 {
-		selector.Distinct()
+	var (
+		nodes []*Todo
+		spec  = tq.querySpec()
+	)
+	spec.ScanValues = func() []interface{} {
+		node := &Todo{config: tq.config}
+		nodes = append(nodes, node)
+		return node.scanValues()
 	}
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
+	spec.Assign = func(values ...interface{}) error {
+		if len(nodes) == 0 {
+			return fmt.Errorf("ent: Assign called without calling ScanValues")
+		}
+		node := nodes[len(nodes)-1]
+		return node.assignValues(values...)
+	}
+	if err := sqlgraph.QueryNodes(ctx, tq.driver, spec); err != nil {
 		return nil, err
 	}
-	defer rows.Close()
-	var ts Todos
-	if err := ts.FromRows(rows); err != nil {
-		return nil, err
-	}
-	ts.config(tq.config)
-	return ts, nil
+	return nodes, nil
 }
 
 func (tq *TodoQuery) sqlCount(ctx context.Context) (int, error) {
-	rows := &sql.Rows{}
-	selector := tq.sqlQuery()
-	unique := []string{todo.FieldID}
-	if len(tq.unique) > 0 {
-		unique = tq.unique
-	}
-	selector.Count(sql.Distinct(selector.Columns(unique...)...))
-	query, args := selector.Query()
-	if err := tq.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		return 0, errors.New("ent: no rows found")
-	}
-	var n int
-	if err := rows.Scan(&n); err != nil {
-		return 0, fmt.Errorf("ent: failed reading count: %v", err)
-	}
-	return n, nil
+	spec := tq.querySpec()
+	return sqlgraph.CountNodes(ctx, tq.driver, spec)
 }
 
 func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
@@ -311,6 +299,42 @@ func (tq *TodoQuery) sqlExist(ctx context.Context) (bool, error) {
 		return false, fmt.Errorf("ent: check existence: %v", err)
 	}
 	return n > 0, nil
+}
+
+func (tq *TodoQuery) querySpec() *sqlgraph.QuerySpec {
+	spec := &sqlgraph.QuerySpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   todo.Table,
+			Columns: todo.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: todo.FieldID,
+			},
+		},
+		From:   tq.sql,
+		Unique: true,
+	}
+	if ps := tq.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	if limit := tq.limit; limit != nil {
+		spec.Limit = *limit
+	}
+	if offset := tq.offset; offset != nil {
+		spec.Offset = *offset
+	}
+	if ps := tq.order; len(ps) > 0 {
+		spec.Order = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
+		}
+	}
+	return spec
 }
 
 func (tq *TodoQuery) sqlQuery() *sql.Selector {
@@ -584,7 +608,7 @@ func (ts *TodoSelect) sqlScan(ctx context.Context, v interface{}) error {
 }
 
 func (ts *TodoSelect) sqlQuery() sql.Querier {
-	view := "todo_view"
-	return sql.Dialect(ts.driver.Dialect()).
-		Select(ts.fields...).From(ts.sql.As(view))
+	selector := ts.sql
+	selector.Select(selector.Columns(ts.fields...)...)
+	return selector
 }

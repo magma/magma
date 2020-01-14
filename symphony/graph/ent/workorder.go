@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
 // WorkOrder is the model entity for the WorkOrder schema.
@@ -44,51 +45,91 @@ type WorkOrder struct {
 	Index int `json:"index,omitempty"`
 }
 
-// FromRows scans the sql response data into WorkOrder.
-func (wo *WorkOrder) FromRows(rows *sql.Rows) error {
-	var scanwo struct {
-		ID           int
-		CreateTime   sql.NullTime
-		UpdateTime   sql.NullTime
-		Name         sql.NullString
-		Status       sql.NullString
-		Priority     sql.NullString
-		Description  sql.NullString
-		OwnerName    sql.NullString
-		InstallDate  sql.NullTime
-		CreationDate sql.NullTime
-		Assignee     sql.NullString
-		Index        sql.NullInt64
+// scanValues returns the types for scanning values from sql.Rows.
+func (*WorkOrder) scanValues() []interface{} {
+	return []interface{}{
+		&sql.NullInt64{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullString{},
+		&sql.NullTime{},
+		&sql.NullTime{},
+		&sql.NullString{},
+		&sql.NullInt64{},
 	}
-	// the order here should be the same as in the `workorder.Columns`.
-	if err := rows.Scan(
-		&scanwo.ID,
-		&scanwo.CreateTime,
-		&scanwo.UpdateTime,
-		&scanwo.Name,
-		&scanwo.Status,
-		&scanwo.Priority,
-		&scanwo.Description,
-		&scanwo.OwnerName,
-		&scanwo.InstallDate,
-		&scanwo.CreationDate,
-		&scanwo.Assignee,
-		&scanwo.Index,
-	); err != nil {
-		return err
+}
+
+// assignValues assigns the values that were returned from sql.Rows (after scanning)
+// to the WorkOrder fields.
+func (wo *WorkOrder) assignValues(values ...interface{}) error {
+	if m, n := len(values), len(workorder.Columns); m != n {
+		return fmt.Errorf("mismatch number of scan values: %d != %d", m, n)
 	}
-	wo.ID = strconv.Itoa(scanwo.ID)
-	wo.CreateTime = scanwo.CreateTime.Time
-	wo.UpdateTime = scanwo.UpdateTime.Time
-	wo.Name = scanwo.Name.String
-	wo.Status = scanwo.Status.String
-	wo.Priority = scanwo.Priority.String
-	wo.Description = scanwo.Description.String
-	wo.OwnerName = scanwo.OwnerName.String
-	wo.InstallDate = scanwo.InstallDate.Time
-	wo.CreationDate = scanwo.CreationDate.Time
-	wo.Assignee = scanwo.Assignee.String
-	wo.Index = int(scanwo.Index.Int64)
+	value, ok := values[0].(*sql.NullInt64)
+	if !ok {
+		return fmt.Errorf("unexpected type %T for field id", value)
+	}
+	wo.ID = strconv.FormatInt(value.Int64, 10)
+	values = values[1:]
+	if value, ok := values[0].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field create_time", values[0])
+	} else if value.Valid {
+		wo.CreateTime = value.Time
+	}
+	if value, ok := values[1].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field update_time", values[1])
+	} else if value.Valid {
+		wo.UpdateTime = value.Time
+	}
+	if value, ok := values[2].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field name", values[2])
+	} else if value.Valid {
+		wo.Name = value.String
+	}
+	if value, ok := values[3].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field status", values[3])
+	} else if value.Valid {
+		wo.Status = value.String
+	}
+	if value, ok := values[4].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field priority", values[4])
+	} else if value.Valid {
+		wo.Priority = value.String
+	}
+	if value, ok := values[5].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field description", values[5])
+	} else if value.Valid {
+		wo.Description = value.String
+	}
+	if value, ok := values[6].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field owner_name", values[6])
+	} else if value.Valid {
+		wo.OwnerName = value.String
+	}
+	if value, ok := values[7].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field install_date", values[7])
+	} else if value.Valid {
+		wo.InstallDate = value.Time
+	}
+	if value, ok := values[8].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field creation_date", values[8])
+	} else if value.Valid {
+		wo.CreationDate = value.Time
+	}
+	if value, ok := values[9].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field assignee", values[9])
+	} else if value.Valid {
+		wo.Assignee = value.String
+	}
+	if value, ok := values[10].(*sql.NullInt64); !ok {
+		return fmt.Errorf("unexpected type %T for field index", values[10])
+	} else if value.Valid {
+		wo.Index = int(value.Int64)
+	}
 	return nil
 }
 
@@ -199,18 +240,6 @@ func (wo *WorkOrder) id() int {
 
 // WorkOrders is a parsable slice of WorkOrder.
 type WorkOrders []*WorkOrder
-
-// FromRows scans the sql response data into WorkOrders.
-func (wo *WorkOrders) FromRows(rows *sql.Rows) error {
-	for rows.Next() {
-		scanwo := &WorkOrder{}
-		if err := scanwo.FromRows(rows); err != nil {
-			return err
-		}
-		*wo = append(*wo, scanwo)
-	}
-	return nil
-}
 
 func (wo WorkOrders) config(cfg config) {
 	for _i := range wo {

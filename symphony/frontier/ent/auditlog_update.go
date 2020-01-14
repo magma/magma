@@ -8,11 +8,11 @@ package ent
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/frontier/ent/auditlog"
 	"github.com/facebookincubator/symphony/frontier/ent/predicate"
 )
@@ -152,94 +152,121 @@ func (alu *AuditLogUpdate) ExecX(ctx context.Context) {
 }
 
 func (alu *AuditLogUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(alu.driver.Dialect())
-		selector = builder.Select(auditlog.FieldID).From(builder.Table(auditlog.Table))
-	)
-	for _, p := range alu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   auditlog.Table,
+			Columns: auditlog.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: auditlog.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = alu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := alu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := alu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(auditlog.Table)
-	)
-	updater = updater.Where(sql.InInts(auditlog.FieldID, ids...))
 	if value := alu.updated_at; value != nil {
-		updater.Set(auditlog.FieldUpdatedAt, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: auditlog.FieldUpdatedAt,
+		})
 	}
 	if value := alu.acting_user_id; value != nil {
-		updater.Set(auditlog.FieldActingUserID, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: auditlog.FieldActingUserID,
+		})
 	}
 	if value := alu.addacting_user_id; value != nil {
-		updater.Add(auditlog.FieldActingUserID, *value)
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: auditlog.FieldActingUserID,
+		})
 	}
 	if value := alu.organization; value != nil {
-		updater.Set(auditlog.FieldOrganization, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldOrganization,
+		})
 	}
 	if value := alu.mutation_type; value != nil {
-		updater.Set(auditlog.FieldMutationType, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldMutationType,
+		})
 	}
 	if value := alu.object_id; value != nil {
-		updater.Set(auditlog.FieldObjectID, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectID,
+		})
 	}
 	if value := alu.object_type; value != nil {
-		updater.Set(auditlog.FieldObjectType, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectType,
+		})
 	}
 	if value := alu.object_display_name; value != nil {
-		updater.Set(auditlog.FieldObjectDisplayName, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectDisplayName,
+		})
 	}
 	if value := alu.mutation_data; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return 0, err
-		}
-		updater.Set(auditlog.FieldMutationData, buf)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: auditlog.FieldMutationData,
+		})
 	}
 	if value := alu.url; value != nil {
-		updater.Set(auditlog.FieldURL, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldURL,
+		})
 	}
 	if value := alu.ip_address; value != nil {
-		updater.Set(auditlog.FieldIPAddress, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldIPAddress,
+		})
 	}
 	if value := alu.status; value != nil {
-		updater.Set(auditlog.FieldStatus, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatus,
+		})
 	}
 	if value := alu.status_code; value != nil {
-		updater.Set(auditlog.FieldStatusCode, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatusCode,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, alu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // AuditLogUpdateOne is the builder for updating a single AuditLog entity.
@@ -371,107 +398,115 @@ func (aluo *AuditLogUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (aluo *AuditLogUpdateOne) sqlSave(ctx context.Context) (al *AuditLog, err error) {
-	var (
-		builder  = sql.Dialect(aluo.driver.Dialect())
-		selector = builder.Select(auditlog.Columns...).From(builder.Table(auditlog.Table))
-	)
-	auditlog.ID(aluo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = aluo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   auditlog.Table,
+			Columns: auditlog.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  aluo.id,
+				Type:   field.TypeInt,
+				Column: auditlog.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		al = &AuditLog{config: aluo.config}
-		if err := al.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into AuditLog: %v", err)
-		}
-		id = al.ID
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("AuditLog with id: %v", aluo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one AuditLog with the same id: %v", aluo.id)
-	}
-
-	tx, err := aluo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(auditlog.Table)
-	)
-	updater = updater.Where(sql.InInts(auditlog.FieldID, ids...))
 	if value := aluo.updated_at; value != nil {
-		updater.Set(auditlog.FieldUpdatedAt, *value)
-		al.UpdatedAt = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeTime,
+			Value:  *value,
+			Column: auditlog.FieldUpdatedAt,
+		})
 	}
 	if value := aluo.acting_user_id; value != nil {
-		updater.Set(auditlog.FieldActingUserID, *value)
-		al.ActingUserID = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: auditlog.FieldActingUserID,
+		})
 	}
 	if value := aluo.addacting_user_id; value != nil {
-		updater.Add(auditlog.FieldActingUserID, *value)
-		al.ActingUserID += *value
+		spec.Fields.Add = append(spec.Fields.Add, &sqlgraph.FieldSpec{
+			Type:   field.TypeInt,
+			Value:  *value,
+			Column: auditlog.FieldActingUserID,
+		})
 	}
 	if value := aluo.organization; value != nil {
-		updater.Set(auditlog.FieldOrganization, *value)
-		al.Organization = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldOrganization,
+		})
 	}
 	if value := aluo.mutation_type; value != nil {
-		updater.Set(auditlog.FieldMutationType, *value)
-		al.MutationType = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldMutationType,
+		})
 	}
 	if value := aluo.object_id; value != nil {
-		updater.Set(auditlog.FieldObjectID, *value)
-		al.ObjectID = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectID,
+		})
 	}
 	if value := aluo.object_type; value != nil {
-		updater.Set(auditlog.FieldObjectType, *value)
-		al.ObjectType = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectType,
+		})
 	}
 	if value := aluo.object_display_name; value != nil {
-		updater.Set(auditlog.FieldObjectDisplayName, *value)
-		al.ObjectDisplayName = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldObjectDisplayName,
+		})
 	}
 	if value := aluo.mutation_data; value != nil {
-		buf, err := json.Marshal(*value)
-		if err != nil {
-			return nil, err
-		}
-		updater.Set(auditlog.FieldMutationData, buf)
-		al.MutationData = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeJSON,
+			Value:  *value,
+			Column: auditlog.FieldMutationData,
+		})
 	}
 	if value := aluo.url; value != nil {
-		updater.Set(auditlog.FieldURL, *value)
-		al.URL = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldURL,
+		})
 	}
 	if value := aluo.ip_address; value != nil {
-		updater.Set(auditlog.FieldIPAddress, *value)
-		al.IPAddress = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldIPAddress,
+		})
 	}
 	if value := aluo.status; value != nil {
-		updater.Set(auditlog.FieldStatus, *value)
-		al.Status = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatus,
+		})
 	}
 	if value := aluo.status_code; value != nil {
-		updater.Set(auditlog.FieldStatusCode, *value)
-		al.StatusCode = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: auditlog.FieldStatusCode,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	al = &AuditLog{config: aluo.config}
+	spec.Assign = al.assignValues
+	spec.ScanValues = al.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, aluo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return al, nil

@@ -11,8 +11,10 @@ import (
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/predicate"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
+	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 )
 
 // TodoUpdate is the builder for updating Todo entities.
@@ -67,60 +69,43 @@ func (tu *TodoUpdate) ExecX(ctx context.Context) {
 }
 
 func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
-	var (
-		builder  = sql.Dialect(tu.driver.Dialect())
-		selector = builder.Select(todo.FieldID).From(builder.Table(todo.Table))
-	)
-	for _, p := range tu.predicates {
-		p(selector)
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   todo.Table,
+			Columns: todo.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: todo.FieldID,
+			},
+		},
 	}
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = tu.driver.Query(ctx, query, args, rows); err != nil {
-		return 0, err
-	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		if err := rows.Scan(&id); err != nil {
-			return 0, fmt.Errorf("ent: failed reading id: %v", err)
+	if ps := tu.predicates; len(ps) > 0 {
+		spec.Predicate = func(selector *sql.Selector) {
+			for i := range ps {
+				ps[i](selector)
+			}
 		}
-		ids = append(ids, id)
 	}
-	if len(ids) == 0 {
-		return 0, nil
-	}
-
-	tx, err := tu.driver.Tx(ctx)
-	if err != nil {
-		return 0, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(todo.Table)
-	)
-	updater = updater.Where(sql.InInts(todo.FieldID, ids...))
 	if value := tu.text; value != nil {
-		updater.Set(todo.FieldText, *value)
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: todo.FieldText,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return 0, rollback(tx, err)
+	if n, err = sqlgraph.UpdateNodes(ctx, tu.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return 0, err
 	}
-	return len(ids), nil
+	return n, nil
 }
 
 // TodoUpdateOne is the builder for updating a single Todo entity.
 type TodoUpdateOne struct {
 	config
-	id   string
+	id   int
 	text *string
 }
 
@@ -163,55 +148,31 @@ func (tuo *TodoUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
-	var (
-		builder  = sql.Dialect(tuo.driver.Dialect())
-		selector = builder.Select(todo.Columns...).From(builder.Table(todo.Table))
-	)
-	todo.ID(tuo.id)(selector)
-	rows := &sql.Rows{}
-	query, args := selector.Query()
-	if err = tuo.driver.Query(ctx, query, args, rows); err != nil {
-		return nil, err
+	spec := &sqlgraph.UpdateSpec{
+		Node: &sqlgraph.NodeSpec{
+			Table:   todo.Table,
+			Columns: todo.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Value:  tuo.id,
+				Type:   field.TypeInt,
+				Column: todo.FieldID,
+			},
+		},
 	}
-	defer rows.Close()
-
-	var ids []int
-	for rows.Next() {
-		var id int
-		t = &Todo{config: tuo.config}
-		if err := t.FromRows(rows); err != nil {
-			return nil, fmt.Errorf("ent: failed scanning row into Todo: %v", err)
-		}
-		id = t.id()
-		ids = append(ids, id)
-	}
-	switch n := len(ids); {
-	case n == 0:
-		return nil, &ErrNotFound{fmt.Sprintf("Todo with id: %v", tuo.id)}
-	case n > 1:
-		return nil, fmt.Errorf("ent: more than one Todo with the same id: %v", tuo.id)
-	}
-
-	tx, err := tuo.driver.Tx(ctx)
-	if err != nil {
-		return nil, err
-	}
-	var (
-		res     sql.Result
-		updater = builder.Update(todo.Table)
-	)
-	updater = updater.Where(sql.InInts(todo.FieldID, ids...))
 	if value := tuo.text; value != nil {
-		updater.Set(todo.FieldText, *value)
-		t.Text = *value
+		spec.Fields.Set = append(spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  *value,
+			Column: todo.FieldText,
+		})
 	}
-	if !updater.Empty() {
-		query, args := updater.Query()
-		if err := tx.Exec(ctx, query, args, &res); err != nil {
-			return nil, rollback(tx, err)
+	t = &Todo{config: tuo.config}
+	spec.Assign = t.assignValues
+	spec.ScanValues = t.scanValues()
+	if err = sqlgraph.UpdateNode(ctx, tuo.driver, spec); err != nil {
+		if cerr, ok := isSQLConstraintError(err); ok {
+			err = cerr
 		}
-	}
-	if err = tx.Commit(); err != nil {
 		return nil, err
 	}
 	return t, nil

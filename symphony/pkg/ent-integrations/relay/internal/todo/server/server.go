@@ -10,8 +10,8 @@ import (
 	"net/http"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent"
 	_ "github.com/mattn/go-sqlite3"
 )
 

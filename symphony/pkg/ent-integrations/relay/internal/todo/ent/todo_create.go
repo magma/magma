@@ -10,11 +10,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/todo"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/todo"
 )
 
 // TodoCreate is the builder for creating a Todo entity.
@@ -55,7 +54,7 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 		spec = &sqlgraph.CreateSpec{
 			Table: todo.Table,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeString,
+				Type:   field.TypeInt,
 				Column: todo.FieldID,
 			},
 		}
@@ -75,6 +74,6 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 		return nil, err
 	}
 	id := spec.ID.Value.(int64)
-	t.ID = strconv.FormatInt(id, 10)
+	t.ID = int(id)
 	return t, nil
 }

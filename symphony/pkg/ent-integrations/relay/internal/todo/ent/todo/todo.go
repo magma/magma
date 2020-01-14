@@ -7,7 +7,7 @@
 package todo
 
 import (
-	"github.com/facebookincubator/symphony/pkg/graphql/relay/internal/todo/ent/schema"
+	"github.com/facebookincubator/symphony/pkg/ent-integrations/relay/internal/todo/ent/schema"
 )
 
 const (

@@ -338,7 +338,7 @@ static int _handle_cs_domain_loc_updt_acc(
        * store the new TMSI and set flag
        */
       if (
-        mme_app_compare_tmsi(
+        MME_APP_COMPARE_TMSI(
           emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi) == RETURNerror) {
         OAILOG_INFO(LOG_MME_APP, "MME-APP - New TMSI Allocated\n");
         memcpy(
