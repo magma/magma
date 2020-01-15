@@ -41,6 +41,7 @@ func main() {
 	}
 
 	RegisterV0Handlers(e, alertClient)
+	RegisterV1Handlers(e, alertClient)
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
