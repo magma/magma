@@ -10,6 +10,11 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+
+	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
+
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -36,7 +41,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "cannot parse form", http.StatusInternalServerError)
 		return
 	}
-	count, numRows := 0, 0
+	modifiedCount, numRows := 0, 0
 
 	for fileName := range r.MultipartForm.File {
 		first, reader, err := m.newReader(fileName, r)
@@ -61,12 +66,93 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				continue
 			}
 			numRows++
-			importLine := NewImportRecord(m.trimLine(untrimmedLine), importHeader)
-
+			ln := m.trimLine(untrimmedLine)
+			importLine := NewImportRecord(ln, importHeader)
+			portARecord, portBRecord, err := m.getTwoPortRecords(importLine)
+			if err != nil {
+				errorReturn(w, fmt.Sprintf("getting two ports. line #%d", numRows), log, err)
+				return
+			}
 			id := importLine.ID()
 			if id == "" {
-				errorReturn(w, fmt.Sprintf("supporting only link property editing (row #%d)", numRows), log, err)
-				return
+				client := m.ClientFrom(ctx)
+				var linkPropertyInputs []*models.PropertyInput
+				linkInput := make(map[int]*models.LinkSide, 2)
+
+				for i, portRecord := range []ImportRecord{*portARecord, *portBRecord} {
+					etn := portRecord.PortEquipmentTypeName()
+					defName := portRecord.Name()
+					en := portRecord.PortEquipmentName()
+
+					equipmentType, err := client.EquipmentType.Query().Where(equipmenttype.Name(etn)).Only(ctx)
+					if err != nil {
+						errorReturn(w, fmt.Sprintf("getting equipment type: %v (row #%d)", etn, numRows), log, err)
+						return
+					}
+					portDef, err := equipmentType.QueryPortDefinitions().Where(equipmentportdefinition.Name(defName)).Only(ctx)
+					if err != nil {
+						errorReturn(w, fmt.Sprintf("getting port definition %v under equipment type %v (row #%d)", defName, etn, numRows), log, err)
+						return
+					}
+
+					parentLoc, err := m.verifyOrCreateLocationHierarchy(ctx, portRecord)
+					if err != nil {
+						errorReturn(w, fmt.Sprintf("creating location hierarchy (row #%d).", numRows), log, err)
+						return
+					}
+
+					parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, portRecord, false)
+					if err != nil {
+						errorReturn(w, fmt.Sprintf("fetching equipment and positions hierarchy (row #%d)", numRows), log, err)
+						return
+					}
+					var pos *ent.EquipmentPosition
+					if parentEquipmentID != nil && positionDefinitionID != nil {
+						parentLoc = nil
+						pos, err = resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, false)
+						if err != nil {
+							errorReturn(w, fmt.Sprintf("creating equipment position (row #%d)", numRows), log, err)
+							return
+						}
+					}
+
+					equipment, _, err := m.getOrCreateEquipment(ctx, m.r.Mutation(), en, equipmentType, nil, parentLoc, pos, nil)
+					if err != nil {
+						errorReturn(w, fmt.Sprintf("creating/fetching equipment (row #%d)", numRows), log, err)
+						return
+
+					}
+					var propInputs []*models.PropertyInput
+					if importLine.Len() > importHeader.PropertyStartIdx() {
+						portType, err := portDef.QueryEquipmentPortType().Only(ctx)
+						if ent.MaskNotFound(err) != nil {
+							errorReturn(w, fmt.Sprintf("can't fetch port type %v (row #%d)", portDef.Name, numRows), log, err)
+							return
+						}
+						if portType != nil {
+							propInputs, err = m.validatePropertiesForPortType(ctx, importLine, portType, ImportEntityLink)
+							if err != nil {
+								errorReturn(w, fmt.Sprintf("validating property for type %q (row #%d)", portType.Name, numRows), log, err)
+								return
+							}
+							linkPropertyInputs = append(linkPropertyInputs, propInputs...)
+						}
+					}
+					linkInput[i] = &models.LinkSide{Equipment: equipment.ID, Port: portDef.ID}
+				}
+				l, err := m.r.Mutation().AddLink(ctx, models.AddLinkInput{
+					Sides: []*models.LinkSide{
+						linkInput[0],
+						linkInput[1],
+					},
+					Properties: linkPropertyInputs,
+				})
+				if err != nil {
+					errorReturn(w, fmt.Sprintf("creating/fetching link (row #%d)", numRows), log, err)
+					return
+				}
+				modifiedCount++
+				log.Info(fmt.Sprintf("(row #%d) creating link", numRows), zap.String("ID", l.ID))
 			} else {
 				//edit existing link - only properties
 				link, err := m.validateLineForExistingLink(ctx, id, importLine)
@@ -104,7 +190,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					errorReturn(w, fmt.Sprintf("saving link: id %q (row #%d)", id, numRows), log, err)
 					return
 				}
-				count++
+				modifiedCount++
 				log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
 			}
 		}
@@ -112,11 +198,29 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 	log.Debug("Exported links - Done")
 	w.WriteHeader(http.StatusOK)
 
-	err := writeSuccessMessage(w, count, numRows)
+	err := writeSuccessMessage(w, modifiedCount, numRows)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return
 	}
+}
+
+func (m *importer) getTwoPortRecords(importLine ImportRecord) (*ImportRecord, *ImportRecord, error) {
+	header := importLine.Header()
+	headerSlices := header.LinkGetTwoPortsSlices()
+	ahead, bhead := headerSlices[0], headerSlices[1]
+	headerA := NewImportHeader(ahead, ImportEntityPortInLink)
+	headerB := NewImportHeader(bhead, ImportEntityPortInLink)
+
+	portsSlices := importLine.LinkGetTwoPortsSlices()
+	portASlice, portBSlice := portsSlices[0], portsSlices[1]
+	if equal(portASlice, portBSlice) {
+		return nil, nil, errors.New("ports are identical")
+	}
+
+	portA := NewImportRecord(portASlice, headerA)
+	portB := NewImportRecord(portBSlice, headerB)
+	return &portA, &portB, nil
 }
 
 func (m *importer) validateLineForExistingLink(ctx context.Context, linkID string, importLine ImportRecord) (*ent.Link, error) {
@@ -131,11 +235,9 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 	if len(ports) != 2 {
 		return nil, errors.New("link must have two ports")
 	}
-	header := importLine.Header()
-	portsSlices := importLine.LinkGetTwoPortsSlices()
-	portASlice, portBSlice := portsSlices[0], portsSlices[1]
-	if equal(portASlice, portBSlice) {
-		return nil, errors.New("ports are identical")
+	portAFromFile, portBFromFile, err := m.getTwoPortRecords(importLine)
+	if err != nil {
+		return nil, err
 	}
 
 	var linkPropNames []string
@@ -153,11 +255,11 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 			return nil, errors.Wrapf(err, "couldn't fetch equipment type")
 		}
 
-		if !(def.Name == portASlice[header.NameIdx()] &&
-			equip.Name == portASlice[header.PortEquipmentNameIdx()] &&
-			equipType.Name == portASlice[header.PortEquipmentTypeNameIdx()]) && !(def.Name == portBSlice[header.NameIdx()] &&
-			equip.Name == portBSlice[header.PortEquipmentNameIdx()] &&
-			equipType.Name == portBSlice[header.PortEquipmentTypeNameIdx()]) {
+		if !(def.Name == portAFromFile.Name() &&
+			equip.Name == portAFromFile.PortEquipmentName() &&
+			equipType.Name == portAFromFile.PortEquipmentTypeName()) && !(def.Name == portBFromFile.Name() &&
+			equip.Name == portBFromFile.PortEquipmentName() &&
+			equipType.Name == portBFromFile.PortEquipmentTypeName()) {
 			return nil, errors.Errorf("port doesn't match line: %v, %v, %v", def.Name, equip.Name, equipType.Name)
 		}
 		// TODO Validate location and position (currently not editing it, therefor not validating)

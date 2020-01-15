@@ -560,7 +560,7 @@ func (r mutationResolver) addEquipment(
 	ctx context.Context, typ *ent.EquipmentType,
 	input models.AddEquipmentInput,
 ) (*ent.Equipment, error) {
-	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), input.Parent, input.PositionDefinition)
+	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), input.Parent, input.PositionDefinition, true)
 	if err != nil {
 		return nil, err
 	}
@@ -927,7 +927,7 @@ func (r mutationResolver) hasPositionCycle(ctx context.Context, parent, child st
 func (r mutationResolver) MoveEquipmentToPosition(
 	ctx context.Context, parentEquipmentID, positionDefinitionID *string, equipmentID string,
 ) (*ent.EquipmentPosition, error) {
-	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), parentEquipmentID, positionDefinitionID)
+	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
 	if err != nil {
 		return nil, err
 	}
