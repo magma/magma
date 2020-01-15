@@ -51,8 +51,8 @@ const LinksPowerSearchBar = (props: Props) => {
   const filterConfigs = LinkCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
     .filter(conf => linkStatusEnabled || conf.key != 'link_future_status')
-    .concat(linkPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(linkPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar
