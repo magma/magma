@@ -529,7 +529,6 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
       "Sent SGSAP Tmsi Reallocation Complete to SGS task for Imsi :%s \n",
       imsi);
   }
-
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

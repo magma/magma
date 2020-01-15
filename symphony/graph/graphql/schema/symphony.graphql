@@ -837,6 +837,12 @@ directive @length(
   max: Int
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
+# enforces range constraint on numeric value
+directive @range(
+  min: Float
+  max: Float
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
 type ProjectType implements Node {
   id: ID!
   name: String! @length(min: 1)
@@ -1208,15 +1214,24 @@ input AddServiceEndpointInput {
 input SurveyCreateData {
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
+  status: SurveyStatus
   locationID: ID!
   surveyResponses: [SurveyQuestionResponse!]!
+}
+
+enum SurveyStatus {
+  PLANNED
+  INPROGRESS
+  COMPLETED
 }
 
 type Survey implements Node {
   id: ID!
   name: String!
   ownerName: String
+  creationTimestamp: Int
   completionTimestamp: Int!
   locationID: ID!
   sourceFile: File

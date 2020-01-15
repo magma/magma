@@ -10,8 +10,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/AlekSi/pointer"
-
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
@@ -19,10 +17,11 @@ import (
 	"go.uber.org/zap"
 )
 
-var fixedFirstLineLink = []string{"Link ID", "Port A ID", "Port A Name", "Port A Type", "Equipment A ID", "Equipment A Name", "Equipment A Type", "Port B ID", "Port B Name", "Port B Type", "Equipment B ID", "Equipment B Name", "Equipment B Type", "Service Names"}
+var fixedFirstPortLink = []string{"Link ID", "Port A Name", "Equipment A Name", "Equipment A Type"}
+var fixedSecondPortLink = []string{"Port B Name", "Equipment B Name", "Equipment B Type"}
 
 func minimalLinksLineLength() int {
-	return len(fixedFirstLineLink)
+	return len(fixedFirstPortLink) + len(fixedSecondPortLink) + 1 + maxEquipmentParents*2*2
 }
 
 // processExportedLinks imports links csv generated from the export feature
@@ -69,7 +68,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 				errorReturn(w, fmt.Sprintf("supporting only link property editing (row #%d)", numRows), log, err)
 				return
 			} else {
-				//edit existing link
+				//edit existing link - only properties
 				link, err := m.validateLineForExistingLink(ctx, id, importLine)
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("validating existing port: id %q (row #%d)", id, numRows), log, err)
@@ -106,7 +105,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 					return
 				}
 				count++
-				log.Info(fmt.Sprintf("(row #%d) editing port", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
+				log.Info(fmt.Sprintf("(row #%d) editing link", numRows), zap.String("name", importLine.Name()), zap.String("id", importLine.ID()))
 			}
 		}
 	}
@@ -132,35 +131,37 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 	if len(ports) != 2 {
 		return nil, errors.New("link must have two ports")
 	}
-	portAData, err := importLine.PortData(pointer.ToString("A"))
-	if err != nil {
-		return nil, errors.New("error while calculating port A data")
-	}
-	portBData, err := importLine.PortData(pointer.ToString("B"))
-	if err != nil {
-		return nil, errors.New("error while calculating port B data")
+	header := importLine.Header()
+	portsSlices := importLine.LinkGetTwoPortsSlices()
+	portASlice, portBSlice := portsSlices[0], portsSlices[1]
+	if equal(portASlice, portBSlice) {
+		return nil, errors.New("ports are identical")
 	}
 
-	if portAData.ID == portBData.ID {
-		return nil, errors.New("same port for Port A and port B")
-	}
 	var linkPropNames []string
 	for _, port := range ports {
-		switch port.ID {
-		case portAData.ID:
-			err = m.validatePort(ctx, *portAData, *port)
-		case portBData.ID:
-			err = m.validatePort(ctx, *portBData, *port)
-		default:
-			return nil, errors.Errorf("missing port %v on file for link %v", port.ID, linkID)
-		}
-		if err != nil {
-			return nil, err
-		}
 		def, err := port.QueryDefinition().Only(ctx)
 		if err != nil {
-			return nil, errors.Wrapf(err, "fetching equipment port definition")
+			return nil, errors.Wrapf(err, "couldn't fetch port definition")
 		}
+		equip, err := port.QueryParent().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't fetch port equipment parent")
+		}
+		equipType, err := equip.QueryType().Only(ctx)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't fetch equipment type")
+		}
+
+		if !(def.Name == portASlice[header.NameIdx()] &&
+			equip.Name == portASlice[header.PortEquipmentNameIdx()] &&
+			equipType.Name == portASlice[header.PortEquipmentTypeNameIdx()]) && !(def.Name == portBSlice[header.NameIdx()] &&
+			equip.Name == portBSlice[header.PortEquipmentNameIdx()] &&
+			equipType.Name == portBSlice[header.PortEquipmentTypeNameIdx()]) {
+			return nil, errors.Errorf("port doesn't match line: %v, %v, %v", def.Name, equip.Name, equipType.Name)
+		}
+		// TODO Validate location and position (currently not editing it, therefor not validating)
+
 		portType, err := def.QueryEquipmentPortType().Only(ctx)
 		if ent.MaskNotFound(err) != nil {
 			return nil, errors.Wrapf(err, "fetching equipment port type")
@@ -188,11 +189,36 @@ func (m *importer) validateLineForExistingLink(ctx context.Context, linkID strin
 func (m *importer) inputValidationsLinks(ctx context.Context, importHeader ImportHeader) error {
 	firstLine := importHeader.line
 	if len(firstLine) < minimalLinksLineLength() {
-		return errors.Errorf("first line too short. should include: %q", fixedFirstLineLink)
+		return errors.Errorf("first line too short. should include: %q and location/position data  for both sides", fixedFirstPortLink)
 	}
-	propStart := importHeader.PropertyStartIdx()
-	if !equal(firstLine[:propStart], fixedFirstLineLink) {
-		return errors.Errorf("first line misses sequence: %q ", fixedFirstLineLink)
+	if firstLine[0] != "Link ID" {
+		return errors.Errorf("first cell should be 'Link ID' ")
+	}
+	portsSlices := importHeader.LinkGetTwoPortsSlices()
+	ha := NewImportHeader(portsSlices[0], ImportEntityPortInLink)
+
+	locStart, _ := ha.LocationsRangeIdx()
+	if !equal(ha.line[:locStart], []string{"Port A Name", "Equipment A Name", "Equipment A Type"}) {
+		return errors.New("first line misses sequence; 'Port A Name', 'Equipment A Name' or 'Equipment A Type' ")
+	}
+	err := m.validateAllLocationTypeExist(ctx, locStart, ha.LocationTypesRangeArr(), false)
+	if err != nil {
+		return err
+	}
+	hb := NewImportHeader(portsSlices[1], ImportEntityPortInLink)
+	locStart, _ = hb.LocationsRangeIdx()
+	if !equal(hb.line[:locStart], []string{"Port B Name", "Equipment B Name", "Equipment B Type"}) {
+		return errors.New("first line misses sequence; 'Port B Name', 'Equipment B Name' or 'Equipment B Type' ")
+	}
+	err = m.validateAllLocationTypeExist(ctx, locStart, hb.LocationTypesRangeArr(), false)
+	if err != nil {
+		return err
+	}
+	if !equal(ha.line[ha.prnt3Idx:importHeader.LinkSecondPortStartIdx()-1], []string{"Parent Equipment (3) A", "Position (3) A", "Parent Equipment (2) A", "Position (2) A", "Parent Equipment A", "Equipment Position A"}) {
+		return errors.New("First port on first line misses sequence: 'Parent Equipment (3) A', 'Position (3) A', 'Parent Equipment (2) A', 'Position (2) A', 'Parent Equipment A' or 'Equipment Position A'")
+	}
+	if !equal(hb.line[hb.prnt3Idx:], []string{"Parent Equipment (3) B", "Position (3) B", "Parent Equipment (2) B", "Position (2) B", "Parent Equipment B", "Equipment Position B"}) {
+		return errors.New("second port on first line misses sequence: 'Parent Equipment (3) B', 'Position (3) B', 'Parent Equipment (2) B', 'Position (2) B', 'Parent Equipment B' or 'Equipment Position B'")
 	}
 	return nil
 }

@@ -54,7 +54,7 @@ const Select = <TValue>({
   return (
     <BasePopoverTrigger
       popover={<SelectMenu {...selectMenuProps} className={classes.menu} />}>
-      {(onShow, contextRef) => (
+      {(onShow, _onHide, contextRef) => (
         <Button
           className={classNames(classes.root, className)}
           ref={contextRef}

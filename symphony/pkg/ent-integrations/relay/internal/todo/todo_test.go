@@ -22,7 +22,25 @@ type todoTestSuite struct {
 	*client.Client
 }
 
-const maxTodos = 32
+const (
+	queryAll = `query {
+		todos {
+			edges {
+				node {
+					id
+				}
+				cursor
+			}
+			pageInfo {
+				hasNextPage
+				hasPreviousPage
+				startCursor
+				endCursor
+			}
+		}
+	}`
+	maxTodos = 32
+)
 
 func (s *todoTestSuite) SetupTest() {
 	db, name, err := testdb.Open()
@@ -68,30 +86,32 @@ type response struct {
 		PageInfo struct {
 			HasNextPage     bool
 			HasPreviousPage bool
-			StartCursor     string
-			EndCursor       string
+			StartCursor     *string
+			EndCursor       *string
 		}
 	}
 }
 
+func (s *todoTestSuite) TestQueryEmpty() {
+	{
+		var rsp struct{ ClearTodos int }
+		err := s.Post(`mutation { clearTodos }`, &rsp)
+		s.Require().NoError(err)
+		s.Require().Equal(maxTodos, rsp.ClearTodos)
+	}
+	var rsp response
+	err := s.Post(queryAll, &rsp)
+	s.Require().NoError(err)
+	s.Assert().Empty(rsp.Todos.Edges)
+	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
+	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
+	s.Assert().Nil(rsp.Todos.PageInfo.StartCursor)
+	s.Assert().Nil(rsp.Todos.PageInfo.EndCursor)
+}
+
 func (s *todoTestSuite) TestQueryAll() {
 	var rsp response
-	err := s.Post(`query {
-		todos {
-			edges {
-				node {
-					id
-				}
-				cursor
-			}
-			pageInfo {
-				hasNextPage
-				hasPreviousPage
-				startCursor
-				endCursor
-			}
-		}
-	}`, &rsp)
+	err := s.Post(queryAll, &rsp)
 	s.Require().NoError(err)
 
 	s.Require().Len(rsp.Todos.Edges, maxTodos)
@@ -99,11 +119,11 @@ func (s *todoTestSuite) TestQueryAll() {
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
 	s.Assert().Equal(
 		rsp.Todos.Edges[0].Cursor,
-		rsp.Todos.PageInfo.StartCursor,
+		*rsp.Todos.PageInfo.StartCursor,
 	)
 	s.Assert().Equal(
 		rsp.Todos.Edges[len(rsp.Todos.Edges)-1].Cursor,
-		rsp.Todos.PageInfo.EndCursor,
+		*rsp.Todos.PageInfo.EndCursor,
 	)
 	for i, edge := range rsp.Todos.Edges {
 		s.Assert().Equal(strconv.Itoa(i+1), edge.Node.ID)
@@ -130,17 +150,13 @@ func (s *todoTestSuite) TestPageForward() {
 		first = 5
 	)
 	var (
-		rsp response
-		id  = 1
+		after interface{}
+		rsp   response
+		id    = 1
 	)
 	for i := 0; i < maxTodos/first; i++ {
 		err := s.Post(query, &rsp,
-			client.Var("after", func() interface{} {
-				if i > 0 {
-					return rsp.Todos.PageInfo.EndCursor
-				}
-				return nil
-			}()),
+			client.Var("after", after),
 			client.Var("first", first),
 		)
 		s.Require().NoError(err)
@@ -153,6 +169,7 @@ func (s *todoTestSuite) TestPageForward() {
 			s.Assert().NotEmpty(edge.Cursor)
 			id++
 		}
+		after = rsp.Todos.PageInfo.EndCursor
 	}
 
 	err := s.Post(query, &rsp,
@@ -171,7 +188,7 @@ func (s *todoTestSuite) TestPageForward() {
 		id++
 	}
 
-	after := rsp.Todos.PageInfo.EndCursor
+	after = rsp.Todos.PageInfo.EndCursor
 	rsp = response{}
 	err = s.Post(query, &rsp,
 		client.Var("after", after),
@@ -202,17 +219,13 @@ func (s *todoTestSuite) TestPageBackwards() {
 		last = 7
 	)
 	var (
-		rsp response
-		id  = maxTodos
+		before interface{}
+		rsp    response
+		id     = maxTodos
 	)
 	for i := 0; i < maxTodos/last; i++ {
 		err := s.Post(query, &rsp,
-			client.Var("before", func() interface{} {
-				if i > 0 {
-					return rsp.Todos.PageInfo.StartCursor
-				}
-				return nil
-			}()),
+			client.Var("before", before),
 			client.Var("last", last),
 		)
 		s.Require().NoError(err)
@@ -226,6 +239,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 			s.Assert().NotEmpty(edge.Cursor)
 			id--
 		}
+		before = rsp.Todos.PageInfo.StartCursor
 	}
 
 	err := s.Post(query, &rsp,
@@ -246,7 +260,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 	}
 	s.Assert().Zero(id)
 
-	before := rsp.Todos.PageInfo.StartCursor
+	before = rsp.Todos.PageInfo.StartCursor
 	rsp = response{}
 	err = s.Post(query, &rsp,
 		client.Var("before", before),

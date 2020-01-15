@@ -111,8 +111,9 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
   sgs_fsm.ctx = (void *) ue_context_p->sgs_context;
 
-  /* Invoke SGS FSM */
-  if (RETURNok != (rc = sgs_fsm_process(&sgs_fsm))) {
+  // Invoke SGS FSM
+  rc = sgs_fsm_process(&sgs_fsm);
+  if(rc != RETURNok) {
     OAILOG_WARNING(
       LOG_MME_APP,
       "Failed  to execute SGS State machine for ue_id :%u \n",

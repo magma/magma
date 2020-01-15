@@ -338,7 +338,7 @@ static int _handle_cs_domain_loc_updt_acc(
        * store the new TMSI and set flag
        */
       if (
-        mme_app_compare_tmsi(
+        MME_APP_COMPARE_TMSI(
           emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi) == RETURNerror) {
         OAILOG_INFO(LOG_MME_APP, "MME-APP - New TMSI Allocated\n");
         memcpy(
@@ -1012,7 +1012,6 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
     (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
-  // Fetch UE context
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(

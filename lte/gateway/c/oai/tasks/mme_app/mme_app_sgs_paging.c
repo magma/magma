@@ -311,7 +311,7 @@ static int _sgs_handle_paging_request_for_mt_call_in_connected(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (!sgsap_paging_req_pP) {
-    OAILOG_ERROR(LOG_MME_APP, "Null Pagaing Request Received \n");
+    OAILOG_ERROR(LOG_MME_APP, "Null Paging Request Received \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -331,9 +331,9 @@ static int _sgs_handle_paging_request_for_mt_call_in_connected(
     sgsap_paging_req_pP->presencemask & PAGING_REQUEST_CLI_PARAMETER_PRESENT) {
     bassign(cli, sgsap_paging_req_pP->opt_cli);
   }
-  if (
-    RETURNok != (rc = nas_proc_cs_service_notification(
-      ue_context_p->mme_ue_s1ap_id, paging_id, cli))) {
+  rc  = nas_proc_cs_service_notification(
+      ue_context_p->mme_ue_s1ap_id, paging_id, cli);
+  if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to handle CS-Service Notification at NAS module for"
@@ -341,9 +341,9 @@ static int _sgs_handle_paging_request_for_mt_call_in_connected(
       ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  if (
-    RETURNok != (rc = mme_app_send_sgsap_service_request(
-      sgsap_paging_req_pP->service_indicator, ue_context_p))) {
+  rc = mme_app_send_sgsap_service_request(
+      sgsap_paging_req_pP->service_indicator, ue_context_p);
+  if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to send CS-Service Request to SGS-Task for ue-id :%u \n",
@@ -437,16 +437,16 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
       rc = mme_app_paging_request_helper(
         ue_context_p, false, MME_APP_PAGING_ID_IMSI, CN_DOMAIN_PS);
     } else {
-      /* Fetch TMSI if present */
+      // Fetch TMSI if present
       if (
         sgsap_paging_req_pP->presencemask &
         PAGING_REQUEST_TMSI_PARAMETER_PRESENT) {
         paging_id = MME_APP_PAGING_ID_TMSI;
       }
-      /* if TMSI is received, then page with S-TMSI otherwise page with IMSI */
-      if (
-        (rc = mme_app_paging_request_helper(
-           ue_context_p, false, paging_id, CN_DOMAIN_CS)) != RETURNok) {
+      // if TMSI is received, then page with S-TMSI otherwise page with IMSI
+      rc = mme_app_paging_request_helper(
+           ue_context_p, false, paging_id, CN_DOMAIN_CS);
+      if (rc != RETURNok) {
         OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to send PAGING Message to UE for UE-id:%u \n",
@@ -457,10 +457,9 @@ static int _sgs_handle_paging_request_for_mt_call_in_idle(
         sgsap_paging_req_pP->service_indicator;
     }
   } else {
-    /* Send UE Unreachable to MSC/VLR */
-    if (
-      RETURNok != (rc = _mme_app_send_sgsap_ue_unreachable(
-                     ue_context_p, SGS_CAUSE_UE_UNREACHABLE))) {
+    // Send UE Unreachable to MSC/VLR
+    _mme_app_send_sgsap_ue_unreachable(ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
+    if (rc != RETURNok) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to send SGSAP-UE-UNREACHABLE for ue-id :%u \n",
@@ -513,16 +512,16 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
       rc = mme_app_paging_request_helper(
         ue_context_p, false, MME_APP_PAGING_ID_IMSI, CN_DOMAIN_PS);
     } else {
-      /* Fetch TMSI if present */
+      // Fetch TMSI if present
       if (
         sgsap_paging_req_pP->presencemask &
         PAGING_REQUEST_TMSI_PARAMETER_PRESENT) {
         paging_id = MME_APP_PAGING_ID_TMSI;
       }
-      /* if TMSI is received, then page with S-TMSI otherwise page with IMSI */
-      if (
-        (rc = mme_app_paging_request_helper(
-           ue_context_p, false, paging_id, CN_DOMAIN_PS)) != RETURNok) {
+      // if TMSI is received, then page with S-TMSI otherwise page with IMSI
+      rc = mme_app_paging_request_helper(
+           ue_context_p, false, paging_id, CN_DOMAIN_PS);
+      if (rc != RETURNok) {
         OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to send PAGING Message to UE for UE-id:%u \n",
@@ -533,10 +532,10 @@ static int _sgs_handle_paging_request_for_mt_sms_in_idle(
         sgsap_paging_req_pP->service_indicator;
     }
   } else {
-    /* Send UE Unreachable to MSC/VLR */
-    if (
-      RETURNok != (rc = _mme_app_send_sgsap_ue_unreachable(
-                     ue_context_p, SGS_CAUSE_UE_UNREACHABLE))) {
+    // Send UE Unreachable to MSC/VLR
+    rc = _mme_app_send_sgsap_ue_unreachable(
+           ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
+    if (rc != RETURNok) {
       OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to send SGSAP-UE-UNREACHABLE for ue-id :%u \n",
@@ -787,7 +786,7 @@ static int _sgsap_handle_paging_request_without_lai(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (!sgsap_paging_req_pP) {
-    OAILOG_ERROR(LOG_MME_APP, "Null Pagaing Request Received \n");
+    OAILOG_ERROR(LOG_MME_APP, "Null Paging Request Received \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -818,17 +817,17 @@ static int _sgsap_handle_paging_request_without_lai(
       /* if Paging request received without LAI for CS call,
        * always page with IMSI
        */
-      if (
-        (rc = mme_app_paging_request_helper(
-           ue_context_p, false, paging_id, cn_domain)) == RETURNok) {
+      rc = mme_app_paging_request_helper(
+           ue_context_p, false, paging_id, cn_domain);
+      if (rc == RETURNok) {
         ue_context_p->sgs_context->csfb_service_type =
           CSFB_SERVICE_MT_CALL_OR_SMS_WITHOUT_LAI;
       }
     } else {
       // Send UE Unreachable to MSC/VLR
-      if (
-        RETURNok != (rc = _mme_app_send_sgsap_ue_unreachable(
-                       ue_context_p, SGS_CAUSE_UE_UNREACHABLE))) {
+      rc = _mme_app_send_sgsap_ue_unreachable(
+             ue_context_p, SGS_CAUSE_UE_UNREACHABLE);
+      if (rc != RETURNok) {
         OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to send SGSAP-UE-UNREACHABLE for ue-id :%u \n",
@@ -906,7 +905,8 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t* mme_app_desc_p,
   sgs_fsm.ctx = (void *) ue_context_p->sgs_context;
 
   // Invoke SGS FSM
-  if (RETURNok != (rc = sgs_fsm_process(&sgs_fsm))) {
+  rc = sgs_fsm_process(&sgs_fsm);
+  if(rc != RETURNok) {
     OAILOG_WARNING(
       LOG_MME_APP,
       "Failed  to execute SGS State machine for ue_id :%u \n",

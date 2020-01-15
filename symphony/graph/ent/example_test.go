@@ -1767,6 +1767,7 @@ func ExampleSurvey() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetOwnerName("string").
+		SetCreationTimestamp(time.Now()).
 		SetCompletionTimestamp(time.Now()).
 		SetLocation(l0).
 		SetSourceFile(f1).
@@ -1899,6 +1900,7 @@ func ExampleSurveyQuestion() {
 		SetUpdateTime(time.Now()).
 		SetName("string").
 		SetOwnerName("string").
+		SetCreationTimestamp(time.Now()).
 		SetCompletionTimestamp(time.Now()).
 		SaveX(ctx)
 	log.Println("survey created:", s0)

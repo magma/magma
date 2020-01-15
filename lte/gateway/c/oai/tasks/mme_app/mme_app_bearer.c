@@ -2219,7 +2219,7 @@ int mme_app_handle_nas_extended_service_req(
         /* If call_cancelled is set to TRUE when MO call is triggered.
          * Set call_cancelled to false
          */
-        if (ue_context_p->sgs_context->call_cancelled == true) {
+        if (ue_context_p->sgs_context->call_cancelled) {
           ue_context_p->sgs_context->call_cancelled = false;
         }
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
@@ -2238,20 +2238,20 @@ int mme_app_handle_nas_extended_service_req(
       break;
     case MT_CS_FB:
       if (csfb_response == CSFB_REJECTED_BY_UE) {
-        if (ue_context_p->sgs_context != NULL) {
+        if (ue_context_p->sgs_context) {
           /* If call_cancelled is set to TRUE and
            * receive EXT Service Request with csfb_response
            * set to call_rejected. Set call_cancelled to false
            */
-          if (ue_context_p->sgs_context->call_cancelled == true) {
+          if (ue_context_p->sgs_context->call_cancelled) {
             ue_context_p->sgs_context->call_cancelled = false;
           }
-          if (
-            (rc = mme_app_send_sgsap_paging_reject(
+          rc = mme_app_send_sgsap_paging_reject(
                ue_context_p,
                ue_context_p->emm_context._imsi64,
                ue_context_p->emm_context._imsi.length,
-               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
+               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER);
+          if (rc != RETURNok) {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Failed to send SGSAP-Paging Reject for imsi with reject cause:"

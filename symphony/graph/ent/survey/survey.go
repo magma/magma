@@ -26,6 +26,8 @@ const (
 	FieldName = "name"
 	// FieldOwnerName holds the string denoting the owner_name vertex property in the database.
 	FieldOwnerName = "owner_name"
+	// FieldCreationTimestamp holds the string denoting the creation_timestamp vertex property in the database.
+	FieldCreationTimestamp = "creation_timestamp"
 	// FieldCompletionTimestamp holds the string denoting the completion_timestamp vertex property in the database.
 	FieldCompletionTimestamp = "completion_timestamp"
 
@@ -61,6 +63,7 @@ var Columns = []string{
 	FieldUpdateTime,
 	FieldName,
 	FieldOwnerName,
+	FieldCreationTimestamp,
 	FieldCompletionTimestamp,
 }
 

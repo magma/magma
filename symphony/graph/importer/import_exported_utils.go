@@ -20,6 +20,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+const maxEquipmentParents = 3
+
 // ImportEntity specifies an entity that can be imported
 type ImportEntity string
 
@@ -30,6 +32,8 @@ const (
 	ImportEntityPort ImportEntity = "PORT"
 	// ImportEntityLink specifies a link for import
 	ImportEntityLink ImportEntity = "LINK"
+	// ImportEntityPortInLink specifies a port sub-slice inside a link entity for import
+	ImportEntityPortInLink ImportEntity = "PORT_IN_LINK"
 	// ImportEntityService specifies a service for import
 	ImportEntityService ImportEntity = "SERVICE"
 )

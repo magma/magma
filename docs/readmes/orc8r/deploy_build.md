@@ -22,7 +22,7 @@ When this job finishes, upload these images to your image registry:
 
 ```bash
 export MAGMA_TAG=v1.0.0
-for image in proxy controller prometheus-cache config-manager grafana
+for image in proxy controller prometheus-cache alertmanager-configurer prometheus-configurer grafana
 do
     ../../../orc8r/tools/docker/publish.sh -r REGISTRY -i ${image} -v ${MAGMA_TAG}
 done

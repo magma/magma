@@ -652,7 +652,9 @@ type SurveyCellScanData struct {
 type SurveyCreateData struct {
 	Name                string                    `json:"name"`
 	OwnerName           *string                   `json:"ownerName"`
+	CreationTimestamp   *int                      `json:"creationTimestamp"`
 	CompletionTimestamp int                       `json:"completionTimestamp"`
+	Status              *SurveyStatus             `json:"status"`
 	LocationID          string                    `json:"locationID"`
 	SurveyResponses     []*SurveyQuestionResponse `json:"surveyResponses"`
 }
@@ -1610,6 +1612,49 @@ func (e *SurveyQuestionType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e SurveyQuestionType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SurveyStatus string
+
+const (
+	SurveyStatusPlanned    SurveyStatus = "PLANNED"
+	SurveyStatusInprogress SurveyStatus = "INPROGRESS"
+	SurveyStatusCompleted  SurveyStatus = "COMPLETED"
+)
+
+var AllSurveyStatus = []SurveyStatus{
+	SurveyStatusPlanned,
+	SurveyStatusInprogress,
+	SurveyStatusCompleted,
+}
+
+func (e SurveyStatus) IsValid() bool {
+	switch e {
+	case SurveyStatusPlanned, SurveyStatusInprogress, SurveyStatusCompleted:
+		return true
+	}
+	return false
+}
+
+func (e SurveyStatus) String() string {
+	return string(e)
+}
+
+func (e *SurveyStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SurveyStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SurveyStatus", str)
+	}
+	return nil
+}
+
+func (e SurveyStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
