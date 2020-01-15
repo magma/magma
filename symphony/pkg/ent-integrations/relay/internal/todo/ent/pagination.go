@@ -82,14 +82,18 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	}
 	if first != nil {
 		if *first == 0 {
-			return &TodoConnection{}, nil
+			return &TodoConnection{
+				Edges: []*TodoEdge{},
+			}, nil
 		} else if *first < 0 {
 			return nil, ErrInvalidPagination
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &TodoConnection{}, nil
+			return &TodoConnection{
+				Edges: []*TodoEdge{},
+			}, nil
 		} else if *last < 0 {
 			return nil, ErrInvalidPagination
 		}
@@ -110,7 +114,9 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := t.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &TodoConnection{}, err
+		return &TodoConnection{
+			Edges: []*TodoEdge{},
+		}, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {

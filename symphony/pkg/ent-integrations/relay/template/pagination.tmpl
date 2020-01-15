@@ -75,14 +75,18 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
     }
     if first != nil {
         if *first == 0 {
-            return &{{ $conn }}{}, nil
+            return &{{ $conn }}{
+                Edges: []*{{ $edge }}{},
+            }, nil
         } else if *first < 0 {
             return nil, ErrInvalidPagination
         }
     }
     if last != nil {
         if *last == 0 {
-            return &{{ $conn }}{}, nil
+            return &{{ $conn }}{
+                Edges: []*{{ $edge }}{},
+            }, nil
         } else if *last < 0 {
             return nil, ErrInvalidPagination
         }
@@ -103,7 +107,9 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 
     nodes, err := {{ $receiver }}.All(ctx)
     if err != nil || len(nodes) == 0 {
-        return &{{ $conn }}{}, err
+        return &{{ $conn }}{
+            Edges: []*{{ $edge }}{},
+        }, err
     }
     if last != nil {
         for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
