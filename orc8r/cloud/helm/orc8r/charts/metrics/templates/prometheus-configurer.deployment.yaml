@@ -61,7 +61,7 @@ spec:
             - "-port={{ .Values.prometheusConfigurer.prometheusConfigurerPort }}"
             - "-rules-dir={{ .Values.prometheusConfigurer.rulesDir }}"
             - "-prometheusURL={{ .Values.prometheusConfigurer.prometheusURL }}"
-            - "-multitenant=true"
+            - "-multitenant-label=networkID"
           resources:
 {{ toYaml .Values.prometheusConfigurer.resources | indent 12 }}
 {{- end }}
