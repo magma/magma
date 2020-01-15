@@ -11,7 +11,7 @@ package alert
 import (
 	"fmt"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -81,9 +81,9 @@ func (f *File) DeleteRule(name string) error {
 // to ensure that only metrics owned by this tenant can be alerted on
 func SecureRule(matcherName, matcherValue string, rule *rulefmt.Rule) error {
 	tenantLabels := map[string]string{matcherName: matcherValue}
-	restrictor := security.NewQueryRestrictor(tenantLabels)
+	queryRestrictor := restrictor.NewQueryRestrictor(networkLabels)
 
-	restrictedExpression, err := restrictor.RestrictQuery(rule.Expr)
+	restrictedExpression, err := queryRestrictor.RestrictQuery(rule.Expr)
 	if err != nil {
 		return err
 	}
