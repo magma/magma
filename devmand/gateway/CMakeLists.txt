@@ -213,6 +213,7 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/ConfigGeneratorTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/RealCliDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CliScaleTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PromptAwareCliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/TimeoutTrackingCliTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SshSessionTest.cpp
