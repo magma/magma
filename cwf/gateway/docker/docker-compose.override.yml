@@ -35,3 +35,8 @@ services:
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: lte/gateway/docker/c/Dockerfile
+
+  uesim:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: cwf/gateway/docker/go/Dockerfile
