@@ -73,7 +73,6 @@ COPY feg/cloud/go/protos/go.* $MAGMA_ROOT/feg/cloud/go/protos/
 COPY feg/radius/lib/go/ $MAGMA_ROOT/feg/radius/lib/go/
 COPY feg/radius/src/go.* $MAGMA_ROOT/feg/radius/src/
 COPY feg/gateway/go.* $MAGMA_ROOT/feg/gateway/
-COPY feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/go.* $MAGMA_ROOT/feg/gateway/third-party/go/src/github.com/fiorix/go-diameter/
 COPY orc8r/cloud/go/go.* $MAGMA_ROOT/orc8r/cloud/go/
 COPY orc8r/gateway/go/go.* $MAGMA_ROOT/orc8r/gateway/go/
 WORKDIR $MAGMA_ROOT/cwf/gateway
