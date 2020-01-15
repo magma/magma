@@ -9,7 +9,7 @@
  */
 
 import type {Equipment} from '../common/Equipment';
-import type {Location} from '../common/Location';
+import type {LocationMoreActionsButton_location} from '../components/location/__generated__/LocationMoreActionsButton_location.graphql';
 import type {LocationType} from '../common/LocationType';
 
 import LocationAddEditCard from './location/LocationAddEditCard';
@@ -28,7 +28,9 @@ type Props = {
   onEquipmentSelected: Equipment => void,
   onWorkOrderSelected: (?string) => void,
   onAddEquipment: () => void,
-  onLocationRemoved: (removedLocation: Location) => void,
+  onLocationRemoved: (
+    removedLocation: LocationMoreActionsButton_location,
+  ) => void,
 };
 
 class LocationCard extends React.Component<Props> {
