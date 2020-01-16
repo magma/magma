@@ -26,11 +26,7 @@ import useLocationTypes from './hooks/locationTypesHook';
 import usePropertyFilters from './hooks/propertiesHook';
 import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
-import {
-  buildPropertyFilterConfigs,
-  getPossibleProperties,
-  getSelectedFilter,
-} from './FilterUtils';
+import {buildPropertyFilterConfigs, getSelectedFilter} from './FilterUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useMemo, useState} from 'react';
@@ -95,11 +91,7 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   const {limit, showExport, children} = props;
   const [count, setCount] = useState((0: number));
 
-  const equipmentDataResponse = usePropertyFilters('equipment');
-
-  const possibleProperties = getPossibleProperties(
-    equipmentDataResponse.response,
-  );
+  const possibleProperties = usePropertyFilters('equipment');
   const equipmentPropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
@@ -130,29 +122,28 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.searchBar}>
-        {equipmentPropertiesFilterConfigs != null &&
-          locationTypesFilterConfigs != null && (
-            <PowerSearchBar
-              filterValues={filters}
-              exportPath={showExport ? '/equipment' : null}
-              onFiltersChanged={updateFilters}
-              onFilterRemoved={handleFilterRemoved}
-              onFilterBlurred={handleFilterBlurred}
-              getSelectedFilter={(filterConfig: FilterConfig) =>
-                getSelectedFilter(filterConfig, possibleProperties)
-              }
-              placeholder="Filter equipment"
-              searchConfig={EquipmentCriteriaConfig}
-              filterConfigs={filterConfigs}
-              footer={
-                count != null
-                  ? limit != null && count > limit
-                    ? `1 to ${limit} of ${count}`
-                    : `1 to ${count}`
-                  : null
-              }
-            />
-          )}
+        {possibleProperties != null && locationTypesFilterConfigs != null && (
+          <PowerSearchBar
+            filterValues={filters}
+            exportPath={showExport ? '/equipment' : null}
+            onFiltersChanged={updateFilters}
+            onFilterRemoved={handleFilterRemoved}
+            onFilterBlurred={handleFilterBlurred}
+            getSelectedFilter={(filterConfig: FilterConfig) =>
+              getSelectedFilter(filterConfig, possibleProperties)
+            }
+            placeholder="Filter equipment"
+            searchConfig={EquipmentCriteriaConfig}
+            filterConfigs={filterConfigs}
+            footer={
+              count != null
+                ? limit != null && count > limit
+                  ? `1 to ${limit} of ${count}`
+                  : `1 to ${count}`
+                : null
+            }
+          />
+        )}
       </div>
       <InventoryQueryRenderer
         query={equipmentSearchQuery}

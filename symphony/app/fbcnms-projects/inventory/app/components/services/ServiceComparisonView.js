@@ -26,7 +26,6 @@ import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {ServiceSearchConfig} from './ServiceSearchConfig';
 import {
   buildPropertyFilterConfigs,
-  getPossibleProperties,
   getSelectedFilter,
 } from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
@@ -79,10 +78,7 @@ const ServiceComparisonView = () => {
     'service_endpoints',
   );
 
-  const serviceDataResponse = usePropertyFilters('service');
-  const possibleProperties = getPossibleProperties(
-    serviceDataResponse.response,
-  );
+  const possibleProperties = usePropertyFilters('service');
   const servicePropertiesFilterConfigs = buildPropertyFilterConfigs(
     possibleProperties,
   );
@@ -122,7 +118,7 @@ const ServiceComparisonView = () => {
                 filterConfigs={filterConfigs}
                 searchConfig={ServiceSearchConfig}
                 getSelectedFilter={(filterConfig: FilterConfig) =>
-                  getSelectedFilter(filterConfig, possibleProperties)
+                  getSelectedFilter(filterConfig, possibleProperties ?? [])
                 }
                 onFiltersChanged={filters => setFilters(filters)}
                 filters={filters}
