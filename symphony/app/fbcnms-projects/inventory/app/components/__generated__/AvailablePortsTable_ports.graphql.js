@@ -26,6 +26,7 @@ export type AvailablePortsTable_ports = $ReadOnlyArray<{|
     +$fragmentRefs: EquipmentBreadcrumbs_equipment$ref,
   |},
   +definition: {|
+    +id: string,
     +name: string,
     +portType: ?{|
       +name: string
@@ -94,6 +95,7 @@ return {
       "concreteType": "EquipmentPortDefinition",
       "plural": false,
       "selections": [
+        (v0/*: any*/),
         (v1/*: any*/),
         {
           "kind": "LinkedField",
@@ -120,5 +122,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '99481330187e8b113a17e072d86af719';
+(node/*: any*/).hash = '28fb7ac76ca11ecf2ff60dae1869a25b';
 module.exports = node;

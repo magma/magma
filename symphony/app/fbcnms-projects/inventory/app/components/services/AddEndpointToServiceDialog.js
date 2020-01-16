@@ -12,7 +12,7 @@ import type {Equipment, EquipmentPort} from '../../common/Equipment';
 import type {ServiceEndpointRole} from '../../mutations/__generated__/AddServiceEndpointMutation.graphql';
 import type {WithStyles} from '@material-ui/core';
 
-import AvailablePortsTable from './AvailablePortsTable';
+import AvailablePortsTable from '../AvailablePortsTable';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';

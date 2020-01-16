@@ -8,11 +8,11 @@
  * @format
  */
 
-import type {Equipment, EquipmentPort} from '../../common/Equipment';
+import type {Equipment, EquipmentPort} from '../common/Equipment';
 import type {WithStyles} from '@material-ui/core';
 
 import AvailablePortsTable_ports from './__generated__/AvailablePortsTable_ports.graphql';
-import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
+import EquipmentBreadcrumbs from './equipment/EquipmentBreadcrumbs';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
@@ -62,13 +62,27 @@ const styles = {
       textTransform: 'none',
     },
   },
+  checked: {
+    backgroundColor: symphony.palette.B50,
+  },
+  row: {
+    '&:hover': {
+      backgroundColor: symphony.palette.background,
+    },
+    '&:focus': {
+      outline: 'none',
+    },
+  },
+  clickableRow: {
+    cursor: 'pointer',
+  },
 };
 
 type Props = {
   equipment: Equipment,
   ports: AvailablePortsTable_ports,
   selectedPort: ?EquipmentPort,
-  onPortSelected: (port: EquipmentPort) => void,
+  onPortSelected?: (port: EquipmentPort) => void,
 } & WithStyles<typeof styles>;
 
 const AvailablePortsTable = (props: Props) => {
@@ -104,7 +118,7 @@ const AvailablePortsTable = (props: Props) => {
   };
 
   const onRowClicked = ({_event, _index, rowData}) => {
-    onPortSelected(rowData);
+    onPortSelected && onPortSelected(rowData);
   };
 
   if (ports.length === 0) {
@@ -140,6 +154,7 @@ const AvailablePortsTable = (props: Props) => {
             classNames({
               [classes.header]: index === -1,
               [classes.row]: index !== -1,
+              [classes.clickableRow]: onRowClicked != null,
               [classes.checked]:
                 selectedPort &&
                 index !== -1 &&
@@ -208,6 +223,7 @@ export default withStyles(styles)(
           ...EquipmentBreadcrumbs_equipment
         }
         definition {
+          id
           name
           portType {
             name
