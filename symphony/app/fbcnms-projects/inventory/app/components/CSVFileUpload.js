@@ -107,12 +107,13 @@ class CSVFileUpload extends React.Component<Props> {
       if (responseData.messageCode == SUCCESS_RESPONSE) {
         const entity = this.props.entity ? this.props.entity : '';
         msg = fbt(
-          'Successfully uploaded' +
+          'Successfully uploaded ' +
             fbt.param('number of saved lines', responseData.successLines) +
             ' of ' +
             fbt.param('number of all lines', responseData.allLines) +
+            ' ' +
             fbt.param('type that was saved', entity) +
-            'items',
+            ' items',
           'message for a successful import',
         );
       }
