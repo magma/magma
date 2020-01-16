@@ -376,14 +376,6 @@ void *mme_app_thread(void *args)
           &received_message_p->ittiMsg.s6a_purge_ue_ans);
       } break;
 
-      case NAS_CS_DOMAIN_LOCATION_UPDATE_REQ: {
-        /*Received SGS Location Update Request message from NAS task*/
-        OAILOG_INFO(
-          TASK_MME_APP, "Received CS DOMAIN LOCATION UPDATE REQ from NAS\n");
-        mme_app_handle_nas_cs_domain_location_update_req(mme_app_desc_p,
-          &received_message_p->ittiMsg.nas_cs_domain_location_update_req);
-      } break;
-
       case SGSAP_LOCATION_UPDATE_ACC: {
         /*Received SGSAP Location Update Accept message from SGS task*/
         OAILOG_INFO(

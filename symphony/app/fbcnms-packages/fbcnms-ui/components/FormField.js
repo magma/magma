@@ -12,7 +12,6 @@ import type {WithStyles} from '@material-ui/core';
 
 import * as React from 'react';
 import Text from './design-system/Text';
-import Typography from '@material-ui/core/Typography';
 
 import {withStyles} from '@material-ui/core/styles';
 
@@ -45,17 +44,9 @@ class FormField extends React.Component<Props> {
         <Text className={classes.labelName} variant="body2">
           {label}:
         </Text>
-        {typeof value === 'string' || typeof value === 'number' ? (
-          <Typography
-            className={classes.value}
-            variant="body2"
-            color="secondary"
-            title={value}>
-            {value}
-          </Typography>
-        ) : (
-          value
-        )}
+        <Text className={classes.value} variant="body2">
+          {value}
+        </Text>
       </div>
     );
   }

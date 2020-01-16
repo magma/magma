@@ -49,8 +49,8 @@ const EquipmentPowerSearchBar = (props: Props) => {
 
   const filterConfigs = EquipmentCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(equipmentPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(equipmentPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar

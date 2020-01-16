@@ -71,10 +71,6 @@ void nas_itti_sgsap_tmsi_reallocation_comp(
   const char *imsi,
   const unsigned int imsi_len);
 
-void nas_itti_cs_domain_location_update_req(
-  unsigned int ue_idP,
-  uint8_t msg_type);
-
 void nas_itti_sgsap_tmsi_reallocation_comp(
   const char *imsi,
   const unsigned int imsi_len);

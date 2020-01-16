@@ -147,6 +147,14 @@ func OwnerName(v string) predicate.Survey {
 	)
 }
 
+// CreationTimestamp applies equality check predicate on the "creation_timestamp" field. It's identical to CreationTimestampEQ.
+func CreationTimestamp(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
 // CompletionTimestamp applies equality check predicate on the "completion_timestamp" field. It's identical to CompletionTimestampEQ.
 func CompletionTimestamp(v time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
@@ -583,6 +591,106 @@ func OwnerNameEqualFold(v string) predicate.Survey {
 func OwnerNameContainsFold(v string) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldOwnerName), v))
+	},
+	)
+}
+
+// CreationTimestampEQ applies the EQ predicate on the "creation_timestamp" field.
+func CreationTimestampEQ(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampNEQ applies the NEQ predicate on the "creation_timestamp" field.
+func CreationTimestampNEQ(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampIn applies the In predicate on the "creation_timestamp" field.
+func CreationTimestampIn(vs ...time.Time) predicate.Survey {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Survey(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldCreationTimestamp), v...))
+	},
+	)
+}
+
+// CreationTimestampNotIn applies the NotIn predicate on the "creation_timestamp" field.
+func CreationTimestampNotIn(vs ...time.Time) predicate.Survey {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.Survey(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldCreationTimestamp), v...))
+	},
+	)
+}
+
+// CreationTimestampGT applies the GT predicate on the "creation_timestamp" field.
+func CreationTimestampGT(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampGTE applies the GTE predicate on the "creation_timestamp" field.
+func CreationTimestampGTE(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampLT applies the LT predicate on the "creation_timestamp" field.
+func CreationTimestampLT(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampLTE applies the LTE predicate on the "creation_timestamp" field.
+func CreationTimestampLTE(v time.Time) predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldCreationTimestamp), v))
+	},
+	)
+}
+
+// CreationTimestampIsNil applies the IsNil predicate on the "creation_timestamp" field.
+func CreationTimestampIsNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldCreationTimestamp)))
+	},
+	)
+}
+
+// CreationTimestampNotNil applies the NotNil predicate on the "creation_timestamp" field.
+func CreationTimestampNotNil() predicate.Survey {
+	return predicate.Survey(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldCreationTimestamp)))
 	},
 	)
 }

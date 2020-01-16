@@ -16,7 +16,7 @@ services:
     ports:
       - 9090:9090/tcp
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/prometheus:ro
+      - $PWD/../../../orc8r/cloud/docker/prometheus-configurer/configs:/etc/prometheus:ro
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -28,23 +28,31 @@ services:
     ports:
       - 9093:9093/tcp
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/alertmanager:ro
+      - $PWD/../../../orc8r/cloud/docker/alertmanager-configurer/configs:/etc/alertmanager:ro
     restart: always
 
-  config-manager:
+  prometheus-configurer:
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/config-manager/configs:/etc/configs
+      - $PWD/../../../orc8r/cloud/docker/prometheus-configurer/configs:/etc/configs
     build:
       context: $PWD/../../../orc8r/cloud
-      dockerfile: $PWD/config-manager/Dockerfile
-    environment:
-      - PROM_ALERTCONFIG_PORT=9100
-      - RULES_DIR=/etc/configs/alert_rules
-      - PROMETHEUS_URL=prometheus:9090
-      - ALERTMANAGER_CONFIG_PORT=9101
-      - ALERTMANAGER_CONF_PATH=/etc/configs/alertmanager.yml
-      - ALERTMANAGER_URL=alertmanager:9093
-      - MULTITENANT=true
+      dockerfile: $PWD/prometheus-configurer/Dockerfile
+    command:
+      - '-port=9100'
+      - '-rules-dir=/etc/configs/alert_rules'
+      - '-prometheusURL=prometheus:9090'
+    restart: always
+
+  alertmanager-configurer:
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/alertmanager-configurer/configs:/etc/configs
+    build:
+      context: $PWD/../../../orc8r/cloud
+      dockerfile: $PWD/alertmanager-configurer/Dockerfile
+    command:
+      - '-port=9101'
+      - '-alertmanager-conf=/etc/configs/alertmanager.yml'
+      - '-alertmanagerURL=alertmanager:9093'
     restart: always
 
   grafana:

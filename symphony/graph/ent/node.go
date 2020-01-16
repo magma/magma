@@ -2614,7 +2614,7 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     s.ID,
 		Type:   "Survey",
-		Fields: make([]*Field, 5),
+		Fields: make([]*Field, 6),
 		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
@@ -2650,10 +2650,18 @@ func (s *Survey) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "OwnerName",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(s.CompletionTimestamp); err != nil {
+	if buf, err = json.Marshal(s.CreationTimestamp); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
+		Type:  "time.Time",
+		Name:  "CreationTimestamp",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(s.CompletionTimestamp); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
 		Type:  "time.Time",
 		Name:  "CompletionTimestamp",
 		Value: string(buf),

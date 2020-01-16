@@ -33,4 +33,5 @@ type Query {
 
 type Mutation {
   createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
 }

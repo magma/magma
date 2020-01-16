@@ -40,7 +40,9 @@ metrics:
     create: false
   alertmanager:
     create: false
-  configmanager:
+  alertmanagerConfigurer:
+    create: false
+  prometheusConfigurer:
     create: false
 
 # secrets sub-chart configuration.

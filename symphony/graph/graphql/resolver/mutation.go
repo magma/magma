@@ -308,13 +308,18 @@ func (r mutationResolver) CreateCellScans(ctx context.Context, inputs []*models.
 
 func (r mutationResolver) CreateSurvey(ctx context.Context, data models.SurveyCreateData) (*string, error) {
 	client := r.ClientFrom(ctx)
-	srv, err := client.Survey.
+	query := client.Survey.
 		Create().
 		SetLocationID(data.LocationID).
 		SetCompletionTimestamp(time.Unix(int64(data.CompletionTimestamp), 0)).
 		SetName(data.Name).
-		SetOwnerName(r.User(ctx).email).
-		Save(ctx)
+		SetOwnerName(r.User(ctx).email)
+	if data.CreationTimestamp != nil {
+		query.SetCreationTimestamp(time.Unix(int64(*data.CreationTimestamp), 0))
+	}
+
+	srv, err := query.Save(ctx)
+
 	if err != nil {
 		return nil, errors.Wrap(err, "creating survey")
 	}
@@ -555,7 +560,7 @@ func (r mutationResolver) addEquipment(
 	ctx context.Context, typ *ent.EquipmentType,
 	input models.AddEquipmentInput,
 ) (*ent.Equipment, error) {
-	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), input.Parent, input.PositionDefinition)
+	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), input.Parent, input.PositionDefinition, true)
 	if err != nil {
 		return nil, err
 	}
@@ -922,7 +927,7 @@ func (r mutationResolver) hasPositionCycle(ctx context.Context, parent, child st
 func (r mutationResolver) MoveEquipmentToPosition(
 	ctx context.Context, parentEquipmentID, positionDefinitionID *string, equipmentID string,
 ) (*ent.EquipmentPosition, error) {
-	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), parentEquipmentID, positionDefinitionID)
+	ep, err := resolverutil.GetOrCreatePosition(ctx, r.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-{{ define "connection" }}
+{{ define "pagination" }}
 {{ template "header" $ }}
 
 import (
@@ -55,21 +55,14 @@ func (c *Cursor) UnmarshalGQL(v interface{}) error {
 // {{ $edge }} is the edge representation of {{ $node.Name }}.
 type {{ $edge }} struct {
     Node *{{ $node.Name }} `json:"node"`
-    Cursor *Cursor         `json:"cursor"`
+    Cursor Cursor          `json:"cursor"`
 }
 
 {{ $conn := print $node.Name "Connection" -}}
 // {{ $conn }} is the connection containing edges to {{ $node.Name }}.
 type {{ $conn }} struct {
     Edges []*{{ $edge }} `json:"edges"`
-    PageInfo *PageInfo   `json:"pageInfo"`
-}
-
-func new{{ $conn }}() *{{ $conn }} {
-    return &{{ $conn }}{
-        Edges: []*{{ $edge }}{},
-        PageInfo: &PageInfo{},
-    }
+    PageInfo PageInfo    `json:"pageInfo"`
 }
 
 {{ $query := print $node.Name "Query" -}}
@@ -82,14 +75,18 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
     }
     if first != nil {
         if *first == 0 {
-            return new{{ $conn }}(), nil
+            return &{{ $conn }}{
+                Edges: []*{{ $edge }}{},
+            }, nil
         } else if *first < 0 {
             return nil, ErrInvalidPagination
         }
     }
     if last != nil {
         if *last == 0 {
-            return new{{ $conn }}(), nil
+            return &{{ $conn }}{
+                Edges: []*{{ $edge }}{},
+            }, nil
         } else if *last < 0 {
             return nil, ErrInvalidPagination
         }
@@ -110,7 +107,9 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 
     nodes, err := {{ $receiver }}.All(ctx)
     if err != nil || len(nodes) == 0 {
-        return new{{ $conn }}(), err
+        return &{{ $conn }}{
+            Edges: []*{{ $edge }}{},
+        }, err
     }
     if last != nil {
         for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -118,30 +117,27 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
         }
     }
 
-    info := &PageInfo{}
+    var conn {{ $conn }}
     if first != nil && len(nodes) > *first {
-        info.HasNextPage = true
+        conn.PageInfo.HasNextPage = true
         nodes = nodes[:len(nodes)-1]
     } else if last != nil && len(nodes) > *last {
-        info.HasPreviousPage = true
+        conn.PageInfo.HasPreviousPage = true
         nodes = nodes[1:]
     }
-    edges := make([]*{{ $edge }}, len(nodes))
+    conn.Edges = make([]*{{ $edge }}, len(nodes))
     for i, node := range nodes {
-        edges[i] = &{{ $edge }}{
+        conn.Edges[i] = &{{ $edge }}{
             Node: node,
-            Cursor: &Cursor{
+            Cursor: Cursor{
                 ID: node.ID,
             },
         }
     }
-    info.StartCursor = edges[0].Cursor
-    info.EndCursor = edges[len(edges)-1].Cursor
+    conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+    conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-    return &{{ $conn }}{
-        Edges: edges,
-        PageInfo: info,
-    }, nil
+    return &conn, nil
 }
 
 {{ end }}

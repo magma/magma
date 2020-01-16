@@ -20,9 +20,11 @@ const useStyles = makeStyles({
   },
 });
 
+export type ContextualLayerPosition = 'below' | 'above';
+
 export type ContextualLayerOptions = $ReadOnly<{|
   align?: 'middle',
-  position?: 'below' | 'above',
+  position?: ContextualLayerPosition,
 |}>;
 
 type PositionRect = {

@@ -34,5 +34,10 @@ func (r *resolvers) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, 
 		Save(ctx)
 }
 
+func (r *resolvers) ClearTodos(ctx context.Context) (int, error) {
+	return r.client.Delete().
+		Exec(ctx)
+}
+
 func (r *resolvers) Query() QueryResolver       { return r }
 func (r *resolvers) Mutation() MutationResolver { return r }

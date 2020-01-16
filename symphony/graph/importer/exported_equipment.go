@@ -117,7 +117,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 					errorReturn(w, fmt.Sprintf("creating location hierarchy (row #%d).", numRows), log, err)
 					return
 				}
-				parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine)
+				parentEquipmentID, positionDefinitionID, err := m.getPositionDetailsIfExists(ctx, parentLoc, importLine, true)
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("creating equipment hierarchy (row #%d)", numRows), log, err)
 					return
@@ -133,7 +133,7 @@ func (m *importer) processExportedEquipment(w http.ResponseWriter, r *http.Reque
 						return
 					}
 				}
-				pos, err := resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID)
+				pos, err := resolverutil.GetOrCreatePosition(ctx, m.ClientFrom(ctx), parentEquipmentID, positionDefinitionID, true)
 				if err != nil {
 					errorReturn(w, fmt.Sprintf("creating equipment position (row #%d)", numRows), log, err)
 					return

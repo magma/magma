@@ -54,21 +54,6 @@ MESSAGE_DEF(
   itti_nas_cs_service_notification_t,
   nas_cs_service_notification)
 MESSAGE_DEF(
-  NAS_CS_DOMAIN_LOCATION_UPDATE_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_cs_domain_location_update_req_t,
-  nas_cs_domain_location_update_req)
-MESSAGE_DEF(
-  NAS_CS_DOMAIN_LOCATION_UPDATE_ACC,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_cs_domain_location_update_acc_t,
-  nas_cs_domain_location_update_acc)
-MESSAGE_DEF(
-  NAS_CS_DOMAIN_LOCATION_UPDATE_FAIL,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_cs_domain_location_update_fail_t,
-  nas_cs_domain_location_update_fail)
-MESSAGE_DEF(
   NAS_NOTIFY_SERVICE_REJECT,
   MESSAGE_PRIORITY_MED,
   itti_nas_notify_service_reject_t,

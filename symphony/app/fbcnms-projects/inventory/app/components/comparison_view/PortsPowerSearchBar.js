@@ -46,8 +46,8 @@ const PortsPowerSearchBar = (props: Props) => {
 
   const filterConfigs = PortCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(portPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(portPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
 
   return (
     <PowerSearchBar

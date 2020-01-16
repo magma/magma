@@ -20,6 +20,7 @@ message AbortSessionResult {
         SESSION_NOT_FOUND = 1;
         USER_NOT_FOUND = 2;
         GATEWAY_NOT_FOUND = 3;
+        RADIUS_SERVER_ERROR = 4;
     }
     Code code = 1;
     string error_message = 2;

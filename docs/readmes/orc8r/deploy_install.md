@@ -172,8 +172,8 @@ prometheusPushAddresses:
   - "http://orc8r-prometheus-cache:9091/metrics"
 
 alertmanagerApiURL: "http://orc8r-alertmanager:9093/api/v2/alerts"
-prometheusConfigServiceURL: "http://orc8r-config-manager:9100"
-alertmanagerConfigServiceURL: "http://orc8r-config-manager:9101"
+prometheusConfigServiceURL: "http://orc8r-prometheus-configurer:9100"
+alertmanagerConfigServiceURL: "http://orc8r-alertmanager-configurer:9101"
 ```
 
 ## Initial Helm Deploy
@@ -265,10 +265,18 @@ metrics:
     nodeSelector:
       worker-type: metrics
 
-  configmanager:
+  alertmanagerConfigurer:
     create: true
     image:
-      repository: YOUR-DOCKER-REGISTRY/config-manager
+      repository: YOUR-DOCKER-REGISTRY/alertmanager-configurer
+      tag: YOUR-CONTAINER-TAG
+    nodeSelector:
+      worker-type: metrics
+      
+  prometheusConfigurer:
+    create: true
+    image:
+      repository: YOUR-DOCKER-REGISTRY/prometheus-configurer
       tag: YOUR-CONTAINER-TAG
     nodeSelector:
       worker-type: metrics
@@ -350,16 +358,17 @@ First, find a `orc8r-controller-` pod in k8s:
 ```bash
 $ kubectl -n magma get pods
 
-NAME                                      READY   STATUS    RESTARTS   AGE
-orc8r-configmanager-896d784bc-chqr7       1/1     Running   0          X
-orc8r-controller-7757567bf5-cm4wn         1/1     Running   0          X
-orc8r-controller-7757567bf5-jshpv         1/1     Running   0          X
-orc8r-alertmanager-c8dc7cdb5-crzpl        1/1     Running   0          X
-orc8r-grafana-6446b97885-ck6g8            1/1     Running   0          X
-orc8r-prometheus-6c67bcc9d8-6lx22         1/1     Running   0          X
-orc8r-prometheus-cache-6bf7648446-9t9hx   1/1     Running   0          X
-orc8r-proxy-57cf989fcc-cg54z              1/1     Running   0          X
-orc8r-proxy-57cf989fcc-xn2cw              1/1     Running   0          X
+NAME                                              READY   STATUS    RESTARTS   AGE
+orc8r-alertmanager-configurer-c8dc7cdb5-crzpl     1/1     Running   0          X
+orc8r-controller-7757567bf5-cm4wn                 1/1     Running   0          X
+orc8r-controller-7757567bf5-jshpv                 1/1     Running   0          X
+orc8r-alertmanager-c8dc7cdb5-crzpl                1/1     Running   0          X
+orc8r-grafana-6446b97885-ck6g8                    1/1     Running   0          X
+orc8r-prometheus-6c67bcc9d8-6lx22                 1/1     Running   0          X
+orc8r-prometheus-cache-6bf7648446-9t9hx           1/1     Running   0          X
+orc8r-prometheus-configurer-896d784bc-chqr7       1/1     Running   0          X
+orc8r-proxy-57cf989fcc-cg54z                      1/1     Running   0          X
+orc8r-proxy-57cf989fcc-xn2cw                      1/1     Running   0          X
 ```
 
 Then:
