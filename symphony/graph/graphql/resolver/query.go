@@ -214,7 +214,7 @@ func (r queryResolver) SearchForEntity(
 		Where(
 			location.Or(
 				location.NameContainsFold(name),
-				location.ExternalID(name),
+				location.ExternalIDContainsFold(name),
 			),
 		).
 		Limit(*limit).
