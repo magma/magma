@@ -81,7 +81,7 @@ func (f *File) DeleteRule(name string) error {
 // to ensure that only metrics owned by this tenant can be alerted on
 func SecureRule(matcherName, matcherValue string, rule *rulefmt.Rule) error {
 	tenantLabels := map[string]string{matcherName: matcherValue}
-	queryRestrictor := restrictor.NewQueryRestrictor(networkLabels)
+	queryRestrictor := restrictor.NewQueryRestrictor(tenantLabels)
 
 	restrictedExpression, err := queryRestrictor.RestrictQuery(rule.Expr)
 	if err != nil {

@@ -9,6 +9,7 @@
 package receivers
 
 import (
+	"regexp"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient/mocks"
@@ -39,13 +40,18 @@ route:
   group_interval: 10s
   repeat_interval: 1h
   routes:
-  - receiver: other_network_base_route
+  - receiver: other_tenant_base_route
     match:
-      networkID: other
+      tenantID: other
+  - receiver: deprecated_network_base_route
+    match:
+      networkID: deprecated
 receivers:
 - name: null_receiver
 - name: test_receiver
-- name: other_network_base_route
+- name: receiver
+- name: other_tenant_base_route
+- name: deprecated_network_base_route
 - name: test_slack
   slack_configs:
   - api_url: http://slack.com/12345
@@ -71,33 +77,39 @@ receivers:
 templates: []`
 )
 
+type testClients struct {
+	aClient  AlertmanagerClient
+	fsClient *mocks.FSClient
+}
+
 func TestClient_CreateReceiver(t *testing.T) {
-	// Create Slack Receiver
-	client, fsClient := newTestClient()
-	err := client.CreateReceiver(testNID, sampleSlackReceiver)
-	assert.NoError(t, err)
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	mtClient, mtFSClient := newMultiTenantTestClient()
+	stClient, stFSClient := newSingleTenantTestClient()
+	for _, clients := range []testClients{{mtClient, mtFSClient}, {stClient, stFSClient}} {
+		// Create Slack Receiver
+		err := clients.aClient.CreateReceiver(testNID, sampleSlackReceiver)
+		assert.NoError(t, err)
+		clients.fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	// Create Webhook Receiver
-	client, fsClient = newTestClient()
-	err = client.CreateReceiver(testNID, sampleWebhookReceiver)
-	assert.NoError(t, err)
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+		// Create Webhook Receiver
+		err = clients.aClient.CreateReceiver(testNID, sampleWebhookReceiver)
+		assert.NoError(t, err)
+		clients.fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	// Create Email receiver
-	client, fsClient = newTestClient()
-	err = client.CreateReceiver(testNID, sampleEmailReceiver)
-	assert.NoError(t, err)
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+		// Create Email receiver
+		err = clients.aClient.CreateReceiver(testNID, sampleEmailReceiver)
+		assert.NoError(t, err)
+		clients.fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	// create duplicate receiver
-	err = client.CreateReceiver(testNID, Receiver{Name: "receiver"})
-	assert.EqualError(t, err, `notification config name "test_receiver" is not unique`)
+		// create duplicate receiver
+		err = clients.aClient.CreateReceiver(testNID, Receiver{Name: "receiver"})
+		assert.Regexp(t, regexp.MustCompile("notification config name \".*receiver\" is not unique"), err.Error())
+	}
 }
 
 func TestClient_GetReceivers(t *testing.T) {
-	client, _ := newTestClient()
-	recs, err := client.GetReceivers(testNID)
+	mtClient, _ := newMultiTenantTestClient()
+	recs, err := mtClient.GetReceivers(testNID)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(recs))
 	assert.Equal(t, "receiver", recs[0].Name)
@@ -105,72 +117,133 @@ func TestClient_GetReceivers(t *testing.T) {
 	assert.Equal(t, "webhook", recs[2].Name)
 	assert.Equal(t, "email", recs[3].Name)
 
-	recs, err = client.GetReceivers(otherNID)
+	recs, err = mtClient.GetReceivers(otherNID)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(recs))
 
-	recs, err = client.GetReceivers("bad_nid")
+	recs, err = mtClient.GetReceivers("bad_nid")
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(recs))
+
+	stClient, _ := newSingleTenantTestClient()
+	recs, err = stClient.GetReceivers(testNID)
+	assert.NoError(t, err)
+	assert.Equal(t, 9, len(recs))
+
+	recs, err = stClient.GetReceivers(otherNID)
+	assert.NoError(t, err)
+	assert.Equal(t, 9, len(recs))
+
+	recs, err = stClient.GetReceivers("bad_nid")
+	assert.NoError(t, err)
+	assert.Equal(t, 9, len(recs))
+
 }
 
 func TestClient_UpdateReceiver(t *testing.T) {
-	client, fsClient := newTestClient()
-
-	err := client.UpdateReceiver(testNID, &Receiver{Name: "slack"})
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	mtClient, mtFSClient := newMultiTenantTestClient()
+	err := mtClient.UpdateReceiver(testNID, &Receiver{Name: "slack"})
+	mtFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.UpdateReceiver(testNID, &Receiver{Name: "nonexistent"})
-	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
+	err = mtClient.UpdateReceiver(testNID, &Receiver{Name: "nonexistent"})
+	mtFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
+	assert.Error(t, err)
+
+	stClient, stFSClient := newSingleTenantTestClient()
+	err = stClient.UpdateReceiver(testNID, &Receiver{Name: "receiver"})
+	stFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+
+	err = stClient.UpdateReceiver(testNID, &Receiver{Name: "nonexistent"})
+	stFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
 	assert.Error(t, err)
 }
 
 func TestClient_DeleteReceiver(t *testing.T) {
-	client, fsClient := newTestClient()
-
-	err := client.DeleteReceiver(testNID, "slack")
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	mtClient, mtFSClient := newMultiTenantTestClient()
+	err := mtClient.DeleteReceiver(testNID, "slack")
+	mtFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 	assert.NoError(t, err)
 
-	err = client.DeleteReceiver(testNID, "nonexistent")
+	err = mtClient.DeleteReceiver(testNID, "nonexistent")
 	assert.Error(t, err)
-	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
+	mtFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
 
+	stClient, stFSClient := newSingleTenantTestClient()
+	err = stClient.DeleteReceiver("", "receiver")
+	stFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	assert.NoError(t, err)
+
+	err = stClient.DeleteReceiver("", "nonexistent")
+	assert.Error(t, err)
+	stFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
 }
 
-func TestClient_ModifyNetworkRoute(t *testing.T) {
-	client, fsClient := newTestClient()
-
-	err := client.ModifyNetworkRoute(testNID, &config.Route{
+func TestClient_ModifyTenantRoute(t *testing.T) {
+	mtClient, mtFSClient := newMultiTenantTestClient()
+	err := mtClient.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "slack",
 	})
 	assert.NoError(t, err)
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	mtFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	err = client.ModifyNetworkRoute(testNID, &config.Route{
+	err = mtClient.ModifyTenantRoute(testNID, &config.Route{
 		Receiver: "test",
 		Routes: []*config.Route{{
 			Receiver: "nonexistent",
 		}},
 	})
 	assert.Error(t, err)
-	fsClient.AssertNumberOfCalls(t, "WriteFile", 1)
+	mtFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
+
+	stClient, stFSClient := newSingleTenantTestClient()
+	err = stClient.ModifyTenantRoute(testNID, &config.Route{
+		Receiver: "receiver",
+	})
+	assert.NoError(t, err)
+
+	stFSClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
+	err = stClient.ModifyTenantRoute("", &config.Route{
+		Receiver: "test",
+		Routes: []*config.Route{{
+			Receiver: "nonexistent",
+		}},
+	})
+	assert.Error(t, err)
+	stFSClient.AssertNumberOfCalls(t, "WriteFile", 1)
 }
 
 func TestClient_GetRoute(t *testing.T) {
-	client, _ := newTestClient()
-	route, err := client.GetRoute(otherNID)
-	assert.NoError(t, err)
-	assert.Equal(t, config.Route{Receiver: "network_base_route", Match: map[string]string{"networkID": "other"}}, *route)
+	mtClient, _ := newMultiTenantTestClient()
 
-	route, err = client.GetRoute("no-network")
+	route, err := mtClient.GetRoute(otherNID)
+	assert.NoError(t, err)
+	assert.Equal(t, config.Route{Receiver: "tenant_base_route", Match: map[string]string{"tenantID": "other"}}, *route)
+
+	route, err = mtClient.GetRoute("deprecated")
+	assert.NoError(t, err)
+	assert.Equal(t, config.Route{Receiver: "tenant_base_route", Match: map[string]string{"networkID": "deprecated"}}, *route)
+
+	route, err = mtClient.GetRoute("no-network")
 	assert.Error(t, err)
+
+	stClient, _ := newSingleTenantTestClient()
+	route, err = stClient.GetRoute("")
+	assert.NoError(t, err)
+	assert.Equal(t, "null_receiver", route.Receiver)
 }
 
-func newTestClient() (AlertmanagerClient, *mocks.FSClient) {
+func newMultiTenantTestClient() (AlertmanagerClient, *mocks.FSClient) {
 	fsClient := &mocks.FSClient{}
 	fsClient.On("ReadFile", mock.Anything).Return([]byte(testAlertmanagerFile), nil)
 	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
-	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", fsClient), fsClient
+	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", "networkID", fsClient), fsClient
+}
+
+func newSingleTenantTestClient() (AlertmanagerClient, *mocks.FSClient) {
+	fsClient := &mocks.FSClient{}
+	fsClient.On("ReadFile", mock.Anything).Return([]byte(testAlertmanagerFile), nil)
+	fsClient.On("WriteFile", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	return NewClient("test/alertmanager.yml", "alertmanager-host:9093", "", fsClient), fsClient
 }

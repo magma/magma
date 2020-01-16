@@ -20,6 +20,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers/mocks"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
@@ -63,6 +64,8 @@ var (
 		GroupInterval:  &fiveSeconds,
 		RepeatInterval: &fiveSeconds,
 	}
+
+	sampleTenancy = &alert.TenancyConfig{RestrictorLabel: "networkID"}
 )
 
 func TestGetReceiverPostHandler(t *testing.T) {
@@ -168,7 +171,7 @@ func TestGetDeleteReceiverHandler(t *testing.T) {
 	client.On("ReloadAlertmanager").Return(nil)
 
 	q := make(url.Values)
-	q.Set(ReceiverNameQueryParam, sampleReceiver.Name)
+	q.Set(receiverNameQueryParam, sampleReceiver.Name)
 	c, rec := buildContext(nil, http.MethodGet, "/?"+q.Encode(), ReceiverPath, testNID)
 
 	err := GetDeleteReceiverHandler(client)(c)
@@ -228,7 +231,7 @@ func TestGetGetRouteHandler(t *testing.T) {
 func TestGetUpdateRouteHandler(t *testing.T) {
 	// Successful Update
 	client := &mocks.AlertmanagerClient{}
-	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(nil)
+	client.On("ModifyTenantRoute", testNID, &sampleRoute).Return(nil)
 	client.On("ReloadAlertmanager").Return(nil)
 	c, rec := buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
 
@@ -239,7 +242,7 @@ func TestGetUpdateRouteHandler(t *testing.T) {
 
 	// Client Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(errors.New("error"))
+	client.On("ModifyTenantRoute", testNID, &sampleRoute).Return(errors.New("error"))
 	c, _ = buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
 
 	err = GetUpdateRouteHandler(client)(c)
@@ -249,7 +252,7 @@ func TestGetUpdateRouteHandler(t *testing.T) {
 
 	// Alertmanager Error
 	client = &mocks.AlertmanagerClient{}
-	client.On("ModifyNetworkRoute", testNID, &sampleRoute).Return(nil)
+	client.On("ModifyTenantRoute", testNID, &sampleRoute).Return(nil)
 	client.On("ReloadAlertmanager").Return(errors.New("error"))
 	c, _ = buildContext(sampleRoute, http.MethodPost, "/", ReceiverPath, testNID)
 
@@ -289,13 +292,14 @@ func TestDecodeRoutePostRequest(t *testing.T) {
 	assert.EqualError(t, err, `error unmarshalling route: json: cannot unmarshal bool into Go struct field RouteJSONWrapper.receiver of type string`)
 }
 
-func buildContext(body interface{}, method, target, path, networkID string) (echo.Context, *httptest.ResponseRecorder) {
+func buildContext(body interface{}, method, target, path, tenantID string) (echo.Context, *httptest.ResponseRecorder) {
 	bytes, _ := json.Marshal(body)
 	req := httptest.NewRequest(method, target, strings.NewReader(string(bytes)))
 	rec := httptest.NewRecorder()
 	c := echo.New().NewContext(req, rec)
 	c.SetPath(path)
-	c.SetParamNames("file_prefix")
-	c.SetParamValues(networkID)
+	c.SetParamNames("tenant_id")
+	c.SetParamValues(tenantID)
+	c.Set(tenantIDParam, tenantID)
 	return c, rec
 }

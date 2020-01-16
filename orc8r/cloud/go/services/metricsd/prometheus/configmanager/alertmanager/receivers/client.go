@@ -13,11 +13,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/prometheus/alertmanager/config"
 
@@ -25,26 +26,28 @@ import (
 )
 
 const (
-	networkBaseRoutePostfix = "network_base_route"
+	tenantBaseRoutePostfix = "tenant_base_route"
 )
 
 type AlertmanagerClient interface {
-	CreateReceiver(networkID string, rec Receiver) error
-	GetReceivers(networkID string) ([]Receiver, error)
-	UpdateReceiver(networkID string, newRec *Receiver) error
-	DeleteReceiver(networkID, receiverName string) error
+	CreateReceiver(tenantID string, rec Receiver) error
+	GetReceivers(tenantID string) ([]Receiver, error)
+	UpdateReceiver(tenantID string, newRec *Receiver) error
+	DeleteReceiver(tenantID, receiverName string) error
 
 	// ModifyNetworkRoute updates an existing routing tree for the given
-	// network, or creates one if it already exists. Ensures that the base
-	// route matches all alerts with label "networkID" = <networkID>.
-	ModifyNetworkRoute(networkID string, route *config.Route) error
+	// tenant, or creates one if it already exists. Ensures that the base
+	// route matches all alerts with label "tenantID" = <tenantID>.
+	ModifyTenantRoute(tenantID string, route *config.Route) error
 
-	// GetRoute returns the routing tree for the given networkID
-	GetRoute(networkID string) (*config.Route, error)
+	// GetRoute returns the routing tree for the given tenantID
+	GetRoute(tenantID string) (*config.Route, error)
 
 	// ReloadAlertmanager triggers the alertmanager process to reload the
 	// configuration file(s)
 	ReloadAlertmanager() error
+
+	Tenancy() *alert.TenancyConfig
 }
 
 // Client provides methods to create and read receiver configurations
@@ -52,20 +55,28 @@ type client struct {
 	configPath      string
 	alertmanagerURL string
 	fsClient        fsclient.FSClient
+	tenancy         *alert.TenancyConfig
 	sync.RWMutex
 }
 
-func NewClient(configPath, alertmanagerURL string, fsClient fsclient.FSClient) AlertmanagerClient {
+func NewClient(configPath, alertmanagerURL, matcherLabel string, fsClient fsclient.FSClient) AlertmanagerClient {
+	var tenancy *alert.TenancyConfig
+	if matcherLabel != "" {
+		tenancy = &alert.TenancyConfig{
+			RestrictorLabel: matcherLabel,
+		}
+	}
 	return &client{
 		configPath:      configPath,
 		alertmanagerURL: alertmanagerURL,
 		fsClient:        fsClient,
+		tenancy:         tenancy,
 	}
 }
 
-// CreateReceiver writes a new receiver to the config file with the networkID
-// prepended to the name so multiple networks can be supported
-func (c *client) CreateReceiver(networkID string, rec Receiver) error {
+// CreateReceiver writes a new receiver to the config file with the tenantID
+// prepended to the name so multiple tenants can be supported
+func (c *client) CreateReceiver(tenantID string, rec Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -73,7 +84,10 @@ func (c *client) CreateReceiver(networkID string, rec Receiver) error {
 		return err
 	}
 
-	rec.Secure(networkID)
+	if c.tenancy != nil {
+		rec.Secure(tenantID)
+	}
+
 	conf.Receivers = append(conf.Receivers, &rec)
 	err = conf.Validate()
 	if err != nil {
@@ -82,8 +96,8 @@ func (c *client) CreateReceiver(networkID string, rec Receiver) error {
 	return c.writeConfigFile(conf)
 }
 
-// GetReceivers returns the receiver configs for the given networkID
-func (c *client) GetReceivers(networkID string) ([]Receiver, error) {
+// GetReceivers returns the receiver configs for the given tenantID
+func (c *client) GetReceivers(tenantID string) ([]Receiver, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
@@ -92,9 +106,17 @@ func (c *client) GetReceivers(networkID string) ([]Receiver, error) {
 	}
 
 	recs := make([]Receiver, 0)
+
+	if c.tenancy == nil {
+		for _, rec := range conf.Receivers {
+			recs = append(recs, *rec)
+		}
+		return recs, nil
+	}
+
 	for _, rec := range conf.Receivers {
-		if strings.HasPrefix(rec.Name, receiverNetworkPrefix(networkID)) {
-			rec.Unsecure(networkID)
+		if strings.HasPrefix(rec.Name, receiverTenantPrefix(tenantID)) {
+			rec.Unsecure(tenantID)
 			recs = append(recs, *rec)
 		}
 	}
@@ -102,7 +124,7 @@ func (c *client) GetReceivers(networkID string) ([]Receiver, error) {
 }
 
 // UpdateReceiver modifies an existing receiver
-func (c *client) UpdateReceiver(networkID string, newRec *Receiver) error {
+func (c *client) UpdateReceiver(tenantID string, newRec *Receiver) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -110,11 +132,15 @@ func (c *client) UpdateReceiver(networkID string, newRec *Receiver) error {
 		return err
 	}
 
-	newRec.Secure(networkID)
+	if c.tenancy != nil {
+		newRec.Secure(tenantID)
+	}
+
 	receiverIdx := -1
 	for idx, rec := range conf.Receivers {
 		if rec.Name == newRec.Name {
 			receiverIdx = idx
+			break
 		}
 	}
 	if receiverIdx < 0 {
@@ -130,7 +156,7 @@ func (c *client) UpdateReceiver(networkID string, newRec *Receiver) error {
 }
 
 // DeleteReceiver removes a receiver from the configuration
-func (c *client) DeleteReceiver(networkID, receiverName string) error {
+func (c *client) DeleteReceiver(tenantID, receiverName string) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
@@ -138,7 +164,12 @@ func (c *client) DeleteReceiver(networkID, receiverName string) error {
 		return err
 	}
 
-	receiverToDelete := secureReceiverName(receiverName, networkID)
+	receiverToDelete := receiverName
+
+	if c.tenancy != nil {
+		receiverToDelete = secureReceiverName(receiverName, tenantID)
+	}
+
 	for idx, rec := range conf.Receivers {
 		if rec.Name == receiverToDelete {
 			conf.Receivers = append(conf.Receivers[:idx], conf.Receivers[idx+1:]...)
@@ -149,40 +180,56 @@ func (c *client) DeleteReceiver(networkID, receiverName string) error {
 	return fmt.Errorf("Receiver '%s' does not exist", receiverName)
 }
 
-// ModifyNetworkRoute takes a new route for a network and replaces the old one,
+// ModifyTenantRoute takes a new route for a tenant and replaces the old one,
 // ensuring that receivers are properly named and the resulting config is valid.
-// Creates a new one if it doesn't already exist
-func (c *client) ModifyNetworkRoute(networkID string, route *config.Route) error {
+// Creates a new one if it doesn't already exist. If single-tenant client this
+// just modifies the entire routing tree
+func (c *client) ModifyTenantRoute(tenantID string, route *config.Route) error {
 	c.Lock()
 	defer c.Unlock()
 	conf, err := c.readConfigFile()
 	if err != nil {
 		return err
 	}
-	// ensure base route is valid base route for this network
-	baseRoute := c.getBaseRouteForNetwork(networkID, conf)
+
+	// Single-tenant route modification
+	if c.tenancy == nil {
+		conf.Route = route
+		err = conf.Validate()
+		if err != nil {
+			return err
+		}
+		return c.writeConfigFile(conf)
+	}
+
+	// ensure base route is valid base route for this tenant
+	baseRoute := c.getBaseRouteForTenant(tenantID, conf)
 	route.Receiver = baseRoute.Receiver
 	if route.Match == nil {
 		route.Match = map[string]string{}
 	}
 
-	route.Match[metrics.NetworkLabelName] = networkID
+	route.Match[c.tenancy.RestrictorLabel] = tenantID
 
 	for _, childRoute := range route.Routes {
 		if childRoute == nil {
 			continue
 		}
-		secureRoute(networkID, childRoute)
+		secureRoute(tenantID, childRoute)
 	}
 
-	networkRouteIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
-	if networkRouteIdx < 0 {
-		err := conf.initializeNetworkBaseRoute(route, networkID)
+	tenantRouteIdx := conf.GetRouteIdx(makeBaseRouteName(tenantID))
+	if tenantRouteIdx < 0 {
+		restrictorLabel := ""
+		if c.tenancy != nil {
+			restrictorLabel = c.tenancy.RestrictorLabel
+		}
+		err := conf.initializeNetworkBaseRoute(route, restrictorLabel, tenantID)
 		if err != nil {
 			return err
 		}
 	} else {
-		conf.Route.Routes[networkRouteIdx] = route
+		conf.Route.Routes[tenantRouteIdx] = route
 	}
 
 	err = conf.Validate()
@@ -192,8 +239,8 @@ func (c *client) ModifyNetworkRoute(networkID string, route *config.Route) error
 	return c.writeConfigFile(conf)
 }
 
-// GetRoute returns the base route for the given networkID
-func (c *client) GetRoute(networkID string) (*config.Route, error) {
+// GetRoute returns the base route for the given tenantID
+func (c *client) GetRoute(tenantID string) (*config.Route, error) {
 	c.RLock()
 	defer c.RUnlock()
 	conf, err := c.readConfigFile()
@@ -201,13 +248,18 @@ func (c *client) GetRoute(networkID string) (*config.Route, error) {
 		return &config.Route{}, err
 	}
 
-	routeIdx := conf.GetRouteIdx(makeBaseRouteName(networkID))
+	// Single-tenant route get
+	if c.tenancy == nil {
+		return conf.Route, nil
+	}
+
+	routeIdx := conf.GetRouteIdx(makeBaseRouteName(tenantID))
 	if routeIdx >= 0 {
 		route := conf.Route.Routes[routeIdx]
-		unsecureRoute(networkID, route)
+		unsecureRoute(tenantID, route)
 		return route, nil
 	}
-	return nil, fmt.Errorf("Route for network %s does not exist", networkID)
+	return nil, fmt.Errorf("Route for tenant %s does not exist", tenantID)
 }
 
 func (c *client) ReloadAlertmanager() error {
@@ -222,6 +274,10 @@ func (c *client) ReloadAlertmanager() error {
 	return nil
 }
 
+func (c *client) Tenancy() *alert.TenancyConfig {
+	return c.tenancy
+}
+
 func (c *client) readConfigFile() (*Config, error) {
 	configFile := Config{}
 	file, err := c.fsClient.ReadFile(c.configPath)
@@ -229,6 +285,10 @@ func (c *client) readConfigFile() (*Config, error) {
 		return nil, fmt.Errorf("error reading config files: %v", err)
 	}
 	err = yaml.Unmarshal(file, &configFile)
+
+	// TODO: Remove this after some time has passed for migrations to take place
+	migrateToTenantBasedConfig(&configFile)
+
 	return &configFile, err
 }
 
@@ -245,38 +305,59 @@ func (c *client) writeConfigFile(conf *Config) error {
 }
 
 // secureRoute ensure that all receivers in the route have the
-// proper networkID-prefixed receiver name
-func secureRoute(networkID string, route *config.Route) {
-	route.Receiver = secureReceiverName(route.Receiver, networkID)
+// proper tenantID-prefixed receiver name
+func secureRoute(tenantID string, route *config.Route) {
+	route.Receiver = secureReceiverName(route.Receiver, tenantID)
 	for _, childRoute := range route.Routes {
-		secureRoute(networkID, childRoute)
+		secureRoute(tenantID, childRoute)
 	}
 }
 
 // unsecureRoute traverses a routing tree and reverts receiver
 // names to their non-prefixed original names
-func unsecureRoute(networkID string, route *config.Route) {
-	route.Receiver = unsecureReceiverName(route.Receiver, networkID)
+func unsecureRoute(tenantID string, route *config.Route) {
+	route.Receiver = unsecureReceiverName(route.Receiver, tenantID)
 	for _, childRoute := range route.Routes {
-		unsecureRoute(networkID, childRoute)
+		unsecureRoute(tenantID, childRoute)
 	}
 }
 
-func receiverNetworkPrefix(networkID string) string {
-	return strings.Replace(networkID, "_", "", -1) + "_"
+func receiverTenantPrefix(tenantID string) string {
+	return strings.Replace(tenantID, "_", "", -1) + "_"
 }
 
-func (c *client) getBaseRouteForNetwork(networkID string, conf *Config) *config.Route {
-	baseRouteName := makeBaseRouteName(networkID)
+func (c *client) getBaseRouteForTenant(tenantID string, conf *Config) *config.Route {
+	baseRouteName := makeBaseRouteName(tenantID)
 	for _, route := range conf.Route.Routes {
 		if route.Receiver == baseRouteName {
 			return route
 		}
 	}
-	newBaseRoute := &config.Route{Receiver: makeBaseRouteName(networkID)}
+	newBaseRoute := &config.Route{Receiver: makeBaseRouteName(tenantID)}
 	return newBaseRoute
 }
 
-func makeBaseRouteName(networkID string) string {
-	return fmt.Sprintf("%s_%s", networkID, networkBaseRoutePostfix)
+func makeBaseRouteName(tenantID string) string {
+	return fmt.Sprintf("%s_%s", tenantID, tenantBaseRoutePostfix)
+}
+
+// This is necessary due to the change from 'network' based tenancy to 'tenant'
+// based tenancy. Replaces 'network_base_route' with 'tenant_base_route'
+const deprecatedTenancyPostfix = "network_base_route"
+
+func migrateToTenantBasedConfig(conf *Config) {
+	for _, route := range conf.Route.Routes {
+		matched, _ := regexp.MatchString(fmt.Sprintf(".*_%s", deprecatedTenancyPostfix), route.Receiver)
+		if matched {
+			migratedName := strings.Replace(route.Receiver, deprecatedTenancyPostfix, tenantBaseRoutePostfix, 1)
+			route.Receiver = migratedName
+		}
+	}
+	for _, receiver := range conf.Receivers {
+		matched, _ := regexp.MatchString(fmt.Sprintf(".*_%s", deprecatedTenancyPostfix), receiver.Name)
+		if matched {
+			migratedName := strings.Replace(receiver.Name, deprecatedTenancyPostfix, tenantBaseRoutePostfix, 1)
+			receiver.Name = migratedName
+		}
+	}
 }

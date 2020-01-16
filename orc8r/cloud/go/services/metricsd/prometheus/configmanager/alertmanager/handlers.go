@@ -21,13 +21,43 @@ import (
 )
 
 const (
-	rootPath     = "/:file_prefix"
+	rootPath     = "/:tenant_id"
 	ReceiverPath = rootPath + "/receiver"
 	RoutePath    = ReceiverPath + "/route"
 
-	ReceiverNamePathParam  = "receiver"
-	ReceiverNameQueryParam = "receiver"
+	receiverNamePathParam  = "receiver"
+	receiverNameQueryParam = "receiver"
+
+	tenantIDParam = "tenant_id"
 )
+
+func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+	e.GET("/", statusHandler)
+
+	e.POST(ReceiverPath, GetReceiverPostHandler(client))
+	e.GET(ReceiverPath, GetGetReceiversHandler(client))
+	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(client))
+	e.PUT(ReceiverPath+"/:"+receiverNamePathParam, GetUpdateReceiverHandler(client))
+
+	e.POST(RoutePath, GetUpdateRouteHandler(client))
+	e.GET(RoutePath, GetGetRouteHandler(client))
+
+	e.Use(tenancyMiddlewareProvider(client))
+}
+
+// Returns middleware func to check for tenant_id dependent on tenancy of the client
+func tenancyMiddlewareProvider(client receivers.AlertmanagerClient) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			providedTenantID := c.Param(tenantIDParam)
+			if client.Tenancy() != nil && providedTenantID == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
+			}
+			c.Set(tenantIDParam, providedTenantID)
+			return next(c)
+		}
+	}
+}
 
 // GetReceiverPostHandler returns a handler function that creates a new
 // receiver and then reloads alertmanager
@@ -37,7 +67,9 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Con
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-		err = client.CreateReceiver(getFilePrefix(c), receiver)
+		tenantID := c.Get(tenantIDParam).(string)
+
+		err = client.CreateReceiver(tenantID, receiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -54,8 +86,9 @@ func GetReceiverPostHandler(client receivers.AlertmanagerClient) func(c echo.Con
 // a filePrefix
 func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		getFilePrefix := getFilePrefix(c)
-		recs, err := client.GetReceivers(getFilePrefix)
+		tenantID := c.Get(tenantIDParam).(string)
+
+		recs, err := client.GetReceivers(tenantID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
@@ -66,13 +99,14 @@ func GetGetReceiversHandler(client receivers.AlertmanagerClient) func(c echo.Con
 // GetUpdateReceiverHandler returns a handler function to update a receivers
 func GetUpdateReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		getFilePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
+
 		newReceiver, err := decodeReceiverPostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
 
-		err = client.UpdateReceiver(getFilePrefix, &newReceiver)
+		err = client.UpdateReceiver(tenantID, &newReceiver)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -87,10 +121,9 @@ func GetUpdateReceiverHandler(client receivers.AlertmanagerClient) func(c echo.C
 
 func GetDeleteReceiverHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		getFilePrefix := getFilePrefix(c)
-		receiverName := c.QueryParam(ReceiverNameQueryParam)
+		tenantID := c.Get(tenantIDParam).(string)
 
-		err := client.DeleteReceiver(getFilePrefix, receiverName)
+		err := client.DeleteReceiver(tenantID, c.QueryParam(receiverNameQueryParam))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -105,8 +138,9 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient) func(c echo.C
 
 func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		getFilePrefix := getFilePrefix(c)
-		route, err := client.GetRoute(getFilePrefix)
+		tenantID := c.Get(tenantIDParam).(string)
+
+		route, err := client.GetRoute(tenantID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -116,12 +150,13 @@ func GetGetRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context
 
 func GetUpdateRouteHandler(client receivers.AlertmanagerClient) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		getFilePrefix := getFilePrefix(c)
+		tenantID := c.Get(tenantIDParam).(string)
+
 		newRoute, err := decodeRoutePostRequest(c)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
-		err = client.ModifyNetworkRoute(getFilePrefix, &newRoute)
+		err = client.ModifyTenantRoute(tenantID, &newRoute)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}
@@ -168,8 +203,4 @@ func decodeRoutePostRequest(c echo.Context) (config.Route, error) {
 		return unwrappedRoute, nil
 	}
 	return route, nil
-}
-
-func getFilePrefix(c echo.Context) string {
-	return c.Param("file_prefix")
 }
