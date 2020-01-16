@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -188,7 +188,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err := GetUpdateAlertHandler(client)(c)
+	err := GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	client.AssertExpectations(t)
@@ -197,7 +197,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	client = &mocks.PrometheusAlertClient{}
 	c, _ = buildContext(sampleAlert1, http.MethodPut, "/", AlertPath, testNID)
 
-	err = GetUpdateAlertHandler(client)(c)
+	err = GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=400, message=No rule name provided`)
 	client.AssertExpectations(t)
@@ -209,7 +209,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err = GetUpdateAlertHandler(client)(c)
+	err = GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=400, message=Rule 'testAlert1' does not exist`)
 	client.AssertExpectations(t)
@@ -222,7 +222,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err = GetUpdateAlertHandler(client)(c)
+	err = GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.Equal(t, http.StatusBadRequest, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=400, message=error`)
 	client.AssertExpectations(t)
@@ -236,7 +236,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err = GetUpdateAlertHandler(client)(c)
+	err = GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=500, message=error`)
 	client.AssertExpectations(t)
@@ -251,7 +251,7 @@ func TestUpdateAlertHandler(t *testing.T) {
 	c.SetParamNames("file_prefix", RuleNamePathParam)
 	c.SetParamValues(testNID, sampleAlert1.Alert)
 
-	err = GetUpdateAlertHandler(client)(c)
+	err = GetUpdateAlertHandler(client, pathAlertNameProvider)(c)
 	assert.Equal(t, http.StatusInternalServerError, err.(*echo.HTTPError).Code)
 	assert.EqualError(t, err, `code=500, message=error`)
 	client.AssertExpectations(t)

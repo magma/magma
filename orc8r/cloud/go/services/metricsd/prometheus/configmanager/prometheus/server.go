@@ -14,6 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/handlers"
 
 	"github.com/golang/glog"
 	"github.com/labstack/echo"
@@ -40,7 +41,9 @@ func main() {
 		return
 	}
 
-	RegisterV0Handlers(e, alertClient)
+	handlers.RegisterBaseHandlers(e)
+	handlers.RegisterV0Handlers(e, alertClient)
+	handlers.RegisterV1Handlers(e, alertClient)
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
