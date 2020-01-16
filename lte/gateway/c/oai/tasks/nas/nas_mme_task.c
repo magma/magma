@@ -50,7 +50,9 @@ static void *nas_intertask_interface(void *args_p)
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_NAS_MME, &received_message_p);
-    mme_app_desc_p = get_locked_mme_nas_state(false);
+    if (ITTI_MSG_ID(received_message_p) != TERMINATE_MESSAGE) {
+      mme_app_desc_p = get_locked_mme_nas_state(false);
+    }
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
