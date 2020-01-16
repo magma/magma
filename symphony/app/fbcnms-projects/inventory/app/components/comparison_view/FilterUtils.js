@@ -116,7 +116,7 @@ export function doesFilterHasValue(filterValue: FilterValue): boolean {
   const propValue = filterValue.propertyValue;
   return (
     !!filterValue.stringValue ||
-    filterValue.boolValue !== null ||
+    filterValue.boolValue != null ||
     (!!filterValue.idSet && filterValue.idSet.length > 0) ||
     (!!propValue && !!getPropertyValue(propValue))
   );

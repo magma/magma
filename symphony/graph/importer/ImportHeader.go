@@ -25,7 +25,7 @@ func (l ImportHeader) Find(s string) int {
 }
 
 func (l ImportHeader) NameIdx() int {
-	if l.entity == ImportEntityLink {
+	if l.entity == ImportEntityPortInLink {
 		return 0
 	}
 	return 1
@@ -35,7 +35,7 @@ func (l ImportHeader) PortEquipmentNameIdx() int {
 	if l.entity == ImportEntityPort {
 		return 3
 	}
-	if l.entity == ImportEntityLink {
+	if l.entity == ImportEntityPortInLink {
 		return 1
 	}
 	return -1
@@ -45,7 +45,7 @@ func (l ImportHeader) PortEquipmentTypeNameIdx() int {
 	if l.entity == ImportEntityPort {
 		return 4
 	}
-	if l.entity == ImportEntityLink {
+	if l.entity == ImportEntityPortInLink {
 		return 2
 	}
 	return -1
@@ -60,14 +60,14 @@ func (l ImportHeader) ThirdParentIdx() int {
 }
 
 func (l ImportHeader) ThirdPositionIdx() int {
-	if l.entity == ImportEntityEquipment {
+	if l.entity == ImportEntityEquipment || l.entity == ImportEntityPortInLink {
 		return l.prnt3Idx + 1
 	}
 	return -1
 }
 
 func (l ImportHeader) SecondParentIdx() int {
-	if l.entity == ImportEntityEquipment {
+	if l.entity == ImportEntityEquipment || l.entity == ImportEntityPortInLink {
 		return l.prnt3Idx + 2
 	} else if l.entity == ImportEntityPort {
 		return l.prnt3Idx + 1
@@ -76,14 +76,14 @@ func (l ImportHeader) SecondParentIdx() int {
 }
 
 func (l ImportHeader) SecondPositionIdx() int {
-	if l.entity == ImportEntityEquipment {
+	if l.entity == ImportEntityEquipment || l.entity == ImportEntityPortInLink {
 		return l.prnt3Idx + 3
 	}
 	return -1
 }
 
 func (l ImportHeader) DirectParentIdx() int {
-	if l.entity == ImportEntityEquipment {
+	if l.entity == ImportEntityEquipment || l.entity == ImportEntityPortInLink {
 		return l.prnt3Idx + 4
 	} else if l.entity == ImportEntityPort {
 		return l.prnt3Idx + 2
@@ -92,7 +92,7 @@ func (l ImportHeader) DirectParentIdx() int {
 }
 
 func (l ImportHeader) PositionIdx() int {
-	if l.entity == ImportEntityEquipment {
+	if l.entity == ImportEntityEquipment || l.entity == ImportEntityPortInLink {
 		return l.prnt3Idx + 5
 	} else if l.entity == ImportEntityPort {
 		return l.prnt3Idx + 3

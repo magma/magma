@@ -23,7 +23,10 @@ import (
 )
 
 const (
-	parentEquip = "parentEquipmentName"
+	parentEquip  = "parentEquipmentName"
+	parentEquip2 = "parentEquipmentName2"
+	parentEquip3 = "parentEquipmentName3"
+
 	currEquip   = "currEquipmentName"
 	portName1   = "port1"
 	portName2   = "port2"
@@ -46,12 +49,16 @@ const (
 type portData struct {
 	equipParentID   string
 	equipParent2ID  string
+	equipParent3ID  string
 	equipChildID    string
+	equipChild2ID   string
 	portDef1        string
 	parentPortInst1 string
 	parentPortInst2 string
+	parentPortInst3 string
 	portDef2        string
 	childPortInst1  string
+	childPortInst2  string
 	linkID          string
 }
 
@@ -154,11 +161,17 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 	parentPortInst1 := parentEquipment.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
 
 	parentEquip2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
-		Name:     parentEquip + "2",
+		Name:     parentEquip2,
 		Type:     etype.ID,
 		Location: &sLocation.ID,
 	})
 	parentPortInst2 := parentEquip2.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
+	parentEquip3, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     parentEquip3,
+		Type:     etype.ID,
+		Location: &sLocation.ID,
+	})
+	parentPortInst3 := parentEquip3.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(portDef1.ID))).OnlyX(ctx)
 
 	childEquip, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:               currEquip,
@@ -176,20 +189,36 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 			{Equipment: parentEquip2.ID, Port: portDef1.ID},
 		},
 	})
+
+	childEquip2, _ := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:               currEquip,
+		Type:               etype2.ID,
+		Parent:             &parentEquip2.ID,
+		PositionDefinition: &posDef1.ID,
+	})
+	childPortDef2 := etype2.QueryPortDefinitions().OnlyX(ctx)
+
+	childPortInst2 := childEquip.QueryPorts().Where(equipmentport.HasDefinitionWith(equipmentportdefinition.ID(childPortDef2.ID))).OnlyX(ctx)
 	/* locL -> locM -> locS:
 	parent1 (port1) -> child (port2[linked])
-	parent2 (port1[linked])
+	parent2 (port1[linked]) -> child (port2)
+	parent3 (port1)
 	*/
 	return portData{
 		equipParentID:   parentEquipment.ID,
 		equipParent2ID:  parentEquip2.ID,
+		equipParent3ID:  parentEquip3.ID,
 		equipChildID:    childEquip.ID,
+		equipChild2ID:   childEquip2.ID,
 		portDef1:        portDef1.ID,
 		parentPortInst1: parentPortInst1.ID,
 		parentPortInst2: parentPortInst2.ID,
-		portDef2:        portDef2.ID,
-		childPortInst1:  childPortInst1.ID,
-		linkID:          l.ID,
+		parentPortInst3: parentPortInst3.ID,
+
+		portDef2:       portDef2.ID,
+		childPortInst1: childPortInst1.ID,
+		childPortInst2: childPortInst2.ID,
+		linkID:         l.ID,
 	}
 }
 

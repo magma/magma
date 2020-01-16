@@ -157,7 +157,7 @@ func (m *importer) verifyPositionHierarchy(ctx context.Context, equipment *ent.E
 	return nil
 }
 
-func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord) (*string, *string, error) {
+func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *ent.Location, importLine ImportRecord, mustBeEmpty bool) (*string, *string, error) {
 	l := importLine.line
 	title := importLine.title
 	if importLine.Position() == "" {
@@ -198,15 +198,18 @@ func (m *importer) getPositionDetailsIfExists(ctx context.Context, parentLoc *en
 	if err != nil {
 		return nil, nil, err
 	}
-	hasAttachment, err := equip.QueryPositions().
-		Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
-		QueryAttachment().
-		Exist(ctx)
-	if err != nil {
-		return nil, nil, err
-	}
-	if hasAttachment {
-		return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+
+	if mustBeEmpty {
+		hasAttachment, err := equip.QueryPositions().
+			Where(equipmentposition.HasDefinitionWith(equipmentpositiondefinition.ID(def.ID))).
+			QueryAttachment().
+			Exist(ctx)
+		if err != nil {
+			return nil, nil, err
+		}
+		if hasAttachment {
+			return nil, nil, errors.Errorf("position %q already has attachment", importLine.Position())
+		}
 	}
 	return &equip.ID, &def.ID, nil
 }

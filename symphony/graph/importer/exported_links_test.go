@@ -7,6 +7,8 @@ package importer
 import (
 	"testing"
 
+	"github.com/facebookincubator/symphony/graph/resolverutil"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
@@ -38,7 +40,7 @@ func TestLinkTitleInputValidation(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestGeneralLinksImport(t *testing.T) {
+func TestGeneralLinksEditImport(t *testing.T) {
 	r, err := newImporterTestResolver(t)
 	require.NoError(t, err)
 	importer := r.importer
@@ -61,9 +63,7 @@ func TestGeneralLinksImport(t *testing.T) {
 	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
 
 	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
-	//		append(append(append(append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...), fixedSecondPortLink...), parentsBHeader...), "Service Names")
 
-	//header := append(minimalRow, []string{propNameInt, propNameDate, propNameBool}...)
 	fl := NewImportHeader(header, ImportEntityLink)
 	err = importer.inputValidationsLinks(ctx, fl)
 	require.NoError(t, err)
@@ -99,6 +99,90 @@ func TestGeneralLinksImport(t *testing.T) {
 			require.Equal(t, ptyp.Name, propNameInt)
 			require.Equal(t, *val.IntValue, 44)
 			require.Equal(t, ptyp.Type, models.PropertyKindInt.String())
+		}
+	}
+}
+
+func TestGeneralLinksAddImport(t *testing.T) {
+	r, err := newImporterTestResolver(t)
+	require.NoError(t, err)
+	importer := r.importer
+	defer r.drv.Close()
+
+	ctx := newImportContext(viewertest.NewContext(r.client))
+	ids := preparePortTypeData(ctx, t, *r)
+	def1 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef1)
+	equipParent := r.client.Equipment.GetX(ctx, ids.equipParentID)
+	etyp1 := equipParent.QueryType().OnlyX(ctx)
+	posDef := etyp1.QueryPositionDefinitions().OnlyX(ctx)
+
+	def2 := r.client.EquipmentPortDefinition.GetX(ctx, ids.portDef2)
+	childEquip := r.client.Equipment.GetX(ctx, ids.equipChild2ID)
+	etyp2 := childEquip.QueryType().OnlyX(ctx)
+
+	equipParent2 := r.client.Equipment.GetX(ctx, ids.equipParent2ID)
+	var (
+		row1 = []string{"", def1.Name, equipParent.Name, etyp1.Name, locationL, locationM, locationS, "", "", "", "", "", "", def2.Name, childEquip.Name, etyp2.Name, locationL, locationM, locationS, "", "", "", "", parentEquip2, posName, "", "44", "2019-01-01", "FALSE"}
+	)
+	firstPortHeader := append(append(fixedFirstPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsAHeader...)
+	secondPortHeader := append(append(fixedSecondPortLink, locTypeNameL, locTypeNameM, locTypeNameS), parentsBHeader...)
+
+	header := append(append(firstPortHeader, secondPortHeader...), "Service Names", propNameInt, propNameDate, propNameBool)
+
+	fl := NewImportHeader(header, ImportEntityLink)
+	err = importer.inputValidationsLinks(ctx, fl)
+	require.NoError(t, err)
+	r1 := NewImportRecord(row1, fl)
+
+	pr1, pr2, err := importer.getTwoPortRecords(r1)
+	require.NoError(t, err)
+	// port1 test
+	require.Equal(t, row1[1:13], pr1.line)
+	parentLoc, err := importer.verifyOrCreateLocationHierarchy(ctx, *pr1)
+	require.NoError(t, err)
+	require.Equal(t, locationS, parentLoc.Name)
+	eqID, defID, err := importer.getPositionDetailsIfExists(ctx, parentLoc, *pr1, false)
+	require.NoError(t, err)
+	require.Nil(t, eqID)
+	require.Nil(t, defID)
+	eq, created, err := importer.getOrCreateEquipment(ctx, importer.r.Mutation(), pr1.PortEquipmentName(), etyp1, nil, parentLoc, nil, nil)
+	require.NoError(t, err)
+	require.False(t, created)
+	require.Equal(t, equipParent.ID, eq.ID)
+
+	portType, err := def1.QueryEquipmentPortType().Only(ctx)
+	require.NoError(t, err)
+	propertyInputs, err := importer.validatePropertiesForPortType(ctx, r1, portType, ImportEntityLink)
+	require.NoError(t, err)
+	require.Len(t, propertyInputs, 1)
+	require.Equal(t, *propertyInputs[0].IntValue, 44)
+	// port2 test
+	require.Equal(t, row1[13:25], pr2.line)
+	parentLoc, err = importer.verifyOrCreateLocationHierarchy(ctx, *pr2)
+	require.NoError(t, err)
+	require.Equal(t, locationS, parentLoc.Name)
+	eqID, defID, err = importer.getPositionDetailsIfExists(ctx, parentLoc, *pr2, false)
+	require.NoError(t, err)
+	require.Equal(t, equipParent2.ID, *eqID)
+	require.Equal(t, posDef.ID, *defID)
+	pos, err := resolverutil.GetOrCreatePosition(ctx, importer.ClientFrom(ctx), eqID, defID, false)
+	require.NoError(t, err)
+	eq, created, err = importer.getOrCreateEquipment(ctx, importer.r.Mutation(), pr2.PortEquipmentName(), etyp2, nil, nil, pos, nil)
+	require.NoError(t, err)
+	require.False(t, created)
+	require.Equal(t, ids.equipChild2ID, eq.ID)
+	portType, err = def2.QueryEquipmentPortType().Only(ctx)
+	require.NoError(t, err)
+	propertyInputs, err = importer.validatePropertiesForPortType(ctx, r1, portType, ImportEntityLink)
+	require.NoError(t, err)
+	require.Len(t, propertyInputs, 2)
+	require.NotEqual(t, propertyInputs[0].PropertyTypeID, propertyInputs[1].PropertyTypeID)
+	for _, inp := range propertyInputs {
+		ptype := importer.ClientFrom(ctx).PropertyType.GetX(ctx, inp.PropertyTypeID)
+		if ptype.Type == models.PropertyKindDate.String() {
+			require.Equal(t, "2019-01-01", *inp.StringValue)
+		} else if ptype.Type == models.PropertyKindBool.String() {
+			require.False(t, *inp.BooleanValue)
 		}
 	}
 }

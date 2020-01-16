@@ -47,8 +47,8 @@ const LocationsPowerSearchBar = (props: Props) => {
   );
   const filterConfigs = LocationCriteriaConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(locationPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+    .concat(locationPropertiesFilterConfigs ?? [])
+    .concat(locationTypesFilterConfigs ?? []);
   return (
     <PowerSearchBar
       filters={filters}

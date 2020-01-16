@@ -10,9 +10,10 @@ package diameter
 
 const (
 	// SuccessCode is the result code returned from a successful diameter call
-	SuccessCode          = 2001
-	LimitedSuccessCode   = 2002
-	DiameterRatingFailed = 5031
+	SuccessCode                = 2001
+	LimitedSuccessCode         = 2002
+	DiameterRatingFailed       = 5031
+	DiameterCreditLimitReached = 4012
 )
 
 var diamCodeToNameMap = map[uint32]string{

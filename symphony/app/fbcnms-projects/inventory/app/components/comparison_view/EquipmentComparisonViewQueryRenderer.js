@@ -28,14 +28,12 @@ import {EquipmentCriteriaConfig} from './EquipmentSearchConfig';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {
   buildPropertyFilterConfigs,
-  getInitialFilterValue,
   getPossibleProperties,
+  getSelectedFilter,
 } from './FilterUtils';
 import {graphql} from 'relay-runtime';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
-
-const PROPERTY_FILTER_NAME = 'inst_property';
+import {useContext, useMemo, useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   noResultsRoot: {
@@ -107,15 +105,20 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   );
 
   const locationTypesFilterConfigs = useLocationTypes();
-
-  const filterConfigs = EquipmentCriteriaConfig.map(ent => ent.filters)
-    .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(equipmentPropertiesFilterConfigs)
-    .concat(locationTypesFilterConfigs);
+  const filterConfigs = useMemo(() => {
+    return EquipmentCriteriaConfig.map(ent => ent.filters)
+      .reduce(
+        (allFilters, currentFilter) => allFilters.concat(currentFilter),
+        [],
+      )
+      .concat(equipmentPropertiesFilterConfigs ?? [])
+      .concat(locationTypesFilterConfigs ?? []);
+  }, [equipmentPropertiesFilterConfigs, locationTypesFilterConfigs]);
 
   const wizardContext = useContext(WizardContext);
 
   const filtersContextKey = 'EquipmentComparisonViewQueryRenderer_Filters';
+
   const updateFilters = newFilters => {
     wizardContext.set(filtersContextKey, newFilters);
   };
@@ -127,35 +130,29 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
   return (
     <div className={classes.root}>
       <div className={classes.searchBar}>
-        <PowerSearchBar
-          filterValues={filters}
-          exportPath={showExport ? '/equipment' : null}
-          onFiltersChanged={updateFilters}
-          onFilterRemoved={handleFilterRemoved}
-          onFilterBlurred={handleFilterBlurred}
-          getSelectedFilter={(filterConfig: FilterConfig) =>
-            getInitialFilterValue(
-              filterConfig.key,
-              filterConfig.name,
-              filterConfig.defaultOperator,
-              filterConfig.name === PROPERTY_FILTER_NAME
-                ? possibleProperties.find(
-                    propDef => propDef.name === filterConfig.label,
-                  )
-                : null,
-            )
-          }
-          placeholder="Filter equipment"
-          searchConfig={EquipmentCriteriaConfig}
-          filterConfigs={filterConfigs}
-          footer={
-            count != null
-              ? limit != null && count > limit
-                ? `1 to ${limit} of ${count}`
-                : `1 to ${count}`
-              : null
-          }
-        />
+        {equipmentPropertiesFilterConfigs != null &&
+          locationTypesFilterConfigs != null && (
+            <PowerSearchBar
+              filterValues={filters}
+              exportPath={showExport ? '/equipment' : null}
+              onFiltersChanged={updateFilters}
+              onFilterRemoved={handleFilterRemoved}
+              onFilterBlurred={handleFilterBlurred}
+              getSelectedFilter={(filterConfig: FilterConfig) =>
+                getSelectedFilter(filterConfig, possibleProperties)
+              }
+              placeholder="Filter equipment"
+              searchConfig={EquipmentCriteriaConfig}
+              filterConfigs={filterConfigs}
+              footer={
+                count != null
+                  ? limit != null && count > limit
+                    ? `1 to ${limit} of ${count}`
+                    : `1 to ${count}`
+                  : null
+              }
+            />
+          )}
       </div>
       <InventoryQueryRenderer
         query={equipmentSearchQuery}

@@ -297,17 +297,17 @@ func TestPosition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test1, title))
+	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test1, title), true)
 	require.Error(t, err)
-	eq, def, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test2, title))
+	eq, def, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test2, title), true)
 	require.Nil(t, err)
 	require.Nil(t, eq)
 	require.Nil(t, def)
 
-	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test3, title))
+	_, _, err = importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test3, title), true)
 	require.NoError(t, err)
 
-	equipID, defID, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test4, title))
+	equipID, defID, err := importer.getPositionDetailsIfExists(ctx, loc, NewImportRecord(test4, title), true)
 	require.NoError(t, err)
 	fetchedEquip, err := importer.r.Query().Equipment(ctx, *equipID)
 	require.NoError(t, err)
