@@ -158,7 +158,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 	}
 	log.Debug("Exported Service - Done")
 	w.WriteHeader(http.StatusOK)
-	err := writeSuccessMessage(w, count, numRows)
+	err := writeSuccessMessage(w, count, numRows, nil, true)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return

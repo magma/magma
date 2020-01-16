@@ -45,12 +45,24 @@ type SuccessMessage struct {
 	AllLines     int `json:"allLines"`
 }
 
-func writeSuccessMessage(w http.ResponseWriter, success, all int) error {
+type ReturnMessage struct {
+	Summary SuccessMessage `json:"summary"`
+	Errors  Errors         `json:"errors"`
+}
+
+func writeSuccessMessage(w http.ResponseWriter, success, all int, errs Errors, isSuccess bool) error {
 	w.Header().Set("Content-Type", "application/json")
-	msg, err := json.Marshal(SuccessMessage{
-		MessageCode:  int(SuccessfullyUploaded),
-		SuccessLines: success,
-		AllLines:     all,
+	messageCode := int(SuccessfullyUploaded)
+	if !isSuccess {
+		messageCode = int(FailedToUpload)
+	}
+	msg, err := json.Marshal(ReturnMessage{
+		Summary: SuccessMessage{
+			MessageCode:  messageCode,
+			SuccessLines: success,
+			AllLines:     all,
+		},
+		Errors: errs,
 	})
 	if err != nil {
 		return err
@@ -58,6 +70,16 @@ func writeSuccessMessage(w http.ResponseWriter, success, all int) error {
 	w.Write(msg)
 	return nil
 }
+
+// ErrorLine represents a line which failed to validate
+type ErrorLine struct {
+	Line    int    `json:"line"`
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
+// ErrorLine represents a summary of the errors while uploading a CSV file
+type Errors []ErrorLine
 
 func shouldSkipLine(a []int, currRow, nextLineToSkipIndex int) bool {
 	if nextLineToSkipIndex >= 0 && nextLineToSkipIndex < len(a) {
