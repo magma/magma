@@ -5,11 +5,11 @@ namespace devmand::channels::cli {
 using namespace folly;
 using namespace std;
 
-LoggingCli::LoggingCli(string _id, const shared_ptr<Cli>& _cli,
-                       const shared_ptr<Executor> _executor)
-    : id(_id),
-      cli(_cli),
-      executor(_executor) {}
+LoggingCli::LoggingCli(
+    string _id,
+    const shared_ptr<Cli>& _cli,
+    const shared_ptr<Executor> _executor)
+    : id(_id), cli(_cli), executor(_executor) {}
 
 SemiFuture<Unit> LoggingCli::destroy() {
   MLOG(MDEBUG) << "[" << id << "] "
@@ -32,24 +32,22 @@ LoggingCli::~LoggingCli() {
 }
 
 SemiFuture<string> LoggingCli::executeRead(const ReadCommand cmd) {
-  return executeSomething(
-      cmd,
-      "LCli.executeRead",
-      [cmd](shared_ptr<Cli> _cli) { return _cli->executeRead(cmd); });
+  return executeSomething(cmd, "LCli.executeRead", [cmd](shared_ptr<Cli> _cli) {
+    return _cli->executeRead(cmd);
+  });
 }
 
 SemiFuture<string> LoggingCli::executeWrite(const WriteCommand cmd) {
   return executeSomething(
-      cmd,
-      "LCli.executeWrite",
-      [cmd](shared_ptr<Cli> _cli) { return _cli->executeWrite(cmd); });
+      cmd, "LCli.executeWrite", [cmd](shared_ptr<Cli> _cli) {
+        return _cli->executeWrite(cmd);
+      });
 }
 
 SemiFuture<string> LoggingCli::executeSomething(
     const Command& cmd,
     const string&& loggingPrefix,
     const function<SemiFuture<string>(shared_ptr<Cli> cli)>& innerFunc) {
-
   MLOG(MDEBUG) << "[" << id << "] (" << cmd << ") " << loggingPrefix << "('"
                << cmd << "') called";
   SemiFuture<string> inner =
@@ -74,4 +72,4 @@ SemiFuture<string> LoggingCli::executeSomething(
       })
       .semi();
 }
-}
+} // namespace devmand::channels::cli

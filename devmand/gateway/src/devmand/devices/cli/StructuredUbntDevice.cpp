@@ -300,7 +300,12 @@ unique_ptr<devices::Device> StructuredUbntDevice::createDeviceWithEngine(
       deviceConfig.id, ioConfigurationBuilder.createAll(cmdCache));
 
   return std::make_unique<StructuredUbntDevice>(
-      app, deviceConfig.id, deviceConfig.readonly, channel, engine.getModelRegistry(), cmdCache);
+      app,
+      deviceConfig.id,
+      deviceConfig.readonly,
+      channel,
+      engine.getModelRegistry(),
+      cmdCache);
 }
 
 StructuredUbntDevice::StructuredUbntDevice(

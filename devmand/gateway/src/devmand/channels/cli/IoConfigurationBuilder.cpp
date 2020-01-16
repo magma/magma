@@ -11,6 +11,7 @@
 
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/channels/cli/KeepaliveCli.h>
+#include <devmand/channels/cli/LoggingCli.h>
 #include <devmand/channels/cli/PromptAwareCli.h>
 #include <devmand/channels/cli/QueuedCli.h>
 #include <devmand/channels/cli/ReadCachingCli.h>
@@ -18,7 +19,6 @@
 #include <devmand/channels/cli/SshSession.h>
 #include <devmand/channels/cli/SshSocketReader.h>
 #include <devmand/channels/cli/TimeoutTrackingCli.h>
-#include <devmand/channels/cli/LoggingCli.h>
 #include <folly/Singleton.h>
 
 namespace devmand {
@@ -93,7 +93,8 @@ shared_ptr<Cli> IoConfigurationBuilder::createAllUsingFactory(
                   params->ttExecutor,
                   params->cmdTimeout);
               // create logging cli
-              shared_ptr<LoggingCli> lcli = make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
+              shared_ptr<LoggingCli> lcli =
+                  make_shared<LoggingCli>(params->id, ttcli, params->lExecutor);
               // create Queued cli
               shared_ptr<QueuedCli> qcli =
                   QueuedCli::make(params->id, lcli, params->qExecutor);
@@ -194,8 +195,7 @@ IoConfigurationBuilder::makeConnectionParameters(
     chrono::seconds cmdTimeout,
     chrono::seconds reconnectingQuietPeriod,
     long sshConnectionTimeout,
-    channels::cli::Engine& engine
-    ) {
+    channels::cli::Engine& engine) {
   shared_ptr<IoConfigurationBuilder::ConnectionParameters>
       connectionParameters =
           make_shared<IoConfigurationBuilder::ConnectionParameters>();
@@ -210,14 +210,22 @@ IoConfigurationBuilder::makeConnectionParameters(
   connectionParameters->reconnectingQuietPeriod = reconnectingQuietPeriod;
   connectionParameters->sshConnectionTimeout = sshConnectionTimeout;
   connectionParameters->timekeeper = engine.getTimekeeper();
-  connectionParameters->sshExecutor = engine.getExecutor(Engine::executorRequestType::sshCli);
-  connectionParameters->paExecutor = engine.getExecutor(Engine::executorRequestType::paCli);
-  connectionParameters->rcExecutor = engine.getExecutor(Engine::executorRequestType::rcCli);
-  connectionParameters->ttExecutor = engine.getExecutor(Engine::executorRequestType::ttCli);
-  connectionParameters->lExecutor = engine.getExecutor(Engine::executorRequestType::lCli);
-  connectionParameters->qExecutor = engine.getExecutor(Engine::executorRequestType::qCli);
-  connectionParameters->rExecutor = engine.getExecutor(Engine::executorRequestType::rCli);
-  connectionParameters->kaExecutor = engine.getExecutor(Engine::executorRequestType::kaCli);
+  connectionParameters->sshExecutor =
+      engine.getExecutor(Engine::executorRequestType::sshCli);
+  connectionParameters->paExecutor =
+      engine.getExecutor(Engine::executorRequestType::paCli);
+  connectionParameters->rcExecutor =
+      engine.getExecutor(Engine::executorRequestType::rcCli);
+  connectionParameters->ttExecutor =
+      engine.getExecutor(Engine::executorRequestType::ttCli);
+  connectionParameters->lExecutor =
+      engine.getExecutor(Engine::executorRequestType::lCli);
+  connectionParameters->qExecutor =
+      engine.getExecutor(Engine::executorRequestType::qCli);
+  connectionParameters->rExecutor =
+      engine.getExecutor(Engine::executorRequestType::rCli);
+  connectionParameters->kaExecutor =
+      engine.getExecutor(Engine::executorRequestType::kaCli);
 
   return connectionParameters;
 }

@@ -14,9 +14,9 @@ namespace cli {
 using folly::Executor;
 using folly::SemiFuture;
 using folly::Unit;
+using std::function;
 using std::shared_ptr;
 using std::string;
-using std::function;
 
 class LoggingCli : public Cli {
  private:
@@ -44,6 +44,6 @@ class LoggingCli : public Cli {
   folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override;
 };
 
-}
-}
-}
+} // namespace cli
+} // namespace channels
+} // namespace devmand

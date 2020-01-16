@@ -34,7 +34,7 @@ class CliScaleTest : public ::testing::Test {
 
   void SetUp() override {
     devmand::test::utils::log::initLog(MWARNING);
-//    cliEngine = channels::cli::Engine();
+    //    cliEngine = channels::cli::Engine();
   }
 };
 
