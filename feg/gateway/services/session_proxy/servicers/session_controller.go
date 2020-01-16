@@ -97,10 +97,6 @@ func (srv *CentralSessionController) CreateSession(
 		dynamicRuleDefs = append(dynamicRuleDefs, rule.RuleDefinitions...)
 	}
 
-	if srv.cfg.UseGyForAuthOnly {
-		return srv.handleUseGyForAuthOnly(imsi, request, gxCCAInit)
-	}
-
 	policyRules := getPolicyRulesFromDefinitions(dynamicRuleDefs)
 	keys, err := srv.dbClient.GetChargingKeysForRules(staticRuleNames, policyRules)
 	if err != nil {
@@ -108,6 +104,10 @@ func (srv *CentralSessionController) CreateSession(
 		return nil, err
 	}
 	keys = removeDuplicateChargingKeys(keys)
+
+	if srv.cfg.UseGyForAuthOnly {
+		return srv.handleUseGyForAuthOnly(imsi, request, gxCCAInit)
+	}
 	credits := []*protos.CreditUpdateResponse{}
 
 	if len(keys) > 0 {
@@ -154,7 +154,7 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	gxCCAInit *gx.CreditControlAnswer,
 ) (*protos.CreateSessionResponse, error) {
 	gyCCRInit := getCCRInitRequest(imsi, pReq)
-	_, err := srv.sendSingleCreditRequest(gyCCRInit)
+	gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 	metrics.UpdateGyRecentRequestMetrics(err)
 	if err != nil {
 		metrics.OcsCcrInitSendFailures.Inc()
@@ -162,6 +162,12 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 		return nil, err
 	}
 	metrics.OcsCcrInitRequests.Inc()
+
+	err = validateGyCCAIMSCC(gyCCAInit)
+	if err != nil {
+		glog.Errorf("MSCC Avp Failure: %s", err)
+		return nil, err
+	}
 
 	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
