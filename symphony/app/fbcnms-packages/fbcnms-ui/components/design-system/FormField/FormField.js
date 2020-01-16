@@ -86,7 +86,7 @@ const FormField = (props: Props) => {
         {children}
         {(helpText || (hasError && errorText)) && (
           <Text className={classes.bottomText} variant="caption">
-            {nullthrows(hasError ? errorText : helpText)}
+            {nullthrows((hasError && errorText) || helpText)}
           </Text>
         )}
         {!helpText && !hasError && hasSpacer && (

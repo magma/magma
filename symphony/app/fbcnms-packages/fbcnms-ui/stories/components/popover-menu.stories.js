@@ -55,6 +55,7 @@ const PopoverMenuRoot = () => {
     <div className={classes.root}>
       <PopoverMenu
         className={classes.popoverMenu}
+        variant="text"
         options={[
           {
             label: 'Option 1',
@@ -70,7 +71,6 @@ const PopoverMenuRoot = () => {
       </PopoverMenu>
       <PopoverMenu
         className={classes.popoverMenu}
-        variant="contained"
         options={[
           {
             label: 'Option 1',
@@ -86,7 +86,6 @@ const PopoverMenuRoot = () => {
         Add Filter
       </PopoverMenu>
       <PopoverMenu
-        variant="contained"
         searchable={true}
         onOptionsFetchRequested={searchTerm =>
           setOptions(
