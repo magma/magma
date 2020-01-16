@@ -41,6 +41,7 @@ services:
       - '-port=9100'
       - '-rules-dir=/etc/configs/alert_rules'
       - '-prometheusURL=prometheus:9090'
+      - '-multitenant-label=networkID'
     restart: always
 
   alertmanager-configurer:
