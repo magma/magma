@@ -71,6 +71,7 @@ void MmeNasStateConverter::hashtable_ts_to_proto(
         keys->keys[i]);
     }
   }
+  FREE_HASHTABLE_KEY_ARRAY(keys);
 }
 
 void MmeNasStateConverter::proto_to_hashtable_ts(
@@ -433,14 +434,17 @@ void MmeNasStateConverter::pdn_context_to_proto(
     state_pdn_context.apn_subscribed,
     pdn_context_proto->mutable_apn_subscribed());
   pdn_context_proto->set_pdn_type(state_pdn_context.pdn_type);
-  BSTRING_TO_STRING(
-    paa_to_bstring(&state_pdn_context.paa), pdn_context_proto->mutable_paa());
+  bstring bstr_buffer = paa_to_bstring(&state_pdn_context.paa);
+  BSTRING_TO_STRING(bstr_buffer, pdn_context_proto->mutable_paa());
   BSTRING_TO_STRING(
     state_pdn_context.apn_oi_replacement,
     pdn_context_proto->mutable_apn_oi_replacement());
-  BSTRING_TO_STRING(
-    ip_address_to_bstring(&state_pdn_context.p_gw_address_s5_s8_cp),
+  bdestroy(bstr_buffer);
+  bstr_buffer =
+    ip_address_to_bstring(&state_pdn_context.p_gw_address_s5_s8_cp);
+  BSTRING_TO_STRING(bstr_buffer,
     pdn_context_proto->mutable_p_gw_address_s5_s8_cp());
+  bdestroy(bstr_buffer);
   pdn_context_proto->set_p_gw_teid_s5_s8_cp(
     state_pdn_context.p_gw_teid_s5_s8_cp);
   eps_subscribed_qos_profile_to_proto(
@@ -457,9 +461,13 @@ void MmeNasStateConverter::pdn_context_to_proto(
     pdn_context_proto->add_bearer_contexts(
       state_pdn_context.bearer_contexts[i]);
   }
+
+  bstr_buffer =
+    ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4);
   BSTRING_TO_STRING(
-    ip_address_to_bstring(&state_pdn_context.s_gw_address_s11_s4),
+    bstr_buffer,
     pdn_context_proto->mutable_s_gw_address_s11_s4());
+  bdestroy_wrapper(&bstr_buffer);
   pdn_context_proto->set_s_gw_teid_s11_s4(state_pdn_context.s_gw_teid_s11_s4);
   esm_pdn_to_proto(
     state_pdn_context.esm_data, pdn_context_proto->mutable_esm_data());
@@ -481,16 +489,17 @@ void MmeNasStateConverter::proto_to_pdn_context(
   STRING_TO_BSTRING(
     pdn_context_proto.apn_subscribed(), state_pdn_context->apn_subscribed);
   state_pdn_context->pdn_type = pdn_context_proto.pdn_type();
-  bstring paa_bstr;
-  STRING_TO_BSTRING(pdn_context_proto.paa(), paa_bstr);
-  bstring_to_paa(paa_bstr, &state_pdn_context->paa);
+  bstring bstr_buffer;
+  STRING_TO_BSTRING(pdn_context_proto.paa(), bstr_buffer);
+  bstring_to_paa(bstr_buffer, &state_pdn_context->paa);
+  bdestroy(bstr_buffer);
   STRING_TO_BSTRING(
     pdn_context_proto.apn_oi_replacement(),
     state_pdn_context->apn_oi_replacement);
-  bstring ip_addr_bstr;
-  STRING_TO_BSTRING(pdn_context_proto.p_gw_address_s5_s8_cp(), ip_addr_bstr);
+  STRING_TO_BSTRING(pdn_context_proto.p_gw_address_s5_s8_cp(), bstr_buffer);
   bstring_to_ip_address(
-    ip_addr_bstr, &state_pdn_context->p_gw_address_s5_s8_cp);
+    bstr_buffer, &state_pdn_context->p_gw_address_s5_s8_cp);
+  bdestroy(bstr_buffer);
   state_pdn_context->p_gw_teid_s5_s8_cp =
     pdn_context_proto.p_gw_teid_s5_s8_cp();
   proto_to_eps_subscribed_qos_profile(
@@ -506,8 +515,9 @@ void MmeNasStateConverter::proto_to_pdn_context(
     state_pdn_context->bearer_contexts[i] =
       pdn_context_proto.bearer_contexts(i);
   }
-  STRING_TO_BSTRING(pdn_context_proto.s_gw_address_s11_s4(), ip_addr_bstr);
-  bstring_to_ip_address(ip_addr_bstr, &state_pdn_context->s_gw_address_s11_s4);
+  STRING_TO_BSTRING(pdn_context_proto.s_gw_address_s11_s4(), bstr_buffer);
+  bstring_to_ip_address(bstr_buffer, &state_pdn_context->s_gw_address_s11_s4);
+  bdestroy_wrapper(&bstr_buffer);
   state_pdn_context->s_gw_teid_s11_s4 = pdn_context_proto.s_gw_teid_s11_s4();
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
