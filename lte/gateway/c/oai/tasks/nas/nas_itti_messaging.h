@@ -48,37 +48,11 @@ int nas_itti_dl_data_req(
   bstring nas_msgP,
   nas_error_code_t transaction_status);
 
-void nas_itti_extended_service_req(
-  const mme_ue_s1ap_id_t ue_id,
-  const uint8_t servicetype,
-  uint8_t csfb_response);
-
-void nas_itti_sgsap_uplink_unitdata(
-  const char *const imsi,
-  uint8_t imsi_len,
-  bstring nas_msg,
-  imeisv_t *imeisv,
-  MobileStationClassmark2 *mobilestationclassmark2,
-  tai_t *tai,
-  ecgi_t *ecgi);
-
 void nas_itti_sgsap_downlink_unitdata(
   const char *const imsi,
   uint8_t imsi_len,
   const_bstring nas_msg);
 
-void nas_itti_sgsap_tmsi_reallocation_comp(
-  const char *imsi,
-  const unsigned int imsi_len);
-
-void nas_itti_sgsap_tmsi_reallocation_comp(
-  const char *imsi,
-  const unsigned int imsi_len);
-
 void s6a_auth_info_rsp_timer_expiry_handler(void *args);
-
-void nas_itti_sgsap_ue_activity_ind(
-  const char *imsi,
-  const unsigned int imsi_len);
 
 #endif /* FILE_NAS_ITTI_MESSAGING_SEEN */

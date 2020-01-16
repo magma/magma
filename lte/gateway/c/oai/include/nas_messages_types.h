@@ -49,22 +49,7 @@
 #define NAS_AUTHENTICATION_REQ(mSGpTR) (mSGpTR)->ittiMsg.nas_auth_req
 #define NAS_AUTHENTICATION_PARAM_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.nas_auth_param_req
-#define NAS_CS_SERVICE_NOTIFICATION(mSGpTR)                                    \
-  (mSGpTR)->ittiMsg.nas_cs_service_notification
 #define NAS_DATA_LENGHT_MAX 256
-#define NAS_EXTENDED_SERVICE_REQ(mSGpTR)                                       \
-  (mSGpTR)->ittiMsg.nas_extended_service_req
-#define NAS_NOTIFY_SERVICE_REJECT(mSGpTR)                                      \
-  (mSGpTR)->ittiMsg.nas_notify_service_reject
-
-typedef struct itti_nas_cs_service_notification_s {
-  mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
-#define NAS_PAGING_ID_IMSI 0X00
-#define NAS_PAGING_ID_TMSI 0X01
-  uint8_t paging_id; /* Paging UE ID, to be sent in CS Service Notification */
-  bstring
-    cli; /* If CLI received in Sgsap-Paging_Req,shall sent in CS Service Notification */
-} itti_nas_cs_service_notification_t;
 
 typedef struct itti_nas_info_transfer_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
@@ -110,26 +95,5 @@ typedef struct itti_nas_auth_param_req_s {
   uint8_t auts[14];
   uint8_t num_vectors;
 } itti_nas_auth_param_req_t;
-
-typedef struct itti_nas_extended_service_req_s {
-  /* UE identifier */
-  mme_ue_s1ap_id_t ue_id;
-  uint8_t servType; /* service type */
-  /* csfb_response is valid only if service type Mobile Terminating CSFB */
-  uint8_t csfb_response;
-} itti_nas_extended_service_req_t;
-
-/* ITTI message used to intimate service reject for ongoing service request procedure
- * from mme_app to nas
- */
-typedef struct itti_nas_notify_service_reject_s {
-  mme_ue_s1ap_id_t ue_id;
-  uint8_t emm_cause;
-#define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
-#define UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED 0x01
-#define MT_CALL_CANCELLED_BY_NW_IN_IDLE_STATE 0x02
-#define MT_CALL_CANCELLED_BY_NW_IN_CONNECTED_STATE 0x03
-  uint8_t failed_procedure;
-} itti_nas_notify_service_reject_t;
 
 #endif /* FILE_NAS_MESSAGES_TYPES_SEEN */

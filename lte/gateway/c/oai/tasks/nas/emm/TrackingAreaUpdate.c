@@ -167,7 +167,7 @@ int _csfb_handle_tracking_area_req(
           EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
          (emm_context_p->tau_updt_type == EPS_UPDATE_TYPE_PERIODIC_UPDATING))) {
         if (
-          (ue_mm_context->sgs_context->vlr_reliable) &&
+          (ue_mm_context->sgs_context->vlr_reliable == true) &&
           (ue_mm_context->sgs_context->sgs_state == SGS_ASSOCIATED)) {
           OAILOG_INFO(
             LOG_MME_APP, "Do not send Location Update Request to MSC\n");

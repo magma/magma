@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -32,7 +32,7 @@
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "emm_cause.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "service303.h"
 #include "conversions.h"
 #include "3gpp_23.003.h"
@@ -47,6 +47,7 @@
 #include "mme_api.h"
 #include "mme_app_state.h"
 #include "nas_message.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -188,7 +189,7 @@ int emm_proc_extended_service_request(
     if (mme_ue_context_get_ue_sgs_neaf(ue_id) == true) {
       char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
       IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-      nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+      mme_app_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }
   }
@@ -210,9 +211,10 @@ int emm_proc_extended_service_request(
     emm_context_unlock(emm_ctx);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
-  /* notify MME-APP for extended service request reception in ue connected mode */
+  // Handle extended service request received in ue connected mode
   emm_context_unlock(emm_ctx);
-  nas_itti_extended_service_req(ue_id, msg->servicetype, msg->csfbresponse);
+  mme_app_handle_nas_extended_service_req(ue_id, msg->servicetype,
+    msg->csfbresponse);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -270,7 +272,7 @@ int emm_recv_initial_ext_service_request(
     if (mme_ue_context_get_ue_sgs_neaf(ue_id) == true) {
       char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
       IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-      nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+      mme_app_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }
   }

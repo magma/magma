@@ -60,7 +60,17 @@
 #define TASK_SPGW TASK_S11
 #endif
 
-//------------------------------------------------------------------------------
+/****************************************************************************
+ **                                                                        **
+ ** name:    mme_app_itti_ue_context_release()                             **
+ **                                                                        **
+ ** description: Send itti mesage to S1ap task to send UE Context Release  **
+ **              Request                                                   **
+ **                                                                        **
+ ** inputs:  ue_context_p: Pointer to UE context                           **
+ **          emm_casue: failed cause                                       **
+ **                                                                        **
+ ***************************************************************************/
 void mme_app_itti_ue_context_release(
   struct ue_mm_context_s *ue_context_p,
   enum s1cause cause)
@@ -70,6 +80,12 @@ void mme_app_itti_ue_context_release(
   OAILOG_FUNC_IN(LOG_MME_APP);
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for S1AP_UE_CONTEXT_RELEASE_COMMAND \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
 
   OAILOG_INFO(
     LOG_MME_APP, "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
@@ -86,7 +102,20 @@ void mme_app_itti_ue_context_release(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-//------------------------------------------------------------------------------
+/****************************************************************************
+ **                                                                        **
+ ** name:    mme_app_send_s11_release_access_bearers_req                   **
+ **                                                                        **
+ ** description: Send itti mesage to SPGW task to send Release Access      **
+ **             Bearer Request (RAB)                                       **
+ **                                                                        **
+ ** inputs:  ue_context_p: Pointer to UE context                           **
+ **          pdn_index: PDN index for which RAB is initiated               **
+ **                                                                        **
+ ** outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
 int mme_app_send_s11_release_access_bearers_req(
   struct ue_mm_context_s *const ue_mm_context,
   const pdn_cid_t pdn_index)
@@ -103,6 +132,12 @@ int mme_app_send_s11_release_access_bearers_req(
   DevAssert(ue_mm_context);
   message_p =
     itti_alloc_new_message(TASK_MME_APP, S11_RELEASE_ACCESS_BEARERS_REQUEST);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for S11_RELEASE_ACCESS_BEARERS_REQUEST \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   release_access_bearers_request_p =
     &message_p->ittiMsg.s11_release_access_bearers_request;
   release_access_bearers_request_p->local_teid = ue_mm_context->mme_teid_s11;
@@ -117,7 +152,20 @@ int mme_app_send_s11_release_access_bearers_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-//------------------------------------------------------------------------------
+/****************************************************************************
+ **                                                                        **
+ ** name:    mme_app_send_s11_create_session_req                           **
+ **                                                                        **
+ ** description: Send itti mesage to SPGW task to send Create Session      **
+ **              Request (CSR)                                             **
+ **                                                                        **
+ ** inputs:  ue_context_p: Pointer to UE context                           **
+ **          pdn_index: PDN index for which CSR is initiated               **
+ **                                                                        **
+ ** outputs:                                                               **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
 int mme_app_send_s11_create_session_req(
   mme_app_desc_t* mme_app_desc_p,
   struct ue_mm_context_s* const ue_mm_context,
@@ -323,4 +371,209 @@ int mme_app_send_s11_create_session_req(
     ue_mm_context->mme_ue_s1ap_id);
   rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** name:    nas_itti_sgsap_uplink_unitdata                                **
+ **                                                                        **
+ ** description: Send itti mesage to SGS task to send NAS message          **
+ **                                                                        **
+ ** inputs:  imsi : IMSI of UE                                             **
+ **          imsi_len : Length of IMSI                                     **
+ **          nas_msg: NAS message                                          **
+ **          imeisv_pP: IMEISV of UE                                       **
+ **          mobilestationclassmark2_pP: Mobile station classmark-2 of UE  **
+ **          tai_pP: TAI of UE                                             **
+ **          ecgi_pP: ecgi of UE                                           **
+ **                                                                        **
+ ***************************************************************************/
+void nas_itti_sgsap_uplink_unitdata(
+  const char *const imsi,
+  uint8_t imsi_len,
+  bstring nas_msg,
+  imeisv_t *imeisv_pP,
+  MobileStationClassmark2 *mobilestationclassmark2_pP,
+  tai_t *tai_pP,
+  ecgi_t *ecgi_pP)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef *message_p = NULL;
+  int uetimezone = 0;
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UPLINK_UNITDATA);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_UPLINK_UNITDATA \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  memset(
+    &message_p->ittiMsg.sgsap_uplink_unitdata,
+    0,
+    sizeof(itti_sgsap_uplink_unitdata_t));
+  memcpy(SGSAP_UPLINK_UNITDATA(message_p).imsi, imsi, imsi_len);
+  SGSAP_UPLINK_UNITDATA(message_p).imsi[imsi_len] = '\0';
+  SGSAP_UPLINK_UNITDATA(message_p).imsi_length = imsi_len;
+  SGSAP_UPLINK_UNITDATA(message_p).nas_msg_container = nas_msg;
+  nas_msg = NULL;
+  /*
+   * optional - UE Time Zone
+   * update the ue time zone presence bitmask
+   */
+  if ((uetimezone = get_time_zone()) != RETURNerror) {
+    SGSAP_UPLINK_UNITDATA(message_p).opt_ue_time_zone = timezone;
+    SGSAP_UPLINK_UNITDATA(message_p).presencemask =
+      UPLINK_UNITDATA_UE_TIMEZONE_PARAMETER_PRESENT;
+  }
+  /*
+   * optional - IMEISV
+   * update the imeisv presence bitmask
+   */
+  if (imeisv_pP) {
+    hexa_to_ascii(
+      (uint8_t *) imeisv_pP->u.value,
+      SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv,
+      8);
+    SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv[imeisv_pP->length] = '\0';
+    SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv_length = imeisv_pP->length;
+    SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
+      UPLINK_UNITDATA_IMEISV_PARAMETER_PRESENT;
+  }
+  /*
+   * optional - mobile station classmark2
+   * update the mobile station classmark2 presence bitmask.
+   */
+  if (mobilestationclassmark2_pP) {
+    SGSAP_UPLINK_UNITDATA(message_p).opt_mobilestationclassmark2 =
+      *((MobileStationClassmark2_t *) mobilestationclassmark2_pP);
+    SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
+      UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT;
+  }
+  /*
+   * optional - tai
+   * update the tai presence bitmask.
+   */
+  if (tai_pP) {
+    SGSAP_UPLINK_UNITDATA(message_p).opt_tai = *((tai_t *) tai_pP);
+    SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
+      UPLINK_UNITDATA_TAI_PARAMETER_PRESENT;
+  }
+  /*
+   * optional - ecgi
+   * update the ecgi presence bitmask.
+   */
+  if (ecgi_pP) {
+    SGSAP_UPLINK_UNITDATA(message_p).opt_ecgi = *ecgi_pP;
+    SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
+      UPLINK_UNITDATA_ECGI_PARAMETER_PRESENT;
+  }
+  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+    != RETURNok) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send SGSAP Uplink Unitdata to SGS task for Imsi : "
+      "%s \n",
+      imsi);
+  } else {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Sent SGSAP Uplink Unitdata to SGS task for Imsi :%s \n",
+      imsi);
+  }
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** name:    mme_app_itti_sgsap_tmsi_reallocation_comp                         **
+ **                                                                        **
+ ** description: Send itti mesage, TMSI Reallocation Complete message      **
+ **             to SGS task                                                **
+ ** inputs:  imsi : IMSI of UE                                             **
+ **          imsi_len : Length of IMSI                                     **
+ **                                                                        **
+ ***************************************************************************/
+void mme_app_itti_sgsap_tmsi_reallocation_comp(
+  const char *imsi,
+  const unsigned int imsi_len)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef *message_p = NULL;
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_TMSI_REALLOC_COMP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_TMSI_REALLOC_COMP \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  memset(
+    &message_p->ittiMsg.sgsap_tmsi_realloc_comp,
+    0,
+    sizeof(itti_sgsap_tmsi_reallocation_comp_t));
+  memcpy(SGSAP_TMSI_REALLOC_COMP(message_p).imsi, imsi, imsi_len);
+  SGSAP_TMSI_REALLOC_COMP(message_p).imsi[imsi_len] = '\0';
+  SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
+  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+    != RETURNok) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send SGSAP Tmsi Reallocation Complete to SGS task for Imsi : "
+      "%s \n",
+      imsi);
+  } else {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Sent SGSAP Tmsi Reallocation Complete to SGS task for Imsi :%s \n",
+      imsi);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** name:    mme_app_itti_sgsap_ue_activity_ind                            **
+ **                                                                        **
+ ** description: Send itti mesage, UE Activity Indication message          **
+ **             to SGS task                                                **
+ ** inputs:  imsi : IMSI of UE                                             **
+ **          imsi_len : Length of IMSI                                     **
+ **                                                                        **
+ ***************************************************************************/
+void mme_app_itti_sgsap_ue_activity_ind(
+  const char *imsi,
+  const unsigned int imsi_len)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef *message_p = NULL;
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP_UE_ACTIVITY_IND \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  memset(
+    &message_p->ittiMsg.sgsap_ue_activity_ind,
+    0,
+    sizeof(itti_sgsap_ue_activity_ind_t));
+  memcpy(SGSAP_UE_ACTIVITY_IND(message_p).imsi, imsi, imsi_len);
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
+  SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
+  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+    != RETURNok) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to send SGSAP UE ACTIVITY IND to SGS task for Imsi : %s \n",
+      imsi);
+  } else {
+    OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Sent SGSAP UE ACTIVITY IND to SGS task for Imsi :%s \n",
+      imsi);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }

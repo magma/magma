@@ -43,18 +43,3 @@ MESSAGE_DEF(
   MESSAGE_PRIORITY_MED,
   itti_nas_auth_param_req_t,
   nas_auth_param_req)
-MESSAGE_DEF(
-  NAS_EXTENDED_SERVICE_REQ,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_extended_service_req_t,
-  nas_extended_service_req)
-MESSAGE_DEF(
-  NAS_CS_SERVICE_NOTIFICATION,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_cs_service_notification_t,
-  nas_cs_service_notification)
-MESSAGE_DEF(
-  NAS_NOTIFY_SERVICE_REJECT,
-  MESSAGE_PRIORITY_MED,
-  itti_nas_notify_service_reject_t,
-  nas_notify_service_reject)

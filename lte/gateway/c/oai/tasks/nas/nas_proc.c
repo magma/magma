@@ -62,6 +62,7 @@
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "service303.h"
+#include "sgs_messages_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -783,6 +784,7 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
   emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
 /****************************************************************************
  **                                                                        **
  ** Name:    nas_proc_cs_service_notification()                            **
@@ -790,16 +792,19 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
  ** Description: Processes CS Paging Request message from MSC/VLR          **
  **              over SGs interface                                        **
  **                                                                        **
- ** Inputs:                                                                **
- **      cs_service_notification: The received message from MME app        **
+ ** Inputs:  ue_id:      UE identifier                                     **
+ **          paging_id   Indicates the identity used for                   **
+ **                      paging non-eps services                           **
+ **          cli         Calling Line Identification                       **
  **                                                                        **
  ** Outputs:                                                               **
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-
 int nas_proc_cs_service_notification(
-  itti_nas_cs_service_notification_t *const cs_service_notification)
+  mme_ue_s1ap_id_t ue_id,
+  uint8_t paging_id,
+  bstring cli)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
@@ -807,14 +812,13 @@ int nas_proc_cs_service_notification(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMAS_DATA_REQ;
   emm_sap.u.emm_as.u.data.nas_info = EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION;
-  emm_sap.u.emm_as.u.data.ue_id = cs_service_notification->ue_id;
+  emm_sap.u.emm_as.u.data.ue_id = ue_id;
   emm_sap.u.emm_as.u.data.nas_msg = NULL; /*No Esm container*/
-  emm_sap.u.emm_as.u.data.paging_identity = cs_service_notification->paging_id;
-  emm_sap.u.emm_as.u.data.cli = cs_service_notification->cli;
+  emm_sap.u.emm_as.u.data.paging_identity = paging_id;
+  bassign(emm_sap.u.emm_as.u.data.cli, cli);
   rc = emm_sap_send(&emm_sap);
   if (emm_sap.u.emm_as.u.data.cli) {
     bdestroy(emm_sap.u.emm_as.u.data.cli);
-    cs_service_notification->cli = NULL;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -912,11 +916,10 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental)
       default: break;
     }
   }
-
   return NAS_CAUSE_NETWORK_FAILURE;
 }
 
-/* Handle CS domain MM-Information request from MSC/VLR */
+// Handle CS domain MM-Information request from MSC/VLR
 
 int nas_proc_cs_domain_mm_information_request(
   itti_sgsap_mm_information_req_t *const mm_information_req_pP)
@@ -928,73 +931,6 @@ int nas_proc_cs_domain_mm_information_request(
   emm_sap.u.emm_cn.u.emm_cn_cs_domain_mm_information_req =
     mm_information_req_pP;
   rc = emm_sap_send(&emm_sap);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    nas_proc_notify_service_reject()                              **
- **                                                                        **
- ** Description: Processes Service Reject notification received from       **
- **              MME APP                                                   **
- **                                                                        **
- ** Inputs:                                                                **
- **      service_reject_p : The received message from MME app              **
- **                                                                        **
- ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
-
-int nas_proc_notify_service_reject(
-  itti_nas_notify_service_reject_t *const service_reject_p)
-{
-  int rc = RETURNerror;
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  DevAssert(service_reject_p);
-  if (
-    service_reject_p->failed_procedure ==
-    INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED) {
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for failed procedure %d for ue-id: %u \n",
-      service_reject_p->failed_procedure,
-      service_reject_p->ue_id);
-    rc = emm_proc_service_reject(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-  } else if (
-    service_reject_p->failed_procedure ==
-    UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED) {
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for failed UE_CONTEXT_MODIFICATION procedure for "
-      "ue-id:%u \n",
-      service_reject_p->ue_id);
-    rc = emm_send_service_reject_in_dl_nas(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-  } else if (
-    service_reject_p->failed_procedure ==
-    MT_CALL_CANCELLED_BY_NW_IN_IDLE_STATE) {
-    // If ECM state is IDLE send service_reject in Establish cnf else send in DL NAS Transport
-    rc = emm_proc_service_reject(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for FAILED_PROCEDURE_MT_CALL_CANCELLED_BY_NW "
-      "procedure for ue-id:%u \n",
-      service_reject_p->ue_id);
-  } else if (
-    service_reject_p->failed_procedure ==
-    MT_CALL_CANCELLED_BY_NW_IN_CONNECTED_STATE) {
-    rc = emm_send_service_reject_in_dl_nas(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for FAILED_PROCEDURE_MT_CALL_CANCELLED_BY_NW "
-      "procedure for ue-id:%u \n",
-      service_reject_p->ue_id);
-  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

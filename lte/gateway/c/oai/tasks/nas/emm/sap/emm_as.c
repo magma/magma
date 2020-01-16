@@ -35,7 +35,7 @@
 #include "mme_app_ue_context.h"
 #include "nas/as_message.h"
 #include "emm_cause.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "emm_as.h"
 #include "emm_recv.h"
 #include "LowerLayer.h"
@@ -521,17 +521,18 @@ static int _emm_as_recv(
       }
       rc =
         emm_recv_tau_complete(ue_id, &emm_msg->tracking_area_update_complete);
-      /*
-    * send the SGSAP TMSI Reallocation complete message towards SGS.
-    * if csfb newTmsiAllocated flag is true
-    * After sending set it to false
-    */
+      /* send the SGSAP TMSI Reallocation complete message towards SGS.
+       * if csfb newTmsiAllocated flag is true
+       * After sending set it to false
+       */
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-        nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
         emm_ctx->csfbparams.newTmsiAllocated = false;
-        /* update the neaf flag to false after sending the Tmsi Reallocation Complete message to SGS */
+        /* update the neaf flag to false after sending the Tmsi Reallocation
+         * Complete message to SGS
+         */
         mme_ue_context_update_ue_sgs_neaf(ue_id, false);
       }
       break;

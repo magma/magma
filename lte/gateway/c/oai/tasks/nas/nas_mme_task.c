@@ -62,38 +62,6 @@ static void *nas_intertask_interface(void *args_p)
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
       } break;
 
-      case SGSAP_DOWNLINK_UNITDATA: {
-        /*
-         * We received the Downlink Unitdata from MSC, trigger a
-         * Downlink Nas Transport message to UE.
-         */
-        nas_proc_downlink_unitdata(
-          &SGSAP_DOWNLINK_UNITDATA(received_message_p));
-      } break;
-
-      case SGSAP_RELEASE_REQ: {
-        /*
-         * We received the SGS Release request from MSC,to indicate that there are no more NAS messages to be exchanged
-         * between the VLR and the UE, or when a further exchange of NAS messages for the specified UE is not possible
-         * due to an error.
-         */
-        nas_proc_sgs_release_req(&SGSAP_RELEASE_REQ(received_message_p));
-      } break;
-      case SGSAP_MM_INFORMATION_REQ: {
-        /*Received SGSAP MM Information Request message from SGS task*/
-        nas_proc_cs_domain_mm_information_request(
-          &SGSAP_MM_INFORMATION_REQ(received_message_p));
-      } break;
-      case NAS_CS_SERVICE_NOTIFICATION: {
-        nas_proc_cs_service_notification(
-          &NAS_CS_SERVICE_NOTIFICATION(received_message_p));
-      } break;
-
-      case NAS_NOTIFY_SERVICE_REJECT: {
-        nas_proc_notify_service_reject(
-          &NAS_NOTIFY_SERVICE_REJECT(received_message_p));
-      } break;
-
       case TERMINATE_MESSAGE: {
         put_mme_nas_state(&mme_app_desc_p);
         nas_exit();
