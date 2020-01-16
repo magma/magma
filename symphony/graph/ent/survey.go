@@ -29,6 +29,8 @@ type Survey struct {
 	Name string `json:"name,omitempty"`
 	// OwnerName holds the value of the "owner_name" field.
 	OwnerName string `json:"owner_name,omitempty"`
+	// CreationTimestamp holds the value of the "creation_timestamp" field.
+	CreationTimestamp time.Time `json:"creation_timestamp,omitempty" gqlgen:"creationTimestamp"`
 	// CompletionTimestamp holds the value of the "completion_timestamp" field.
 	CompletionTimestamp time.Time `json:"completion_timestamp,omitempty" gqlgen:"completionTimestamp"`
 }
@@ -41,6 +43,7 @@ func (*Survey) scanValues() []interface{} {
 		&sql.NullTime{},
 		&sql.NullString{},
 		&sql.NullString{},
+		&sql.NullTime{},
 		&sql.NullTime{},
 	}
 }
@@ -78,7 +81,12 @@ func (s *Survey) assignValues(values ...interface{}) error {
 		s.OwnerName = value.String
 	}
 	if value, ok := values[4].(*sql.NullTime); !ok {
-		return fmt.Errorf("unexpected type %T for field completion_timestamp", values[4])
+		return fmt.Errorf("unexpected type %T for field creation_timestamp", values[4])
+	} else if value.Valid {
+		s.CreationTimestamp = value.Time
+	}
+	if value, ok := values[5].(*sql.NullTime); !ok {
+		return fmt.Errorf("unexpected type %T for field completion_timestamp", values[5])
 	} else if value.Valid {
 		s.CompletionTimestamp = value.Time
 	}
@@ -131,6 +139,8 @@ func (s *Survey) String() string {
 	builder.WriteString(s.Name)
 	builder.WriteString(", owner_name=")
 	builder.WriteString(s.OwnerName)
+	builder.WriteString(", creation_timestamp=")
+	builder.WriteString(s.CreationTimestamp.Format(time.ANSIC))
 	builder.WriteString(", completion_timestamp=")
 	builder.WriteString(s.CompletionTimestamp.Format(time.ANSIC))
 	builder.WriteByte(')')

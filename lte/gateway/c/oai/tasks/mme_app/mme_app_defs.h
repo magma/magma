@@ -244,7 +244,7 @@ int mme_app_send_sgsap_paging_reject(
   uint8_t imsi_len,
   SgsCause_t sgs_cause);
 
-int mme_app_notify_service_reject_to_nas(
+void mme_app_notify_service_reject_to_nas(
   mme_ue_s1ap_id_t ue_id,
   uint8_t emm_cause,
   uint8_t failed_procedure);
@@ -328,5 +328,11 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 #define mme_stats_write_lock(mMEsTATS)                                         \
   pthread_rwlock_wrlock(&(mMEsTATS)->rw_lock)
 #define mme_stats_unlock(mMEsTATS) pthread_rwlock_unlock(&(mMEsTATS)->rw_lock)
+
+#define MME_APP_COMPARE_TMSI(_tmsi1, _tmsi2) \
+  ( \
+    (_tmsi1.tmsi[0] != _tmsi2.tmsi[0]) || (_tmsi1.tmsi[1] != _tmsi2.tmsi[1]) ||\
+    (_tmsi1.tmsi[2] != _tmsi2.tmsi[2]) || (_tmsi1.tmsi[3] != _tmsi2.tmsi[3])) \
+    ? (RETURNerror) : (RETURNok)
 
 #endif /* MME_APP_DEFS_H_ */

@@ -41,6 +41,12 @@ def enum_field(enum_type):
     )
 
 
+class SurveyStatus(Enum):
+    PLANNED = "PLANNED"
+    INPROGRESS = "INPROGRESS"
+    COMPLETED = "COMPLETED"
+
+
 class SurveyQuestionType(Enum):
     BOOL = "BOOL"
     EMAIL = "EMAIL"
@@ -150,6 +156,8 @@ class SurveyCreateData:
     locationID: str
     surveyResponses: List[SurveyQuestionResponse]
     ownerName: Optional[str] = None
+    creationTimestamp: Optional[int] = None
+    status: Optional[SurveyStatus] = None
 
 
 @dataclass_json

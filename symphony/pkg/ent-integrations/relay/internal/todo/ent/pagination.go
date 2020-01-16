@@ -65,21 +65,14 @@ func (c *Cursor) UnmarshalGQL(v interface{}) error {
 
 // TodoEdge is the edge representation of Todo.
 type TodoEdge struct {
-	Node   *Todo   `json:"node"`
-	Cursor *Cursor `json:"cursor"`
+	Node   *Todo  `json:"node"`
+	Cursor Cursor `json:"cursor"`
 }
 
 // TodoConnection is the connection containing edges to Todo.
 type TodoConnection struct {
 	Edges    []*TodoEdge `json:"edges"`
-	PageInfo *PageInfo   `json:"pageInfo"`
-}
-
-func newTodoConnection() *TodoConnection {
-	return &TodoConnection{
-		Edges:    []*TodoEdge{},
-		PageInfo: &PageInfo{},
-	}
+	PageInfo PageInfo    `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Todo.
@@ -89,14 +82,18 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	}
 	if first != nil {
 		if *first == 0 {
-			return newTodoConnection(), nil
+			return &TodoConnection{
+				Edges: []*TodoEdge{},
+			}, nil
 		} else if *first < 0 {
 			return nil, ErrInvalidPagination
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return newTodoConnection(), nil
+			return &TodoConnection{
+				Edges: []*TodoEdge{},
+			}, nil
 		} else if *last < 0 {
 			return nil, ErrInvalidPagination
 		}
@@ -117,7 +114,9 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := t.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return newTodoConnection(), err
+		return &TodoConnection{
+			Edges: []*TodoEdge{},
+		}, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -125,28 +124,25 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	info := &PageInfo{}
+	var conn TodoConnection
 	if first != nil && len(nodes) > *first {
-		info.HasNextPage = true
+		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
 	} else if last != nil && len(nodes) > *last {
-		info.HasPreviousPage = true
+		conn.PageInfo.HasPreviousPage = true
 		nodes = nodes[1:]
 	}
-	edges := make([]*TodoEdge, len(nodes))
+	conn.Edges = make([]*TodoEdge, len(nodes))
 	for i, node := range nodes {
-		edges[i] = &TodoEdge{
+		conn.Edges[i] = &TodoEdge{
 			Node: node,
-			Cursor: &Cursor{
+			Cursor: Cursor{
 				ID: node.ID,
 			},
 		}
 	}
-	info.StartCursor = edges[0].Cursor
-	info.EndCursor = edges[len(edges)-1].Cursor
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &TodoConnection{
-		Edges:    edges,
-		PageInfo: info,
-	}, nil
+	return &conn, nil
 }

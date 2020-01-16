@@ -47,6 +47,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
+		ClearTodos func(childComplexity int) int
 		CreateTodo func(childComplexity int, todo TodoInput) int
 	}
 
@@ -80,6 +81,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error)
+	ClearTodos(ctx context.Context) (int, error)
 }
 type QueryResolver interface {
 	Todo(ctx context.Context, id int) (*ent.Todo, error)
@@ -100,6 +102,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Mutation.clearTodos":
+		if e.complexity.Mutation.ClearTodos == nil {
+			break
+		}
+
+		return e.complexity.Mutation.ClearTodos(childComplexity), true
 
 	case "Mutation.createTodo":
 		if e.complexity.Mutation.CreateTodo == nil {
@@ -304,6 +313,7 @@ type Query {
 
 type Mutation {
   createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
 }
 `},
 )
@@ -470,6 +480,43 @@ func (ec *executionContext) _Mutation_createTodo(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNTodo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐTodo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_clearTodos(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ClearTodos(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
@@ -876,10 +923,10 @@ func (ec *executionContext) _TodoConnection_pageInfo(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodoConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
@@ -981,10 +1028,10 @@ func (ec *executionContext) _TodoEdge_cursor(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*ent.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -2184,6 +2231,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "clearTodos":
+			out.Values[i] = ec._Mutation_clearTodos(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -2641,24 +2693,6 @@ func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsy
 	return v
 }
 
-func (ec *executionContext) unmarshalNCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalNCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return v
-}
-
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	return graphql.UnmarshalIntID(v)
 }
@@ -2673,18 +2707,22 @@ func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.Selectio
 	return res
 }
 
-func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
-	return ec._PageInfo(ctx, sel, &v)
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalInt(v)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *ent.PageInfo) graphql.Marshaler {
-	if v == nil {
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
 		}
-		return graphql.Null
 	}
-	return ec._PageInfo(ctx, sel, v)
+	return res
+}
+
+func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑintegrationsᚋrelayᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
+	return ec._PageInfo(ctx, sel, &v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

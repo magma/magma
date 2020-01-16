@@ -253,7 +253,7 @@ int emm_proc_tracking_area_update_request(
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
     emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
-    if (true == ies->is_initial) {
+    if (ies->is_initial) {
       emm_context->_security.next_hop_chaining_count = 0;
     }
   }
@@ -1076,7 +1076,7 @@ static int _send_tau_accept_and_check_for_neaf_flag(
       ue_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  if ((mme_ue_context_get_ue_sgs_neaf(ue_context->mme_ue_s1ap_id) == true)) {
+  if (mme_ue_context_get_ue_sgs_neaf(ue_context->mme_ue_s1ap_id)) {
     OAILOG_INFO(
       LOG_MME_APP,
       "Sending UE Activity Ind to MSC for ue-id: " MME_UE_S1AP_ID_FMT "\n",

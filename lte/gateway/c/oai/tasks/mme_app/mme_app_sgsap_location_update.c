@@ -69,9 +69,7 @@
 void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  additional_updt_t additional_update_type = -1;
-
-  additional_update_type =
+  additional_updt_t additional_update_type =
     (additional_updt_t) ue_context->emm_context.additional_update_type;
   mme_config_read_lock(&mme_config);
 
@@ -128,29 +126,6 @@ uint8_t _get_eps_attach_type(uint8_t emm_attach_type)
       break;
   }
   return eps_attach_type;
-}
-
-/*******************************************************************************
- **                                                                           **
- ** Name:                _mme_app_compare_tmsi()                              **
- ** Description          Compares the tmsi, to check both tmsi's have same    **
- **                      value                                                **
- **                                                                           **
- ** Inputs:              tmsi_mobile_identity_t tmsi1 and tmsi2               **
- ** Returns:             if tmsis' are equal, retun RETURNok                  **
- **                      else RETURNerror                                     **
- **                                                                           **
-********************************************************************************/
-int _mme_app_compare_tmsi(
-  tmsi_mobile_identity_t tmsi1,
-  tmsi_mobile_identity_t tmsi2)
-{
-  if (
-    (tmsi1.tmsi[0] != tmsi2.tmsi[0]) || (tmsi1.tmsi[1] != tmsi2.tmsi[1]) ||
-    (tmsi1.tmsi[2] != tmsi2.tmsi[2]) || (tmsi1.tmsi[3] != tmsi2.tmsi[3])) {
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /******************************************************************************
@@ -372,8 +347,8 @@ static int _handle_cs_domain_loc_updt_acc(
        * store the new TMSI and set flag
        */
       if (
-        (_mme_app_compare_tmsi(
-          emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi)) == RETURNerror) {
+        MME_APP_COMPARE_TMSI(
+          emm_ctx_p->csfbparams.mobileid.tmsi, received_tmsi) == RETURNerror) {
         OAILOG_INFO(LOG_MME_APP, "MME-APP - New TMSI Allocated\n");
         memcpy(
           &emm_ctx_p->csfbparams.mobileid.tmsi,
@@ -1068,7 +1043,6 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
     (itti_sgsap_location_update_rej_t*) sgs_context->sgsap_msg;
-  // Fetch UE context
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(

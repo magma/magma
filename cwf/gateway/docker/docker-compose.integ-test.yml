@@ -100,3 +100,9 @@ services:
     command: >
       /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
+
+  uesim:
+    <<: *service
+    container_name: uesim
+    image: ${DOCKER_REGISTRY}uesim:${IMAGE_VERSION}
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0

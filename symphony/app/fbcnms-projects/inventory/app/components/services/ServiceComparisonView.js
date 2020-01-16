@@ -91,10 +91,10 @@ const ServiceComparisonView = () => {
 
   let filterConfigs = ServiceSearchConfig.map(ent => ent.filters)
     .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(servicePropertiesFilterConfigs);
+    .concat(servicePropertiesFilterConfigs ?? []);
 
   if (serviceEndpointsEnabled) {
-    filterConfigs = filterConfigs.concat(locationTypesFilterConfigs);
+    filterConfigs = filterConfigs.concat(locationTypesFilterConfigs ?? []);
   }
 
   const navigateToService = (selectedServiceId: ?string) => {

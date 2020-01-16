@@ -2270,11 +2270,16 @@ int mme_app_handle_nas_extended_service_req(
         /* If call_cancelled is set to TRUE when MO call is triggered.
          * Set call_cancelled to false
          */
-        if (ue_context_p->sgs_context->call_cancelled == true) {
+        if (ue_context_p->sgs_context->call_cancelled) {
           ue_context_p->sgs_context->call_cancelled = false;
         }
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "SGS context is NULL for ue_id:" MME_UE_S1AP_ID_FMT
+          "So send Service Reject to UE \n",
+          ue_context_p->mme_ue_s1ap_id);
         /* send Service Reject to UE */
         mme_app_notify_service_reject_to_nas(
           ue_context_p->mme_ue_s1ap_id,
@@ -2284,20 +2289,20 @@ int mme_app_handle_nas_extended_service_req(
       break;
     case MT_CS_FB:
       if (csfb_response == CSFB_REJECTED_BY_UE) {
-        if (ue_context_p->sgs_context != NULL) {
+        if (ue_context_p->sgs_context) {
           /* If call_cancelled is set to TRUE and
            * receive EXT Service Request with csfb_response
            * set to call_rejected. Set call_cancelled to false
            */
-          if (ue_context_p->sgs_context->call_cancelled == true) {
+          if (ue_context_p->sgs_context->call_cancelled) {
             ue_context_p->sgs_context->call_cancelled = false;
           }
-          if (
-            (rc = mme_app_send_sgsap_paging_reject(
+          rc = mme_app_send_sgsap_paging_reject(
                ue_context_p,
                ue_context_p->emm_context._imsi64,
                ue_context_p->emm_context._imsi.length,
-               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER)) != RETURNok) {
+               SGS_CAUSE_MT_CSFB_CALL_REJECTED_BY_USER);
+          if (rc != RETURNok) {
             OAILOG_WARNING(
               LOG_MME_APP,
               "Failed to send SGSAP-Paging Reject for imsi with reject cause:"
@@ -2334,24 +2339,27 @@ int mme_app_handle_nas_extended_service_req(
            * service_reject in Establish cnf else send in DL NAS Transport
            */
           if (ue_context_p->ecm_state == ECM_IDLE) {
-            rc = emm_proc_service_reject(ue_id,
-               EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE);
-          } else if (ue_context_p->ecm_state == ECM_CONNECTED) {
-            rc = emm_send_service_reject_in_dl_nas(ue_id,
-              EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE);
-          }
-          if (RETURNok == rc) {
-             OAILOG_INFO(
-               LOG_MME_APP,
-               "Send Service Reject because MT_CALL_CANCEL is set by network"
-               "for ue-id:" MME_UE_S1AP_ID_FMT "\n",
-               ue_id);
-          } else {
             OAILOG_ERROR(
               LOG_MME_APP,
-              "Failed to send Service Reject for ue-id: " MME_UE_S1AP_ID_FMT
-              "\n",
+              "MT CS call is accepted by UE in idle mode for ue_id:"
+              MME_UE_S1AP_ID_FMT " But MT_CALL_CANCEL is set by MSC,"
+             " so sending service reject to UE \n",
               ue_id);
+            mme_app_notify_service_reject_to_nas(
+              ue_id,
+              EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
+              INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+          } else if (ue_context_p->ecm_state == ECM_CONNECTED) {
+            OAILOG_ERROR(
+              LOG_MME_APP,
+              "MT CS call is accepted by UE in connected mode for ue_id:"
+              MME_UE_S1AP_ID_FMT " But MT_CALL_CANCEL is set by MSC,"
+             " so sending service reject to UE \n",
+              ue_id);
+            mme_app_notify_service_reject_to_nas(
+              ue_id,
+              EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
+              UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
           }
           // Reset call_cancelled flag
           ue_context_p->sgs_context->call_cancelled = false;
@@ -2378,9 +2386,12 @@ int mme_app_handle_nas_extended_service_req(
         ue_context_p->sgs_context->is_emergency_call = true;
         mme_app_itti_ue_context_mod_for_csfb(ue_context_p);
       } else {
-        /* Notify Service Reject to NAS, which shall Service Reject message
-         * to UE
-         */
+        // Notify NAS module to send Service Reject message to UE
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "For MO_CS_FB_EMRGNCY_CALL, SGS context is not found for ue_id:"
+          MME_UE_S1AP_ID_FMT " MME shall send Service Reject to ue",
+          ue_context_p->mme_ue_s1ap_id);
         mme_app_notify_service_reject_to_nas(
           ue_context_p->mme_ue_s1ap_id,
           EMM_CAUSE_CONGESTION,
@@ -2448,10 +2459,17 @@ int handle_csfb_s1ap_procedure_failure(
   char *failed_statement,
   uint8_t failed_procedure)
 {
-  int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
 
+  if (!ue_context_p) {
+    OAILOG_ERROR(LOG_MME_APP, "Failed to find UE context \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
+  OAILOG_ERROR(
+    LOG_MME_APP,
+    "Handle handle_csfb_s1ap_procedure_failure for ue_id"
+    MME_UE_S1AP_ID_FMT "\n", ue_context_p->mme_ue_s1ap_id);
   /* If ICS procedure is initiated due to CS-Paging in UE idle mode
    * On ICS failure, send sgsap-Paging Reject to VLR
    */
@@ -2480,7 +2498,7 @@ int handle_csfb_s1ap_procedure_failure(
       }
     }
     // send Service Reject to UE
-    rc = mme_app_notify_service_reject_to_nas(
+    mme_app_notify_service_reject_to_nas(
       ue_context_p->mme_ue_s1ap_id,
       EMM_CAUSE_CONGESTION,
       failed_procedure);
@@ -2489,7 +2507,7 @@ int handle_csfb_s1ap_procedure_failure(
       increment_counter("nas service reject", 1, 1, "cause", failed_statement);
     }
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /****************************************************************************
@@ -2503,16 +2521,12 @@ int handle_csfb_s1ap_procedure_failure(
  **          emm_casue: failed cause                                       **
  **          Failed_procedure: ICS/UE context modification                 **
  **                                                                        **
- ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
  ***************************************************************************/
-int mme_app_notify_service_reject_to_nas(
+void mme_app_notify_service_reject_to_nas(
   mme_ue_s1ap_id_t ue_id,
   uint8_t emm_cause,
   uint8_t failed_procedure)
 {
-  int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
     LOG_MME_APP,
@@ -2522,11 +2536,22 @@ int mme_app_notify_service_reject_to_nas(
     ue_id);
   switch (failed_procedure) {
     case INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED: {
-      rc = emm_proc_service_reject(ue_id, emm_cause);
+      if ((emm_proc_service_reject(ue_id, emm_cause)) != RETURNok) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "emm_proc_service_reject() failed for ue_id "MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+      }
       break;
     }
     case UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED: {
-      rc = emm_send_service_reject_in_dl_nas(ue_id, emm_cause);
+      if ((emm_send_service_reject_in_dl_nas(ue_id, emm_cause)) != RETURNok) {
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          "emm_send_service_reject_in_dl_nas() failed for ue_id "
+          MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+        }
       break;
     }
     default: {
@@ -2535,7 +2560,7 @@ int mme_app_notify_service_reject_to_nas(
       break;
     }
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
 void mme_app_handle_create_dedicated_bearer_rsp(

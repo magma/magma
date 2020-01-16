@@ -39,6 +39,15 @@ func findIndex(a []string, x string) int {
 	return -1
 }
 
+func findStringContainsIndex(a []string, x string) int {
+	for i, n := range a {
+		if strings.Contains(n, x) {
+			return i
+		}
+	}
+	return -1
+}
+
 func sortSlice(a []int, acs bool) []int {
 	sort.Slice(a, func(i, j int) bool {
 		if acs {

@@ -1216,3 +1216,150 @@ func returnGySuccessNoRatingGroup(args mock.Arguments) {
 		Credits:       credits,
 	}
 }
+
+func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
+	mocks := &sessionMocks{
+		gy:       &MockCreditClient{},
+		gx:       &MockPolicyClient{},
+		policydb: &MockPolicyDBClient{},
+	}
+
+	// Send back DIAMETER_SUCCESS (2001) from gx
+	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+
+		ruleInstalls := []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleNames:       []string{"static_rule_1"},
+				RuleDefinitions: []*gx.RuleDefinition{},
+			},
+		}
+
+		done <- &gx.CreditControlAnswer{
+			ResultCode:     uint32(diameter.SuccessCode),
+			SessionID:      request.SessionID,
+			RequestNumber:  request.RequestNumber,
+			RuleInstallAVP: ruleInstalls,
+		}
+	}).Once()
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{}, nil).Once()
+
+	// Even if there are no rating groups, gy CCR-I will be called.
+	mocks.gy.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+	).Return(nil).Run(returnGySuccessCreditLimitReached).Once()
+
+	cfg := getTestConfig(gy.PerKeyInit)
+	cfg.UseGyForAuthOnly = true
+	srv := servicers.NewCentralSessionController(
+		mocks.gy,
+		mocks.gx,
+		mocks.policydb,
+		cfg,
+	)
+	ctx := context.Background()
+	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.NoError(t, err)
+}
+
+func returnGySuccessCreditLimitReached(args mock.Arguments) {
+	done := args.Get(1).(chan interface{})
+	request := args.Get(2).(*gy.CreditControlRequest)
+	credits := []*gy.ReceivedCredits{
+		&gy.ReceivedCredits{
+			ResultCode: diameter.DiameterCreditLimitReached,
+		},
+	}
+
+	done <- &gy.CreditControlAnswer{
+		ResultCode:    uint32(diameter.SuccessCode),
+		SessionID:     request.SessionID,
+		RequestNumber: request.RequestNumber,
+		Credits:       credits,
+	}
+}
+
+func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
+	mocks := &sessionMocks{
+		gy:       &MockCreditClient{},
+		gx:       &MockPolicyClient{},
+		policydb: &MockPolicyDBClient{},
+	}
+
+	// Send back DIAMETER_SUCCESS (2001) from gx
+	mocks.gx.On("SendCreditControlRequest", mock.Anything, mock.Anything, mock.Anything).Return(nil).Run(func(args mock.Arguments) {
+		done := args.Get(1).(chan interface{})
+		request := args.Get(2).(*gx.CreditControlRequest)
+
+		ruleInstalls := []*gx.RuleInstallAVP{
+			&gx.RuleInstallAVP{
+				RuleNames:       []string{"static_rule_1"},
+				RuleDefinitions: []*gx.RuleDefinition{},
+			},
+		}
+
+		done <- &gx.CreditControlAnswer{
+			ResultCode:     uint32(diameter.SuccessCode),
+			SessionID:      request.SessionID,
+			RequestNumber:  request.RequestNumber,
+			RuleInstallAVP: ruleInstalls,
+		}
+	}).Once()
+	mocks.policydb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
+		[]policydb.ChargingKey{}, nil).Once()
+
+	// Even if there are no rating groups, gy CCR-I will be called.
+	mocks.gy.On(
+		"SendCreditControlRequest",
+		mock.Anything,
+		mock.Anything,
+		mock.MatchedBy(getGyCCRMatcher(credit_control.CRTInit)),
+	).Return(nil).Run(returnGySuccessSubscriberBarred).Once()
+
+	cfg := getTestConfig(gy.PerKeyInit)
+	cfg.UseGyForAuthOnly = true
+	srv := servicers.NewCentralSessionController(
+		mocks.gy,
+		mocks.gx,
+		mocks.policydb,
+		cfg,
+	)
+	ctx := context.Background()
+	_, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
+		Subscriber: &protos.SubscriberID{
+			Id: IMSI1,
+		},
+		SessionId: "00101-1234",
+	})
+	mocks.gx.AssertExpectations(t)
+	assert.Error(t, err)
+}
+
+func returnGySuccessSubscriberBarred(args mock.Arguments) {
+	done := args.Get(1).(chan interface{})
+	request := args.Get(2).(*gy.CreditControlRequest)
+	credits := []*gy.ReceivedCredits{
+		&gy.ReceivedCredits{
+			ResultCode: diameter.DiameterRatingFailed,
+		},
+	}
+
+	done <- &gy.CreditControlAnswer{
+		ResultCode:    uint32(diameter.SuccessCode),
+		SessionID:     request.SessionID,
+		RequestNumber: request.RequestNumber,
+		Credits:       credits,
+	}
+}
+

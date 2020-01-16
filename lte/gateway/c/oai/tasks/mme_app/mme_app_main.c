@@ -391,8 +391,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case SGSAP_DOWNLINK_UNITDATA: {
-        /*
-         * We received the Downlink Unitdata from MSC, trigger a
+        /* We received the Downlink Unitdata from MSC, trigger a
          * Downlink Nas Transport message to UE.
          */
         nas_proc_downlink_unitdata(
@@ -400,8 +399,7 @@ void *mme_app_thread(void *args)
       } break;
 
       case SGSAP_RELEASE_REQ: {
-        /*
-         * We received the SGS Release request from MSC,to indicate that there
+        /* We received the SGS Release request from MSC,to indicate that there
          * are no more NAS messages to be exchanged between the VLR and the UE,
          * or when a further exchange of NAS messages for the specified UE is
          * not possible due to an error.
@@ -410,15 +408,13 @@ void *mme_app_thread(void *args)
       } break;
 
       case SGSAP_MM_INFORMATION_REQ: {
-        /*Received SGSAP MM Information Request message from SGS task*/
+        // Received SGSAP MM Information Request message from SGS task
         nas_proc_cs_domain_mm_information_request(
           &SGSAP_MM_INFORMATION_REQ(received_message_p));
       } break;
 
      case TERMINATE_MESSAGE: {
-        /*
-       * Termination message received TODO -> release any data allocated
-       */
+       // Termination message received TODO -> release any data allocated
         put_mme_nas_state(&mme_app_desc_p);
         mme_app_exit();
         itti_free_msg_content(received_message_p);
