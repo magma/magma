@@ -11,8 +11,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
-	"strconv"
 
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
@@ -30,32 +28,20 @@ func main() {
 	port := flag.String("port", defaultPort, fmt.Sprintf("Port to listen for requests. Default is %s", defaultPort))
 	rulesDir := flag.String("rules-dir", ".", "Directory to write rules files. Default is '.'")
 	prometheusURL := flag.String("prometheusURL", defaultPrometheusURL, fmt.Sprintf("URL of the prometheus instance that is reading these rules. Default is %s", defaultPrometheusURL))
-	multitenancy := flag.String("multitenant", "false", "Set this flag to enable multi-tenant support, having each tenant's alerts in a separate file")
+	multitenancyLabel := flag.String("multitenant-label", "", "The label name to restrict queries with to enable multi-tenant support, having each tenant's alerts in a separate file. If not provided, no tenancy is used.")
 	flag.Parse()
 
 	e := echo.New()
 
 	fileLocks, err := alert.NewFileLocker(alert.NewDirectoryClient(*rulesDir))
-	multitenancyBool, _ := strconv.ParseBool(*multitenancy)
-	alertClient := alert.NewClient(fileLocks, *rulesDir, *prometheusURL, fsclient.NewFSClient(), multitenancyBool)
+	alertClient := alert.NewClient(fileLocks, *rulesDir, *prometheusURL, fsclient.NewFSClient(), *multitenancyLabel)
 	if err != nil {
 		glog.Errorf("error creating alert client: %v", err)
 		return
 	}
-	e.GET("/", statusHandler)
 
-	e.POST(AlertPath, GetConfigureAlertHandler(alertClient))
-	e.GET(AlertPath, GetRetrieveAlertHandler(alertClient))
-	e.DELETE(AlertPath, GetDeleteAlertHandler(alertClient))
-
-	e.PUT(AlertUpdatePath, GetUpdateAlertHandler(alertClient))
-
-	e.PUT(AlertBulkPath, GetBulkAlertUpdateHandler(alertClient))
+	RegisterV0Handlers(e, alertClient)
 
 	glog.Infof("Prometheus Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
-}
-
-func statusHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Prometheus Config server")
 }
