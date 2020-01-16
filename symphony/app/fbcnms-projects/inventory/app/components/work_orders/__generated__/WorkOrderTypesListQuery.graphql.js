@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cd2de86109d1635c0ee72f35a652f3b3
+ * @relayHash c5b27cf50db273c5629fc4bb1456bb17
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type WorkOrderTypesListQueryVariables = {||};
 export type WorkOrderTypesListQueryResponse = {|
   +workOrderTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

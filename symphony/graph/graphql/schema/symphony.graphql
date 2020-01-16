@@ -20,8 +20,14 @@ type Viewer
   email: String! @goField(name: "user")
 }
 
+"""
+An object with an ID
+"""
 interface Node
   @goModel(model: "github.com/facebookincubator/symphony/graph/ent.Noder") {
+  """
+  The id of the object.
+  """
   id: ID!
 }
 
@@ -413,87 +419,171 @@ type SearchEntry {
   type: String!
 }
 
-# search entries connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of search entries.
+"""
 type SearchEntriesConnection {
-  edges: [SearchEntryEdge]
-  pageInfo: PageInfo
+  """
+  A list of search entry edges.
+  """
+  edges: [SearchEntryEdge!]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# search entry edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A search entry edge in a connection.
+"""
 type SearchEntryEdge {
+  """
+  The search entry at the end of the edge.
+  """
   node: SearchEntry
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port types.
+"""
 type EquipmentPortTypeConnection {
-  edges: [EquipmentPortTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port type edges.
+  """
+  edges: [EquipmentPortTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port type edge in a connection.
+"""
 type EquipmentPortTypeEdge {
+  """
+  The equipment port type at the end of the edge.
+  """
   node: EquipmentPortType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port definition connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port definitions.
+"""
 type EquipmentPortDefinitionConnection {
-  edges: [EquipmentPortDefinitionEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port definition edges.
+  """
+  edges: [EquipmentPortDefinitionEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port definition edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port definition edge in a connection.
+"""
 type EquipmentPortDefinitionEdge {
+  """
+  The equipment port definition at the end of the edge.
+  """
   node: EquipmentPortDefinition
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment types.
+"""
 type EquipmentTypeConnection {
-  edges: [EquipmentTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment type edges.
+  """
+  edges: [EquipmentTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment type edge in a connection.
+"""
 type EquipmentTypeEdge {
+  """
+  The equipment type at the end of the edge.
+  """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of location types.
+"""
 type LocationTypeConnection {
-  edges: [LocationTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of location type edges.
+  """
+  edges: [LocationTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location type edge in a connection.
+"""
 type LocationTypeEdge {
+  """
+  The location type at the end of the edge.
+  """
   node: LocationType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of locations.
+"""
 type LocationConnection {
-  edges: [LocationEdge]
-  pageInfo: PageInfo
+  """
+  A list of location edges.
+  """
+  edges: [LocationEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location edge in a connection.
+"""
 type LocationEdge {
+  """
+  The location at the end of the edge.
+  """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -504,33 +594,58 @@ directive @goModel(
   models: [String!]
 ) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 
-# connection pagination cursor.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Cursor
+"""
+Position within a pagination.
+"""
 scalar Cursor
-  @goModel(
-    model: "github.com/facebookincubator/symphony/graph/graphql/models.Cursor"
-  )
 
-# Information for paginating a connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo
+"""
+Information about pagination in a connection.
+"""
 type PageInfo {
+  """
+  When paginating forwards, are there more items?
+  """
   hasNextPage: Boolean!
+  """
+  When paginating backwards, are there more items?
+  """
   hasPreviousPage: Boolean!
+  """
+  When paginating forwards, the cursor to continue.
+  """
   startCursor: Cursor
+  """
+  When paginating backwards, the cursor to continue.
+  """
   endCursor: Cursor
 }
 
-# service type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of service types.
+"""
 type ServiceTypeConnection {
-  edges: [ServiceTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of service type edges.
+  """
+  edges: [ServiceTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# service type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A service type edge in a connection.
+"""
 type ServiceTypeEdge {
+  """
+  The service type at the end of the edge.
+  """
   node: ServiceType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -803,31 +918,59 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
 }
 
-# work order type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work order types.
+"""
 type WorkOrderTypeConnection {
-  edges: [WorkOrderTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order type edges.
+  """
+  edges: [WorkOrderTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order type edge in a connection.
+"""
 type WorkOrderTypeEdge {
+  """
+  The work order type at the end of the edge.
+  """
   node: WorkOrderType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# work order connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work orders.
+"""
 type WorkOrderConnection {
-  edges: [WorkOrderEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order edges.
+  """
+  edges: [WorkOrderEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order edge in a connection.
+"""
 type WorkOrderEdge {
+  """
+  The work order at the end of the edge.
+  """
   node: WorkOrder
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -880,17 +1023,31 @@ directive @goField(
   name: String
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
-# project type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of project types.
+"""
 type ProjectTypeConnection {
-  edges: [ProjectTypeEdge!]
+  """
+  A list of project type edges.
+  """
+  edges: [ProjectTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# project type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A project type edge in a connection.
+"""
 type ProjectTypeEdge {
+  """
+  The project type at the end of the edge.
+  """
   node: ProjectType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -1098,17 +1255,31 @@ input ProjectFilterInput {
   stringValue: String
 }
 
-# customer connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of customers.
+"""
 type CustomerConnection {
-  edges: [CustomerEdge!]
+  """
+  A list of customer edges.
+  """
+  edges: [CustomerEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# customer edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A customer edge in a connection.
+"""
 type CustomerEdge {
+  """
+  The customer at the end of the edge.
+  """
   node: Customer
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -1607,8 +1778,21 @@ input AddActionsRuleInput {
 }
 
 type Query {
+  """
+  Fetches current viewer.
+  """
   me: Viewer
-  node(id: ID!): Node
+
+  """
+  Fetches an object given its ID.
+  """
+  node(
+    """
+    The ID of an object.
+    """
+    id: ID!
+  ): Node
+
   location(id: ID!): Location @deprecated(reason: "Use `node` instead")
   locationType(id: ID!): LocationType @deprecated(reason: "Use `node` instead")
   locationTypes(
@@ -1705,7 +1889,7 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
-  surveys(after: Cursor, first: Int, before: Cursor, last: Int): [Survey]!
+  surveys: [Survey!]!
   findLocationWithDuplicateProperties(
     locationTypeId: ID!
     propertyName: String!

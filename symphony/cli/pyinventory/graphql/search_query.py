@@ -74,7 +74,7 @@ class SearchQuery:
 
                 node: Optional[SearchEntry] = None
 
-            edges: Optional[List[SearchEntryEdge]] = None
+            edges: List[SearchEntryEdge]
 
         searchForEntity: SearchEntriesConnection
 

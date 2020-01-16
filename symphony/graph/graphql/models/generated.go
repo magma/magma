@@ -220,16 +220,6 @@ type CommentInput struct {
 	Text       string        `json:"text"`
 }
 
-type CustomerConnection struct {
-	Edges    []*CustomerEdge `json:"edges"`
-	PageInfo *PageInfo       `json:"pageInfo"`
-}
-
-type CustomerEdge struct {
-	Node   *ent.Customer `json:"node"`
-	Cursor Cursor        `json:"cursor"`
-}
-
 type Device struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
@@ -339,16 +329,6 @@ type EquipmentFilterInput struct {
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
-type EquipmentPortDefinitionConnection struct {
-	Edges    []*EquipmentPortDefinitionEdge `json:"edges"`
-	PageInfo *PageInfo                      `json:"pageInfo"`
-}
-
-type EquipmentPortDefinitionEdge struct {
-	Node   *ent.EquipmentPortDefinition `json:"node"`
-	Cursor Cursor                       `json:"cursor"`
-}
-
 type EquipmentPortInput struct {
 	ID           *string `json:"id"`
 	Name         string  `json:"name"`
@@ -356,16 +336,6 @@ type EquipmentPortInput struct {
 	VisibleLabel *string `json:"visibleLabel"`
 	PortTypeID   *string `json:"portTypeID"`
 	Bandwidth    *string `json:"bandwidth"`
-}
-
-type EquipmentPortTypeConnection struct {
-	Edges    []*EquipmentPortTypeEdge `json:"edges"`
-	PageInfo *PageInfo                `json:"pageInfo"`
-}
-
-type EquipmentPortTypeEdge struct {
-	Node   *ent.EquipmentPortType `json:"node"`
-	Cursor Cursor                 `json:"cursor"`
 }
 
 type EquipmentPositionInput struct {
@@ -378,16 +348,6 @@ type EquipmentPositionInput struct {
 type EquipmentSearchResult struct {
 	Equipment []*ent.Equipment `json:"equipment"`
 	Count     int              `json:"count"`
-}
-
-type EquipmentTypeConnection struct {
-	Edges    []*EquipmentTypeEdge `json:"edges"`
-	PageInfo *PageInfo            `json:"pageInfo"`
-}
-
-type EquipmentTypeEdge struct {
-	Node   *ent.EquipmentType `json:"node"`
-	Cursor Cursor             `json:"cursor"`
 }
 
 type FileInput struct {
@@ -424,16 +384,6 @@ type LinkSide struct {
 	Port      string `json:"port"`
 }
 
-type LocationConnection struct {
-	Edges    []*LocationEdge `json:"edges"`
-	PageInfo *PageInfo       `json:"pageInfo"`
-}
-
-type LocationEdge struct {
-	Node   *ent.Location `json:"node"`
-	Cursor Cursor        `json:"cursor"`
-}
-
 type LocationFilterInput struct {
 	FilterType    LocationFilterType `json:"filterType"`
 	Operator      FilterOperator     `json:"operator"`
@@ -449,16 +399,6 @@ type LocationSearchResult struct {
 	Count     int             `json:"count"`
 }
 
-type LocationTypeConnection struct {
-	Edges    []*LocationTypeEdge `json:"edges"`
-	PageInfo *PageInfo           `json:"pageInfo"`
-}
-
-type LocationTypeEdge struct {
-	Node   *ent.LocationType `json:"node"`
-	Cursor Cursor            `json:"cursor"`
-}
-
 type LocationTypeIndex struct {
 	LocationTypeID string `json:"locationTypeID"`
 	Index          int    `json:"index"`
@@ -467,13 +407,6 @@ type LocationTypeIndex struct {
 type NetworkTopology struct {
 	Nodes []ent.Noder     `json:"nodes"`
 	Links []*TopologyLink `json:"links"`
-}
-
-type PageInfo struct {
-	HasNextPage     bool    `json:"hasNextPage"`
-	HasPreviousPage bool    `json:"hasPreviousPage"`
-	StartCursor     *Cursor `json:"startCursor"`
-	EndCursor       *Cursor `json:"endCursor"`
 }
 
 type PortFilterInput struct {
@@ -495,16 +428,6 @@ type ProjectFilterInput struct {
 	FilterType  ProjectFilterType `json:"filterType"`
 	Operator    FilterOperator    `json:"operator"`
 	StringValue *string           `json:"stringValue"`
-}
-
-type ProjectTypeConnection struct {
-	Edges    []*ProjectTypeEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
-}
-
-type ProjectTypeEdge struct {
-	Node   *ent.ProjectType `json:"node"`
-	Cursor Cursor           `json:"cursor"`
 }
 
 type PropertyInput struct {
@@ -552,9 +475,12 @@ type PythonPackage struct {
 	HasBreakingChange bool      `json:"hasBreakingChange"`
 }
 
+// A connection to a list of search entries.
 type SearchEntriesConnection struct {
-	Edges    []*SearchEntryEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
+	// A list of search entry edges.
+	Edges []*SearchEntryEdge `json:"edges"`
+	// Information to aid in pagination.
+	PageInfo *ent.PageInfo `json:"pageInfo"`
 }
 
 type SearchEntry struct {
@@ -564,9 +490,12 @@ type SearchEntry struct {
 	Type       string `json:"type"`
 }
 
+// A search entry edge in a connection.
 type SearchEntryEdge struct {
-	Node   *SearchEntry `json:"node"`
-	Cursor Cursor       `json:"cursor"`
+	// The search entry at the end of the edge.
+	Node *SearchEntry `json:"node"`
+	// A cursor for use in pagination.
+	Cursor ent.Cursor `json:"cursor"`
 }
 
 type ServiceCreateData struct {
@@ -603,20 +532,10 @@ type ServiceSearchResult struct {
 	Count    int            `json:"count"`
 }
 
-type ServiceTypeConnection struct {
-	Edges    []*ServiceTypeEdge `json:"edges"`
-	PageInfo *PageInfo          `json:"pageInfo"`
-}
-
 type ServiceTypeCreateData struct {
 	Name        string               `json:"name"`
 	HasCustomer bool                 `json:"hasCustomer"`
 	Properties  []*PropertyTypeInput `json:"properties"`
-}
-
-type ServiceTypeEdge struct {
-	Node   *ent.ServiceType `json:"node"`
-	Cursor Cursor           `json:"cursor"`
 }
 
 type ServiceTypeEditData struct {
@@ -722,20 +641,10 @@ type TopologyLink struct {
 	Target ent.Noder        `json:"target"`
 }
 
-type WorkOrderConnection struct {
-	Edges    []*WorkOrderEdge `json:"edges"`
-	PageInfo *PageInfo        `json:"pageInfo"`
-}
-
 type WorkOrderDefinitionInput struct {
 	ID    *string `json:"id"`
 	Index *int    `json:"index"`
 	Type  string  `json:"type"`
-}
-
-type WorkOrderEdge struct {
-	Node   *ent.WorkOrder `json:"node"`
-	Cursor Cursor         `json:"cursor"`
 }
 
 type WorkOrderExecutionResult struct {
@@ -754,16 +663,6 @@ type WorkOrderFilterInput struct {
 	IDSet         []string            `json:"idSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
 	MaxDepth      *int                `json:"maxDepth"`
-}
-
-type WorkOrderTypeConnection struct {
-	Edges    []*WorkOrderTypeEdge `json:"edges"`
-	PageInfo *PageInfo            `json:"pageInfo"`
-}
-
-type WorkOrderTypeEdge struct {
-	Node   *ent.WorkOrderType `json:"node"`
-	Cursor Cursor             `json:"cursor"`
 }
 
 type CellularNetworkType string

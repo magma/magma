@@ -20,7 +20,8 @@ type LocationType struct {
 func (LocationType) Fields() []ent.Field {
 	return []ent.Field{
 		field.Bool("site").
-			Default(false),
+			Default(false).
+			StructTag(`gqlgen:"isSite"`),
 		field.String("name").
 			Unique(),
 		field.String("map_type").

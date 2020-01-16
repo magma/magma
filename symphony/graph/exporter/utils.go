@@ -20,7 +20,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/service"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
-	"github.com/facebookincubator/symphony/graph/resolverutil"
 
 	"github.com/pkg/errors"
 )
@@ -51,7 +50,8 @@ func index(a []string, x string) int {
 }
 
 func locationTypeHierarchy(ctx context.Context, c *ent.Client) ([]string, error) {
-	locTypeResult, err := resolverutil.LocationTypes(ctx, c)
+	locTypeResult, err := c.LocationType.Query().
+		Paginate(ctx, nil, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 	switch entity {
 	case models.PropertyEntityEquipment:
 		var equipTypesWithEquipment []ent.EquipmentType
-		equipTypes, err := resolverutil.EquipmentTypes(ctx, c)
+		equipTypes, err := c.EquipmentType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -189,7 +190,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityLocation:
 		var locTypesWithInstances []ent.LocationType
-		locTypes, err := resolverutil.LocationTypes(ctx, c)
+		locTypes, err := c.LocationType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -222,7 +224,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityPort, models.PropertyEntityLink:
 		var relevantPortTypes []ent.EquipmentPortType
-		portTypes, err := resolverutil.EquipmentPortTypes(ctx, c)
+		portTypes, err := c.EquipmentPortType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -275,7 +278,8 @@ func propertyTypesSlice(ctx context.Context, ids []string, c *ent.Client, entity
 		}
 	case models.PropertyEntityService:
 		var serviceTypesWithServices []ent.ServiceType
-		serviceTypes, err := resolverutil.ServiceTypes(ctx, c)
+		serviceTypes, err := c.ServiceType.Query().
+			Paginate(ctx, nil, nil, nil, nil)
 		if err != nil {
 			return nil, err
 		}

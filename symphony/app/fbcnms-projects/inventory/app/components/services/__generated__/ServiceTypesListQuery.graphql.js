@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 57a4f3507296d9ec84521ad1e9dc5e80
+ * @relayHash 563c9d66f57e677e769c2096a5e3f300
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type ServiceTypesListQueryVariables = {||};
 export type ServiceTypesListQueryResponse = {|
   +serviceTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

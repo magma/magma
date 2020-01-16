@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 0b3836abfa14329581dc6f8bdf1896c2
+ * @relayHash 0ff1a35e93f3210893e943e00117feb0
  */
 
 /* eslint-disable */
@@ -21,7 +21,7 @@ type ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$ref = any;
 export type WorkOrderProjectTypesQueryVariables = {||};
 export type WorkOrderProjectTypesQueryResponse = {|
   +projectTypes: ?{|
-    +edges: ?$ReadOnlyArray<{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +$fragmentRefs: ProjectTypeCard_projectType$ref & AddEditProjectTypeCard_editingProjectType$ref,
@@ -29,7 +29,7 @@ export type WorkOrderProjectTypesQueryResponse = {|
     |}>
   |},
   +workOrderTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +$fragmentRefs: ProjectTypeWorkOrderTemplatesPanel_workOrderTypes$ref
       |}

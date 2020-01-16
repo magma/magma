@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c780fe9be607137a21a673827bb1527c
+ * @relayHash 325fc5162f2cdd46d6f75205ac9804e8
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type EquipmentPortTypeItem_equipmentPortType$ref = any;
 export type EquipmentPortTypesQueryVariables = {||};
 export type EquipmentPortTypesQueryResponse = {|
   +equipmentPortTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

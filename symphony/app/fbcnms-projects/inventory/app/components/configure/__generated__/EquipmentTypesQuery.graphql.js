@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 538e5b5a347330859c10aa879f4642ce
+ * @relayHash 655cfc20fbe5bf7c7f02574047485979
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type EquipmentTypeItem_equipmentType$ref = any;
 export type EquipmentTypesQueryVariables = {||};
 export type EquipmentTypesQueryResponse = {|
   +equipmentTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package models
+// Code generated (@generated) by entc, DO NOT EDIT.
+
+package ent
 
 import (
 	"bytes"
@@ -15,7 +17,7 @@ import (
 func TestCursorEncoding(t *testing.T) {
 	t.Run("EncodeDecode", func(t *testing.T) {
 		var buf bytes.Buffer
-		c := Cursor{ID: "42", Offset: 15}
+		c := Cursor{ID: "42"}
 		c.MarshalGQL(&buf)
 		var uc Cursor
 		s, err := strconv.Unquote(buf.String())

@@ -18,7 +18,7 @@ import (
 
 // LocationType is the model entity for the LocationType schema.
 type LocationType struct {
-	config `json:"-"`
+	config `gqlgen:"-" json:"-"`
 	// ID of the ent.
 	ID string `json:"id,omitempty"`
 	// CreateTime holds the value of the "create_time" field.
@@ -26,7 +26,7 @@ type LocationType struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Site holds the value of the "site" field.
-	Site bool `json:"site,omitempty"`
+	Site bool `json:"site,omitempty" gqlgen:"isSite"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// MapType holds the value of the "map_type" field.

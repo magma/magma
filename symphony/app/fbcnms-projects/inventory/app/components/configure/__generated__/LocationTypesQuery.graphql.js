@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 41081c99662d7900c3c5a0532d29b31a
+ * @relayHash 5e6ea1a9321e958d0a52392c3d2136f3
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type LocationTypeItem_locationType$ref = any;
 export type LocationTypesQueryVariables = {||};
 export type LocationTypesQueryResponse = {|
   +locationTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

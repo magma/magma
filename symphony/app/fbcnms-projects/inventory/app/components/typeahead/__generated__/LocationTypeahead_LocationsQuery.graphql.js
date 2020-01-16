@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ec1db8377fbc781b81546fb0b4be5ba3
+ * @relayHash 023e932109e456ca1cc1042407cbe000
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ export type LocationTypeahead_LocationsQueryVariables = {|
 |};
 export type LocationTypeahead_LocationsQueryResponse = {|
   +searchForEntity: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: ?$ReadOnlyArray<{|
       +node: ?{|
         +entityId: string,
         +entityType: string,

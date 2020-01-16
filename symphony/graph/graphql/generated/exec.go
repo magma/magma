@@ -411,13 +411,13 @@ type ComplexityRoot struct {
 	LocationType struct {
 		ID                       func(childComplexity int) int
 		Index                    func(childComplexity int) int
-		IsSite                   func(childComplexity int) int
 		Locations                func(childComplexity int, enforceHasLatLong *bool) int
 		MapType                  func(childComplexity int) int
 		MapZoomLevel             func(childComplexity int) int
 		Name                     func(childComplexity int) int
 		NumberOfLocations        func(childComplexity int) int
 		PropertyTypes            func(childComplexity int) int
+		Site                     func(childComplexity int) int
 		SurveyTemplateCategories func(childComplexity int) int
 	}
 
@@ -596,21 +596,21 @@ type ComplexityRoot struct {
 		ActionsTriggers                     func(childComplexity int) int
 		Customer                            func(childComplexity int, id string) int
 		CustomerSearch                      func(childComplexity int, limit *int) int
-		Customers                           func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		Customers                           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Equipment                           func(childComplexity int, id string) int
-		EquipmentPortDefinitions            func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		EquipmentPortTypes                  func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		EquipmentPortDefinitions            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentPortTypes                  func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentSearch                     func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
 		EquipmentType                       func(childComplexity int, id string) int
-		EquipmentTypes                      func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		EquipmentTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		FindLocationWithDuplicateProperties func(childComplexity int, locationTypeID string, propertyName string) int
 		LatestPythonPackage                 func(childComplexity int) int
 		LinkSearch                          func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
 		Location                            func(childComplexity int, id string) int
 		LocationSearch                      func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
 		LocationType                        func(childComplexity int, id string) int
-		LocationTypes                       func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		Locations                           func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		LocationTypes                       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Locations                           func(childComplexity int, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Me                                  func(childComplexity int) int
 		NearestSites                        func(childComplexity int, latitude float64, longitude float64, first int) int
 		Node                                func(childComplexity int, id string) int
@@ -619,19 +619,19 @@ type ComplexityRoot struct {
 		Project                             func(childComplexity int, id string) int
 		ProjectSearch                       func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectType                         func(childComplexity int, id string) int
-		ProjectTypes                        func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		SearchForEntity                     func(childComplexity int, name string, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		ProjectTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		SearchForEntity                     func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		Service                             func(childComplexity int, id string) int
 		ServiceSearch                       func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
 		ServiceType                         func(childComplexity int, id string) int
-		ServiceTypes                        func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		Surveys                             func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
+		ServiceTypes                        func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Surveys                             func(childComplexity int) int
 		Vertex                              func(childComplexity int, id string) int
 		WorkOrder                           func(childComplexity int, id string) int
 		WorkOrderSearch                     func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderType                       func(childComplexity int, id string) int
-		WorkOrderTypes                      func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int) int
-		WorkOrders                          func(childComplexity int, after *models.Cursor, first *int, before *models.Cursor, last *int, showCompleted *bool) int
+		WorkOrderTypes                      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		WorkOrders                          func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
 	}
 
 	SearchEntriesConnection struct {
@@ -979,11 +979,9 @@ type LocationResolver interface {
 	FloorPlans(ctx context.Context, obj *ent.Location) ([]*ent.FloorPlan, error)
 }
 type LocationTypeResolver interface {
-	IsSite(ctx context.Context, obj *ent.LocationType) (bool, error)
-
 	PropertyTypes(ctx context.Context, obj *ent.LocationType) ([]*ent.PropertyType, error)
 	NumberOfLocations(ctx context.Context, obj *ent.LocationType) (int, error)
-	Locations(ctx context.Context, obj *ent.LocationType, enforceHasLatLong *bool) (*models.LocationConnection, error)
+	Locations(ctx context.Context, obj *ent.LocationType, enforceHasLatLong *bool) (*ent.LocationConnection, error)
 	SurveyTemplateCategories(ctx context.Context, obj *ent.LocationType) ([]*ent.SurveyTemplateCategory, error)
 }
 type MutationResolver interface {
@@ -1081,21 +1079,21 @@ type QueryResolver interface {
 	Node(ctx context.Context, id string) (ent.Noder, error)
 	Location(ctx context.Context, id string) (*ent.Location, error)
 	LocationType(ctx context.Context, id string) (*ent.LocationType, error)
-	LocationTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.LocationTypeConnection, error)
-	Locations(ctx context.Context, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.LocationConnection, error)
+	LocationTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationTypeConnection, error)
+	Locations(ctx context.Context, onlyTopLevel *bool, types []string, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationConnection, error)
 	Equipment(ctx context.Context, id string) (*ent.Equipment, error)
 	EquipmentType(ctx context.Context, id string) (*ent.EquipmentType, error)
-	EquipmentPortTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentPortTypeConnection, error)
-	EquipmentPortDefinitions(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentPortDefinitionConnection, error)
-	EquipmentTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.EquipmentTypeConnection, error)
+	EquipmentPortTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortTypeConnection, error)
+	EquipmentPortDefinitions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortDefinitionConnection, error)
+	EquipmentTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentTypeConnection, error)
 	Service(ctx context.Context, id string) (*ent.Service, error)
 	ServiceType(ctx context.Context, id string) (*ent.ServiceType, error)
-	ServiceTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.ServiceTypeConnection, error)
+	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
 	WorkOrder(ctx context.Context, id string) (*ent.WorkOrder, error)
-	WorkOrders(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int, showCompleted *bool) (*models.WorkOrderConnection, error)
+	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
 	WorkOrderType(ctx context.Context, id string) (*ent.WorkOrderType, error)
-	WorkOrderTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.WorkOrderTypeConnection, error)
-	SearchForEntity(ctx context.Context, name string, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.SearchEntriesConnection, error)
+	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
+	SearchForEntity(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchEntriesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
 	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) ([]*ent.WorkOrder, error)
 	LinkSearch(ctx context.Context, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error)
@@ -1105,16 +1103,16 @@ type QueryResolver interface {
 	CustomerSearch(ctx context.Context, limit *int) ([]*ent.Customer, error)
 	ServiceSearch(ctx context.Context, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error)
 	PossibleProperties(ctx context.Context, entityType models.PropertyEntity) ([]*ent.PropertyType, error)
-	Surveys(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) ([]*ent.Survey, error)
+	Surveys(ctx context.Context) ([]*ent.Survey, error)
 	FindLocationWithDuplicateProperties(ctx context.Context, locationTypeID string, propertyName string) ([]string, error)
 	LatestPythonPackage(ctx context.Context) (*models.LatestPythonPackageResult, error)
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id string) (*ent.Node, error)
 	ProjectType(ctx context.Context, id string) (*ent.ProjectType, error)
-	ProjectTypes(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.ProjectTypeConnection, error)
+	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
 	Project(ctx context.Context, id string) (*ent.Project, error)
 	Customer(ctx context.Context, id string) (*ent.Customer, error)
-	Customers(ctx context.Context, after *models.Cursor, first *int, before *models.Cursor, last *int) (*models.CustomerConnection, error)
+	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
 }
@@ -2556,13 +2554,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LocationType.Index(childComplexity), true
 
-	case "LocationType.isSite":
-		if e.complexity.LocationType.IsSite == nil {
-			break
-		}
-
-		return e.complexity.LocationType.IsSite(childComplexity), true
-
 	case "LocationType.locations":
 		if e.complexity.LocationType.Locations == nil {
 			break
@@ -2609,6 +2600,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LocationType.PropertyTypes(childComplexity), true
+
+	case "LocationType.isSite":
+		if e.complexity.LocationType.Site == nil {
+			break
+		}
+
+		return e.complexity.LocationType.Site(childComplexity), true
 
 	case "LocationType.surveyTemplateCategories":
 		if e.complexity.LocationType.SurveyTemplateCategories == nil {
@@ -3902,7 +3900,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Customers(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Customers(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.equipment":
 		if e.complexity.Query.Equipment == nil {
@@ -3926,7 +3924,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentPortDefinitions(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.EquipmentPortDefinitions(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.equipmentPortTypes":
 		if e.complexity.Query.EquipmentPortTypes == nil {
@@ -3938,7 +3936,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentPortTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.EquipmentPortTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.equipmentSearch":
 		if e.complexity.Query.EquipmentSearch == nil {
@@ -3974,7 +3972,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.EquipmentTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.findLocationWithDuplicateProperties":
 		if e.complexity.Query.FindLocationWithDuplicateProperties == nil {
@@ -4053,7 +4051,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.LocationTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.LocationTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.locations":
 		if e.complexity.Query.Locations == nil {
@@ -4065,7 +4063,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -4168,7 +4166,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ProjectTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.ProjectTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.searchForEntity":
 		if e.complexity.Query.SearchForEntity == nil {
@@ -4180,7 +4178,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchForEntity(childComplexity, args["name"].(string), args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.SearchForEntity(childComplexity, args["name"].(string), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.service":
 		if e.complexity.Query.Service == nil {
@@ -4228,19 +4226,14 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ServiceTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.ServiceTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.surveys":
 		if e.complexity.Query.Surveys == nil {
 			break
 		}
 
-		args, err := ec.field_Query_surveys_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Surveys(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Surveys(childComplexity), true
 
 	case "Query.vertex":
 		if e.complexity.Query.Vertex == nil {
@@ -4300,7 +4293,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WorkOrderTypes(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.WorkOrderTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
 	case "Query.workOrders":
 		if e.complexity.Query.WorkOrders == nil {
@@ -4312,7 +4305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int), args["showCompleted"].(*bool)), true
+		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["showCompleted"].(*bool)), true
 
 	case "SearchEntriesConnection.edges":
 		if e.complexity.SearchEntriesConnection.Edges == nil {
@@ -5539,8 +5532,14 @@ type Viewer
   email: String! @goField(name: "user")
 }
 
+"""
+An object with an ID
+"""
 interface Node
   @goModel(model: "github.com/facebookincubator/symphony/graph/ent.Noder") {
+  """
+  The id of the object.
+  """
   id: ID!
 }
 
@@ -5932,87 +5931,171 @@ type SearchEntry {
   type: String!
 }
 
-# search entries connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of search entries.
+"""
 type SearchEntriesConnection {
-  edges: [SearchEntryEdge]
-  pageInfo: PageInfo
+  """
+  A list of search entry edges.
+  """
+  edges: [SearchEntryEdge!]
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# search entry edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A search entry edge in a connection.
+"""
 type SearchEntryEdge {
+  """
+  The search entry at the end of the edge.
+  """
   node: SearchEntry
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port types.
+"""
 type EquipmentPortTypeConnection {
-  edges: [EquipmentPortTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port type edges.
+  """
+  edges: [EquipmentPortTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port type edge in a connection.
+"""
 type EquipmentPortTypeEdge {
+  """
+  The equipment port type at the end of the edge.
+  """
   node: EquipmentPortType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment port definition connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment port definitions.
+"""
 type EquipmentPortDefinitionConnection {
-  edges: [EquipmentPortDefinitionEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment port definition edges.
+  """
+  edges: [EquipmentPortDefinitionEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment port definition edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment port definition edge in a connection.
+"""
 type EquipmentPortDefinitionEdge {
+  """
+  The equipment port definition at the end of the edge.
+  """
   node: EquipmentPortDefinition
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# equipment type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of equipment types.
+"""
 type EquipmentTypeConnection {
-  edges: [EquipmentTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of equipment type edges.
+  """
+  edges: [EquipmentTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# equipment type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+An equipment type edge in a connection.
+"""
 type EquipmentTypeEdge {
+  """
+  The equipment type at the end of the edge.
+  """
   node: EquipmentType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of location types.
+"""
 type LocationTypeConnection {
-  edges: [LocationTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of location type edges.
+  """
+  edges: [LocationTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location type edge in a connection.
+"""
 type LocationTypeEdge {
+  """
+  The location type at the end of the edge.
+  """
   node: LocationType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# location connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of locations.
+"""
 type LocationConnection {
-  edges: [LocationEdge]
-  pageInfo: PageInfo
+  """
+  A list of location edges.
+  """
+  edges: [LocationEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# location edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A location edge in a connection.
+"""
 type LocationEdge {
+  """
+  The location at the end of the edge.
+  """
   node: Location
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -6023,33 +6106,58 @@ directive @goModel(
   models: [String!]
 ) on OBJECT | INPUT_OBJECT | SCALAR | ENUM | INTERFACE | UNION
 
-# connection pagination cursor.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Cursor
+"""
+Position within a pagination.
+"""
 scalar Cursor
-  @goModel(
-    model: "github.com/facebookincubator/symphony/graph/graphql/models.Cursor"
-  )
 
-# Information for paginating a connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-undefined.PageInfo
+"""
+Information about pagination in a connection.
+"""
 type PageInfo {
+  """
+  When paginating forwards, are there more items?
+  """
   hasNextPage: Boolean!
+  """
+  When paginating backwards, are there more items?
+  """
   hasPreviousPage: Boolean!
+  """
+  When paginating forwards, the cursor to continue.
+  """
   startCursor: Cursor
+  """
+  When paginating backwards, the cursor to continue.
+  """
   endCursor: Cursor
 }
 
-# service type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of service types.
+"""
 type ServiceTypeConnection {
-  edges: [ServiceTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of service type edges.
+  """
+  edges: [ServiceTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# service type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A service type edge in a connection.
+"""
 type ServiceTypeEdge {
+  """
+  The service type at the end of the edge.
+  """
   node: ServiceType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -6322,31 +6430,59 @@ type WorkOrder implements Node {
   checkList: [CheckListItem]!
 }
 
-# work order type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work order types.
+"""
 type WorkOrderTypeConnection {
-  edges: [WorkOrderTypeEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order type edges.
+  """
+  edges: [WorkOrderTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order type edge in a connection.
+"""
 type WorkOrderTypeEdge {
+  """
+  The work order type at the end of the edge.
+  """
   node: WorkOrderType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
-# work order connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of work orders.
+"""
 type WorkOrderConnection {
-  edges: [WorkOrderEdge]
-  pageInfo: PageInfo
+  """
+  A list of work order edges.
+  """
+  edges: [WorkOrderEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
 }
 
-# work order edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A work order edge in a connection.
+"""
 type WorkOrderEdge {
+  """
+  The work order at the end of the edge.
+  """
   node: WorkOrder
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -6399,17 +6535,31 @@ directive @goField(
   name: String
 ) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
 
-# project type connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of project types.
+"""
 type ProjectTypeConnection {
-  edges: [ProjectTypeEdge!]
+  """
+  A list of project type edges.
+  """
+  edges: [ProjectTypeEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# project type edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A project type edge in a connection.
+"""
 type ProjectTypeEdge {
+  """
+  The project type at the end of the edge.
+  """
   node: ProjectType
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -6617,17 +6767,31 @@ input ProjectFilterInput {
   stringValue: String
 }
 
-# customer connection.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Connection-Types
+"""
+A connection to a list of customers.
+"""
 type CustomerConnection {
-  edges: [CustomerEdge!]
+  """
+  A list of customer edges.
+  """
+  edges: [CustomerEdge!]!
+  """
+  Information to aid in pagination.
+  """
   pageInfo: PageInfo!
 }
 
-# customer edge.
-# ref: https://facebook.github.io/relay/graphql/connections.htm#sec-Edge-Types
+"""
+A customer edge in a connection.
+"""
 type CustomerEdge {
+  """
+  The customer at the end of the edge.
+  """
   node: Customer
+  """
+  A cursor for use in pagination.
+  """
   cursor: Cursor!
 }
 
@@ -7126,8 +7290,21 @@ input AddActionsRuleInput {
 }
 
 type Query {
+  """
+  Fetches current viewer.
+  """
   me: Viewer
-  node(id: ID!): Node
+
+  """
+  Fetches an object given its ID.
+  """
+  node(
+    """
+    The ID of an object.
+    """
+    id: ID!
+  ): Node
+
   location(id: ID!): Location @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   locationType(id: ID!): LocationType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   locationTypes(
@@ -7224,7 +7401,7 @@ type Query {
     limit: Int = 500
   ): ServiceSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
-  surveys(after: Cursor, first: Int, before: Cursor, last: Int): [Survey]!
+  surveys: [Survey!]!
   findLocationWithDuplicateProperties(
     locationTypeId: ID!
     propertyName: String!
@@ -8606,9 +8783,9 @@ func (ec *executionContext) field_Query_customer_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8622,9 +8799,9 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8644,9 +8821,9 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8660,9 +8837,9 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8682,9 +8859,9 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8698,9 +8875,9 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8756,9 +8933,9 @@ func (ec *executionContext) field_Query_equipmentType_args(ctx context.Context, 
 func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8772,9 +8949,9 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8888,9 +9065,9 @@ func (ec *executionContext) field_Query_locationType_args(ctx context.Context, r
 func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8904,9 +9081,9 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8972,9 +9149,9 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 		}
 	}
 	args["needsSiteSurvey"] = arg3
-	var arg4 *models.Cursor
+	var arg4 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg4, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg4, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8988,9 +9165,9 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 		}
 	}
 	args["first"] = arg5
-	var arg6 *models.Cursor
+	var arg6 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg6, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg6, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9126,9 +9303,9 @@ func (ec *executionContext) field_Query_projectType_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9142,9 +9319,9 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9186,9 +9363,9 @@ func (ec *executionContext) field_Query_searchForEntity_args(ctx context.Context
 		}
 	}
 	args["name"] = arg0
-	var arg1 *models.Cursor
+	var arg1 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg1, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9202,9 +9379,9 @@ func (ec *executionContext) field_Query_searchForEntity_args(ctx context.Context
 		}
 	}
 	args["first"] = arg2
-	var arg3 *models.Cursor
+	var arg3 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg3, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9260,9 +9437,9 @@ func (ec *executionContext) field_Query_serviceType_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9276,9 +9453,9 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9306,44 +9483,6 @@ func (ec *executionContext) field_Query_service_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_surveys_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 *models.Cursor
-	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["after"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["first"] = arg1
-	var arg2 *models.Cursor
-	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["before"] = arg2
-	var arg3 *int
-	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["last"] = arg3
 	return args, nil
 }
 
@@ -9400,9 +9539,9 @@ func (ec *executionContext) field_Query_workOrderType_args(ctx context.Context, 
 func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9416,9 +9555,9 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9452,9 +9591,9 @@ func (ec *executionContext) field_Query_workOrder_args(ctx context.Context, rawA
 func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *models.Cursor
+	var arg0 *ent.Cursor
 	if tmp, ok := rawArgs["after"]; ok {
-		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -9468,9 +9607,9 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 		}
 	}
 	args["first"] = arg1
-	var arg2 *models.Cursor
+	var arg2 *ent.Cursor
 	if tmp, ok := rawArgs["before"]; ok {
-		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, tmp)
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -11422,7 +11561,7 @@ func (ec *executionContext) _Customer_externalId(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.CustomerConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -11448,15 +11587,18 @@ func (ec *executionContext) _CustomerConnection_edges(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.CustomerEdge)
+	res := resTmp.([]*ent.CustomerEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCustomerEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerEdgeᚄ(ctx, field.Selections, res)
+	return ec.marshalNCustomerEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.CustomerConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomerConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -11487,13 +11629,13 @@ func (ec *executionContext) _CustomerConnection_pageInfo(ctx context.Context, fi
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomerEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.CustomerEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomerEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -11527,7 +11669,7 @@ func (ec *executionContext) _CustomerEdge_node(ctx context.Context, field graphq
 	return ec.marshalOCustomer2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomer(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _CustomerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.CustomerEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _CustomerEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -11558,10 +11700,10 @@ func (ec *executionContext) _CustomerEdge_cursor(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Device_id(ctx context.Context, field graphql.CollectedField, obj *models.Device) (ret graphql.Marshaler) {
@@ -12823,7 +12965,7 @@ func (ec *executionContext) _EquipmentPortDefinition_bandwidth(ctx context.Conte
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortDefinitionConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortDefinitionConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -12849,15 +12991,18 @@ func (ec *executionContext) _EquipmentPortDefinitionConnection_edges(ctx context
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.EquipmentPortDefinitionEdge)
+	res := resTmp.([]*ent.EquipmentPortDefinitionEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPortDefinitionEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionEdge(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortDefinitionEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortDefinitionConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortDefinitionConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -12883,15 +13028,18 @@ func (ec *executionContext) _EquipmentPortDefinitionConnection_pageInfo(ctx cont
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortDefinitionEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortDefinitionEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortDefinitionEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -12925,7 +13073,7 @@ func (ec *executionContext) _EquipmentPortDefinitionEdge_node(ctx context.Contex
 	return ec.marshalOEquipmentPortDefinition2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinition(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortDefinitionEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortDefinitionEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortDefinitionEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -12956,10 +13104,10 @@ func (ec *executionContext) _EquipmentPortDefinitionEdge_cursor(ctx context.Cont
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortType_id(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortType) (ret graphql.Marshaler) {
@@ -13147,7 +13295,7 @@ func (ec *executionContext) _EquipmentPortType_numberOfPortDefinitions(ctx conte
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -13173,15 +13321,18 @@ func (ec *executionContext) _EquipmentPortTypeConnection_edges(ctx context.Conte
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.EquipmentPortTypeEdge)
+	res := resTmp.([]*ent.EquipmentPortTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentPortTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeEdge(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -13207,15 +13358,18 @@ func (ec *executionContext) _EquipmentPortTypeConnection_pageInfo(ctx context.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -13249,7 +13403,7 @@ func (ec *executionContext) _EquipmentPortTypeEdge_node(ctx context.Context, fie
 	return ec.marshalOEquipmentPortType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentPortTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentPortTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentPortTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -13280,10 +13434,10 @@ func (ec *executionContext) _EquipmentPortTypeEdge_cursor(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPosition_id(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPosition) (ret graphql.Marshaler) {
@@ -13940,7 +14094,7 @@ func (ec *executionContext) _EquipmentType_numberOfEquipment(ctx context.Context
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -13966,15 +14120,18 @@ func (ec *executionContext) _EquipmentTypeConnection_edges(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.EquipmentTypeEdge)
+	res := resTmp.([]*ent.EquipmentTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOEquipmentTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeEdge(ctx, field.Selections, res)
+	return ec.marshalNEquipmentTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -14000,15 +14157,18 @@ func (ec *executionContext) _EquipmentTypeConnection_pageInfo(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -14042,7 +14202,7 @@ func (ec *executionContext) _EquipmentTypeEdge_node(ctx context.Context, field g
 	return ec.marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EquipmentTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.EquipmentTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _EquipmentTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -14073,10 +14233,10 @@ func (ec *executionContext) _EquipmentTypeEdge_cursor(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_name(ctx context.Context, field graphql.CollectedField, obj *ent.Field) (ret graphql.Marshaler) {
@@ -16166,7 +16326,7 @@ func (ec *executionContext) _Location_floorPlans(ctx context.Context, field grap
 	return ec.marshalNFloorPlan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFloorPlan(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.LocationConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LocationConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16192,15 +16352,18 @@ func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.LocationEdge)
+	res := resTmp.([]*ent.LocationEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationEdge(ctx, field.Selections, res)
+	return ec.marshalNLocationEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.LocationConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.LocationConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16226,15 +16389,18 @@ func (ec *executionContext) _LocationConnection_pageInfo(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.LocationEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.LocationEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16268,7 +16434,7 @@ func (ec *executionContext) _LocationEdge_node(ctx context.Context, field graphq
 	return ec.marshalOLocation2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocation(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.LocationEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.LocationEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16299,10 +16465,10 @@ func (ec *executionContext) _LocationEdge_cursor(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationSearchResult_locations(ctx context.Context, field graphql.CollectedField, obj *models.LocationSearchResult) (ret graphql.Marshaler) {
@@ -16500,13 +16666,13 @@ func (ec *executionContext) _LocationType_isSite(ctx context.Context, field grap
 		Object:   "LocationType",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.LocationType().IsSite(rctx, obj)
+		return obj.Site, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16701,10 +16867,10 @@ func (ec *executionContext) _LocationType_locations(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.LocationConnection)
+	res := resTmp.(*ent.LocationConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationConnection(ctx, field.Selections, res)
+	return ec.marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationType_surveyTemplateCategories(ctx context.Context, field graphql.CollectedField, obj *ent.LocationType) (ret graphql.Marshaler) {
@@ -16741,7 +16907,7 @@ func (ec *executionContext) _LocationType_surveyTemplateCategories(ctx context.C
 	return ec.marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyTemplateCategory(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.LocationTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16767,15 +16933,18 @@ func (ec *executionContext) _LocationTypeConnection_edges(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.LocationTypeEdge)
+	res := resTmp.([]*ent.LocationTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeEdge(ctx, field.Selections, res)
+	return ec.marshalNLocationTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.LocationTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16801,15 +16970,18 @@ func (ec *executionContext) _LocationTypeConnection_pageInfo(ctx context.Context
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.LocationTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16843,7 +17015,7 @@ func (ec *executionContext) _LocationTypeEdge_node(ctx context.Context, field gr
 	return ec.marshalOLocationType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _LocationTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.LocationTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _LocationTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -16874,10 +17046,10 @@ func (ec *executionContext) _LocationTypeEdge_cursor(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -19629,7 +19801,7 @@ func (ec *executionContext) _NetworkTopology_links(ctx context.Context, field gr
 	return ec.marshalNTopologyLink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐTopologyLinkᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -19666,7 +19838,7 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -19703,7 +19875,7 @@ func (ec *executionContext) _PageInfo_hasPreviousPage(ctx context.Context, field
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -19731,13 +19903,13 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Cursor)
+	res := resTmp.(*ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *models.PageInfo) (ret graphql.Marshaler) {
+func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *ent.PageInfo) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -19765,10 +19937,10 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Cursor)
+	res := resTmp.(*ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PortSearchResult_ports(ctx context.Context, field graphql.CollectedField, obj *models.PortSearchResult) (ret graphql.Marshaler) {
@@ -20510,7 +20682,7 @@ func (ec *executionContext) _ProjectType_workOrders(ctx context.Context, field g
 	return ec.marshalNWorkOrderDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderDefinition(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -20536,15 +20708,18 @@ func (ec *executionContext) _ProjectTypeConnection_edges(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.ProjectTypeEdge)
+	res := resTmp.([]*ent.ProjectTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProjectTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeEdgeᚄ(ctx, field.Selections, res)
+	return ec.marshalNProjectTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -20575,13 +20750,13 @@ func (ec *executionContext) _ProjectTypeConnection_pageInfo(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -20615,7 +20790,7 @@ func (ec *executionContext) _ProjectTypeEdge_node(ctx context.Context, field gra
 	return ec.marshalOProjectType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ProjectTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.ProjectTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ProjectTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -20646,10 +20821,10 @@ func (ec *executionContext) _ProjectTypeEdge_cursor(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_id(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -22018,7 +22193,7 @@ func (ec *executionContext) _Query_locationTypes(ctx context.Context, field grap
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LocationTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().LocationTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22027,10 +22202,10 @@ func (ec *executionContext) _Query_locationTypes(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.LocationTypeConnection)
+	res := resTmp.(*ent.LocationTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeConnection(ctx, field.Selections, res)
+	return ec.marshalOLocationTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22059,7 +22234,7 @@ func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]string), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22068,10 +22243,10 @@ func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.LocationConnection)
+	res := resTmp.(*ent.LocationConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationConnection(ctx, field.Selections, res)
+	return ec.marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_equipment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22182,7 +22357,7 @@ func (ec *executionContext) _Query_equipmentPortTypes(ctx context.Context, field
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPortTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().EquipmentPortTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22194,10 +22369,10 @@ func (ec *executionContext) _Query_equipmentPortTypes(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.EquipmentPortTypeConnection)
+	res := resTmp.(*ent.EquipmentPortTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipmentPortTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeConnection(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_equipmentPortDefinitions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22226,7 +22401,7 @@ func (ec *executionContext) _Query_equipmentPortDefinitions(ctx context.Context,
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPortDefinitions(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().EquipmentPortDefinitions(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22238,10 +22413,10 @@ func (ec *executionContext) _Query_equipmentPortDefinitions(ctx context.Context,
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.EquipmentPortDefinitionConnection)
+	res := resTmp.(*ent.EquipmentPortDefinitionConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipmentPortDefinitionConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionConnection(ctx, field.Selections, res)
+	return ec.marshalNEquipmentPortDefinitionConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_equipmentTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22270,7 +22445,7 @@ func (ec *executionContext) _Query_equipmentTypes(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().EquipmentTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22282,10 +22457,10 @@ func (ec *executionContext) _Query_equipmentTypes(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.EquipmentTypeConnection)
+	res := resTmp.(*ent.EquipmentTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeConnection(ctx, field.Selections, res)
+	return ec.marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_service(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22396,7 +22571,7 @@ func (ec *executionContext) _Query_serviceTypes(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ServiceTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().ServiceTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22405,10 +22580,10 @@ func (ec *executionContext) _Query_serviceTypes(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.ServiceTypeConnection)
+	res := resTmp.(*ent.ServiceTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeConnection(ctx, field.Selections, res)
+	return ec.marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_workOrder(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22478,7 +22653,7 @@ func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int), args["showCompleted"].(*bool))
+		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["showCompleted"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22490,10 +22665,10 @@ func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.WorkOrderConnection)
+	res := resTmp.(*ent.WorkOrderConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNWorkOrderConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderConnection(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_workOrderType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22563,7 +22738,7 @@ func (ec *executionContext) _Query_workOrderTypes(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkOrderTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().WorkOrderTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -22572,10 +22747,10 @@ func (ec *executionContext) _Query_workOrderTypes(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.WorkOrderTypeConnection)
+	res := resTmp.(*ent.WorkOrderTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeConnection(ctx, field.Selections, res)
+	return ec.marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_searchForEntity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -22604,7 +22779,7 @@ func (ec *executionContext) _Query_searchForEntity(ctx context.Context, field gr
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchForEntity(rctx, args["name"].(string), args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().SearchForEntity(rctx, args["name"].(string), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23034,17 +23209,10 @@ func (ec *executionContext) _Query_surveys(ctx context.Context, field graphql.Co
 		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_surveys_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Surveys(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Surveys(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23059,7 +23227,7 @@ func (ec *executionContext) _Query_surveys(ctx context.Context, field graphql.Co
 	res := resTmp.([]*ent.Survey)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurvey(ctx, field.Selections, res)
+	return ec.marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findLocationWithDuplicateProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23292,7 +23460,7 @@ func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ProjectTypes(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().ProjectTypes(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23301,10 +23469,10 @@ func (ec *executionContext) _Query_projectTypes(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.ProjectTypeConnection)
+	res := resTmp.(*ent.ProjectTypeConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeConnection(ctx, field.Selections, res)
+	return ec.marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_project(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23415,7 +23583,7 @@ func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Customers(rctx, args["after"].(*models.Cursor), args["first"].(*int), args["before"].(*models.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Customers(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -23424,10 +23592,10 @@ func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.CustomerConnection)
+	res := resTmp.(*ent.CustomerConnection)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOCustomerConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerConnection(ctx, field.Selections, res)
+	return ec.marshalOCustomerConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_actionsRules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -23604,7 +23772,7 @@ func (ec *executionContext) _SearchEntriesConnection_edges(ctx context.Context, 
 	res := resTmp.([]*models.SearchEntryEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx, field.Selections, res)
+	return ec.marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdgeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchEntriesConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntriesConnection) (ret graphql.Marshaler) {
@@ -23633,12 +23801,15 @@ func (ec *executionContext) _SearchEntriesConnection_pageInfo(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(*ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchEntry_entityId(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntry) (ret graphql.Marshaler) {
@@ -23854,10 +24025,10 @@ func (ec *executionContext) _SearchEntryEdge_cursor(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Service_id(ctx context.Context, field graphql.CollectedField, obj *ent.Service) (ret graphql.Marshaler) {
@@ -24742,7 +24913,7 @@ func (ec *executionContext) _ServiceType_numberOfServices(ctx context.Context, f
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.ServiceTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -24768,15 +24939,18 @@ func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, fi
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.ServiceTypeEdge)
+	res := resTmp.([]*ent.ServiceTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOServiceTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEdge(ctx, field.Selections, res)
+	return ec.marshalNServiceTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.ServiceTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -24802,15 +24976,18 @@ func (ec *executionContext) _ServiceTypeConnection_pageInfo(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.ServiceTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -24844,7 +25021,7 @@ func (ec *executionContext) _ServiceTypeEdge_node(ctx context.Context, field gra
 	return ec.marshalOServiceType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ServiceTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.ServiceTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _ServiceTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -24875,10 +25052,10 @@ func (ec *executionContext) _ServiceTypeEdge_cursor(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Survey_id(ctx context.Context, field graphql.CollectedField, obj *ent.Survey) (ret graphql.Marshaler) {
@@ -28579,7 +28756,7 @@ func (ec *executionContext) _WorkOrder_checkList(ctx context.Context, field grap
 	return ec.marshalNCheckListItem2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItem(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -28605,15 +28782,18 @@ func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.WorkOrderEdge)
+	res := resTmp.([]*ent.WorkOrderEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderEdge(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -28639,12 +28819,15 @@ func (ec *executionContext) _WorkOrderConnection_pageInfo(ctx context.Context, f
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderDefinition_id(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderDefinition) (ret graphql.Marshaler) {
@@ -28755,7 +28938,7 @@ func (ec *executionContext) _WorkOrderDefinition_type(ctx context.Context, field
 	return ec.marshalNWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -28789,7 +28972,7 @@ func (ec *executionContext) _WorkOrderEdge_node(ctx context.Context, field graph
 	return ec.marshalOWorkOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrder(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -28820,10 +29003,10 @@ func (ec *executionContext) _WorkOrderEdge_cursor(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderExecutionResult_id(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderExecutionResult) (ret graphql.Marshaler) {
@@ -29267,7 +29450,7 @@ func (ec *executionContext) _WorkOrderType_checkListDefinitions(ctx context.Cont
 	return ec.marshalNCheckListItemDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCheckListItemDefinition(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -29293,15 +29476,18 @@ func (ec *executionContext) _WorkOrderTypeConnection_edges(ctx context.Context, 
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*models.WorkOrderTypeEdge)
+	res := resTmp.([]*ent.WorkOrderTypeEdge)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOWorkOrderTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeEdge(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderTypeConnection) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderTypeConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeConnection) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -29327,15 +29513,18 @@ func (ec *executionContext) _WorkOrderTypeConnection_pageInfo(ctx context.Contex
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.PageInfo)
+	res := resTmp.(ent.PageInfo)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx, field.Selections, res)
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderTypeEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -29369,7 +29558,7 @@ func (ec *executionContext) _WorkOrderTypeEdge_node(ctx context.Context, field g
 	return ec.marshalOWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderType(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrderTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.WorkOrderTypeEdge) (ret graphql.Marshaler) {
+func (ec *executionContext) _WorkOrderTypeEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -29400,10 +29589,10 @@ func (ec *executionContext) _WorkOrderTypeEdge_cursor(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.Cursor)
+	res := resTmp.(ent.Cursor)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, field.Selections, res)
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -34594,7 +34783,7 @@ func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet,
 
 var customerConnectionImplementors = []string{"CustomerConnection"}
 
-func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.SelectionSet, obj *models.CustomerConnection) graphql.Marshaler {
+func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.CustomerConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, customerConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -34605,6 +34794,9 @@ func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("CustomerConnection")
 		case "edges":
 			out.Values[i] = ec._CustomerConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._CustomerConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -34623,7 +34815,7 @@ func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.Sel
 
 var customerEdgeImplementors = []string{"CustomerEdge"}
 
-func (ec *executionContext) _CustomerEdge(ctx context.Context, sel ast.SelectionSet, obj *models.CustomerEdge) graphql.Marshaler {
+func (ec *executionContext) _CustomerEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.CustomerEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, customerEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35081,7 +35273,7 @@ func (ec *executionContext) _EquipmentPortDefinition(ctx context.Context, sel as
 
 var equipmentPortDefinitionConnectionImplementors = []string{"EquipmentPortDefinitionConnection"}
 
-func (ec *executionContext) _EquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentPortDefinitionConnection) graphql.Marshaler {
+func (ec *executionContext) _EquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortDefinitionConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentPortDefinitionConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35092,8 +35284,14 @@ func (ec *executionContext) _EquipmentPortDefinitionConnection(ctx context.Conte
 			out.Values[i] = graphql.MarshalString("EquipmentPortDefinitionConnection")
 		case "edges":
 			out.Values[i] = ec._EquipmentPortDefinitionConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._EquipmentPortDefinitionConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35107,7 +35305,7 @@ func (ec *executionContext) _EquipmentPortDefinitionConnection(ctx context.Conte
 
 var equipmentPortDefinitionEdgeImplementors = []string{"EquipmentPortDefinitionEdge"}
 
-func (ec *executionContext) _EquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentPortDefinitionEdge) graphql.Marshaler {
+func (ec *executionContext) _EquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortDefinitionEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentPortDefinitionEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35210,7 +35408,7 @@ func (ec *executionContext) _EquipmentPortType(ctx context.Context, sel ast.Sele
 
 var equipmentPortTypeConnectionImplementors = []string{"EquipmentPortTypeConnection"}
 
-func (ec *executionContext) _EquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentPortTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _EquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentPortTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35221,8 +35419,14 @@ func (ec *executionContext) _EquipmentPortTypeConnection(ctx context.Context, se
 			out.Values[i] = graphql.MarshalString("EquipmentPortTypeConnection")
 		case "edges":
 			out.Values[i] = ec._EquipmentPortTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._EquipmentPortTypeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35236,7 +35440,7 @@ func (ec *executionContext) _EquipmentPortTypeConnection(ctx context.Context, se
 
 var equipmentPortTypeEdgeImplementors = []string{"EquipmentPortTypeEdge"}
 
-func (ec *executionContext) _EquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentPortTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _EquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentPortTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentPortTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35512,7 +35716,7 @@ func (ec *executionContext) _EquipmentType(ctx context.Context, sel ast.Selectio
 
 var equipmentTypeConnectionImplementors = []string{"EquipmentTypeConnection"}
 
-func (ec *executionContext) _EquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _EquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -35523,8 +35727,14 @@ func (ec *executionContext) _EquipmentTypeConnection(ctx context.Context, sel as
 			out.Values[i] = graphql.MarshalString("EquipmentTypeConnection")
 		case "edges":
 			out.Values[i] = ec._EquipmentTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._EquipmentTypeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -35538,7 +35748,7 @@ func (ec *executionContext) _EquipmentTypeConnection(ctx context.Context, sel as
 
 var equipmentTypeEdgeImplementors = []string{"EquipmentTypeEdge"}
 
-func (ec *executionContext) _EquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.EquipmentTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _EquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.EquipmentTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, equipmentTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36239,7 +36449,7 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 
 var locationConnectionImplementors = []string{"LocationConnection"}
 
-func (ec *executionContext) _LocationConnection(ctx context.Context, sel ast.SelectionSet, obj *models.LocationConnection) graphql.Marshaler {
+func (ec *executionContext) _LocationConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.LocationConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, locationConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36250,8 +36460,14 @@ func (ec *executionContext) _LocationConnection(ctx context.Context, sel ast.Sel
 			out.Values[i] = graphql.MarshalString("LocationConnection")
 		case "edges":
 			out.Values[i] = ec._LocationConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._LocationConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36265,7 +36481,7 @@ func (ec *executionContext) _LocationConnection(ctx context.Context, sel ast.Sel
 
 var locationEdgeImplementors = []string{"LocationEdge"}
 
-func (ec *executionContext) _LocationEdge(ctx context.Context, sel ast.SelectionSet, obj *models.LocationEdge) graphql.Marshaler {
+func (ec *executionContext) _LocationEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.LocationEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, locationEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36348,19 +36564,10 @@ func (ec *executionContext) _LocationType(ctx context.Context, sel ast.Selection
 		case "mapType":
 			out.Values[i] = ec._LocationType_mapType(ctx, field, obj)
 		case "isSite":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._LocationType_isSite(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._LocationType_isSite(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "index":
 			out.Values[i] = ec._LocationType_index(ctx, field, obj)
 		case "mapZoomLevel":
@@ -36428,7 +36635,7 @@ func (ec *executionContext) _LocationType(ctx context.Context, sel ast.Selection
 
 var locationTypeConnectionImplementors = []string{"LocationTypeConnection"}
 
-func (ec *executionContext) _LocationTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.LocationTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _LocationTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.LocationTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, locationTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36439,8 +36646,14 @@ func (ec *executionContext) _LocationTypeConnection(ctx context.Context, sel ast
 			out.Values[i] = graphql.MarshalString("LocationTypeConnection")
 		case "edges":
 			out.Values[i] = ec._LocationTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._LocationTypeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -36454,7 +36667,7 @@ func (ec *executionContext) _LocationTypeConnection(ctx context.Context, sel ast
 
 var locationTypeEdgeImplementors = []string{"LocationTypeEdge"}
 
-func (ec *executionContext) _LocationTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.LocationTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _LocationTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.LocationTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, locationTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36720,7 +36933,7 @@ func (ec *executionContext) _NetworkTopology(ctx context.Context, sel ast.Select
 
 var pageInfoImplementors = []string{"PageInfo"}
 
-func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *models.PageInfo) graphql.Marshaler {
+func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet, obj *ent.PageInfo) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, pageInfoImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -36995,7 +37208,7 @@ func (ec *executionContext) _ProjectType(ctx context.Context, sel ast.SelectionS
 
 var projectTypeConnectionImplementors = []string{"ProjectTypeConnection"}
 
-func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.ProjectTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.ProjectTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, projectTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -37006,6 +37219,9 @@ func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.
 			out.Values[i] = graphql.MarshalString("ProjectTypeConnection")
 		case "edges":
 			out.Values[i] = ec._ProjectTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._ProjectTypeConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -37024,7 +37240,7 @@ func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.
 
 var projectTypeEdgeImplementors = []string{"ProjectTypeEdge"}
 
-func (ec *executionContext) _ProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.ProjectTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _ProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.ProjectTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, projectTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -37793,6 +38009,9 @@ func (ec *executionContext) _SearchEntriesConnection(ctx context.Context, sel as
 			out.Values[i] = ec._SearchEntriesConnection_edges(ctx, field, obj)
 		case "pageInfo":
 			out.Values[i] = ec._SearchEntriesConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38214,7 +38433,7 @@ func (ec *executionContext) _ServiceType(ctx context.Context, sel ast.SelectionS
 
 var serviceTypeConnectionImplementors = []string{"ServiceTypeConnection"}
 
-func (ec *executionContext) _ServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.ServiceTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _ServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.ServiceTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, serviceTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -38225,8 +38444,14 @@ func (ec *executionContext) _ServiceTypeConnection(ctx context.Context, sel ast.
 			out.Values[i] = graphql.MarshalString("ServiceTypeConnection")
 		case "edges":
 			out.Values[i] = ec._ServiceTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._ServiceTypeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -38240,7 +38465,7 @@ func (ec *executionContext) _ServiceTypeConnection(ctx context.Context, sel ast.
 
 var serviceTypeEdgeImplementors = []string{"ServiceTypeEdge"}
 
-func (ec *executionContext) _ServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.ServiceTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _ServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.ServiceTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, serviceTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39142,7 +39367,7 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 
 var workOrderConnectionImplementors = []string{"WorkOrderConnection"}
 
-func (ec *executionContext) _WorkOrderConnection(ctx context.Context, sel ast.SelectionSet, obj *models.WorkOrderConnection) graphql.Marshaler {
+func (ec *executionContext) _WorkOrderConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39153,8 +39378,14 @@ func (ec *executionContext) _WorkOrderConnection(ctx context.Context, sel ast.Se
 			out.Values[i] = graphql.MarshalString("WorkOrderConnection")
 		case "edges":
 			out.Values[i] = ec._WorkOrderConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._WorkOrderConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39211,7 +39442,7 @@ func (ec *executionContext) _WorkOrderDefinition(ctx context.Context, sel ast.Se
 
 var workOrderEdgeImplementors = []string{"WorkOrderEdge"}
 
-func (ec *executionContext) _WorkOrderEdge(ctx context.Context, sel ast.SelectionSet, obj *models.WorkOrderEdge) graphql.Marshaler {
+func (ec *executionContext) _WorkOrderEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39368,7 +39599,7 @@ func (ec *executionContext) _WorkOrderType(ctx context.Context, sel ast.Selectio
 
 var workOrderTypeConnectionImplementors = []string{"WorkOrderTypeConnection"}
 
-func (ec *executionContext) _WorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *models.WorkOrderTypeConnection) graphql.Marshaler {
+func (ec *executionContext) _WorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderTypeConnection) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderTypeConnectionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -39379,8 +39610,14 @@ func (ec *executionContext) _WorkOrderTypeConnection(ctx context.Context, sel as
 			out.Values[i] = graphql.MarshalString("WorkOrderTypeConnection")
 		case "edges":
 			out.Values[i] = ec._WorkOrderTypeConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._WorkOrderTypeConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -39394,7 +39631,7 @@ func (ec *executionContext) _WorkOrderTypeConnection(ctx context.Context, sel as
 
 var workOrderTypeEdgeImplementors = []string{"WorkOrderTypeEdge"}
 
-func (ec *executionContext) _WorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *models.WorkOrderTypeEdge) graphql.Marshaler {
+func (ec *executionContext) _WorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderTypeEdge) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, workOrderTypeEdgeImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -40275,12 +40512,12 @@ func (ec *executionContext) unmarshalNCommentInput2githubᚗcomᚋfacebookincuba
 	return ec.unmarshalInputCommentInput(ctx, v)
 }
 
-func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, v interface{}) (models.Cursor, error) {
-	var res models.Cursor
+func (ec *executionContext) unmarshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
+	var res ent.Cursor
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, sel ast.SelectionSet, v models.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
 }
 
@@ -40321,11 +40558,48 @@ func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋfacebookincuba
 	return ret
 }
 
-func (ec *executionContext) marshalNCustomerEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerEdge(ctx context.Context, sel ast.SelectionSet, v models.CustomerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCustomerEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdge(ctx context.Context, sel ast.SelectionSet, v ent.CustomerEdge) graphql.Marshaler {
 	return ec._CustomerEdge(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCustomerEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerEdge(ctx context.Context, sel ast.SelectionSet, v *models.CustomerEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCustomerEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.CustomerEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNCustomerEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNCustomerEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerEdge(ctx context.Context, sel ast.SelectionSet, v *ent.CustomerEdge) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -40661,11 +40935,11 @@ func (ec *executionContext) marshalNEquipmentPortDefinition2ᚖgithubᚗcomᚋfa
 	return ec._EquipmentPortDefinition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEquipmentPortDefinitionConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v models.EquipmentPortDefinitionConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentPortDefinitionConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortDefinitionConnection) graphql.Marshaler {
 	return ec._EquipmentPortDefinitionConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEquipmentPortDefinitionConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentPortDefinitionConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentPortDefinitionConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortDefinitionConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -40673,6 +40947,57 @@ func (ec *executionContext) marshalNEquipmentPortDefinitionConnection2ᚖgithub�
 		return graphql.Null
 	}
 	return ec._EquipmentPortDefinitionConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortDefinitionEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortDefinitionEdge) graphql.Marshaler {
+	return ec._EquipmentPortDefinitionEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortDefinitionEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EquipmentPortDefinitionEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEquipmentPortDefinitionEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEquipmentPortDefinitionEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortDefinitionEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentPortDefinitionEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNEquipmentPortInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortInput(ctx context.Context, v interface{}) (models.EquipmentPortInput, error) {
@@ -40687,11 +41012,11 @@ func (ec *executionContext) unmarshalNEquipmentPortInput2ᚖgithubᚗcomᚋfaceb
 	return &res, err
 }
 
-func (ec *executionContext) marshalNEquipmentPortTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.EquipmentPortTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentPortTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortTypeConnection) graphql.Marshaler {
 	return ec._EquipmentPortTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEquipmentPortTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentPortTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentPortTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortTypeConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -40699,6 +41024,57 @@ func (ec *executionContext) marshalNEquipmentPortTypeConnection2ᚖgithubᚗcom�
 		return graphql.Null
 	}
 	return ec._EquipmentPortTypeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPortTypeEdge) graphql.Marshaler {
+	return ec._EquipmentPortTypeEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentPortTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EquipmentPortTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEquipmentPortTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEquipmentPortTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentPortTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentPortTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNEquipmentPosition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPosition) graphql.Marshaler {
@@ -40880,11 +41256,11 @@ func (ec *executionContext) marshalNEquipmentType2ᚖgithubᚗcomᚋfacebookincu
 	return ec._EquipmentType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNEquipmentTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.EquipmentTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentTypeConnection) graphql.Marshaler {
 	return ec._EquipmentTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentTypeConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -40892,6 +41268,57 @@ func (ec *executionContext) marshalNEquipmentTypeConnection2ᚖgithubᚗcomᚋfa
 		return graphql.Null
 	}
 	return ec._EquipmentTypeConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNEquipmentTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentTypeEdge) graphql.Marshaler {
+	return ec._EquipmentTypeEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEquipmentTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.EquipmentTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEquipmentTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEquipmentTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.EquipmentTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EquipmentTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐField(ctx context.Context, sel ast.SelectionSet, v ent.Field) graphql.Marshaler {
@@ -41413,6 +41840,57 @@ func (ec *executionContext) marshalNLocation2ᚖgithubᚗcomᚋfacebookincubator
 	return ec._Location(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNLocationEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationEdge(ctx context.Context, sel ast.SelectionSet, v ent.LocationEdge) graphql.Marshaler {
+	return ec._LocationEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLocationEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LocationEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLocationEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNLocationEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationEdge(ctx context.Context, sel ast.SelectionSet, v *ent.LocationEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LocationEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNLocationFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationFilterInput(ctx context.Context, v interface{}) (models.LocationFilterInput, error) {
 	return ec.unmarshalInputLocationFilterInput(ctx, v)
 }
@@ -41480,6 +41958,57 @@ func (ec *executionContext) marshalNLocationType2ᚖgithubᚗcomᚋfacebookincub
 		return graphql.Null
 	}
 	return ec._LocationType(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNLocationTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.LocationTypeEdge) graphql.Marshaler {
+	return ec._LocationTypeEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNLocationTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.LocationTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNLocationTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNLocationTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.LocationTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._LocationTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNLocationTypeIndex2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeIndex(ctx context.Context, v interface{}) ([]*models.LocationTypeIndex, error) {
@@ -41563,11 +42092,11 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋfacebookincubatorᚋs
 	return ret
 }
 
-func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v models.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *models.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *ent.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -41775,11 +42304,48 @@ func (ec *executionContext) marshalNProjectType2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._ProjectType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNProjectTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.ProjectTypeEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNProjectTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.ProjectTypeEdge) graphql.Marshaler {
 	return ec._ProjectTypeEdge(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNProjectTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.ProjectTypeEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNProjectTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ProjectTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProjectTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNProjectTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.ProjectTypeEdge) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -42021,6 +42587,20 @@ func (ec *executionContext) marshalNSearchEntriesConnection2ᚖgithubᚗcomᚋfa
 	return ec._SearchEntriesConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNSearchEntryEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v models.SearchEntryEdge) graphql.Marshaler {
+	return ec._SearchEntryEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v *models.SearchEntryEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SearchEntryEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNService2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx context.Context, sel ast.SelectionSet, v ent.Service) graphql.Marshaler {
 	return ec._Service(ctx, sel, &v)
 }
@@ -42259,6 +42839,57 @@ func (ec *executionContext) unmarshalNServiceTypeCreateData2githubᚗcomᚋfaceb
 	return ec.unmarshalInputServiceTypeCreateData(ctx, v)
 }
 
+func (ec *executionContext) marshalNServiceTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.ServiceTypeEdge) graphql.Marshaler {
+	return ec._ServiceTypeEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ServiceTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServiceTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNServiceTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceTypeEdge(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNServiceTypeEditData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEditData(ctx context.Context, v interface{}) (models.ServiceTypeEditData, error) {
 	return ec.unmarshalInputServiceTypeEditData(ctx, v)
 }
@@ -42275,6 +42906,10 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNSurvey2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurvey(ctx context.Context, sel ast.SelectionSet, v ent.Survey) graphql.Marshaler {
+	return ec._Survey(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurvey(ctx context.Context, sel ast.SelectionSet, v []*ent.Survey) graphql.Marshaler {
@@ -42312,6 +42947,53 @@ func (ec *executionContext) marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubato
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalNSurvey2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.Survey) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSurvey2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurvey(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNSurvey2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurvey(ctx context.Context, sel ast.SelectionSet, v *ent.Survey) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Survey(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNSurveyCellScan2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐSurveyCellScan(ctx context.Context, sel ast.SelectionSet, v []*ent.SurveyCellScan) graphql.Marshaler {
@@ -42755,11 +43437,11 @@ func (ec *executionContext) marshalNWorkOrder2ᚖgithubᚗcomᚋfacebookincubato
 	return ec._WorkOrder(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWorkOrderConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderConnection(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkOrderConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderConnection(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderConnection) graphql.Marshaler {
 	return ec._WorkOrderConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWorkOrderConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderConnection(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderConnection) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkOrderConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderConnection(ctx context.Context, sel ast.SelectionSet, v *ent.WorkOrderConnection) graphql.Marshaler {
 	if v == nil {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -42816,6 +43498,57 @@ func (ec *executionContext) unmarshalNWorkOrderDefinitionInput2ᚖgithubᚗcom�
 	}
 	res, err := ec.unmarshalNWorkOrderDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderDefinitionInput(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) marshalNWorkOrderEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderEdge(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderEdge) graphql.Marshaler {
+	return ec._WorkOrderEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkOrderEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.WorkOrderEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkOrderEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkOrderEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderEdge(ctx context.Context, sel ast.SelectionSet, v *ent.WorkOrderEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkOrderEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNWorkOrderFilterInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInput(ctx context.Context, v interface{}) (models.WorkOrderFilterInput, error) {
@@ -42889,6 +43622,57 @@ func (ec *executionContext) marshalNWorkOrderType2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._WorkOrderType(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNWorkOrderTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderTypeEdge) graphql.Marshaler {
+	return ec._WorkOrderTypeEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWorkOrderTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.WorkOrderTypeEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWorkOrderTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNWorkOrderTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, v *ent.WorkOrderTypeEdge) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._WorkOrderTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
@@ -43348,24 +44132,24 @@ func (ec *executionContext) marshalOComment2ᚖgithubᚗcomᚋfacebookincubator�
 	return ec._Comment(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, v interface{}) (models.Cursor, error) {
-	var res models.Cursor
+func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
+	var res ent.Cursor
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, sel ast.SelectionSet, v models.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v ent.Cursor) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, v interface{}) (*models.Cursor, error) {
+func (ec *executionContext) unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, v interface{}) (*ent.Cursor, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx, v)
+	res, err := ec.unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCursor(ctx context.Context, sel ast.SelectionSet, v *models.Cursor) graphql.Marshaler {
+func (ec *executionContext) marshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCursor(ctx context.Context, sel ast.SelectionSet, v *ent.Cursor) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -43383,55 +44167,15 @@ func (ec *executionContext) marshalOCustomer2ᚖgithubᚗcomᚋfacebookincubator
 	return ec._Customer(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOCustomerConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerConnection(ctx context.Context, sel ast.SelectionSet, v models.CustomerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOCustomerConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerConnection(ctx context.Context, sel ast.SelectionSet, v ent.CustomerConnection) graphql.Marshaler {
 	return ec._CustomerConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOCustomerConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerConnection(ctx context.Context, sel ast.SelectionSet, v *models.CustomerConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOCustomerConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐCustomerConnection(ctx context.Context, sel ast.SelectionSet, v *ent.CustomerConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._CustomerConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOCustomerEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.CustomerEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNCustomerEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCustomerEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalODevice2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDevice(ctx context.Context, sel ast.SelectionSet, v models.Device) graphql.Marshaler {
@@ -43478,57 +44222,6 @@ func (ec *executionContext) marshalOEquipmentPortDefinition2ᚖgithubᚗcomᚋfa
 	return ec._EquipmentPortDefinition(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOEquipmentPortDefinitionEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v models.EquipmentPortDefinitionEdge) graphql.Marshaler {
-	return ec._EquipmentPortDefinitionEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOEquipmentPortDefinitionEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v []*models.EquipmentPortDefinitionEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOEquipmentPortDefinitionEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOEquipmentPortDefinitionEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortDefinitionEdge(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentPortDefinitionEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._EquipmentPortDefinitionEdge(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOEquipmentPortInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortInputᚄ(ctx context.Context, v interface{}) ([]*models.EquipmentPortInput, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -43558,57 +44251,6 @@ func (ec *executionContext) marshalOEquipmentPortType2ᚖgithubᚗcomᚋfacebook
 		return graphql.Null
 	}
 	return ec._EquipmentPortType(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOEquipmentPortTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.EquipmentPortTypeEdge) graphql.Marshaler {
-	return ec._EquipmentPortTypeEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOEquipmentPortTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, v []*models.EquipmentPortTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOEquipmentPortTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOEquipmentPortTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentPortTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentPortTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._EquipmentPortTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOEquipmentPosition2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐEquipmentPosition(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPosition) graphql.Marshaler {
@@ -43662,57 +44304,6 @@ func (ec *executionContext) marshalOEquipmentType2ᚖgithubᚗcomᚋfacebookincu
 		return graphql.Null
 	}
 	return ec._EquipmentType(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOEquipmentTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.EquipmentTypeEdge) graphql.Marshaler {
-	return ec._EquipmentTypeEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOEquipmentTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, v []*models.EquipmentTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOEquipmentTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOEquipmentTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.EquipmentTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._EquipmentTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOFile2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐFile(ctx context.Context, sel ast.SelectionSet, v ent.File) graphql.Marshaler {
@@ -43931,66 +44522,15 @@ func (ec *executionContext) marshalOLocation2ᚖgithubᚗcomᚋfacebookincubator
 	return ec._Location(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOLocationConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationConnection(ctx context.Context, sel ast.SelectionSet, v models.LocationConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOLocationConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationConnection(ctx context.Context, sel ast.SelectionSet, v ent.LocationConnection) graphql.Marshaler {
 	return ec._LocationConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationConnection(ctx context.Context, sel ast.SelectionSet, v *models.LocationConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOLocationConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationConnection(ctx context.Context, sel ast.SelectionSet, v *ent.LocationConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._LocationConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOLocationEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationEdge(ctx context.Context, sel ast.SelectionSet, v models.LocationEdge) graphql.Marshaler {
-	return ec._LocationEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOLocationEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationEdge(ctx context.Context, sel ast.SelectionSet, v []*models.LocationEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOLocationEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOLocationEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationEdge(ctx context.Context, sel ast.SelectionSet, v *models.LocationEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._LocationEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOLocationType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationType(ctx context.Context, sel ast.SelectionSet, v ent.LocationType) graphql.Marshaler {
@@ -44044,66 +44584,15 @@ func (ec *executionContext) marshalOLocationType2ᚖgithubᚗcomᚋfacebookincub
 	return ec._LocationType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOLocationTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.LocationTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOLocationTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.LocationTypeConnection) graphql.Marshaler {
 	return ec._LocationTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOLocationTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.LocationTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOLocationTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐLocationTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.LocationTypeConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._LocationTypeConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOLocationTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.LocationTypeEdge) graphql.Marshaler {
-	return ec._LocationTypeEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOLocationTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeEdge(ctx context.Context, sel ast.SelectionSet, v []*models.LocationTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOLocationTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOLocationTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.LocationTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._LocationTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOLocationTypeIndex2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationTypeIndex(ctx context.Context, v interface{}) (models.LocationTypeIndex, error) {
@@ -44123,17 +44612,6 @@ func (ec *executionContext) marshalONode2githubᚗcomᚋfacebookincubatorᚋsymp
 		return graphql.Null
 	}
 	return ec._Node(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v models.PageInfo) graphql.Marshaler {
-	return ec._PageInfo(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *models.PageInfo) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._PageInfo(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOProject2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProject(ctx context.Context, sel ast.SelectionSet, v ent.Project) graphql.Marshaler {
@@ -44158,55 +44636,15 @@ func (ec *executionContext) marshalOProjectType2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._ProjectType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOProjectTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.ProjectTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOProjectTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.ProjectTypeConnection) graphql.Marshaler {
 	return ec._ProjectTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.ProjectTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOProjectTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProjectTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.ProjectTypeConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ProjectTypeConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOProjectTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.ProjectTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNProjectTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) marshalOProperty2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐProperty(ctx context.Context, sel ast.SelectionSet, v ent.Property) graphql.Marshaler {
@@ -44357,11 +44795,7 @@ func (ec *executionContext) marshalOSearchEntry2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._SearchEntry(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSearchEntryEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v models.SearchEntryEdge) graphql.Marshaler {
-	return ec._SearchEntryEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v []*models.SearchEntryEdge) graphql.Marshaler {
+func (ec *executionContext) marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.SearchEntryEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -44388,7 +44822,7 @@ func (ec *executionContext) marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfaceboo
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -44399,13 +44833,6 @@ func (ec *executionContext) marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfaceboo
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalOSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v *models.SearchEntryEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SearchEntryEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOService2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐService(ctx context.Context, sel ast.SelectionSet, v ent.Service) graphql.Marshaler {
@@ -44465,66 +44892,15 @@ func (ec *executionContext) marshalOServiceType2ᚖgithubᚗcomᚋfacebookincuba
 	return ec._ServiceType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOServiceTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.ServiceTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOServiceTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.ServiceTypeConnection) graphql.Marshaler {
 	return ec._ServiceTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.ServiceTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOServiceTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐServiceTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceTypeConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ServiceTypeConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOServiceTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.ServiceTypeEdge) graphql.Marshaler {
-	return ec._ServiceTypeEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOServiceTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, v []*models.ServiceTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOServiceTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOServiceTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.ServiceTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ServiceTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
@@ -45110,57 +45486,6 @@ func (ec *executionContext) unmarshalOWorkOrderDefinitionInput2ᚕᚖgithubᚗco
 	return res, nil
 }
 
-func (ec *executionContext) marshalOWorkOrderEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderEdge(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderEdge) graphql.Marshaler {
-	return ec._WorkOrderEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOWorkOrderEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderEdge(ctx context.Context, sel ast.SelectionSet, v []*models.WorkOrderEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOWorkOrderEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOWorkOrderEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderEdge(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._WorkOrderEdge(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalOWorkOrderExecutionResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderExecutionResult(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderExecutionResult) graphql.Marshaler {
 	return ec._WorkOrderExecutionResult(ctx, sel, &v)
 }
@@ -45231,66 +45556,15 @@ func (ec *executionContext) marshalOWorkOrderType2ᚖgithubᚗcomᚋfacebookincu
 	return ec._WorkOrderType(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOWorkOrderTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderTypeConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderTypeConnection) graphql.Marshaler {
 	return ec._WorkOrderTypeConnection(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderTypeConnection) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderTypeConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋentᚐWorkOrderTypeConnection(ctx context.Context, sel ast.SelectionSet, v *ent.WorkOrderTypeConnection) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._WorkOrderTypeConnection(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOWorkOrderTypeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderTypeEdge) graphql.Marshaler {
-	return ec._WorkOrderTypeEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOWorkOrderTypeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, v []*models.WorkOrderTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		rctx := &graphql.ResolverContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithResolverContext(ctx, rctx)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOWorkOrderTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalOWorkOrderTypeEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderTypeEdge(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderTypeEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._WorkOrderTypeEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

@@ -67,7 +67,7 @@ class LocationTypeLocationsQuery:
 
                     node: Optional[Location] = None
 
-                edges: Optional[List[LocationEdge]] = None
+                edges: List[LocationEdge]
 
             locations: Optional[LocationConnection] = None
 

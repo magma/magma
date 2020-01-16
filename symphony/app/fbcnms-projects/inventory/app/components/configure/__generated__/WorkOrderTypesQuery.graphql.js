@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash cff3b09fa06859273a1a93beaddc8397
+ * @relayHash da484b1f71906dd2d9f7f46bb060a64d
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type AddEditWorkOrderTypeCard_editingWorkOrderType$ref = any;
 export type WorkOrderTypesQueryVariables = {||};
 export type WorkOrderTypesQueryResponse = {|
   +workOrderTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

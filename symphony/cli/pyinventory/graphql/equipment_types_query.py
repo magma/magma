@@ -154,7 +154,7 @@ class EquipmentTypesQuery:
 
                 node: Optional[EquipmentType] = None
 
-            edges: Optional[List[EquipmentTypeEdge]] = None
+            edges: List[EquipmentTypeEdge]
 
         equipmentTypes: EquipmentTypeConnection
 
