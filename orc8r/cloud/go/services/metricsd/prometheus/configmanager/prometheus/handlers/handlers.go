@@ -90,7 +90,7 @@ var pathTenantProvider = func(c echo.Context) string {
 	return c.Param(tenantIDParam)
 }
 
-// V1 tenantID is a query parameter
+// V1 tenant_id is a query parameter
 var queryTenantProvider = func(c echo.Context) string {
 	return c.QueryParam(tenantIDParam)
 }

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-package main
+package handlers
 
 import (
 	"encoding/json"
@@ -21,37 +21,72 @@ import (
 )
 
 const (
-	rootPath     = "/:tenant_id"
-	ReceiverPath = rootPath + "/receiver"
-	RoutePath    = ReceiverPath + "/route"
+	v0rootPath   = "/:tenant_id"
+	v0receiverPath = "/receiver"
+	v0RoutePath = "/receiver/route"
 
-	receiverNamePathParam  = "receiver"
-	receiverNameQueryParam = "receiver"
+	v1rootPath   = "/v1"
+	v1receiverPath = "/receiver"
+	v1routePath   = "/route"
+
+	receiverNameParam  = "receiver"
 
 	tenantIDParam = "tenant_id"
 )
 
-func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+func RegisterBaseHandlers(e *echo.Echo) {
 	e.GET("/", statusHandler)
+}
 
-	e.POST(ReceiverPath, GetReceiverPostHandler(client))
-	e.GET(ReceiverPath, GetGetReceiversHandler(client))
-	e.DELETE(ReceiverPath, GetDeleteReceiverHandler(client))
-	e.PUT(ReceiverPath+"/:"+receiverNamePathParam, GetUpdateReceiverHandler(client))
+func RegisterV0Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+	v0 := e.Group(v0rootPath)
+	v0.Use(tenancyMiddlewareProvider(client, pathTenantProvider))
 
-	e.POST(RoutePath, GetUpdateRouteHandler(client))
-	e.GET(RoutePath, GetGetRouteHandler(client))
+	v0.POST(v0receiverPath, GetReceiverPostHandler(client))
+	v0.GET(v0receiverPath, GetGetReceiversHandler(client))
+	v0.DELETE(v0receiverPath, GetDeleteReceiverHandler(client))
+	v0.PUT(v0receiverPath+"/:"+receiverNameParam, GetUpdateReceiverHandler(client))
 
-	e.Use(tenancyMiddlewareProvider(client))
+	v0.POST(v0RoutePath, GetUpdateRouteHandler(client))
+	v0.GET(v0RoutePath, GetGetRouteHandler(client))
+}
+
+func RegisterV1Handlers(e *echo.Echo, client receivers.AlertmanagerClient) {
+	v1 := e.Group(v1rootPath)
+	v1.Use(tenancyMiddlewareProvider(client, queryTenantProvider))
+
+	v1.POST(v1receiverPath, GetReceiverPostHandler(client))
+	v1.GET(v1receiverPath, GetGetReceiversHandler(client))
+	v1.DELETE(v1receiverPath, GetDeleteReceiverHandler(client))
+	v1.PUT(v1receiverPath, GetUpdateReceiverHandler(client))
+
+	v1.POST(v1routePath, GetUpdateRouteHandler(client))
+	v1.GET(v1routePath, GetGetRouteHandler(client))
+}
+
+func statusHandler(c echo.Context) error {
+	return c.String(http.StatusOK, "Alertmanager Config server")
+}
+
+type paramProvider func(c echo.Context) string
+
+// For v0 tenant_id field in path
+var pathTenantProvider = func(c echo.Context) string {
+	return c.Param(tenantIDParam)
+}
+
+// V1 tenantID is a query parameter
+var queryTenantProvider = func(c echo.Context) string {
+	return c.QueryParam(tenantIDParam)
 }
 
 // Returns middleware func to check for tenant_id dependent on tenancy of the client
-func tenancyMiddlewareProvider(client receivers.AlertmanagerClient) echo.MiddlewareFunc {
+func tenancyMiddlewareProvider(client receivers.AlertmanagerClient, getTenantID paramProvider) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			providedTenantID := c.Param(tenantIDParam)
+			providedTenantID := getTenantID(c)
 			if client.Tenancy() != nil && providedTenantID == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide tenant_id parameter"))
+				return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Must provide %s parameter", tenantIDParam))
 			}
 			c.Set(tenantIDParam, providedTenantID)
 			return next(c)
@@ -123,7 +158,7 @@ func GetDeleteReceiverHandler(client receivers.AlertmanagerClient) func(c echo.C
 	return func(c echo.Context) error {
 		tenantID := c.Get(tenantIDParam).(string)
 
-		err := client.DeleteReceiver(tenantID, c.QueryParam(receiverNameQueryParam))
+		err := client.DeleteReceiver(tenantID, c.QueryParam(receiverNameParam))
 		if err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 		}

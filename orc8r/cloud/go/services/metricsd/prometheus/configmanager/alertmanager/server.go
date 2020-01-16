@@ -11,8 +11,8 @@ package main
 import (
 	"flag"
 	"fmt"
-	"net/http"
 
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/fsclient"
 
@@ -33,18 +33,17 @@ func main() {
 	matcherLabel := flag.String("multitenant-label", "", fmt.Sprintf("LabelName to use for enabling multitenancy through route matching. Leave empty for single tenant use cases."))
 	flag.Parse()
 
-	e := echo.New()
+	fmt.Printf("Alertmanager Conf: %s\n", *alertmanagerConfPath)
 
-	e.GET("/", statusHandler)
+	e := echo.New()
 
 	receiverClient := receivers.NewClient(*alertmanagerConfPath, *alertmanagerURL, *matcherLabel, fsclient.NewFSClient())
 
-	RegisterV0Handlers(e, receiverClient)
+	handlers.RegisterBaseHandlers(e)
+	handlers.RegisterV0Handlers(e, receiverClient)
+	handlers.RegisterV1Handlers(e, receiverClient)
 
 	glog.Infof("Alertmanager Config server listening on port: %s\n", *port)
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", *port)))
-}
 
-func statusHandler(c echo.Context) error {
-	return c.String(http.StatusOK, "Alertmanager Config server")
 }
