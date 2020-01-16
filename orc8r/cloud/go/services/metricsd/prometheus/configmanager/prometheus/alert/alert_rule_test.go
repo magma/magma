@@ -11,8 +11,8 @@ package alert_test
 import (
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/obsidian/security"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
 
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -93,8 +93,8 @@ func TestSecureRule(t *testing.T) {
 	assert.NoError(t, err)
 
 	restrictorLabels := map[string]string{"tenantID": "test"}
-	restrictor := security.NewQueryRestrictor(restrictorLabels)
-	expectedExpr, _ := restrictor.RestrictQuery(sampleRule.Expr)
+	queryRestrictor := restrictor.NewQueryRestrictor(restrictorLabels)
+	expectedExpr, _ := queryRestrictor.RestrictQuery(sampleRule.Expr)
 
 	assert.Equal(t, expectedExpr, rule.Expr)
 	assert.Equal(t, 2, len(rule.Labels))
@@ -105,7 +105,7 @@ func TestSecureRule(t *testing.T) {
 		Expr:   `up{tenantID="test"} == 0`,
 		Labels: map[string]string{"name": "value", "tenantID": "test"},
 	}
-	restricted, _ := restrictor.RestrictQuery(existingNetworkIDRule.Expr)
+	restricted, _ := queryRestrictor.RestrictQuery(existingNetworkIDRule.Expr)
 	// assert tenantID isn't appended twice
 	assert.Equal(t, expectedExpr, restricted)
 	assert.Equal(t, 2, len(rule.Labels))
