@@ -15,7 +15,9 @@ import {SymphonyWrapper} from '@fbcnms/test/testHelpers';
 import {act, cleanup, fireEvent, render} from '@testing-library/react';
 import {mockApiUtil, renderAsync} from '../../../test/testHelpers';
 import {mockPrometheusRule} from '../../../test/data';
+import {toBaseFields} from '../PrometheusEditor/PrometheusEditor';
 
+import type {AlertConfig} from '../../AlarmAPIType';
 import type {RuleEditorProps} from '../RuleInterface';
 
 const commonProps = {
@@ -240,7 +242,7 @@ describe('Receiver select', () => {
   });
 });
 
-function MockRuleEditor(props: RuleEditorProps<{}>) {
+function MockRuleEditor(props: RuleEditorProps<AlertConfig>) {
   const {apiUtil, isNew, rule} = props;
   return (
     <RuleEditorBase
@@ -249,7 +251,7 @@ function MockRuleEditor(props: RuleEditorProps<{}>) {
       onSave={jest.fn()}
       onExit={jest.fn()}
       onChange={jest.fn()}
-      rule={rule}>
+      initialState={toBaseFields(rule)}>
       <span />
     </RuleEditorBase>
   );

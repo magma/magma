@@ -17,6 +17,7 @@ import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Editor from '../common/Editor';
 import Grid from '@material-ui/core/Grid';
+import LabelsEditor from './LabelsEditor';
 import RuleContext from './RuleContext';
 import SelectReceiver from '../prometheus/Receivers/SelectReceiver';
 import SelectRuleType from './SelectRuleType';
@@ -25,11 +26,11 @@ import Typography from '@material-ui/core/Typography';
 import {useAlertRuleReceiver, useForm} from '../hooks';
 import type {ApiUtil} from '../AlarmsApi';
 import type {Props as EditorProps} from '../common/Editor';
-import type {GenericRule} from './RuleInterface';
+import type {Labels} from '../AlarmAPIType';
 
 type Props = EditorProps & {
   onChange: (form: RuleEditorBaseFields) => void,
-  rule: ?GenericRule<*>,
+  initialState: ?RuleEditorBaseFields,
   apiUtil: ApiUtil,
 };
 
@@ -37,24 +38,25 @@ type Props = EditorProps & {
 export type RuleEditorBaseFields = {
   name: string,
   description: string,
+  labels: Labels,
 };
 
 export default function RuleEditorBase({
   isNew,
   apiUtil,
   children,
-  rule,
+  initialState,
   onChange,
   onSave,
   ...props
 }: Props) {
   const ruleContext = React.useContext(RuleContext);
-  const {formState, handleInputChange} = useForm({
-    initialState: getInitialState(rule),
+  const {formState, handleInputChange, updateFormState} = useForm({
+    initialState: initialState || defaultState(),
     onFormUpdated: onChange,
   });
   const {receiver, setReceiver, saveReceiver} = useAlertRuleReceiver({
-    ruleName: rule?.name || '',
+    ruleName: formState?.name || '',
     apiUtil,
   });
 
@@ -63,10 +65,19 @@ export default function RuleEditorBase({
     await saveReceiver();
   }, [saveReceiver, onSave]);
 
+  const handleLabelsChange = React.useCallback(
+    (labels: Labels) => {
+      updateFormState({
+        labels,
+      });
+    },
+    [updateFormState],
+  );
+
   return (
     <Editor
       {...props}
-      title={rule?.name ?? 'New Alert Rule'}
+      title={formState?.name ?? 'New Alert Rule'}
       description="Configure rules to fire alerts"
       isNew={isNew}
       onSave={handleSave}>
@@ -150,25 +161,22 @@ export default function RuleEditorBase({
               </CardContent>
             </Card>
           </Grid>
+          <Grid item>
+            <LabelsEditor
+              labels={formState.labels}
+              onChange={handleLabelsChange}
+            />
+          </Grid>
         </Grid>
       </Grid>
     </Editor>
   );
 }
 
-/**
- * map from GenericRule -> RuleEditorBaseFields or provide a default state
- */
-function getInitialState(rule: ?GenericRule<*>): RuleEditorBaseFields {
-  if (rule) {
-    return {
-      name: rule.name,
-      description: rule.description,
-    };
-  } else {
-    return {
-      name: '',
-      description: '',
-    };
-  }
+function defaultState(): RuleEditorBaseFields {
+  return {
+    name: '',
+    description: '',
+    labels: {},
+  };
 }

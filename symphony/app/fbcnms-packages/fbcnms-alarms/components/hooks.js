@@ -110,9 +110,12 @@ export function useForm<TFormState: {}>({
         ...update,
       };
       setFormState(nextState);
+      if (typeof onFormUpdated === 'function') {
+        onFormUpdated(nextState);
+      }
       return nextState;
     },
-    [formState, setFormState],
+    [formState, onFormUpdated, setFormState],
   );
 
   /**
@@ -168,12 +171,9 @@ export function useForm<TFormState: {}>({
       event: SyntheticInputEvent<HTMLElement>,
     ) => {
       const value = event.target.value;
-      const updated = updateFormState(formUpdate(value));
-      if (typeof onFormUpdated === 'function') {
-        onFormUpdated(updated);
-      }
+      updateFormState(formUpdate(value));
     },
-    [onFormUpdated, updateFormState],
+    [updateFormState],
   );
 
   return {
