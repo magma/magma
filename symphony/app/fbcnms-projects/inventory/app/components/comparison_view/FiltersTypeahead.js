@@ -158,7 +158,7 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
   }));
 
   const filterMatchesInput = useCallback(
-    filter =>
+    (filter: FilterConfig) =>
       !inputValue ||
       filter.label.toLowerCase().includes(inputValue.toLowerCase()),
     [inputValue],
@@ -175,11 +175,11 @@ const FiltersTyepahead = React.forwardRef((props: Props, ref) => {
     [entityResultExists, searchConfig],
   );
 
-  const filteredOptions = useMemo(
+  const filteredOptions: Array<FilterConfig> = useMemo(
     () =>
       Object.values(groupBy(options, option => option.entityType))
-        // $FlowFixMe - flat exists
         .flat()
+        // $FlowFixMe groupBy -> flat will yield the same type
         .filter(filterMatchesInput),
     [options, filterMatchesInput],
   );

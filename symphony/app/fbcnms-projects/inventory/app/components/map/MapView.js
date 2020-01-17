@@ -636,9 +636,8 @@ class MapView extends React.Component<Props, State> {
 
     layers
       .map(layer => layer.source.data.features)
-      // $FlowFixMe flow doesn't recognize an existing function
       .flat()
-      .map(feature => {
+      .map((feature: any) => {
         const geometry = nullthrows(feature.geometry);
         if (geometry.type !== 'Point') {
           return;
