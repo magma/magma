@@ -28,9 +28,11 @@ func ValidateAndGetPositionIfExists(ctx context.Context, client *ent.Client, par
 			equipmentpositiondefinition.ID(*positionDefinitionID),
 		)).
 		Only(ctx)
+
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, errors.Wrapf(err, "querying equipment: definition=%q, parent=%q", *positionDefinitionID, *parentEquipmentID)
 	}
+
 	if ep != nil {
 		if mustBeEmpty {
 			hasAttachment, err := ep.QueryAttachment().Exist(ctx)

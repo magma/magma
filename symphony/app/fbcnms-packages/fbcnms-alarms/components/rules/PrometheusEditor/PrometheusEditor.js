@@ -28,9 +28,10 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useForm} from '../../hooks';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-import type {AlertConfig} from '../../AlarmAPIType';
+import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {BinaryComparator} from '../../prometheus/PromQLTypes';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';
+import type {RuleEditorBaseFields} from '../RuleEditorBase';
 import type {ThresholdExpression} from './ToggleableExpressionEditor';
 
 type MenuItemProps = {key: string, value: string, children: string};
@@ -67,6 +68,7 @@ type FormState = {
   timeNumber: number,
   timeUnit: string,
   description: string,
+  labels: LabelsMap,
 };
 
 export type InputChangeFunc = (
@@ -211,10 +213,15 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
       updateFormState({
         ruleName: editorBaseState.name,
         description: editorBaseState.description,
+        labels: editorBaseState.labels,
       });
     },
     [updateFormState],
   );
+
+  const editorBaseInitialState = React.useMemo(() => toBaseFields(rule), [
+    rule,
+  ]);
 
   const saveAlert = async () => {
     try {
@@ -268,7 +275,7 @@ export default function PrometheusEditor(props: PrometheusEditorProps) {
   return (
     <RuleEditorBase
       apiUtil={apiUtil}
-      rule={rule}
+      initialState={editorBaseInitialState}
       onChange={handleEditorBaseChange}
       onSave={saveAlert}
       onExit={onExit}
@@ -319,6 +326,7 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
       description: '',
       timeNumber: 0,
       timeUnit: '',
+      labels: {},
     };
   }
   const timeString = rule.for ?? '';
@@ -332,6 +340,7 @@ function fromAlertConfig(rule: ?AlertConfig): FormState {
     description: rule.annotations?.description || '',
     timeNumber: timeNumber,
     timeUnit,
+    labels: rule.labels || {},
   };
 }
 
@@ -340,12 +349,26 @@ function toAlertConfig(form: FormState): AlertConfig {
     alert: form.ruleName,
     expr: form.expression,
     labels: {
+      ...form.labels,
       severity: form.severity,
     },
     for: `${form.timeNumber}${form.timeUnit}`,
     annotations: {
       description: form.description,
     },
+  };
+}
+
+/**
+ * Map from rule-specific type to the generic RuleEditorBaseFields
+ */
+export function toBaseFields(
+  rule: ?GenericRule<AlertConfig>,
+): RuleEditorBaseFields {
+  return {
+    name: rule?.name || '',
+    description: rule?.description || '',
+    labels: rule?.rawRule?.labels || {},
   };
 }
 

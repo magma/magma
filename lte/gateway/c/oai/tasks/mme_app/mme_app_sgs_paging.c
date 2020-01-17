@@ -372,9 +372,9 @@ static int _sgs_handle_paging_request_for_mt_sms_in_connected(
     "\n",
     ue_context_p->emm_context._imsi64);
 
-  if (
-    RETURNok != (rc = mme_app_send_sgsap_service_request(
-      sgsap_paging_req_pP->service_indicator, ue_context_p))) {
+  rc = mme_app_send_sgsap_service_request(
+      sgsap_paging_req_pP->service_indicator, ue_context_p);
+  if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
       "Failed to send CS-Service Request to SGS-Task for ue-id :%u \n",

@@ -31,6 +31,20 @@ const Strings = {
     )}`,
     addButton: `${fbt('Add', 'Text for button that adds an item')}`,
   },
+  documents: {
+    uploadButton: `${fbt('Upload', 'Upload files button caption')}`,
+    categories: [
+      'Archivos de Estudios Pre-instalación',
+      'Archivos de Contratos',
+      'Archivos de TSS',
+      'DataFills',
+      'ATP',
+      'Topología',
+      'Archivos Simulación',
+      'Reportes de Mantenimiento',
+      'Fotos',
+    ],
+  },
 };
 
 export default Strings;

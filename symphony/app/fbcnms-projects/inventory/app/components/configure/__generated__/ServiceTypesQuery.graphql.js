@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 596c2343d1da2eec87c19ff22cbb4abe
+ * @relayHash 2e3cf20523c3a767895ea1ec78626d96
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ type ServiceTypeItem_serviceType$ref = any;
 export type ServiceTypesQueryVariables = {||};
 export type ServiceTypesQueryResponse = {|
   +serviceTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

@@ -31,6 +31,7 @@ const styles = {
 };
 
 const SUCCESS_RESPONSE = 0;
+const ERROR_RESPONSE = 1;
 
 type Props = {
   button: React.Element<any>,
@@ -96,6 +97,7 @@ class CSVFileUpload extends React.Component<Props> {
       formData.append(name, file);
       idx++;
     });
+    formData.append('skip_lines', JSON.stringify([]));
     try {
       const response = await axios.post(
         this.props.uploadPath,
@@ -103,20 +105,49 @@ class CSVFileUpload extends React.Component<Props> {
         config,
       );
       let msg = '';
+      let errorLines = fbt('', 'empty string');
+
+      const entity = this.props.entity ? this.props.entity : '';
       const responseData = response.data;
-      if (responseData.messageCode == SUCCESS_RESPONSE) {
-        const entity = this.props.entity ? this.props.entity : '';
+      const summary = responseData.summary;
+
+      if (summary.messageCode == SUCCESS_RESPONSE) {
+        if (responseData.errors != null) {
+          const lines = responseData.errors.map(e => '#' + e.line);
+          errorLines = fbt(
+            'Problematic lines are ' +
+              fbt.param('list of rows', lines.toString()),
+            'list of rows',
+          );
+        }
         msg = fbt(
-          'Successfully uploaded' +
-            fbt.param('number of saved lines', responseData.successLines) +
+          'Successfully uploaded ' +
+            fbt.param('number of saved lines', summary.successLines) +
             ' of ' +
-            fbt.param('number of all lines', responseData.allLines) +
+            fbt.param('number of all lines', summary.allLines) +
+            ' ' +
             fbt.param('type that was saved', entity) +
-            'items',
+            ' items. ' +
+            fbt.param('error lines', errorLines),
           'message for a successful import',
         );
+        this.props.onFileUploaded(msg);
+      } else if (
+        summary.messageCode == ERROR_RESPONSE &&
+        responseData.errors != null
+      ) {
+        const tmpErrMessage =
+          'Row ' +
+          responseData.errors[0].line +
+          ': ' +
+          responseData.errors[0].message;
+        msg = fbt(
+          ' Uploaded Failed. ' +
+            fbt.param('error message from server', tmpErrMessage),
+          'message for a failed import',
+        );
+        this.props.onUploadFailed && this.props.onUploadFailed(msg);
       }
-      this.props.onFileUploaded(msg);
     } catch (error) {
       const message = error.response?.data;
       this.props.onUploadFailed && this.props.onUploadFailed(message);

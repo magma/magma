@@ -388,7 +388,6 @@ int mme_app_send_s11_create_session_req(
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
-
 /****************************************************************************
  **                                                                        **
  ** name:    nas_itti_sgsap_uplink_unitdata                                **

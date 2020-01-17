@@ -126,7 +126,7 @@ class ServiceTypesQuery:
 
                 node: Optional[ServiceType] = None
 
-            edges: Optional[List[ServiceTypeEdge]] = None
+            edges: List[ServiceTypeEdge]
 
         serviceTypes: Optional[ServiceTypeConnection] = None
 

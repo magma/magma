@@ -89,9 +89,9 @@ const findNestedPorts = (
   }
 
   const portsToDisplay = [
-    ...equipment.ports,
+    ...(equipment.ports ?? []),
     ...getNonInstancePortsDefinitions(
-      equipment.ports,
+      equipment.ports ?? [],
       equipment.equipmentType.portDefinitions,
     ).map(portDef =>
       getInitialPortFromDefinition(nullthrows(equipment), portDef),
@@ -101,7 +101,7 @@ const findNestedPorts = (
     ...port,
     breadcrumbs: [equipment],
   }));
-  const nestedPorts = equipment.positions
+  const nestedPorts = (equipment.positions ?? [])
     .map(position =>
       findNestedPorts(position.attachedEquipment).map(portWithBreadcrumbs => ({
         ...portWithBreadcrumbs,

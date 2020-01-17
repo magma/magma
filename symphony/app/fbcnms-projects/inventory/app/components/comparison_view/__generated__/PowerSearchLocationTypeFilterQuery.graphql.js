@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 576dfeb71962c23dbe48354b2aeefdbb
+ * @relayHash 5afd7bcc3a6a2b55ec9c8172c0936d11
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type PowerSearchLocationTypeFilterQueryVariables = {||};
 export type PowerSearchLocationTypeFilterQueryResponse = {|
   +locationTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

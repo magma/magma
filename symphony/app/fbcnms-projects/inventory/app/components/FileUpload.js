@@ -25,7 +25,7 @@ const useStyles = makeStyles({
   fileButton: {
     cursor: 'pointer',
     display: 'flex',
-    width: 'fit-content',
+    width: '100%',
   },
 });
 

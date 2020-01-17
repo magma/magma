@@ -198,7 +198,7 @@ func (m *importer) processExportedLinks(w http.ResponseWriter, r *http.Request) 
 	log.Debug("Exported links - Done")
 	w.WriteHeader(http.StatusOK)
 
-	err := writeSuccessMessage(w, modifiedCount, numRows)
+	err := writeSuccessMessage(w, modifiedCount, numRows, nil, true)
 	if err != nil {
 		errorReturn(w, "cannot marshal message", log, err)
 		return

@@ -155,14 +155,14 @@ const FormValidationMaintainer = function() {
   const errorChecks: Array<(v: FormInputValueValidation) => ?string> = useMemo(
     () => [
       checkOuterErrorMessage,
-      checkOuterCallback,
       checkRequired,
+      checkOuterCallback,
       checkNumberInRange,
     ],
     [
       checkOuterErrorMessage,
-      checkOuterCallback,
       checkRequired,
+      checkOuterCallback,
       checkNumberInRange,
     ],
   );

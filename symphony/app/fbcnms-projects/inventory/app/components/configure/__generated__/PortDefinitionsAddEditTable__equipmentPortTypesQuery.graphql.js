@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4ae4a7d2a8901aa3636bed354c040331
+ * @relayHash b838faa58cbb9e0712d4133f5b642d85
  */
 
 /* eslint-disable */
@@ -18,7 +18,7 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type PortDefinitionsAddEditTable__equipmentPortTypesQueryVariables = {||};
 export type PortDefinitionsAddEditTable__equipmentPortTypesQueryResponse = {|
   +equipmentPortTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

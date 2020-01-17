@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 61a628f3468de051c84ab3fa4ba4e1c5
+ * @relayHash 4a939b24aae4e4cf85a1f10952b74378
  */
 
 /* eslint-disable */
@@ -20,7 +20,7 @@ export type InventoryEntitiesTypeaheadQueryVariables = {|
 |};
 export type InventoryEntitiesTypeaheadQueryResponse = {|
   +searchForEntity: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: ?$ReadOnlyArray<{|
       +node: ?{|
         +entityId: string,
         +entityType: string,

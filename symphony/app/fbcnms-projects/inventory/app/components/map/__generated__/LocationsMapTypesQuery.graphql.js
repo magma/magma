@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b993c466df62273e28f18cd724df08b5
+ * @relayHash 8760624c984be01ad99f90c23f77a2f1
  */
 
 /* eslint-disable */
@@ -18,12 +18,12 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type LocationsMapTypesQueryVariables = {||};
 export type LocationsMapTypesQueryResponse = {|
   +locationTypes: ?{|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,
         +locations: ?{|
-          +edges: ?$ReadOnlyArray<?{|
+          +edges: $ReadOnlyArray<{|
             +node: ?{|
               +id: string,
               +name: string,

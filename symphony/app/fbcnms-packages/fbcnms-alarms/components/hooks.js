@@ -75,10 +75,10 @@ export function useLoadRules<TRuleUnion>({
   };
 }
 
-type InputChangeFunc<TFormState> = (
-  formUpdate: FormUpdate<TFormState>,
+type InputChangeFunc<TFormState, TVal> = (
+  formUpdate: FormUpdate<TFormState, TVal>,
 ) => (event: SyntheticInputEvent<HTMLElement>) => void;
-type FormUpdate<TFormState> = (val: string) => $Shape<TFormState>;
+type FormUpdate<TFormState, TVal = string> = (val: TVal) => $Shape<TFormState>;
 
 export function useForm<TFormState: {}>({
   initialState,
@@ -89,7 +89,7 @@ export function useForm<TFormState: {}>({
 }): {|
   formState: TFormState,
   updateFormState: (update: $Shape<TFormState>) => TFormState,
-  handleInputChange: InputChangeFunc<TFormState>,
+  handleInputChange: InputChangeFunc<TFormState, *>,
   updateListItem: (
     listName: $Keys<TFormState>,
     idx: number,
@@ -110,9 +110,12 @@ export function useForm<TFormState: {}>({
         ...update,
       };
       setFormState(nextState);
+      if (typeof onFormUpdated === 'function') {
+        onFormUpdated(nextState);
+      }
       return nextState;
     },
-    [formState, setFormState],
+    [formState, onFormUpdated, setFormState],
   );
 
   /**
@@ -168,12 +171,9 @@ export function useForm<TFormState: {}>({
       event: SyntheticInputEvent<HTMLElement>,
     ) => {
       const value = event.target.value;
-      const updated = updateFormState(formUpdate(value));
-      if (typeof onFormUpdated === 'function') {
-        onFormUpdated(updated);
-      }
+      updateFormState(formUpdate(value));
     },
-    [onFormUpdated, updateFormState],
+    [updateFormState],
   );
 
   return {

@@ -8,9 +8,10 @@
  * @format
  */
 
+import type {AlertConfig} from '../components/AlarmAPIType';
 import type {GenericRule} from '../components/rules/RuleInterface';
 
-export function mockPrometheusRule(merge?: $Shape<GenericRule<{}>>) {
+export function mockPrometheusRule(merge?: $Shape<GenericRule<AlertConfig>>) {
   return {
     name: '<<test>>',
     severity: 'info',
@@ -18,7 +19,14 @@ export function mockPrometheusRule(merge?: $Shape<GenericRule<{}>>) {
     expression: 'up == 0',
     period: '1m',
     ruleType: 'prometheus',
-    rawRule: {},
+    rawRule: {
+      alert: '<<test>>',
+      labels: {
+        severity: 'info',
+      },
+      expr: 'up == 0',
+      for: '1m',
+    },
     ...(merge || {}),
   };
 }

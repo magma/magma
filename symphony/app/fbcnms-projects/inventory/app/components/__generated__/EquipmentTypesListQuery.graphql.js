@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 3adb67e74eec89048cb3cf72db5e7838
+ * @relayHash 856cd484d9bda9891f37a734ad1f3821
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum"
 export type EquipmentTypesListQueryVariables = {||};
 export type EquipmentTypesListQueryResponse = {|
   +equipmentTypes: {|
-    +edges: ?$ReadOnlyArray<?{|
+    +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
         +name: string,

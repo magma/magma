@@ -38,8 +38,8 @@ func (c *Client) Triggers() []core.Trigger {
 }
 
 // Execute delegates to executor.Execute
-func (c *Client) Execute(ctx context.Context, objectID string, triggerToPayload map[core.TriggerID]map[string]interface{}) {
-	c.executor.Execute(ctx, objectID, triggerToPayload)
+func (c *Client) Execute(ctx context.Context, objectID string, triggerToPayload map[core.TriggerID]map[string]interface{}) executor.ExecutionResult {
+	return c.executor.Execute(ctx, objectID, triggerToPayload)
 }
 
 type contextKey struct{}

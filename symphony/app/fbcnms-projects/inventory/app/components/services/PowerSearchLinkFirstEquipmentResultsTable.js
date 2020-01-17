@@ -61,11 +61,14 @@ const useStyles = makeStyles(theme => ({
   },
   row: {
     '&:hover': {
-      backgroundColor: symphony.palette.B50,
+      backgroundColor: symphony.palette.background,
     },
     '&:focus': {
       outline: 'none',
     },
+  },
+  clickableRow: {
+    cursor: 'pointer',
   },
 }));
 
@@ -133,6 +136,7 @@ const PowerSearchLinkFirstEquipmentResultsTable = (props: Props) => {
             classNames({
               [classes.header]: index === -1,
               [classes.row]: index !== -1,
+              [classes.clickableRow]: onRowClicked != null,
               [classes.checked]:
                 selectedEquipment &&
                 index !== -1 &&
