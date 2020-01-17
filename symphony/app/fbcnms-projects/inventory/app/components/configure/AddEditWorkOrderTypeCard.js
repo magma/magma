@@ -435,24 +435,27 @@ class AddEditWorkOrderTypeCard extends React.Component<Props, State> {
       name: editingWorkOrderType?.name ?? '',
       description: editingWorkOrderType?.description,
       numberOfWorkOrders: editingWorkOrderType?.numberOfWorkOrders ?? 0,
-      propertyTypes: propertyTypes || [
-        {
-          id: 'PropertyType@tmp',
-          name: '',
-          index: editingWorkOrderType?.propertyTypes?.length ?? 0,
-          type: 'string',
-          booleanValue: false,
-          stringValue: null,
-          intValue: null,
-          floatValue: null,
-          latitudeValue: null,
-          longitudeValue: null,
-          isEditable: true,
-          isMandatory: false,
-          isInstanceProperty: true,
-          isDeleted: false,
-        },
-      ],
+      propertyTypes:
+        propertyTypes.length > 0
+          ? propertyTypes
+          : [
+              {
+                id: 'PropertyType@tmp',
+                name: '',
+                index: editingWorkOrderType?.propertyTypes?.length ?? 0,
+                type: 'string',
+                booleanValue: false,
+                stringValue: null,
+                intValue: null,
+                floatValue: null,
+                latitudeValue: null,
+                longitudeValue: null,
+                isEditable: true,
+                isMandatory: false,
+                isInstanceProperty: true,
+                isDeleted: false,
+              },
+            ],
       checkListDefinitions: checkListDefinitions,
     };
   }
