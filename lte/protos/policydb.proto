@@ -8,6 +8,7 @@
 syntax = "proto3";
 
 import "lte/protos/subscriberdb.proto";
+import "orc8r/protos/common.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
@@ -160,7 +161,6 @@ message ChargingRuleBaseNameRecord {
   ChargingRuleNameSet RuleNamesSet = 2;
 }
 
-
 // ----------------------------------------------------------------------------
 // Subscriber-Policy Mappings
 // ----------------------------------------------------------------------------
@@ -177,4 +177,21 @@ message AssignedPolicies {
 message InstalledPolicies {
   repeated string installed_base_names = 10;
   repeated string installed_policies = 11;
+}
+
+// --------------------------------------------------------------------------
+// PolicyDB service definition
+// --------------------------------------------------------------------------
+
+service PolicyDB {
+
+  // Immediately install the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
+
+  // Immediately uninstall the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
+  //
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
 }
