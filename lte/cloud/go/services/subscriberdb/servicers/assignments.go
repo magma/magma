@@ -46,7 +46,7 @@ func (srv *PolicyAssignmentServer) EnableStaticRules(ctx context.Context, req *p
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to enable")
 	}
-	return nil, nil
+	return &orcprotos.Void{}, nil
 }
 
 func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *protos.DisableStaticRuleRequest) (*orcprotos.Void, error) {
@@ -65,7 +65,7 @@ func (srv *PolicyAssignmentServer) DisableStaticRules(ctx context.Context, req *
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to disable")
 	}
-	return nil, nil
+	return &orcprotos.Void{}, nil
 }
 
 func doesSubscriberAndRulesExist(networkID string, subscriberID string, ruleIDs []string, baseNames []string) bool {
