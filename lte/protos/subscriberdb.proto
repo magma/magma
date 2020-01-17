@@ -205,12 +205,12 @@ message DisableStaticRuleRequest {
 }
 
 service PolicyAssignmentController {
-  // Immediately install the static policy for the IMSI
-  // Also unassociate the static rule with the IMSI on orc8r
+  // Associate the static rule with the IMSI
+  //
   rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
 
-  // Immediately uninstall the static policy for the IMSI
-  // Also unassociate the static rule with the IMSI on orc8r
+  // Unassociate the static rule with the IMSI
+  //
   rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
 }
 
@@ -286,4 +286,3 @@ service SubscriberDBController {
   // Get all subscriber data for the network
   rpc GetAllSubscriberData (magma.orc8r.NetworkID) returns (GetAllSubscriberDataResponse) {}
 }
-
