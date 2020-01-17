@@ -34,5 +34,3 @@ require (
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 )
-
-go 1.13
