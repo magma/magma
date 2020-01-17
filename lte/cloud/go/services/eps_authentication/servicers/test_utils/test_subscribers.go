@@ -59,7 +59,7 @@ func GetTestSubscribers() []*protos.SubscriberData {
 	return subs
 }
 
-func generateDefaultSub(subscriberID string) *protos.SubscriberData{
+func generateDefaultSub(subscriberID string) *protos.SubscriberData {
 	// Default user
 	sub := &protos.SubscriberData{
 		Sid:       &protos.SubscriberID{Id: subscriberID},

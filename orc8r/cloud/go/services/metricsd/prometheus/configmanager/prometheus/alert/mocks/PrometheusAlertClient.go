@@ -101,6 +101,22 @@ func (_m *PrometheusAlertClient) RuleExists(filePrefix string, rulename string) 
 	return r0
 }
 
+// Tenancy provides a mock function with given fields:
+func (_m *PrometheusAlertClient) Tenancy() *alert.TenancyConfig {
+	ret := _m.Called()
+
+	var r0 *alert.TenancyConfig
+	if rf, ok := ret.Get(0).(func() *alert.TenancyConfig); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*alert.TenancyConfig)
+		}
+	}
+
+	return r0
+}
+
 // UpdateRule provides a mock function with given fields: filePrefix, rule
 func (_m *PrometheusAlertClient) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 	ret := _m.Called(filePrefix, rule)

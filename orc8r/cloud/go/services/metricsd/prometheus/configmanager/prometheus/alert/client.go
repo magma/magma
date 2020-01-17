@@ -23,6 +23,7 @@ import (
 
 const (
 	rulesFilePostfix = "_rules.yml"
+	defaultPrefix    = "alert"
 )
 
 // PrometheusAlertClient provides thread-safe methods for writing, reading,
@@ -36,6 +37,11 @@ type PrometheusAlertClient interface {
 	DeleteRule(filePrefix, ruleName string) error
 	BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkUpdateResults, error)
 	ReloadPrometheus() error
+	Tenancy() *TenancyConfig
+}
+
+type TenancyConfig struct {
+	RestrictorLabel string
 }
 
 type client struct {
@@ -43,16 +49,22 @@ type client struct {
 	rulesDir      string
 	prometheusURL string
 	fsClient      fsclient.FSClient
-	multitenancy  bool
+	tenancy       *TenancyConfig
 }
 
-func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, multitenant bool) PrometheusAlertClient {
+func NewClient(fileLocks *FileLocker, rulesDir, prometheusURL string, fsClient fsclient.FSClient, multitenancyLabel string) PrometheusAlertClient {
+	var tenancy *TenancyConfig
+	if multitenancyLabel != "" {
+		tenancy = &TenancyConfig{
+			RestrictorLabel: multitenancyLabel,
+		}
+	}
 	return &client{
 		fileLocks:     fileLocks,
 		rulesDir:      rulesDir,
 		prometheusURL: prometheusURL,
 		fsClient:      fsClient,
-		multitenancy:  multitenant,
+		tenancy:       tenancy,
 	}
 }
 
@@ -90,8 +102,8 @@ func (c *client) WriteRule(filePrefix string, rule rulefmt.Rule) error {
 	if err != nil {
 		return err
 	}
-	if c.multitenancy {
-		err = SecureRule(filePrefix, &rule)
+	if c.tenancy != nil {
+		err = SecureRule(c.tenancy.RestrictorLabel, filePrefix, &rule)
 		if err != nil {
 			return err
 		}
@@ -116,8 +128,8 @@ func (c *client) UpdateRule(filePrefix string, rule rulefmt.Rule) error {
 		return err
 	}
 
-	if c.multitenancy {
-		err = SecureRule(filePrefix, &rule)
+	if c.tenancy != nil {
+		err = SecureRule(c.tenancy.RestrictorLabel, filePrefix, &rule)
 		if err != nil {
 			return err
 		}
@@ -193,8 +205,8 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 	results := NewBulkUpdateResults()
 	for _, newRule := range rules {
 		ruleName := newRule.Alert
-		if c.multitenancy {
-			err := SecureRule(filePrefix, &newRule)
+		if c.tenancy != nil {
+			err := SecureRule(c.tenancy.RestrictorLabel, filePrefix, &newRule)
 			if err != nil {
 				results.Errors[ruleName] = err
 				continue
@@ -219,6 +231,10 @@ func (c *client) BulkUpdateRules(filePrefix string, rules []rulefmt.Rule) (BulkU
 		return results, err
 	}
 	return results, nil
+}
+
+func (c *client) Tenancy() *TenancyConfig {
+	return c.tenancy
 }
 
 func (c *client) ReloadPrometheus() error {
@@ -249,6 +265,9 @@ func (c *client) initializeRuleFile(filePrefix, filename string) (*File, error) 
 			return nil, err
 		}
 		return file, nil
+	}
+	if filePrefix == "" {
+		filePrefix = defaultPrefix
 	}
 	return NewFile(filePrefix), nil
 }
@@ -298,5 +317,8 @@ func (r BulkUpdateResults) String() string {
 }
 
 func makeFilename(filePrefix, path string) string {
+	if filePrefix == "" {
+		filePrefix = defaultPrefix
+	}
 	return path + "/" + filePrefix + rulesFilePostfix
 }
