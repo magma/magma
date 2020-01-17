@@ -695,7 +695,7 @@ void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
       /*
        * Error during ue context malloc
        */
-      DevMessage("mme_create_new_ue_context");
+      OAILOG_ERROR(LOG_MME_APP, "Failed to create new ue context \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     is_mm_ctx_new = true;
@@ -1628,26 +1628,17 @@ void mme_app_handle_e_rab_setup_rsp(
 void mme_app_handle_mobile_reachability_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(
+    mme_ue_s1ap_id,
+    "Mobile reachability timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Mobile Reachability Timer expired, but no assoicated UE context found"
-      " for ue-id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Expired- Mobile Reachability Timer for ue_id:" MME_UE_S1AP_ID_FMT " \n",
-    ue_context_p->mme_ue_s1ap_id);
+
   // Start Implicit Detach timer
   nas_itti_timer_arg_t timer_callback_fun = {0};
   timer_callback_fun.nas_timer_callback =
@@ -1685,28 +1676,16 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args)
 void mme_app_handle_implicit_detach_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(
+    mme_ue_s1ap_id,
+    "Implicit detach timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Implicit Detach Timer expired, but no assoicated UE context for"
-      "ue-id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-
-  OAILOG_INFO(
-    LOG_MME_APP,
-    "Implicit Detach timer expired for UE id" MME_UE_S1AP_ID_FMT "\n",
-    mme_ue_s1ap_id);
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
-
   // Initiate Implicit Detach for the UE
   nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -1716,27 +1695,15 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args)
 void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(
+     mme_ue_s1ap_id,
+     "Initial context setup response timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Initial context setup rsp Timer expired, but no assoicated UE context found"
-      " for ue_id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-
-
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Expired- Initial context setup rsp timer for UE id  %d \n",
-    mme_ue_s1ap_id);
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is active. If so then release the S1AP
@@ -2055,27 +2022,13 @@ int mme_app_handle_initial_paging_request(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_paging_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
+  ue_context_p = mme_app_get_ue_context(mme_ue_s1ap_id, "Paging timer");
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Paging Timer expired, but no assoicated UE context found"
-      " for ue_id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Paging Timer expired for ue_id " MME_UE_S1AP_ID_FMT "\n",
-    mme_ue_s1ap_id);
-
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   if ((mme_app_paging_request_helper(
     ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
@@ -2090,26 +2043,15 @@ void mme_app_handle_paging_timer_expiry(void* args)
 void mme_app_handle_ulr_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(
+    mme_ue_s1ap_id,
+    "Update location timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Update Location Timer expired, but no assoicated UE context found"
-      " for ue_id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Update Location Timer expired for ue-id" MME_UE_S1AP_ID_FMT "\n",
-    mme_ue_s1ap_id);
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   // Send PDN CONNECTIVITY FAIL message  to NAS layer
@@ -2332,10 +2274,11 @@ int mme_app_handle_nas_extended_service_req(
          * not when SERVICE ABORT request is received from MSC/VLR
          */
         ue_context_p->sgs_context->mt_call_in_progress = true;
+        /* If call_cancelled is set, send Service Reject to UE as MSC/VLR
+         * has triggered SGSAP SERVICE ABORT procedure
+         */
         if (ue_context_p->sgs_context->call_cancelled) {
-          /* Sending Service Reject to UE as MSC/VLR has triggered
-           * SGSAP SERVICE ABORT
-           * If UE's ECM state is IDLE send
+          /* If UE's ECM state is IDLE send
            * service_reject in Establish cnf else send in DL NAS Transport
            */
           if (ue_context_p->ecm_state == ECM_IDLE) {
@@ -2418,26 +2361,15 @@ int mme_app_handle_nas_extended_service_req(
 void mme_app_handle_ue_context_modification_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t *) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(
+    mme_ue_s1ap_id,
+    "UE context modification timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "UE context modification Timer expired, but no assoicated UE context "
-      "found for ue-id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Expired- UE context modification timer for UE id  %d \n",
-    mme_ue_s1ap_id);
   ue_context_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   if (ue_context_p->sgs_context != NULL) {
@@ -3456,4 +3388,32 @@ void mme_app_update_paging_tai_list(
       break;
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+// Fetch UE context based on mme_ue_s1ap_id and return pointer to UE context
+ue_mm_context_t* mme_app_get_ue_context(
+  mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  mme_app_desc_t* mme_app_desc_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
+
+  OAILOG_ERROR(LOG_MME_APP, "Expired- %s for ue_id " MME_UE_S1AP_ID_FMT
+    "\n",
+    timer_name,
+    mme_ue_s1ap_id);
+
+  mme_app_desc_p = get_mme_nas_state(false);
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to get ue context while handling %s for ue_id "
+      MME_UE_S1AP_ID_FMT "\n",
+      timer_name,
+      mme_ue_s1ap_id);
+    return NULL;
+  }
+  return ue_context_p;
 }

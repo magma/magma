@@ -143,21 +143,16 @@ ue_mm_context_t* mme_create_new_ue_context(void)
   new_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   new_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
-  new_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  new_p->initial_context_setup_rsp_timer.sec =
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE;
-  new_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  new_p->paging_response_timer.sec = MME_APP_PAGING_RESPONSE_TIMER_VALUE;
-  new_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  new_p->ulr_response_timer.sec = MME_APP_ULR_RESPONSE_TIMER_VALUE;
-  new_p->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
-  new_p->ue_context_modification_timer.sec =
-      MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE;
+  new_p->initial_context_setup_rsp_timer = (struct mme_app_timer_t) {
+    MME_APP_TIMER_INACTIVE_ID, MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
+  new_p->paging_response_timer = (struct mme_app_timer_t) {
+    MME_APP_TIMER_INACTIVE_ID, MME_APP_PAGING_RESPONSE_TIMER_VALUE};
+  new_p->ulr_response_timer = (struct mme_app_timer_t) {
+    MME_APP_TIMER_INACTIVE_ID, MME_APP_ULR_RESPONSE_TIMER_VALUE};
+  new_p->ue_context_modification_timer = (struct mme_app_timer_t) {
+    MME_APP_TIMER_INACTIVE_ID, MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
 
   new_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
-  new_p->send_ue_purge_request = false;
-  new_p->hss_initiated_detach = false;
-  new_p->location_info_confirmed_in_hss = false;
   new_p->sgs_context = NULL;
   return new_p;
 }

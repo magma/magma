@@ -1624,24 +1624,20 @@ static void _nas_itti_auth_info_req(
  **                                                                    **
  ** Inputs:  args:      handler parameters                             **
  **                                                                    **
- ** Outputs:                                                           **
- **      Return:    None                                               **
- **      Others:    None                                               **
- **                                                                    **
  ************************************************************************/
-static void _s6a_auth_info_rsp_timer_expiry_handler(void *args)
+static void _s6a_auth_info_rsp_timer_expiry_handler(void* args)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t *emm_ctx = (emm_context_t *) (args);
+  emm_context_t* emm_ctx = (emm_context_t *) (args);
 
   if (emm_ctx) {
-    nas_auth_info_proc_t *auth_info_proc =
+    nas_auth_info_proc_t* auth_info_proc =
       get_nas_cn_procedure_auth_info(emm_ctx);
     if (!auth_info_proc) {
       OAILOG_FUNC_OUT(LOG_NAS_EMM);
     }
 
-    void *timer_callback_args = NULL;
+    void* timer_callback_args = NULL;
     nas_stop_Ts6a_auth_info(
       auth_info_proc->ue_id, &auth_info_proc->timer_s6a, timer_callback_args);
 

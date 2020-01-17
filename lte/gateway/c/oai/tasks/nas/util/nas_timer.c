@@ -120,6 +120,8 @@ void mme_app_nas_timer_handle_signal_expiry(
 {
   OAILOG_FUNC_IN(LOG_NAS);
   if ((!timer_exists(timer_id)) || (cb->nas_timer_callback == NULL)) {
+    OAILOG_ERROR(
+      LOG_NAS, "Invalid timer id %ld \n", timer_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   cb->nas_timer_callback(cb->nas_timer_callback_arg);

@@ -986,19 +986,11 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt)
 void mme_app_handle_ts6_1_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  mme_app_desc_t* mme_app_desc_p = NULL;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = NULL;
 
-  mme_app_desc_p = get_mme_nas_state(false);
-  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, mme_ue_s1ap_id);
+  ue_context_p = mme_app_get_ue_context(mme_ue_s1ap_id,"sgs ts6_1 timer");
   if (ue_context_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Ts6-1  Timer expired, but no assoicated UE context "
-      "found for ue-id " MME_UE_S1AP_ID_FMT "\n",
-      mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -1009,10 +1001,6 @@ void mme_app_handle_ts6_1_timer_expiry(void* args)
       mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  OAILOG_ERROR(
-    LOG_MME_APP,
-    "Expired- Ts6-1 timer for ue_id:" MME_UE_S1AP_ID_FMT "\n",
-    mme_ue_s1ap_id);
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->sgs_state = SGS_NULL;
 

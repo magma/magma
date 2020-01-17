@@ -116,9 +116,7 @@ void free_esm_context_content(esm_context_t *esm_ctx)
   if (esm_ctx) {
     nas_stop_T3489(esm_ctx);
     if (esm_ctx->esm_proc_data) {
-      if (esm_ctx->esm_proc_data->apn) {
-          bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
-      }
+      bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
       free_wrapper((void**)&esm_ctx->esm_proc_data);
     }
   }
