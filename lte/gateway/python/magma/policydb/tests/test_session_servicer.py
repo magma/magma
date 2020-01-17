@@ -15,7 +15,7 @@ from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreditUpdateResponse
 from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
 from orc8r.protos.common_pb2 import NetworkID
-from magma.policydb.rpc_servicer import SessionRpcServicer
+from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
 
 CSR_STATIC_RULES = '[rule_id: "redirect"]'
