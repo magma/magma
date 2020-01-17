@@ -16,16 +16,23 @@ import type {FiringAlarm, Labels} from '@fbcnms/alarms/components/AlarmAPIType';
 
 export default function Alarms() {
   const {isFeatureEnabled} = React.useContext(AppContext);
-  const experimentalAlertsEnabled = isFeatureEnabled('alerts_experimental');
-  const thresholdEditorEnabled = isFeatureEnabled('alert_threshold_expression');
+  const disabledTabs = React.useMemo(
+    () =>
+      [
+        isFeatureEnabled('alert_receivers') ? null : 'receivers',
+        isFeatureEnabled('alert_routes') ? null : 'routes',
+        isFeatureEnabled('alert_suppressions') ? null : 'suppressions',
+      ].filter(Boolean),
+    [isFeatureEnabled],
+  );
   return (
     <FBCAlarms
       apiUtil={MagmaAlarmsApiUtil}
       makeTabLink={({match, keyName}) =>
         `/nms/${match.params.networkId || ''}/alerts/${keyName}`
       }
-      experimentalTabsEnabled={experimentalAlertsEnabled}
-      thresholdEditorEnabled={thresholdEditorEnabled}
+      disabledTabs={disabledTabs}
+      thresholdEditorEnabled={true}
       filterLabels={filterSymphonyLabels}
     />
   );

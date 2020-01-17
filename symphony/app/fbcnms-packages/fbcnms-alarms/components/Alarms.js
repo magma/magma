@@ -34,7 +34,7 @@ const useStyles = makeStyles(_theme => ({
 }));
 
 type TabMap = {
-  [string]: {name: string, experimental?: boolean},
+  [string]: {name: string},
 };
 
 const TABS: TabMap = {
@@ -46,15 +46,12 @@ const TABS: TabMap = {
   },
   suppressions: {
     name: 'Suppressions',
-    experimental: true,
   },
   routes: {
     name: 'Routes',
-    experimental: true,
   },
   receivers: {
     name: 'Receivers',
-    experimental: true,
   },
 };
 
@@ -63,7 +60,7 @@ const DEFAULT_TAB_NAME = 'alerts';
 type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
   makeTabLink: ({match: Match, keyName: string}) => string,
-  experimentalTabsEnabled: boolean,
+  disabledTabs?: Array<string>,
   thresholdEditorEnabled?: boolean,
   filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
   ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
@@ -74,7 +71,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     apiUtil,
     filterLabels,
     makeTabLink,
-    experimentalTabsEnabled,
+    disabledTabs,
     thresholdEditorEnabled,
     ruleMap,
   } = props;
@@ -85,6 +82,10 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
     path: `${match.path}/:tabName`,
   });
 
+  const disabledTabSet = React.useMemo(() => {
+    return new Set(disabledTabs ?? []);
+  }, [disabledTabs]);
+
   const alarmProps = {apiUtil};
   return (
     <>
@@ -94,8 +95,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           indicatorColor="primary"
           textColor="primary">
           {Object.keys(TABS).map(keyName => {
-            const tab = TABS[keyName];
-            if (!experimentalTabsEnabled && tab.experimental) {
+            if (disabledTabSet.has(keyName)) {
               return null;
             }
             return (
@@ -104,7 +104,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
                 to={makeTabLink({keyName, match})}
                 key={keyName}
                 className={classes.selectedTab}
-                label={tab.name}
+                label={TABS[keyName].name}
                 value={keyName}
               />
             );

@@ -103,14 +103,19 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'alerts_experimental',
-    title: 'Alerts Experimental Features',
+    id: 'alert_receivers',
+    title: 'Alert Receivers',
+    enabledByDefault: true,
+  },
+  {
+    id: 'alert_routes',
+    title: 'Alert Routes',
     enabledByDefault: false,
   },
   {
-    id: 'alert_threshold_expression',
-    title: 'Alerts Threshold Expression Editor',
-    enabledByDefault: true,
+    id: 'alert_suppressions',
+    title: 'Alert Suppressions',
+    enabledByDefault: false,
   },
   {
     id: 'logs',
