@@ -34,7 +34,7 @@ const useStyles = makeStyles(_theme => ({
 }));
 
 type TabMap = {
-  [string]: {name: string, experimental?: boolean},
+  [string]: {name: string},
 };
 
 const TABS: TabMap = {
@@ -46,15 +46,12 @@ const TABS: TabMap = {
   },
   suppressions: {
     name: 'Suppressions',
-    experimental: true,
   },
   routes: {
     name: 'Routes',
-    experimental: true,
   },
   receivers: {
     name: 'Receivers',
-    experimental: true,
   },
 };
 
@@ -63,21 +60,13 @@ const DEFAULT_TAB_NAME = 'alerts';
 type Props<TRuleUnion> = {
   apiUtil: ApiUtil,
   makeTabLink: ({match: Match, keyName: string}) => string,
-  experimentalTabsEnabled: boolean,
-  thresholdEditorEnabled?: boolean,
+  disabledTabs: Array<string>,
   filterLabels?: (labels: Labels, alarm: FiringAlarm) => Labels,
   ruleMap?: ?RuleInterfaceMap<TRuleUnion>,
 };
 
 export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
-  const {
-    apiUtil,
-    filterLabels,
-    makeTabLink,
-    experimentalTabsEnabled,
-    thresholdEditorEnabled,
-    ruleMap,
-  } = props;
+  const {apiUtil, filterLabels, makeTabLink, disabledTabs, ruleMap} = props;
   const classes = useStyles();
   const {match, location} = useRouter();
 
@@ -94,8 +83,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
           indicatorColor="primary"
           textColor="primary">
           {Object.keys(TABS).map(keyName => {
-            const tab = TABS[keyName];
-            if (!experimentalTabsEnabled && tab.experimental) {
+            if (disabledTabs.includes(keyName)) {
               return null;
             }
             return (
@@ -104,7 +92,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
                 to={makeTabLink({keyName, match})}
                 key={keyName}
                 className={classes.selectedTab}
-                label={tab.name}
+                label={TABS[keyName].name}
                 value={keyName}
               />
             );
@@ -124,7 +112,7 @@ export default function Alarms<TRuleUnion>(props: Props<TRuleUnion>) {
             <AlertRules
               {...alarmProps}
               ruleMap={ruleMap}
-              thresholdEditorEnabled={thresholdEditorEnabled}
+              thresholdEditorEnabled={true}
             />
           )}
         />
