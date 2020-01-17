@@ -10,9 +10,11 @@
 
 import {useEffect, useRef} from 'react';
 
+type TFunction = () => void | Promise<void>;
+
 // from https://overreacted.io/making-setinterval-declarative-with-react-hooks/
-export default function useInterval(callback: () => void, delay: number) {
-  const savedCallback = useRef<?() => void>();
+export default function useInterval(callback: TFunction, delay: number) {
+  const savedCallback = useRef<?TFunction>();
 
   // Remember the latest callback.
   useEffect(() => {
