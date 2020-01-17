@@ -48,6 +48,9 @@ func main() {
 	protos.RegisterSubscriberDBControllerServer(srv.GrpcServer, servicer)
 	srv.GrpcServer.RegisterService(protos.GetLegacySubscriberdbDesc(), servicer)
 
+	assignmentServicer := servicers.NewPolicyAssignmentServer()
+	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
+
 	// Run the service
 	err = srv.Run()
 	if err != nil {

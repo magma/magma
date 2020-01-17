@@ -139,6 +139,15 @@ class LocalEnforcer {
   ChargingReAuthAnswer::Result init_charging_reauth(
     ChargingReAuthRequest request);
 
+  /**
+   * Handles the equivalent of a RAR.
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Afterwards, a bearer is created.
+   *
+   * NOTE: If an empty session ID is specified, apply changes to all matching
+   * sessions with the specified IMSI.
+   */
   void init_policy_reauth(
     PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out);
@@ -243,6 +252,17 @@ class LocalEnforcer {
     const std::unique_ptr<SessionState>& session,
     RulesToProcess& rules_to_activate,
     RulesToProcess& rules_to_deactivate);
+
+  /**
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Also create a bearer for the session.
+   */
+  void init_policy_reauth_for_session(
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    bool& activate_success,
+    bool& deactivate_success);
 
   /**
    * Completes the session termination and executes the callback function

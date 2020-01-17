@@ -138,6 +138,7 @@ enum EventTrigger {
 }
 
 message PolicyReAuthRequest {
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
   string session_id = 1;
   string imsi = 2;
   repeated string rules_to_remove = 3;
@@ -229,6 +230,8 @@ service LocalSessionManager {
 service SessionProxyResponder {
   rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
 
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
+  //
   rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
 }
 
