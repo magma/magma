@@ -139,7 +139,7 @@ class Application : public MetricSink {
   channels::snmp::Engine* snmpEngine;
   channels::ping::Engine* pingEngine;
   channels::ping::Engine* pingEngineIpv6;
-  channels::cli::Engine* cliEngine;
+  channels::cli::Engine* cliEngine = nullptr;
 
   /*
    * Devices communicate with the off host devices through any number of

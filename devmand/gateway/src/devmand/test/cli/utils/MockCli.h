@@ -20,26 +20,43 @@ namespace cli {
 
 using namespace devmand::channels::cli;
 using namespace std;
+using namespace folly;
 
 class EchoCli : public Cli {
  public:
-  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
-    return folly::Future<string>(cmd.raw());
+  ~EchoCli() {
+    MLOG(MDEBUG) << "~EchoCli";
   }
 
-  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
-    return folly::Future<string>(cmd.raw());
+  SemiFuture<Unit> destroy() override {
+    return makeSemiFuture(unit);
+  }
+
+  SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    return Future<string>(cmd.raw());
+  }
+
+  SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+    return Future<string>(cmd.raw());
   }
 };
 
 class ErrCli : public Cli {
  public:
-  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
-    return folly::Future<string>(runtime_error(cmd.raw()));
+  ~ErrCli() {
+    MLOG(MDEBUG) << "~ErrCli";
   }
 
-  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
-    return folly::Future<string>(runtime_error(cmd.raw()));
+  SemiFuture<Unit> destroy() override {
+    return makeSemiFuture(unit);
+  }
+
+  SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    return Future<string>(runtime_error(cmd.raw()));
+  }
+
+  SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+    return Future<string>(runtime_error(cmd.raw()));
   }
 };
 
@@ -47,27 +64,37 @@ class AsyncCli : public Cli {
  public:
   AsyncCli(
       shared_ptr<Cli> _cli,
-      shared_ptr<folly::CPUThreadPoolExecutor> _executor,
+      shared_ptr<CPUThreadPoolExecutor> _executor,
       vector<unsigned int> _durations)
       : cli(_cli), executor(_executor), durations(_durations), index(0) {}
 
-  folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
-    folly::Future<string> f = via(executor.get()).thenValue([=](...) {
+  ~AsyncCli() {
+    MLOG(MDEBUG) << "~AsyncCli";
+  }
+
+  SemiFuture<Unit> destroy() override {
+    return makeSemiFuture(unit);
+  }
+
+  SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
+    Future<string> f = via(executor.get()).thenValue([=](...) {
       unsigned int tis = durations[(index++) % durations.size()];
+      MLOG(MDEBUG) << "Sleeping for " << tis << "s";
       this_thread::sleep_for(chrono::seconds(tis));
+      MLOG(MDEBUG) << "Sleeping done";
       return cli->executeRead(cmd);
     });
     return f;
   }
 
-  folly::SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
+  SemiFuture<std::string> executeWrite(const WriteCommand cmd) override {
     (void)cmd;
-    return folly::Future<string>(runtime_error("Unsupported"));
+    return Future<string>(runtime_error("Unsupported"));
   }
 
  protected:
   shared_ptr<Cli> cli; // underlying cli layers
-  shared_ptr<folly::CPUThreadPoolExecutor> executor;
+  shared_ptr<CPUThreadPoolExecutor> executor;
   vector<unsigned int> durations;
   unsigned int index;
   bool quit;
@@ -76,7 +103,7 @@ class AsyncCli : public Cli {
 template <typename NESTED>
 shared_ptr<AsyncCli> getMockCli(
     uint delay,
-    shared_ptr<folly::CPUThreadPoolExecutor> exec) {
+    shared_ptr<CPUThreadPoolExecutor> exec) {
   vector<unsigned int> durations = {delay};
   return make_shared<AsyncCli>(make_shared<NESTED>(), exec, durations);
 }

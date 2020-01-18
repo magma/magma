@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.7.2)
 
 set(MGM_COM_DIR /usr/lib/)
 # Pass libyang plugins dir
-add_definitions(-DLIBYANG_PLUGINS_DIR="/lib/libyang/")
+add_definitions(-DLIBYANG_PLUGINS_DIR="/usr/lib/libyang/")
 
 add_definitions(-DPROTOBUF_INLINE_NOT_IN_HEADERS=0)
 
@@ -125,7 +125,11 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/TimeoutTrackingCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/KeepaliveCli.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReconnectingCli.cpp
-        )
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/LoggingCli.cpp
+  )
 
 target_link_libraries(devman_channel_cli
   devman)

@@ -38,6 +38,10 @@ class StructuredUbntDeviceTest : public testing::Test {
 
 class UbntFakeCli : public Cli {
  public:
+  SemiFuture<folly::Unit> destroy() override {
+    return folly::makeSemiFuture(folly::unit);
+  }
+
   folly::SemiFuture<std::string> executeRead(const ReadCommand cmd) override {
     (void)cmd;
     if (cmd.raw() == "show interfaces description") {
@@ -420,6 +424,8 @@ static const string EXPECTED_OUTPUT =
 
 TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
   devmand::Application app;
+  // app.init(); <-- without this app is not properly initialized
+
   cartography::DeviceConfig deviceConfig;
   devmand::cartography::ChannelConfig chnlCfg;
   std::map<std::string, std::string> kvPairs;
@@ -429,8 +435,7 @@ TEST_F(StructuredUbntDeviceTest, DISABLED_getOperationalDatastore) {
   auto cli = make_shared<UbntFakeCli>();
   auto channel = make_shared<Channel>("ubntTest", cli);
   std::unique_ptr<devices::Device> dev = std::make_unique<StructuredUbntDevice>(
-      app, deviceConfig.id, false, channel);
-
+      app, deviceConfig.id, false, channel, make_shared<ModelRegistry>());
   std::shared_ptr<Datastore> state = dev->getOperationalDatastore();
   const folly::dynamic& stateResult = state->collect().get();
 

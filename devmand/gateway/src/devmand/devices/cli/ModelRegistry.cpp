@@ -18,8 +18,8 @@ using namespace ydk;
 using namespace std;
 using namespace ydk::path;
 
-const Model Model::OPENCONFIG_0_1_6 = Model("/share/openconfig@0.1.6");
-const Model Model::IETF_0_1_5 = Model("/share/ietf@0.1.5");
+const Model Model::OPENCONFIG_0_1_6 = Model("/usr/share/openconfig@0.1.6");
+const Model Model::IETF_0_1_5 = Model("/usr/share/ietf@0.1.5");
 
 static void (*const noop)() = []() {};
 

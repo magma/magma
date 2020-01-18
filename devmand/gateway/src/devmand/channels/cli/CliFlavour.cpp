@@ -23,8 +23,6 @@ using devmand::channels::cli::UbiquitiInitializer;
 using devmand::channels::cli::sshsession::SessionAsync;
 using folly::Optional;
 
-static const int DEFAULT_MILLIS = 1000;
-
 SemiFuture<Unit> EmptyInitializer::initialize(
     shared_ptr<SessionAsync> session,
     string secret) {
@@ -45,21 +43,23 @@ SemiFuture<Unit> UbiquitiInitializer::initialize(
 
 Future<string> DefaultPromptResolver::resolvePrompt(
     shared_ptr<SessionAsync> session,
-    const string& newline) {
-  return session
-      ->read(DEFAULT_MILLIS) // clear input, converges faster on
-                             // prompt
-      .thenValue([=](...) { return resolvePrompt(session, newline, 1); });
+    const string& newline,
+    shared_ptr<Timekeeper> timekeeper) {
+  return session->read().thenValue([=](...) {
+    return resolvePrompt(session, newline, delayDelta, timekeeper);
+  });
 }
 
 Future<string> DefaultPromptResolver::resolvePrompt(
     shared_ptr<SessionAsync> session,
     const string& newline,
-    int delayCounter) {
-  return resolvePromptAsync(session, newline, delayCounter)
+    chrono::milliseconds delay,
+    shared_ptr<Timekeeper> timekeeper) {
+  return resolvePromptAsync(session, newline, delay, timekeeper)
       .thenValue([=](Optional<string> prompt) {
         if (!prompt.hasValue()) {
-          return resolvePrompt(session, newline, delayCounter + 1);
+          return resolvePrompt(
+              session, newline, delay + delayDelta, timekeeper);
         } else {
           return folly::makeFuture(prompt.value());
         }
@@ -69,11 +69,11 @@ Future<string> DefaultPromptResolver::resolvePrompt(
 Future<Optional<string>> DefaultPromptResolver::resolvePromptAsync(
     shared_ptr<SessionAsync> session,
     const string& newline,
-    int delayCounter) {
+    chrono::milliseconds delay,
+    shared_ptr<Timekeeper> timekeeper) {
   return session->write(newline + newline)
-      .thenValue([delayCounter, session](...) {
-        return session->read(delayCounter * DEFAULT_MILLIS);
-      })
+      .delayed(delay, timekeeper.get())
+      .thenValue([session](...) { return session->read(); })
       .thenValue([=](string output) {
         regex regxp("\\" + newline);
         vector<string> split(
@@ -118,10 +118,10 @@ shared_ptr<CliFlavour> CliFlavour::create(string flavour) {
     return make_shared<CliFlavour>(
         make_unique<DefaultPromptResolver>(),
         make_unique<UbiquitiInitializer>());
+  } else {
+    return make_shared<CliFlavour>(
+        make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
   }
-
-  return make_shared<CliFlavour>(
-      make_unique<DefaultPromptResolver>(), make_unique<EmptyInitializer>());
 }
 
 } // namespace cli

@@ -7,6 +7,7 @@
 
 #include <devmand/channels/cli/engine/Engine.h>
 #include <devmand/test/cli/utils/Ssh.h>
+#include <folly/Conv.h>
 #include <folly/futures/Future.h>
 #include <regex>
 
@@ -39,7 +40,7 @@ static void handleCommand(ssh_channel channel, stringstream& inputBuf) {
   smatch match;
   string currentOutput = inputBuf.str();
   if (regex_search(currentOutput, match, sleep)) {
-    int seconds = stoi(match[1]);
+    int seconds = folly::to<int>(match[1].str());
     MLOG(MDEBUG) << "Executing sleep: " << seconds;
     this_thread::sleep_for(chrono::seconds(seconds));
     inputBuf.str(match.suffix().str());
