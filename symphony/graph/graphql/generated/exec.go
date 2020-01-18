@@ -7413,14 +7413,14 @@ type Query {
     first: Int! = 10
   ): [Location!]!
   vertex(id: ID!): Vertex
-  projectType(id: ID!): ProjectType
+  projectType(id: ID!): ProjectType @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   projectTypes(
     after: Cursor
     first: Int
     before: Cursor
     last: Int
   ): ProjectTypeConnection
-  project(id: ID!): Project
+  project(id: ID!): Project @deprecated(reason: "Use ` + "`" + `node` + "`" + ` instead")
   customer(id: ID!): Customer
   customers(
     after: Cursor
