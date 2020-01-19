@@ -417,6 +417,7 @@ type SearchEntry {
   entityType: String!
   name: String!
   type: String!
+  externalId: String
 }
 
 """

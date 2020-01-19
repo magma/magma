@@ -232,6 +232,7 @@ func (r queryResolver) SearchForEntity(
 				EntityID:   l.ID,
 				Name:       l.Name,
 				Type:       lt.Name,
+				ExternalID: &l.ExternalID,
 			},
 		}
 	}
@@ -257,6 +258,7 @@ func (r queryResolver) SearchForEntity(
 				EntityID:   e.ID,
 				Name:       e.Name,
 				Type:       et.Name,
+				ExternalID: &e.ExternalID,
 			},
 		})
 	}

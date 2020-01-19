@@ -484,10 +484,11 @@ type SearchEntriesConnection struct {
 }
 
 type SearchEntry struct {
-	EntityID   string `json:"entityId"`
-	EntityType string `json:"entityType"`
-	Name       string `json:"name"`
-	Type       string `json:"type"`
+	EntityID   string  `json:"entityId"`
+	EntityType string  `json:"entityType"`
+	Name       string  `json:"name"`
+	Type       string  `json:"type"`
+	ExternalID *string `json:"externalId"`
 }
 
 // A search entry edge in a connection.

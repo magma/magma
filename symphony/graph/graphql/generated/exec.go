@@ -642,6 +642,7 @@ type ComplexityRoot struct {
 	SearchEntry struct {
 		EntityID   func(childComplexity int) int
 		EntityType func(childComplexity int) int
+		ExternalID func(childComplexity int) int
 		Name       func(childComplexity int) int
 		Type       func(childComplexity int) int
 	}
@@ -4335,6 +4336,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchEntry.EntityType(childComplexity), true
 
+	case "SearchEntry.externalId":
+		if e.complexity.SearchEntry.ExternalID == nil {
+			break
+		}
+
+		return e.complexity.SearchEntry.ExternalID(childComplexity), true
+
 	case "SearchEntry.name":
 		if e.complexity.SearchEntry.Name == nil {
 			break
@@ -5929,6 +5937,7 @@ type SearchEntry {
   entityType: String!
   name: String!
   type: String!
+  externalId: String
 }
 
 """
@@ -23960,6 +23969,40 @@ func (ec *executionContext) _SearchEntry_type(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchEntry_externalId(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntry) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "SearchEntry",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExternalID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SearchEntryEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntryEdge) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -38054,6 +38097,8 @@ func (ec *executionContext) _SearchEntry(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "externalId":
+			out.Values[i] = ec._SearchEntry_externalId(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

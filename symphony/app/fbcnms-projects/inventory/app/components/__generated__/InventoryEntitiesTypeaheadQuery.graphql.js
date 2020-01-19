@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4a939b24aae4e4cf85a1f10952b74378
+ * @relayHash cef8b499882c927bdc7e287b59679997
  */
 
 /* eslint-disable */
@@ -26,6 +26,7 @@ export type InventoryEntitiesTypeaheadQueryResponse = {|
         +entityType: string,
         +name: string,
         +type: string,
+        +externalId: ?string,
       |}
     |}>
   |}
@@ -48,6 +49,7 @@ query InventoryEntitiesTypeaheadQuery(
         entityType
         name
         type
+        externalId
       }
     }
   }
@@ -129,6 +131,13 @@ v1 = [
                 "name": "type",
                 "args": null,
                 "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "externalId",
+                "args": null,
+                "storageKey": null
               }
             ]
           }
@@ -157,11 +166,11 @@ return {
     "operationKind": "query",
     "name": "InventoryEntitiesTypeaheadQuery",
     "id": null,
-    "text": "query InventoryEntitiesTypeaheadQuery(\n  $name: String!\n) {\n  searchForEntity(name: $name, first: 10) {\n    edges {\n      node {\n        entityId\n        entityType\n        name\n        type\n      }\n    }\n  }\n}\n",
+    "text": "query InventoryEntitiesTypeaheadQuery(\n  $name: String!\n) {\n  searchForEntity(name: $name, first: 10) {\n    edges {\n      node {\n        entityId\n        entityType\n        name\n        type\n        externalId\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '213cfdf6a9220dfc44c9c26e93a3acf0';
+(node/*: any*/).hash = '3193f2bf82e261b325213cb623241440';
 module.exports = node;
