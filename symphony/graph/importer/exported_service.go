@@ -118,7 +118,8 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 					count++
 					log.Warn(fmt.Sprintf("(row #%d) creating service", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
 				} else {
-					log.Warn(fmt.Sprintf("(row #%d) [SKIP]service existed", numRows), zap.String("name", service.Name), zap.String("id", service.ID))
+					errorReturn(w, fmt.Sprintf("(row #%d) Service %v already exists under location/position (id=%v)", numRows, service.Name, service.ID), log, nil)
+					return
 				}
 			} else {
 				// existingService
