@@ -98,7 +98,7 @@ const projectTypesQuery = graphql`
         }
       }
     }
-    workOrderTypes(first: 50) {
+    workOrderTypes {
       edges {
         node {
           ...ProjectTypeWorkOrderTemplatesPanel_workOrderTypes
