@@ -13,15 +13,13 @@ import type {SvgIconStyleProps} from '../SvgIcon';
 import React from 'react';
 import SvgIcon from '../SvgIcon';
 
-const CloseIcon = (props: SvgIconStyleProps) => (
+const FileIcon = (props: SvgIconStyleProps) => (
   <SvgIcon {...props}>
-    <g transform="translate(6,6)">
-      <path
-        d="M10.588 0L12 1.412 7.411 6 12 10.588 10.588 12 6 7.411 1.412 12 0 10.588 4.588 6 0 1.412 1.412 0 6 4.588 10.588 0z"
-        fillRule="evenodd"
-      />
-    </g>
+    <path
+      d="M15 3l5 6v11a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1h10zm-2 2H6v14h12v-9h-5V5zm3 10v2H8v-2h8zm0-3v2H8v-2h8zm-1-5.875V8h1.563L15 6.125z"
+      fillRule="nonzero"
+    />
   </SvgIcon>
 );
 
-export default CloseIcon;
+export default FileIcon;
