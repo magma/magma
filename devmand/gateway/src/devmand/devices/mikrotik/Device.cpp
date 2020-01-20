@@ -8,11 +8,10 @@
 #include <devmand/devices/mikrotik/Device.h>
 
 #include <devmand/Application.h>
-#include <devmand/StringUtils.h>
-#include <devmand/devices/DemoDevice.h>
 #include <devmand/devices/mikrotik/Mib.h>
 #include <devmand/models/device/Model.h>
 #include <devmand/models/wifi/Model.h>
+#include <devmand/utils/StringUtils.h>
 
 namespace devmand {
 namespace devices {
@@ -20,13 +19,13 @@ namespace mikrotik {
 
 static constexpr const unsigned short mikrotikPort = 8728;
 
-std::unique_ptr<devices::Device> Device::createDevice(
+std::shared_ptr<devices::Device> Device::createDevice(
     Application& app,
     const cartography::DeviceConfig& deviceConfig) {
   const auto& channelConfigs = deviceConfig.channelConfigs;
   const auto& otherKv = channelConfigs.at("other").kvPairs;
   const auto& snmpKv = channelConfigs.at("snmp").kvPairs;
-  return std::make_unique<Device>(
+  return std::make_unique<devices::mikrotik::Device>(
       app,
       deviceConfig.id,
       deviceConfig.readonly,
@@ -52,7 +51,7 @@ Device::Device(
     const std::string& securityName,
     const channels::snmp::SecurityLevel& securityLevel,
     oid proto[])
-    : Snmpv2Device(
+    : snmpv2::Device(
           application,
           id_,
           readonly_,
@@ -71,8 +70,8 @@ Device::Device(
   mikrotikCh->connect();
 }
 
-std::shared_ptr<State> Device::getState() {
-  auto state = Snmpv2Device::getState();
+std::shared_ptr<Datastore> Device::getOperationalDatastore() {
+  auto state = snmpv2::Device::getOperationalDatastore();
 
 #define GEOL(x) x["fbc-symphony-device:system"]["geo-location"]
 
@@ -261,14 +260,13 @@ std::shared_ptr<State> Device::getState() {
 
   state->addFinally([state]() {
     state->update([](auto& lockedState) {
-      auto* field = lockedState.get_ptr("ietf-system:system");
-      if (field != nullptr and
-          ((field = field->get_ptr("hostname")) != nullptr)) {
-        auto hostname = field->asString();
-        PAPC(lockedState)["hostname"] = hostname;
-        PAPT(lockedState)["hostname"] = hostname;
-        JAP(lockedState)["hostname"] = hostname;
-        JAPT(lockedState)["hostname"] = hostname;
+      auto hostname =
+          YangUtils::lookup(lockedState, "ietf-system:system/hostname");
+      if (hostname != nullptr) {
+        PAPC(lockedState)
+        ["hostname"] = PAPT(lockedState)["hostname"] =
+            JAP(lockedState)["hostname"] = JAPT(lockedState)["hostname"] =
+                hostname.asString();
       }
     });
   });
@@ -310,6 +308,57 @@ std::shared_ptr<State> Device::getState() {
   // japt["power-source"] = "UNKNOWN";
 
   return state;
+}
+
+// TODO convert the device to have the concept of an intended config
+void Device::setIntendedDatastore(const folly::dynamic& config) {
+  auto oldInterfaces = YangUtils::lookup(
+      operationalDatastore, "openconfig-interfaces:interfaces/interface");
+  auto newInterfaces =
+      YangUtils::lookup(config, "openconfig-interfaces:interfaces/interface");
+
+  // TODO eh, this is very inefficient but this will go away once we switch
+  // to a crud engine so its not worth making it better.
+  if (newInterfaces == nullptr) {
+    return;
+  }
+
+  for (auto& interface : newInterfaces) {
+    folly::dynamic state;
+    if (oldInterfaces != nullptr) {
+      for (auto& oldInt : oldInterfaces) {
+        if (interface["name"] == oldInt["name"]) {
+          state = oldInt;
+          break;
+        }
+      }
+    }
+
+    auto enabled = YangUtils::lookup(interface, "config/enabled");
+    folly::dynamic adminStatus = state == nullptr
+        ? YangUtils::lookup(state, "state/admin-status")
+        : "DNE";
+
+    bool isUp{false};
+    if (adminStatus != nullptr and adminStatus.isString()) {
+      if (adminStatus.asString() == "UP") {
+        isUp = true;
+      }
+    }
+
+    if (enabled != nullptr and enabled.isBool()) {
+      bool isEnabled = enabled.asBool();
+      if (isEnabled and not isUp) {
+        mikrotikCh->writeSentence(
+            {"/interface/enable", "=numbers=" + interface["name"].asString()});
+        LOG(INFO) << "Interface up " << interface["name"];
+      } else if (not isEnabled and isUp) {
+        mikrotikCh->writeSentence(
+            {"/interface/disable", "=numbers=" + interface["name"].asString()});
+        LOG(INFO) << "Interface down " << interface["name"];
+      }
+    }
+  }
 }
 
 } // namespace mikrotik

@@ -15,7 +15,7 @@ from collections import namedtuple
 from concurrent.futures import Future
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
     BadConfigError
 
@@ -83,8 +83,14 @@ class PipelinedController(Enum):
     UEMac = Controller(
         'magma.pipelined.app.ue_mac', 'ue_mac'
     )
+    TunnelLearnController = Controller(
+        'magma.pipelined.app.tunnel_learn', 'tunnel_learn'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
+    )
+    StartupFlows = Controller(
+        'magma.pipelined.app.startup_flows', 'startup_flows'
     )
 
 

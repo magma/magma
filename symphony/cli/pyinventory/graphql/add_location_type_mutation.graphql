@@ -1,0 +1,20 @@
+mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
+  addLocationType(input: $input) {
+    id
+    name
+    propertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
+  }
+}

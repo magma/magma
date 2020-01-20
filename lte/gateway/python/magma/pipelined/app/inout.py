@@ -13,11 +13,13 @@ from .base import MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import load_direction, Direction
+from magma.pipelined.openflow.registers import load_direction, Direction, \
+    PASSTHROUGH_REG_VAL
 
 # ingress and egress service names -- used by other controllers
 INGRESS = "ingress"
 EGRESS = "egress"
+PHYSICAL_TO_LOGICAL = "middle"
 
 
 class InOutController(MagmaController):
@@ -55,20 +57,46 @@ class InOutController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        self._clear_ingress_egress_tables(datapath)
+        self.delete_all_flows(datapath)
         self._install_default_egress_flows(datapath)
         self._install_default_ingress_flows(datapath)
+        self._install_default_middle_flows(datapath)
 
     def cleanup_on_disconnect(self, datapath):
-        self._clear_ingress_egress_tables(datapath)
+        self.delete_all_flows(datapath)
 
-    def _clear_ingress_egress_tables(self, datapath):
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
                                               INGRESS))
         flows.delete_all_flows_from_table(datapath,
                                           self._service_manager.get_table_num(
                                               EGRESS))
+
+    def _install_default_middle_flows(self, dp):
+        """
+        Egress table is the last table that a packet touches in the pipeline.
+        Output downlink traffic to gtp port, uplink trafic to LOCAL
+
+        Raises:
+            MagmaOFError if any of the default flows fail to install.
+        """
+        tbl_num = self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
+        logical_table = \
+            self._service_manager.get_next_table_num(PHYSICAL_TO_LOGICAL)
+        egress = self._service_manager.get_table_num(EGRESS)
+
+        # Allow passthrough pkts(skip enforcement and send to egress table)
+        ps_match = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+        flows.add_resubmit_next_service_flow(dp, tbl_num, ps_match,
+            actions=[], priority=flows.PASSTHROUGH_PRIORITY,
+            resubmit_table=egress)
+
+        match = MagmaMatch()
+        flows.add_resubmit_next_service_flow(dp,
+            self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL),
+            match, [], priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=logical_table)
 
     def _install_default_egress_flows(self, dp):
         """
@@ -109,7 +137,6 @@ class InOutController(MagmaController):
         parser = dp.ofproto_parser
         tbl_num = self._service_manager.get_table_num(INGRESS)
         next_table = self._service_manager.get_next_table_num(INGRESS)
-        egress_table = self._service_manager.get_table_num(EGRESS)
 
         # set traffic direction bits
         # set a direction bit for outgoing (pn -> inet) traffic.
@@ -120,14 +147,6 @@ class InOutController(MagmaController):
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
 
-        # Allow passthrough pkts(skip pipeline and send to egress table)
-        match = MagmaMatch(in_port=self.config.gtp_port,
-                           direction=Direction.PASSTHROUGH)
-        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
-                                             actions=actions,
-                                             priority=flows.PASSTHROUGH_PRIORITY,
-                                             resubmit_table=egress_table)
-
         # set a direction bit for incoming (internet -> UE) traffic.
         match = MagmaMatch(in_port=self._uplink_port)
         actions = [load_direction(parser, Direction.IN)]
@@ -135,11 +154,3 @@ class InOutController(MagmaController):
                                              actions=actions,
                                              priority=flows.DEFAULT_PRIORITY,
                                              resubmit_table=next_table)
-
-        # Allow passthrough pkts(skip pipeline and send to egress table)
-        match = MagmaMatch(in_port=self._uplink_port,
-                           direction=Direction.PASSTHROUGH)
-        flows.add_resubmit_next_service_flow(dp, tbl_num, match,
-                                             actions=actions,
-                                             priority=flows.PASSTHROUGH_PRIORITY,
-                                             resubmit_table=egress_table)

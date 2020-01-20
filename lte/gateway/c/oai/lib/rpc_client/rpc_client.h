@@ -64,6 +64,7 @@ int get_assigned_ipv4_block(
  * Allocate an IP address from the MobilityService over gRPC
  *
  * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: contains the IP address allocated upon returning in
  * "host byte order"
  * @return 0 on success
@@ -71,7 +72,8 @@ int get_assigned_ipv4_block(
  * @return -RPC_STATUS_ALREADY_EXISTS if an IP has been allocated for the
  *         subscriber
  */
-int allocate_ipv4_address(const char *subscriber_id, struct in_addr *addr);
+int allocate_ipv4_address(const char *subscriber_id, const char *apn,
+                          struct in_addr *addr);
 
 /*
  * Release an allocated IP address.
@@ -84,7 +86,8 @@ int allocate_ipv4_address(const char *subscriber_id, struct in_addr *addr);
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
-int release_ipv4_address(const char *subscriber_id, const struct in_addr *addr);
+int release_ipv4_address(const char *subscriber_id, const char *apn,
+                         const struct in_addr *addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -95,6 +98,7 @@ int release_ipv4_address(const char *subscriber_id, const struct in_addr *addr);
  */
 int get_ipv4_address_for_subscriber(
   const char *subscriber_id,
+  const char *apn,
   struct in_addr *addr);
 
 /*

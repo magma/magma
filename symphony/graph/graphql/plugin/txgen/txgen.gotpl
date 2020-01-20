@@ -1,0 +1,63 @@
+{{ reserveImport "context" }}
+{{ reserveImport "github.com/pkg/errors" }}
+
+// {{$.Type}} wraps a mutation resolver and executes every mutation under a transaction.
+type {{$.Type}} struct {
+	mutationResolver
+}
+
+func (tr {{$.Type}}) WithTransaction(ctx context.Context, f func(context.Context, mutationResolver) error) error {
+	tx, err := tr.ClientFrom(ctx).Tx(ctx)
+	if err != nil {
+		return errors.Wrap(err, "creating transaction")
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			panic(r)
+		}
+	}()
+	ctx = ent.NewContext(ctx, tx.Client())
+	if err := f(ctx, tr.mutationResolver); err != nil {
+		if r := tx.Rollback(); r != nil {
+			err = errors.WithMessagef(err, "rolling back transaction: %v", r)
+		}
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return errors.Wrap(err, "committing transaction")
+	}
+	return nil
+}
+
+{{ $root := . }}
+
+{{ range $field := $root.Fields -}}
+func (tr {{$root.Type}}) {{$field.GoFieldName}}{{$field.ShortResolverDeclaration}} {
+	var result, zero {{ResultType $field}}
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr mutationResolver) (err error) {
+		result, err = mr.{{$field.GoFieldName}}(ctx,
+			{{- if not $root.Root }}obj,{{end -}}
+			{{- range $arg := $field.Args}}
+				{{- $arg.VarName}},
+			{{- end}}
+		)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	{{- if eq "ent" (Package $field) }}
+		{{- if $field.TypeReference.IsSlice }}
+			for i := range result {
+				result[i] = result[i].Unwrap()
+			}
+		{{- else }}
+			if result != nil {
+				result = result.Unwrap()
+			}
+		{{- end }}
+	{{- end }}
+	return result, nil
+}
+
+{{ end }}

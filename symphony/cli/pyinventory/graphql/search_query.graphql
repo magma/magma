@@ -1,0 +1,24 @@
+query SearchQuery(
+  $name: String!
+  $after: Cursor
+  $first: Int = 10
+  $before: Cursor
+  $last: Int
+) {
+  searchForEntity(
+    name: $name
+    after: $after
+    first: $first
+    before: $before
+    last: $last
+  ) {
+    edges {
+      node {
+        entityId
+        entityType
+        name
+        type
+      }
+    }
+  }
+}

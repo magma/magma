@@ -98,7 +98,7 @@ func main() {
 
 	config := &cliConfig{
 		serverCfg: serverCfg,
-		gxClient:  gx.NewGxClient(clientCfg, []*diameter.DiameterServerConfig{serverCfg}, handleReAuth, nil),
+		gxClient:  gx.NewGxClient(clientCfg, serverCfg, handleReAuth, nil),
 		imsi:      imsi,
 		sessionID: fmt.Sprintf("%s-%s", imsi, sid),
 		ueIP:      ueIP,

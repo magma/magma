@@ -1,0 +1,17 @@
+{
+  "name": "@fbcnms/auth",
+  "private": true,
+  "version": "0.1.0",
+  "dependencies": {
+    "email-validator": "^2.0.4",
+    "fbcnms-webpack-config": "^0.1.0",
+    "passport": "^0.4.0",
+    "passport-http": "^0.3.0",
+    "passport-local": "^1.0.0",
+    "passport-saml": "^1.0.0"
+  },
+  "devDependencies": {
+    "sqlite3": "^4.0.9",
+    "supertest": "^4.0.2"
+  }
+}

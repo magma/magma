@@ -1,0 +1,24 @@
+query ServiceDetailsQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      id
+      name
+      externalId
+      customer {
+        id
+        name
+        externalId
+      }
+      endpoints {
+        id
+        port {
+          id
+        }
+        role
+      }
+      links {
+        id
+      }
+    }
+  }
+}

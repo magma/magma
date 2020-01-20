@@ -10,7 +10,7 @@ from collections import defaultdict, namedtuple
 
 from lte.protos.meteringd_pb2 import FlowRecord, \
     FlowTable
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.imsi import decode_imsi
 from magma.pipelined.openflow import messages
@@ -50,6 +50,7 @@ class MeterStatsController(MagmaController):
     """
 
     APP_NAME = 'meter_stats'
+    APP_TYPE = ControllerType.LOGICAL
     CLOUD_RPC_TIMEOUT = 10
     _CONTEXTS = {
         'dpset': dpset.DPSet,

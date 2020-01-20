@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package gy
 
 import (
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
@@ -57,6 +57,9 @@ func getGyReAuthRequestProto(diamReq *ReAuthRequest, imsi, sid string) *protos.C
 	if diamReq.RatingGroup != nil {
 		protoReq.ChargingKey = *diamReq.RatingGroup
 		protoReq.Type = protos.ChargingReAuthRequest_SINGLE_SERVICE
+		if diamReq.ServiceIdentifier != nil {
+			protoReq.ServiceIdentifier = &protos.ServiceIdentifier{Value: *diamReq.ServiceIdentifier}
+		}
 	} else {
 		protoReq.ChargingKey = 0
 		protoReq.Type = protos.ChargingReAuthRequest_ENTIRE_SESSION

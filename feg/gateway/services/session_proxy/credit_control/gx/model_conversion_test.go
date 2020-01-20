@@ -19,7 +19,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 )
@@ -112,7 +112,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				PolicyRule: &protos.PolicyRule{
 					Id:            "dynamic1",
 					RatingGroup:   42,
-					MonitoringKey: monitoringKey,
+					MonitoringKey: []byte(monitoringKey),
 					Priority:      100,
 					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
 				},
@@ -126,7 +126,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		UsageMonitoringCredits: []*protos.UsageMonitoringCredit{
 			{
 				Action:        protos.UsageMonitoringCredit_CONTINUE,
-				MonitoringKey: monitoringKey,
+				MonitoringKey: []byte(monitoringKey),
 				GrantedUnits: &protos.GrantedUnits{
 					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
 					Tx:    &protos.CreditUnit{IsValid: false},
@@ -136,7 +136,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			},
 			{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: monitoringKey2,
+				MonitoringKey: []byte(monitoringKey2),
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
 		},
@@ -192,7 +192,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_OCS, ruleOut.TrackingType)
 
@@ -201,7 +201,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: &monitoringKey,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_PCRF, ruleOut.TrackingType)
 
@@ -210,7 +210,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: &monitoringKey,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_OCS_AND_PCRF, ruleOut.TrackingType)
 
@@ -219,7 +219,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte{}, ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_NO_TRACKING, ruleOut.TrackingType)
 }

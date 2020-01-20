@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+ Copyright (c) 2004-present Facebook All rights reserved.
+ Use of this source code is governed by a BSD-style
+ license that can be found in the LICENSE file.
+-->
+
+<html lang="en">
+    <head>
+        <title>Symphony</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="description" content="Symphony Application" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="shortcut icon" type="image/png" href="/nms/static/images/favicon.png" />
+        <script src="{{ .VendorPath }}"></script>
+        <script>
+            let CONFIG = {{ .Config }};
+        </script>
+    </head>
+    <body style="margin:0">
+      <div id="root"></div>
+      <script src="{{ .MainPath }}"></script>
+    </body>
+ </html>

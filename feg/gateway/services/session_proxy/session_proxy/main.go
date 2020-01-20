@@ -91,10 +91,12 @@ func main() {
 
 		gyClnt = gy.NewConnectedGyClient(
 			diamClient,
+			ocsDiamCfg,
 			gy.GetGyReAuthHandler(cloudReg),
 			cloudReg)
 		gxClnt = gx.NewConnectedGxClient(
 			diamClient,
+			ocsDiamCfg,
 			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
 	} else {
 		glog.Infof("Using distinct Gy: %+v & Gx: %+v connection",
@@ -102,11 +104,11 @@ func main() {
 
 		gyClnt = gy.NewGyClient(
 			gy.GetGyClientConfiguration(),
-			[]*diameter.DiameterServerConfig{ocsDiamCfg},
+			ocsDiamCfg,
 			gy.GetGyReAuthHandler(cloudReg), cloudReg)
 		gxClnt = gx.NewGxClient(
 			gx.GetGxClientConfiguration(),
-			[]*diameter.DiameterServerConfig{pcrfDiamCfg},
+			pcrfDiamCfg,
 			gx.GetGxReAuthHandler(cloudReg, policyDBClient), cloudReg)
 	}
 	// Add servicers to the service

@@ -13,10 +13,10 @@
 
 #include <folly/GLog.h>
 
-#include <devmand/EventBaseUtils.h>
-#include <devmand/StringUtils.h>
 #include <devmand/channels/mikrotik/Channel.h>
 #include <devmand/channels/mikrotik/LengthComputation.h>
+#include <devmand/utils/EventBaseUtils.h>
+#include <devmand/utils/StringUtils.h>
 
 namespace devmand {
 namespace channels {
@@ -129,7 +129,7 @@ void Channel::disconnect() {
   if (socket != nullptr) {
     socket = nullptr;
   }
-  current.clear();
+  currentIn.clear();
   state = State::Disconnected;
   clearOutstandingRequests();
 }
@@ -228,18 +228,18 @@ void Channel::handleData() {
   while (readWord(word)) {
     if (word.empty()) {
       LOG(INFO) << "End of sentence";
-      if (not handle(current)) {
+      if (not handle(currentIn)) {
         LOG(ERROR) << "login failed";
         if (socket != nullptr) {
           disconnect();
           tryReconnect();
         }
       } else {
-        current.clear();
+        currentIn.clear();
       }
     } else {
       LOG(INFO) << "Read word [" << word << "]";
-      current.emplace_back(word);
+      currentIn.emplace_back(word);
     }
   }
 }
@@ -255,6 +255,8 @@ bool Channel::handle(const Sentence& sentence) {
       if (sentence.front() == "!done") {
         if (sentence.size() == 1) {
           state = State::FullyConnected;
+          writeSentence(currentOut);
+          currentOut.clear();
           return true;
         } else if (sentence.size() == 2 and sentence[1].size() > 5) {
           std::string code = sentence[1];
@@ -291,7 +293,7 @@ void Channel::readErr(const folly::AsyncSocketException& ex) noexcept {
   }
 }
 
-State Channel::getState() const {
+State Channel::getOperationalDatastore() const {
   return state;
 }
 
@@ -302,6 +304,17 @@ void Channel::enableSyslog() {
   writeWordAndLength("=target=remote");
   writeWordAndLength(folly::sformat("=remote={}", "192.168.90.100"));
   terminateSentence();
+}
+
+void Channel::writeSentence(const Sentence& sentence) {
+  if (state == State::FullyConnected) {
+    for (auto& word : sentence) {
+      writeWordAndLength(word);
+    }
+    terminateSentence();
+  } else {
+    currentOut.insert(currentOut.end(), sentence.begin(), sentence.end());
+  }
 }
 
 } // namespace mikrotik

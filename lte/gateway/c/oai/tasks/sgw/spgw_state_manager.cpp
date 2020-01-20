@@ -25,11 +25,6 @@ extern "C" {
 #include <dynamic_memory_check.h>
 }
 
-// TODO: Move this to redis wrapper
-namespace {
-const char* LOCALHOST = "127.0.0.1";
-}
-
 namespace magma {
 namespace lte {
 
@@ -53,7 +48,9 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config)
   persist_state_enabled = persist_state;
   config_ = config;
   create_state();
-  init_db_connection(LOCALHOST);
+  if (read_state_from_db() != RETURNok) {
+    OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from redis");
+  }
   is_initialized = true;
 }
 
@@ -83,8 +80,9 @@ void SpgwStateManager::create_state()
     state_cache_p->sgw_state.sgw_ip_address_S1u_S12_S4_up;
 
   // Creating PGW related state structs
-  state_cache_p->pgw_state.deactivated_predefined_pcc_rules = hashtable_ts_create(
-    MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
+  state_cache_p->pgw_state.deactivated_predefined_pcc_rules =
+    hashtable_ts_create(
+      MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
   state_cache_p->pgw_state.predefined_pcc_rules = hashtable_ts_create(
     MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
@@ -129,7 +127,7 @@ void SpgwStateManager::free_state()
   if (state_cache_p->pgw_state.predefined_pcc_rules) {
     hashtable_ts_destroy(state_cache_p->pgw_state.predefined_pcc_rules);
   }
-  free(state_cache_p);
+  free_wrapper((void**) &state_cache_p);
 }
 
 } // namespace lte

@@ -33,9 +33,7 @@ def update_record(imsi: str, ip_addr: str) -> None:
     try:
         # Location will be filled in by directory service
         req = UpdateRecordRequest(id=imsi, location="hwid")
-        directoryField = req.fields.add()
-        directoryField.key = IPV4_ADDR_KEY
-        directoryField.value = ip_addr
+        req.fields[IPV4_ADDR_KEY] = ip_addr
         client.UpdateRecord(req, DEFAULT_GRPC_TIMEOUT)
     except grpc.RpcError as err:
         logging.error(

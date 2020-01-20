@@ -11,7 +11,6 @@ package servicers
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"magma/feg/gateway/diameter"
@@ -79,7 +78,7 @@ func getCCRInitRequest(
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		Type:          credit_control.CRTInit,
-		RatType:       getCreditRATType(pReq.GetRatType()),
+		RatType:       gy.GetRATType(pReq.GetRatType()),
 	}
 }
 
@@ -130,7 +129,7 @@ func getCCRInitialCreditRequest(
 		Qos:           qos,
 		Credits:       usedCredits,
 		Type:          msgType,
-		RatType:       getCreditRATType(pReq.GetRatType()),
+		RatType:       gy.GetRATType(pReq.GetRatType()),
 	}
 }
 
@@ -247,7 +246,7 @@ func addMissingResponses(
 	for _, ccr := range leftoverRequests {
 		resp := &protos.CreditUpdateResponse{
 			Success:     false,
-			Sid:         addSidPrefix(ccr.IMSI),
+			Sid:         credit_control.AddIMSIPrefix(ccr.IMSI),
 			ChargingKey: ccr.Credits[0].RatingGroup,
 		}
 		if ccr.Credits[0].ServiceIdentifier != nil {
@@ -265,7 +264,7 @@ func getSingleCreditResponsesFromCCA(
 	request *gy.CreditControlRequest,
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
-	imsi := addSidPrefix(request.IMSI)
+	imsi := credit_control.AddIMSIPrefix(request.IMSI)
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
 			Success: false,
@@ -295,7 +294,7 @@ func getInitialCreditResponsesFromCCA(
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
 		response := &protos.CreditUpdateResponse{
 			Success:     success,
-			Sid:         addSidPrefix(request.IMSI),
+			Sid:         credit_control.AddIMSIPrefix(request.IMSI),
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
 			ResultCode:  credit.ResultCode,
@@ -330,7 +329,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 		requests = append(requests, &gy.CreditControlRequest{
 			SessionID:     update.SessionId,
 			RequestNumber: update.RequestNumber,
-			IMSI:          removeSidPrefix(update.Sid),
+			IMSI:          credit_control.RemoveIMSIPrefix(update.Sid),
 			Msisdn:        update.Msisdn,
 			UeIPV4:        update.UeIpv4,
 			SpgwIPV4:      update.SpgwIpv4,
@@ -346,7 +345,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
 				Type:         gy.UsedCreditsType(update.Usage.Type),
 			}},
-			RatType: getCreditRATType(update.GetRatType()),
+			RatType: gy.GetRATType(update.GetRatType()),
 		})
 	}
 	return requests
@@ -356,17 +355,11 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *gy.CreditControlRequest {
 	usedCredits := make([]*gy.UsedCredits, 0, len(termination.CreditUsages))
 	for _, usage := range termination.CreditUsages {
-		usedCredits = append(usedCredits, &gy.UsedCredits{
-			RatingGroup:  usage.ChargingKey,
-			InputOctets:  usage.BytesTx, // transmit == input
-			OutputOctets: usage.BytesRx, // receive == output
-			TotalOctets:  usage.BytesTx + usage.BytesRx,
-			Type:         gy.UsedCreditsType(usage.Type),
-		})
+		usedCredits = append(usedCredits, (&gy.UsedCredits{}).FromCreditUsage(usage))
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     termination.SessionId,
-		IMSI:          removeSidPrefix(termination.Sid),
+		IMSI:          credit_control.RemoveIMSIPrefix(termination.Sid),
 		Apn:           termination.Apn,
 		RequestNumber: termination.RequestNumber,
 		Credits:       usedCredits,
@@ -377,23 +370,32 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		PlmnID:        termination.PlmnId,
 		UserLocation:  termination.UserLocation,
 		Type:          credit_control.CRTTerminate,
-		RatType:       getCreditRATType(termination.GetRatType()),
+		RatType:       gy.GetRATType(termination.GetRatType()),
 	}
 }
 
-func removeSidPrefix(imsi string) string {
-	return strings.TrimPrefix(imsi, "IMSI")
-}
+func validateGyCCAIMSCC(gyCCAInit *gy.CreditControlAnswer) error {
+	/* Here we need to go through the result codes within MSCC received */
 
-func addSidPrefix(imsi string) string {
-	return "IMSI" + imsi
-}
-
-func getCreditRATType(prt protos.RATType) string {
-	switch prt {
-	case protos.RATType_TGPP_WLAN:
-		return gy.RAT_TYPE_WLAN
-	default: // including protos.RATType_TGPP_LTE
-		return gy.RAT_TYPE_EUTRAN
+	for _, credit := range gyCCAInit.Credits {
+		switch credit.ResultCode {
+		case diameter.SuccessCode:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		case diameter.DiameterCreditLimitReached:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v. Subscriber out of credit on OCS",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		default:
+			{
+				return fmt.Errorf(
+					"Received unsuccessful result code from OCS, ResultCode: %d, Rating Group: %d",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		}
 	}
+	return nil
 }

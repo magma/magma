@@ -47,17 +47,21 @@ class InOutTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.InOut,
-                  PipelinedController.Testing, ],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
+                'clean_restart': True,
             },
             mconfig=None,
             loop=None,

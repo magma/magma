@@ -1,0 +1,21 @@
+mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
+  addServiceType(data: $data) {
+    id
+    name
+    hasCustomer
+    propertyTypes {
+      id
+      name
+      type
+      index
+      stringValue
+      intValue
+      booleanValue
+      floatValue
+      latitudeValue
+      longitudeValue
+      isEditable
+      isInstanceProperty
+    }
+  }
+}

@@ -28,6 +28,7 @@ func GetServiceConfigs(service string, result proto.Message) error {
 		defer cfgMu.Unlock()
 		return fmt.Errorf("No configs found for service: '%s' in %s", service, lastFilePath)
 	}
+
 	return ptypes.UnmarshalAny(anyCfg, result)
 }
 

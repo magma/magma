@@ -6,11 +6,11 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+from typing import List
 
-from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult
-from magma.pipelined.app.base import MagmaController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
-    global_epoch
+from lte.protos.pipelined_pb2 import RuleModResult
+from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -24,6 +24,7 @@ from magma.pipelined.qos.qos_rate_limiting import QosQueueMap
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 
 class EnforcementController(PolicyMixin, MagmaController):
@@ -42,6 +43,7 @@ class EnforcementController(PolicyMixin, MagmaController):
     """
 
     APP_NAME = "enforcement"
+    APP_TYPE = ControllerType.LOGICAL
     ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
     # Should not overlap with the drop flow as drop matches all packets.
     MIN_ENFORCE_PROGRAMMED_FLOW = ENFORCE_DROP_PRIORITY + 1
@@ -63,24 +65,12 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_scratch = \
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
-
         self._redirect_manager = None
-
-    def setup(self, req):
-        """
-        Setup flows for subscribers, used on restart.
-
-        Args:
-            req: SetupFlowsRequest
-        """
-        if req.epoch != global_epoch:
-            self.logger.warning(
-                "Received SetupFlowsRequest has outdated epoch - %d, current "
-                "epoch is - %d.", req.epoch, global_epoch)
-            return SetupFlowsResult(
-                result=SetupFlowsResult.OUTDATED_EPOCH)
-
-        return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._relay_enabled = kwargs['mconfig'].relay_enabled
+        if not self._relay_enabled:
+            self.logger.info('Relay mode is not enabled, enforcement will not'
+                             ' wait for sessiond to push flows.')
 
     def initialize_on_connect(self, datapath):
         """
@@ -89,8 +79,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        self._delete_all_flows(datapath)
-        self._install_default_flows(datapath)
         self._datapath = datapath
 
         # The next table is dependent on whether enforcement_stats claims a
@@ -116,9 +104,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        self._delete_all_flows(datapath)
+        if self._clean_restart:
+            self.delete_all_flows(datapath)
 
-    def _delete_all_flows(self, datapath):
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._redirect_scratch)
 
@@ -143,28 +132,42 @@ class EnforcementController(PolicyMixin, MagmaController):
             return tables[0]  # enforcement_stats only uses 1 scratch
         return None
 
-
-    def _install_default_flows(self, datapath):
+    def _install_default_flows_if_not_installed(self, datapath,
+            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
         """
         For each direction set the default flows to just forward to next app.
         The enforcement flows for each subscriber would be added when the
         IP session is created, by reaching out to the controller/PCRF.
+        If default flows are already installed, do nothing.
 
         Args:
             datapath: ryu datapath struct
+        Returns:
+            The list of flows that remain after inserting default flows
         """
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
-        flows.add_resubmit_next_service_flow(
+
+        inbound_msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, inbound_match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
-        flows.add_resubmit_next_service_flow(
+
+        outbound_msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, outbound_match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
+
+        msgs, remaining_flows = self._msg_hub \
+            .filter_msgs_if_not_in_flow_list([inbound_msg, outbound_msg],
+                                             existing_flows)
+        if msgs:
+            chan = self._msg_hub.send(msgs, datapath)
+            self._wait_for_responses(chan, len(msgs))
+
+        return remaining_flows
 
     def get_of_priority(self, precedence):
         """
@@ -186,9 +189,9 @@ class EnforcementController(PolicyMixin, MagmaController):
             return self.MIN_ENFORCE_PROGRAMMED_FLOW
         return self.MAX_ENFORCE_PRIORITY - precedence
 
-    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, rule):
         """
-        Install a flow to get stats for a particular rule. Flows will match on
+        Get a flow msg to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
 
         Args:
@@ -201,31 +204,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         ul_qos = rule.qos.max_req_bw_ul
         dl_qos = rule.qos.max_req_bw_dl
 
-        if rule.redirect.support == rule.redirect.ENABLED:
-            # TODO currently if redirection is enabled we ignore other flows
-            # from rule.flow_list, confirm that this is the expected behaviour
-            redirect_request = RedirectionManager.RedirectRequest(
-                imsi=imsi,
-                ip_addr=ip_addr,
-                rule=rule,
-                rule_num=rule_num,
-                priority=priority)
-            try:
-                self._redirect_manager.handle_redirection(
-                    self._datapath, self.loop, redirect_request)
-                return RuleModResult.SUCCESS
-            except RedirectException as err:
-                self.logger.error(
-                    'Redirect Exception for imsi %s, rule.id - %s : %s',
-                    imsi, rule.id, err
-                )
-                return RuleModResult.FAILURE
-
-        if not rule.flow_list:
-            self.logger.error('The flow list for imsi %s, rule.id - %s'
-                              'is empty, this shoudn\'t happen', imsi, rule.id)
-            return RuleModResult.FAILURE
-
         flow_adds = []
         for flow in rule.flow_list:
             try:
@@ -233,16 +211,44 @@ class EnforcementController(PolicyMixin, MagmaController):
                     imsi, flow, rule_num, priority, ul_qos,
                     dl_qos, rule.hard_timeout,
                     rule.id))
+
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
-                    "Failed to install rule %s for subscriber %s: %s",
+                    "Failed to get flow msg '%s' for subscriber %s: %s",
                     rule.id, imsi, err)
-                return RuleModResult.FAILURE
+                raise err
+        return flow_adds
+
+    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+        """
+        Install a flow to get stats for a particular rule. Flows will match on
+        IMSI, cookie (the rule num), in/out direction
+
+        Args:
+            imsi (string): subscriber to install rule for
+            ip_addr (string): subscriber session ipv4 address
+            rule (PolicyRule): policy rule proto
+        """
+
+        if rule.redirect.support == rule.redirect.ENABLED:
+            return self._install_redirect_flow(imsi, ip_addr, rule)
+
+        if not rule.flow_list:
+            self.logger.error('The flow list for imsi %s, rule.id - %s'
+                              'is empty, this shoudn\'t happen', imsi, rule.id)
+            return RuleModResult.FAILURE
+
+        flow_adds = []
+        try:
+            flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+        except FlowMatchError:
+            return RuleModResult.FAILURE
+
         chan = self._msg_hub.send(flow_adds, self._datapath)
 
-        return self._wait_for_responses(imsi, rule, chan)
+        return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _wait_for_responses(self, imsi, rule, chan):
+    def _wait_for_rule_responses(self, imsi, rule, chan):
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",
@@ -302,6 +308,26 @@ class EnforcementController(PolicyMixin, MagmaController):
             cookie=rule_num,
             resubmit_table=self.next_main_table)
 
+    def _install_redirect_flow(self, imsi, ip_addr, rule):
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        priority = self.get_of_priority(rule.priority)
+        redirect_request = RedirectionManager.RedirectRequest(
+            imsi=imsi,
+            ip_addr=ip_addr,
+            rule=rule,
+            rule_num=rule_num,
+            priority=priority)
+        try:
+            self._redirect_manager.handle_redirection(
+                self._datapath, self.loop, redirect_request)
+            return RuleModResult.SUCCESS
+        except RedirectException as err:
+            self.logger.error(
+                'Redirect Exception for imsi %s, rule.id - %s : %s',
+                imsi, rule.id, err
+            )
+            return RuleModResult.FAILURE
+
     def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ul_qos,
                                       dl_qos, rule_id):
         parser = self._datapath.ofproto_parser
@@ -328,6 +354,12 @@ class EnforcementController(PolicyMixin, MagmaController):
              ])
 
         return actions
+
+    def _get_default_flow_msg_for_subscriber(self, imsi):
+        match = MagmaMatch(imsi=encode_imsi(imsi))
+        actions = []
+        return flows.get_add_drop_flow_msg(self._datapath, self.tbl_num,
+            match, actions, priority=self.ENFORCE_DROP_PRIORITY)
 
     def _install_default_flow_for_subscriber(self, imsi):
         """
@@ -377,6 +409,10 @@ class EnforcementController(PolicyMixin, MagmaController):
             imsi (string): subscriber id
             rule_ids (list of strings): policy rule ids
         """
+        if not self.init_finished:
+            self.logger.error('Pipelined is not initialized')
+            return RuleModResult.FAILURE
+
         if self._datapath is None:
             self.logger.error('Datapath not initialized')
             return

@@ -75,9 +75,9 @@ magma::SetupFlowsRequest create_setup_flows_req(
       it->static_rules, it->dynamic_rules);
     activation_reqs.push_back(activate_req);
   }
-  auto mut_rules = req.mutable_rules();
-  for (const auto &rule : activation_reqs) {
-    mut_rules->Add()->CopyFrom(rule);
+  auto mut_requests = req.mutable_requests();
+  for (const auto &act_req : activation_reqs) {
+    mut_requests->Add()->CopyFrom(act_req);
   }
   req.set_epoch(epoch);
   return req;

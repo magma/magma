@@ -1,0 +1,18 @@
+query LocationDepsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      files {
+        id
+      }
+      children {
+        id
+      }
+      surveys {
+        id
+      }
+      equipments {
+        id
+      }
+    }
+  }
+}

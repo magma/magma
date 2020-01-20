@@ -15,7 +15,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -32,6 +32,7 @@ class SubscriberController(MagmaController):
     """
 
     APP_NAME = 'subscriber'
+    APP_TYPE = ControllerType.LOGICAL
     POLL_TIMEOUT = 3
 
     SubscriberConfig = namedtuple('SubscriberConfig',

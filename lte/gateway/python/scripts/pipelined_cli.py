@@ -234,7 +234,7 @@ def _display_flows(client, apps=None):
     response = client.GetAllTableAssignments(Void())
     table_assignments = {
         table_assignment.app_name:
-            Tables(main_table=table_assignment.main_table,
+            Tables(main_table=table_assignment.main_table, type=None,
                    scratch_tables=table_assignment.scratch_tables)
         for table_assignment in response.table_assignments}
     try:

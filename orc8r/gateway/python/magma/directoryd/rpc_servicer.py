@@ -11,7 +11,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import grpc
 from typing import Dict, List
 
-from orc8r.protos.directoryd_pb2 import DirectoryField
+from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceServicer, \
     DirectoryServiceServicer, DirectoryServiceStub, \
     add_DirectoryServiceServicer_to_server, \
@@ -122,8 +122,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             if record.location_history[0] != hwid:
                 record.location_history = [hwid] + record.location_history
 
-            for field in request.fields:
-                record.identifiers[field.key] = field.value
+            for field_key in request.fields:
+                record.identifiers[field_key] = request.fields[field_key]
 
             # Truncate location history to the five most recent hwid's
             record.location_history = \
@@ -150,9 +150,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 context.set_details("Record for ID %s was not found." %
                                     request.id)
                 return
-            # TODO: Set record to be garbage collected rather than deleting
-            # directly
-            del self._redis_dict[request.id]
+            self._redis_dict.mark_as_garbage(request.id)
 
     def GetDirectoryField(self, request, context):
         """ Get the directory record field for an ID and key
@@ -186,3 +184,28 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 return
             return DirectoryField(key=request.field_key,
                                   value=record.identifiers[request.field_key])
+
+    def GetAllDirectoryRecords(self, request, context):
+        """ Get all directory records
+
+        Args:
+             request (Void): void
+        """
+        response = AllDirectoryRecords()
+        for key in self._redis_dict.keys():
+            with self._redis_dict.lock(key):
+                # Lookup may produce an exception if the key has been deleted
+                # between the call to __iter__ and lock
+                try:
+                    stored_record = self._redis_dict[key]
+                except KeyError:
+                    continue
+                directory_record = response.records.add()
+                directory_record.id = key
+                directory_record.location_history[:] = \
+                    stored_record.location_history
+                for identifier_key in stored_record.identifiers:
+                    directory_record.fields[identifier_key] = \
+                        stored_record.identifiers[identifier_key]
+
+        return response

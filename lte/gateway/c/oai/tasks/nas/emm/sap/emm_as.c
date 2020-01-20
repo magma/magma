@@ -35,7 +35,7 @@
 #include "mme_app_ue_context.h"
 #include "nas/as_message.h"
 #include "emm_cause.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "emm_as.h"
 #include "emm_recv.h"
 #include "LowerLayer.h"
@@ -521,17 +521,18 @@ static int _emm_as_recv(
       }
       rc =
         emm_recv_tau_complete(ue_id, &emm_msg->tracking_area_update_complete);
-      /*
-    * send the SGSAP TMSI Reallocation complete message towards SGS.
-    * if csfb newTmsiAllocated flag is true
-    * After sending set it to false
-    */
+      /* send the SGSAP TMSI Reallocation complete message towards SGS.
+       * if csfb newTmsiAllocated flag is true
+       * After sending set it to false
+       */
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-        nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
         emm_ctx->csfbparams.newTmsiAllocated = false;
-        /* update the neaf flag to false after sending the Tmsi Reallocation Complete message to SGS */
+        /* update the neaf flag to false after sending the Tmsi Reallocation
+         * Complete message to SGS
+         */
         mme_ue_context_update_ue_sgs_neaf(ue_id, false);
       }
       break;
@@ -925,8 +926,8 @@ static int _emm_as_establish_req(emm_as_establish_t *msg, int *emm_cause)
           "UE.ue_id=" MME_UE_S1AP_ID_FMT " \n",
           msg->ue_id);
         //Clean up S1AP and MME UE Context
-        nas_itti_detach_req(msg->ue_id);
         unlock_ue_contexts(ue_mm_context);
+        mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
 
@@ -1208,6 +1209,10 @@ static int _emm_as_encode(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int bytes = 0;
 
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  EMM_GET_BYTE_ALIGNED_LENGTH(length);
   if (msg->header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
     emm_msg_header_t *header = &msg->security_protected.plain.emm.header;
 
@@ -1394,7 +1399,7 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_ACTIVATE_BEARER_CONTEXT_REQ: {
-        nas_itti_erab_setup_req(
+        mme_app_handle_erab_setup_req(
           as_msg.msg.activate_bearer_context_req.ue_id,
           as_msg.msg.activate_bearer_context_req.ebi,
           as_msg.msg.activate_bearer_context_req.mbr_dl,
@@ -1406,7 +1411,7 @@ static int _emm_as_send(const emm_as_t *msg)
       } break;
 
       case AS_DEACTIVATE_BEARER_CONTEXT_REQ: {
-        nas_itti_erab_rel_cmd(
+        mme_app_handle_erab_rel_cmd(
           as_msg.msg.deactivate_bearer_context_req.ue_id,
           as_msg.msg.deactivate_bearer_context_req.ebi,
           as_msg.msg.deactivate_bearer_context_req.nas_msg);
@@ -1426,30 +1431,22 @@ static int _emm_as_send(const emm_as_t *msg)
         } else {
           OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "EMMAS-SAP - Sending nas_itti_establish_cnf to S1AP UE ID 0x%x sea "
-            "0x%04X sia 0x%04X\n",
+            "EMMAS-SAP - Sending establish_cnf to MME-APP module for UE ID: "
+            MME_UE_S1AP_ID_FMT " selected eea "
+            "0x%04X selected eia 0x%04X\n",
             as_msg.msg.nas_establish_rsp.ue_id,
             as_msg.msg.nas_establish_rsp.selected_encryption_algorithm,
             as_msg.msg.nas_establish_rsp.selected_integrity_algorithm);
           /*
            * Handle success case
            */
-          nas_itti_establish_cnf(
-            as_msg.msg.nas_establish_rsp.ue_id,
-            as_msg.msg.nas_establish_rsp.err_code,
-            as_msg.msg.nas_establish_rsp.nas_msg,
-            as_msg.msg.nas_establish_rsp.selected_encryption_algorithm,
-            as_msg.msg.nas_establish_rsp.selected_integrity_algorithm,
-            as_msg.msg.nas_establish_rsp.csfb_response,
-            as_msg.msg.nas_establish_rsp.presencemask,
-            as_msg.msg.nas_establish_rsp.service_type);
+          mme_app_handle_conn_est_cnf(&as_msg.msg.nas_establish_rsp);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       } break;
 
       case AS_NAS_RELEASE_REQ:
-        nas_itti_detach_req(as_msg.msg.nas_release_req
-                              .ue_id); //, as_msg.msg.nas_release_req.cause);
+        mme_app_handle_detach_req(as_msg.msg.nas_release_req.ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         break;
 
@@ -2312,6 +2309,11 @@ static int _emm_as_establish_cnf(
    */
   int bytes =
     _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+
+  // Free any allocated data
+  if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
+   bdestroy_wrapper(&(emm_msg->attach_accept.esmmessagecontainer));
+  }
 
   if (bytes > 0) {
     as_msg->err_code = AS_SUCCESS;

@@ -24,6 +24,7 @@ const (
 	S6A_PROXY     = "S6A_PROXY"
 	SESSION_PROXY = "SESSION_PROXY"
 	SWX_PROXY     = "SWX_PROXY"
+	HLR_PROXY     = "HLR_PROXY"
 	HEALTH        = "HEALTH"
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
@@ -78,6 +79,7 @@ func init() {
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 	addLocalService(RADIUSD, 9115)
+	addLocalService(HLR_PROXY, 9116)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)

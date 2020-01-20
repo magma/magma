@@ -76,8 +76,8 @@ class AsyncServiceTest : public ::testing::Test {
   {
     grpc::ClientContext end_context;
     LocalEndSessionResponse end_resp;
-    SubscriberID request;
-    request.set_id("IMSI1");
+    LocalEndSessionRequest request;
+    request.mutable_sid()->set_id("IMSI1");
     auto status = stub->EndSession(&end_context, request, &end_resp);
     EXPECT_TRUE(status.ok());
   }

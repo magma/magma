@@ -1,0 +1,22 @@
+mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
+  addServiceLink(id: $id, linkId: $linkId) {
+    id
+    name
+    externalId
+    customer {
+      id
+      name
+      externalId
+    }
+    endpoints {
+      id
+      port {
+        id
+      }
+      role
+    }
+    links {
+      id
+    }
+  }
+}

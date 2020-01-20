@@ -18,8 +18,8 @@ import "lte/protos/subscriberdb.proto";
 option go_package = "magma/lte/cloud/go/protos";
 
 message SetupFlowsRequest {
-  // List of rules to activate
-  repeated ActivateFlowsRequest rules = 1;
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
   // epoch to prevent outdated setup calls
   uint64 epoch = 2;
 }

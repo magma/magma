@@ -28,6 +28,8 @@ include_directories(${MAGMA_LIB_DIR}/config)
 include_directories(${MAGMA_LIB_DIR}/datastore)
 include_directories(${MAGMA_LIB_DIR}/policydb)
 
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
@@ -36,7 +38,7 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS common)
+set(SMGR_ORC8R_CPP_PROTOS common directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
@@ -48,6 +50,10 @@ generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
+
+set(SMGR_ORC8R_GRPC_PROTOS directoryd)
+generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 set(SMGR_GRPC_PROTOS session_manager pipelined spgw_service)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
@@ -80,10 +86,12 @@ add_library(SESSION_MANAGER
     SessionState.h
     SessionCredit.cpp
     SessionCredit.h
+    RestartHandler.cpp
+    RestartHandler.h
     RuleStore.cpp
     RuleStore.h
-    CloudReporter.cpp
-    CloudReporter.h
+    SessionReporter.cpp
+    SessionReporter.h
     SessionID.cpp
     SessionID.h
     ServiceAction.h
@@ -91,6 +99,10 @@ add_library(SESSION_MANAGER
     SpgwServiceClient.h
     PipelinedClient.cpp
     PipelinedClient.h
+    DirectorydClient.cpp
+    DirectorydClient.h
+    DiameterCodes.cpp
+    DiameterCodes.h
     SessionRules.cpp
     SessionRules.h
     CreditKey.h

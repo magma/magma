@@ -6,6 +6,10 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+from enum import Enum
+import time
+from typing import List
+
 from ryu import utils
 from ryu.base import app_manager
 from ryu.controller import dpset
@@ -15,10 +19,25 @@ from ryu.controller.handler import MAIN_DISPATCHER
 from ryu.controller.handler import HANDSHAKE_DISPATCHER
 from ryu.controller.handler import set_ev_cls
 from ryu.ofproto import ofproto_v1_4
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
 from magma.pipelined.metrics import OPENFLOW_ERROR_MSG
 from magma.pipelined.openflow.exceptions import MagmaOFError
+from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest
+
+
+global_epoch = int(time.time())
+
+
+class ControllerType(Enum):
+    PHYSICAL = 1
+    LOGICAL = 2
+    SPECIAL = 3
+
+
+class ControllerNotReadyException(Exception):
+    pass
 
 
 class MagmaController(app_manager.RyuApp):
@@ -31,7 +50,6 @@ class MagmaController(app_manager.RyuApp):
     """
     # Inherited from RyuApp base class
     OFP_VERSIONS = [ofproto_v1_4.OFP_VERSION]
-
 
     # App name that should be overridden by the controller implementation
     APP_NAME = ""
@@ -51,6 +69,9 @@ class MagmaController(app_manager.RyuApp):
         if 'controller_port' in kwargs['config']:
             self.CONF.ofp_tcp_listen_port = kwargs['config']['controller_port']
         self._service_manager = service_manager
+        self._startup_flow_controller = None
+        self._startup_flows_fut = kwargs['app_futures']['startup_flows']
+        self.init_finished = False
 
     @set_ev_cls(ofp_event.EventOFPErrorMsg,
                 [HANDSHAKE_DISPATCHER, CONFIG_DISPATCHER, MAIN_DISPATCHER])
@@ -91,6 +112,49 @@ class MagmaController(app_manager.RyuApp):
             self.logger.error(
                 'Error %s %s flow rules: %s', act, self.APP_NAME, e)
 
+    def setup_flows(self, request):
+        """
+        Setup flows for the controller, this is used when the controller
+        restarts. Subclasses define their own specific setup logic.
+        """
+        if request.epoch != global_epoch:
+            self.logger.warning(
+                "Received SetupFlowsRequest has outdated epoch - %d, current "
+                "epoch is - %d.", request.epoch, global_epoch)
+            return SetupFlowsResult(
+                result=SetupFlowsResult.OUTDATED_EPOCH)
+
+        if self._datapath is None:
+            self.logger.warning("Datapath not initilized, setup failed")
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
+
+        if self._startup_flow_controller is None:
+            if (self._startup_flows_fut.done()):
+                self._startup_flow_controller = self._startup_flows_fut.result()
+            else:
+                self.logger.error('Flow Startup controller is not ready')
+                return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
+
+        if self.init_finished:
+            self.logger.warning('Controller already initialized, ignoring')
+            return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
+
+        if self._clean_restart:
+            self.delete_all_flows(self._datapath)
+            self.logger.error('Controller is in clean restart mode, remaining '
+                              'flows were removed, continuing with setup.')
+
+        try:
+            startup_flows = \
+                self._startup_flow_controller.get_flows(self.tbl_num)
+        except ControllerNotReadyException as err:
+            self.logger.error('Setup failed: %s', err)
+            return SetupFlowsResult(result=SetupFlowsResult.FAILURE)
+
+        return SetupFlowsResult(
+            result=self.setup(request.requests, startup_flows)
+        )
+
     def initialize_on_connect(self, datapath):
         """
         Initialize the app on the datapath connect event.
@@ -104,5 +168,22 @@ class MagmaController(app_manager.RyuApp):
         Cleanup the app on the datapath disconnect event.
         Subclasses can override this method to cleanup flows for
         the table that they handle.
+        """
+        pass
+
+    def setup(self, requests: List[ActivateFlowsRequest],
+              startup_flows: List[OFPFlowStats]) -> SetupFlowsResult:
+        """
+        Setup flows for a controller.
+
+        Args:
+            requests (List[ActivateFlowsRequest]): list of ActivateFlow requests
+            startup_flows (List[OFPFlowStats]): list of current flows
+        """
+        pass
+
+    def delete_all_flows(self, datapath):
+        """
+        Delete all flows in tables that the controller is responsible for.
         """
         pass

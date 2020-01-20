@@ -17,8 +17,10 @@ from difflib import unified_diff
 from typing import Dict, List, Optional
 from unittest import TestCase
 from unittest.mock import MagicMock
+from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupFlowsRequest
 from magma.pipelined.app.meter_stats import UsageRecord, MeterStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
@@ -26,7 +28,7 @@ from magma.pipelined.tests.app.exceptions import BadConfigError, \
     ServiceRunningError
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
-from ryu.lib import hub
+from magma.pipelined.app.base import global_epoch
 
 """
 Pipelined test util functions can be used for testing pipelined, the usage of
@@ -214,6 +216,46 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
             )
 
 
+def setup_controller(controller, setup_flow_reqest, sleep_time=1, retries=5):
+    for _ in range(0, retries):
+        res = controller.setup_flows(setup_flow_reqest)
+        if res.result == SetupFlowsResult.SUCCESS:
+            return SetupFlowsResult.SUCCESS
+        hub.sleep(sleep_time)
+    return res.result
+
+
+def fake_controller_setup(enf_controller, enf_stats_controller=None,
+                          startup_flow_controller=None,
+                          setup_flows_request=None):
+    """
+    Immitate contoller restart. This is done by manually setting contoller init
+    fields back to False, and restarting the startup stats controller(optional)
+
+    If no stats controller is given this means a clean restart, if clean restart
+    flag is not set fail the test case.
+    """
+    if setup_flows_request is None:
+        setup_flows_request = SetupFlowsRequest(requests=[], epoch=global_epoch)
+    enf_controller.init_finished = False
+    if startup_flow_controller:
+        startup_flow_controller._flows_received = False
+        startup_flow_controller._table_flows.clear()
+        hub.spawn(startup_flow_controller._poll_startup_flows, 1)
+    else:
+        TestCase().assertEqual(enf_controller._clean_restart, True)
+        if enf_stats_controller:
+            TestCase().assertEqual(enf_stats_controller._clean_restart, True)
+    TestCase().assertEqual(setup_controller(
+        enf_controller, setup_flows_request),
+        SetupFlowsResult.SUCCESS)
+    if enf_stats_controller:
+        enf_stats_controller.init_finished = False
+        TestCase().assertEqual(setup_controller(
+            enf_stats_controller, setup_flows_request),
+            SetupFlowsResult.SUCCESS)
+
+
 def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
                                max_sleep_time=25):
     """
@@ -346,7 +388,7 @@ def create_service_manager(services: List[int], include_ue_mac=False):
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
 
-    static_services = (['ue_mac', 'arpd', 'access_control']
+    static_services = (['ue_mac', 'arpd', 'access_control', 'tunnel_learn']
                        if include_ue_mac
                        else ['arpd', 'access_control'])
     magma_service.config = {

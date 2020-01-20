@@ -134,9 +134,9 @@ func (st *memSessionTable) AddSession(
 	st.rwl.Unlock()
 
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
-
+	imsi = metrics.DecorateIMSI(imsi)
 	metrics.Sessions.WithLabelValues(apn, imsi, sid).Inc()
-	metrics.SessionStart.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
+	metrics.SessionStart.WithLabelValues(apn, imsi, sid).Inc()
 
 	return s, nil
 }
@@ -181,8 +181,9 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 		st.rwl.Unlock()
 		if found {
 			s.StopTimeout()
+			imsi = metrics.DecorateIMSI(imsi)
 			metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
-			metrics.SessionStop.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
+			metrics.SessionStop.WithLabelValues(apn, imsi, sid).Inc()
 			return s
 		}
 	}
@@ -246,7 +247,7 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
 				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
 
-			metrics.SessionTimeouts.WithLabelValues(s.GetApn(), s.GetImsi()).Inc()
+			metrics.SessionTimeouts.WithLabelValues(s.GetApn(), metrics.DecorateIMSI(s.GetImsi())).Inc()
 		}
 	}
 }

@@ -60,12 +60,14 @@ class SubscriberTest(unittest.TestCase):
                 PipelinedController.Testing,
                 PipelinedController.MeterStats,
                 PipelinedController.Subscriber,
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.Meter: meter_ref,
                 PipelinedController.Testing: testing_controller_reference,
                 PipelinedController.MeterStats: meter_stat_ref,
                 PipelinedController.Subscriber: subscriber_ref,
+                PipelinedController.StartupFlows: Future(),
             },
             config={
                 'bridge_name': self.BRIDGE,
@@ -73,6 +75,7 @@ class SubscriberTest(unittest.TestCase):
                 'meter': {'poll_interval': -1,
                           'enabled': True},
                 'subscriber': {'enabled': True, 'poll_interval': -1},
+                'clean_restart': True,
             },
             mconfig={},
             loop=loop_mock,
@@ -202,12 +205,14 @@ class SubscriberWithPollingTest(unittest.TestCase):
                 PipelinedController.Testing,
                 PipelinedController.MeterStats,
                 PipelinedController.Subscriber,
+                PipelinedController.StartupFlows,
             ],
             references={
                 PipelinedController.Meter: meter_ref,
                 PipelinedController.Testing: testing_controller_reference,
                 PipelinedController.MeterStats: meter_stat_ref,
                 PipelinedController.Subscriber: subscriber_ref,
+                PipelinedController.StartupFlows: Future()
             },
             config={
                 'bridge_name': self.BRIDGE,
@@ -215,6 +220,7 @@ class SubscriberWithPollingTest(unittest.TestCase):
                 'meter': {'poll_interval': 5,
                           'enabled': True},
                 'subscriber': {'enabled': True, 'poll_interval': -1},
+                'clean_restart': True,
             },
             mconfig={},
             loop=loop_mock,

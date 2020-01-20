@@ -30,6 +30,8 @@ static_services: [
   'ue_mac',
   'arpd',
   'access_control',
+  'tunnel_learn',
+  'startup_flows',
   'ryu_rest_service',
 ]
 
@@ -60,7 +62,7 @@ meter:
   idle_timeout: 0
 
 enforcement:
-  poll_interval: 2
+  poll_interval: 1
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -102,8 +104,11 @@ monitored_ifaces: ['cwag_br0',
                    'gre_sys'
                   ]
 
+# Whether pipelined should cleanup flows on restarts
+clean_restart: true
+
 ###############
 ## IMPORTANT ##
 ###############
 ovs_gtp_port_number: 32768
-#ovs_uplink_port_name: eth2
+#ovs_uplink_port_name: cwag_patch

@@ -50,99 +50,19 @@ static void *nas_intertask_interface(void *args_p)
     MessageDef *received_message_p = NULL;
 
     itti_receive_msg(TASK_NAS_MME, &received_message_p);
-    mme_app_desc_p = get_locked_mme_nas_state(false);
+    if (ITTI_MSG_ID(received_message_p) != TERMINATE_MESSAGE) {
+      mme_app_desc_p = get_locked_mme_nas_state(false);
+    }
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case MESSAGE_TEST: {
         OAI_FPRINTF_INFO("TASK_NAS_MME received MESSAGE_TEST\n");
       } break;
 
-      case MME_APP_CREATE_DEDICATED_BEARER_REQ:
-        nas_proc_create_dedicated_bearer(
-          &MME_APP_CREATE_DEDICATED_BEARER_REQ(received_message_p));
-        break;
-
-      case NAS_PDN_CONFIG_RSP: {
-        nas_proc_pdn_config_res(&NAS_PDN_CONFIG_RSP(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_FAIL: {
-        nas_proc_pdn_connectivity_fail(
-          &NAS_PDN_CONNECTIVITY_FAIL(received_message_p));
-      } break;
-
-      case NAS_PDN_CONNECTIVITY_RSP: {
-        nas_proc_pdn_connectivity_res(
-          &NAS_PDN_CONNECTIVITY_RSP(received_message_p));
-      } break;
-
-      case NAS_IMPLICIT_DETACH_UE_IND: {
-        nas_proc_implicit_detach_ue_ind(
-          NAS_IMPLICIT_DETACH_UE_IND(received_message_p).ue_id);
-      } break;
-
       case S1AP_DEREGISTER_UE_REQ: {
         nas_proc_deregister_ue(
           S1AP_DEREGISTER_UE_REQ(received_message_p).mme_ue_s1ap_id);
       } break;
-
-      case NAS_NW_INITIATED_DETACH_UE_REQ: {
-        nas_proc_nw_initiated_detach_ue_request(
-          &NAS_NW_INITIATED_DETACH_UE_REQ(received_message_p));
-      } break;
-
-      case NAS_CS_DOMAIN_LOCATION_UPDATE_ACC: {
-        itti_nas_cs_domain_location_update_acc_t
-          *itti_nas_location_update_acc_p = NULL;
-        itti_nas_location_update_acc_p =
-          &received_message_p->ittiMsg.nas_cs_domain_location_update_acc;
-        nas_proc_cs_domain_location_updt_acc(itti_nas_location_update_acc_p);
-      } break;
-
-      case NAS_CS_DOMAIN_LOCATION_UPDATE_FAIL: {
-        itti_nas_cs_domain_location_update_fail_t
-          *itti_nas_location_update_fail_p = NULL;
-        itti_nas_location_update_fail_p =
-          &received_message_p->ittiMsg.nas_cs_domain_location_update_fail;
-        nas_proc_cs_domain_location_updt_fail(itti_nas_location_update_fail_p);
-      } break;
-
-      case SGSAP_DOWNLINK_UNITDATA: {
-        /*
-         * We received the Downlink Unitdata from MSC, trigger a
-         * Downlink Nas Transport message to UE.
-         */
-        nas_proc_downlink_unitdata(
-          &SGSAP_DOWNLINK_UNITDATA(received_message_p));
-      } break;
-
-      case SGSAP_RELEASE_REQ: {
-        /*
-         * We received the SGS Release request from MSC,to indicate that there are no more NAS messages to be exchanged
-         * between the VLR and the UE, or when a further exchange of NAS messages for the specified UE is not possible
-         * due to an error.
-         */
-        nas_proc_sgs_release_req(&SGSAP_RELEASE_REQ(received_message_p));
-      } break;
-      case SGSAP_MM_INFORMATION_REQ: {
-        /*Received SGSAP MM Information Request message from SGS task*/
-        nas_proc_cs_domain_mm_information_request(
-          &SGSAP_MM_INFORMATION_REQ(received_message_p));
-      } break;
-      case NAS_CS_SERVICE_NOTIFICATION: {
-        nas_proc_cs_service_notification(
-          &NAS_CS_SERVICE_NOTIFICATION(received_message_p));
-      } break;
-
-      case NAS_NOTIFY_SERVICE_REJECT: {
-        nas_proc_notify_service_reject(
-          &NAS_NOTIFY_SERVICE_REJECT(received_message_p));
-      } break;
-
-      case MME_APP_DELETE_DEDICATED_BEARER_REQ:
-        nas_proc_delete_dedicated_bearer(
-          &MME_APP_DELETE_DEDICATED_BEARER_REQ(received_message_p));
-        break;
 
       case TERMINATE_MESSAGE: {
         put_mme_nas_state(&mme_app_desc_p);

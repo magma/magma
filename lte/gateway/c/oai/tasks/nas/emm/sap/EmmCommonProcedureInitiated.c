@@ -139,15 +139,15 @@ int EmmCommonProcedureInitiated(emm_reg_t *const evt)
             emm_ctx, &evt->u.common.common_proc->emm_proc.base_proc);
         }
 
+        if (evt->free_proc) {
+          nas_delete_common_procedure(emm_ctx, &evt->u.common.common_proc);
+        }
+
         if (
           (rc != RETURNerror) && (emm_ctx) && (evt->notify) &&
           (evt->u.common.common_proc->emm_proc.base_proc.failure_notif)) {
           rc = (*evt->u.common.common_proc->emm_proc.base_proc.failure_notif)(
             emm_ctx);
-        }
-
-        if (evt->free_proc) {
-          nas_delete_common_procedure(emm_ctx, &evt->u.common.common_proc);
         }
       }
 

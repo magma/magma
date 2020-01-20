@@ -23,6 +23,16 @@ func (eg *EntityGraph) GetEntity(entType string, key string) (NetworkEntity, err
 	return eg.GetEntityByTK(storage.TypeAndKey{Type: entType, Key: key})
 }
 
+func (eg *EntityGraph) GetEntitiesOfType(entType string) []NetworkEntity {
+	res := []NetworkEntity{}
+	for _, networkEnt := range eg.Entities {
+		if networkEnt.Type == entType {
+			res = append(res, networkEnt)
+		}
+	}
+	return res
+}
+
 func (eg *EntityGraph) GetEntityByTK(id storage.TypeAndKey) (NetworkEntity, error) {
 	eg.cacheGraphHelpers()
 

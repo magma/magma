@@ -9,10 +9,10 @@
 
 #include <experimental/filesystem>
 
-#include <devmand/Diff.h>
-#include <devmand/FileWatcher.h>
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/cartography/Method.h>
+#include <devmand/utils/Diff.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 namespace magma {

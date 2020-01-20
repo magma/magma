@@ -11,8 +11,8 @@
 #include <folly/Format.h>
 #include <folly/GLog.h>
 
-#include <devmand/FileUtils.h>
 #include <devmand/utils/ConfigGenerator.h>
+#include <devmand/utils/FileUtils.h>
 
 #include <boost/algorithm/string/join.hpp>
 

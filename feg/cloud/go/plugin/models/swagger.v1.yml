@@ -591,6 +591,14 @@ definitions:
         x-nullable: false
         default: 10800
         example: 10800
+      hlr_plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '00101'
     x-go-custom-tag: 'magma_alt_name:"SWX"'
 
   eap_aka:

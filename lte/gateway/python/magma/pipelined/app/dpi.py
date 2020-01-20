@@ -8,7 +8,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from magma.pipelined.openflow import flows
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
 import shlex
@@ -29,6 +29,7 @@ class DPIController(MagmaController):
     """
 
     APP_NAME = "dpi"
+    APP_TYPE = ControllerType.LOGICAL
     UPDATE_INTERVAL = 10  # seconds
 
     def __init__(self, *args, **kwargs):
@@ -50,7 +51,7 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
         self._datapath = datapath
 
@@ -61,6 +62,9 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
     def classify_flow(self, match, app):

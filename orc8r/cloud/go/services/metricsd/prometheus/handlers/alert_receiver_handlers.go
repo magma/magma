@@ -15,7 +15,7 @@ import (
 	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/receivers"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/config"
@@ -171,7 +171,7 @@ func retrieveAlertRoute(c echo.Context, url string) error {
 		_ = json.NewDecoder(resp.Body).Decode(&body)
 		return obsidian.HttpError(fmt.Errorf("error reading alerting route: %v", body.Message), resp.StatusCode)
 	}
-	var route config.Route
+	var route receivers.RouteJSONWrapper
 	err = json.NewDecoder(resp.Body).Decode(&route)
 	if err != nil {
 		return obsidian.HttpError(fmt.Errorf("error decoding server response %v", err), http.StatusInternalServerError)

@@ -1,0 +1,20 @@
+query EquipmentTypeAndPropertiesQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        name
+      }
+      properties {
+        propertyType {
+          id
+        }
+        stringValue
+        intValue
+        booleanValue
+        floatValue
+        latitudeValue
+        longitudeValue
+      }
+    }
+  }
+}

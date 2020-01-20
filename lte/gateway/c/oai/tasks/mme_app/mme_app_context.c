@@ -54,6 +54,7 @@
 #include "mme_app_defs.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
+#include "nas_proc.h"
 #include "common_defs.h"
 #include "esm_ebr.h"
 #include "timer.h"
@@ -105,7 +106,7 @@ static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_report_location(IMSI_TO_HWID, imsi_str);
+  directoryd_report_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Reported UE location to directoryd, IMSI: " IMSI_64_FMT "\n",
@@ -116,7 +117,7 @@ static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
-  directoryd_remove_location(IMSI_TO_HWID, imsi_str);
+  directoryd_remove_location(imsi_str);
   OAILOG_INFO(
     LOG_MME_APP,
     "Deleted UE location from directoryd, IMSI: " IMSI_64_FMT "\n",
@@ -316,6 +317,7 @@ void mme_app_free_pdn_connection(pdn_context_t **const pdn_connection)
 {
   bdestroy_wrapper(&(*pdn_connection)->apn_in_use);
   bdestroy_wrapper(&(*pdn_connection)->apn_oi_replacement);
+  bdestroy_wrapper(&(*pdn_connection)->apn_subscribed);
   free_wrapper((void **) pdn_connection);
 }
 
@@ -390,7 +392,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t *const ue_context_p)
       ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
     free_wrapper((void **) &(ue_context_p->sgs_context));
   }
-
   ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
 
   ue_context_p->send_ue_purge_request = false;
@@ -561,14 +562,13 @@ void mme_app_move_context(ue_mm_context_t *dst, ue_mm_context_t *src)
 
 //------------------------------------------------------------------------------
 void mme_ue_context_update_coll_keys(
-  mme_ue_context_t *const mme_ue_context_p,
-  ue_mm_context_t *const ue_context_p,
+  mme_ue_context_t* const mme_ue_context_p,
+  ue_mm_context_t* const ue_context_p,
   const enb_s1ap_id_key_t enb_s1ap_id_key,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
   const imsi64_t imsi,
-  uint8_t imsi_len,
   const s11_teid_t mme_teid_s11,
-  const guti_t *const guti_p) //  never NULL, if none put &ue_context_p->guti
+  const guti_t* const guti_p) //  never NULL, if none put &ue_context_p->guti
 {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
 
@@ -966,6 +966,9 @@ void mme_remove_ue_context(
   DevAssert(ue_context_p);
 
   if (!lock_ue_contexts(ue_context_p)) {
+    // Release emm and esm context
+    _clear_emm_ctxt(&ue_context_p->emm_context);
+    mme_app_ue_context_free_content(ue_context_p);
     // IMSI
     if (ue_context_p->emm_context._imsi64) {
       hash_rc = hashtable_uint64_ts_remove(
@@ -1057,7 +1060,6 @@ void mme_remove_ue_context(
     _directoryd_remove_location(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
-    mme_app_ue_context_free_content(ue_context_p);
     unlock_ue_contexts(ue_context_p);
     free_wrapper((void **) &ue_context_p);
   }
@@ -2297,7 +2299,6 @@ static void _mme_app_handle_s1ap_ue_context_release(
 {
   struct ue_mm_context_s *ue_mm_context = NULL;
   enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
-  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
@@ -2404,12 +2405,12 @@ static void _mme_app_handle_s1ap_ue_context_release(
 
   if (ue_mm_context->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
-    message_p =
-      itti_alloc_new_message(TASK_MME_APP, NAS_IMPLICIT_DETACH_UE_IND);
-    DevAssert(message_p != NULL);
-    message_p->ittiMsg.nas_implicit_detach_ue_ind.ue_id =
-      ue_mm_context->mme_ue_s1ap_id;
-    itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "UE context release request received while UE is in Deregistered state "
+      "Perform implicit detach for ue-id" MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
+    nas_proc_implicit_detach_ue_ind(ue_mm_context->mme_ue_s1ap_id);
   } else {
     if (cause == S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS) {
       for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
@@ -2433,8 +2434,8 @@ static void _mme_app_handle_s1ap_ue_context_release(
         }
       }
     }
+    unlock_ue_contexts(ue_mm_context);
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

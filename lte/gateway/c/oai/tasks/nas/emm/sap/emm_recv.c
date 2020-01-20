@@ -34,7 +34,7 @@
 #include "3gpp_requirements_24.301.h"
 #include "emm_sap.h"
 #include "service303.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "conversions.h"
 #include "3gpp_24.301.h"
 #include "AdditionalUpdateType.h"
@@ -461,106 +461,41 @@ int emm_recv_detach_request(
   /*
    * Message processing
    */
-  emm_detach_request_ies_t *params = calloc(1, sizeof(*params));
+  emm_detach_request_ies_t params = {0};
   /*
    * Get the detach type
    */
-  params->type = EMM_DETACH_TYPE_RESERVED;
+  params.type = EMM_DETACH_TYPE_RESERVED;
 
   if (msg->detachtype.typeofdetach == DETACH_TYPE_EPS) {
-    params->type = EMM_DETACH_TYPE_EPS;
+    params.type = EMM_DETACH_TYPE_EPS;
   } else if (msg->detachtype.typeofdetach == DETACH_TYPE_IMSI) {
-    params->type = EMM_DETACH_TYPE_IMSI;
+    params.type = EMM_DETACH_TYPE_IMSI;
   } else if (msg->detachtype.typeofdetach == DETACH_TYPE_EPS_IMSI) {
-    params->type = EMM_DETACH_TYPE_EPS_IMSI;
+    params.type = EMM_DETACH_TYPE_EPS_IMSI;
   } else if (msg->detachtype.typeofdetach == DETACH_TYPE_RESERVED_1) {
-    params->type = EMM_DETACH_TYPE_RESERVED;
+    params.type = EMM_DETACH_TYPE_RESERVED;
   } else if (msg->detachtype.typeofdetach == DETACH_TYPE_RESERVED_2) {
-    params->type = EMM_DETACH_TYPE_RESERVED;
+    params.type = EMM_DETACH_TYPE_RESERVED;
   } else {
     /*
      * All other values are interpreted as "combined EPS/IMSI detach"
      */
     REQUIREMENT_3GPP_24_301(R10_9_9_3_7_1__1);
-    params->type = DETACH_TYPE_EPS_IMSI;
+    params.type = DETACH_TYPE_EPS_IMSI;
   }
-
-  /*
-   * Get the EPS mobile identity
-   */
-
-  if (msg->gutiorimsi.guti.typeofidentity == EPS_MOBILE_IDENTITY_GUTI) {
-    /*
-     * Get the GUTI
-     */
-    params->guti = calloc(1, sizeof(guti_t));
-    params->guti->gummei.plmn.mcc_digit1 = msg->gutiorimsi.guti.mcc_digit1;
-    params->guti->gummei.plmn.mcc_digit2 = msg->gutiorimsi.guti.mcc_digit2;
-    params->guti->gummei.plmn.mcc_digit3 = msg->gutiorimsi.guti.mcc_digit3;
-    params->guti->gummei.plmn.mnc_digit1 = msg->gutiorimsi.guti.mnc_digit1;
-    params->guti->gummei.plmn.mnc_digit2 = msg->gutiorimsi.guti.mnc_digit2;
-    params->guti->gummei.plmn.mnc_digit3 = msg->gutiorimsi.guti.mnc_digit3;
-    params->guti->gummei.mme_gid = msg->gutiorimsi.guti.mme_group_id;
-    params->guti->gummei.mme_code = msg->gutiorimsi.guti.mme_code;
-    params->guti->m_tmsi = msg->gutiorimsi.guti.m_tmsi;
-  } else if (msg->gutiorimsi.imsi.typeofidentity == EPS_MOBILE_IDENTITY_IMSI) {
-    /*
-     * Get the IMSI
-     */
-    params->imsi = calloc(1, sizeof(imsi_t));
-    params->imsi->u.num.digit1 = msg->gutiorimsi.imsi.identity_digit1;
-    params->imsi->u.num.digit2 = msg->gutiorimsi.imsi.identity_digit2;
-    params->imsi->u.num.digit3 = msg->gutiorimsi.imsi.identity_digit3;
-    params->imsi->u.num.digit4 = msg->gutiorimsi.imsi.identity_digit4;
-    params->imsi->u.num.digit5 = msg->gutiorimsi.imsi.identity_digit5;
-    params->imsi->u.num.digit6 = msg->gutiorimsi.imsi.identity_digit6;
-    params->imsi->u.num.digit7 = msg->gutiorimsi.imsi.identity_digit7;
-    params->imsi->u.num.digit8 = msg->gutiorimsi.imsi.identity_digit8;
-    params->imsi->u.num.digit9 = msg->gutiorimsi.imsi.identity_digit9;
-    params->imsi->u.num.digit10 = msg->gutiorimsi.imsi.identity_digit10;
-    params->imsi->u.num.digit11 = msg->gutiorimsi.imsi.identity_digit11;
-    params->imsi->u.num.digit12 = msg->gutiorimsi.imsi.identity_digit12;
-    params->imsi->u.num.digit13 = msg->gutiorimsi.imsi.identity_digit13;
-    params->imsi->u.num.digit14 = msg->gutiorimsi.imsi.identity_digit14;
-    params->imsi->u.num.digit15 = msg->gutiorimsi.imsi.identity_digit15;
-    params->imsi->u.num.parity = 0x0f;
-    params->imsi->length = msg->gutiorimsi.imsi.num_digits;
-  } else if (msg->gutiorimsi.imei.typeofidentity == EPS_MOBILE_IDENTITY_IMEI) {
-    /*
-     * Get the IMEI
-     */
-    params->imei = calloc(1, sizeof(imei_t));
-    params->imei->u.num.tac1 = msg->gutiorimsi.imei.identity_digit1;
-    params->imei->u.num.tac2 = msg->gutiorimsi.imei.identity_digit2;
-    params->imei->u.num.tac3 = msg->gutiorimsi.imei.identity_digit3;
-    params->imei->u.num.tac4 = msg->gutiorimsi.imei.identity_digit4;
-    params->imei->u.num.tac5 = msg->gutiorimsi.imei.identity_digit5;
-    params->imei->u.num.tac6 = msg->gutiorimsi.imei.identity_digit6;
-    params->imei->u.num.tac7 = msg->gutiorimsi.imei.identity_digit7;
-    params->imei->u.num.tac8 = msg->gutiorimsi.imei.identity_digit8;
-    params->imei->u.num.snr1 = msg->gutiorimsi.imei.identity_digit9;
-    params->imei->u.num.snr2 = msg->gutiorimsi.imei.identity_digit10;
-    params->imei->u.num.snr3 = msg->gutiorimsi.imei.identity_digit11;
-    params->imei->u.num.snr4 = msg->gutiorimsi.imei.identity_digit12;
-    params->imei->u.num.snr5 = msg->gutiorimsi.imei.identity_digit13;
-    params->imei->u.num.snr6 = msg->gutiorimsi.imei.identity_digit14;
-    params->imei->u.num.cdsd = msg->gutiorimsi.imei.identity_digit15;
-    params->imei->u.num.parity = msg->gutiorimsi.imei.oddeven;
-  }
-
-  params->switch_off = (msg->detachtype.switchoff != DETACH_TYPE_NORMAL_DETACH);
-  params->is_native_sc =
+  params.switch_off = (msg->detachtype.switchoff != DETACH_TYPE_NORMAL_DETACH);
+  params.is_native_sc =
     (msg->naskeysetidentifier.tsc != NAS_KEY_SET_IDENTIFIER_MAPPED);
-  params->ksi = msg->naskeysetidentifier.naskeysetidentifier;
-  params->decode_status = *status;
+  params.ksi = msg->naskeysetidentifier.naskeysetidentifier;
   /*
    * Execute the UE initiated detach procedure completion by the network
    */
   increment_counter("ue_detach", 1, 1, "cause", "ue_initiated");
   // Send the SGS Detach indication towards MME App
-  rc = emm_proc_sgs_detach_request(ue_id, params->type);
+  rc = emm_proc_sgs_detach_request(ue_id, params.type);
   if (rc != RETURNerror) {
-    rc = emm_proc_detach_request(ue_id, params);
+    rc = emm_proc_detach_request(ue_id, &params);
     *emm_cause = RETURNok == rc ? EMM_CAUSE_SUCCESS : EMM_CAUSE_PROTOCOL_ERROR;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -797,7 +732,7 @@ int emm_recv_service_request(
       if(service_type != CSFB_SERVICE_MT_SMS) {
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
         IMSI_TO_STRING(&(emm_ctx->_imsi), imsi_str, IMSI_BCD_DIGITS_MAX + 1);
-        nas_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_ue_activity_ind(imsi_str, strlen(imsi_str));
       }
       mme_ue_context_update_ue_sgs_neaf(ue_id, false);
     }

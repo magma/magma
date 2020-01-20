@@ -101,8 +101,13 @@ struct ipv4flow_dl {
  *         @i_tei: RX GTP Tunnel ID
  */
 struct gtp_tunnel_ops {
-  int (
-    *init)(struct in_addr *ue_net, uint32_t mask, int mtu, int *fd0, int *fd1u);
+  int (*init)(
+    struct in_addr* ue_net,
+    uint32_t mask,
+    int mtu,
+    int* fd0,
+    int* fd1u,
+    bool persist_state);
   int (*uninit)(void);
   int (*reset)(void);
   int (*add_tunnel)(

@@ -19,11 +19,11 @@ import (
 	"magma/feg/gateway/services/s6a_proxy/metrics"
 	orcprotos "magma/orc8r/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
-	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"golang.org/x/net/context"
 )
 
@@ -178,11 +178,13 @@ func (s *s6aProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*or
 	return &orcprotos.Void{}, nil
 }
 
-// Enable enables diameter connection creation
-// If creation is already enabled, Enable has no effect
+// Enable enables diameter connection creation and gets a connection to the
+// diameter server. If creation is already enabled and a connection already
+// exists, Enable has no effect
 func (s *s6aProxy) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
 	s.connMan.Enable()
-	return &orcprotos.Void{}, nil
+	_, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	return &orcprotos.Void{}, err
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

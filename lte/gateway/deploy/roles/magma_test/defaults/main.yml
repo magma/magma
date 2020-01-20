@@ -1,7 +1,6 @@
 ---
-  tip_repo: /home/{{ ansible_user }}/tipsw
-  s1aptester_root: /home/{{ ansible_user }}/s1ap-tester
-  s1aptester_src: '{{ tip_repo }}/S1SIM'
+  s1ap_tester_root: /home/{{ ansible_user }}/s1ap-tester
+  s1ap_tester_src: /home/{{ ansible_user }}/S1APTester
   gateway_name: gateway1
   gateway_ip: 192.168.60.142
   gateway_port: 8443
@@ -12,4 +11,4 @@
   swagger_codegen_jar: '{{ codegen_root }}/modules/swagger-codegen-cli/target/swagger-codegen-cli.jar'
   swagger_spec: /home/{{ ansible_user }}/magma/orc8r/cloud/deploy/files/static/apidocs/swagger.yml
   swagger_codegen_output: /home/{{ ansible_user }}/api-bindings
-  test_scripts: '{{ magma_root }}/lte/gateway/deploy/roles/magma_test/files' 
+  test_scripts: '{{ magma_root }}/lte/gateway/deploy/roles/magma_test/files'

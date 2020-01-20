@@ -34,6 +34,7 @@ func StartTestServiceWithCache(t *testing.T, cache *cache.Impl) (*service.Servic
 	if err != nil {
 		return nil, err
 	}
+
 	// Update server config with chosen port of swx test server
 	config.ServerCfg.Addr = serverAddr
 	service, err := servicers.NewSwxProxyWithCache(config, cache)
@@ -62,9 +63,21 @@ func InitTestMconfig(t *testing.T, addr string, verify bool) error {
 					"realm": "openair4G.eur",
 					"host": "magma-oai.openair4G.eur"
 				},
-				"verifyAuthorization": %t
+				"verifyAuthorization": %t,
+				"hlr_plmn_ids": [ "00102", "00103" ]
 			}
 		}
 	}`
-	return mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, addr, verify))
+	res := mconfig.CreateLoadTempConfig(fmt.Sprintf(fegConfigFmt, addr, verify))
+	cfg := servicers.GetSwxProxyConfig()
+	if !cfg.IsHlrClient("001020000000055") {
+		t.Fatalf("IMSI 001020000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
+	}
+	if !cfg.IsHlrClient("001030000000055") {
+		t.Fatalf("IMSI 001030000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
+	}
+	if cfg.IsHlrClient("001010000000055") {
+		t.Fatalf("IMSI 001010000000055 should NOT be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
+	}
+	return res
 }

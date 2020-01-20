@@ -9,7 +9,7 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 
 # Path to the test files
 TESTS=magma/tests \
-	  magma/captive_portal/tests \
+	  magma/policydb/tests \
 	  magma/enodebd/tests \
       magma/mobilityd/tests \
       magma/pipelined/openflow/tests \

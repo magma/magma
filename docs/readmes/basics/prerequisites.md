@@ -17,10 +17,19 @@ Install the following tools:
 3. [VirtualBox](https://www.virtualbox.org/)
 3. [Vagrant](https://vagrantup.com)
 
-Replace `brew` with your OS-appropriate package manager as necessary:
+Replace `brew` with your OS-appropriate package manager as necessary, or see
+the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
 
 ```bash
-brew install python3
+brew install pyenv
+
+# Replace .zshrc with your appropriate shell RC file
+# IMPORTANT: Use .bash_profile, not .bashrc for bash
+echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+exec $SHELL
+pyenv install 3.7.3
+pyenv global 3.7.3
+
 pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 ```
@@ -41,10 +50,10 @@ First, follow the previous section on developer tools. Then, install some
 additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
-```console
-$ brew install aws-iam-authenticator kubernetes-cli kubernetes-helm python3 terraform
-$ pip3 install awscli
-$ aws configure
+```bash
+brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
+pip3 install awscli
+aws configure
 ```
 
 Provide the access key ID and secret key for an administrator user in AWS

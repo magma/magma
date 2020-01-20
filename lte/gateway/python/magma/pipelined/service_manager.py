@@ -38,17 +38,21 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.meteringd_pb2_grpc import MeteringdRecordsControllerStub
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
+from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.arp import ArpController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.inout import EGRESS, INGRESS, InOutController
+from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
+    InOutController
 from magma.pipelined.app.meter import MeterController
 from magma.pipelined.app.meter_stats import MeterStatsController
 from magma.pipelined.app.subscriber import SubscriberController
 from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from ryu.base.app_manager import AppManager
@@ -58,11 +62,15 @@ from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 
 
-class Tables:
-    __slots__ = ['main_table', 'scratch_tables']
+App = namedtuple('App', ['name', 'module', 'type'])
 
-    def __init__(self, main_table, scratch_tables=None):
+
+class Tables:
+    __slots__ = ['main_table', 'type', 'scratch_tables']
+
+    def __init__(self, main_table, type, scratch_tables=None):
         self.main_table = main_table
+        self.type = type
         self.scratch_tables = scratch_tables
         if self.scratch_tables is None:
             self.scratch_tables = []
@@ -75,6 +83,37 @@ class TableNumException(Exception):
     pass
 
 
+class TableRange():
+    """
+    Used to generalize different table ranges.
+    """
+    def __init__(self, start: int, end: int):
+        self._start = start
+        self._end = end
+        self._next_table = self._start
+
+    def allocate_table(self):
+        if (self._next_table == self._end):
+            raise TableNumException('Cannot generate more tables. Table limit'
+                'of %s reached!' % self._end)
+        table_num = self._next_table
+        self._next_table += 1
+        return table_num
+
+    def allocate_tables(self, count: int):
+        if self._next_table + count >= self._end:
+            raise TableNumException('Cannot generate more tables. Table limit'
+                'of %s reached!' % self._end)
+        tables = [self.allocate_table() for i in range(0, count)]
+        return tables
+
+    def get_next_table(self, table:int):
+        if table + 1 < self._next_table:
+            return table + 1
+        else:
+            return self._end
+
+
 class _TableManager:
     """
     TableManager maintains an internal mapping between apps to their
@@ -82,45 +121,56 @@ class _TableManager:
     """
 
     INGRESS_TABLE_NUM = 1
+    PHYSICAL_TO_LOGICAL_TABLE_NUM = 10
     EGRESS_TABLE_NUM = 20
-    MAIN_TABLE_START_NUM = 2
-    MAIN_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
+    LOGICAL_TABLE_LIMIT_NUM = EGRESS_TABLE_NUM  # exclusive
     SCRATCH_TABLE_START_NUM = EGRESS_TABLE_NUM + 1  # 21
     SCRATCH_TABLE_LIMIT_NUM = 255  # exclusive
 
     def __init__(self):
+        self._table_ranges = {
+            ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
+                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
+            ControllerType.LOGICAL:
+                TableRange(self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
+                           self.EGRESS_TABLE_NUM)
+        }
+        self._scratch_range = TableRange(self.SCRATCH_TABLE_START_NUM,
+                                         self.SCRATCH_TABLE_LIMIT_NUM)
         self._tables_by_app = {
-            INGRESS: Tables(main_table=self.INGRESS_TABLE_NUM),
-            EGRESS: Tables(main_table=self.EGRESS_TABLE_NUM),
+            INGRESS: Tables(main_table=self.INGRESS_TABLE_NUM,
+                            type=ControllerType.SPECIAL),
+            PHYSICAL_TO_LOGICAL: Tables(
+                main_table=self.PHYSICAL_TO_LOGICAL_TABLE_NUM,
+                type=ControllerType.SPECIAL),
+            EGRESS: Tables(main_table=self.EGRESS_TABLE_NUM,
+                           type=ControllerType.SPECIAL),
         }
 
-        self._next_main_table = self.MAIN_TABLE_START_NUM
-        self._next_scratch_table = self.SCRATCH_TABLE_START_NUM
+    def _allocate_main_table(self, type: ControllerType) -> int:
+        if type not in self._table_ranges:
+            raise TableNumException('Cannot generate a table for %s' % type)
+        return self._table_ranges[type].allocate_table()
 
-    def _allocate_main_table(self) -> int:
-        if self._next_main_table == self.MAIN_TABLE_LIMIT_NUM:
-            raise TableNumException(
-                'Cannot generate more tables. Table limit of %s '
-                'reached!' % self.MAIN_TABLE_LIMIT_NUM)
-
-        table_num = self._next_main_table
-        self._next_main_table += 1
-        return table_num
-
-    def register_apps_for_service(self, app_names: List[str]):
+    def register_apps_for_service(self, apps: List[App]):
         """
-        Register the apps for a service with a main table.
+        Register the apps for a service with a main table. All Apps must share
+        the same contoller type
         """
-        table_num = self._allocate_main_table()
-        for app in app_names:
-            self._tables_by_app[app] = Tables(main_table=table_num)
+        if not all(apps[0].type == app.type for app in apps):
+            raise TableNumException('Cannot register apps with different'
+                                    'controller type')
+        table_num = self._allocate_main_table(apps[0].type)
+        for app in apps:
+            self._tables_by_app[app.name] = Tables(main_table=table_num,
+                                                   type=app.type)
 
-    def register_apps_for_table0_service(self, app_names: List[str]):
+    def register_apps_for_table0_service(self, apps: List[App]):
         """
         Register the apps for a service with main table 0
         """
-        for app in app_names:
-            self._tables_by_app[app] = Tables(main_table=0)
+        for app in apps:
+            self._tables_by_app[app.name] = Tables(main_table=0, type=app.type)
 
     def get_table_num(self, app_name: str) -> int:
         if app_name not in self._tables_by_app:
@@ -135,11 +185,17 @@ class _TableManager:
         """
         if app_name not in self._tables_by_app:
             raise Exception('App is not registered: %s' % app_name)
-        main_table = self._tables_by_app[app_name].main_table
-        next_table = main_table + 1
-        if next_table < self._next_main_table:
-            return next_table
-        return self.EGRESS_TABLE_NUM
+
+        app = self._tables_by_app[app_name]
+        if app.type == ControllerType.SPECIAL:
+            if app_name == INGRESS:
+                return self._table_ranges[ControllerType.PHYSICAL].get_next_table(app.main_table)
+            elif app_name == PHYSICAL_TO_LOGICAL:
+                return self._table_ranges[ControllerType.LOGICAL].get_next_table(app.main_table)
+            else:
+                raise TableNumException('No next table found for %s' % app_name)
+
+        return self._table_ranges[app.type].get_next_table(app.main_table)
 
     def is_app_enabled(self, app_name: str) -> bool:
         return app_name in self._tables_by_app or \
@@ -147,16 +203,8 @@ class _TableManager:
 
     def allocate_scratch_tables(self, app_name: str, count: int) -> \
             List[int]:
-        if self._next_scratch_table + count > self.SCRATCH_TABLE_LIMIT_NUM:
-            raise TableNumException(
-                'Cannot generate more tables. Table limit of %s '
-                'reached!' % self.SCRATCH_TABLE_LIMIT_NUM)
 
-        tbl_nums = []
-        for _ in range(count):
-            tbl_nums.append(self._next_scratch_table)
-            self._next_scratch_table += 1
-
+        tbl_nums = self._scratch_range.allocate_tables(count)
         self._tables_by_app[app_name].scratch_tables.extend(tbl_nums)
         return tbl_nums
 
@@ -170,7 +218,7 @@ class _TableManager:
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
         if 'ue_mac' not in self._tables_by_app:
-            resp['mme'] = Tables(main_table=0)
+            resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
 
@@ -189,12 +237,12 @@ class ServiceManager:
         - Main & scratch tables management
     """
 
-    App = namedtuple('App', ['name', 'module'])
-
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
+    STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
 
     # Mapping between services defined in mconfig and the names and modules of
     # the corresponding Ryu apps in PipelineD. The module is used for the Ryu
@@ -203,20 +251,26 @@ class ServiceManager:
     DYNAMIC_SERVICE_TO_APPS = {
         PipelineD.METERING: [
             App(name=MeterController.APP_NAME,
-                module=MeterController.__module__),
+                module=MeterController.__module__,
+                type=MeterController.APP_TYPE),
             App(name=MeterStatsController.APP_NAME,
-                module=MeterStatsController.__module__),
+                module=MeterStatsController.__module__,
+                type=MeterStatsController.APP_TYPE),
             App(name=SubscriberController.APP_NAME,
-                module=SubscriberController.__module__),
+                module=SubscriberController.__module__,
+                type=SubscriberController.APP_TYPE),
         ],
         PipelineD.DPI: [
-            App(name=DPIController.APP_NAME, module=DPIController.__module__),
+            App(name=DPIController.APP_NAME, module=DPIController.__module__,
+                type=DPIController.APP_TYPE),
         ],
         PipelineD.ENFORCEMENT: [
             App(name=EnforcementController.APP_NAME,
-                module=EnforcementController.__module__),
+                module=EnforcementController.__module__,
+                type=EnforcementController.APP_TYPE),
             App(name=EnforcementStatsController.APP_NAME,
-                module=EnforcementStatsController.__module__),
+                module=EnforcementStatsController.__module__,
+                type=EnforcementStatsController.APP_TYPE),
         ],
     }
 
@@ -225,32 +279,49 @@ class ServiceManager:
     STATIC_SERVICE_TO_APPS = {
         UE_MAC_ADDRESS_SERVICE_NAME: [
             App(name=UEMacAddressController.APP_NAME,
-                module=UEMacAddressController.__module__),
+                module=UEMacAddressController.__module__,
+                type=None),
         ],
         ARP_SERVICE_NAME: [
-            App(name=ArpController.APP_NAME, module=ArpController.__module__),
+            App(name=ArpController.APP_NAME, module=ArpController.__module__,
+            type=ArpController.APP_TYPE),
         ],
         ACCESS_CONTROL_SERVICE_NAME: [
             App(name=AccessControlController.APP_NAME,
-                module=AccessControlController.__module__),
+                module=AccessControlController.__module__,
+                type=AccessControlController.APP_TYPE),
+        ],
+        TUNNEL_LEARN_SERVICE_NAME: [
+            App(name=TunnelLearnController.APP_NAME,
+                module=TunnelLearnController.__module__,
+                type=TunnelLearnController.APP_TYPE),
         ],
         RYU_REST_SERVICE_NAME: [
-            App(name='ryu_rest_app', module='ryu.app.ofctl_rest'),
+            App(name='ryu_rest_app', module='ryu.app.ofctl_rest', type=None),
         ],
+        STARTUP_FLOWS_RECIEVER_CONTROLLER: [
+            App(name=StartupFlows.APP_NAME,
+                module=StartupFlows.__module__,
+                type=StartupFlows.APP_TYPE),
+        ]
     }
 
     # Some apps do not use a table, so they need to be excluded from table
     # allocation.
     STATIC_SERVICE_WITH_NO_TABLE = [
         RYU_REST_SERVICE_NAME,
+        STARTUP_FLOWS_RECIEVER_CONTROLLER,
     ]
 
     def __init__(self, magma_service: MagmaService):
         self._magma_service = magma_service
-        # inout is a mandatory app and it occupies both table 1(for ingress)
-        # and table 20(for egress).
-        self._apps = [self.App(name=InOutController.APP_NAME,
-                               module=InOutController.__module__)]
+        # inout is a mandatory app and it occupies:
+        #   table 1(for ingress)
+        #   table 10(for middle)
+        #   table 20(for egress)
+        self._apps = [App(name=InOutController.APP_NAME,
+                          module=InOutController.__module__,
+                          type=None)]
         self._table_manager = _TableManager()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
 
@@ -274,13 +345,12 @@ class ServiceManager:
             [service for service in static_services if
              service not in self.STATIC_SERVICE_WITH_NO_TABLE]
         for service in services_with_tables:
-            app_names = [app.name for app in
-                         self.STATIC_SERVICE_TO_APPS[service]]
+            apps = self.STATIC_SERVICE_TO_APPS[service]
             # UE MAC service must be registered with Table 0
             if service == self.UE_MAC_ADDRESS_SERVICE_NAME:
-                self._table_manager.register_apps_for_table0_service(app_names)
+                self._table_manager.register_apps_for_table0_service(apps)
                 continue
-            self._table_manager.register_apps_for_service(app_names)
+            self._table_manager.register_apps_for_service(apps)
 
     def _init_dynamic_services(self):
         """
@@ -295,9 +365,8 @@ class ServiceManager:
         # Register dynamic apps for each service to a main table. Filter out
         # any apps that do not need a table.
         for service in dynamic_services:
-            app_names = [app.name for app in
-                         self.DYNAMIC_SERVICE_TO_APPS[service]]
-            self._table_manager.register_apps_for_service(app_names)
+            apps = self.DYNAMIC_SERVICE_TO_APPS[service]
+            self._table_manager.register_apps_for_service(apps)
 
     def load(self):
         """

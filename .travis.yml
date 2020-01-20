@@ -5,85 +5,45 @@
 # LICENSE file in the root directory of this source tree.
 matrix:
   include:
-    - language: go
-      name: Verifying generated files are in-sync
-      go:
-        - 1.11.x
+    - stage: Tests
+      language: python
+      name: Run container-based Orchestrator cloud tests for FWA
       os: linux
       dist: xenial
-
+      python:
+        - "3.7"
+      services:
+        - docker
       env:
-        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR
 
-      before_install:
-        - ./travis/golang_before_install.sh
-
-      before_script:
-        - sudo mkdir -p /etc/magma/configs
-        - ./travis/link_cloud_configs.sh
-
+      install:
+        - pip3 install PyYAML
       script:
-        - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
-        - cd ${MAGMA_ROOT}/feg/gateway
-        - travis_retry travis_wait go mod download
+        - cd ${MAGMA_ROOT}/orc8r/cloud/docker
+        - python3 build.py -t
 
-        # Clear temp files (e.g. travis_retry/travis_wait logs)
-        - cd ${MAGMA_ROOT}
-        - git clean -fd
-
-        - make -C ${MAGMA_ROOT}/orc8r/cloud gen
-        - make -C ${MAGMA_ROOT}/feg/gateway gen
-        - cd ${MAGMA_ROOT}
-        - git add .
-        - git status
-        # This command will exit 1 if there are any changes to the git clone
-        - git diff-index --quiet HEAD
-
-    - language: go
-      name: Cloud precommit
-      go:
-        - 1.11.x
-      os: linux
-      dist: xenial
-
-      env:
-        - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
-
-      before_install:
-        - ./travis/golang_before_install.sh
-        - ./travis/start_dynamo_local.sh
-
-      before_script:
-        - sudo mkdir -p /etc/magma/configs
-        - ./travis/link_cloud_configs.sh
-
-      script:
-        - travis_retry travis_retry travis_wait make -C ${MAGMA_ROOT}/orc8r/cloud download
-        - make -C ${MAGMA_ROOT}/orc8r/cloud tools
-        - make -C ${MAGMA_ROOT}/orc8r/cloud precommit
-
-    - language: go
+    - stage: Tests
+      language: go
       name: FeG precommit
-      go:
-        - 1.11.x
       os: linux
       dist: xenial
-
+      go:
+        - 1.13.x
       env:
         - MAGMA_ROOT=$TRAVIS_BUILD_DIR GO111MODULE=on
 
       before_install:
         - ./travis/golang_before_install.sh
-
       before_script:
         - sudo ln -s $MAGMA_ROOT/config/feg /etc/magma
-
       script:
         - cd ${MAGMA_ROOT}/feg/gateway
         - travis_retry travis_wait go mod download
         - make -C ${MAGMA_ROOT}/feg/gateway precommit
 
-    - language: go
+    - stage: Tests
+      language: go
       name: CWAG precommit
       go:
         - 1.12.x
@@ -101,7 +61,8 @@ matrix:
         - travis_retry travis_wait go mod download
         - make -C ${MAGMA_ROOT}/cwf/gateway precommit
 
-    - language: go
+    - stage: Tests
+      language: go
       name: orc8r gateway go tests
       go:
         - 1.12.x
@@ -117,11 +78,11 @@ matrix:
         - go test ./...
         - go vet ./...
 
-    - language: minimal
+    - stage: Tests
+      language: minimal
       name: LTE gateway python unit tests
       os: linux
       dist: xenial
-
       env:
         - MAGMA_ROOT=$TRAVIS_BUILD_DIR PYTHON_BUILD=$TRAVIS_BUILD_DIR/build PIP_CACHE_HOME=$TRAVIS_BUILD_DIR/.pipcache MAGMA_DEV_MODE=1 SKIP_SUDO_TESTS=1
 
@@ -138,26 +99,101 @@ matrix:
         - sudo mv protoc3/include/google /usr/include/
         - sudo chmod -R a+Xr /usr/include/google
         - sudo rm -rf protoc3.zip protoc3
-
       script:
         - make -C $MAGMA_ROOT/lte/gateway/python test_all
 
-    - language: minimal
-      name: nms builds
+    - stage: Tests
+      name: Verifying generated files are in-sync
+      language: python
       os: linux
       dist: xenial
-
+      python:
+        - "3.7"
+      services:
+        - docker
       env:
-        - NMS_ROOT=$TRAVIS_BUILD_DIR/nms
+        - MAGMA_ROOT=${TRAVIS_BUILD_DIR}
+        - MAGMA_MODULES_FILE=${TRAVIS_BUILD_DIR}/travis/modules.yml
+      install:
+        - pip3 install PyYAML
+      script:
+        - cd ${MAGMA_ROOT}/orc8r/cloud/docker
+        - python3 build.py -g
+        - cd ${TRAVIS_BUILD_DIR}
+        - git add .
+        - git status
+        # This command will exit 1 if there are any changes to the git clone
+        - git diff-index --quiet HEAD
 
-      addons:
-        apt:
-          packages:
-            - docker-ce
+    - stage: Build
+      language: python
+      name: Build core Orchestrator containers
+      os: linux
+      dist: xenial
+      python:
+        - "3.7"
+      services:
+        - docker
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR
+      install:
+        - pip3 install PyYAML
+      script:
+        - cd ${MAGMA_ROOT}/orc8r/cloud/docker
+        - python3 build.py --nocache
 
+    - stage: Build
+      language: python
+      name: Build noncore Orchestrator containers
+      os: linux
+      dist: xenial
+      python:
+        - "3.7"
+      services:
+        - docker
+      env:
+        - MAGMA_ROOT=$TRAVIS_BUILD_DIR
+      install:
+        - pip3 install PyYAML
+      script:
+        - cd ${MAGMA_ROOT}/orc8r/cloud/docker
+        - python3 build.py -nc
+
+    - stage: Build
+      language: minimal
+      name: Build NMS
+      os: linux
+      dist: xenial
+      services:
+        - docker
+      env:
+        - NMS_ROOT=$TRAVIS_BUILD_DIR/symphony/app/fbcnms-projects/magmalte
       script:
         - cd ${NMS_ROOT}
-        - docker build -t magmalte -f fbcnms-projects/magmalte/Dockerfile .
+        - docker-compose build magmalte
+
+    - stage: Build
+      name: FOSSA analyze
+      language: generic
+      env:
+        - MAGMA_ROOT=${TRAVIS_BUILD_DIR}
+      go:
+        - "1.13.x"
+      python:
+        - "3.7"
+      before_install:
+        - cd /tmp
+        - wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+        - bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+        - sudo rm -f /tmp/fossa
+        - tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+        - sudo cp /tmp/fossa /usr/local/bin/
+      script:
+        - ${MAGMA_ROOT}/travis/fossa-analyze-go.sh
+
+stages:
+  - Tests
+  - Build
 
 notifications:
   slack:

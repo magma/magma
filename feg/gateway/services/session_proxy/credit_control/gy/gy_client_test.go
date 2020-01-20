@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
@@ -45,7 +45,7 @@ func TestGyClient(t *testing.T) {
 	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerSessionInit)
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getReAuthHandler(), nil,
 	)
 
@@ -146,7 +146,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerSessionInit)
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getReAuthHandler(), nil,
 	)
 
@@ -194,7 +194,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerKeyInit)
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getReAuthHandler(), nil,
 	)
 
@@ -248,7 +248,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerKeyInit)
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getReAuthHandler(), nil,
 	)
 
@@ -297,7 +297,7 @@ func TestGyReAuth(t *testing.T) {
 	serverConfig, ocs := startServer(clientConfig, serverConfig, gy.PerKeyInit)
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		serverConfig,
 		getReAuthHandler(), nil,
 	)
 

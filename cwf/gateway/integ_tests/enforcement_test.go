@@ -61,7 +61,7 @@ func TestAuthenticateUplinkTrafficWithEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Wait for the traffic to go through
-	time.Sleep(2 * time.Second)
+	time.Sleep(6 * time.Second)
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through

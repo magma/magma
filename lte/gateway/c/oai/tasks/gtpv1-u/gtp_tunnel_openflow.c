@@ -44,10 +44,12 @@ int openflow_init(
   uint32_t mask,
   int mtu,
   int *fd0,
-  int *fd1u)
+  int *fd1u,
+  bool persist_state)
 {
   AssertFatal(
-    start_of_controller() >= 0, "Could not start openflow controller\n");
+    start_of_controller(persist_state) >= 0,
+    "Could not start openflow controller\n");
   return 0;
 }
 

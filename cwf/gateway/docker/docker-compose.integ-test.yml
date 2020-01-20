@@ -37,7 +37,6 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
 
-  # TODO: Remove this override once GRE tun_dst logic is added to pipelined
   pipelined:
     privileged: true
     volumes:
@@ -52,10 +51,16 @@ services:
       - /var/run/openvswitch:/var/run/openvswitch
     command: >
       sh -c "/usr/bin/ovs-vsctl --if-exists del-port cwag_br0 gre0 &&
+        /usr/bin/ovs-vsctl --if-exists del-br uplink_br0 &&
+        /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 cwag_patch &&
         /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 eth2 &&
-        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=192.168.70.102 options:key=5001 &&
+        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=flow options:key=flow &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         python3 -m magma.pipelined.main"
+
+  sessiond:
+    volumes:
+      - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
 
   swx_proxy:
     <<: *feggoservice
@@ -91,8 +96,13 @@ services:
     <<: *pyservice
     container_name: redis
     volumes:
-      - /var/opt/magma/redis.conf:/var/opt/magma/redis.conf
+      - ../integ_tests/redis.conf:/var/opt/magma/redis.conf
     command: >
       /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
 
+  uesim:
+    <<: *service
+    container_name: uesim
+    image: ${DOCKER_REGISTRY}uesim:${IMAGE_VERSION}
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0

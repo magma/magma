@@ -25,8 +25,8 @@ require (
 	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
 	github.com/prometheus/common v0.2.0
 	github.com/robfig/cron/v3 v3.0.0
-	github.com/stretchr/testify v1.3.0
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	google.golang.org/grpc v1.25.0
 
 	magma/feg/cloud/go v0.0.0
@@ -34,5 +34,3 @@ require (
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
 )
-
-go 1.13

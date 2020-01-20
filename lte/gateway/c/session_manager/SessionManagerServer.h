@@ -241,7 +241,7 @@ class CreateSessionCallData :
 class EndSessionCallData :
   public AsyncGRPCRequest<
     LocalSessionManager::AsyncService,
-    SubscriberID,
+    LocalEndSessionRequest,
     LocalEndSessionResponse> {
  public:
   EndSessionCallData(

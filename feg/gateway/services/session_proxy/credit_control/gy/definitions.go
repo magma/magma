@@ -13,11 +13,6 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
 )
 
-const (
-	ServiceContextIDDefault = "32251@3gpp.org" // Packet-Switch service context
-	ServiceIDDefault        = 0
-)
-
 type FinalUnitAction uint8
 
 const (
@@ -135,8 +130,9 @@ type CCADiameterMessage struct {
 // ReAuthRequest is a diameter request received from the OCS to initiate a
 // credit update
 type ReAuthRequest struct {
-	SessionID   string  `avp:"Session-Id"`
-	RatingGroup *uint32 `avp:"Rating-Group"`
+	SessionID         string  `avp:"Session-Id"`
+	RatingGroup       *uint32 `avp:"Rating-Group"`
+	ServiceIdentifier *uint32 `avp:"Service-Identifier"`
 }
 
 // ReAuthAnswer is a diameter answer sent back to the OCS after a credit update

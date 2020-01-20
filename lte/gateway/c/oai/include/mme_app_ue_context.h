@@ -450,7 +450,7 @@ typedef struct ue_mm_context_s {
   bool location_info_confirmed_in_hss;
   /* S6a- update location request guard timer */
   struct mme_app_timer_t ulr_response_timer;
-  sgs_context_t *sgs_context;
+  sgs_context_t* sgs_context;
   uint8_t attach_type;
   lai_t lai;
   int cs_fallback_indicator;
@@ -558,14 +558,13 @@ void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
  * \param guti_p The GUTI used by the UE
  **/
 void mme_ue_context_update_coll_keys(
-  mme_ue_context_t *const mme_ue_context_p,
-  ue_mm_context_t *const ue_context_p,
+  mme_ue_context_t* const mme_ue_context_p,
+  ue_mm_context_t* const ue_context_p,
   const enb_s1ap_id_key_t enb_s1ap_id_key,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
   const imsi64_t imsi,
-  uint8_t imsi_len,
   const s11_teid_t mme_s11_teid,
-  const guti_t *const guti_p);
+  const guti_t* const guti_p);
 
 /** \brief dump MME associative collections
  **/
@@ -656,6 +655,8 @@ void mme_app_ue_sgs_context_free_content(
   imsi64_t imsi);
 bool is_mme_ue_context_network_access_mode_packet_only(
   ue_mm_context_t  *ue_context_p);
+int mme_app_send_s6a_update_location_req(
+  struct ue_mm_context_s* const ue_context_pP);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 

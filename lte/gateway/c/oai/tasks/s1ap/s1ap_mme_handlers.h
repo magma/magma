@@ -170,7 +170,8 @@ void s1ap_enb_assoc_clean_up_timer_expiry(
   enb_description_t *enb_ref_p);
 
 int s1ap_handle_paging_request(
-  const itti_s1ap_paging_request_t *paging_request);
+  s1ap_state_t* state,
+  const itti_s1ap_paging_request_t* paging_request);
 
 int s1ap_mme_handle_ue_context_modification_response(
   s1ap_state_t *state,

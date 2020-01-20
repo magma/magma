@@ -62,12 +62,13 @@ int pgw_pcef_emulation_init(spgw_state_t* state_p,
   //--------------------------
   // Predefined PCC rules
   //--------------------------
-  pcc_rule_t* pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
+  pcc_rule_t* pcc_rule;
   // Initializing PCC rules only if PGW state doesn't already contain them
   hrc = hashtable_ts_is_key_exists(
       state_p->pgw_state.deactivated_predefined_pcc_rules,
       SDF_ID_GBR_VOLTE_40K);
   if (hrc == HASH_TABLE_KEY_NOT_EXISTS) {
+    pcc_rule = (pcc_rule_t*) calloc(1, sizeof(pcc_rule_t));
     pcc_rule->name = bfromcstr("VOLTE_40K_PCC_RULE");
     pcc_rule->is_activated = false;
     pcc_rule->sdf_id = SDF_ID_GBR_VOLTE_40K;

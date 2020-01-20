@@ -66,6 +66,7 @@
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
+#include "mme_config.h"
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops *gtp_tunnel_ops;
@@ -266,7 +267,6 @@ int sgw_handle_create_session_request(
       // TO DO free_wrapper new_bearer_ctxt_info_p and by cascade...
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
     }
-
     eps_bearer_ctxt_p->eps_bearer_qos =
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
         .bearer_level_qos;
@@ -473,6 +473,7 @@ int sgw_handle_gtpv1uCreateTunnelResp(
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   int rv = RETURNok;
   char *imsi = NULL;
+  char *apn = NULL;
   gtpv2c_cause_value_t cause = REQUEST_ACCEPTED;
 
   OAILOG_DEBUG(
@@ -538,6 +539,11 @@ int sgw_handle_gtpv1uCreateTunnelResp(
     imsi =
       (char *)
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+
+    apn =
+      (char *) new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                .pdn_connection.apn_in_use;
+
     switch (sgi_create_endpoint_resp.paa.pdn_type) {
       case IPv4:
         // Use NAS by default if no preference is set.
@@ -561,7 +567,7 @@ int sgw_handle_gtpv1uCreateTunnelResp(
         // and using them here in conditional logic. We will also want to
         // implement different logic between the PDN types.
         if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
             increment_counter(
               "ue_pdn_connection",
               1,
@@ -600,7 +606,7 @@ int sgw_handle_gtpv1uCreateTunnelResp(
         break;
 
       case IPv4_AND_v6:
-        if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
           increment_counter(
             "ue_pdn_connection",
             1,
@@ -1005,6 +1011,7 @@ int sgw_handle_sgi_endpoint_deleted(
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
   int rv = RETURNok;
   char *imsi = NULL;
+  char *apn = NULL;
   struct in_addr inaddr;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1051,13 +1058,14 @@ int sgw_handle_sgi_endpoint_deleted(
         OAILOG_ERROR(LOG_SPGW_APP, "ERROR in deleting TUNNEL\n");
       }
 
-      imsi =
-        (char *)
+      imsi = (char *)
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
+      apn = (char *)
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection.apn_in_use;
       switch (resp_pP->paa.pdn_type) {
         case IPv4:
           inaddr = resp_pP->paa.ipv4_address;
-          if (!release_ue_ipv4_address(imsi, &inaddr)) {
+          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
             OAILOG_DEBUG(LOG_SPGW_APP, "Released IPv4 PAA for PDN type IPv4\n");
           } else {
             OAILOG_ERROR(
@@ -1072,7 +1080,7 @@ int sgw_handle_sgi_endpoint_deleted(
 
         case IPv4_AND_v6:
           inaddr = resp_pP->paa.ipv4_address;
-          if (!release_ue_ipv4_address(imsi, &inaddr)) {
+          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
             OAILOG_DEBUG(
               LOG_SPGW_APP, "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
           } else {
@@ -1309,12 +1317,10 @@ int sgw_handle_delete_session_request(
       delete_session_resp_p->teid =
         ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
 
-      if (spgw_config.pgw_config.relay_enabled) {
-        // TODO make async
-        char *imsi =
-          (char *) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
-        pcef_end_session(imsi);
-      }
+      // TODO make async
+      char* imsi = (char*) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
+      char* apn = (char *) ctx_p->sgw_eps_bearer_context_information.pdn_connection.apn_in_use;
+      pcef_end_session(imsi, apn);
 
       itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
@@ -1435,6 +1441,9 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->trxn = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
       delete_session_req_pP->peer_ip.s_addr;
+
+    delete_session_resp_p->lbi = delete_session_req_pP->lbi;
+
     rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 
@@ -2639,7 +2648,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
 
         sgw_free_eps_bearer_context(
           &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection
-             .sgw_eps_bearers_array[ebi]);
+             .sgw_eps_bearers_array[EBI_TO_INDEX(ebi)]);
         break;
       }
     }

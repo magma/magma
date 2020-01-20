@@ -1,0 +1,164 @@
+---
+swagger: '2.0'
+info:
+  title: Prometheus Configurer Model Definitions and Paths
+  description: Prometheus Configurer REST APIs
+  version: 0.1.0
+
+paths:
+  /{tenant_id}/alert:
+    get:
+      summary: Retrieve alerting rule configurations
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      - in: query
+        name: alert_name
+        type: string
+        description: Optional name of alert to retrieve
+        required: false
+      responses:
+        '200':
+          description:
+            List of alert configurations
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/alert_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+    post:
+      summary: Configure alerting rule
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: body
+          name: alert_config
+          description: Alerting rule that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/alert_config'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: '#/responses/UnexpectedError'
+    delete:
+      summary: Delete an alerting rule
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: query
+          name: alert_name
+          description: Name of alert to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /{tenant_id}/alert/{alert_name}:
+    put:
+      summary: Update an existing alerting rule
+      parameters:
+      - $ref: '#/parameters/tenant_id'
+      - in: path
+        name: alert_name
+        description: Name of alert to be updated
+        required: true
+        type: string
+      - in: body
+        name: alert_config
+        description: Updated alerting rule
+        required: true
+        schema:
+          $ref: '#/definitions/alert_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+  /{tenant_id}/alert/bulk:
+    put:
+      summary: Bulk update/create alerting rules
+      parameters:
+        - $ref: '#/parameters/tenant_id'
+        - in: body
+          name: alert_configs
+          description: Alerting rules to be updated or created
+          required: true
+          schema:
+            $ref: '#/definitions/alert_config_list'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/alert_bulk_upload_response'
+        default:
+          $ref: '#/responses/UnexpectedError'
+
+parameters:
+  tenant_id:
+    description: Tenant ID
+    in: path
+    name: tenant_id
+    required: true
+    type: string
+
+definitions:
+  alert_config:
+    type: object
+    required:
+      - alert
+      - expr
+    properties:
+      alert:
+        type: string
+      expr:
+        type: string
+      labels:
+        $ref: '#/definitions/alert_labels'
+      for:
+        type: string
+      annotations:
+        $ref: '#/definitions/alert_labels'
+
+  alert_config_list:
+    type: array
+    items:
+        $ref: '#/definitions/alert_config'
+
+  alert_bulk_upload_response:
+    type: object
+    required:
+      - errors
+      - statuses
+    properties:
+      errors:
+        type: object
+        additionalProperties:
+          type: string
+      statuses:
+        type: object
+        additionalProperties:
+          type: string
+
+  alert_labels:
+    type: object
+    additionalProperties:
+      type: string
+
+  error:
+    type: object
+    required:
+      - message
+    properties:
+      message:
+        example: Error string
+        type: string
+
+responses:
+  UnexpectedError:
+    description: Unexpected Error
+    schema:
+      $ref: '#/definitions/error'

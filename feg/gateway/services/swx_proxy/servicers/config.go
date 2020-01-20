@@ -43,9 +43,12 @@ const (
 // the values in mconfig or default values provided
 func GetSwxProxyConfig() *SwxProxyConfig {
 	configsPtr := &mcfgprotos.SwxConfig{}
+	hlrPlmnIds := map[string]PlmnIdVal{}
 	err := mconfig.GetServiceConfigs(SwxProxyServiceName, configsPtr)
+
 	if err != nil || configsPtr.Server == nil {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", SwxProxyServiceName, err)
+
 		return &SwxProxyConfig{
 			ClientCfg: &diameter.DiameterClientConfig{
 				Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
@@ -64,10 +67,27 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 			RegisterOnAuth:        DefaultRegisterOnAuth,
 			DeriveUnregisterRealm: DefaultDeriveUnregisterRealm,
 			CacheTTLSeconds:       uint32(cache.DefaultTtl.Seconds()),
+			HlrPlmnIds:            hlrPlmnIds,
 		}
 	}
 
 	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
+
+	for _, plmnid := range configsPtr.HlrPlmnIds {
+		glog.Infof("Adding HLR PLMN ID: %s", plmnid)
+		l := len(plmnid)
+		switch l {
+		case 5:
+			hlrPlmnIds[plmnid] = PlmnIdVal{l5: true}
+		case 6:
+			plmnid5 := plmnid[:5]
+			val, _ := hlrPlmnIds[plmnid5]
+			val.b6 = plmnid[5]
+			hlrPlmnIds[plmnid5] = val
+		default:
+			glog.Warningf("Invalid HLR PLMN ID: %s", plmnid)
+		}
+	}
 
 	ttl := configsPtr.CacheTTLSeconds
 	if ttl < uint32(cache.DefaultGcInterval.Seconds()) {
@@ -94,6 +114,7 @@ func GetSwxProxyConfig() *SwxProxyConfig {
 		RegisterOnAuth:        configsPtr.GetRegisterOnAuth(),
 		DeriveUnregisterRealm: configsPtr.GetDeriveUnregisterRealm(),
 		CacheTTLSeconds:       ttl,
+		HlrPlmnIds:            hlrPlmnIds,
 	}
 }
 
@@ -114,4 +135,13 @@ func ValidateSwxProxyConfig(config *SwxProxyConfig) error {
 		return fmt.Errorf("Nil server config provided")
 	}
 	return config.ServerCfg.Validate()
+}
+
+func (config *SwxProxyConfig) IsHlrClient(imsi string) bool {
+	if config != nil && len(config.HlrPlmnIds) > 0 {
+		if val, ok := config.HlrPlmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
+			return true
+		}
+	}
+	return false
 }

@@ -25,7 +25,7 @@ Magma has three major components:
 ![Magma architecture diagram](docs/readmes/assets/magma_overview.png?raw=true "Magma Architecture")
 
 ## Usage Docs
-The documentation for developing and using Magma is avaliable at: [https://facebookincubator.github.io/magma](https://facebookincubator.github.io/magma)
+The documentation for developing and using Magma is available at: [https://facebookincubator.github.io/magma](https://facebookincubator.github.io/magma)
 
 ## Join the Magma Community
 

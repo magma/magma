@@ -1,0 +1,37 @@
+query EquipmentTypesQuery {
+  equipmentTypes {
+    edges {
+      node {
+        id
+        name
+        category
+        propertyTypes {
+          id
+          name
+          type
+          index
+          stringValue
+          intValue
+          booleanValue
+          floatValue
+          latitudeValue
+          longitudeValue
+          isEditable
+          isInstanceProperty
+        }
+        positionDefinitions {
+          id
+          name
+          index
+          visibleLabel
+        }
+        portDefinitions {
+          id
+          name
+          index
+          visibleLabel
+        }
+      }
+    }
+  }
+}

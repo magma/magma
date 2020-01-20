@@ -239,7 +239,7 @@ void Engine::start() {
 void Engine::timeout() {
   sharedOutstandingRequests.withULockPtr([this](auto uOutstandingRequests) {
     auto outstandingRequests = uOutstandingRequests.moveFromUpgradeToWrite();
-    LOG(INFO) << "Processing ping timeouts";
+    // LOG(INFO) << "Processing ping timeouts";
     for (auto it = outstandingRequests->begin();
          it != outstandingRequests->end();) {
       utils::TimePoint end = utils::Time::now();

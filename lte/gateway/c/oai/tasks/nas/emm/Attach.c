@@ -78,7 +78,7 @@
 #include "esm_sap.h"
 #include "emm_cause.h"
 #include "mme_config.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "service303.h"
 #include "common_ies.h"
 #include "3gpp_23.003.h"
@@ -98,6 +98,7 @@
 #include "nas_messages_types.h"
 #include "nas_procedures.h"
 #include "dynamic_memory_check.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -442,10 +443,11 @@ int emm_proc_attach_request(
             "ignored_duplicate_req_retx_attach_accept");
           // Clean up new UE context that was created to handle new attach request
           OAILOG_DEBUG(
-            LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
+            LOG_NAS_EMM, "EMM-PROC - Sending Detach Request message to MME APP"
+            "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
             ue_id);
-          nas_itti_detach_req(ue_id);
           unlock_ue_contexts(ue_mm_context);
+          mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
           unlock_ue_contexts(imsi_ue_mm_ctx);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
@@ -492,14 +494,15 @@ int emm_proc_attach_request(
              */
           // Clean up new UE context that was created to handle new attach request
           OAILOG_DEBUG(
-            LOG_NAS_EMM, "EMM-PROC  - Sending Detach Request message to MME APP for (ue_id = %u)\n",
+            LOG_NAS_EMM, "EMM-PROC - Sending Detach Request message to MME APP"
+            "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
             ue_id);
-          nas_itti_detach_req(ue_id);
+          unlock_ue_contexts(ue_mm_context);
+          mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
           OAILOG_WARNING(
             LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(
             "duplicate_attach_request", 1, 1, "action", "ignored");
-          unlock_ue_contexts(ue_mm_context);
           unlock_ue_contexts(imsi_ue_mm_ctx);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
@@ -717,7 +720,7 @@ int emm_proc_attach_complete(
         OAILOG_INFO(
           LOG_NAS_EMM, " Sending SGSAP TMSI REALLOCATION COMPLETE to SGS for ue_id = (%u)\n",
           ue_id);
-        nas_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
+        mme_app_itti_sgsap_tmsi_reallocation_comp(imsi_str, strlen(imsi_str));
         emm_ctx->csfbparams.newTmsiAllocated = false;
         /* update the neaf flag to false after sending the Tmsi Reallocation Complete message to SGS */
         mme_ue_context_update_ue_sgs_neaf(ue_id, false);
@@ -1701,9 +1704,7 @@ static int _emm_send_attach_accept(emm_context_t *emm_context)
       emm_sap.u.emm_as.u.establish.nas_info = EMM_AS_NAS_INFO_ATTACH;
 
       NO_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__3);
-      if (ue_mm_context_p->ue_radio_capability) {
-        bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
-      }
+      bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
       //----------------------------------------
       REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__4);
       emm_ctx_set_attribute_valid(

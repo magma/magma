@@ -57,16 +57,16 @@ extern __pid_t g_pid;
 static void sgw_exit(void);
 
 //------------------------------------------------------------------------------
-static void *sgw_intertask_interface(void *args_p)
+static void* sgw_intertask_interface(void* args_p)
 {
   itti_mark_task_ready(TASK_SPGW_APP);
-  spgw_state_t *spgw_state_p;
+  spgw_state_t* spgw_state_p;
 
   while (1) {
-    MessageDef *received_message_p = NULL;
+    MessageDef* received_message_p = NULL;
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
 
-    spgw_state_p = get_spgw_state(true);
+    spgw_state_p = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
       case GTPV1U_CREATE_TUNNEL_RESP: {
@@ -213,7 +213,7 @@ static void *sgw_intertask_interface(void *args_p)
 }
 
 //------------------------------------------------------------------------------
-int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state)
+int sgw_init(spgw_config_t* spgw_config_pP, bool persist_state)
 {
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP  task interface\n");
 
@@ -222,9 +222,9 @@ int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state)
     return RETURNerror;
   }
 
-  spgw_state_t *spgw_state_p = get_spgw_state(false);
+  spgw_state_t* spgw_state_p = get_spgw_state(false);
 
-  if (gtpv1u_init(spgw_state_p, spgw_config_pP) < 0) {
+  if (gtpv1u_init(spgw_state_p, spgw_config_pP, persist_state) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
@@ -244,7 +244,7 @@ int sgw_init(spgw_config_t *spgw_config_pP, bool persist_state)
   // Initial write of state, due to init of PCC rules on pcef emulation init.
   put_spgw_state();
 
-  FILE *fp = NULL;
+  FILE* fp = NULL;
   bstring filename = bformat("/tmp/spgw_%d.status", g_pid);
   fp = fopen(bdata(filename), "w+");
   bdestroy_wrapper(&filename);

@@ -14,11 +14,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
-	"github.com/fiorix/go-diameter/diam/sm"
+	"magma/feg/gateway/services/hlr_proxy"
+
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
@@ -51,6 +53,11 @@ type swxProxy struct {
 	healthTracker  *metrics.SwxHealthTracker
 }
 
+type PlmnIdVal struct {
+	l5 bool
+	b6 byte
+}
+
 type SwxProxyConfig struct {
 	ClientCfg             *diameter.DiameterClientConfig
 	ServerCfg             *diameter.DiameterServerConfig
@@ -58,6 +65,7 @@ type SwxProxyConfig struct {
 	RegisterOnAuth        bool // should we send SAR REGISTER on every MAR/A
 	DeriveUnregisterRealm bool // use returned maa.AAAServerName to derive Origin Realm from
 	CacheTTLSeconds       uint32
+	HlrPlmnIds            map[string]PlmnIdVal
 }
 
 // NewSwxProxy creates a new instance of the proxy with configured cache TTL
@@ -153,8 +161,16 @@ func (s *swxProxy) Authenticate(
 	ctx context.Context,
 	req *protos.AuthenticationRequest,
 ) (*protos.AuthenticationAnswer, error) {
+	var (
+		res *protos.AuthenticationAnswer
+		err error
+	)
 	authStartTime := time.Now()
-	res, err := s.AuthenticateImpl(req)
+	if s.IsHlrClient(req.GetUserName()) {
+		res, err = hlr_proxy.Authenticate(ctx, req)
+	} else {
+		res, err = s.AuthenticateImpl(req)
+	}
 	if err == nil {
 		metrics.AuthLatency.Observe(time.Since(authStartTime).Seconds())
 	}
@@ -167,8 +183,16 @@ func (s *swxProxy) Register(
 	ctx context.Context,
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
+	var (
+		res *protos.RegistrationAnswer
+		err error
+	)
 	registerStartTime := time.Now()
-	res, err := s.RegisterImpl(req, ServerAssignmentType_REGISTRATION)
+	if s.IsHlrClient(req.GetUserName()) {
+		res, err = hlr_proxy.Register(ctx, req)
+	} else {
+		res, err = s.RegisterImpl(req, ServerAssignmentType_REGISTRATION)
+	}
 	if err == nil {
 		metrics.RegisterLatency.Observe(time.Since(registerStartTime).Seconds())
 	}
@@ -181,8 +205,16 @@ func (s *swxProxy) Deregister(
 	ctx context.Context,
 	req *protos.RegistrationRequest,
 ) (*protos.RegistrationAnswer, error) {
+	var (
+		res *protos.RegistrationAnswer
+		err error
+	)
 	deregisterStartTime := time.Now()
-	res, err := s.RegisterImpl(req, ServerAssignnmentType_USER_DEREGISTRATION)
+	if s.IsHlrClient(req.GetUserName()) {
+		res, err = hlr_proxy.Register(ctx, req)
+	} else {
+		res, err = s.RegisterImpl(req, ServerAssignnmentType_USER_DEREGISTRATION)
+	}
 	if err == nil {
 		metrics.DeregisterLatency.Observe(time.Since(deregisterStartTime).Seconds())
 	}
@@ -195,15 +227,18 @@ func (s *swxProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*or
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
+	s.cache.ClearAll()
 	s.connMan.DisableFor(time.Duration(req.DisablePeriodSecs) * time.Second)
 	return &orcprotos.Void{}, nil
 }
 
-// Enable enables diameter connection creation
-// If creation is already enabled, Enable has no effect
+// Enable enables diameter connection creation and gets a connection to the
+// diameter server. If creation is already enabled and a connection already
+// exists, Enable has no effect
 func (s *swxProxy) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
 	s.connMan.Enable()
-	return &orcprotos.Void{}, nil
+	_, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
+	return &orcprotos.Void{}, err
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

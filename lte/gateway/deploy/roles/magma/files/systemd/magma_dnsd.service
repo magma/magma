@@ -12,7 +12,7 @@ Type=simple
 EnvironmentFile=/etc/environment
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_dnsd_config.py
 ExecStart=/usr/sbin/dnsmasq -k --conf-file=/var/opt/magma/tmp/dnsd.conf
-ExecStopPost=/home/vagrant/magma/orc8r/gateway/python/scripts/service_util.py dnsd
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py dnsd
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=%i

@@ -315,6 +315,7 @@ int s1ap_mme_handle_s1_setup_request(
   char *enb_name = NULL;
   int ta_ret = 0;
   uint16_t max_enb_connected = 0;
+  uint8_t bplmn_list_count = 0; //Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("s1_setup", 1, NO_LABELS);
@@ -499,6 +500,32 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
+  S1ap_SupportedTAs_t* ta_list = &s1SetupRequest_p->supportedTAs;
+  supported_ta_list_t* supp_ta_list = &enb_association->supported_ta_list;
+  supp_ta_list->list_count = ta_list->list.count;
+
+  /* Storing supported TAI lists received in S1 SETUP REQUEST message */
+  for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
+    S1ap_SupportedTAs_Item_t* tai = NULL;
+    tai = ta_list->list.array[tai_idx];
+    OCTET_STRING_TO_TAC(
+      &tai->tAC, supp_ta_list->supported_tai_items[tai_idx].tac);
+
+    bplmn_list_count = tai->broadcastPLMNs.list.count;
+    if (bplmn_list_count > S1AP_MAX_BROADCAST_PLMNS) {
+      OAILOG_ERROR(
+        LOG_S1AP,
+        "Maximum Broadcast PLMN list count exceeded, count = %d\n",
+        bplmn_list_count);
+    }
+    supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
+      bplmn_list_count;
+    for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
+      TBCD_TO_PLMN_T(
+        tai->broadcastPLMNs.list.array[plmn_idx],
+        &supp_ta_list->supported_tai_items[tai_idx].bplmns[plmn_idx]);
+    }
+  }
   OAILOG_DEBUG(LOG_S1AP, "Adding eNB to the list of served eNBs\n");
 
   enb_association->enb_id = enb_id;
@@ -1000,7 +1027,9 @@ static int s1ap_mme_generate_ue_context_release_command(
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
-    default: AssertFatal(false, "Unknown cause for context release"); break;
+    default:
+      OAILOG_ERROR(LOG_S1AP, "Unknown cause for context release");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   s1ap_mme_set_cause(
     &ueContextReleaseCommandIEs_p->cause, cause_type, cause_value);
@@ -1565,8 +1594,11 @@ int s1ap_mme_handle_path_switch_request(
 
   enb_association = s1ap_state_get_enb(state, assoc_id);
   if (enb_association == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "Ignore Path Switch Request from unknown assoc "
-      "%u\n", assoc_id);
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "Ignore Path Switch Request from unknown assoc "
+      "%u\n",
+      assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -1576,8 +1608,9 @@ int s1ap_mme_handle_path_switch_request(
     pathSwitchRequest_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
   OAILOG_DEBUG(
     LOG_S1AP,
-    "Path Switch Request message received from eNB UE S1AP ID: "
-    ENB_UE_S1AP_ID_FMT "\n", enb_ue_s1ap_id);
+    "Path Switch Request message received from eNB UE S1AP "
+    "ID: " ENB_UE_S1AP_ID_FMT "\n",
+    enb_ue_s1ap_id);
 
   /* If all the E-RAB ID IEs in E-RABToBeSwitchedDLList is set to the
    * same value, send PATH SWITCH REQUEST FAILURE message to eNB */
@@ -1603,7 +1636,7 @@ int s1ap_mme_handle_path_switch_request(
       pathSwitchRequest_p->sourceMME_UE_S1AP_ID);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
-    new_ue_ref_p = s1ap_state_get_ue_enbid(state, enb_association, enb_ue_s1ap_id);
+    new_ue_ref_p = s1ap_state_get_ue_enbid(enb_association, enb_ue_s1ap_id);
     if (new_ue_ref_p != NULL) {
       OAILOG_ERROR(
         LOG_S1AP,
@@ -1690,10 +1723,13 @@ int s1ap_mme_handle_path_switch_request(
     TBCD_TO_PLMN_T(&pathSwitchRequest_p->tai.pLMNidentity, &tai);
 
     // UE Security Capabilities mandatory IE
-    BIT_STRING_TO_INT16(&pathSwitchRequest_p->ueSecurityCapabilities
-      .encryptionAlgorithms, encryption_algorithm_capabilitie);
-    BIT_STRING_TO_INT16(&pathSwitchRequest_p->ueSecurityCapabilities
-      .integrityProtectionAlgorithms, integrity_algorithm_capabilities);
+    BIT_STRING_TO_INT16(
+      &pathSwitchRequest_p->ueSecurityCapabilities.encryptionAlgorithms,
+      encryption_algorithm_capabilitie);
+    BIT_STRING_TO_INT16(
+      &pathSwitchRequest_p->ueSecurityCapabilities
+         .integrityProtectionAlgorithms,
+      integrity_algorithm_capabilities);
   }
 
   s1ap_mme_itti_s1ap_path_switch_request(
@@ -2364,7 +2400,7 @@ int s1ap_mme_handle_enb_reset(
               (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
             if (
               (ue_ref_p = s1ap_state_get_ue_enbid(
-                 state, enb_association, enb_ue_s1ap_id)) != NULL) {
+                 enb_association, enb_ue_s1ap_id)) != NULL) {
               enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = enb_ue_s1ap_id;
               reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
@@ -2481,7 +2517,9 @@ void s1ap_enb_assoc_clean_up_timer_expiry(
 }
 //------------------------------------------------------------------------------
 
-int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
+int s1ap_handle_paging_request(
+  s1ap_state_t *state,
+  const itti_s1ap_paging_request_t *paging_request)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(paging_request != NULL);
@@ -2489,6 +2527,11 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
   S1ap_PagingIEs_t *paging_message = NULL;
   s1ap_message message = {0};
   imsi64_t imsi64;
+  int rc = RETURNok;
+  uint8_t num_of_tac = 0;
+  uint16_t tai_list_count = paging_request->tai_list_count;
+  bool is_tai_found = false;
+  uint32_t idx = 0;
 
   IMSI_STRING_TO_IMSI64((char *) paging_request->imsi, &imsi64);
   paging_message = &message.msg.s1ap_PagingIEs;
@@ -2522,23 +2565,30 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
   }
   // Set TAI list
   mme_config_read_lock(&mme_config);
-
-  for (int i = 0; i < mme_config.served_tai.nb_tai; i++) {
-    S1ap_TAIItem_t *tai_item = calloc(1, sizeof(S1ap_TAIItem_t));
-    MCC_MNC_TO_PLMNID(
-      mme_config.served_tai.plmn_mcc[i],
-      mme_config.served_tai.plmn_mnc[i],
-      mme_config.served_tai.plmn_mnc_len[i],
-      &tai_item->tAI.pLMNidentity);
-    TAC_TO_ASN1(mme_config.served_tai.tac[i], &tai_item->tAI.tAC);
-    tai_item->iE_Extensions = NULL;
-    tai_item->tAI.iE_Extensions = NULL;
-    ASN_SEQUENCE_ADD(&paging_message->taiList, tai_item);
+  for (int tai_idx = 0; tai_idx < tai_list_count; tai_idx++) {
+    num_of_tac = paging_request->paging_tai_list[tai_idx].numoftac;
+    // Total number of TACs = number of tac + current ENB's tac(1)
+    for (int idx = 0; idx < (num_of_tac + 1); idx++) {
+      S1ap_TAIItem_t* tai_item = calloc(tai_list_count, sizeof(S1ap_TAIItem_t));
+      if (tai_item == NULL) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory\n");
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+      }
+      PLMN_T_TO_PLMNID(
+        paging_request->paging_tai_list[tai_idx].tai_list[idx],
+        &tai_item->tAI.pLMNidentity);
+      TAC_TO_ASN1(
+        paging_request->paging_tai_list[tai_idx].tai_list[idx].tac,
+        &tai_item->tAI.tAC);
+      tai_item->iE_Extensions = NULL;
+      tai_item->tAI.iE_Extensions = NULL;
+      ASN_SEQUENCE_ADD(&paging_message->taiList, tai_item);
+    }
   }
 
   mme_config_unlock(&mme_config);
 
-  uint8_t *buffer = NULL;
+  uint8_t* buffer = NULL;
   uint32_t length = 0;
 
   message.procedureCode = S1ap_ProcedureCode_id_Paging;
@@ -2555,17 +2605,37 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
     return RETURNerror;
   }
 
-  bstring b = blk2bstr(buffer, length);
-  free(buffer);
+  /*Fetching eNB list to send paging request message*/
+  hashtable_element_array_t* enb_array = NULL;
+  enb_description_t* enb_ref_p = NULL;
+  if (state == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "eNB Information is NULL!\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  enb_array = hashtable_ts_get_elements(&state->enbs);
+  if (enb_array == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Could not find eNB hashlist!\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
+  for (idx = 0; idx < enb_array->num_elements; idx++) {
+    bstring paging_msg_buffer = blk2bstr(buffer, length);
+    enb_ref_p = (enb_description_t*) enb_array->elements[idx];
+    if (enb_ref_p->s1_state == S1AP_READY) {
+      supported_ta_list_t* enb_ta_list = &enb_ref_p->supported_ta_list;
 
-  // Send message
-  int rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    paging_request->sctp_assoc_id,
-    0,  // Stream id 0 for non UE related
-        // S1AP message
-    0); // mme_ue_s1ap_id 0 because UE
-        // in idle
+      if ((is_tai_found = s1ap_paging_compare_ta_lists(
+             enb_ta_list, p_tai_list, paging_request->tai_list_count))) {
+        rc = s1ap_mme_itti_send_sctp_request(
+          &paging_msg_buffer,
+          enb_ref_p->sctp_assoc_id,
+          0,  // Stream id 0 for non UE related
+              // S1AP message
+          0); // mme_ue_s1ap_id 0 because UE in idle
+      }
+    }
+  }
+  free(buffer);
   if (rc != RETURNok) {
     OAILOG_ERROR(
       LOG_S1AP,
@@ -2577,6 +2647,7 @@ int s1ap_handle_paging_request(const itti_s1ap_paging_request_t *paging_request)
       "Sent paging message over sctp for IMSI %s\n",
       paging_request->imsi);
   }
+
   free_s1ap_paging(paging_message);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }

@@ -78,6 +78,7 @@ int pgw_handle_create_bearer_request(
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp = {0};
   struct in_addr inaddr;
   char *imsi = NULL;
+  char *apn = NULL;
   OAILOG_FUNC_IN(LOG_PGW_APP);
 
   OAILOG_DEBUG(
@@ -128,6 +129,11 @@ int pgw_handle_create_bearer_request(
       (char *)
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi.digit;
 
+    apn =
+      (char *)
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+          .pdn_connection.apn_in_use;
+
     switch (sgi_create_endpoint_resp.paa.pdn_type) {
       case IPv4:
         // Use NAS by default if no preference is set.
@@ -151,7 +157,7 @@ int pgw_handle_create_bearer_request(
         // and using them here in conditional logic. We will also want to
         // implement different logic between the PDN types.
         if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
-          if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+          if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
             increment_counter(
               "ue_pdn_connection",
               1,
@@ -162,7 +168,8 @@ int pgw_handle_create_bearer_request(
               "success");
             sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
             OAILOG_DEBUG(
-              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>\n", imsi);
+              LOG_PGW_APP, "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
+              imsi, apn);
             sgi_create_endpoint_resp.status = SGI_STATUS_OK;
           } else {
             increment_counter(
@@ -174,7 +181,8 @@ int pgw_handle_create_bearer_request(
               "result",
               "failure");
             OAILOG_ERROR(
-              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4\n");
+              LOG_PGW_APP, "Failed to allocate IPv4 PAA for PDN type IPv4 for "
+              "imsi <%s> and apn <%s>\n", imsi, apn);
             sgi_create_endpoint_resp.status =
               SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
           }
@@ -192,7 +200,7 @@ int pgw_handle_create_bearer_request(
         break;
 
       case IPv4_AND_v6:
-        if (0 == allocate_ue_ipv4_address(imsi, &inaddr)) {
+        if (0 == allocate_ue_ipv4_address(imsi, apn, &inaddr)) {
           increment_counter(
             "ue_pdn_connection",
             1,
@@ -236,9 +244,7 @@ int pgw_handle_create_bearer_request(
       bearer_req_p->context_teid);
     sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_CONTEXT_NOT_FOUND;
   }
-  if (
-    spgw_config.pgw_config.relay_enabled &&
-    sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
+  if (sgi_create_endpoint_resp.status == SGI_STATUS_OK) {
     // create session in PCEF and return
     char ip_str[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &(inaddr.s_addr), ip_str, INET_ADDRSTRLEN);
@@ -302,36 +308,40 @@ static int get_imeisv_from_session_req(
 }
 
 static void get_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *mcc_mnc)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
-  mcc_mnc[0] = saved_req->serving_network.mcc[0];
-  mcc_mnc[1] = saved_req->serving_network.mcc[1];
-  mcc_mnc[2] = saved_req->serving_network.mcc[2];
-  mcc_mnc[3] = saved_req->serving_network.mnc[0];
-  mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc[0] = saved_req->serving_network.mcc[0];
+  data->mcc_mnc[1] = saved_req->serving_network.mcc[1];
+  data->mcc_mnc[2] = saved_req->serving_network.mcc[2];
+  data->mcc_mnc[3] = saved_req->serving_network.mnc[0];
+  data->mcc_mnc[4] = saved_req->serving_network.mnc[1];
+  data->mcc_mnc_len = 5;
   if (saved_req->serving_network.mnc[2] != 0xff) {
-    mcc_mnc[5] = saved_req->serving_network.mnc[2];
-    mcc_mnc[6] = '\0';
+    data->mcc_mnc[5] = saved_req->serving_network.mnc[2];
+    data->mcc_mnc[6] = '\0';
+    data->mcc_mnc_len += 1;
   } else {
-    mcc_mnc[5] = '\0';
+    data->mcc_mnc[5] = '\0';
   }
 }
 
 static void get_imsi_plmn_from_session_req(
-  const itti_s11_create_session_request_t *saved_req,
-  char *mcc_mnc)
+  const itti_s11_create_session_request_t* saved_req,
+  struct pcef_create_session_data* data)
 {
-  mcc_mnc[0] = saved_req->imsi.digit[0];
-  mcc_mnc[1] = saved_req->imsi.digit[1];
-  mcc_mnc[2] = saved_req->imsi.digit[2];
-  mcc_mnc[3] = saved_req->imsi.digit[3];
-  mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc[0] = saved_req->imsi.digit[0];
+  data->imsi_mcc_mnc[1] = saved_req->imsi.digit[1];
+  data->imsi_mcc_mnc[2] = saved_req->imsi.digit[2];
+  data->imsi_mcc_mnc[3] = saved_req->imsi.digit[3];
+  data->imsi_mcc_mnc[4] = saved_req->imsi.digit[4];
+  data->imsi_mcc_mnc_len = 5;
   if ((saved_req->imsi.digit[5] & 0xf) != 0xf) {
-    mcc_mnc[5] = saved_req->imsi.digit[5];
-    mcc_mnc[6] = '\0';
+    data->imsi_mcc_mnc[5] = saved_req->imsi.digit[5];
+    data->imsi_mcc_mnc[6] = '\0';
+    data->imsi_mcc_mnc_len += 1;
   } else {
-    mcc_mnc[5] = '\0';
+    data->imsi_mcc_mnc[5] = '\0';
   }
 }
 
@@ -401,8 +411,8 @@ static void get_session_req_data(
 
   data->imeisv_exists = get_imeisv_from_session_req(saved_req, data->imeisv);
   data->uli_exists = get_uli_from_session_req(saved_req, data->uli);
-  get_plmn_from_session_req(saved_req, data->mcc_mnc);
-  get_imsi_plmn_from_session_req(saved_req, data->imsi_mcc_mnc);
+  get_plmn_from_session_req(saved_req, data);
+  get_imsi_plmn_from_session_req(saved_req, data);
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
 
@@ -583,8 +593,12 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
   }
 
   // Check if valid LBI and EBI recvd
+  /* For multi PDN, same IMSI can have multiple sessions, which means there
+   * will be multiple entries for different sessions with the same IMSI. Hence
+   * even though IMSI is found search the entire list for the LBI
+   */
   while ((num_elements < hashtblP->num_elements) && (i < hashtblP->size) &&
-         (!is_imsi_found)) {
+         (!is_lbi_found)) {
     pthread_mutex_lock(&hashtblP->lock_nodes[i]);
     if (hashtblP->nodes[i] != NULL) {
       node = hashtblP->nodes[i];
@@ -617,16 +631,6 @@ uint32_t pgw_handle_nw_initiated_bearer_deactv_req(
                 no_of_bearers_rej++;
               }
             }
-          } else {
-            invalid_bearer_id[no_of_bearers_rej] = bearer_req_p->lbi;
-            no_of_bearers_rej++;
-            OAILOG_ERROR(
-              LOG_PGW_APP,
-              "Unknown LBI (%d) received in pgw_nw_init_deactv_bearer_request"
-              "\n",
-              bearer_req_p->lbi);
-            pthread_mutex_unlock(&hashtblP->lock_nodes[i]);
-            break;
           }
         }
       }

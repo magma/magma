@@ -22,10 +22,13 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
         "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
-  LocalEnforcer* enforcer,
-  SessionCloudReporter* reporter):
+  std::shared_ptr<LocalEnforcer> enforcer,
+  SessionReporter* reporter,
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client):
   enforcer_(enforcer),
   reporter_(reporter),
+  directoryd_client_(directoryd_client),
+
   current_epoch_(0),
   reported_epoch_(0),
   retry_timeout_(1)
@@ -197,6 +200,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     std::string * core_sid = enforcer_->duplicate_session_id(imsi, cfg);
     if (core_sid != nullptr) {
       MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
+                  << " and APN " << request->apn()
                   << ", not creating session";
       enforcer_->get_event_base().runInEventBaseThread(
           [response_callback, core_sid]() {
@@ -216,14 +220,23 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       );
       return;
     }
-    MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                << ", terminating the old session";
-    EndSession(
-      context,
-      &request->sid(),
-      [&](grpc::Status status, LocalEndSessionResponse response) {
-        return;
-      });
+    if (enforcer_->is_apn_duplicate(imsi, request->apn())) {
+      MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                  << " and APN " << request->apn()
+                  << ", but different configuration."
+                  << " Ending the existing session";
+      LocalEndSessionRequest end_session_req;
+      end_session_req.mutable_sid()->CopyFrom(request->sid());
+      end_session_req.set_apn(request->apn());
+      EndSession(
+        context,
+        &end_session_req,
+        [&](grpc::Status status, LocalEndSessionResponse response) { return; });
+    } else {
+      MLOG(MINFO) << "Found session with the same IMSI " << imsi
+                  << " but different APN " << request->apn()
+                  << ", will request a new session from PCRF/PCF";
+    }
   }
   send_create_session(
     copy_session_info2create_req(*request, sid),
@@ -252,15 +265,34 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         } else {
           MLOG(MINFO) << "Successfully initialized new session "
                       << "in sessiond for subscriber " << imsi;
+          add_session_to_directory_record(imsi, sid);
         }
       } else {
-        MLOG(MERROR) << "Failed to initialize session in OCS for IMSI "
-                     << imsi << ": " << status.error_message();
+        MLOG(MERROR) << "Failed to initialize session in SessionProxy "
+                     << "for IMSI " << imsi << ": " << status.error_message();
       }
       LocalCreateSessionResponse resp;
       resp.set_session_id(response.session_id());
       response_callback(status, resp);
     });
+}
+
+void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
+  const std::string& imsi,
+  const std::string& session_id)
+{
+  UpdateRecordRequest request;
+  request.set_id(imsi);
+  auto update_fields = request.mutable_fields();
+  std::string session_id_key = "session_id";
+  update_fields->insert({session_id_key, session_id});
+  directoryd_client_->update_directoryd_record(request,
+    [this, imsi] (Status status, Void) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not add session_id to directory record for "
+      "subscriber " << imsi << "; " << status.error_message();
+    }
+  });
 }
 
 std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
@@ -283,25 +315,6 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
   return res;
 }
 
-static void report_termination(
-  SessionCloudReporter& reporter,
-  const SessionTerminateRequest& term_req)
-{
-  reporter.report_terminate_session(
-    term_req,
-    [&reporter, term_req](Status status, SessionTerminateResponse response) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "Failed to terminate session in controller for "
-                        "subscriber "
-                     << term_req.sid() << ": " << status.error_message();
-      } else {
-        MLOG(MDEBUG) << "Termination successful in controller for "
-                        "subscriber "
-                     << term_req.sid();
-      }
-    });
-}
-
 /**
  * EndSession completes the entire termination procedure with the OCS & PCRF.
  * The process for session termination is as follows:
@@ -315,7 +328,7 @@ static void report_termination(
  */
 void LocalSessionManagerHandlerImpl::EndSession(
   ServerContext* context,
-  const SubscriberID* request,
+  const LocalEndSessionRequest* request,
   std::function<void(Status, LocalEndSessionResponse)> response_callback)
 {
   auto &request_cpy = *request;
@@ -324,14 +337,18 @@ void LocalSessionManagerHandlerImpl::EndSession(
       try {
         auto reporter = reporter_;
         enforcer_->terminate_subscriber(
-          request_cpy.id(), [reporter](SessionTerminateRequest term_req) {
+          request_cpy.sid().id(),
+          request_cpy.apn(),
+          [reporter](SessionTerminateRequest term_req) {
             // report to cloud
-            report_termination(*reporter, term_req);
+            auto logging_cb =
+              SessionReporter::get_terminate_logging_cb(term_req);
+            reporter->report_terminate_session(term_req, logging_cb);
           });
         response_callback(grpc::Status::OK, LocalEndSessionResponse());
       } catch (const SessionNotFound &ex) {
         MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                     << request_cpy.id();
+                     << request_cpy.sid().id();
         Status status(grpc::FAILED_PRECONDITION, "Session not found");
         response_callback(status, LocalEndSessionResponse());
       }

@@ -1,0 +1,576 @@
+version: 2.1
+
+aliases:
+  - &mktestdir
+    run:
+      name: Create results directory
+      command: mkdir -p ~/test-results
+
+  - &storetestdir
+    store_test_results:
+      path: ~/test-results
+
+  - &publishworkspace
+    workspace:
+      default: /tmp/publish
+      type: string
+
+  - &onlymaster
+    filters:
+      branches:
+        only: master
+
+  - &tfworkdir
+    working_directory: infra/deploy
+
+  - &tfvardir
+    vardir: /tmp/tfvars
+
+orbs:
+  artifactory: circleci/artifactory@1.0.0
+  docker: circleci/docker@0.5.13
+  go: circleci/go@0.2.0
+  helm: circleci/helm@0.2.0
+
+executors:
+  node:
+    docker:
+      - image: circleci/node
+  golangci:
+    parameters:
+      tag:
+        default: v1.22
+        type: string
+    docker:
+      - image: golangci/golangci-lint:<<parameters.tag>>
+  terraform:
+    parameters:
+      tag:
+        default: 0.12.19
+        type: string
+    docker:
+      - image: hashicorp/terraform:<<parameters.tag>>
+  testim:
+    docker:
+      - image: testim/docker-cli
+
+commands:
+  getmods:
+    steps:
+      - go/load-cache
+      - go/mod-download
+      - go/save-cache
+
+  helm-lint:
+    parameters:
+      chart:
+        type: string
+      working_directory:
+        type: string
+    steps:
+      - run:
+          name: Lint <<parameters.chart>> chart
+          working_directory: <<parameters.working_directory>>
+          command: helm lint --strict <<parameters.chart>>
+
+  helm-package:
+    parameters:
+      destination:
+        type: string
+      chart:
+        type: string
+      working_directory:
+        default: infra/helm
+        type: string
+    steps:
+      - run:
+          name: Package chart
+          working_directory: <<parameters.working_directory>>
+          command: helm package -d <<parameters.destination>> <<parameters.chart>>
+
+  tfinit:
+    parameters:
+      working_directory:
+        default: infra/deploy
+        type: string
+      workspace:
+        default: ''
+        type: string
+    steps:
+      - run:
+          name: Initialize terraform working directory
+          working_directory: <<parameters.working_directory>>
+          command: terraform init
+      - when:
+          condition: <<parameters.workspace>>
+          steps:
+            - run:
+                name: Select terraform workspace
+                working_directory: <<parameters.working_directory>>
+                command: terraform workspace select <<parameters.workspace>>
+
+  tfdiff:
+    parameters:
+      vardir:
+        type: string
+      tag:
+        type: string
+      repo:
+        type: string
+      working_directory:
+        default: infra/deploy
+        type: string
+    steps:
+      - run:
+          name: Compare <<parameters.tag>> versions
+          working_directory: <<parameters.working_directory>>
+          command: |
+            current=$(terraform output <<parameters.tag>>)
+            latest=$(jfrog rt s --sort-by created --sort-order desc --limit 1 \
+              --props 'docker.manifest=*;docker.repoName=<<parameters.repo>>' symphony-prod-docker | \
+              jq -r '.[].props."docker.manifest"[0]')
+            if [ "$current" != "$latest" ]; then
+              echo <<parameters.tag>> modified from $current to $latest
+              printf '<<parameters.tag>> = "%s"\n' $latest > <<parameters.vardir>>/<<parameters.tag>>.auto.tfvars
+            else
+              echo <<parameters.tag>> $current not modified
+            fi
+
+  tfathalt:
+    parameters:
+      vardir:
+        type: string
+    steps:
+      - attach_workspace:
+          name: Attach tfvars directory
+          at: <<parameters.vardir>>
+      - run:
+          name: Halt on no tfvars
+          working_directory: <<parameters.vardir>>
+          command: ls *.auto.tfvars &> /dev/null || circleci step halt
+
+  tfprepare:
+    parameters:
+      vardir:
+        type: string
+      working_directory:
+        default: infra/deploy
+        type: string
+    steps:
+      - tfathalt:
+          vardir: <<parameters.vardir>>
+      - run:
+          name: Copy tfvars
+          working_directory: <<parameters.working_directory>>
+          command: cp <<parameters.vardir>>/*.auto.tfvars .
+
+  tfblocker:
+    parameters:
+      workspace:
+        type: string
+    steps:
+      - run:
+          name: Check deploy blocker
+          command: |
+            test "${WORKSPACE_DEPLOY+1}" || exit 0
+            for workspace in ${WORKSPACE_DEPLOY//,/ }; do
+              test "$workspace" != "<<parameters.workspace>>" || exit 0
+            done
+            circleci step halt
+
+jobs:
+  lint:
+    executor: golangci
+    steps:
+      - checkout
+      - *mktestdir
+      - getmods
+      - run:
+          name: Lint tests
+          command: golangci-lint run --out-format junit-xml > ~/test-results/lint.xml
+      - *storetestdir
+
+  unit:
+    docker:
+      - image: circleci/golang
+      - image: circleci/mysql:5.7
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+    steps:
+      - checkout
+      - run:
+          name: Wait for database
+          command: dockerize -timeout 1m -wait tcp://localhost:3306
+      - *mktestdir
+      - getmods
+      - run:
+          name: Unit tests
+          environment:
+            MYSQL_DSN: root:root@tcp(localhost:3306)/circle_test?parseTime=True
+          command: gotestsum -f short-verbose --junitfile ~/test-results/unit.xml
+      - *storetestdir
+
+  docker-publish:
+    executor: node
+    parameters:
+      path:
+        default: .
+        type: string
+      dockerfile:
+        default: Dockerfile
+        type: string
+      image:
+        type: string
+      tag:
+        default: $CIRCLE_SHA1
+        type: string
+      registry:
+        default: facebookconnectivity-symphony-dev-docker.jfrog.io
+        type: string
+      <<: *publishworkspace
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - docker/check:
+          registry: <<parameters.registry>>
+      - docker/build:
+          dockerfile: <<parameters.dockerfile>>
+          extra_build_args: --pull
+          image: <<parameters.image>>
+          tag: <<parameters.tag>>
+          lint-dockerfile: true
+          path: <<parameters.path>>
+          registry: <<parameters.registry>>
+      - artifactory/install
+      - artifactory/configure
+      - artifactory/docker-publish:
+          docker-tag: <<parameters.registry>>/<<parameters.image>>:<<parameters.tag>>
+          repository: symphony-dev-docker
+          build-name: $CIRCLE_PROJECT_REPONAME/<<parameters.image>>
+          build-number: $CIRCLE_BUILD_NUM
+      - run:
+          name: Halt on non master branch
+          command: test $CIRCLE_BRANCH = "master" || circleci step halt
+      - artifactory/build-integration:
+          build-name: $CIRCLE_PROJECT_REPONAME/<<parameters.image>>
+          build-number: $CIRCLE_BUILD_NUM
+      - run:
+          name: Preserve build number
+          command: |
+            mkdir <<parameters.workspace>>
+            echo $CIRCLE_BUILD_NUM > <<parameters.workspace>>/<<parameters.image>>
+      - persist_to_workspace:
+          root: <<parameters.workspace>>
+          paths:
+            - <<parameters.image>>
+
+  helm-lint:
+    executor: docker/docker
+    parameters:
+      working_directory:
+        default: infra/helm
+        type: string
+    steps:
+      - checkout
+      - helm/install-helm-client
+      - helm-lint:
+          chart: inventory
+          working_directory: <<parameters.working_directory>>
+      - helm-lint:
+          chart: storybook
+          working_directory: <<parameters.working_directory>>
+
+  tflint:
+    executor: terraform
+    steps:
+      - checkout
+      - tfinit
+      - run:
+          name: Install cURL
+          command: apk add curl
+      - run:
+          name: Install tflint
+          working_directory: /usr/local/bin
+          command: |
+            curl -L "$(curl -Ls https://api.github.com/repos/terraform-linters/tflint/releases/latest | \
+              grep -o -E "https://.+?_linux_amd64.zip")" -o tflint.zip && \
+              unzip tflint.zip && rm tflint.zip
+      - run:
+          name: Run tflint
+          <<: *tfworkdir
+          command: tflint --deep --module
+
+  integration:
+    executor:
+      name: docker/machine
+      dlc: true
+    environment:
+      COMPOSE_FILE: integration/docker-compose.ci.yaml
+      DOCKER_REGISTRY: facebookconnectivity-symphony-dev-docker.jfrog.io
+    steps:
+      - checkout
+      - docker/check:
+          registry: $DOCKER_REGISTRY
+      - run:
+          name: Setup environment variables
+          command: echo "export TAG=$CIRCLE_SHA1" >> $BASH_ENV
+      - *mktestdir
+      - run:
+          name: Pull service images
+          command: docker-compose pull
+      - run:
+          name: Build services
+          command: docker-compose build --pull
+      - run:
+          name: Start containers
+          command: docker-compose up -d --scale tests=0 --scale pytests=0
+      - run:
+          name: Run go tests
+          command: |
+            docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
+            mv integration/tests/integration.xml ~/test-results/
+      - run:
+          name: Run python tests
+          command: docker-compose run --use-aliases pytests
+      - run:
+          name: Stop and remove containers
+          command: docker-compose down
+          when: always
+      - *storetestdir
+
+  promote-images:
+    parameters: *publishworkspace
+    executor: artifactory/default
+    steps:
+      - artifactory/install
+      - artifactory/configure
+      - attach_workspace:
+          at: <<parameters.workspace>>
+      - run:
+          name: Promote builds
+          working_directory: <<parameters.workspace>>
+          command: |
+            project=$CIRCLE_PROJECT_REPONAME
+            workflow=$CIRCLE_WORKFLOW_ID
+            for f in $(ls -1); do
+              build_name="$project/$f"
+              build_number=$(cat $f)
+              jfrog rt bpr --source-repo symphony-dev-docker \
+                --props "build.project=$project;build.workflow=$workflow" \
+                $build_name $build_number symphony-prod-docker
+            done
+
+  tfdiff:
+    parameters:
+      workspace:
+        type: string
+      vardir:
+        type: string
+    executor: terraform
+    steps:
+      - checkout
+      - run:
+          name: Install shell tools
+          command: apk add curl jq sudo
+      - artifactory/install
+      - artifactory/configure
+      - tfinit:
+          workspace: <<parameters.workspace>>
+      - run:
+          name: Create tfvars directory
+          command: mkdir <<parameters.vardir>> && touch <<parameters.vardir>>/.sentinel
+      - tfdiff:
+          vardir: <<parameters.vardir>>
+          tag: inventory_tag
+          repo: graph
+      - tfdiff:
+          vardir: <<parameters.vardir>>
+          tag: storybook_tag
+          repo: storybook
+      - persist_to_workspace:
+          root: <<parameters.vardir>>
+          paths:
+            - ".sentinel"
+            - "*.auto.tfvars"
+
+  tfapply:
+    parameters:
+      workspace:
+        type: string
+      targets:
+        type: string
+        default: >-
+          -target=helm_release.inventory
+          -target=helm_release.storybook
+      after_checkout:
+        default: []
+        type: steps
+      dryrun:
+        default: false
+        type: boolean
+    executor: terraform
+    steps:
+      - tfblocker:
+          workspace: <<parameters.workspace>>
+      - checkout
+      - when:
+          condition: <<parameters.after_checkout>>
+          steps: <<parameters.after_checkout>>
+      - tfinit:
+          workspace: <<parameters.workspace>>
+      - unless:
+          condition: <<parameters.dryrun>>
+          steps:
+            - run:
+                name: Apply terraform changes
+                <<: *tfworkdir
+                command: terraform apply -auto-approve <<parameters.targets>>
+      - when:
+          condition: <<parameters.dryrun>>
+          steps:
+            - run:
+                name: Plan terraform changes
+                <<: *tfworkdir
+                command: terraform plan <<parameters.targets>>
+
+  testim:
+    parameters:
+      before_test:
+        default: []
+        type: steps
+      token:
+        default: TESTIMIO_TOKEN
+        type: env_var_name
+      project:
+        default: $TESTIMIO_PROJECT
+        type: string
+      grid:
+        default: Testim-Grid
+        type: string
+      options:
+        default: ''
+        type: string
+    executor: testim
+    steps:
+      - when:
+          condition: <<parameters.before_test>>
+          steps: <<parameters.before_test>>
+      - *mktestdir
+      - run:
+          name: Run tests
+          command: |
+            testim --project "<<parameters.project>>" \
+              --grid "<<parameters.grid>>" \
+              --token "$<<parameters.token>>" \
+              --report-file ~/test-results/testim.xml \
+              <<#parameters.options>><<parameters.options>><</parameters.options>>
+      - *storetestdir
+
+workflows:
+  version: 2.1
+  all:
+    jobs:
+      - lint
+      - unit
+      - docker-publish:
+          name: graph/publish
+          dockerfile: graph/Dockerfile
+          image: graph
+          requires: &dpreq
+            - lint
+            - unit
+      - docker-publish:
+          name: frontier/publish
+          dockerfile: frontier/Dockerfile
+          image: frontier
+          requires: *dpreq
+      - docker-publish:
+          name: store/publish
+          dockerfile: store/Dockerfile
+          image: store
+          requires: *dpreq
+      - docker-publish:
+          name: docs/publish
+          path: docs
+          image: docs
+          requires: *dpreq
+      - docker-publish:
+          name: front/publish
+          dockerfile: fbcnms-projects/platform-server/Dockerfile.prod
+          path: app
+          image: front
+          requires: *dpreq
+      - docker-publish:
+          name: storybook/publish
+          dockerfile: fbcnms-projects/storybook/Dockerfile
+          path: app
+          image: storybook
+          requires: *dpreq
+      - helm-lint
+      - tflint
+      - integration:
+          requires:
+            - graph/publish
+            - frontier/publish
+            - store/publish
+            - front/publish
+      - promote-images: &promote
+          requires:
+            - integration
+            - docs/publish
+            - storybook/publish
+            - helm-lint
+          <<: *onlymaster
+      - artifactory/upload:
+          name: upload-charts
+          build-steps:
+            - helm/install-helm-client
+            - run: mkdir /tmp/helm-charts
+            - helm-package:
+                chart: inventory
+                destination: /tmp/helm-charts
+            - helm-package:
+                chart: storybook
+                destination: /tmp/helm-charts
+          source: /tmp/helm-charts/*.tgz
+          target: symphony-charts
+          build-integration: false
+          <<: *promote
+
+  deploy:
+    triggers:
+      - schedule:
+          # every 30 minutes
+          cron: "0,30 * * * *"
+          <<: *onlymaster
+    jobs:
+      - tfdiff:
+          workspace: staging
+          <<: *tfvardir
+      - tfapply:
+          name: staging/deploy
+          workspace: staging
+          after_checkout:
+            - tfprepare: &tfprepare
+                <<: *tfvardir
+                <<: *tfworkdir
+          requires:
+            - tfdiff
+      - testim:
+          before_test:
+            - run:
+                name: Check testim blocker
+                command: test -z $TESTIMIO_SKIP || circleci step halt
+            - tfathalt:
+                <<: *tfvardir
+          options: "--suite Sanity"
+          requires:
+            - staging/deploy
+      - tfapply:
+          name: production/deploy
+          workspace: default
+          after_checkout:
+            - tfprepare: *tfprepare
+          requires:
+            - testim

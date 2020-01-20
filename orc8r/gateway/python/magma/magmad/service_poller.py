@@ -9,15 +9,15 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 import logging
 import time
+from typing import List
 
 import grpc
+from magma.common.job import Job
+from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.service_registry import ServiceRegistry
+from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2_grpc import Service303Stub
-
-from magma.common.service_registry import ServiceRegistry
-from magma.common.rpc_utils import grpc_async_wrapper
-from magma.common.job import Job
-from magma.magmad.metrics import UNEXPECTED_SERVICE_RESTARTS
 
 
 class ServiceInfo(object):
@@ -74,7 +74,7 @@ class ServicePoller(Job):
     # Timeout when getting status from other local services, in seconds
     GET_STATUS_TIMEOUT = 8
 
-    def __init__(self, loop, config):
+    def __init__(self, loop, config, dynamic_services: List[str]):
         super().__init__(
             interval=self.GET_STATUS_INTERVAL,
             loop=loop
@@ -84,9 +84,26 @@ class ServicePoller(Job):
         self._service_info = {}
         for service in config['magma_services']:
             self._service_info[service] = ServiceInfo(service)
+        for service in dynamic_services:
+            self._service_info[service] = ServiceInfo(service)
         for service_list in config.get('linked_services', []):
             for service in service_list:
                 self._service_info[service].add_linked_services(service_list)
+
+    def update_dynamic_services(self,
+                                new_services: List[str],
+                                stopped_services: List[str]):
+        """
+        Update the service poller when dynamic services are enabled or disabled
+
+        Args:
+            new_services: New services which were enabled
+            stopped_services: Old services which were disabled
+        """
+        for service in new_services:
+            self._service_info[service] = ServiceInfo(service)
+        for service in stopped_services:
+            self._service_info.pop(service)
 
     @property
     def service_info(self):

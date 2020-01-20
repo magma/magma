@@ -9,15 +9,18 @@
 package models
 
 import (
+	"encoding/base64"
 	"fmt"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/protos"
 	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
+	orc8rProtos "magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
 
@@ -534,4 +537,107 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.Redirect = cfg.Redirect
 	m.TrackingType = cfg.TrackingType
 	return m
+}
+
+func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
+	var (
+		protoMKey = []byte{}
+		err       error
+	)
+	if len(m.MonitoringKey) > 0 {
+		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
+			protoMKey = []byte(m.MonitoringKey)
+		}
+	}
+	rule := &protos.PolicyRule{
+		Id:            id,
+		Priority:      swag.Uint32Value(m.Priority),
+		RatingGroup:   m.RatingGroup,
+		MonitoringKey: protoMKey,
+		TrackingType:  protos.PolicyRule_TrackingType(protos.PolicyRule_TrackingType_value[m.TrackingType]),
+		HardTimeout:   0,
+	}
+	if m.Redirect != nil {
+		rule.Redirect = m.Redirect.ToProto()
+	}
+	if m.Qos != nil {
+		rule.Qos = m.Qos.ToProto()
+	}
+	if m.FlowList != nil {
+		flowList := make([]*protos.FlowDescription, 0, len(m.FlowList))
+		for _, flow := range m.FlowList {
+			flowList = append(flowList, flow.ToProto())
+		}
+		rule.FlowList = flowList
+	}
+	return rule
+}
+
+func (m *RedirectInformation) ToProto() *protos.RedirectInformation {
+	return &protos.RedirectInformation{
+		Support:       protos.RedirectInformation_Support(protos.RedirectInformation_Support_value[swag.StringValue(m.Support)]),
+		AddressType:   protos.RedirectInformation_AddressType(protos.RedirectInformation_AddressType_value[swag.StringValue(m.AddressType)]),
+		ServerAddress: swag.StringValue(m.ServerAddress),
+	}
+}
+
+func (m *FlowQos) ToProto() *protos.FlowQos {
+	return &protos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
+		// The following values haven't been exposed via the API yet
+		GbrUl: 0,
+		GbrDl: 0,
+		Qci:   0,
+		Arp:   nil,
+	}
+}
+
+func (m *FlowDescription) ToProto() *protos.FlowDescription {
+	flowDescription := &protos.FlowDescription{
+		Action: protos.FlowDescription_Action(protos.FlowDescription_Action_value[swag.StringValue(m.Action)]),
+	}
+	orc8rProtos.FillIn(m, flowDescription)
+
+	flowDescription.Match = &protos.FlowMatch{
+		Direction: protos.FlowMatch_Direction(protos.FlowMatch_Direction_value[swag.StringValue(m.Match.Direction)]),
+		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
+	}
+	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+	return flowDescription
+}
+
+func (m *RatingGroup) ToEntity() configurator.NetworkEntity {
+	ret := configurator.NetworkEntity{
+		Type:   lte.RatingGroupEntityType,
+		Key:    fmt.Sprint(uint32(m.ID)),
+		Config: m,
+	}
+	return ret
+}
+
+func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
+	ratingGroupID, err := swag.ConvertUint32(ent.Key)
+	if err != nil {
+		return nil, err
+	}
+	m.ID = RatingGroupID(ratingGroupID)
+	m = ent.Config.(*RatingGroup)
+	return m, nil
+}
+
+func (m *MutableRatingGroup) ToEntityUpdateCriteria(id uint32) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      lte.RatingGroupEntityType,
+		Key:       fmt.Sprint(id),
+		NewConfig: m.ToRatingGroup(id),
+	}
+	return ret
+}
+
+func (m *MutableRatingGroup) ToRatingGroup(id uint32) *RatingGroup {
+	ratingGroup := &RatingGroup{}
+	ratingGroup.ID = RatingGroupID(id)
+	ratingGroup.LimitType = m.LimitType
+	return ratingGroup
 }

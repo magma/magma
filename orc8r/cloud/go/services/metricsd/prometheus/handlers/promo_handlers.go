@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"magma/orc8r/cloud/go/metrics"
@@ -30,6 +31,7 @@ const (
 	queryPart      = "query"
 	queryRangePart = "query_range"
 	seriesPart     = "series"
+	paramMatch     = "match"
 
 	PrometheusRoot   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "prometheus"
 	PrometheusV1Root = handlers.ManageNetworkPath + obsidian.UrlSep + "prometheus"
@@ -162,11 +164,39 @@ func GetPrometheusSeriesHandler(api v1.API) func(c echo.Context) error {
 			return obsidian.HttpError(fmt.Errorf("unable to parse %s parameter: %v", utils.ParamRangeEnd, err), http.StatusBadRequest)
 		}
 
-		match := fmt.Sprintf(`{networkID="%s"}`, nID)
-		res, err := api.Series(context.Background(), []string{match}, startTime, endTime)
+		seriesMatches, err := getSeriesMatches(c, nID)
+		if err != nil {
+			return obsidian.HttpError(fmt.Errorf("Error parsing series matchers: %v", err), http.StatusBadRequest)
+		}
+
+		res, err := api.Series(context.Background(), seriesMatches, startTime, endTime)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 		return c.JSON(http.StatusOK, res)
 	}
+}
+
+func getSeriesMatches(c echo.Context, networkID string) ([]string, error) {
+	restrictor := security.NewQueryRestrictor(map[string]string{metrics.NetworkLabelName: networkID})
+	// Split array of matches by space delimiter
+	matches := strings.Split(c.QueryParam(paramMatch), " ")
+	seriesMatchers := make([]string, 0, len(matches))
+	for _, match := range matches {
+		if match == "" {
+			continue
+		}
+		restricted, err := restrictor.RestrictQuery(match)
+		if err != nil {
+			return []string{}, obsidian.HttpError(fmt.Errorf("unable to secure match parameter: %v", err))
+		}
+		seriesMatchers = append(seriesMatchers, restricted)
+	}
+	// Add networkMatch if none provided since prometheus performs an OR of
+	// all matches provided, and requires at least one
+	if len(seriesMatchers) == 0 {
+		networkMatch := fmt.Sprintf(`{%s="%s"}`, metrics.NetworkLabelName, networkID)
+		seriesMatchers = append(seriesMatchers, networkMatch)
+	}
+	return seriesMatchers, nil
 }

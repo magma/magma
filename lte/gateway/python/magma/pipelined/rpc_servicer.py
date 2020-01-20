@@ -83,6 +83,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Setup flows for all subscribers, used on pipelined restarts
         """
+        if not self._service_manager.is_app_enabled(
+                EnforcementController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
 
         fut = Future()
         self._loop.call_soon_threadsafe(self._setup_flows,
@@ -90,9 +95,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return fut.result()
 
     def _setup_flows(self, request: SetupFlowsRequest,
-                     fut: 'Future(SetupFlowsResult)'
+                     fut: 'Future[List[SetupFlowsResult]]'
                      ) -> SetupFlowsResult:
-        enforcement_res = self._enforcer_app.setup(request)
+        enforcement_res = self._enforcer_app.setup_flows(request)
+        # TODO check enf_stats result
+        self._enforcement_stats.setup_flows(request)
         fut.set_result(enforcement_res)
 
     def ActivateFlows(self, request, context):

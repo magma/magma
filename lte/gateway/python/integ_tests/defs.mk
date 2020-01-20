@@ -53,8 +53,8 @@ s1aptests/test_sctp_abort_after_identity_req.py \
 s1aptests/test_sctp_abort_after_smc.py \
 s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
-s1aptests/test_sctp_shutdown_after_smc.py
-#s1aptests/test_attach_ul_udp_data.py \
+s1aptests/test_sctp_shutdown_after_smc.py \
+s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py
 #s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
 #s1aptests/test_attach_dl_udp_data.py \
@@ -71,7 +71,7 @@ cloud_tests/metrics_export_test.py \
 cloud_tests/config_test.py
 
 S1AP_TESTER_CFG=$(MAGMA_ROOT)/lte/gateway/python/integ_tests/data/s1ap_tester_cfg
-S1AP_PYTHON_PATH=$(S1AP_ROOT)/bin
+S1AP_TESTER_PYTHON_PATH=$(S1AP_TESTER_ROOT)/bin
 
 # Local integ tests are run on the magma access gateway, not the test VM
 LOCAL_INTEG_TESTS = gxgy_tests

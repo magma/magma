@@ -62,6 +62,7 @@
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "service303.h"
+#include "sgs_messages_types.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -501,48 +502,52 @@ int nas_proc_deregister_ue(mme_ue_s1ap_id_t ue_id)
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_config_res(emm_cn_pdn_config_res_t *emm_cn_pdn_config_res)
+int nas_proc_ula_success(mme_ue_s1ap_id_t ue_id)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
-
-  emm_sap.primitive = EMMCN_PDN_CONFIG_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_config_res = emm_cn_pdn_config_res;
+  emm_cn_ula_success_t emm_cn_ula_success = {0};
+  emm_cn_ula_success.ue_id = ue_id;
+  emm_sap.primitive = EMMCN_ULA_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_ula_success = &emm_cn_ula_success;
   OAILOG_INFO(
-    LOG_NAS,
-    "Received PDN CONFIG RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_config_res->ue_id);
+    LOG_NAS_ESM,
+    "Received S6a-Update Location Answer Success for ue_id = "
+     MME_UE_S1AP_ID_FMT "\n",
+    emm_cn_ula_success.ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_res(emm_cn_pdn_res_t *emm_cn_pdn_res)
+int nas_proc_cs_respose_success(
+  emm_cn_cs_response_success_t* cs_response_success)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_RES;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_res = emm_cn_pdn_res;
+  emm_sap.primitive = EMMCN_CS_RESPONSE_SUCCESS;
+  emm_sap.u.emm_cn.u.emm_cn_cs_response_success = cs_response_success;
   OAILOG_INFO(
-    LOG_NAS,
-    "Received PDN CONNECTIVITY RESPONSE from MME_APP for ue_id = (%u)\n",
-    emm_cn_pdn_res->ue_id);
+    LOG_NAS_ESM,
+    "Handle Create Session Response Success at NAS for ue_id = "
+    MME_UE_S1AP_ID_FMT "\n",
+    cs_response_success->ue_id);
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
 //------------------------------------------------------------------------------
-int nas_proc_pdn_connectivity_fail(emm_cn_pdn_fail_t *emm_cn_pdn_fail)
+int nas_proc_ula_or_csrsp_fail(emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail)
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
 
-  emm_sap.primitive = EMMCN_PDN_CONNECTIVITY_FAIL;
-  emm_sap.u.emm_cn.u.emm_cn_pdn_fail = emm_cn_pdn_fail;
+  emm_sap.primitive = EMMCN_ULA_OR_CSRSP_FAIL;
+  emm_sap.u.emm_cn.u.emm_cn_ula_or_csrsp_fail = ula_or_csrsp_fail;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -588,7 +593,7 @@ int nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id)
 
 //------------------------------------------------------------------------------
 int nas_proc_nw_initiated_detach_ue_request(
-  itti_nas_nw_initiated_detach_ue_req_t *const nw_initiated_detach_p)
+  emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
@@ -705,129 +710,27 @@ int encode_mobileid_imsi_tmsi(
 
 //------------------------------------------------------------------------------
 int nas_proc_cs_domain_location_updt_fail(
-  itti_nas_cs_domain_location_update_fail_t *itti_nas_location_update_fail_p)
+  SgsRejectCause_t cause,
+  lai_t *lai,
+  mme_ue_s1ap_id_t mme_ue_s1ap_id)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
+  emm_cn_cs_domain_location_updt_fail_t cs_location_updt_fail = {0};
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMCN_CS_DOMAIN_LOCATION_UPDT_FAIL;
+  cs_location_updt_fail =
+    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail;
 
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.ue_id =
-    itti_nas_location_update_fail_p->ue_id;
-  //LAI
-  if (itti_nas_location_update_fail_p->presencemask & LAI) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit2 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit2;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit1 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit1;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit3 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit3;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mccdigit3 =
-      itti_nas_location_update_fail_p->laicsfb.mccdigit3;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit2 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit2;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.mncdigit1 =
-      itti_nas_location_update_fail_p->laicsfb.mncdigit1;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.laicsfb.lac =
-      itti_nas_location_update_fail_p->laicsfb.lac;
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.presencemask = LAI;
+  cs_location_updt_fail.ue_id = mme_ue_s1ap_id;
+  // LAI
+  if (lai) {
+    memcpy(&(cs_location_updt_fail.laicsfb), lai, sizeof (lai_t));
+    cs_location_updt_fail.presencemask = LAI;
   }
-  //SGS cause
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_fail.reject_cause =
-    itti_nas_location_update_fail_p->reject_cause;
-
-  rc = emm_sap_send(&emm_sap);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
-
-//------------------------------------------------------------------------------
-int nas_proc_cs_domain_location_updt_acc(
-  itti_nas_cs_domain_location_update_acc_t *itti_nas_location_update_acc_p)
-{
-  int rc = RETURNerror;
-  emm_sap_t emm_sap = {0};
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_sap.primitive = EMMCN_CS_DOMAIN_LOCATION_UPDT_ACC;
-
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.ue_id =
-    itti_nas_location_update_acc_p->ue_id;
-  /*If is_sgs_assoc_exists is true no all the IEs*/
-  if (true == itti_nas_location_update_acc_p->is_sgs_assoc_exists) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.is_sgs_assoc_exists =
-      itti_nas_location_update_acc_p->is_sgs_assoc_exists;
-    if (itti_nas_location_update_acc_p->presencemask & ADD_UPDT_TYPE) {
-      emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.add_updt_res =
-        itti_nas_location_update_acc_p->add_updt_res;
-      emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.presencemask |=
-        ADD_UPDT_TYPE;
-    }
-    rc = emm_sap_send(&emm_sap);
-    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-  }
-  //LAI
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit2 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit2;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit1 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit1;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit3 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit3;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mccdigit3 =
-    itti_nas_location_update_acc_p->laicsfb.mccdigit3;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit2 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit2;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.mncdigit1 =
-    itti_nas_location_update_acc_p->laicsfb.mncdigit1;
-  emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.laicsfb.lac =
-    itti_nas_location_update_acc_p->laicsfb.lac;
-
-  //Mobile Identity
-
-  if (itti_nas_location_update_acc_p->presencemask & MOBILE_IDENTITY) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.presencemask |=
-      MOBILE_IDENTITY;
-    if (
-      itti_nas_location_update_acc_p->mobileid.imsi.typeofidentity ==
-      MOBILE_IDENTITY_IMSI) {
-      memcpy(
-        &emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.imsi,
-        &itti_nas_location_update_acc_p->mobileid.imsi,
-        sizeof(itti_nas_location_update_acc_p->mobileid.imsi));
-    } else if (
-      itti_nas_location_update_acc_p->mobileid.tmsi.typeofidentity ==
-      MOBILE_IDENTITY_TMSI) {
-      memcpy(
-        &emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi,
-        &itti_nas_location_update_acc_p->mobileid.tmsi,
-        sizeof(itti_nas_location_update_acc_p->mobileid.tmsi));
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit1 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[0]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit2 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[1]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit3 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[2]);
-      OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "TMSI  digit4 %d\n",
-        emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.mobileid.tmsi
-          .tmsi[3]);
-    }
-  }
-  //Additional Update Result
-  if (itti_nas_location_update_acc_p->presencemask & ADD_UPDT_TYPE) {
-    emm_sap.u.emm_cn.u.emm_cn_cs_domain_location_updt_acc.add_updt_res =
-      itti_nas_location_update_acc_p->add_updt_res;
-  }
+  // SGS Reject Cause
+  cs_location_updt_fail.reject_cause = map_sgs_emm_cause(cause);
 
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -881,6 +784,7 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
   emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
+
 /****************************************************************************
  **                                                                        **
  ** Name:    nas_proc_cs_service_notification()                            **
@@ -888,16 +792,19 @@ int nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req)
  ** Description: Processes CS Paging Request message from MSC/VLR          **
  **              over SGs interface                                        **
  **                                                                        **
- ** Inputs:                                                                **
- **      cs_service_notification: The received message from MME app        **
+ ** Inputs:  ue_id:      UE identifier                                     **
+ **          paging_id   Indicates the identity used for                   **
+ **                      paging non-eps services                           **
+ **          cli         Calling Line Identification                       **
  **                                                                        **
  ** Outputs:                                                               **
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-
 int nas_proc_cs_service_notification(
-  itti_nas_cs_service_notification_t *const cs_service_notification)
+  mme_ue_s1ap_id_t ue_id,
+  uint8_t paging_id,
+  bstring cli)
 {
   int rc = RETURNerror;
   emm_sap_t emm_sap = {0};
@@ -905,14 +812,13 @@ int nas_proc_cs_service_notification(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap.primitive = EMMAS_DATA_REQ;
   emm_sap.u.emm_as.u.data.nas_info = EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION;
-  emm_sap.u.emm_as.u.data.ue_id = cs_service_notification->ue_id;
+  emm_sap.u.emm_as.u.data.ue_id = ue_id;
   emm_sap.u.emm_as.u.data.nas_msg = NULL; /*No Esm container*/
-  emm_sap.u.emm_as.u.data.paging_identity = cs_service_notification->paging_id;
-  emm_sap.u.emm_as.u.data.cli = cs_service_notification->cli;
+  emm_sap.u.emm_as.u.data.paging_identity = paging_id;
+  bassign(emm_sap.u.emm_as.u.data.cli, cli);
   rc = emm_sap_send(&emm_sap);
   if (emm_sap.u.emm_as.u.data.cli) {
     bdestroy(emm_sap.u.emm_as.u.data.cli);
-    cs_service_notification->cli = NULL;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1010,11 +916,10 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental)
       default: break;
     }
   }
-
   return NAS_CAUSE_NETWORK_FAILURE;
 }
 
-/* Handle CS domain MM-Information request from MSC/VLR */
+// Handle CS domain MM-Information request from MSC/VLR
 
 int nas_proc_cs_domain_mm_information_request(
   itti_sgsap_mm_information_req_t *const mm_information_req_pP)
@@ -1031,67 +936,30 @@ int nas_proc_cs_domain_mm_information_request(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    nas_proc_notify_service_reject()                              **
+ ** Name:    nas_proc_pdn_disconnect_rsp                                   **
  **                                                                        **
- ** Description: Processes Service Reject notification received from       **
- **              MME APP                                                   **
+ ** Description: Processes _pdn_disconnect_rsp received from MME APP       **
  **                                                                        **
  ** Inputs:                                                                **
- **      service_reject_p : The received message from MME app              **
+ **      emm_cn_pdn_disconnect_rsp : The received message from MME APP     **
  **                                                                        **
  ** Outputs:                                                               **
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-
-int nas_proc_notify_service_reject(
-  itti_nas_notify_service_reject_t *const service_reject_p)
+int nas_proc_pdn_disconnect_rsp(
+  emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp)
 {
-  int rc = RETURNerror;
-
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  DevAssert(service_reject_p);
-  if (
-    service_reject_p->failed_procedure ==
-    INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED) {
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for failed procedure %d for ue-id: %u \n",
-      service_reject_p->failed_procedure,
-      service_reject_p->ue_id);
-    rc = emm_proc_service_reject(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-  } else if (
-    service_reject_p->failed_procedure ==
-    UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED) {
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for failed UE_CONTEXT_MODIFICATION procedure for "
-      "ue-id:%u \n",
-      service_reject_p->ue_id);
-    rc = emm_send_service_reject_in_dl_nas(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-  } else if (
-    service_reject_p->failed_procedure ==
-    MT_CALL_CANCELLED_BY_NW_IN_IDLE_STATE) {
-    // If ECM state is IDLE send service_reject in Establish cnf else send in DL NAS Transport
-    rc = emm_proc_service_reject(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for FAILED_PROCEDURE_MT_CALL_CANCELLED_BY_NW "
-      "procedure for ue-id:%u \n",
-      service_reject_p->ue_id);
-  } else if (
-    service_reject_p->failed_procedure ==
-    MT_CALL_CANCELLED_BY_NW_IN_CONNECTED_STATE) {
-    rc = emm_send_service_reject_in_dl_nas(
-      service_reject_p->ue_id, service_reject_p->emm_cause);
-    OAILOG_INFO(
-      LOG_NAS_EMM,
-      "Send Service Reject for FAILED_PROCEDURE_MT_CALL_CANCELLED_BY_NW "
-      "procedure for ue-id:%u \n",
-      service_reject_p->ue_id);
-  }
+  int rc = RETURNerror;
+  emm_sap_t emm_sap = {0};
+
+  OAILOG_DEBUG(
+    LOG_NAS_EMM,
+    "Received pdn_disconnect_rsp for ue id %u\n",
+    emm_cn_pdn_disconnect_rsp->ue_id);
+  emm_sap.primitive = EMMCN_PDN_DISCONNECT_RES;
+  emm_sap.u.emm_cn.u.emm_cn_pdn_disconnect_rsp = emm_cn_pdn_disconnect_rsp;
+  rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

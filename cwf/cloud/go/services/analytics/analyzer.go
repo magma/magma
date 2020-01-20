@@ -67,7 +67,7 @@ func (a *PrometheusAnalyzer) Analyze() {
 	for _, calc := range a.Calculations {
 		results, err := calc.Calculate(a.PrometheusClient)
 		if err != nil {
-			glog.Errorf("Error calculating XAP metric: %s", err)
+			glog.Errorf("Error calculating metric: %s", err)
 			continue
 		}
 		if a.Exporter == nil {
@@ -77,6 +77,8 @@ func (a *PrometheusAnalyzer) Analyze() {
 			err = a.Exporter.Export(res, http.DefaultClient)
 			if err != nil {
 				glog.Errorf("Error exporting result: %v", err)
+			} else {
+				glog.Infof("Exported %s, %s, %f", res.metricName, res.labels, res.value)
 			}
 		}
 	}

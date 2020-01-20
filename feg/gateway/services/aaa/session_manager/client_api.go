@@ -59,9 +59,9 @@ func CreateSession(in *protos.LocalCreateSessionRequest) (*protos.LocalCreateSes
 	return cli.CreateSession(context.Background(), in)
 }
 
-func EndSession(in *protos.SubscriberID) (*protos.LocalEndSessionResponse, error) {
+func EndSession(in *protos.LocalEndSessionRequest) (*protos.LocalEndSessionResponse, error) {
 	if in == nil {
-		return nil, errors.New("Nil SubscriberID")
+		return nil, errors.New("Nil LocalEndSessionRequest")
 	}
 	cli, err := getSessionManagerClient()
 	if err != nil {

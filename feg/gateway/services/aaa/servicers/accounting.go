@@ -91,8 +91,9 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 
-	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsIn()))
-	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsOut()))
+	imsi := metrics.DecorateIMSI(s.GetCtx().GetImsi())
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsOut()))
 
 	return &protos.AcctResp{}, nil
 }
@@ -115,19 +116,25 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	apn := s.GetCtx().GetApn()
 	s.Unlock()
 
+	imsi := metrics.DecorateIMSI(sessionImsi)
 	var err error
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(sessionImsi))
+		req := &lte_protos.LocalEndSessionRequest{
+			Sid: makeSID(imsi),
+			Apn: apn,
+		}
+		_, err = session_manager.EndSession(req)
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+		metrics.EndSession.WithLabelValues(apn, imsi).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: sessionImsi,
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
+	metrics.AcctStop.WithLabelValues(apn, imsi)
 
 	return &protos.AcctResp{}, err
 }
@@ -145,6 +152,7 @@ func (srv *accountingService) CreateSession(
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
 		UeIpv4:          aaaCtx.GetIpAddr(),
+		Apn:             aaaCtx.GetApn(),
 		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
@@ -177,7 +185,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi).Inc()
+	metrics.SessionTerminate.WithLabelValues(apn, metrics.DecorateIMSI(imsi)).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -208,7 +216,12 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	var err, radErr error
 
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+		req := &lte_protos.LocalEndSessionRequest{
+			Sid: makeSID(aaaCtx.GetImsi()),
+			Apn: aaaCtx.GetApn(),
+		}
+		_, err = session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(aaaCtx.GetApn(), metrics.DecorateIMSI(aaaCtx.GetImsi())).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: aaaCtx.GetImsi(),

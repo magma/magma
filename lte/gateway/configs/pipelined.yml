@@ -30,6 +30,7 @@ static_services: [
   'arpd',
   'access_control',
   'ryu_rest_service',
+  'startup_flows',
 #  'packet_tracer',
 ]
 
@@ -101,6 +102,9 @@ monitored_ifaces: ['gtp_br0',
                    'gtp0',
                    'gtp_sys_2152'
                   ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: true
 
 ###############
 ## IMPORTANT ##

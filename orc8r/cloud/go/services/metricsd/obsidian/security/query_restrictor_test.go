@@ -9,72 +9,90 @@
 package security
 
 import (
-	"fmt"
-	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestBasicQuery(t *testing.T) {
-	testQueryHelper(t, "up", []string{"up"})
+type restrictorTestCase struct {
+	name       string
+	input      string
+	expected   string
+	restrictor *QueryRestrictor
 }
 
-func TestQueryWithFunction(t *testing.T) {
-	testQueryHelper(t, "sum(up)", []string{"up"})
-}
-
-func TestQueryWithLabels(t *testing.T) {
-	testQueryHelper(t, "up{existingLabelName=\"existingLabelValue\"}", []string{"up"})
-}
-
-func TestQueryWithMultipleMetrics(t *testing.T) {
-	testQueryHelper(t, "metric1 or metric2", []string{"metric1", "metric2"})
-}
-
-func TestQueryWithMultipleMetricsAndLabels(t *testing.T) {
-	testQueryHelper(t, "metric1 or metric2{existingLabelName=\"existingLabelValue\"}", []string{"metric1", "metric2"})
-}
-
-func TestQueryWithMatrixSelector(t *testing.T) {
-	testQueryHelper(t, "up[5m]", []string{"up"})
-}
-
-func TestQueryWithMatrixAndFunctions(t *testing.T) {
-	testQueryHelper(t, "sum_over_time(metric1[5m]) or sum_over_time(metric2[5m])", []string{"metric1", "metric2"})
-}
-
-func testQueryHelper(t *testing.T, query string, metricsInQuery []string) {
-	singleLabel := map[string]string{"name1": "value1"}
-	restrictedBasicQuery, err := createRestrictedQuery(query, singleLabel)
+func (tc *restrictorTestCase) RunTest(t *testing.T) {
+	output, err := tc.restrictor.RestrictQuery(tc.input)
 	assert.NoError(t, err)
-	checkMetricsHaveLabels(t, metricsInQuery, restrictedBasicQuery, singleLabel)
-
-	multipleLabels := map[string]string{"name1": "value1", "name2": "value2", "name3": "value3"}
-	restrictedBasicQuery, err = createRestrictedQuery(query, multipleLabels)
-	assert.NoError(t, err)
-	checkMetricsHaveLabels(t, metricsInQuery, restrictedBasicQuery, multipleLabels)
+	assert.Equal(t, tc.expected, output)
 }
 
-// Asserts that each metric in a query is restricted with some labels
-func checkMetricsHaveLabels(t *testing.T, metrics []string, query string, labels map[string]string) {
-	labelsRegexString := "{(.*=\".*\")+(,.*=\".*\")*}"
-	for _, metric := range metrics {
-		metricRegex := regexp.MustCompile(metric + labelsRegexString)
-		assert.Regexp(t, metricRegex, query)
-
-		metricStrings := metricRegex.FindAllString(query, -1)
-		for _, metricString := range metricStrings {
-			for name, val := range labels {
-				labelPair := fmt.Sprintf("%s=\"%s\"", name, val)
-				assert.True(t, strings.Contains(metricString, labelPair))
-			}
-		}
+func TestQueryRestrictor_RestrictQuery(t *testing.T) {
+	singleLabelRestictor := NewQueryRestrictor(map[string]string{"networkID": "test"})
+	testCases := []*restrictorTestCase{
+		{
+			name:       "basic query",
+			input:      "up",
+			expected:   `up{networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with function",
+			input:      "sum(up)",
+			expected:   `sum(up{networkID="test"})`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with labels",
+			input:      `up{label="value"}`,
+			expected:   `up{label="value",networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with multiple metrics",
+			input:      "metric1 or metric2",
+			expected:   `metric1{networkID="test"} or metric2{networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with multiple metrics and labels",
+			input:      `metric1 or metric2{label="value"}`,
+			expected:   `metric1{networkID="test"} or metric2{label="value",networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with matrix selector",
+			input:      "up[5m]",
+			expected:   `up{networkID="test"}[5m]`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with matrix and functions",
+			input:      "sum_over_time(metric1[5m])",
+			expected:   `sum_over_time(metric1{networkID="test"}[5m])`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with existing networkID",
+			input:      `metric1{networkID="test"}`,
+			expected:   `metric1{networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "query with existing wrong networkID",
+			input:      `metric1{networkID="malicious"}`,
+			expected:   `metric1{networkID="test"}`,
+			restrictor: singleLabelRestictor,
+		},
+		{
+			name:       "restricts with multiple labels",
+			input:      `metric1`,
+			expected:   `metric1{newLabel1="value1",newLabel2="value2"}`,
+			restrictor: NewQueryRestrictor(map[string]string{"newLabel1": "value1", "newLabel2": "value2"}),
+		},
 	}
-}
 
-func createRestrictedQuery(query string, labels map[string]string) (string, error) {
-	restrictor := NewQueryRestrictor(labels)
-	return restrictor.RestrictQuery(query)
+	for _, test := range testCases {
+		t.Run(test.name, test.RunTest)
+	}
 }

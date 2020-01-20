@@ -21,69 +21,63 @@ namespace magma {
 Service::Service(Application& application)
     : ::devmand::Service(application),
       magmaService(app.getName(), app.getVersion()) {
+  magmaService.SetServiceInfoCallback([this]() { return getServiceInfo(); });
 
-  magmaService.SetServiceInfoCallback([this]() {
-    auto uv = app.getUnifiedView();
-
-    LOG(INFO) << "publishing :=\n";
-    for (auto& kv : uv) {
-      LOG(INFO) << "\t\"" << kv.first << "\" : \"" << kv.second << "\"\n";
-    }
-    return uv;
-  });
-
-  magmaService.SetOperationalStatesCallback([this]() {
-    auto uv = app.getUnifiedView();
-    std::list<std::map<std::string, std::string>> states;
-
-    folly::dynamic devices =
-        uv.find("devmand") != uv.end()
-        ? folly::parseJson(uv["devmand"])
-        : folly::dynamic::object;
-
-    LOG(INFO) << "Publishing op-state :=\n";
-    for (auto& device : devices.items()) {
-      std::string device_id = device.first.asString();
-      folly::dynamic device_state = folly::dynamic::object;
-      device_state["raw_state"] = folly::toJson(device.second);
-
-      std::map<std::string, std::string> state = {
-        {"type", orc8rDeviceType},
-        {"device_id", device.first.asString()},
-        {"value", folly::toJson(device_state)}
-      };
-      LOG(INFO) << device_id << " : " << folly::toJson(device_state) << "\n";
-      states.push_back(state);
-    }
-    return states;
-  });
+  magmaService.SetOperationalStatesCallback(
+      [this]() { return getOperationalStates(); });
 }
 
-void Service::setGauge(const std::string& key, double value) {
-  setGaugeVA(key, value, 0);
+std::list<std::map<std::string, std::string>> Service::getOperationalStates() {
+  auto unifiedView = app.getUnifiedView();
+  std::list<std::map<std::string, std::string>> states;
+
+  for (auto& device : unifiedView) {
+    std::string deviceId = device.first;
+    folly::dynamic deviceState = folly::dynamic::object;
+    deviceState["raw_state"] = folly::toJson(device.second);
+
+    std::map<std::string, std::string> state = {
+        {"type", orc8rDeviceType},
+        {"device_id", deviceId},
+        {"value", folly::toJson(deviceState)}};
+    states.push_back(state);
+  }
+  return states;
+}
+
+std::map<std::string, std::string> Service::getServiceInfo() {
+  auto unifiedView = app.getUnifiedView();
+
+  folly::dynamic devices = folly::dynamic::object;
+  for (auto& device : unifiedView) {
+    devices[device.first] = device.second;
+  }
+
+  return std::map<std::string, std::string>{
+      {"devmand", folly::toJson(devices)}};
 }
 
 void Service::setGauge(
     const std::string& key,
     double value,
-    const std::string& label_name,
-    const std::string& label_value) {
-  if (label_name.length() == 0 || label_value.length() == 0) {
+    const std::string& labelName,
+    const std::string& labelValue) {
+  if (labelName.empty() or labelValue.empty()) {
     setGaugeVA(key, value, 0);
   } else {
-    setGaugeVA(key, value, 1, label_name.c_str(), label_value.c_str());
+    setGaugeVA(key, value, 1, labelName.c_str(), labelValue.c_str());
   }
 }
 
 void Service::setGaugeVA(
     const std::string& key,
     double value,
-    size_t label_count,
+    size_t labelCount,
     ...) {
   va_list labels;
-  va_start(labels, label_count);
+  va_start(labels, labelCount);
   ::magma::service303::MetricsSingleton::Instance().SetGauge(
-      key.c_str(), value, label_count, labels);
+      key.c_str(), value, labelCount, labels);
   va_end(labels);
 }
 

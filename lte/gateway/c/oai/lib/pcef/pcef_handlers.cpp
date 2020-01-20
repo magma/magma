@@ -39,6 +39,7 @@ extern "C" {
 
 static void create_session_response(
   const std::string &imsi,
+  const std::string &apn,
   itti_sgi_create_end_point_response_t sgi_response,
   itti_s5_create_bearer_request_t bearer_request,
   const grpc::Status &status)
@@ -58,7 +59,8 @@ static void create_session_response(
     struct in_addr addr;
     //BUFFER_TO_IN_ADDR (sgi_response.paa.ipv4_address, addr);
     // TODO make asynchronous, or make part of create session call
-    release_ipv4_address(imsi.c_str(), &sgi_response.paa.ipv4_address);
+    release_ipv4_address(imsi.c_str(), apn.c_str(),
+                         &sgi_response.paa.ipv4_address);
     s5_response->failure_cause = PCEF_FAILURE;
   }
   itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
@@ -108,21 +110,24 @@ void pcef_create_session(
   sreq.set_ue_ipv4(ip_str);
   pcef_fill_create_session_req(session_data, &sreq);
 
+  auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
     sreq,
-    [imsi_str, sgi_response, bearer_request](
+    [imsi_str, apn, sgi_response, bearer_request](
       grpc::Status status, magma::LocalCreateSessionResponse response) {
-      create_session_response(imsi_str, sgi_response, bearer_request, status);
+      create_session_response(imsi_str, apn, sgi_response, bearer_request,
+                              status);
     });
 }
 
-bool pcef_end_session(char *imsi)
+bool pcef_end_session(char *imsi, char *apn)
 {
-  magma::SubscriberID sid;
-  sid.set_id("IMSI" + std::string(imsi));
+  magma::LocalEndSessionRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_apn(apn);
   magma::PCEFClient::end_session(
-    sid, [&](grpc::Status status, magma::LocalEndSessionResponse response) {
+    request, [&](grpc::Status status, magma::LocalEndSessionResponse response) {
       return; // For now, do nothing. TODO: handle errors asynchronously
     });
   return true;

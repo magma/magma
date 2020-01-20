@@ -32,20 +32,24 @@ using ::testing::Test;
 namespace magma {
 
 const SessionState::Config test_cfg = {.ue_ipv4 = "127.0.0.1",
-                                       .spgw_ipv4 = "128.0.0.1"};
+                                       .spgw_ipv4 = "128.0.0.1",
+                                       .msisdn = "",
+                                       .apn = "IMS"};
 
 class LocalEnforcerTest : public ::testing::Test {
  protected:
  protected:
   virtual void SetUp()
   {
-    reporter = std::make_shared<MockSessionCloudReporter>();
+    reporter = std::make_shared<MockSessionReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
     pipelined_client = std::make_shared<MockPipelinedClient>();
+    directoryd_client = std::make_shared<MockDirectorydClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
-      reporter, rule_store, pipelined_client, spgw_client, aaa_client, 0);
+      reporter, rule_store, pipelined_client, directoryd_client, spgw_client,
+      aaa_client, 0);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
   }
@@ -107,10 +111,11 @@ class LocalEnforcerTest : public ::testing::Test {
   }
 
  protected:
-  std::shared_ptr<MockSessionCloudReporter> reporter;
+  std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
+  std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   folly::EventBase *evb;
@@ -276,7 +281,7 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination)
   std::promise<void> termination_promise;
   auto future = termination_promise.get_future();
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
@@ -386,7 +391,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit)
 
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest req) {
       termination_promise.set_value();
 
       EXPECT_EQ(req.credit_usages_size(), 2);
@@ -429,7 +434,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting)
   // Collecting terminations should key 1 anyways during reporting
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
 
       EXPECT_EQ(term_req.credit_usages_size(), 2);
@@ -567,7 +572,7 @@ TEST_F(LocalEnforcerTest, test_all)
   // Terminate IMSI1
   std::promise<void> termination_promise;
   local_enforcer->terminate_subscriber(
-    "IMSI1", [&termination_promise](SessionTerminateRequest term_req) {
+    "IMSI1", "IMS", [&termination_promise](SessionTerminateRequest term_req) {
       termination_promise.set_value();
 
       EXPECT_EQ(term_req.sid(), "IMSI1");
@@ -587,6 +592,7 @@ TEST_F(LocalEnforcerTest, test_re_auth)
 
   ChargingReAuthRequest reauth;
   reauth.set_sid("IMSI1");
+  reauth.set_session_id("1234");
   reauth.set_charging_key(1);
   reauth.set_type(ChargingReAuthRequest::SINGLE_SERVICE);
   auto result = local_enforcer->init_charging_reauth(reauth);
@@ -860,10 +866,34 @@ TEST_F(LocalEnforcerTest, test_usage_monitors)
     monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
-  std::vector<PolicyRule> expected_dynamic_rules;
   EXPECT_CALL(
     *pipelined_client,
     deactivate_flows_for_rules("IMSI1",
+      std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
+    .Times(1)
+    .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credit(update_response);
+
+  // Test rule installation in usage monitor response for CCA-Update
+  update_response.Clear();
+  monitor_updates = update_response.mutable_usage_monitor_responses();
+  monitor_updates_response = monitor_updates->Add();
+  create_monitor_update_response(
+    "IMSI1",
+    "3",
+    MonitoringLevel::PCC_RULE_LEVEL,
+    0,
+    monitor_updates_response);
+
+  StaticRuleInstall static_rule_install;
+  static_rule_install.set_rule_id("pcrf_only");
+  auto res_rules_to_install =
+        monitor_updates_response->add_static_rules_to_install();
+  res_rules_to_install->CopyFrom(static_rule_install);
+
+  EXPECT_CALL(
+    *pipelined_client,
+    activate_flows_for_rules("IMSI1", testing::_,
       std::vector<std::string>{"pcrf_only"}, CheckCount(0)))
     .Times(1)
     .WillOnce(testing::Return(true));
@@ -892,7 +922,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer)
   std::vector<EventTrigger> event_triggers;
   std::vector<UsageMonitoringCredit> usage_monitoring_credits;
   create_policy_reauth_request(
-    "session1",
+    "1234",
     "IMSI1",
     rules_to_remove,
     rules_to_install,

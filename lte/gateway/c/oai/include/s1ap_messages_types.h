@@ -236,6 +236,8 @@ typedef struct itti_s1ap_paging_request_s {
 #define S1AP_PAGING_ID_STMSI 0X1
   uint8_t paging_id;
   s1ap_cn_domain_t domain_indicator;
+  uint8_t tai_list_count;
+  paging_tai_list_t paging_tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
 } itti_s1ap_paging_request_t;
 
 typedef struct itti_s1ap_initial_ue_message_s {
@@ -246,9 +248,9 @@ typedef struct itti_s1ap_initial_ue_message_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   bstring nas;
   tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message.                         */
+    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message. */
   ecgi_t
-    ecgi; /* Indicating the cell from which the UE has sent the NAS message.                         */
+    ecgi; /* Indicating the cell from which the UE has sent the NAS message. */
   rrc_establishment_cause_t
     rrc_establishment_cause; /* Establishment cause                     */
 

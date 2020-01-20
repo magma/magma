@@ -14,7 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "SessionID.h"
 
 using grpc::Server;
@@ -32,8 +32,8 @@ class LocalSessionManagerHandler {
    * Report flow stats from pipelined and track the usage per rule
    */
   virtual void ReportRuleStats(
-    ServerContext *context,
-    const RuleRecordTable *request,
+    ServerContext* context,
+    const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) = 0;
 
   /**
@@ -51,7 +51,7 @@ class LocalSessionManagerHandler {
    */
   virtual void EndSession(
     ServerContext* context,
-    const SubscriberID* request,
+    const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) = 0;
 };
 
@@ -63,9 +63,9 @@ class LocalSessionManagerHandler {
 class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
  public:
   LocalSessionManagerHandlerImpl(
-    LocalEnforcer* monitor,
-    SessionCloudReporter* reporter);
-
+    std::shared_ptr<LocalEnforcer> monitor,
+    SessionReporter* reporter,
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client);
   ~LocalSessionManagerHandlerImpl() {}
   /**
    * Report flow stats from pipelined and track the usage per rule
@@ -89,12 +89,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void EndSession(
     ServerContext* context,
-    const SubscriberID* request,
+    const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
  private:
-  LocalEnforcer* enforcer_;
-  SessionCloudReporter* reporter_;
+  std::shared_ptr<LocalEnforcer> enforcer_;
+  SessionReporter* reporter_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
@@ -107,6 +108,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   bool restart_pipelined(const std::uint64_t& epoch);
 
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
+
+  void add_session_to_directory_record(
+    const std::string& imsi,
+    const std::string& session_id);
 
   void send_create_session(
     const CreateSessionRequest& request,

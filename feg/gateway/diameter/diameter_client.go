@@ -16,11 +16,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
-	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/golang/glog"
 )
 
@@ -48,9 +48,17 @@ type Client struct {
 	originStateID  uint32
 }
 
+// OriginRealm returns client's config Realm
+func (c *Client) OriginRealm() string {
+	if c != nil && c.cfg != nil && len(c.cfg.Realm) > 0 {
+		return c.cfg.Realm
+	}
+	return "magma"
+}
+
 // OriginHost returns client's config Host
 func (c *Client) OriginHost() string {
-	if c != nil && c.cfg != nil {
+	if c != nil && c.cfg != nil && len(c.cfg.Host) > 0 {
 		return c.cfg.Host
 	}
 	return "magma"
@@ -62,6 +70,14 @@ func (c *Client) OriginStateID() uint32 {
 		return c.originStateID
 	}
 	return 0
+}
+
+// ServiceContextId returns client's config ServiceContextId
+func (c *Client) ServiceContextId() string {
+	if c != nil && c.cfg != nil && len(c.cfg.ServiceContextId) > 0 {
+		return c.cfg.ServiceContextId
+	}
+	return ServiceContextIDDefault
 }
 
 // NewClient creates a new client based on the config passed.
@@ -88,6 +104,17 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		authAppIdAvps = []*diam.AVP{appIdAvp}
 	}
 
+	vendorSpecificApplicationIDs := getVendorSpecificApplicationIDAVPs(clientCfg, appIdAvp)
+
+	// Add the standard 3gpp vendor ID
+	vendorSpecificApplicationIDs = append(vendorSpecificApplicationIDs,
+		diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				appIdAvp,
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
+			},
+		}))
+
 	cli := &sm.Client{
 		Dict:               dict.Default,
 		Handler:            mux,
@@ -98,15 +125,8 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		SupportedVendorID: []*diam.AVP{
 			diam.NewAVP(avp.SupportedVendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
 		},
-		AuthApplicationID: authAppIdAvps,
-		VendorSpecificApplicationID: []*diam.AVP{
-			diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					appIdAvp,
-					diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(Vendor3GPP)),
-				},
-			}),
-		},
+		AuthApplicationID:           authAppIdAvps,
+		VendorSpecificApplicationID: vendorSpecificApplicationIDs,
 	}
 	go logErrors(mux.ErrorReports())
 	return &Client{
@@ -127,15 +147,17 @@ func logErrors(ec <-chan *diam.ErrorReport) {
 }
 
 // BeginConnection attempts to begin a new connection with the server
-func (client *Client) BeginConnection(server *DiameterServerConfig) {
+func (client *Client) BeginConnection(server *DiameterServerConfig) error {
 	if client.connMan == nil {
-		glog.Errorf("No connection manager to initiate connection with")
-		return
+		err := fmt.Errorf("No connection manager to initiate connection with")
+		glog.Error(err)
+		return err
 	}
 	_, err := client.connMan.GetConnection(client.smClient, server)
 	if err != nil {
 		glog.Error(err)
 	}
+	return err
 }
 
 func (client *Client) Retries() uint {
@@ -368,13 +390,13 @@ func ExtractImsiFromSessionID(diamSid string) (string, error) {
 
 // EncodeSessionID encodes SessionID in rfc6733 compliant form:
 // <DiameterIdentity>;<high 32 bits>;<low 32 bits>[;<optional value>]
-// OriginHost;rand#;rand#;IMSIxyz
-func EncodeSessionID(originHost, sid string) string {
+// OriginHost/Realm;rand#;rand#;IMSIxyz
+func EncodeSessionID(diamIdentity, sid string) string {
 	split := strings.Split(sid, "-")
 	if len(split) > 1 && strings.HasPrefix(split[0], "IMSI") {
 		rndPart := split[1]
 		r2l := len(rndPart) / 2
-		return fmt.Sprintf("%s;%s;%s;%s", originHost, rndPart[:r2l], rndPart[r2l:], split[0])
+		return fmt.Sprintf("%s;%s;%s;%s", diamIdentity, rndPart[:r2l], rndPart[r2l:], split[0])
 	}
 	return sid // not magma generated SID, return as is
 
@@ -403,4 +425,32 @@ func ParseDiamSessionID(sessionID string) (host, rnd1, rnd2, imsi, bearrerId str
 		host = parts[0]
 	}
 	return
+}
+
+func getVendorSpecificApplicationIDAVPs(clientCfg *DiameterClientConfig,
+	appIdAvp *diam.AVP) []*diam.AVP {
+
+	var vendorSpecificApplicationIDs []*diam.AVP
+
+	if clientCfg.SupportedVendorIDs != "" {
+		// Split the vendor specific application ID string in tokens
+		strIds := strings.Split(clientCfg.SupportedVendorIDs, ",")
+		// Iterate over each string and append them to the AVP
+		for index := range strIds {
+			u32, err := strconv.ParseUint(strIds[index], 10, 32)
+			if err != nil {
+				break
+			}
+			vendorSpecificApplicationIDs = append(vendorSpecificApplicationIDs,
+				diam.NewAVP(avp.VendorSpecificApplicationID, avp.Mbit, 0, &diam.GroupedAVP{
+					AVP: []*diam.AVP{
+						appIdAvp,
+						diam.NewAVP(avp.VendorID, avp.Mbit, 0,
+							datatype.Unsigned32(u32)),
+					},
+				}))
+		}
+	}
+	return vendorSpecificApplicationIDs
+
 }

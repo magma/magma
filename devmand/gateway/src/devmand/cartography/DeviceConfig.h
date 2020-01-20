@@ -38,7 +38,7 @@ struct DeviceConfig {
   std::string platform;
   std::string ip;
   std::string yangConfig;
-  bool readonly;
+  bool readonly{false};
 
   std::map<std::string, ChannelConfig> channelConfigs;
 
@@ -57,19 +57,9 @@ struct DeviceConfig {
 
   friend bool operator<(const DeviceConfig& lhs, const DeviceConfig& rhs) {
     return std::tie(
-               lhs.id,
-               lhs.platform,
-               lhs.ip,
-               lhs.yangConfig,
-               lhs.readonly,
-               lhs.channelConfigs) <
+               lhs.id, lhs.platform, lhs.ip, lhs.readonly, lhs.channelConfigs) <
         std::tie(
-               rhs.id,
-               rhs.platform,
-               rhs.ip,
-               rhs.yangConfig,
-               rhs.readonly,
-               rhs.channelConfigs);
+               rhs.id, rhs.platform, rhs.ip, rhs.readonly, rhs.channelConfigs);
   }
 
   friend bool operator==(const DeviceConfig& lhs, const DeviceConfig& rhs) {

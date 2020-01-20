@@ -1,0 +1,5 @@
+mutation AddLinkMutation($input: AddLinkInput!) {
+  addLink(input: $input) {
+    id
+  }
+}

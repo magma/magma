@@ -51,16 +51,19 @@ class MeterStatsTest(unittest.TestCase):
         test_setup = TestSetup(
             apps=[PipelinedController.Meter,
                   PipelinedController.Testing,
-                  PipelinedController.MeterStats],
+                  PipelinedController.MeterStats,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.Meter: meter_ref,
                 PipelinedController.Testing: testing_controller_reference,
-                PipelinedController.MeterStats: meter_stat_ref
+                PipelinedController.MeterStats: meter_stat_ref,
+                PipelinedController.StartupFlows: Future(),
             },
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
                 'meter': {'poll_interval': 3, 'enabled': True},
+                'clean_restart': True,
             },
             mconfig={},
             loop=loop_mock,

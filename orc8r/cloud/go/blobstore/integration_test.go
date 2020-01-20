@@ -27,7 +27,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	assert.NoError(t, err)
 	listActual, err := store.ListKeys("network", "type")
 	assert.NoError(t, err)
-	assert.Equal(t, []string{}, listActual)
+	assert.Empty(t, listActual)
 
 	getActual, err := store.Get("network", storage.TypeAndKey{Type: "t", Key: "k"})
 	assert.True(t, err == magmaerrors.ErrNotFound)
@@ -41,7 +41,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		},
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, []blobstore.Blob{}, getManyActual)
+	assert.Empty(t, getManyActual)
 	assert.NoError(t, store.Commit())
 
 	// Workflow test
@@ -165,7 +165,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 
 	// Operation after commit
 	_, err = store.Get("network1", storage.TypeAndKey{Type: "t1", Key: "k1"})
-	assert.EqualError(t, err, "No transaction is available")
+	assert.Error(t, err)
 
 	// Delete multiple
 	store, err = fact.StartTransaction(nil)
@@ -201,7 +201,7 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		{Type: "t3", Key: "k3"},
 	})
 	assert.NoError(t, err)
-	assert.Equal(t, []blobstore.Blob{}, getManyActual)
+	assert.Empty(t, getManyActual)
 	assert.NoError(t, store.Rollback())
 
 	store, err = fact.StartTransaction(nil)

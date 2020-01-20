@@ -34,9 +34,7 @@ extern "C" {
 }
 #endif
 
-#include <cpp_redis/cpp_redis>
-
-#include "ServiceConfigLoader.h"
+#include "redis_utils/redis_client.h"
 
 namespace magma {
 namespace lte {
@@ -68,35 +66,19 @@ class StateManager {
     return state_cache_p;
   }
 
-  // TODO: Move redis connection related functions to common wrapper
+  // TODO: Read state per IMSI
   /**
    * Reads and parses task state from db if persist_state is enabled
    * @return response code of operation
    */
   virtual int read_state_from_db()
   {
-    AssertFatal(
-      is_initialized,
-      "StateManager init() function should be called to initialize state");
-
     if (persist_state_enabled) {
-      auto db_read_fut = db_client->get(table_key);
-      db_client->sync_commit();
-      auto db_read_reply = db_read_fut.get();
-
-      if (db_read_reply.is_null()) {
-        OAILOG_ERROR(log_task, "Empty state in data store");
-      } else if (db_read_reply.is_error() || !db_read_reply.is_string()) {
-        OAILOG_ERROR(log_task, "Failed to read state from db");
-      } else {
-        ProtoType state_proto = ProtoType();
-        if (!state_proto.ParseFromString(db_read_reply.as_string())) {
-          OAILOG_ERROR(log_task, "Failed to parse state");
-        }
-
-        StateConverter::proto_to_state(state_proto, state_cache_p);
-        OAILOG_DEBUG(log_task, "Finished reading state");
+      ProtoType state_proto = ProtoType();
+      if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
+        return RETURNerror;
       }
+      StateConverter::proto_to_state(state_proto, state_cache_p);
     }
     return RETURNok;
   }
@@ -116,56 +98,17 @@ class StateManager {
     }
 
     if (persist_state_enabled) {
-      std::string serialized_state_s;
       ProtoType state_proto = ProtoType();
       StateConverter::state_to_proto(state_cache_p, &state_proto);
 
-      if (!state_proto.SerializeToString(&serialized_state_s)) {
-        OAILOG_ERROR(log_task, "Failed to serialize state protobuf");
-        return;
-      }
-
-      auto db_write_fut = db_client->set(table_key, serialized_state_s);
-      db_client->sync_commit();
-      auto db_write_reply = db_write_fut.get();
-
-      if (db_write_reply.is_error()) {
+      if (redis_client->write_proto(table_key, state_proto) != RETURNok) {
         OAILOG_ERROR(log_task, "Failed to write state to db");
         return;
       }
-
       OAILOG_DEBUG(log_task, "Finished writing state");
     }
 
     this->state_dirty = false;
-  }
-
-  /**
-   * Initializes a connection to redis datastore.
-   * @param addr is IP address of redis server
-   * @return response code of success / error with db connection
-   */
-  int init_db_connection(const std::string& addr)
-  {
-    // Init db client service config
-    magma::ServiceConfigLoader loader;
-
-    auto config = loader.load_service_config("redis");
-    auto port = config["port"].as<uint32_t>();
-
-    db_client = std::make_unique<cpp_redis::client>();
-    // Make connection to db
-    db_client->connect(addr, port, nullptr);
-
-    if (!db_client->is_connected()) {
-      OAILOG_ERROR(log_task, "Failed to connect to redis");
-      return RETURNerror;
-    }
-
-    OAILOG_INFO(
-      log_task, "Connected to redis datastore on %s:%u\n", addr.c_str(), port);
-
-    return RETURNok;
   }
 
   /**
@@ -179,7 +122,8 @@ class StateManager {
     state_dirty(false),
     persist_state_enabled(false),
     state_cache_p(nullptr),
-    log_task(LOG_MME_APP)
+    log_task(LOG_MME_APP),
+    redis_client(std::make_unique<RedisClient>())
   {
   }
   virtual ~StateManager() = default;
@@ -191,7 +135,8 @@ class StateManager {
 
   // TODO: Make this a unique_ptr
   StateType* state_cache_p;
-  std::unique_ptr<cpp_redis::client> db_client;
+  // TODO: Revisit one shared connection for all types of state
+  std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.
   bool is_initialized;
   // Flag for check asserting that write should be done after read.

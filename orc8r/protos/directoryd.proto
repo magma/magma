@@ -67,7 +67,7 @@ service DirectoryService {
 message UpdateRecordRequest {
   string id = 1;
   string location = 2;
-  repeated DirectoryField fields = 3;
+  map <string, string> fields = 3;
 }
 
 message DirectoryField {
@@ -84,6 +84,16 @@ message GetDirectoryFieldRequest {
   string field_key = 2;
 }
 
+message DirectoryRecord {
+  string id = 1;
+  repeated string location_history = 2;
+  map <string, string> fields = 3;
+}
+
+message AllDirectoryRecords {
+  repeated DirectoryRecord records = 1;
+}
+
 // GatewayDirectoryService allows for associating various identities to a
 // record. This service runs on the gateways.
 service GatewayDirectoryService {
@@ -97,4 +107,7 @@ service GatewayDirectoryService {
 
   // Get directory field for a given id and key
   rpc GetDirectoryField (GetDirectoryFieldRequest) returns (DirectoryField) {};
+
+  // Get all directory records
+  rpc GetAllDirectoryRecords (Void) returns (AllDirectoryRecords) {};
 }

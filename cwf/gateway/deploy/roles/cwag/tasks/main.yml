@@ -8,6 +8,10 @@
   become: true
   script: create_gre_tunnel.sh
 
+- name: Create OVS bridge uplink_br0 and add peer patch port to connect it to cwag_br0
+  become: true
+  script: setup_default_uplink_bridge.sh
+
 - name: Enable IP forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
 

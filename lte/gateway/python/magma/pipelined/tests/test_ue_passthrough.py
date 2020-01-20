@@ -71,7 +71,8 @@ class UEMacAddressTest(unittest.TestCase):
             apps=[PipelinedController.InOut,
                   PipelinedController.Arp,
                   PipelinedController.UEMac,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
@@ -80,7 +81,9 @@ class UEMacAddressTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'CWF',
@@ -90,6 +93,7 @@ class UEMacAddressTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'virtual_interface': 'testing_br',
                 'local_ue_eth_addr': False,
+                'clean_restart': True,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",
@@ -163,9 +167,9 @@ class UEMacAddressTest(unittest.TestCase):
                 FlowTest(FlowQuery(self._tbl_num,
                                    self.testing_controller), 4, 9),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
-                                   self.testing_controller), 4, 4),
+                                   self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
-                                   self.testing_controller), 2, 2),
+                                   self.testing_controller), 0, 2),
                 FlowTest(flow_queries[0], 4, 4),
             ], lambda: wait_after_send(self.testing_controller))
 

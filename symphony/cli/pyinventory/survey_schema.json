@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "definitions": {
+    "dependsOn": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "questionName": {
+          "type": "string"
+        },
+        "compare": {
+          "type": "string",
+          "enum": [">=", ">", "<", "<=", "<>", "="]
+        },
+        "value": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "dependsOn": {
+          "$ref": "#/definitions/dependsOn"
+        }
+      },
+      "required": ["name", "questionName", "compare", "value"]
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "questionName" : {
+                "type": "string"
+              },
+              "questionType": {
+                "enum": ["BOOL", "EMAIL", "COORDS", "TEXT", "FLOAT", "INTEGER", "DATE", "PHONE"]
+              },
+              "questionDescription": {
+                "type": "string"
+              },
+              "multiOptions": {
+                "type": "boolean"
+              },
+              "options": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                ]
+              },
+              "dependsOn": {
+                "$ref": "#/definitions/dependsOn"
+              }
+            },
+            "required": ["questionName", "questionType"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "templateName": {
+                "type": "string"
+              },
+              "dependsOn": {
+                "$ref": "#/definitions/dependsOn"
+              }
+            },
+            "required": ["templateName"]
+          }
+        ]
+      }
+    },
+    "forms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "formTitle": {
+                "type": "string"
+              },
+              "formDescription": {
+                "type": "string"
+              },
+              "questions": {
+                "$ref": "#/definitions/questions"
+              }
+            }
+          },
+          {
+            "properties": {
+              "templateName": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "properties": {
+    "imports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "translations": {
+      "type": "object",
+      "properties": {
+        "Form": {
+          "type": "string"
+        },
+        "Question": {
+          "type": "string"
+        },
+        "Answer": {
+          "type": "string"
+        },
+        "Yes": {
+          "type": "string"
+        },
+        "No": {
+          "type": "string"
+        }
+      }
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "templateName": {
+                "type": "string"
+              },
+              "questions": {
+                "$ref": "#/definitions/questions"
+              }
+            }
+          },
+          {
+            "properties": {
+              "templateName": {
+                "type": "string"
+              },
+              "forms": {
+                "$ref": "#/definitions/forms"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "categoryName": {
+            "type": "string"
+          },
+          "forms": {
+            "$ref": "#/definitions/forms"
+          }
+        },
+        "required": ["categoryName", "forms"]
+      }
+    }
+  }
+}

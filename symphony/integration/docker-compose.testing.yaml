@@ -1,0 +1,27 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  inventory:
+    build:
+      dockerfile: fbcnms-projects/inventory/Dockerfile.dev
+    command: yarn run dev
+
+  test:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: integration/tests/Dockerfile
+    volumes:
+      - ${FBCODE_FBC_DIR}/symphony:/src/symphony:delegated
+    networks:
+      - private
+
+  pytest:
+    build:
+      context: ${FBCODE_FBC_DIR}/symphony
+      dockerfile: integration/pytests/Dockerfile
+    networks:
+      - private

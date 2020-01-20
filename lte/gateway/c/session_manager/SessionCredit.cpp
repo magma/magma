@@ -19,25 +19,32 @@ float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 uint64_t SessionCredit::EXTRA_QUOTA_MARGIN = 1024;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
-const std::set<uint32_t> SessionCredit::transient_result_codes_ = {
-  DIAMETER_CREDIT_CONTROL_NOT_APPLICABLE,
-  DIAMETER_CREDIT_LIMIT_REACHED,
-  DIAMETER_NO_AVAILABLE_POLICY_COUNTERS,
-  DIAMETER_SERVICE_TEMPORARILY_NOT_AUTHORIZED,
-};
-
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state):
   credit_type_(credit_type),
   reporting_(false),
   reauth_state_(REAUTH_NOT_NEEDED),
   service_state_(start_state),
+  unlimited_quota_(false),
+  buckets_ {}
+{
+}
+
+SessionCredit::SessionCredit(
+  CreditType credit_type,
+  ServiceState start_state,
+  bool unlimited_quota):
+  credit_type_(credit_type),
+  reporting_(false),
+  reauth_state_(REAUTH_NOT_NEEDED),
+  service_state_(start_state),
+  unlimited_quota_(unlimited_quota),
   buckets_ {}
 {
 }
 
 // by default, enable service
 SessionCredit::SessionCredit(CreditType credit_type):
-  SessionCredit(credit_type, SERVICE_ENABLED)
+  SessionCredit(credit_type, SERVICE_ENABLED, false)
 {
 }
 
@@ -71,7 +78,7 @@ void SessionCredit::reset_reporting_credit()
 
 void SessionCredit::mark_failure(uint32_t code)
 {
-  if (transient_result_codes_.find(code) != transient_result_codes_.end()) {
+  if (DiameterCodeHandler::is_transient_failure(code)) {
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
   }
@@ -195,7 +202,7 @@ bool SessionCredit::quota_exhausted(
 
 bool SessionCredit::should_deactivate_service()
 {
-  return credit_type_ == CreditType::CHARGING &&
+  return credit_type_ == CreditType::CHARGING && !unlimited_quota_ &&
     SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED &&
     ((no_more_grant() && quota_exhausted()) ||
       quota_exhausted(1, SessionCredit::EXTRA_QUOTA_MARGIN));

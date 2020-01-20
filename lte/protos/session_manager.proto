@@ -16,7 +16,7 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
@@ -54,6 +54,11 @@ message LocalCreateSessionRequest {
 
 message LocalCreateSessionResponse {
   string session_id = 1;
+}
+
+message LocalEndSessionRequest {
+  SubscriberID sid = 1;
+  string apn = 2;
 }
 
 message LocalEndSessionResponse {
@@ -133,6 +138,7 @@ enum EventTrigger {
 }
 
 message PolicyReAuthRequest {
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
   string session_id = 1;
   string imsi = 2;
   repeated string rules_to_remove = 3;
@@ -218,12 +224,14 @@ service LocalSessionManager {
 
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
-  rpc EndSession(SubscriberID) returns (LocalEndSessionResponse) {}
+  rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
 }
 
 service SessionProxyResponder {
   rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
 
+  // NOTE: if no session_id is specified, apply to all sessions for the IMSI
+  //
   rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
 }
 
@@ -289,7 +297,7 @@ message CreditUsage {
     POOL_EXHAUSTED = 8;
   }
   UpdateType type = 5;
-  string monitoring_key = 6;
+  bytes monitoring_key = 6;
   ServiceIdentifier service_identifier = 7;
 }
 
@@ -297,7 +305,7 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   bytes msisdn = 5;
   string ue_ipv4 = 6;
   string spgw_ipv4 = 7;
@@ -315,12 +323,19 @@ message CreditUpdateResponse {
     UPDATE = 0;
   }
   bool success = 1;
-  string sid = 2;
+  string sid = 2; // System Identification Number
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   ResponseType type = 5;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
+  enum CreditLimitType {
+    FINITE = 0;
+    INFINITE_UNMETERED = 1;
+    INFINITE_METERED = 2;
+  }
+  // When this is set to an infinite limit, field 'credit' should be ignored
+  CreditLimitType limit_type = 9;
 }
 
 // PCRF USAGE MONITORING
@@ -332,7 +347,7 @@ enum MonitoringLevel {
 
 // Used amount for a usage monitor
 message UsageMonitorUpdate {
-  string monitoring_key = 1;
+  bytes monitoring_key = 1;
   MonitoringLevel level = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
@@ -345,7 +360,7 @@ message UsageMonitoringCredit {
     DISABLE = 1; // no need to monitor any more
   }
   Action action = 1;
-  string monitoring_key = 2;
+  bytes monitoring_key = 2;
   MonitoringLevel level = 3;
   GrantedUnits granted_units = 5;
 }
@@ -355,7 +370,7 @@ message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4;
+  string sid = 4; // System Identification Number
   string ue_ipv4 = 5;
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
@@ -365,12 +380,14 @@ message UsageMonitoringUpdateRequest {
 message UsageMonitoringUpdateResponse {
   UsageMonitoringCredit credit = 1;
   string session_id = 2;
-  string sid = 3;
+  string sid = 3; // System Identification Number
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
   uint32 result_code = 7;
   repeated string rules_to_remove = 8;
+  repeated StaticRuleInstall static_rules_to_install = 9;
+  repeated DynamicRuleInstall dynamic_rules_to_install = 10;
 }
 
 
@@ -435,12 +452,12 @@ message UpdateSessionResponse {
 }
 
 message SessionTerminateResponse {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
 }
 
 message SessionTerminateRequest {
-  string sid = 1;
+  string sid = 1; // System Identification Number
   string session_id = 2;
   string apn = 3;
   uint32 request_number = 4;

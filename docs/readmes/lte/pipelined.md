@@ -42,7 +42,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
         |                   |
         V                   V
     -------------------------------
-    |            Table 0          |
+    |       Table 0 (SPECIAL)     |
     |         GTP APP (OAI)       |
     |- sets IMSI metadata         |
     |- sets tunnel id on downlink |
@@ -51,14 +51,14 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   |
                   V
     -------------------------------
-    |          Table 1            |
+    |      Table 1 (PHYSICAL)     |
     |           inout             |
     |- sets direction bit         |
     -------------------------------
                   |
                   V
     -------------------------------
-    |          Table 2            |
+    |      Table 2 (PHYSICAL)     |
     |            ARP              |
     |- Forwards non-ARP traffic   |
     |- Responds to ARP requests w/| ---> Arp traffic - LOCAL
@@ -67,7 +67,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
                   |
                   V
     -------------------------------
-    |          Table 3            |
+    |      Table 3 (PHYSICAL)     |
     |       access control        |
     |- Forwards normal traffic    |
     |- Drops traffic with ip      |
@@ -76,12 +76,26 @@ Static services include mandatory services (such as OAI and inout) which are alw
     -------------------------------
                   |
                   V
-   Configurable apps managed by cloud <---> Scratch tables
-            (Tables 4-19)                  (Tables 21 - 254)
+   Configurable PHYSICAL apps managed by cloud <---> Scratch tables
+            (Tables 4-9)                            (Tables 21 - 254)
                   |
                   V
     -------------------------------
-    |          Table 20           |
+    |      Table 10 (SPECIAL)     |
+    |           inout             |
+    |- Forwards uplink traffic to |
+    |  LOCAL port                 |
+    |- Forwards downlink traffic  |
+    |  to GTP port                |
+    -------------------------------
+                  |
+                  V
+   Configurable LOGICAL apps managed by cloud <---> Scratch tables
+            (Tables 11-19)                         (Tables 21 - 254)
+                  |
+                  V
+    -------------------------------
+    |      Table 20 (SPECIAL)     |
     |           inout             |
     |- Forwards uplink traffic to |
     |  LOCAL port                 |
@@ -95,6 +109,13 @@ Static services include mandatory services (such as OAI and inout) which are alw
     downlink              uplink
 
 ```
+
+### Service types
+
+Services(controllers) are split into two: Physical and Logical.
+Physical controllers: arpd, access_control.
+Logical controllers: metering, dpi, enforcement.
+
 
 ### Configurable Services
 
@@ -152,6 +173,19 @@ reg1     | Global     | Direction bit        | Table 1 (inout application)
 reg2     | Local      | Policy number        | Enforcement app             
 reg3     | Local      | App ID               | DPI app
 reg4     | Local      | Policy version number| Enforcement app                     
+
+### Resilience
+
+Pipelined service is restart resilient and can seamlessly recover from service restarts.
+This is achieved by:
+  1) Querying all flows on controller startup. This is done through a separate startup flow controller that will handle querying all initial stats.
+  2) Comparing the flows received from step 1, with the flows obtained from sessiond setup() call
+  3) Activating new flows that are not present
+  4) Deactivate flows that are not in the sessiond call but are active
+This works because ovs secure fail mode doesn't remove flows whenever the controller disconnects.
+
+Note:
+Currently we reinsert some flows instead of doing the diff logic on them(f.e. enforcement redirection flows as they need async dhcp request resolution, other tables that don't hold and session data(inout, ue_mac, etc.) but this will be added later).
 
 ## Testing
 

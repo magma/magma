@@ -56,27 +56,30 @@
 #include "service303.h"
 #include "sgs_messages_types.h"
 #include "esm_proc.h"
+#include "nas_proc.h"
+#include "emm_cnDef.h"
+#include "emm_proc.h"
 
 //------------------------------------------------------------------------------
 int mme_app_send_s6a_update_location_req(
-  struct ue_mm_context_s *const ue_context_p)
+  struct ue_mm_context_s* const ue_context_p)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef *message_p = NULL;
-  s6a_update_location_req_t *s6a_ulr_p = NULL;
+  MessageDef* message_p = NULL;
+  s6a_update_location_req_t* s6a_ulr_p = NULL;
   int rc = RETURNok;
 
   OAILOG_INFO(
-    TASK_MME_APP, "Sending S6A UPDATE LOCATION REQ to S6A, ue_id = %u\n",
+    TASK_MME_APP,
+    "Sending S6A UPDATE LOCATION REQ to S6A, ue_id =" MME_UE_S1AP_ID_FMT " \n",
     ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_UPDATE_LOCATION_REQ);
-
   if (message_p == NULL) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
-  memset((void *) s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+  memset((void*) s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
   IMSI64_TO_STRING(
     (ue_context_p->emm_context._imsi64),
     s6a_ulr_p->imsi,
@@ -102,7 +105,8 @@ int mme_app_send_s6a_update_location_req(
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
   OAILOG_DEBUG(
-    TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
+    TASK_MME_APP,
+    "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
     s6a_ulr_p->rat_type,
     ue_context_p->mme_ue_s1ap_id);
   /*
@@ -112,21 +116,26 @@ int mme_app_send_s6a_update_location_req(
   if (ue_context_p->location_info_confirmed_in_hss == true) {
     s6a_ulr_p->skip_subscriber_data = 1;
     OAILOG_DEBUG(
-      TASK_MME_APP, "S6A Location information confirmed in HSS (%d) for (ue_id = %u)\n",
+      TASK_MME_APP,
+      "S6A Location information confirmed in HSS (%d) for (ue_id = %u)\n",
       ue_context_p->location_info_confirmed_in_hss,
       ue_context_p->mme_ue_s1ap_id);
   } else {
     s6a_ulr_p->skip_subscriber_data = 0;
     OAILOG_DEBUG(
-      TASK_MME_APP, "S6A Location information not confirmed in HSS (%d) for (ue_id = %u)\n",
+      TASK_MME_APP,
+      "S6A Location information not confirmed in HSS (%d) for (ue_id = %u)\n",
       ue_context_p->location_info_confirmed_in_hss,
       ue_context_p->mme_ue_s1ap_id);
   }
 
   //Check if we have voice domain preference IE and send to S6a task
-  if(ue_context_p->emm_context.volte_params.presencemask & VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {
+  if (
+    ue_context_p->emm_context.volte_params.presencemask &
+    VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {
     s6a_ulr_p->voice_dom_pref_ue_usg_setting =
-      ue_context_p->emm_context.volte_params.voice_domain_preference_and_ue_usage_setting;
+      ue_context_p->emm_context.volte_params
+        .voice_domain_preference_and_ue_usage_setting;
     s6a_ulr_p->presencemask |= S6A_PDN_CONFIG_VOICE_DOM_PREF;
   }
   OAILOG_DEBUG(
@@ -148,7 +157,7 @@ int mme_app_send_s6a_update_location_req(
         TASK_MME_APP,
         INSTANCE_DEFAULT,
         TIMER_ONE_SHOT,
-        (void *) &(ue_context_p->mme_ue_s1ap_id),
+        (void*) &(ue_context_p->mme_ue_s1ap_id),
         sizeof(mme_ue_s1ap_id_t),
         &(ue_context_p->ulr_response_timer.id)) < 0) {
       OAILOG_ERROR(
@@ -167,9 +176,8 @@ int mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int _handle_ula_failure(struct ue_mm_context_s *ue_context_p)
+int _handle_ula_failure(struct ue_mm_context_s* ue_context_p)
 {
-  MessageDef *message_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -184,42 +192,34 @@ int _handle_ula_failure(struct ue_mm_context_s *ue_context_p)
     }
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
-  // Send PDN CONNECTIVITY FAIL message  to NAS layer
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONNECTIVITY_FAIL);
-  itti_nas_pdn_connectivity_fail_t *nas_pdn_connectivity_fail =
-    &message_p->ittiMsg.nas_pdn_connectivity_fail;
-  memset(
-    (void *) nas_pdn_connectivity_fail,
-    0,
-    sizeof(itti_nas_pdn_connectivity_fail_t));
-  if(ue_context_p->emm_context.esm_ctx.esm_proc_data) {
-    nas_pdn_connectivity_fail->pti = ue_context_p->emm_context.esm_ctx.
-      esm_proc_data->pti;
+  emm_cn_ula_or_csrsp_fail_t cn_ula_fail = {0};
+  if (ue_context_p->emm_context.esm_ctx.esm_proc_data) {
+    cn_ula_fail.pti = ue_context_p->emm_context.esm_ctx.esm_proc_data->pti;
   } else {
-      OAILOG_ERROR(
-        LOG_MME_APP," esm_proc_data is NULL, so failed to fetch pti \n");
+    OAILOG_ERROR(
+      LOG_MME_APP, " esm_proc_data is NULL, so failed to fetch pti \n");
   }
-  nas_pdn_connectivity_fail->ue_id = ue_context_p->mme_ue_s1ap_id;
-  nas_pdn_connectivity_fail->cause = CAUSE_SYSTEM_FAILURE;
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  cn_ula_fail.ue_id = ue_context_p->mme_ue_s1ap_id;
+  cn_ula_fail.cause = CAUSE_SYSTEM_FAILURE;
+  rc = nas_proc_ula_or_csrsp_fail(&cn_ula_fail);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
-  const s6a_update_location_ans_t *const ula_pP)
+int mme_app_handle_s6a_update_location_ans(
+  mme_app_desc_t* mme_app_desc_p,
+  const s6a_update_location_ans_t* const ula_pP)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint64_t imsi64 = 0;
-  struct ue_mm_context_s *ue_mm_context = NULL;
+  struct ue_mm_context_s* ue_mm_context = NULL;
   int rc = RETURNok;
 
   DevAssert(ula_pP);
 
-  IMSI_STRING_TO_IMSI64((char *) ula_pP->imsi, &imsi64);
-  OAILOG_DEBUG(
-    LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
+  IMSI_STRING_TO_IMSI64((char*) ula_pP->imsi, &imsi64);
+  OAILOG_DEBUG(LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if (
     (ue_mm_context = mme_ue_context_exists_imsi(
@@ -231,21 +231,17 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
   if (ula_pP->result.present == S6A_RESULT_BASE) {
     if (ula_pP->result.choice.base != DIAMETER_SUCCESS) {
       /*
-       * The update location procedure has failed. Notify the NAS layer
+       * The update location procedure has failed. Notify the NAS module
        * and don't initiate the bearer creation on S-GW side.
        */
       OAILOG_ERROR(
         LOG_MME_APP,
         "ULR/ULA procedure returned non success (ULA.result.choice.base=%d)\n",
         ula_pP->result.choice.base);
-      if (_handle_ula_failure(ue_mm_context) == RETURNok) {
-        OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
-        ue_mm_context->mme_ue_s1ap_id);
-        unlock_ue_contexts(ue_mm_context);
-        OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-      } else {
+      if (_handle_ula_failure(ue_mm_context) != RETURNok) {
         OAILOG_ERROR(
-          LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+          LOG_MME_APP,
+          "Failed to handle Un-successful ULA message for ue_id (%u)\n",
           ue_mm_context->mme_ue_s1ap_id);
         unlock_ue_contexts(ue_mm_context);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -261,13 +257,16 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
       "ULR/ULA procedure returned non success (ULA.result.present=%d)\n",
       ula_pP->result.present);
     if (_handle_ula_failure(ue_mm_context) == RETURNok) {
-      OAILOG_DEBUG(LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
-      ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_DEBUG(
+        LOG_MME_APP,
+        "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
+        ue_mm_context->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
     } else {
       OAILOG_ERROR(
-        LOG_MME_APP, "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+        LOG_MME_APP,
+        "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
         ue_mm_context->mme_ue_s1ap_id);
       unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -321,20 +320,6 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
     &ula_pP->subscription_data.apn_config_profile,
     sizeof(apn_config_profile_t));
 
-  MessageDef *message_p = NULL;
-  itti_nas_pdn_config_rsp_t *nas_pdn_config_rsp = NULL;
-
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_PDN_CONFIG_RSP);
-
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "Message pointer is NULL while allocating new message for PDN Config Rsp, (ue_id = %u)\n",
-      ue_mm_context->mme_ue_s1ap_id);
-    unlock_ue_contexts(ue_mm_context);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
-
   /*
    * Set the value of  Mobile Reachability timer based on value of T3412 (Periodic TAU timer) sent in Attach accept /TAU accept.
    * Set it to MME_APP_DELTA_T3412_REACHABILITY_TIMER minutes greater than T3412.
@@ -366,30 +351,24 @@ int mme_app_handle_s6a_update_location_ans(mme_app_desc_t *mme_app_desc_p,
   if (ue_mm_context->location_info_confirmed_in_hss == true) {
     ue_mm_context->location_info_confirmed_in_hss = false;
   }
-
-  nas_pdn_config_rsp = &message_p->ittiMsg.nas_pdn_config_rsp;
-  nas_pdn_config_rsp->ue_id = ue_mm_context->mme_ue_s1ap_id;
-  OAILOG_INFO(LOG_MME_APP, "Sending PDN CONFIG RSP to NAS for (ue_id = %u)\n",
-    nas_pdn_config_rsp->ue_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  rc = nas_proc_ula_success(ue_mm_context->mme_ue_s1ap_id);
 
   unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
-  const s6a_cancel_location_req_t *const clr_pP)
+int mme_app_handle_s6a_cancel_location_req(
+  mme_app_desc_t* mme_app_desc_p,
+  const s6a_cancel_location_req_t* const clr_pP)
 {
-  int rc = RETURNok;
   uint64_t imsi = 0;
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
   int cla_result = DIAMETER_SUCCESS;
-  itti_nas_sgs_detach_req_t sgs_detach_req = {0};
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   DevAssert(clr_pP);
 
-  IMSI_STRING_TO_IMSI64((char *) clr_pP->imsi, &imsi);
+  IMSI_STRING_TO_IMSI64((char*) clr_pP->imsi, &imsi);
   OAILOG_DEBUG(
     LOG_MME_APP,
     "S6a Cancel Location Request for imsi " IMSI_64_FMT "\n",
@@ -409,7 +388,9 @@ int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
   if (
     (ue_context_p = mme_ue_context_exists_imsi(
        &mme_app_desc_p->mme_ue_contexts, imsi)) == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "IMSI is not present in the MME context for imsi " IMSI_64_FMT "\n",
       imsi);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -442,35 +423,46 @@ int mme_app_handle_s6a_cancel_location_req(mme_app_desc_t *mme_app_desc_p,
       ue_context_p, true, false /* s-tmsi */, CN_DOMAIN_PS);
     // Set the flag and send detach to UE after receiving service req
     ue_context_p->emm_context.nw_init_bearer_deactv = true;
+    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-
   } else {
-    // Send N/W Initiated Detach Request to NAS
+    // Send N/W Initiated Detach Request to NAS module
 
-    OAILOG_INFO(LOG_MME_APP, "Sending Detach to NAS for (ue_id = %u)\n",
+    OAILOG_INFO(
+      LOG_MME_APP,
+      "Sending Detach Req to NAS module for (ue_id = " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-    rc = mme_app_send_nas_detach_request(
-      ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH);
-
-    // Send SGS explicit network initiated Detach Ind to SGS
-    if (ue_context_p->sgs_context) {
-      sgs_detach_req.ue_id = ue_context_p->mme_ue_s1ap_id;
-      sgs_detach_req.detach_type = SGS_DETACH_TYPE_NW_INITIATED_EPS;
-      mme_app_handle_sgs_detach_req(mme_app_desc_p, &sgs_detach_req);
+    if (
+      (mme_app_handle_nw_initiated_detach_request(
+        ue_context_p->mme_ue_s1ap_id, HSS_INITIATED_EPS_DETACH)) ==
+      RETURNerror) {
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        "Failed to handle network initiated Detach Request in nas module for "
+        "ue-id: " MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+      unlock_ue_contexts(ue_context_p);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    } else {
+      // Send SGS explicit network initiated Detach Ind to SGS
+      if (ue_context_p->sgs_context) {
+        mme_app_handle_sgs_detach_req(
+          ue_context_p, EMM_SGS_NW_INITIATED_EPS_DETACH);
+      }
     }
   }
   unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 int mme_app_send_s6a_cancel_location_ans(
   int cla_result,
-  const char *imsi,
+  const char* imsi,
   uint8_t imsi_length,
-  void *msg_cla_p)
+  void* msg_cla_p)
 {
-  MessageDef *message_p = NULL;
-  s6a_cancel_location_ans_t *s6a_cla_p = NULL;
+  MessageDef* message_p = NULL;
+  s6a_cancel_location_ans_t* s6a_cla_p = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -482,7 +474,7 @@ int mme_app_send_s6a_cancel_location_ans(
   }
 
   s6a_cla_p = &message_p->ittiMsg.s6a_cancel_location_ans;
-  memset((void *) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
+  memset((void*) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
 
   /* Using the IMSI details deom CLR */
   memcpy(s6a_cla_p->imsi, imsi, imsi_length);

@@ -104,7 +104,6 @@ typedef struct emm_esm_deactivate_bearer_req_s {
   ebi_t ebi; /*bearer to de-activate */
   bstring msg; /* ESM message to be transferred     */
 } emm_esm_deactivate_bearer_req_t;
-
 /*
  * ---------------------------------
  * Structure of EMMESM-SAP primitive

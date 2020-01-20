@@ -12,7 +12,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
@@ -35,6 +35,7 @@ const (
 	DisableEUIIPv6IfNoIPEnv   = "DISABLE_EUI64_IPV6_IF_NO_IP"
 	FramedIPv4AddrRequiredEnv = "FRAMED_IPV4_ADDR_REQUIRED"
 	DefaultFramedIPv4AddrEnv  = "DEFAULT_FRAMED_IPV4_ADDR"
+	GxSupportedVendorIDsEnv   = "GX_SUPPORTED_VENDOR_IDS"
 
 	PCRF91CompliantFlag      = "pcrf_91_compliant"
 	DisableEUIIPv6IfNoIPFlag = "disable_eui64_ipv6_prefix"
@@ -84,12 +85,13 @@ func GetGxClientConfiguration() *diameter.DiameterClientConfig {
 	if err != nil {
 		log.Printf("%s Managed Gx Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return &diameter.DiameterClientConfig{
-			Host:             diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, diameter.DiamHost),
-			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, diameter.DiamRealm),
-			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),
-			AppID:            diam.GX_CHARGING_CONTROL_APP_ID,
-			WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
-			RetryCount:       uint(retries),
+			Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, diameter.DiamHost),
+			Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, diameter.DiamRealm),
+			ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),
+			AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
+			WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+			RetryCount:         uint(retries),
+			SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
 		}
 	}
 	retries = configsPtr.GetGx().GetServer().GetRetryCount()
@@ -99,12 +101,13 @@ func GetGxClientConfiguration() *diameter.DiameterClientConfig {
 	}
 	gxCfg := configsPtr.GetGx().GetServer()
 	return &diameter.DiameterClientConfig{
-		Host:             diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost()),
-		Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm()),
-		ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName()),
-		AppID:            diam.GX_CHARGING_CONTROL_APP_ID,
-		WatchdogInterval: diameter.DefaultWatchdogIntervalSeconds,
-		RetryCount:       uint(retries),
+		Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, gxCfg.GetHost()),
+		Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, gxCfg.GetRealm()),
+		ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, gxCfg.GetProductName()),
+		AppID:              diam.GX_CHARGING_CONTROL_APP_ID,
+		WatchdogInterval:   diameter.DefaultWatchdogIntervalSeconds,
+		RetryCount:         uint(retries),
+		SupportedVendorIDs: diameter.GetValueOrEnv("", GxSupportedVendorIDsEnv, ""),
 	}
 }
 

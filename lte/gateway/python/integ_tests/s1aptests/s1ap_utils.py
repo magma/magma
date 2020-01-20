@@ -15,13 +15,11 @@ import threading
 from queue import Queue
 
 import s1ap_types
-
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, \
-    DeleteBearerRequest
-from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
-from lte.protos.policydb_pb2 import PolicyRule, FlowQos, QosArp
-from magma.subscriberdb.sid import SIDUtils
 from integ_tests.gateway.rpc import get_rpc_channel
+from lte.protos.policydb_pb2 import FlowQos, PolicyRule, QosArp
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
+from magma.subscriberdb.sid import SIDUtils
 
 
 class S1ApUtil(object):
@@ -31,6 +29,7 @@ class S1ApUtil(object):
     through config files, that this class doesn't override. Examples include
     the various interface timeout params.
     """
+
     # Extracted from TestCntlrApp/src/ueApp/ue_esm.h
     CM_ESM_PDN_IPV4 = 0b01
     CM_ESM_PDN_IPV6 = 0b10
@@ -49,8 +48,7 @@ class S1ApUtil(object):
             self.msg_len = msg_len
 
         def cast(self, msg_class):
-            return ctypes.cast(self.msg_p,
-                               ctypes.POINTER(msg_class)).contents
+            return ctypes.cast(self.msg_p, ctypes.POINTER(msg_class)).contents
 
     @staticmethod
     def s1ap_callback(msg_type, msg_p, msg_len):
@@ -63,12 +61,13 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
-        lib_path = os.environ['S1AP_ROOT']
-        lib = os.path.join(lib_path, 'bin', S1ApUtil.lib_name)
+        lib_path = os.environ["S1AP_TESTER_ROOT"]
+        lib = os.path.join(lib_path, "bin", S1ApUtil.lib_name)
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)
-        self._callback_type = ctypes.CFUNCTYPE(None, ctypes.c_short,
-                                               ctypes.c_void_p, ctypes.c_short)
+        self._callback_type = ctypes.CFUNCTYPE(
+            None, ctypes.c_short, ctypes.c_void_p, ctypes.c_short
+        )
         # Maintain a reference to the function object so GC doesn't release it.
         self._callback_fn = self._callback_type(S1ApUtil.s1ap_callback)
         self._test_lib.initTestFrameWork(self._callback_fn)
@@ -131,10 +130,16 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def attach(self, ue_id, attach_type, resp_type, resp_msg_type,
-               sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-               id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-               eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH):
+    def attach(
+        self,
+        ue_id,
+        attach_type,
+        resp_type,
+        resp_msg_type,
+        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+    ):
         """
         Given a UE issue the attach request of specified type
 
@@ -157,7 +162,7 @@ class S1ApUtil(object):
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
 
-        assert(self.issue_cmd(attach_type, attach_req) == 0)
+        assert self.issue_cmd(attach_type, attach_req) == 0
         response = self.get_response()
 
         # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND in
@@ -168,14 +173,14 @@ class S1ApUtil(object):
             response = self.get_response()
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
-            assert(context_setup.msg_type ==
-                   s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value)
+            assert context_setup.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         logging.debug(
-            's1ap response expected, received: %d, %d',
+            "s1ap response expected, received: %d, %d",
             resp_type.value,
-            response.msg_type)
-        assert(resp_type.value == response.msg_type)
+            response.msg_type,
+        )
+        assert resp_type.value == response.msg_type
 
         msg = response.cast(resp_msg_type)
 
@@ -190,33 +195,32 @@ class S1ApUtil(object):
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
             else:
-                raise ValueError('PDN TYPE %s not supported' % pdn_type)
+                raise ValueError("PDN TYPE %s not supported" % pdn_type)
         return msg
 
     def receive_emm_info(self):
         response = self.get_response()
         logging.debug(
-            's1ap message expected, received: %d, %d',
+            "s1ap message expected, received: %d, %d",
             s1ap_types.tfwCmd.UE_EMM_INFORMATION.value,
-            response.msg_type)
-        assert(response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value)
+            response.msg_type,
+        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value
 
     def detach(self, ue_id, reason_type, wait_for_s1_ctxt_release=True):
         """ Given a UE issue a detach request """
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
-        assert (self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-                == 0)
+        assert self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req) == 0
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
-            assert (s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value ==
-                    response.msg_type)
+            assert s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value == response.msg_type
 
         # Now wait for the context release response
         if wait_for_s1_ctxt_release:
             response = self.get_response()
-            assert(s1ap_types.tfwCmd.UE_CTX_REL_IND.value == response.msg_type)
+            assert s1ap_types.tfwCmd.UE_CTX_REL_IND.value == response.msg_type
 
         with self._lock:
             del self._ue_ip_map[ue_id]
@@ -226,7 +230,8 @@ class SubscriberUtil(object):
     """
     Helper class to manage subscriber data for the tests.
     """
-    SID_PREFIX = 'IMSI00101'
+
+    SID_PREFIX = "IMSI00101"
     IMSI_LEN = 15
 
     def __init__(self, subscriber_client):
@@ -251,7 +256,7 @@ class SubscriberUtil(object):
         idx = str(self._sid_idx)
         # Find the 0 padding we need to add
         padding = self.IMSI_LEN - len(idx) - len(self.SID_PREFIX[4:])
-        sid = self.SID_PREFIX + '0' * padding + idx
+        sid = self.SID_PREFIX + "0" * padding + idx
         self._sid_idx += 1
         print("Using subscriber IMSI %s" % sid)
         return sid
@@ -269,8 +274,8 @@ class SubscriberUtil(object):
         # cast into a uint8.
         for i in range(0, 15):
             ue_cfg.imsi[i] = ctypes.c_ubyte(int(sid[4 + i]))
-            ue_cfg.imei[i] = ctypes.c_ubyte(int('1'))
-        ue_cfg.imei[15] = ctypes.c_ubyte(int('1'))
+            ue_cfg.imei[i] = ctypes.c_ubyte(int("1"))
+        ue_cfg.imei[15] = ctypes.c_ubyte(int("1"))
         ue_cfg.imsiLen = self.IMSI_LEN
         self._ue_cfgs.append(ue_cfg)
         self._ue_id += 1
@@ -287,11 +292,32 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-    def clean_up(self):
+    def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
         # block until changes propagate
         self._subscriber_client.wait_for_changes()
+
+
+class MagmadUtil(object):
+    def __init__(self, magmad_client):
+        """
+        Init magmad util.
+
+        Args:
+            magmad_client: MagmadServiceClient
+        """
+        self._magmad_client = magmad_client
+
+    def restart_services(self, services):
+        """
+        Restart a list of magmad services.
+
+        Args:
+            services: List of (str) services names
+
+        """
+        self._magmad_client.restart_services(services)
 
 
 class MobilityUtil(object):
@@ -343,6 +369,11 @@ class MobilityUtil(object):
         removed_blocks = self._mobility_client.remove_ip_blocks(blocks)
         return removed_blocks
 
+    def cleanup(self):
+        """ Cleanup added IP blocks """
+        blocks = self.list_ip_blocks()
+        self.remove_ip_blocks(blocks)
+
     def wait_for_changes(self):
         self._mobility_client.wait_for_changes()
 
@@ -351,6 +382,7 @@ class SpgwUtil(object):
     """
     Helper class to communicate with spgw for the tests.
     """
+
     def __init__(self):
         """
         Initialize spgw util.
@@ -361,7 +393,7 @@ class SpgwUtil(object):
         """
         Sends a CreateBearer Request to SPGW service
         """
-        print('Sending CreateBearer request to spgw service')
+        print("Sending CreateBearer request to spgw service")
         req = CreateBearerRequest(
             sid=SIDUtils.to_pb(imsi),
             link_bearer_id=lbi,
@@ -374,13 +406,11 @@ class SpgwUtil(object):
                         max_req_bw_ul=10000000,
                         max_req_bw_dl=10000000,
                         arp=QosArp(
-                            priority_level=1,
-                            pre_capability=1,
-                            pre_vulnerability=0,
-                        )
+                            priority_level=1, pre_capability=1, pre_vulnerability=0
+                        ),
                     )
                 )
-            ]
+            ],
         )
         self._stub.CreateBearer(req)
 
@@ -388,10 +418,8 @@ class SpgwUtil(object):
         """
         Sends a DeleteBearer Request to SPGW service
         """
-        print('Sending DeleteBearer request to spgw service')
+        print("Sending DeleteBearer request to spgw service")
         req = DeleteBearerRequest(
-            sid=SIDUtils.to_pb(imsi),
-            link_bearer_id=lbi,
-            eps_bearer_ids=[ebi]
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)

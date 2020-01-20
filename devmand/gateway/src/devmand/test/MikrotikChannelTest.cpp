@@ -319,7 +319,8 @@ TEST_F(MikrotikChannelTest, checkLoginSuccessDeprecated) {
   expectedReads += loginSentenceDeprecated;
   write(loginSentenceResponseDeprecated);
   EXPECT_BECOMES_TRUE(
-      channel->getState() == channels::mikrotik::State::LoggingInDeprecated);
+      channel->getOperationalDatastore() ==
+      channels::mikrotik::State::LoggingInDeprecated);
   write(loginSentenceResponse);
   EXPECT_BECOMES_TRUE(channel->isLoggedIn());
   EXPECT_TRUE(channel->isConnected());

@@ -32,7 +32,7 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
 from ryu.lib.packet import ether_types
 
 
-class AccessControlTest(unittest.TestCase):
+class AccessControlTestLTE(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
@@ -50,7 +50,7 @@ class AccessControlTest(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        super(AccessControlTest, cls).setUpClass()
+        super(AccessControlTestLTE, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([])
         cls._tbl_num = cls.service_manager.get_table_num(
@@ -60,12 +60,15 @@ class AccessControlTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.AccessControl,
-                  PipelinedController.Testing, ],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.AccessControl:
                     access_control_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'setup_type': 'LTE',
@@ -89,10 +92,11 @@ class AccessControlTest(unittest.TestCase):
                             'ip': cls.BOTH_DIR_TEST_IP,
                         },
                     ]
-                }
+                },
+                'clean_restart': True,
             },
             mconfig=PipelineD(
-                allowed_gre_peers=[],
+                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
             ),
             loop=None,
             service_manager=cls.service_manager,
@@ -291,6 +295,103 @@ class AccessControlTest(unittest.TestCase):
             .set_ip_layer(dst, src) \
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
             .build()
+
+
+class AccessControlTestCWF(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    IFACE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+    BRIDGE_IP = '192.168.128.1'
+    INBOUND_TEST_IP = '127.0.0.1'
+    OUTBOUND_TEST_IP = '127.1.0.1'
+    BOTH_DIR_TEST_IP = '127.2.0.1'
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures.
+        """
+        super(AccessControlTestCWF, cls).setUpClass()
+        warnings.simplefilter('ignore')
+        cls.service_manager = create_service_manager([])
+        cls._tbl_num = cls.service_manager.get_table_num(
+            AccessControlController.APP_NAME)
+
+        access_control_controller_reference = Future()
+        testing_controller_reference = Future()
+        test_setup = TestSetup(
+            apps=[PipelinedController.AccessControl,
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
+            references={
+                PipelinedController.AccessControl:
+                    access_control_controller_reference,
+                PipelinedController.Testing:
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
+            },
+            config={
+                'setup_type': 'CWF',
+                'allow_unknown_arps': False,
+                'bridge_name': cls.BRIDGE,
+                'bridge_ip_address': cls.BRIDGE_IP,
+                'nat_iface': 'eth2',
+                'enodeb_iface': 'eth1',
+                'enable_queue_pgm': False,
+                'clean_restart': True,
+                'access_control': {
+                    'ip_blacklist': [
+                        {
+                            'ip': cls.INBOUND_TEST_IP,
+                            'direction': 'inbound',
+                        },
+                        {
+                            'ip': cls.OUTBOUND_TEST_IP,
+                            'direction': 'outbound',
+                        },
+                        {
+                            'ip': cls.BOTH_DIR_TEST_IP,
+                        },
+                    ]
+                }
+            },
+            mconfig=PipelineD(
+                allowed_gre_peers=[{'ip': '1.2.3.4/24', 'key': 123}],
+            ),
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False,
+        )
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        cls.thread = start_ryu_app_thread(test_setup)
+        cls.access_control_controller = \
+            access_control_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def test_gre_peer_rules(self):
+        """
+        Inbound ip match test, checks that packets are properly matched when
+        the inbound traffic matches an ip in the blacklist.
+
+        Assert:
+            Both packets are matched
+            Ip match flows are added
+        """
+        assert_bridge_snapshot_match(self,
+                                     self.BRIDGE,
+                                     self.service_manager)
 
 
 if __name__ == "__main__":

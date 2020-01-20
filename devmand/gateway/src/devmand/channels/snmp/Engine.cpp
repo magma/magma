@@ -9,16 +9,17 @@
 
 #include <folly/GLog.h>
 
-#include <devmand/EventBaseUtils.h>
 #include <devmand/channels/snmp/Engine.h>
 #include <devmand/channels/snmp/Snmp.h>
+#include <devmand/utils/EventBaseUtils.h>
 
 namespace devmand {
 namespace channels {
 namespace snmp {
 
 // TODO make this configurable
-const constexpr std::chrono::seconds timeoutInterval{15};
+const constexpr std::chrono::seconds timeoutCheckInterval{1};
+const constexpr std::chrono::seconds timeoutInterval{50}; // polling interval 55
 
 Engine::Engine(folly::EventBase& eventBase_, const std::string& appName)
     : channels::Engine("SNMP"), eventBase(eventBase_) {
@@ -26,7 +27,7 @@ Engine::Engine(folly::EventBase& eventBase_, const std::string& appName)
 
   eventBase.runInEventBaseThread([this]() {
     EventBaseUtils::scheduleEvery(
-        eventBase, [this]() { this->timeout(); }, timeoutInterval);
+        eventBase, [this]() { this->timeout(); }, timeoutCheckInterval);
   });
 }
 
@@ -42,7 +43,7 @@ folly::EventBase& Engine::getEventBase() {
 }
 
 void Engine::timeout() {
-  LOG(INFO) << "Processing SNMP Timeouts";
+  // LOG(INFO) << "Processing SNMP Timeouts";
   snmp_timeout();
   sync();
 }
@@ -51,7 +52,7 @@ void Engine::sync() {
   int maxfd{0};
   int block{0};
   timeval timeout{};
-  timeout.tv_sec = 5;
+  timeout.tv_sec = timeoutInterval.count();
   timeout.tv_usec = 0;
 
   fd_set fdset{};

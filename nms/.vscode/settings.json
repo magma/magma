@@ -1,7 +1,0 @@
-{
-    "javascript.validate.enable": false,
-    "eslint.autoFixOnSave": true,
-    "eslint.packageManager": "yarn",
-    "flow.useBundledFlow": false,
-    "flow.useLSP": false,
-}

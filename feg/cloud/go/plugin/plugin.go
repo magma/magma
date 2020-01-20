@@ -14,13 +14,12 @@ package plugin
 import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/plugin/handlers"
-	fegmodels "magma/feg/cloud/go/plugin/models"
-	fegh "magma/feg/cloud/go/services/controller/obsidian/handlers"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	srvconfig "magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -46,9 +45,9 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		// configurator serdes
-		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &fegmodels.NetworkFederationConfigs{}),
-		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &fegmodels.FederatedNetworkConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &fegmodels.GatewayFederationConfigs{}),
+		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
+		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &models.FederatedNetworkConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFederationConfigs{}),
 	}
 }
 
@@ -58,13 +57,12 @@ func (*FegOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder
 	}
 }
 
-func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
+func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{}
 }
 
-func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
+func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		fegh.GetObsidianHandlers(),
 		handlers.GetHandlers(),
 	)
 }

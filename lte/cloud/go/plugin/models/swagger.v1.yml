@@ -65,6 +65,8 @@ magma-gen-meta:
       filename: rule_id_swaggergen.go
     - go-struct-name: RuleNames
       filename: rule_names_swaggergen.go
+    - go-struct-name: RatingGroup
+      filename: rating_group_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -82,6 +84,8 @@ tags:
     description: Endpoints related to LTE gateway management
   - name: Policies
     description: Endpoints related to network policy management
+  - name: Rating Groups
+    description: Endpoints related to rating group management
 
 paths:
   /lte:
@@ -1214,6 +1218,88 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/rating_groups:
+    get:
+      summary: List rating groups
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List all rating groups
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/rating_group'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new rating group
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: Rating Group 
+          description: Rating group to add
+          required: true
+          schema:
+            $ref: '#/definitions/rating_group'
+      responses:
+        '201':
+          description: Rating group id
+          schema:
+            $ref: '#/definitions/rating_group_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/rating_groups/{rating_group_id}:
+    get:
+      summary: Get rating group
+      tags:
+      - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+      responses:
+        '200':
+          description: Rating group on success
+          schema:
+            $ref: '#/definitions/rating_group'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a rating group
+      tags:
+      - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+        - in: body
+          name: Rating group
+          description: Rating group
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_rating_group'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a rating group
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/policies/rules:
     get:
       summary: List policy rules
@@ -1235,13 +1321,13 @@ paths:
       tags:
         - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - in: body
-        name: Policy rule
-        description: Policy rule to add
-        required: true
-        schema:
-          $ref: '#/definitions/policy_rule'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: Policy rule
+          description: Policy rule to add
+          required: true
+          schema:
+            $ref: '#/definitions/policy_rule'
       responses:
         '201':
           description: Rule id
@@ -1433,6 +1519,14 @@ parameters:
     description: Rule Id
     required: true
     type: string
+
+  rating_group_id:
+    in: path
+    name: rating_group_id 
+    description: Rating Group Id
+    required: true
+    type: integer
+    format: uint32
 
   base_name:
     in: path
@@ -2061,6 +2155,13 @@ definitions:
     x-nullable: false
     example: All ICMP
 
+  rating_group_id:
+    # A unique human readable identifier for labeling a policy rule
+    type: integer 
+    format: uint32
+    x-nullable: false
+    example: 1 
+
   flow_description:
     type: object
     required:
@@ -2140,6 +2241,7 @@ definitions:
         format: uint32
       monitoring_key:
         type: string
+        example: 'SGVsbG8gV29ybGQ='
       tracking_type:
         type: string
         enum:
@@ -2195,6 +2297,33 @@ definitions:
         $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
+
+  rating_group:
+    type: object
+    required:
+      - id
+      - limit_type
+    properties:
+      id:
+        $ref: '#/definitions/rating_group_id'
+      limit_type:
+        type: string
+        enum:
+          - FINITE
+          - INFINITE_UNMETERED
+          - INFINITE_METERED
+
+  mutable_rating_group:
+    type: object
+    required:
+      - limit_type
+    properties:
+      limit_type:
+        type: string
+        enum:
+          - FINITE
+          - INFINITE_UNMETERED
+          - INFINITE_METERED
 
   base_name:
     type: string

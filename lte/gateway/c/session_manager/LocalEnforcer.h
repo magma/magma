@@ -10,13 +10,16 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
 #include <folly/io/async/EventBaseManager.h>
 
 #include "AAAClient.h"
-#include "CloudReporter.h"
+#include "SessionReporter.h"
 #include "PipelinedClient.h"
+#include "DirectorydClient.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "SpgwServiceClient.h"
@@ -37,9 +40,10 @@ class LocalEnforcer {
   LocalEnforcer();
 
   LocalEnforcer(
-    std::shared_ptr<SessionCloudReporter> reporter,
+    std::shared_ptr<SessionReporter> reporter,
     std::shared_ptr<StaticRuleStore> rule_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms);
@@ -51,14 +55,14 @@ class LocalEnforcer {
 
   void stop();
 
-  folly::EventBase &get_event_base();
+  folly::EventBase& get_event_base();
 
   /**
    * Setup rules for all sessions in pipelined, used whenever pipelined
    * restarts and needs to recover state
    */
   bool setup(
-    const std::uint64_t &epoch,
+    const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
   /**
@@ -68,7 +72,7 @@ class LocalEnforcer {
    *
    * @param records - a RuleRecordTable protobuf with a vector of RuleRecords
    */
-  void aggregate_records(const RuleRecordTable &records);
+  void aggregate_records(const RuleRecordTable& records);
 
   /**
    * reset_updates resets all of the charging keys being updated in
@@ -79,7 +83,7 @@ class LocalEnforcer {
    * @param failed_request - UpdateSessionRequest that couldn't be sent to the
    *                         cloud for whatever reason
    */
-  void reset_updates(const UpdateSessionRequest &failed_request);
+  void reset_updates(const UpdateSessionRequest& failed_request);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated
@@ -95,16 +99,16 @@ class LocalEnforcer {
    * @return true if init was successful
    */
   bool init_session_credit(
-    const std::string &imsi,
-    const std::string &session_id,
-    const SessionState::Config &cfg,
-    const CreateSessionResponse &response);
+    const std::string& imsi,
+    const std::string& session_id,
+    const SessionState::Config& cfg,
+    const CreateSessionResponse& response);
 
   /**
    * Update allowed credit from the cloud in the system
    * @param credit_response - message from cloud containing new credits
    */
-  void update_session_credit(const UpdateSessionResponse &response);
+  void update_session_credit(const UpdateSessionResponse& response);
 
   /**
    * Starts the termination process for the session. When termination completes,
@@ -114,17 +118,18 @@ class LocalEnforcer {
    * termination
    */
   void terminate_subscriber(
-    const std::string &imsi,
+    const std::string& imsi,
+    const std::string& apn,
     std::function<void(SessionTerminateRequest)> on_termination_callback);
 
   uint64_t get_charging_credit(
-    const std::string &imsi,
-    const CreditKey &charging_key,
+    const std::string& imsi,
+    const CreditKey& charging_key,
     Bucket bucket) const;
 
   uint64_t get_monitor_credit(
-    const std::string &imsi,
-    const std::string &mkey,
+    const std::string& imsi,
+    const std::string& mkey,
     Bucket bucket) const;
 
   /**
@@ -134,14 +139,24 @@ class LocalEnforcer {
   ChargingReAuthAnswer::Result init_charging_reauth(
     ChargingReAuthRequest request);
 
+  /**
+   * Handles the equivalent of a RAR.
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Afterwards, a bearer is created.
+   *
+   * NOTE: If an empty session ID is specified, apply changes to all matching
+   * sessions with the specified IMSI.
+   */
   void init_policy_reauth(
     PolicyReAuthRequest request,
-    PolicyReAuthAnswer &answer_out);
+    PolicyReAuthAnswer& answer_out);
 
-  bool is_imsi_duplicate(const std::string &imsi);
+  bool is_imsi_duplicate(const std::string& imsi);
+  bool is_apn_duplicate(const std::string& imsi, const std::string& apn);
 
   std::string *duplicate_session_id(
-    const std::string &imsi, const magma::SessionState::Config &config);
+    const std::string& imsi, const magma::SessionState::Config& config);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
@@ -150,13 +165,15 @@ class LocalEnforcer {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
-  std::shared_ptr<SessionCloudReporter> reporter_;
+  std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  std::unordered_map<std::string, std::unique_ptr<SessionState>> session_map_;
-  folly::EventBase *evb_;
+  std::unordered_map<std::string,
+                     std::vector<std::unique_ptr<SessionState>>> session_map_;
+  folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
 
  private:
@@ -179,23 +196,48 @@ class LocalEnforcer {
    * to activate/deactivate later.
    */
   void process_create_session_response(
-    const CreateSessionResponse &response,
-    const std::unordered_set<uint32_t> &successful_credits,
-    const std::string &imsi,
-    const std::string &ip_addr,
-    RulesToProcess *rules_to_activate,
-    RulesToProcess *rules_to_deactivate);
+    const CreateSessionResponse& response,
+    const std::unordered_set<uint32_t>& successful_credits,
+    const std::string& imsi,
+    const std::string& ip_addr,
+    RulesToProcess* rules_to_activate,
+    RulesToProcess* rules_to_deactivate);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
    * determining whether each one is dynamic or static.
    */
   void process_rules_to_remove(
-  const std::string& imsi,
-  const std::unique_ptr<SessionState>& session,
-  const google::protobuf::RepeatedPtrField<std::basic_string<char>>
-    rules_to_remove,
-  RulesToProcess* rules_to_deactivate);
+    const std::string& imsi,
+    const std::unique_ptr<SessionState>& session,
+    const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+      rules_to_remove,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * Populate existing rules from a specific session;
+   * used to delete flow rules for a PDN session,
+   * distinct APNs are assumed to have mutually exclusive
+   * rules.
+   */
+  void populate_rules_from_session_to_remove(
+    const std::string& imsi,
+    const std::unique_ptr<SessionState>& session,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
+   * rules_to_activate and rules_to_deactivate.
+   */
+  void process_rules_to_install(
+    const std::string& imsi,
+    const std::unique_ptr<SessionState>& session,
+    const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
+      static_rules_to_install,
+    const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
+      dynamic_rules_to_install,
+    RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate);
 
   /**
    * Process the policy reauth request to get rules to activate/deactivate
@@ -206,10 +248,21 @@ class LocalEnforcer {
    * rule and put in the vector.
    */
   void get_rules_from_policy_reauth_request(
-    const PolicyReAuthRequest &request,
-    const std::unique_ptr<SessionState> &session,
-    RulesToProcess *rules_to_activate,
-    RulesToProcess *rules_to_deactivate);
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate);
+
+  /**
+   * For the matching session ID, activate and/or deactivate the specified
+   * rules.
+   * Also create a bearer for the session.
+   */
+  void init_policy_reauth_for_session(
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session,
+    bool& activate_success,
+    bool& deactivate_success);
 
   /**
    * Completes the session termination and executes the callback function
@@ -223,25 +276,25 @@ class LocalEnforcer {
    * nothing.
    */
   void complete_termination(
-    const std::string &imsi,
-    const std::string &session_id);
+    const std::string& imsi,
+    const std::string& session_id);
 
   void schedule_static_rule_activation(
-    const std::string &imsi,
-    const std::string &ip_addr,
-    const StaticRuleInstall &static_rule);
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
-    const std::string &imsi,
-    const std::string &ip_addr,
-    const DynamicRuleInstall &dynamic_rule);
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-    const std::string &imsi,
-    const StaticRuleInstall &static_rule);
+    const std::string& imsi,
+    const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-    const std::string &imsi,
+    const std::string& imsi,
     const DynamicRuleInstall &dynamic_rule);
 
   /**
@@ -249,46 +302,48 @@ class LocalEnforcer {
    * and add the credits to UsageMonitoringCreditPool of the session
    */
   void receive_monitoring_credit_from_rar(
-    const PolicyReAuthRequest &request,
-    const std::unique_ptr<SessionState> &session);
+    const PolicyReAuthRequest& request,
+    const std::unique_ptr<SessionState>& session);
 
   /**
    * Send bearer creation request through the PGW client if rules were
    * activated successfully in pipelined
    */
   void create_bearer(
-    const bool &activate_success,
-    const std::unique_ptr<SessionState> &session,
-    const PolicyReAuthRequest &request,
-    const std::vector<PolicyRule> &dynamic_rules);
+    const bool activate_success,
+    const std::unique_ptr<SessionState>& session,
+    const PolicyReAuthRequest& request,
+    const std::vector<PolicyRule>& dynamic_rules);
 
   /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers
    */
   bool revalidation_required(
-    const google::protobuf::RepeatedField<int> &event_triggers);
+    const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-    const google::protobuf::Timestamp &revalidation_time);
+    const google::protobuf::Timestamp& revalidation_time);
 
   void check_usage_for_reporting();
 
   void execute_actions(
-    const std::vector<std::unique_ptr<ServiceAction>> &actions);
+    const std::vector<std::unique_ptr<ServiceAction>>& actions);
 
   /**
     * Deactive rules for certain IMSI.
     * Notify AAA service if the session is a CWF session.
     */
   void terminate_service(
-    const std::string &imsi,
-    const std::vector<std::string> &rule_ids,
-    const std::vector<PolicyRule> &dynamic_rules);
+    const std::string& imsi,
+    const std::vector<std::string>& rule_ids,
+    const std::vector<PolicyRule>& dynamic_rules);
 
   /**
     * Install flow for redirection through pipelined
     */
-  void install_redirect_flow(const std::unique_ptr<ServiceAction> &action);
+  void install_redirect_flow(const std::unique_ptr<ServiceAction>& action);
+
+  bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 };
 
 } // namespace magma

@@ -46,7 +46,7 @@ class SessionProxyResponderHandler {
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
-  SessionProxyResponderHandlerImpl(LocalEnforcer *monitor);
+  SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -68,7 +68,7 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
     std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
  private:
-  LocalEnforcer *enforcer_;
+   std::shared_ptr<LocalEnforcer> enforcer_;
 };
 
 } // namespace magma

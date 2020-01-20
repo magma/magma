@@ -123,4 +123,22 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
+void nas_itti_sgsap_uplink_unitdata(
+  const char *const imsi,
+  uint8_t imsi_len,
+  bstring nas_msg,
+  imeisv_t *imeisv,
+  MobileStationClassmark2 *mobilestationclassmark2,
+  tai_t *tai,
+  ecgi_t *ecgi);
+
+void mme_app_itti_sgsap_tmsi_reallocation_comp(
+  const char *imsi,
+  const unsigned int imsi_len);
+
+void mme_app_itti_sgsap_ue_activity_ind(
+  const char *imsi,
+  const unsigned int imsi_len);
+
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

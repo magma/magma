@@ -9,7 +9,11 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
+	"github.com/pkg/errors"
 )
 
 func (m *CwfNetwork) ValidateModel() error {
@@ -29,6 +33,15 @@ func (m *NetworkCarrierWifiConfigs) ValidateModel() error {
 func (m *GatewayCwfConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
+	}
+	set := make(map[string][]uint32)
+	for _, peer := range m.AllowedGrePeers {
+		for _, key := range set[string(peer.IP)] {
+			if swag.Uint32Value(peer.Key) == key {
+				return errors.New(fmt.Sprintf("Found duplicate peer %s with key %d", string(peer.IP), key))
+			}
+		}
+		set[string(peer.IP)] = append(set[string(peer.IP)], swag.Uint32Value(peer.Key))
 	}
 	return nil
 }

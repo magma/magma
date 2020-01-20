@@ -1,0 +1,18 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  storybook:
+    build:
+      context: ${XPLAT_FBC_DIR}
+      dockerfile: fbcnms-projects/storybook/Dockerfile
+    ports:
+      - 8090:80
+    networks:
+      - public
+    healthcheck:
+      test: curl -Ifk http://localhost/healthz
+    restart: on-failure

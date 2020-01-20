@@ -19,7 +19,7 @@ import (
 	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"

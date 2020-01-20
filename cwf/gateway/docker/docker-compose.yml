@@ -58,6 +58,8 @@ services:
   directoryd:
     <<: *pyservice
     container_name: directoryd
+    depends_on:
+      - redis
     command: python3.5 -m magma.directoryd.main
 
   eap_aka:
@@ -101,11 +103,14 @@ services:
     command: >
       sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
+        /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         python3 -m magma.pipelined.main"
 
   policydb:
     <<: *ltepyservice
     container_name: policydb
+    depends_on:
+      - redis
     command: python3 -m magma.policydb.main
 
   redirectd:
@@ -146,9 +151,13 @@ services:
   sessiond:
     <<: *ltecservice
     container_name: sessiond
+    depends_on:
+      - directoryd
     command: /usr/local/bin/sessiond
 
   state:
     <<: *pyservice
     container_name: state
+    depends_on:
+      - redis
     command: python3.5 -m magma.state.main

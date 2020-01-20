@@ -41,7 +41,7 @@ extern bool hss_associated;
 /** \brief S1AP layer top init
  * @returns -1 in case of failure
  **/
-int s1ap_mme_init(void);
+int s1ap_mme_init(const mme_config_t* mme_config);
 
 /** \brief S1AP layer top exit
  **/

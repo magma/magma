@@ -1,0 +1,30 @@
+query LocationSurveysQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      surveys {
+        id
+        name
+        completionTimestamp
+        sourceFile {
+          id
+          fileName
+          storeKey
+        }
+        surveyResponses {
+          formName
+          questionFormat
+          questionText
+          boolData
+          emailData
+          latitude
+          longitude
+          phoneData
+          textData
+          floatData
+          intData
+          dateData
+        }
+      }
+    }
+  }
+}

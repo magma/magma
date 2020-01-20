@@ -8,7 +8,7 @@ LICENSE file in the root directory of this source tree.
 
 package diameter
 
-import "github.com/fiorix/go-diameter/diam/datatype"
+import "github.com/fiorix/go-diameter/v4/diam/datatype"
 
 /*  Abort-Session Request (ASR)
 

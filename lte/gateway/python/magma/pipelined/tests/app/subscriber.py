@@ -144,12 +144,13 @@ class RyuDirectSubscriberContext(SubscriberContext):
     """
 
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
-                 enforcement_stats_controller=None):
+                 enforcement_stats_controller=None, nuke_flows_on_exit=True):
         self.cfg = SubContextConfig(imsi, ip, table_id)
         self._dynamic_rules = []
         self._static_rule_names = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
+        self._nuke_flows_on_exit = nuke_flows_on_exit
 
     def add_static_rule(self, id):
         self._static_rule_names.append(id)
@@ -174,6 +175,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):
-        def deactivate_flows():
-            self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
-        hub.joinall([hub.spawn(deactivate_flows)])
+        if self._nuke_flows_on_exit:
+            def deactivate_flows():
+                self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
+            hub.joinall([hub.spawn(deactivate_flows)])

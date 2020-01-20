@@ -79,6 +79,7 @@
 #include "nas_procedures.h"
 #include "nas/securityDef.h"
 #include "security_types.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -486,20 +487,11 @@ int emm_proc_security_mode_complete(
     unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM, "EMM-PROC  - No EPS security context exists\n");
-    /*
-     * Notify EMM that the authentication procedure failed
-     */
-    emm_sap_t emm_sap = {0};
-    emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
-    emm_sap.u.emm_reg.ue_id = ue_id;
-    emm_sap.u.emm_reg.ctx = emm_ctx;
-    emm_sap.u.emm_reg.notify = true;
-    emm_sap.u.emm_reg.free_proc = true;
-    emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
-    emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-      smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-    rc = emm_sap_send(&emm_sap);
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "EMM-PROC  - No EPS security context exists. Ignoring the Security Mode "
+      "Complete message\n");
+    rc = RETURNerror;
   }
 
   unlock_ue_contexts(ue_mm_context);
@@ -577,7 +569,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_ctx_set_security_type(emm_ctx, smc_proc->saved_sc_type);
 
     /*
-     * Notify EMM that the authentication procedure failed
+     * Notify EMM that the security mode procedure failed
      */
     emm_sap_t emm_sap = {0};
 
@@ -586,14 +578,14 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     emm_sap.u.emm_reg.notify = true;
-    emm_sap.u.emm_reg.free_proc = true;
+    emm_sap.u.emm_reg.free_proc = false;
     emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
   }
-  nas_itti_detach_req(ue_id);
   unlock_ue_contexts(ue_mm_context);
+  mme_app_handle_detach_req(ue_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

@@ -97,6 +97,17 @@ func (srv *stateServicer) ReportStates(context context.Context, req *protos.Repo
 // DeleteStates deletes states from blobstorage
 func (srv *stateServicer) DeleteStates(context context.Context, req *protos.DeleteStatesRequest) (*protos.Void, error) {
 	ret := &protos.Void{}
+	if len(req.GetNetworkID()) == 0 {
+		// Get gateway information from context
+		gw := protos.GetClientGateway(context)
+		if gw == nil {
+			return ret, status.Errorf(codes.PermissionDenied, "Missing networkID and Gateway Identity")
+		}
+		if !gw.Registered() {
+			return ret, status.Errorf(codes.PermissionDenied, "Missing networkID and Gateway is not registered")
+		}
+		req.NetworkID = gw.NetworkId
+	}
 	if err := ValidateDeleteStatesRequest(req); err != nil {
 		return ret, err
 	}

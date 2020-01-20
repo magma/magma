@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 namespace devmand {
 namespace utils {
 
@@ -35,7 +37,7 @@ class LifetimeTracker {
   }
 
   static unsigned int getLivingCount() {
-    assert(allocatons > dealloactions);
+    assert(allocations > deallocations);
 
     return allocations - deallocations;
   }

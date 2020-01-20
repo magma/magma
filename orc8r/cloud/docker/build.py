@@ -16,7 +16,7 @@ import glob
 import subprocess
 from collections import namedtuple
 from subprocess import PIPE
-from typing import List
+from typing import Iterable, List
 
 import os
 import shutil
@@ -40,6 +40,7 @@ COMPOSE_FILES = [
 
     'docker-compose.override.yml',
 ]
+CORE_COMPOSE_FILES = {'docker-compose.yml', 'docker-compose.override.yml'}
 
 # Root directory where external modules will be mounted
 GUEST_MODULE_ROOT = 'modules'
@@ -55,42 +56,66 @@ def main() -> None:
     # If we're building, we always need to build controller first because proxy
     # copies metricsd binary and plugins from controller
     files_args = _get_docker_files_command_args(args)
-    if not args.mount:
-        _create_build_context()
+    _create_build_context_if_necessary(args)
     _build_cache_if_necessary(args)
     _build_controller_if_necessary(args)
 
     if args.mount:
         # Mount the source code and run a container with bash shell
         _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
+    elif args.generate:
+        _run_docker(
+            ['run', '--rm'] + _get_mount_volumes() + ['test', 'make gen'],
+        )
     elif args.tests:
         # Run unit tests
         _run_docker(['build', 'test'])
         _run_docker(['run', '--rm', 'test', 'make test'])
-    elif args.nocache:
-        # Build containers without go-cache in base image
-        _run_docker(files_args + ['build'])
     else:
-        # Build images using go-cache base image
-        _run_docker(files_args + ['build',
-                                  '--build-arg', 'baseImage=orc8r_cache'])
+        _run_docker(files_args + _get_docker_build_args(args))
 
 
 def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
-    if args.all:
+    def make_file_args(files: Iterable[str]) -> List[str]:
         ret = []
-        for f in COMPOSE_FILES:
+        for f in files:
             ret.append('-f')
             ret.append(f)
         return ret
+
+    if args.all:
+        return make_file_args(COMPOSE_FILES)
+
+    if args.noncore:
+        return make_file_args(
+            filter(lambda f: f not in CORE_COMPOSE_FILES, COMPOSE_FILES),
+        )
 
     # docker-compose uses docker-compose.yml and docker-compose.override.yml
     # by default
     return []
 
 
+def _create_build_context_if_necessary(args: argparse.Namespace) -> None:
+    """ Clear out the build context from the previous run """
+    if args.noncore:
+        return
+
+    if os.path.exists(BUILD_CONTEXT):
+        shutil.rmtree(BUILD_CONTEXT)
+    os.mkdir(BUILD_CONTEXT)
+
+    print("Creating build context in '%s'..." % BUILD_CONTEXT)
+    modules = []
+    for module in _get_modules():
+        _copy_module(module)
+        modules.append(module.name)
+    print('Context created for modules: %s' % ', '.join(modules))
+
+
 def _build_cache_if_necessary(args: argparse.Namespace) -> None:
-    if args.nocache or args.mount or args.tests:
+    if args.nocache or args.mount or args.generate or \
+            args.tests or args.noncore:
         return
 
     # Check if orc8r_cache image exists
@@ -103,8 +128,8 @@ def _build_cache_if_necessary(args: argparse.Namespace) -> None:
 
 def _build_controller_if_necessary(args: argparse.Namespace) -> None:
     # We don't build the controller container if we're running tests or
-    # generating code
-    if args.mount or args.tests:
+    # generating code or just creating noncore containers
+    if args.mount or args.generate or args.tests or args.noncore:
         return
 
     # controller will always only use docker-compose.yml and override so we
@@ -116,6 +141,14 @@ def _build_controller_if_necessary(args: argparse.Namespace) -> None:
                      'controller'])
 
 
+def _get_docker_build_args(args: argparse.Namespace) -> List[str]:
+    # noncore containers don't need the orc8r cache
+    if args.noncore or args.nocache:
+        return ['build']
+    else:
+        return ['build', '--build-arg', 'baseImage=orc8r_cache']
+
+
 def _run_docker(cmd: List[str]) -> None:
     """ Run the required docker-compose command """
     print("Running 'docker-compose %s'..." % " ".join(cmd))
@@ -123,20 +156,6 @@ def _run_docker(cmd: List[str]) -> None:
         subprocess.run(['docker-compose'] + cmd, check=True)
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
-
-
-def _create_build_context() -> None:
-    """ Clear out the build context from the previous run """
-    if os.path.exists(BUILD_CONTEXT):
-        shutil.rmtree(BUILD_CONTEXT)
-    os.mkdir(BUILD_CONTEXT)
-
-    print("Creating build context in '%s'..." % BUILD_CONTEXT)
-    modules = []
-    for module in _get_modules():
-        _copy_module(module)
-        modules.append(module.name)
-    print('Context created for modules: %s' % ', '.join(modules))
 
 
 def _copy_module(module: MagmaModule) -> None:
@@ -203,11 +222,13 @@ def _get_modules() -> List[MagmaModule]:
                 ),
             )
         for ext_module in conf['external_modules']:
-            # NOTE: host_path for external modules is relative to the
-            # $MAGMA_ROOT/orc8r/cloud directory on the host for legacy reasons.
+            # Because of the behavior of os.path.join, if host_path is an
+            # absolute path then module_abspath will be equal to that value
             module_abspath = os.path.abspath(
-                os.path.join(HOST_MAGMA_ROOT, 'orc8r', 'cloud',
-                             ext_module['host_path']),
+                os.path.join(
+                    HOST_MAGMA_ROOT,
+                    os.path.expandvars(ext_module['host_path']),
+                ),
             )
             modules.append(
                 MagmaModule(
@@ -244,10 +265,16 @@ def _parse_args() -> argparse.Namespace:
                         help="Run unit tests")
     parser.add_argument('--mount', '-m', action='store_true',
                         help='Mount the source code and create a bash shell')
+    parser.add_argument('--generate', '-g', action='store_true',
+                        help='Mount the source code and regenerate '
+                             'generated files')
     parser.add_argument('--nocache', '-n', action='store_true',
                         help='Build the images without go cache base image')
     parser.add_argument('--all', '-a', action='store_true',
                         help='Build all containers')
+    parser.add_argument('--noncore', '-nc', action='store_true',
+                        help='Build only non-core containers '
+                             '(i.e. no proxy, controller images)')
     args = parser.parse_args()
     return args
 

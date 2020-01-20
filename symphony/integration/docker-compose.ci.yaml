@@ -1,0 +1,106 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+
+services:
+  nginx:
+    build:
+      context: nginx
+      args:
+        config: ci.nginx
+    ports:
+      - ${PORT:-443}:443
+    networks:
+      default:
+        aliases:
+          - fb-test.thesymphony.cloud
+    healthcheck:
+      test: curl -Ifk https://localhost/healthz
+    restart: on-failure
+
+  front:
+    image: ${DOCKER_REGISTRY}/front:${TAG}
+    environment:
+      PORT: 80
+      MYSQL_HOST: mysql
+      MYSQL_DB: auth
+      MYSQL_USER: root
+      MYSQL_PASS: root
+      SESSION_TOKEN: bgnllrfbcldunrbefllrnegehrflvlvn
+      FB_TEST_USER: fbuser@fb.com
+    depends_on:
+      - mysql
+    healthcheck:
+      test: "curl -If -H 'Host: fb-test.localhost' localhost/healthz"
+      interval: 10s
+      timeout: 3s
+    restart: on-failure
+
+  frontier:
+    image: ${DOCKER_REGISTRY}/frontier:${TAG}
+    environment:
+      PROXY_TARGET: http://front
+      INVENTORY_TARGET: http://front
+      KEY_PAIRS: HWmHsJtI8wrSkVuXkMxP5HDW32t2AUqz
+    env_file: &env_file
+      - conf/log.env
+    healthcheck: &healthcheck
+      test: curl -If localhost/healthz/liveness
+    restart: on-failure
+
+  graph:
+    image: ${DOCKER_REGISTRY}/graph:${TAG}
+    environment:
+      MYSQL_DSN: root:root@tcp(mysql:3306)/?charset=utf8&parseTime=true
+    env_file: *env_file
+    depends_on:
+      - mysql
+    healthcheck: *healthcheck
+    restart: on-failure
+
+  store:
+    image: ${DOCKER_REGISTRY}/store:${TAG}
+    environment:
+      S3_ENDPOINT: fb-test.thesymphony.cloud:9000
+      S3_BUCKET: store.blobs
+      S3_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: AKIAIOSFODNN7EXAMPLE
+      AWS_SECRET_ACCESS_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
+    env_file: *env_file
+    healthcheck: *healthcheck
+    restart: on-failure
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: auth
+    volumes:
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: mysqladmin ping -proot
+    restart: on-failure
+
+  minio:
+    image: minio/minio
+    environment:
+      MINIO_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      MINIO_SECRET_KEY: /wJalrXUtnFEMIK7MDENG/bPxRfiCYEXAMPLEKEY
+    entrypoint: sh
+    command: -c 'mkdir -p /data/store.blobs && /usr/bin/minio server /data'
+
+  tests:
+    build:
+      context: ..
+      dockerfile: integration/tests/Dockerfile
+    volumes:
+      - ..:/src/symphony:delegated
+
+  pytests:
+    build:
+      context: ..
+      dockerfile: integration/pytests/Dockerfile
+    environment:
+      PLATFORM_SERVER_HEALTH_CHECK_URL: http://front/healthz

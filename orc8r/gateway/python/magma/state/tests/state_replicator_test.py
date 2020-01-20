@@ -22,8 +22,10 @@ from magma.common.redis.containers import RedisFlatDict
 from magma.common.redis.serializers import get_proto_deserializer, \
     get_proto_serializer, get_json_deserializer, get_json_serializer, \
     RedisSerde
-from magma.state.state_replicator import StateReplicator
 from magma.common.grpc_client_manager import GRPCClientManager
+from magma.state.keys import make_mem_key
+from magma.state.garbage_collector import GarbageCollector
+from magma.state.state_replicator import StateReplicator
 from magma.common.redis.mocks.mock_redis import MockRedis
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 from orc8r.protos.common_pb2 import NetworkID, IDList
@@ -148,8 +150,11 @@ class StateReplicatorTests(TestCase):
             max_client_reuse=60,
         )
 
+        garbage_collector = GarbageCollector(service, grpc_client_manager)
+
         self.state_replicator = StateReplicator(
             service=service,
+            garbage_collector=garbage_collector,
             grpc_client_manager=grpc_client_manager,
         )
         self.state_replicator.start()
@@ -237,10 +242,10 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(3, len(self.state_replicator._state_versions))
-            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
-            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key1 = make_mem_key('id1', NID_TYPE)
+            mem_key2 = make_mem_key('aaa-bbb:id1',
                                                           IDList_TYPE)
-            mem_key3 = self.state_replicator.make_mem_key('id1', FOO_TYPE)
+            mem_key3 = make_mem_key('id1', FOO_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
@@ -258,7 +263,7 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(4, len(self.state_replicator._state_versions))
-            mem_key4 = self.state_replicator.make_mem_key('id2', NID_TYPE)
+            mem_key4 = make_mem_key('id2', NID_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(3,
@@ -300,8 +305,8 @@ class StateReplicatorTests(TestCase):
             # Ensure in-memory map updates properly for successful replications
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(2, len(self.state_replicator._state_versions))
-            mem_key1 = self.state_replicator.make_mem_key('id1', NID_TYPE)
-            mem_key2 = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key1 = make_mem_key('id1', NID_TYPE)
+            mem_key2 = make_mem_key('aaa-bbb:id1',
                                                           IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
@@ -340,7 +345,7 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._resync()
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
-            mem_key = self.state_replicator.make_mem_key('aaa-bbb:id1',
+            mem_key = make_mem_key('aaa-bbb:id1',
                                                          IDList_TYPE)
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
@@ -371,6 +376,41 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(False,
                              self.state_replicator._has_resync_completed)
             self.assertEqual(0, len(self.state_replicator._state_versions))
+
+        # Cancel the replicator's loop so there are no other activities
+        self.state_replicator._periodic_task.cancel()
+        self.loop.run_until_complete(test())
+
+    @mock.patch("redis.Redis", MockRedis)
+    @mock.patch('snowflake.snowflake', get_mock_snowflake)
+    @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
+    def test_deleted_replicated_state(self, get_grpc_mock):
+        async def test():
+            get_grpc_mock.return_value = self.channel
+            self.nid_client.clear()
+            self.idlist_client.clear()
+            self.log_client.clear()
+            self.foo_client.clear()
+
+            key = 'id1'
+            self.nid_client[key] = NetworkID(id='foo')
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertEqual(1, len(req.states))
+
+            # Ensure in-memory map updates properly
+            await self.state_replicator._send_to_state_service(req)
+            self.assertEqual(1, len(self.state_replicator._state_versions))
+            mem_key1 = make_mem_key('id1', NID_TYPE)
+            self.assertEqual(1,
+                             self.state_replicator._state_versions[mem_key1])
+
+            # Now delete state and ensure in-memory map gets updated properly
+            del self.nid_client[key]
+            req = await self.state_replicator._collect_states_to_replicate()
+            self.assertIsNone(req)
+
+            await self.state_replicator._cleanup_deleted_keys()
+            self.assertFalse(key in self.state_replicator._state_versions)
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()

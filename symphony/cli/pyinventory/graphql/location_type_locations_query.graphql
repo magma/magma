@@ -1,0 +1,15 @@
+query LocationTypeLocationsQuery($id: ID!) {
+  locationType: node(id: $id) {
+    ... on LocationType {
+      locations {
+        edges {
+          node {
+            id
+            name
+            externalId
+          }
+        }
+      }
+    }
+  }
+}

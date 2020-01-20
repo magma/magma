@@ -40,17 +40,17 @@ var (
 		[]string{"apn", "imsi"},
 	)
 
-	SessionStart = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
+	SessionStart = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
 			Name: "session_start",
-			Help: "Session start time partitioned by APN, IMSI, SessionID",
+			Help: "Session start partitioned by APN, IMSI, SessionID",
 		},
 		[]string{"apn", "imsi", "id"},
 	)
-	SessionStop = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
+	SessionStop = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
 			Name: "session_stop",
-			Help: "Session stop time partitioned by APN, IMSI, SessionID",
+			Help: "Session stop partitioned by APN, IMSI, SessionID",
 		},
 		[]string{"apn", "imsi", "id"},
 	)
@@ -89,8 +89,15 @@ var (
 
 	SessionTerminate = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name: "session_terminate",
-			Help: "Terminate Session Calls, partitioned by APN, IMSI",
+			Name: "session_manager_terminate",
+			Help: "Terminate Session Calls by Local Session Manager, partitioned by APN, IMSI",
+		},
+		[]string{"apn", "imsi"},
+	)
+	EndSession = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "end_session",
+			Help: "EndSession Calls to Local Session Manager, partitioned by APN, IMSI",
 		},
 		[]string{"apn", "imsi"},
 	)
@@ -99,5 +106,12 @@ var (
 func init() {
 	prometheus.MustRegister(Auth, Sessions, SessionStart,
 		SessionStop, CreateSessionLatency, OctetsIn, OctetsOut,
-		SessionTimeouts, AcctStop, SessionTerminate)
+		SessionTimeouts, AcctStop, SessionTerminate, EndSession)
+}
+
+const imsiPrefix = "IMSI"
+
+// DecorateIMSI prepends "IMSI" to 'clean' IMSI
+func DecorateIMSI(imsi string) string {
+	return imsiPrefix + imsi
 }

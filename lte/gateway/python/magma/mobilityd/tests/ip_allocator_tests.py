@@ -20,7 +20,8 @@ from magma.mobilityd.ip_allocator import IPAllocator, IPBlockNotFoundError, \
     NoAvailableIPError, IPNotInUseError, MappingNotFoundError
 
 
-@unittest.skip("temporarily disabled for hack t23793559")
+# If the preallocated IP addresses in ip_allocator.py code
+# changes, then the test cases must be updated
 class IPAllocatorTests(unittest.TestCase):
     """
     Test class for the Mobilityd IP Allocator
@@ -43,9 +44,14 @@ class IPAllocatorTests(unittest.TestCase):
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
-        self._block = ipaddress.ip_network('192.168.0.0/31')
-        self._ip0 = ipaddress.ip_address('192.168.0.0')
-        self._ip1 = ipaddress.ip_address('192.168.0.1')
+        #  need to allocate at least 4 bits, as 13 addresses
+        #  are either preallocated or not valid for hosts
+        self._block = ipaddress.ip_network('192.168.0.0/28')
+        #  192.168.0.0 is not valid host IP
+        #  192.168.0.1 to 192.168.0.11 are preallocated
+        self._ip0 = ipaddress.ip_address('192.168.0.12')
+        self._ip1 = ipaddress.ip_address('192.168.0.13')
+        self._ip2 = ipaddress.ip_address('192.168.0.14')
         self._new_ip_allocator(self.RECYCLING_INTERVAL_SECONDS)
 
     def test_list_added_ip_blocks(self):
@@ -60,33 +66,43 @@ class IPAllocatorTests(unittest.TestCase):
 
     def test_list_unknown_ip_block(self):
         """ test list unknown ip block """
-        block = ipaddress.ip_network('10.0.0.0/31')
+        block = ipaddress.ip_network('10.0.0.0/28')
         with self.assertRaises(IPBlockNotFoundError):
             self._allocator.list_allocated_ips(block)
 
     def test_alloc_ip_address(self):
         """ test alloc_ip_address """
         ip0 = self._allocator.alloc_ip_address('SID0')
-        self.assertTrue(ip0 in [self._ip0, self._ip1])
+        self.assertTrue(ip0 in [self._ip0, self._ip1, self._ip2])
         self.assertTrue(ip0 in self._allocator.list_allocated_ips(self._block))
         self.assertEqual(self._allocator.get_sid_ip_table(), [('SID0', ip0)])
 
         ip1 = self._allocator.alloc_ip_address('SID1')
-        self.assertTrue(ip1 in [self._ip0, self._ip1])
+        self.assertTrue(ip1 in [self._ip0, self._ip1, self._ip2])
         self.assertNotEqual(ip1, ip0)
-        self.assertEqual(set([ip0, ip1]),
+        self.assertEqual({ip0, ip1},
                          set(self._allocator.list_allocated_ips(self._block)))
         self.assertEqual(set(self._allocator.get_sid_ip_table()),
-                         set([('SID0', ip0), ('SID1', ip1)]))
+                         {('SID0', ip0), ('SID1', ip1)})
+
+        ip2 = self._allocator.alloc_ip_address('SID2')
+        self.assertTrue(ip2 in [self._ip0, self._ip1, self._ip2])
+        self.assertNotEqual(ip2, ip0)
+        self.assertNotEqual(ip2, ip1)
+        self.assertEqual({ip0, ip1, ip2},
+                         set(self._allocator.list_allocated_ips(self._block)))
+        self.assertEqual(set(self._allocator.get_sid_ip_table()),
+                         {('SID0', ip0), ('SID1', ip1), ('SID2', ip2)})
 
         # allocate from empty free set
         with self.assertRaises(NoAvailableIPError):
-            self._allocator.alloc_ip_address('SID2')
+            self._allocator.alloc_ip_address('SID3')
 
     def test_release_ip_address(self):
         """ test release_ip_address """
         ip0 = self._allocator.alloc_ip_address('SID0')
         ip1 = self._allocator.alloc_ip_address('SID1')
+        ip2 = self._allocator.alloc_ip_address('SID2')
 
         # release ip
         self._allocator.release_ip_address('SID0', ip0)
@@ -96,9 +112,9 @@ class IPAllocatorTests(unittest.TestCase):
 
         # check not recyled
         self.assertEqual(set(self._allocator.get_sid_ip_table()),
-                         set([('SID0', ip0), ('SID1', ip1)]))
+                         {('SID0', ip0), ('SID1', ip1), ('SID2', ip2)})
         with self.assertRaises(NoAvailableIPError):
-            self._allocator.alloc_ip_address('SID2')
+            self._allocator.alloc_ip_address('SID3')
 
         # double release
         with self.assertRaises(IPNotInUseError):
@@ -106,7 +122,7 @@ class IPAllocatorTests(unittest.TestCase):
 
         # ip does not exist
         with self.assertRaises(MappingNotFoundError):
-            non_existing_ip = ipaddress.ip_address('192.168.1.10')
+            non_existing_ip = ipaddress.ip_address('192.168.1.16')
             self._allocator.release_ip_address('SID0', non_existing_ip)
 
     def test_get_ip_for_subscriber(self):
@@ -170,26 +186,36 @@ class IPAllocatorTests(unittest.TestCase):
         """ test recycle tombstone IP on interval loop """
         ip0 = self._allocator.alloc_ip_address('SID0')
         ip1 = self._allocator.alloc_ip_address('SID1')
+        ip2 = self._allocator.alloc_ip_address('SID2')
         self._allocator.release_ip_address('SID0', ip0)
 
         # Wait for auto-recycler to kick in
         time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
 
-        ip2 = self._allocator.alloc_ip_address('SID2')
-        self.assertEqual(ip0, ip2)
+        ip3 = self._allocator.alloc_ip_address('SID3')
+        self.assertEqual(ip0, ip3)
 
         self._allocator.release_ip_address('SID1', ip1)
 
         # Wait for auto-recycler to kick in
         time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
 
-        ip3 = self._allocator.alloc_ip_address('SID3')
-        self.assertEqual(ip1, ip3)
+        ip4 = self._allocator.alloc_ip_address('SID4')
+        self.assertEqual(ip1, ip4)
+
+        self._allocator.release_ip_address('SID2', ip2)
+
+        # Wait for auto-recycler to kick in
+        time.sleep(1.2 * self.RECYCLING_INTERVAL_SECONDS)
+
+        ip5 = self._allocator.alloc_ip_address('SID5')
+        self.assertEqual(ip2, ip5)
 
     def test_allocate_unrecycled_IP(self):
         """ Allocation should fail before IP recycling """
         ip0 = self._allocator.alloc_ip_address('SID0')
         self._allocator.alloc_ip_address('SID1')
+        self._allocator.alloc_ip_address('SID2')
         self._allocator.release_ip_address('SID0', ip0)
         with self.assertRaises(NoAvailableIPError):
             self._allocator.alloc_ip_address('SID3')
@@ -200,13 +226,18 @@ class IPAllocatorTests(unittest.TestCase):
 
         ip0 = self._allocator.alloc_ip_address('SID0')
         ip1 = self._allocator.alloc_ip_address('SID1')
-        self._allocator.release_ip_address('SID0', ip0)
         ip2 = self._allocator.alloc_ip_address('SID2')
-        self.assertEqual(ip0, ip2)
+        self._allocator.release_ip_address('SID0', ip0)
+        ip3 = self._allocator.alloc_ip_address('SID3')
+        self.assertEqual(ip0, ip3)
 
         self._allocator.release_ip_address('SID1', ip1)
-        ip3 = self._allocator.alloc_ip_address('SID3')
-        self.assertEqual(ip1, ip3)
+        ip4 = self._allocator.alloc_ip_address('SID4')
+        self.assertEqual(ip1, ip4)
+
+        self._allocator.release_ip_address('SID2', ip2)
+        ip5 = self._allocator.alloc_ip_address('SID5')
+        self.assertEqual(ip2, ip5)
 
     def test_remove_unallocated_block(self):
         """ test removing the allocator for an unallocated block """

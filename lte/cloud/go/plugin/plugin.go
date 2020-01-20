@@ -12,19 +12,14 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/handlers"
 	lteModels "magma/lte/cloud/go/plugin/models"
-	cellularh "magma/lte/cloud/go/services/cellular/obsidian/handlers"
-	meteringdh "magma/lte/cloud/go/services/meteringd_records/obsidian/handlers"
-	policydbh "magma/lte/cloud/go/services/policydb/obsidian/handlers"
-	policydbstreamer "magma/lte/cloud/go/services/policydb/streamer"
+	policyStreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdbh "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
-	models3 "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	subscriberdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
+	subscriberStreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	srvconfig "magma/orc8r/cloud/go/service/config"
+	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -50,7 +45,6 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
-		state.NewStateSerde(lte.SubscriberStateType, &models3.SubscriberState{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
@@ -60,6 +54,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &lteModels.PolicyRuleConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &lteModels.BaseNameRecord{}),
 		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
+
+		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &lteModels.RatingGroup{}),
 	}
 }
 
@@ -69,24 +65,21 @@ func (*LteOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder
 	}
 }
 
-func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *srvconfig.ConfigMap) []metricsd.MetricsProfile {
+func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
 	return []metricsd.MetricsProfile{}
 }
 
-func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *srvconfig.ConfigMap) []obsidian.Handler {
+func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		cellularh.GetObsidianHandlers(),
-		meteringdh.GetObsidianHandlers(),
-		policydbh.GetObsidianHandlers(),
-		subscriberdbh.GetObsidianHandlers(),
 		handlers.GetHandlers(),
 	)
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{
-		&subscriberdbstreamer.SubscribersProvider{},
-		&policydbstreamer.PoliciesProvider{},
-		&policydbstreamer.BaseNamesProvider{},
+		&subscriberStreamer.SubscribersProvider{},
+		&policyStreamer.PoliciesProvider{},
+		&policyStreamer.BaseNamesProvider{},
+		&policyStreamer.RuleMappingsProvider{},
 	}
 }

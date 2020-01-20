@@ -1,0 +1,46 @@
+###################
+# Build static dist
+###################
+
+FROM node:12.5.0-alpine as ui
+
+# Install dependencies required by some node modules
+RUN apk add --no-cache python g++ make libx11 glew-dev libxi-dev
+
+# Copy dependencies
+WORKDIR /app
+COPY package.json yarn.lock babel.config.js /app/
+COPY fbcnms-packages /app/fbcnms-packages
+COPY fbcnms-projects/inventory /app/fbcnms-projects/inventory
+COPY fbcnms-projects/magmalte /app/fbcnms-projects/magmalte
+
+# build static files to /app/fbcnms-projects/inventory/static
+WORKDIR /app/fbcnms-projects/inventory
+RUN yarn install --frozen-lockfile
+RUN yarn build
+
+##################
+# Build main image
+##################
+
+FROM node:12.5.0-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache curl
+
+# Copy app source
+COPY package.json yarn.lock babel.config.js /app/
+COPY fbcnms-packages /app/fbcnms-packages
+RUN rm -rf /app/fbcnms-packages/fbcnms-{ui,alarms}
+
+WORKDIR /app/fbcnms-projects/platform-server
+COPY fbcnms-projects/platform-server .
+
+# Install server dependencies
+RUN yarn install --production=true --frozen-lockfile
+
+# Copy compiled UI components
+COPY --from=ui /app/fbcnms-projects/inventory/static/dist /app/fbcnms-projects/platform-server/static/dist
+
+# Start app
+CMD ["yarn", "start"]

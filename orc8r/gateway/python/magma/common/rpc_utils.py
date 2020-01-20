@@ -9,19 +9,31 @@ of patent rights can be found in the PATENTS file in the same directory.
 # pylint: disable=broad-except
 
 import asyncio
+from enum import Enum
+
 import grpc
 from orc8r.protos import common_pb2
 
 from .service_registry import ServiceRegistry
 
 
+class RetryableGrpcErrorDetails(Enum):
+    """
+    Enum for gRPC retryable error detail messages
+    """
+    SOCKET_CLOSED = "Socket closed"
+    CONNECT_FAILED = "Connect Failed"
+
+
 def return_void(func):
     """
     Reusable decorator for returning common_pb2.Void() message.
     """
+
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
         return common_pb2.Void()
+
     return wrapper
 
 
@@ -36,6 +48,7 @@ def grpc_wrapper(func):
         pass
     func(args, ProtoStubClass, 'service')
     """
+
     def wrapper(*alist):
         args = alist[0]
         stub_cls = alist[1]
@@ -47,6 +60,7 @@ def grpc_wrapper(func):
         except grpc.RpcError as err:
             print("Error! [%s] %s" % (err.code(), err.details()))
             exit(1)
+
     return wrapper
 
 
@@ -61,6 +75,7 @@ def cloud_grpc_wrapper(func):
         pass
     func(args, ProtoStubClass, 'service')
     """
+
     def wrapper(*alist):
         args = alist[0]
         stub_cls = alist[1]
@@ -72,6 +87,7 @@ def cloud_grpc_wrapper(func):
         except grpc.RpcError as err:
             print("Error! [%s] %s" % (err.code(), err.details()))
             exit(1)
+
     return wrapper
 
 
@@ -113,3 +129,14 @@ def grpc_async_wrapper(gf, loop=None):
         lambda _: loop.call_soon_threadsafe(_grpc_async_wrapper, f, gf)
     )
     return f
+
+
+def is_grpc_error_retryable(error: grpc.RpcError) -> bool:
+    status_code = error.code()
+    error_details = error.details()
+    if status_code == grpc.StatusCode.UNAVAILABLE and \
+            any(err_msg.value in error_details for err_msg in
+                RetryableGrpcErrorDetails):
+        # server end closed connection.
+        return True
+    return False

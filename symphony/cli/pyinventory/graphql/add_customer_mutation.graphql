@@ -1,0 +1,7 @@
+mutation AddCustomerMutation($input: AddCustomerInput!) {
+  addCustomer(input: $input) {
+    id
+    name
+    externalId
+  }
+}

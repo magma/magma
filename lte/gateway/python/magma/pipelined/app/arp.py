@@ -10,11 +10,10 @@ import netifaces
 from collections import namedtuple
 
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
-from magma.pipelined.app.inout import EGRESS
+from magma.pipelined.openflow.registers import Direction, load_passthrough
 
 from ryu.controller import dpset
 from ryu.lib.packet import ether_types, arp
@@ -34,6 +33,7 @@ class ArpController(MagmaController):
     with MAC address of the default gateway.
     """
     APP_NAME = 'arpd'
+    APP_TYPE = ControllerType.PHYSICAL
     FLOW_PUSH_INTERVAL_SECS = 15
 
     # Inherited from app_manager.RyuApp
@@ -97,6 +97,15 @@ class ArpController(MagmaController):
             self._set_outgoing_arp_flows(datapath, ue_ip)
 
     def cleanup_on_discnnect(self, datapath):
+        self.delete_all_flows(datapath)
+        self._set_incoming_arp_flows(datapath)
+        self._set_default_eth_dst_flow(datapath)
+        self._set_default_forward_flow(datapath)
+
+    def cleanup_on_disconnect(self, datapath):
+        self.delete_all_flows(datapath)
+
+    def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.table_num)
 
     def _set_incoming_arp_flows(self, datapath, ip_block, src_mac):
@@ -107,16 +116,17 @@ class ArpController(MagmaController):
         """
         parser = datapath.ofproto_parser
         ofproto = datapath.ofproto
-        egress_table = self._service_manager.get_table_num(EGRESS)
 
         arp_resp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                                     direction=Direction.IN,
                                     arp_op=arp.ARP_REPLY, arp_tpa=ip_block)
+        # Set so packet skips enforcement and send to egress
+        actions = [load_passthrough(parser)]
 
         flows.add_resubmit_next_service_flow(datapath, self.table_num,
-                                             arp_resp_match, actions=[],
+                                             arp_resp_match, actions=actions,
                                              priority=flows.UE_FLOW_PRIORITY,
-                                             resubmit_table=egress_table)
+                                             resubmit_table=self.next_table)
 
         # Set up ARP responder using flow rules. Add a rule with the following
         # 1. eth_dst becomes eth_src (back to sender)
@@ -157,15 +167,17 @@ class ArpController(MagmaController):
         """
         Install a flow rule to allow any ARP packets coming from the UE
         """
-        egress_table = self._service_manager.get_table_num(EGRESS)
+        parser = datapath.ofproto_parser
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            direction=Direction.OUT,
                            arp_spa=ip_block)
+        # Set so packet skips enforcement and send to egress
+        actions = [load_passthrough(parser)]
 
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
-                                             actions=[],
+                                             actions=actions,
                                              priority=flows.UE_FLOW_PRIORITY,
-                                             resubmit_table=egress_table)
+                                             resubmit_table=self.next_table)
 
     def _install_default_arp_drop_flow(self, datapath):
         """
@@ -209,10 +221,12 @@ class ArpController(MagmaController):
         Install a flow rule to allow any ARP packets coming from the UPLINK,
         this will be hit if arp clamping doesn't recognize the address
         """
-        egress_table = self._service_manager.get_table_num(EGRESS)
+        parser = datapath.ofproto_parser
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            direction=Direction.IN)
+        # Set so packet skips enforcement and send to egress
+        actions = [load_passthrough(parser)]
 
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
-            actions=[], priority=flows.UE_FLOW_PRIORITY - 1,
-            resubmit_table=egress_table)
+            actions=actions, priority=flows.UE_FLOW_PRIORITY - 1,
+            resubmit_table=self.next_table)

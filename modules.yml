@@ -9,7 +9,11 @@ native_modules:
 
 # These are modules with code that lives outside the magma repo
 # Each entry under external_modules should specify a host_path key which points
-# to the location of the module directory on your host machine and a
-# mount_path key which points to the location where you'd like to mount the
-# module directory on the cloud VM.
+# to the location of the module directory on your host machine.
+# If the host_path key is relative, it will be resolved relative to the root
+# of the magma repository.
+# If the host_path key is absolute, it will remain unchanged.
+# Environment variables will be expanded in the final path.
 external_modules: []
+#  - host_path: $MY_PATH/my_module
+#  - host_path: ../../my_module

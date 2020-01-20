@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.7.2" />
+<title>pyinventory API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{font-weight:bold}#index h4 + ul{margin-bottom:.6em}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>pyinventory</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="pyinventory.consts" href="consts.html">pyinventory.consts</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.exceptions" href="exceptions.html">pyinventory.exceptions</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.graphql" href="graphql/index.html">pyinventory.graphql</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.graphql_client" href="graphql_client.html">pyinventory.graphql_client</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.reporter" href="reporter.html">pyinventory.reporter</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.session" href="session.html">pyinventory.session</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.site_survey" href="site_survey.html">pyinventory.site_survey</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt><code class="name"><a title="pyinventory.site_survey_schema" href="site_survey_schema.html">pyinventory.site_survey_schema</a></code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="pyinventory.InventoryClient"><code class="flex name class">
+<span>class <span class="ident">InventoryClient</span></span>
+<span>(</span><span>email, password, tenant='fb-test', is_local_host=False, is_dev_mode=False, reporter=&lt;pyinventory.reporter.DummyReporter object&gt;)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This is the class to use for working with inventory. It contains all
+the functions to query and and edit the inventory.</p>
+<p>The <strong>init</strong> method uses the credentials to establish session with
+the inventory website. It also consumes graphql schema for
+validations, and populate the location types and equipment types
+for faster run of operations.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>email</code></strong> :&ensp;<code>str</code></dt>
+<dd>The email of the user to connect with.</dd>
+<dt><strong><code>password</code></strong> :&ensp;<code>str</code></dt>
+<dd>The password of the user to connect with.</dd>
+<dt><strong><code>tenant</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The tenant to connect to -
+should be the beginning of "{}.purpleheadband.cloud"
+The default is "fb-test" for QA environment</dd>
+<dt><strong><code>is_local_host</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Used for developers to connect to
+local inventory. This changes the address and also
+disable verification of ssl certificate</dd>
+<dt><strong><code>is_dev_mode</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Used for developers to connect to
+local inventory from a container. This changes the
+address and also disable verification of ssl
+certificate</dd>
+<dt><strong><a title="pyinventory.reporter" href="reporter.html"><code>pyinventory.reporter</code></a></strong> :&ensp;<code>object</code>, optional</dt>
+<dd>Use reporter.InventoryReporter to
+store reports on all successful and failed mutations
+in inventory. The default is DummyReporter that
+discards reports</dd>
+</dl></section>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="pyinventory.graphql_client.GraphqlClient" href="graphql_client.html#pyinventory.graphql_client.GraphqlClient">GraphqlClient</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="pyinventory.InventoryClient.add_customer"><code class="name flex">
+<span>def <span class="ident">add_customer</span></span>(<span>client, name, external_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_equipment"><code class="name flex">
+<span>def <span class="ident">add_equipment</span></span>(<span>client, name, equipment_type, location, properties_dict)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create a new equipment inside a given location. The equipment will be of the given equipment type
+, with the given name and with the given properties.
+If equipment with his name in this location already exists the existing equipment is returned</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the new equipment</dd>
+<dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the equipment type</dd>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>retrieved from getLocation or addLocation api.</dd>
+<dt><strong><code>properties_dict</code></strong></dt>
+<dd>dict of property name to property value. the property value should match
+the property type. Otherwise exception is raised</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code> (<code>with</code> <code>name</code> <code>and</code> <code>id</code> <code>fields</code>)</dt>
+<dd>You can use the id to access the equipment from the UI:
+<a href="https://{}.purpleheadband.cloud/inventory/inventory?equipment={}">https://{}.purpleheadband.cloud/inventory/inventory?equipment={}</a></dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>location</code> <code>contains</code> <code>more</code> <code>than</code> <code>one</code> <code>equipments</code> <code>with</code> <code>the</code></dt>
+<dd>same name or if property value in propertiesDict does not match
+the property type
+FailedOperationException for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>from datetime import date
+equipment = client.addEquipment(
+"Router X123",
+"Router",
+location,
+{
+'Date Property ': date.today(),
+'Lat/Lng Property: ': (-1.23,9.232),
+'E-mail Property ': "user@fb.com",
+'Number Property ': 11,
+'String Property ': "aa",
+'Float Property': 1.23
+})</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_equipment_to_position"><code class="name flex">
+<span>def <span class="ident">add_equipment_to_position</span></span>(<span>client, name, equipment_type, existing_equipment, position_name, properties_dict)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create a new equipment inside a given positionName of the given existingEquipment.
+The equipment will be of the given equipment type, with the given name and with the given properties.
+If equipment with his name in this position already exists the existing equipment is returned</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the new equipment</dd>
+<dt><strong><code>equipment_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the equipment type</dd>
+<dt><strong><code>existing_equipment</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dd>could be retrieved</dd>
+<dt>from the following apis:</dt>
+<dt>* getEquipment</dt>
+<dt>* getEquipmentInPosition</dt>
+<dt>* addEquipment</dt>
+<dt>* addEquipmentToPosition</dt>
+<dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>the name of the position in the equipment type.</dd>
+<dt><strong><code>properties_dict</code></strong></dt>
+<dd>dict of property name to property value. the property value should match
+the property type. Otherwise exception is raised</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code> (<code>with</code> <code>name</code> <code>and</code> <code>id</code> <code>fields</code>)</dt>
+<dd>You can use the id to access the equipment from the UI:
+<a href="https://{}.purpleheadband.cloud/inventory/inventory?equipment={}">https://{}.purpleheadband.cloud/inventory/inventory?equipment={}</a></dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>parent</code> <code>equipment</code> <code>has</code> <code>more</code> <code>than</code> <code>one</code> <code>position</code> <code>with</code> <code>the</code> <code>given</code> <code>name</code></dt>
+<dd>or if property value in propertiesDict does not match the property type
+FailedOperationException for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>from datetime import date
+equipment = client.addEquipmentToPosition(
+"Card Y123",
+"Card",
+equipment,
+"Pos 1",
+{
+'Date Property ': date.today(),
+'Lat/Lng Property: ': (-1.23,9.232),
+'E-mail Property ': "user@fb.com",
+'Number Property ': 11,
+'String Property ': "aa",
+'Float Property': 1.23
+})</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_equipment_type"><code class="name flex">
+<span>def <span class="ident">add_equipment_type</span></span>(<span>client, name, category, properties, ports_dict, position_list)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_link"><code class="name flex">
+<span>def <span class="ident">add_link</span></span>(<span>client, equipment_a, port_name_a, equipment_b, port_name_b)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Connects a link between two ports of two equipments.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment_a</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dd>could be retrieved from the following apis:
+* getEquipment
+* getEquipmentInPosition
+* addEquipment
+* addEquipmentToPosition</dd>
+<dt><strong><code>port_name_a</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of port in equipment type</dd>
+<dt><strong><code>equipment_b</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dd>could be retrieved from the following apis:
+* getEquipment
+* getEquipmentInPosition
+* addEquipment
+* addEquipmentToPosition</dd>
+<dt><strong><code>port_name_b</code></strong> :&ensp;<code>str</code></dt>
+<dd>The name of port in equipment type</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Link</code> <code>object</code> <code>with</code> <code>id</code> <code>field</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>portName</code> <code>in</code> <code>any</code> of <code>the</code> <code>equipment</code> <code>does</code> <code>not</code> <code>exist</code>, <code>match</code> <code>more</code> <code>than</code> <code>one</code> <code>port</code></dt>
+<dd>or is already occupied by link
+FailedOperationException for internal inventory error</dd>
+<dt><strong><code>Example</code></strong> :&ensp;<code>client.addLink</code>(<code>VSATEquipment</code>, <code>"Port</code> <code>A"</code>, <code>MWEquipment</code>, <code>"Port</code> <code>B"</code>)</dt>
+<dd>&nbsp;</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_location"><code class="name flex">
+<span>def <span class="ident">add_location</span></span>(<span>client, location_hirerchy, properties_dict, lat=None, long=None, externalID=None)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Create a new location of a specific type with a specific name.
+It will also get the requested location specifiers for hirerchy leading to it and will create all
+the hirerchy.
+However the lat,long and propertiesDict would only apply for the last location in the chain.
+If a location with his name in this place already exists the existing location is returned</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>location_hirerchy (List[Tuple[str, str]]):</dt>
+<dt>An hirerchy of locations.</dt>
+<dt>the first str is location type name</dt>
+<dt>the second str is location name</dt>
+<dt><strong><code>properties_dict</code></strong></dt>
+<dd>dict of property name to property value. the property value should match
+the property type. Otherwise exception is raised</dd>
+<dt><strong><code>lat</code></strong> :&ensp;<code>float</code></dt>
+<dd>latitude</dd>
+<dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
+<dd>longitude</dd>
+<dt>external id (str): ID from external system</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>LocationIsNotUniqueException</code> <code>if</code> <code>there</code> <code>is</code> <code>two</code> <code>possible</code> <code>locations</code></dt>
+<dd>inside the chain and it is not clear where to create or
+what to return
+FailedOperationException for internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>location = client.add_location(
+[
+('Country', 'England'),
+('City', 'Milton Keynes'),
+('Site', 'Bletchley Park')
+],
+{
+'Date Property ': date.today(),
+'Lat/Lng Property: ': (-1.23,9.232),
+'E-mail Property ': "user@fb.com",
+'Number Property ': 11,
+'String Property ': "aa",
+'Float Property': 1.23
+},
+-11.32,
+98.32,
+None)</p></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_location_image"><code class="name flex">
+<span>def <span class="ident">add_location_image</span></span>(<span>client, local_file_path, location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_location_type"><code class="name flex">
+<span>def <span class="ident">add_location_type</span></span>(<span>client, name, properties, map_zoom_level=8)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service"><code class="name flex">
+<span>def <span class="ident">add_service</span></span>(<span>client, name, external_id, service_type, customer, properties_dict, links)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service_endpoint"><code class="name flex">
+<span>def <span class="ident">add_service_endpoint</span></span>(<span>client, service, port, role)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service_type"><code class="name flex">
+<span>def <span class="ident">add_service_type</span></span>(<span>client, name, hasCustomer, properties)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.add_site_survey_image"><code class="name flex">
+<span>def <span class="ident">add_site_survey_image</span></span>(<span>client, local_file_path, id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.apply_location_template_to_location"><code class="name flex">
+<span>def <span class="ident">apply_location_template_to_location</span></span>(<span>client, template_location, location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.build_site_survey_from_survey_response"><code class="name flex">
+<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.copy_equipment"><code class="name flex">
+<span>def <span class="ident">copy_equipment</span></span>(<span>client, equipment, dest_location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.copy_equipment_in_position"><code class="name flex">
+<span>def <span class="ident">copy_equipment_in_position</span></span>(<span>client, equipment, dest_parent_equipment, dest_position_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.copy_equipment_type"><code class="name flex">
+<span>def <span class="ident">copy_equipment_type</span></span>(<span>client, curr_equipment_type_name, new_equipment_type_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.copy_equipment_with_all_attachments"><code class="name flex">
+<span>def <span class="ident">copy_equipment_with_all_attachments</span></span>(<span>client, equipment, dest_location)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Copy the equipment to the new location with all its attachments</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>equipment</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dd>could be retrieved from the following apis:
+* getEquipment
+* getEquipmentInPosition
+* addEquipment
+* addEquipmentToPosition</dd>
+<dt><strong><code>dest_location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>retrieved from getLocation or addLocation api.</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>FailedOperationException</code> <code>for</code> <code>internal</code> <code>inventory</code> <code>error</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>dict</code> of <code>source</code> <code>equipment</code> (<code>client.Equipment</code>) <code>to</code> <code>new</code> <code>equipment</code> (<code>client.Equipment</code>)</dt>
+<dd>The dict includes the equipment given as parameter and also all the equipments
+attached to it</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_all_equipments"><code class="name flex">
+<span>def <span class="ident">delete_all_equipments</span></span>(<span>client)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_customer"><code class="name flex">
+<span>def <span class="ident">delete_customer</span></span>(<span>client, customer)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_document"><code class="name flex">
+<span>def <span class="ident">delete_document</span></span>(<span>client, document)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_equipment"><code class="name flex">
+<span>def <span class="ident">delete_equipment</span></span>(<span>client, equipment)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_equipment_type_with_equipments"><code class="name flex">
+<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client, equipment_type)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_location"><code class="name flex">
+<span>def <span class="ident">delete_location</span></span>(<span>client, location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_location_type_with_locations"><code class="name flex">
+<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client, location_type)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_locations_by_location_type"><code class="name flex">
+<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client, location_type)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_service_type_with_services"><code class="name flex">
+<span>def <span class="ident">delete_service_type_with_services</span></span>(<span>client, service_type)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_site_survey"><code class="name flex">
+<span>def <span class="ident">delete_site_survey</span></span>(<span>client, site_survey)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_site_survey_image"><code class="name flex">
+<span>def <span class="ident">delete_site_survey_image</span></span>(<span>client, survey)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.edit_equipment_type"><code class="name flex">
+<span>def <span class="ident">edit_equipment_type</span></span>(<span>client, name, new_positions_list, new_ports_dict)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.edit_location"><code class="name flex">
+<span>def <span class="ident">edit_location</span></span>(<span>client, location, new_name, new_lat, new_long, new_externalID)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_all_customers"><code class="name flex">
+<span>def <span class="ident">get_all_customers</span></span>(<span>client)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment"><code class="name flex">
+<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client, equipment)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipment"><code class="name flex">
+<span>def <span class="ident">get_equipment</span></span>(<span>client, name, location)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get the equipment in a given location by name</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment name</dd>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>retrieved from getLocation or
+addLocation api.</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>location</code> <code>contains</code> <code>more</code> <code>than</code> <code>one</code> <code>equipments</code></dt>
+<dd>with the same name or if equipment with the name is
+not found FailedOperationException for internal
+inventory error</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code> (<code>with</code> <code>name</code> <code>and</code> <code>id</code> <code>fields</code>)</dt>
+<dd>You can use the id to access the equipment from the UI:
+<a href="https://{}.purpleheadband.cloud/inventory/inventory?equipment={}">https://{}.purpleheadband.cloud/inventory/inventory?equipment={}</a></dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipment_in_position"><code class="name flex">
+<span>def <span class="ident">get_equipment_in_position</span></span>(<span>client, parent_equipment, position_name)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Get the equipment attached in a given positionName of a given parentEquipment</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parent_equipment</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code></dt>
+<dd>could be retrieved from</dd>
+<dt>the following apis:</dt>
+<dt>* getEquipment</dt>
+<dt>* getEquipmentInPosition</dt>
+<dt>* addEquipment</dt>
+<dt>* addEquipmentToPosition</dt>
+<dt><strong><code>position_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>the name of the position in the equipment type.</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>parent</code> <code>equipment</code> <code>has</code> <code>more</code> <code>than</code> <code>one</code></dt>
+<dd>position with the given name, or none with this name or
+if the position is not occupied._findPositionDefinitionId
+FailedOperationException for internal inventory error</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Equipment</code> <code>object</code> (<code>with</code> <code>name</code> <code>and</code> <code>id</code> <code>fields</code>)</dt>
+<dd>You can use the id to access the equipment from the UI:
+<a href="https://{}.purpleheadband.cloud/inventory/inventory?equipment={}">https://{}.purpleheadband.cloud/inventory/inventory?equipment={}</a></dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_equipment_type_of_equipment"><code class="name flex">
+<span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client, equipment)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_link_in_port_of_equipment"><code class="name flex">
+<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client, equipment, port_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_location"><code class="name flex">
+<span>def <span class="ident">get_location</span></span>(<span>client, location_hirerchy)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns a location of a specific type with a specific name.
+It can get only the requested location specifiers or the hirerchy leading to it</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>location_hirerchy (list of tuple(str, str)):</dt>
+<dt>the first str is location type name</dt>
+<dt>the second str is location name</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>&nbsp;</dd>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>LocationIsNotUniqueException</code> <code>if</code> <code>there</code> <code>is</code> <code>more</code> <code>than</code> <code>one</code> <code>correct</code></dt>
+<dd>location to return
+or LocationNotFoundException if no location was found</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>location = client.getLocation([
+    ('Country', 'England'),
+    ('City', 'Milton Keynes'),
+    ('Site', 'Bletchley Park')
+])
+</code></pre>
+<dl>
+<dt><strong><code>or</code></strong></dt>
+<dd>location = client.getLocation([('Site', 'Bletchley Park')])<h1 id="this-call-will-fail-if-there-is-bletchley-park-in-two-cities-in-london">This call will fail if there is Bletchley Park in two cities in london</h1>
+</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_location_children"><code class="name flex">
+<span>def <span class="ident">get_location_children</span></span>(<span>client, location_id)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns all locations that are children of the given location</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>location_id (str):</dt>
+<dt>id of the parent location</dt>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>List</code> of <code>client.Location</code> <code>objects</code></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<p>client.addLocation([('Country', 'England'), ('City', 'Milton Keynes')], {})
+client.addLocation([('Country', 'England'), ('City', 'London')], {})
+locations = client.get_location_children([('Country', 'England')])</p>
+<h1 id="this-call-will-return-a-list-with-2-locations-milton-keynes-and-london">This call will return a list with 2 locations: 'Milton Keynes' and 'London'</h1></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_location_documents"><code class="name flex">
+<span>def <span class="ident">get_location_documents</span></span>(<span>client, location)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_locations_by_external_id"><code class="name flex">
+<span>def <span class="ident">get_locations_by_external_id</span></span>(<span>client, external_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_or_create_equipment"><code class="name flex">
+<span>def <span class="ident">get_or_create_equipment</span></span>(<span>client, name, equipment_type, location, properties_dict)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_or_create_equipment_in_position"><code class="name flex">
+<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span>client, name, equipment_type, existing_equipment, position_name, properties_dict)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_or_create_equipment_type"><code class="name flex">
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client, name, category, properties, ports_dict, position_list)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_port"><code class="name flex">
+<span>def <span class="ident">get_port</span></span>(<span>client, equipment, port_name)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_service"><code class="name flex">
+<span>def <span class="ident">get_service</span></span>(<span>client, id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.get_site_surveys"><code class="name flex">
+<span>def <span class="ident">get_site_surveys</span></span>(<span>client, location)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Retrieve all site survey completed in the location.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>could be retrieved from getLocation or addLocation api</dd>
+<dt><strong><code>Returns</code></strong> :&ensp;<code>client.SiteSurvey</code> <code>object</code> (<code>with</code> <code>name</code>, <code>id</code>, <code>completion</code> <code>time</code> <code>and</code> <code>the</code> <code>forms</code>)</dt>
+<dd>The forms are the results of the survey. It is a dict of dicts:
+{
+formA: {
+question1: value1
+question2: value2
+}
+formB: {
+question3: value3
+question4: value4
+}
+}</dd>
+</dl></section>
+</dd>
+<dt id="pyinventory.InventoryClient.move_location"><code class="name flex">
+<span>def <span class="ident">move_location</span></span>(<span>client, location_id, new_parent_id)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.search_for_equipments"><code class="name flex">
+<span>def <span class="ident">search_for_equipments</span></span>(<span>client, limit)</span>
+</code></dt>
+<dd>
+<section class="desc"></section>
+</dd>
+<dt id="pyinventory.InventoryClient.upload_site_survey"><code class="name flex">
+<span>def <span class="ident">upload_site_survey</span></span>(<span>client, location, name, completion_date, excel_file_path, json_file_path)</span>
+</code></dt>
+<dd>
+<section class="desc"><p>Upload the site survey to the given completion with the data in the
+given excel file. We use the schema file to validate the input in the
+excel is as needed for upload.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>location</code></strong> :&ensp;<code>client.Location</code> <code>object</code></dt>
+<dd>could be retrieved from getLocation or addLocation api</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name of the site survey</dd>
+<dt><strong><code>completion_date</code></strong> :&ensp;<code>datetime.datetime</code> <code>object</code></dt>
+<dd>the time the site survey was completed</dd>
+<dt><strong><code>excel_file_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>the path for the excel with the site survey information
+The format of this excel should be created by calling site_survey.exportToExcel
+with the paremeter jsonFilePath (the next parameter of this function)</dd>
+<dt>json_file_path(str): the path for the json file of the schema of the site survey</dt>
+<dt>the json file should comply to the schema found in survey_schema.json</dt>
+<dt>Example of the format:</dt>
+<dt>{</dt>
+<dt>"forms": [</dt>
+<dt>{</dt>
+<dt>"formTitle": "Site Management - General Information",</dt>
+<dt>"questions": [</dt>
+<dt>{</dt>
+<dt>"questionName": "Exact address",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>},</dt>
+<dt>{</dt>
+<dt>"questionName": "Reference for address",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>},</dt>
+<dt>{</dt>
+<dt>"questionName": "Ubigeo",</dt>
+<dt>"questionType": "TEXT"</dt>
+<dt>}</dt>
+<dt>]</dt>
+<dt>}</dt>
+<dt>]</dt>
+<dt>}</dt>
+<dt><strong><code>Raises</code></strong> :&ensp;<code>AssertionException</code> <code>if</code> <code>input</code> <code>values</code> <code>in</code> <code>the</code> <code>excel</code> <code>are</code> <code>incorrect</code></dt>
+<dd>FailedOperationException for internal inventory error</dd>
+</dl></section>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="pyinventory.consts" href="consts.html">pyinventory.consts</a></code></li>
+<li><code><a title="pyinventory.exceptions" href="exceptions.html">pyinventory.exceptions</a></code></li>
+<li><code><a title="pyinventory.graphql" href="graphql/index.html">pyinventory.graphql</a></code></li>
+<li><code><a title="pyinventory.graphql_client" href="graphql_client.html">pyinventory.graphql_client</a></code></li>
+<li><code><a title="pyinventory.reporter" href="reporter.html">pyinventory.reporter</a></code></li>
+<li><code><a title="pyinventory.session" href="session.html">pyinventory.session</a></code></li>
+<li><code><a title="pyinventory.site_survey" href="site_survey.html">pyinventory.site_survey</a></code></li>
+<li><code><a title="pyinventory.site_survey_schema" href="site_survey_schema.html">pyinventory.site_survey_schema</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="pyinventory.InventoryClient" href="#pyinventory.InventoryClient">InventoryClient</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.InventoryClient.add_customer" href="#pyinventory.InventoryClient.add_customer">add_customer</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_equipment" href="#pyinventory.InventoryClient.add_equipment">add_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_equipment_to_position" href="#pyinventory.InventoryClient.add_equipment_to_position">add_equipment_to_position</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_equipment_type" href="#pyinventory.InventoryClient.add_equipment_type">add_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_link" href="#pyinventory.InventoryClient.add_link">add_link</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_location" href="#pyinventory.InventoryClient.add_location">add_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_location_image" href="#pyinventory.InventoryClient.add_location_image">add_location_image</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_location_type" href="#pyinventory.InventoryClient.add_location_type">add_location_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_service" href="#pyinventory.InventoryClient.add_service">add_service</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_service_endpoint" href="#pyinventory.InventoryClient.add_service_endpoint">add_service_endpoint</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_service_type" href="#pyinventory.InventoryClient.add_service_type">add_service_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_site_survey_image" href="#pyinventory.InventoryClient.add_site_survey_image">add_site_survey_image</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.apply_location_template_to_location" href="#pyinventory.InventoryClient.apply_location_template_to_location">apply_location_template_to_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.build_site_survey_from_survey_response" href="#pyinventory.InventoryClient.build_site_survey_from_survey_response">build_site_survey_from_survey_response</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.copy_equipment" href="#pyinventory.InventoryClient.copy_equipment">copy_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.copy_equipment_in_position" href="#pyinventory.InventoryClient.copy_equipment_in_position">copy_equipment_in_position</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.copy_equipment_type" href="#pyinventory.InventoryClient.copy_equipment_type">copy_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.copy_equipment_with_all_attachments" href="#pyinventory.InventoryClient.copy_equipment_with_all_attachments">copy_equipment_with_all_attachments</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_all_equipments" href="#pyinventory.InventoryClient.delete_all_equipments">delete_all_equipments</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_customer" href="#pyinventory.InventoryClient.delete_customer">delete_customer</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_document" href="#pyinventory.InventoryClient.delete_document">delete_document</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_equipment" href="#pyinventory.InventoryClient.delete_equipment">delete_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_equipment_type_with_equipments" href="#pyinventory.InventoryClient.delete_equipment_type_with_equipments">delete_equipment_type_with_equipments</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_location" href="#pyinventory.InventoryClient.delete_location">delete_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_location_type_with_locations" href="#pyinventory.InventoryClient.delete_location_type_with_locations">delete_location_type_with_locations</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_locations_by_location_type" href="#pyinventory.InventoryClient.delete_locations_by_location_type">delete_locations_by_location_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_service_type_with_services" href="#pyinventory.InventoryClient.delete_service_type_with_services">delete_service_type_with_services</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_site_survey" href="#pyinventory.InventoryClient.delete_site_survey">delete_site_survey</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_site_survey_image" href="#pyinventory.InventoryClient.delete_site_survey_image">delete_site_survey_image</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.edit_equipment_type" href="#pyinventory.InventoryClient.edit_equipment_type">edit_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.edit_location" href="#pyinventory.InventoryClient.edit_location">edit_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_all_customers" href="#pyinventory.InventoryClient.get_all_customers">get_all_customers</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment" href="#pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment">get_all_links_and_port_names_of_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment" href="#pyinventory.InventoryClient.get_equipment">get_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_in_position" href="#pyinventory.InventoryClient.get_equipment_in_position">get_equipment_in_position</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_equipment_type_of_equipment" href="#pyinventory.InventoryClient.get_equipment_type_of_equipment">get_equipment_type_of_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_link_in_port_of_equipment" href="#pyinventory.InventoryClient.get_link_in_port_of_equipment">get_link_in_port_of_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_location" href="#pyinventory.InventoryClient.get_location">get_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_location_children" href="#pyinventory.InventoryClient.get_location_children">get_location_children</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_location_documents" href="#pyinventory.InventoryClient.get_location_documents">get_location_documents</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_locations_by_external_id" href="#pyinventory.InventoryClient.get_locations_by_external_id">get_locations_by_external_id</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_or_create_equipment" href="#pyinventory.InventoryClient.get_or_create_equipment">get_or_create_equipment</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_in_position" href="#pyinventory.InventoryClient.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_type" href="#pyinventory.InventoryClient.get_or_create_equipment_type">get_or_create_equipment_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_port" href="#pyinventory.InventoryClient.get_port">get_port</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_service" href="#pyinventory.InventoryClient.get_service">get_service</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_site_surveys" href="#pyinventory.InventoryClient.get_site_surveys">get_site_surveys</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.move_location" href="#pyinventory.InventoryClient.move_location">move_location</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.search_for_equipments" href="#pyinventory.InventoryClient.search_for_equipments">search_for_equipments</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.upload_site_survey" href="#pyinventory.InventoryClient.upload_site_survey">upload_site_survey</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.7.2</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

@@ -12,5 +12,6 @@ option go_package = "magma/orc8r/cloud/go/protos";
 message RedisState {
     bytes serialized_msg = 1;
     uint64 version = 2;
+    bool is_garbage = 3;
 }
 

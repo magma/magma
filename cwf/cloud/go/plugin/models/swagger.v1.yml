@@ -669,9 +669,10 @@ definitions:
     properties:
       ip:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 49
         x-nullable: false
-        example: "192.168.127.1"
+        example: '192.168.128.0/32'
       key:
         type: integer
         format: uint32

@@ -19,6 +19,7 @@ CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"
 LTE_AGW_ROOT = "../../lte/gateway"
 
+CWAG_TEST_IP = "192.168.128.2"
 TRF_SERVER_IP = "192.168.129.42"
 TRF_SERVER_SUBNET = "192.168.129.0"
 CWAG_BR_NAME = "cwag_br0"
@@ -56,7 +57,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     execute(_run_unit_tests)
     execute(_set_cwag_configs)
-    cwag_host_to_mac = execute(_get_cwag_br_mac)
+    cwag_host_to_mac = execute(_get_br_mac, CWAG_BR_NAME)
     host = env.hosts[0]
     cwag_br_mac = cwag_host_to_mac[host]
 
@@ -64,6 +65,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     if gateway_host:
         execute(_transfer_docker_images)
     else:
+        execute(_stop_gateway)
         execute(_build_gateway)
     execute(_run_gateway)
 
@@ -84,9 +86,25 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
 
+    cwag_test_host_to_mac = execute(_get_br_mac, CWAG_TEST_BR_NAME)
+    host = env.hosts[0]
+    cwag_test_br_mac = cwag_test_host_to_mac[host]
     execute(_set_cwag_test_configs)
-    execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_start_ue_simulator)
+
+    # Get back to the gateway vm to setup static arp
+    if not gateway_host:
+        vagrant_setup("cwag", destroy_vm)
+    else:
+        ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
+    execute(_set_cwag_networking, cwag_test_br_mac)
+
+    # Start tests
+    if not test_host:
+        vagrant_setup("cwag_test", destroy_vm)
+    else:
+        ansible_setup(test_host, "cwag_test", "cwag_test.yml")
+    execute(_set_cwag_test_networking, cwag_br_mac)
     execute(_run_integ_tests, test_host, trf_host)
 
 
@@ -111,13 +129,15 @@ def _set_cwag_configs():
     with cd(CWAG_INTEG_ROOT):
         sudo('mkdir -p /var/opt/magma')
         sudo('mkdir -p /var/opt/magma/configs')
-        sudo('cp gateway.mconfig /var/opt/magma/configs')
-        sudo('cp sessiond.yml /var/opt/magma/configs')
-        sudo('cp redis.conf /var/opt/magma')
+        sudo('cp gateway.mconfig /var/opt/magma/configs/')
 
 
-def _get_cwag_br_mac():
-    mac = run("cat /sys/class/net/%s/address" % CWAG_BR_NAME)
+def _set_cwag_networking(mac):
+    sudo('arp -s %s %s' % (CWAG_TEST_IP, mac))
+
+
+def _get_br_mac(bridge_name):
+    mac = run("cat /sys/class/net/%s/address" % bridge_name)
     return mac
 
 
@@ -137,6 +157,16 @@ def _set_cwag_test_networking(mac):
     sudo('arp -s %s %s' % (TRF_SERVER_IP, mac))
 
 
+def _stop_gateway():
+    """ Stop the gateway docker images """
+    with cd(CWAG_ROOT + '/docker'):
+        sudo(' docker-compose'
+             ' -f docker-compose.yml'
+             ' -f docker-compose.override.yml'
+             ' -f docker-compose.integ-test.yml'
+             ' down')
+
+
 def _build_gateway():
     """ Builds the gateway docker images """
     with cd(CWAG_ROOT + '/docker'):
@@ -154,8 +184,7 @@ def _run_gateway():
              ' -f docker-compose.yml'
              ' -f docker-compose.override.yml'
              ' -f docker-compose.integ-test.yml'
-             ' up -d '
-             ' --force-recreate')
+             ' up -d ')
 
 
 def _start_ue_simulator():

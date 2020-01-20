@@ -1,0 +1,7 @@
+mutation EditLocationMutation($input: EditLocationInput!) {
+  editLocation(input: $input) {
+    id
+    name
+    externalId
+  }
+}

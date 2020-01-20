@@ -614,7 +614,7 @@ static int _auth_info_proc_failure_cb(struct emm_context_s *emm_ctx)
         emm_sap.u.emm_reg.ue_id = ue_id;
         emm_sap.u.emm_reg.ctx = emm_ctx;
         emm_sap.u.emm_reg.notify = true;
-        emm_sap.u.emm_reg.free_proc = true;
+        emm_sap.u.emm_reg.free_proc = false;
         emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
         emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
           auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;

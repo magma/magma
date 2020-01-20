@@ -11,16 +11,21 @@ var jp = require('jsonpath');
 
 var network = process.env['symphony_network'];
 
-function doGet(path, printError, handler) {
+function doHttp(path, printError, handler, method, body) {
     var options = {
         hostname: 'api.magma.etagecom.io',
         port: 443,
         path: path,
-        method: 'GET',
+        method: method,
         json: 'true',
         key: fs.readFileSync('/run/secrets/orc8r_api_key'),
         cert: fs.readFileSync('/run/secrets/orc8r_api_cert'),
-        headers: { accept: 'application/json' }
+        headers: {
+            accept: 'application/json',
+            'Content-Type': 'application/json',
+            'Content-Length': body.length
+        },
+        body: body
     };
 
     var req = https.request(options, function(res) {
@@ -40,7 +45,24 @@ function doGet(path, printError, handler) {
             }
         });
     });
+
+    if (body.length != 0) {
+        req.write(body);
+    }
+
     req.end();
+}
+
+function doGet(path, printError, handler) {
+    doHttp(path, printError, handler, 'GET', "");
+}
+
+function doPost(path, printError, handler, body) {
+    doHttp(path, printError, handler, 'POST', body);
+}
+
+function doPut(path, printError, handler, body) {
+    doHttp(path, printError, handler, 'PUT', body);
 }
 
 function p(header, obj, path) {
@@ -50,6 +72,15 @@ function p(header, obj, path) {
         process.stdout.write(JSON.stringify(result) + "\n");
     } else {
         process.stdout.write(JSON.stringify(result[0]) + "\n");
+    }
+}
+
+function printInterfaceModels(deviceState) {
+    var interfaces = deviceState["openconfig-interfaces:interfaces"];
+    if (interfaces) {
+        p("s/oper-status", interfaces, "$..['interface']..[*].state..['oper-status']");
+        p("s/admin-status", interfaces, "$..['interface']..[*].state..['admin-status']");
+        p("c/enabled", interfaces, "$..['interface']..[*].config..['enabled']");
     }
 }
 
@@ -87,14 +118,30 @@ function printWifiModels(deviceState) {
     }
 }
 
-function printAgent(agentId, agent) {
-    if (agent && agent.status &
-        & agent.status.meta && agent.status.meta.devmand) {
+function processAgent(agentId, agent) {
+    if (agent && agent.status && agent.status.meta && agent.status.meta.devmand) {
         process.stdout.write("Agent " + agentId + "\n");
         var managedDevices = JSON.parse(agent.status.meta.devmand);
         for (var managedDevice in managedDevices) {
             process.stdout.write("\t" + managedDevice + "\n");
+            printInterfaceModels(managedDevices[managedDevice]);
             printWifiModels(managedDevices[managedDevice]);
+
+            doGet('/magma/v1/symphony/' +  network + '/devices/' + managedDevice,
+                true,
+                function(body) {
+                    var device = JSON.parse(body);
+                    console.log(managedDevices[managedDevice]
+                        ["openconfig-interfaces:interfaces"].interface[1]
+                        .config.enabled);
+
+                    device.config.device_config = JSON.stringify(managedDevices[managedDevice]);
+
+                    //doPut('/magma/v1/symphony/' +  network + '/devices/' + managedDevice, true,
+                    //    function(body) {
+                    //        process.stdout.write("P".repeat(80) + "\n");
+                    //    }, JSON.stringify(device));
+                });
         }
     }
 }
@@ -105,10 +152,10 @@ function loop() {
             var agents = JSON.parse(body);
             process.stdout.write("#".repeat(80) + "\n");
             for (var agentId in agents) {
-                printAgent(agentId, agents[agentId]);
+                processAgent(agentId, agents[agentId]);
             }
         });
 }
 
 let timerId = setInterval(loop, 10000);
-setTimeout(() => { clearInterval(timerId);}, 18000);
+setTimeout(() => { clearInterval(timerId);}, 108000);
