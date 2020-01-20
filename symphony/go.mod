@@ -13,6 +13,7 @@ require (
 	github.com/99designs/gqlgen-contrib v0.0.0-20190913031219-de8886ed1b47
 	github.com/AlekSi/pointer v1.1.0
 	github.com/DATA-DOG/go-sqlmock v1.3.3
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/agnivade/levenshtein v1.0.3 // indirect
 	github.com/aws/aws-sdk-go v1.19.45
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
