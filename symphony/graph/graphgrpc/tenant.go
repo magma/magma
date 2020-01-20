@@ -72,7 +72,7 @@ func (s TenantService) List(ctx context.Context, _ *empty.Empty) (*TenantList, e
 		name = viewer.FromDBName(name)
 		tenants = append(tenants, &Tenant{Id: name, Name: name})
 	}
-	return &TenantList{Tenants: tenants}, nil
+	return &TenantList{Tenants: tenants}, rows.Err()
 }
 
 // Get tenant by name.
@@ -152,5 +152,5 @@ func (s TenantService) exist(ctx context.Context, name string) (bool, error) {
 	if err := rows.Scan(&n); err != nil {
 		return false, fmt.Errorf("scanning count: %w", err)
 	}
-	return n > 0, nil
+	return n > 0, rows.Err()
 }
