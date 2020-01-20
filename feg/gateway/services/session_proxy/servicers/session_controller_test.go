@@ -1362,4 +1362,3 @@ func returnGySuccessSubscriberBarred(args mock.Arguments) {
 		Credits:       credits,
 	}
 }
-
