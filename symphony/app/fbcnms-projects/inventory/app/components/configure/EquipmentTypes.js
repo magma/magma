@@ -79,7 +79,7 @@ type State = {
 
 const equipmentTypesQuery = graphql`
   query EquipmentTypesQuery {
-    equipmentTypes(first: 50)
+    equipmentTypes(first: 500)
       @connection(key: "EquipmentTypes_equipmentTypes") {
       edges {
         node {
