@@ -989,7 +989,9 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 
 func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHyperlinkInput) (*ent.Hyperlink, error) {
 	client := r.ClientFrom(ctx)
-	if input.EntityType == models.ImageEntityLocation {
+
+	switch input.EntityType {
+	case models.ImageEntityLocation:
 		l, err := client.Location.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
@@ -1005,9 +1007,7 @@ func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHype
 			return nil, errors.Wrapf(err, "adding location hyperlink: location=%q, url=%q", input.EntityID, input.URL)
 		}
 		return hyperlink, nil
-	}
-
-	if input.EntityType == models.ImageEntityWorkOrder {
+	case models.ImageEntityWorkOrder:
 		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
@@ -1023,8 +1023,7 @@ func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHype
 			return nil, errors.Wrapf(err, "adding work order hyperlink: workOrder=%q, url=%q", wo.ID, input.URL)
 		}
 		return hyperlink, nil
-	}
-	if input.EntityType == models.ImageEntityEquipment {
+	case models.ImageEntityEquipment:
 		eq, err := client.Equipment.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
@@ -1046,7 +1045,9 @@ func (r mutationResolver) AddHyperlink(ctx context.Context, input models.AddHype
 
 func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInput) (*ent.File, error) {
 	client := r.ClientFrom(ctx)
-	if input.EntityType == models.ImageEntityLocation {
+
+	switch input.EntityType {
+	case models.ImageEntityLocation:
 		l, err := client.Location.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying location: id=%q", input.EntityID)
@@ -1062,9 +1063,7 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 			return nil, errors.Wrapf(err, "adding location image: location=%q, key=%q", input.EntityID, input.ImgKey)
 		}
 		return img, nil
-	}
-
-	if input.EntityType == models.ImageEntitySiteSurvey {
+	case models.ImageEntitySiteSurvey:
 		srv, err := client.Survey.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying survey: id=%q", input.EntityID)
@@ -1087,9 +1086,7 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 			return nil, errors.Wrapf(err, "set survey image: survey=%q, key=%q", srv.ID, input.ImgKey)
 		}
 		return img, nil
-	}
-
-	if input.EntityType == models.ImageEntityWorkOrder {
+	case models.ImageEntityWorkOrder:
 		wo, err := client.WorkOrder.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying work order: id=%q", input.EntityID)
@@ -1105,8 +1102,7 @@ func (r mutationResolver) AddImage(ctx context.Context, input models.AddImageInp
 			return nil, errors.Wrapf(err, "adding work order image: workOrder=%q, key=%q", wo.ID, input.ImgKey)
 		}
 		return img, nil
-	}
-	if input.EntityType == models.ImageEntityEquipment {
+	case models.ImageEntityEquipment:
 		eq, err := client.Equipment.Get(ctx, input.EntityID)
 		if err != nil {
 			return nil, errors.Wrapf(err, "querying equipment: id=%q", input.EntityID)
