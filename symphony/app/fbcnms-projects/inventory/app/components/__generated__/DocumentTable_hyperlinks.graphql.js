@@ -21,6 +21,8 @@ declare export opaque type DocumentTable_hyperlinks$fragmentType: DocumentTable_
 export type DocumentTable_hyperlinks = $ReadOnlyArray<{|
   +id: string,
   +category: ?string,
+  +url: string,
+  +displayName: ?string,
   +$fragmentRefs: HyperlinkTableRow_hyperlink$ref,
   +$refType: DocumentTable_hyperlinks$ref,
 |}>;
@@ -56,6 +58,20 @@ const node/*: ReaderFragment*/ = {
       "storageKey": null
     },
     {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "url",
+      "args": null,
+      "storageKey": null
+    },
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "displayName",
+      "args": null,
+      "storageKey": null
+    },
+    {
       "kind": "FragmentSpread",
       "name": "HyperlinkTableRow_hyperlink",
       "args": null
@@ -63,5 +79,5 @@ const node/*: ReaderFragment*/ = {
   ]
 };
 // prettier-ignore
-(node/*: any*/).hash = 'f74e5e118c2770d772174b292fb4266e';
+(node/*: any*/).hash = 'c9ea5f1896114cd428384654f0979a5e';
 module.exports = node;
