@@ -59,6 +59,7 @@ target_link_libraries(devman
   boost_context
   boost_thread
   boost_system
+  boost_filesystem
   crypto
   folly
   pthread
@@ -73,6 +74,7 @@ target_link_libraries(devman
   ssh
   ssh_threads
   pcre
+  yang
   ydk
   ydk_openconfig
   ydk_ietf
@@ -117,7 +119,11 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/PlaintextCliDevice.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ParsingUtils.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/StructuredUbntDevice.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/ModelRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/ModelRegistry.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Model.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/Path.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/SchemaContext.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/devices/cli/schema/BindingContext.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/Spd2Glog.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/IoConfigurationBuilder.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/ReadCachingCli.cpp
@@ -128,8 +134,7 @@ add_library(devman_channel_cli
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliThreadWheelTimekeeper.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CliTimekeeperWrapper.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/CancelableWTCallback.h
-  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/LoggingCli.cpp
-  )
+  ${PROJECT_SOURCE_DIR}/src/devmand/channels/cli/LoggingCli.cpp)
 
 target_link_libraries(devman_channel_cli
   devman)
@@ -231,7 +236,9 @@ add_executable(devmantest
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Ssh.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/utils/Log.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/CommandTest.cpp
-  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/ModelRegistryTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PathTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/SchemaContextTest.cpp
+  ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/BindingContextTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/PlaintextCliDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/cli/StructuredUbntDeviceTest.cpp
   ${PROJECT_SOURCE_DIR}/src/devmand/test/DemoDeviceTest.cpp

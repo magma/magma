@@ -8,9 +8,9 @@
 #include <devmand/channels/cli/Cli.h>
 #include <devmand/channels/cli/IoConfigurationBuilder.h>
 #include <devmand/devices/Datastore.h>
-#include <devmand/devices/cli/ModelRegistry.h>
 #include <devmand/devices/cli/ParsingUtils.h>
 #include <devmand/devices/cli/StructuredUbntDevice.h>
+#include <devmand/devices/cli/schema/ModelRegistry.h>
 #include <folly/futures/Future.h>
 #include <folly/json.h>
 #include <ydk_ietf/iana_if_type.hpp>
@@ -322,10 +322,11 @@ StructuredUbntDevice::StructuredUbntDevice(
 
 void StructuredUbntDevice::setIntendedDatastore(const dynamic& config) {
   const string& json = folly::toJson(config);
-  auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
   const shared_ptr<OpenconfigInterfaces>& ydkModel =
       make_shared<OpenconfigInterfaces>();
-  const shared_ptr<Entity> decodedIfcEntity = bundle.decode(json, ydkModel);
+  const shared_ptr<Entity> decodedIfcEntity =
+      bundle.getCodec().decode(json, ydkModel);
   MLOG(MDEBUG) << decodedIfcEntity->get_segment_path();
 
   for (shared_ptr<Entity> entity : ydkModel->interface.entities()) {
@@ -353,17 +354,17 @@ shared_ptr<Datastore> StructuredUbntDevice::getOperationalDatastore() {
   auto state = Datastore::make(*reinterpret_cast<MetricSink*>(&app), getId());
   state->setStatus(true);
 
-  auto& bundle = mreg->getBundle(Model::OPENCONFIG_0_1_6);
+  auto& bundle = mreg->getBindingContext(Model::OPENCONFIG_0_1_6);
 
   // TODO the conversion here is: Object -> Json -> folly:dynamic
   // the json step is unnecessary
 
   auto ifcs = parseIfcs(*channel);
-  string json = bundle.encode(*ifcs);
+  string json = bundle.getCodec().encode(*ifcs);
   folly::dynamic dynamicIfcs = folly::parseJson(json);
 
   auto networks = parseNetworks(*channel);
-  json = bundle.encode(*networks);
+  json = bundle.getCodec().encode(*networks);
   folly::dynamic dynamicNis = folly::parseJson(json);
 
   state->update([&dynamicIfcs, &dynamicNis](folly::dynamic& lockedState) {
