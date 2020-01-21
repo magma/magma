@@ -53,7 +53,6 @@
 #include "itti_types.h"
 #include "mme_api.h"
 #include "mme_app_state.h"
-#include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sgs_messages_types.h"
 #include "nas_proc.h"
@@ -145,6 +144,15 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
+  if (!message_p) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Failed to allocate memory for SGSAP UE ACTIVITY IND for Imsi: "
+      "%s %d \n",
+      imsi,
+      imsi_len);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   memset(
     &message_p->ittiMsg.sgsap_ue_activity_ind,
     0,
@@ -153,19 +161,20 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
   OAILOG_DEBUG(LOG_MME_APP, " Imsi : %s %d \n", imsi, imsi_len);
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
-  if ((itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p))
-    == RETURNok) {
+  if (
+    (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)) ==
+    RETURNok) {
     OAILOG_DEBUG(
       LOG_MME_APP,
-      "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
-      "%s %d \n",
+      "Sending ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
+      " imsi_len: %d \n",
       imsi,
       imsi_len);
   } else {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to send ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi : "
-      "%s %d \n",
+      "Failed to send ITTI SGSAP UE ACTIVITY IND to SGS task for Imsi: %s"
+      " imsi_len: %d \n",
       imsi,
       imsi_len);
   }
@@ -181,8 +190,8 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
  **                                                                              **
 ***********************************************************************************/
 static int _copy_mobile_identity_helper(
-  MobileIdentity_t *mobileid_dest,
-  MobileIdentity_t *mobileid_src)
+  MobileIdentity_t* mobileid_dest,
+  MobileIdentity_t* mobileid_src)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -208,20 +217,20 @@ static int _copy_mobile_identity_helper(
 ***********************************************************************************/
 
 static int _build_sgs_status(
-  char *imsi,
+  char* imsi,
   uint8_t imsi_length,
   lai_t laicsfb,
-  MobileIdentity_t *mobileid,
+  MobileIdentity_t* mobileid,
   uint8_t msg_id)
 {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_STATUS);
-  itti_sgsap_status_t *sgsap_status = &message_p->ittiMsg.sgsap_status;
-  memset((void *) sgsap_status, 0, sizeof(itti_sgsap_status_t));
+  itti_sgsap_status_t* sgsap_status = &message_p->ittiMsg.sgsap_status;
+  memset((void*) sgsap_status, 0, sizeof(itti_sgsap_status_t));
 
   //Encode IMSI
   sgsap_status->presencemask = SGSAP_IMSI;
@@ -519,12 +528,13 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     ue_context_p->e_utran_cgi.cell_identity.cell_id;
 
   // Send SGSAP Location Update Request to SGS task
-  if ((itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p))
-    != RETURNok) {
+  if (
+    (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)) !=
+    RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
-      "Failed to send SGS-Location Update Request for UE ID"
-      MME_UE_S1AP_ID_FMT "\n",
+      "Failed to send SGS-Location Update Request for UE ID" MME_UE_S1AP_ID_FMT
+      "\n",
       ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -541,7 +551,10 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
       ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  // Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED
+  /* Start Ts6-1 timer and change SGS state to LA_UPDATE_REQUESTED */
+  nas_itti_timer_arg_t cb = {0};
+  cb.nas_timer_callback = mme_app_handle_ts6_1_timer_expiry;
+  cb.nas_timer_callback_arg = (void*) &(ue_context_p->mme_ue_s1ap_id);
   sgs_fsm_set_status(
     ue_context_p->mme_ue_s1ap_id,
     ue_context_p->sgs_context,
@@ -553,8 +566,8 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
       TASK_MME_APP,
       INSTANCE_DEFAULT,
       TIMER_ONE_SHOT,
-      (void*) &(ue_context_p->mme_ue_s1ap_id),
-      sizeof(mme_ue_s1ap_id_t),
+      &cb,
+      sizeof(cb),
       &(ue_context_p->sgs_context->ts6_1_timer.id)) < 0) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -565,7 +578,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
     OAILOG_DEBUG(
       LOG_MME_APP,
       "MME APP : Sent SGsAP Location Update Request and Started Ts6-1 timer "
-      "for UE id  %d \n",
+      "for UE id: " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -613,7 +626,6 @@ int mme_app_handle_sgsap_location_update_acc(
   ((sgs_context_t*) sgs_fsm.ctx)->sgsap_msg =
     (void*) itti_sgsap_location_update_acc;
 
-  unlock_ue_contexts(ue_context_p);
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -670,7 +682,6 @@ int mme_app_handle_sgsap_location_update_rej(
   ((sgs_context_t*) sgs_fsm.ctx)->sgsap_msg =
     (void*) itti_sgsap_location_update_rej;
 
-  unlock_ue_contexts(ue_context_p);
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,
@@ -832,8 +843,9 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt)
       OAILOG_ERROR(LOG_MME_APP, "Failed to stop Ts6_1 timer \n");
     }
     sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
-    if ((_handle_cs_domain_loc_updt_acc(
-         itti_sgsap_location_update_acc_p, ue_context_p)) == RETURNerror) {
+    if (
+      (_handle_cs_domain_loc_updt_acc(
+        itti_sgsap_location_update_acc_p, ue_context_p)) == RETURNerror) {
       OAILOG_DEBUG(
         LOG_MME_APP,
         "Failed to update CSFB params received from MSC/VLR for UE " IMSI_64_FMT
@@ -956,7 +968,6 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt)
   if (itti_sgsap_location_update_rej_p->presencemask & SGSAP_LAI) {
     lai = &itti_sgsap_location_update_rej_p->laicsfb;
   }
-  unlock_ue_contexts(ue_context_p);
   // Handle SGS Location Update Failure
   nas_proc_cs_domain_location_updt_fail(
     itti_sgsap_location_update_rej_p->cause, lai, ue_context_p->mme_ue_s1ap_id);
@@ -972,22 +983,30 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt)
  ** Inputs:              ue_mm_context_s                                            **
  **                                                                              **
 ***********************************************************************************/
-
-void mme_app_handle_ts6_1_timer_expiry(struct ue_mm_context_s *ue_context_p)
+void mme_app_handle_ts6_1_timer_expiry(void* args)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(ue_context_p != NULL);
-  DevAssert(ue_context_p->sgs_context != NULL);
-  OAILOG_WARNING(
-    LOG_MME_APP,
-    "Expired- Ts6-1 timer for UE id  %d \n",
-    ue_context_p->mme_ue_s1ap_id);
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
+  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+    mme_ue_s1ap_id,
+    "sgs ts6_1 timer");
+  if (ue_context_p == NULL) {
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  if (ue_context_p->sgs_context == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP,
+      "Ts6-1  Timer expired, but sgs context is NULL for "
+      "ue-id " MME_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   ue_context_p->sgs_context->ts6_1_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->sgs_context->sgs_state = SGS_NULL;
 
   // Handle SGS Location Update Failure
   nas_proc_cs_domain_location_updt_fail(
-    SGS_MSC_NOT_REACHABLE, NULL, ue_context_p->mme_ue_s1ap_id);
+    SGS_MSC_NOT_REACHABLE, NULL, mme_ue_s1ap_id);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

@@ -50,7 +50,6 @@
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_req
 #define S1AP_ENB_INITIATED_RESET_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_ack
-#define S1AP_DEREGISTER_UE_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_deregister_ue_req
 #define S1AP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.s1ap_ue_context_release_req
 #define S1AP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
@@ -148,10 +147,6 @@ typedef struct itti_s1ap_eNB_deregistered_ind_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id[S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE];
   uint32_t enb_id;
 } itti_s1ap_eNB_deregistered_ind_t;
-
-typedef struct itti_s1ap_deregister_ue_req_s {
-  mme_ue_s1ap_id_t mme_ue_s1ap_id;
-} itti_s1ap_deregister_ue_req_t;
 
 typedef enum s1ap_reset_type_e {
   RESET_ALL = 0,

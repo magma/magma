@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -51,7 +51,7 @@
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_network_initialize(mme_config_t *mme_config_p)
+void nas_network_initialize(const mme_config_t *mme_config_p)
 {
   OAILOG_FUNC_IN(LOG_NAS);
   /*

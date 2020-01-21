@@ -62,7 +62,6 @@
 #include "conversions.h"
 #include "esm_sap.h"
 #include "service303.h"
-#include "nas_itti_messaging.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_apn_selection.h"
 #include "mme_config.h"
@@ -82,7 +81,6 @@
 #include "mme_app_state.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_sgs_fsm.h"
-#include "nas_messages_types.h"
 #include "nas_procedures.h"
 #include "nas/networkDef.h"
 #include "security_types.h"
@@ -104,7 +102,6 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id);
 static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
 static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 
@@ -114,7 +111,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
 static const char *_emm_cn_primitive_str[] = {
   "EMM_CN_AUTHENTICATION_PARAM_RES",
   "EMM_CN_AUTHENTICATION_PARAM_FAIL",
-  "EMM_CN_DEREGISTER_UE",
   "EMM_CN_ULA_SUCCESS",
   "EMM_CN_CS_RESPONSE_SUCCESS",
   "EMM_CN_ULA_OR_CSRSP_FAIL",
@@ -163,7 +159,6 @@ static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg)
         "id " MME_UE_S1AP_ID_FMT "...\n",
         msg->ue_id);
     }
-    unlock_ue_contexts(ue_mm_context);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -198,7 +193,6 @@ static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg)
         "id " MME_UE_S1AP_ID_FMT "...\n",
         msg->ue_id);
     }
-    unlock_ue_contexts(ue_mm_context);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -213,27 +207,6 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-//------------------------------------------------------------------------------
-static int _emm_cn_deregister_ue(const mme_ue_s1ap_id_t ue_id)
-{
-  int rc = RETURNok;
-
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
-  OAILOG_WARNING(
-    LOG_NAS_EMM,
-    "EMM-PROC  - "
-    "TODO deregister UE " MME_UE_S1AP_ID_FMT
-    ", following procedure is a test\n",
-    ue_id);
-  emm_detach_request_ies_t params = {0};
-  params.type = EMM_DETACH_TYPE_EPS;
-  params.switch_off = false;
-  params.is_native_sc = false;
-  params.ksi = 0;
-  increment_counter("ue_detach", 1, 1, "cause", "deregister_ue");
-  emm_proc_detach_request(ue_id, &params);
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-}
 //------------------------------------------------------------------------------
 void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
 {
@@ -331,7 +304,6 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
      * by HSS,send Attach Reject to UE
      */
     _handle_apn_mismatch(ue_mm_context);
-    unlock_ue_contexts(ue_mm_context);
     return RETURNerror;
   }
 
@@ -427,7 +399,6 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
         "Failed to Perform PDN connectivity procedure requested by ue"
         "for (ue_id =" MME_UE_S1AP_ID_FMT ")\n",
         ue_mm_context->mme_ue_s1ap_id);
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     if (!is_pdn_context_exist_for_apn) {
@@ -436,10 +407,8 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
         increment_counter("mme_spgw_create_session_req", 1, NO_LABELS);
       }
     }
-    unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
@@ -474,7 +443,6 @@ static int _emm_cn_implicit_detach_ue(const uint32_t ue_id)
     rc = emm_proc_sgs_detach_request(ue_id, EMM_SGS_NW_INITIATED_EPS_DETACH);
   }
 
-  emm_context_unlock(emm_ctx_p);
   emm_proc_detach_request(ue_id, &params);
   increment_counter("ue_detach", 1, 1, "cause", "implicit_detach");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -668,7 +636,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       /*
        * Return indication that ESM procedure failed
        */
-      unlock_ue_contexts(ue_mm_context);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
@@ -681,7 +648,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    * if attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI
    */
   if (_emm_proc_combined_attach_req(emm_ctx, rsp) == RETURNok) {
-    unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
@@ -720,7 +686,6 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       }
     }
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -811,7 +776,6 @@ static int _emm_cn_ula_or_csrsp_fail(const emm_cn_ula_or_csrsp_fail_t* msg)
       "pdn_connection_estb_failed");
     rc = emm_proc_attach_reject(msg->ue_id, EMM_CAUSE_ESM_FAILURE);
   }
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -856,7 +820,6 @@ static int _emm_cn_activate_dedicated_bearer_req(
 
   rc = esm_sap_send(&esm_sap);
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -889,7 +852,6 @@ static int _emm_cn_deactivate_dedicated_bearer_req(
 
   rc = esm_sap_send(&esm_sap);
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1080,8 +1042,6 @@ static int _emm_cn_cs_domain_loc_updt_fail(
   }
   //Store SGS Reject Cause to be sent in Attach/TAU
   emm_ctx_p->emm_cause = emm_cn_sgs_location_updt_fail.reject_cause;
-
-  emm_context_unlock(emm_ctx_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1123,7 +1083,6 @@ static int _emm_cn_cs_domain_mm_information_req(
     if (ue_context_p->sgs_context == NULL) {
       OAILOG_WARNING(
         LOG_NAS_EMM, " Invalid SGS context for IMSI" IMSI_64_FMT "\n", imsi64);
-      emm_context_unlock(ctxt);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
 
@@ -1148,7 +1107,6 @@ static int _emm_cn_cs_domain_mm_information_req(
       "imsi" IMSI_64_FMT "\n",
       imsi64);
   }
-  emm_context_unlock(ctxt);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1185,7 +1143,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
       "Building of deactivate_eps_bearer_context_request failed for bearer"
       "%u\n",
       msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   /*
@@ -1199,7 +1156,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
   } else {
     OAILOG_ERROR(
       LOG_NAS_EMM, "Message encoding failed for bearer %u\n", msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -1219,7 +1175,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
       "Processing eps_bearer_context_deactivate_request failed for bearer"
       "%u\n",
       msg->lbi);
-    unlock_ue_contexts(ue_mm_context_p);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -1252,7 +1207,6 @@ static int _emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg)
       LOG_NAS_EMM, "ESM-PROC  - No PDN connection found (lbi=%u)\n", msg->lbi);
     rc = RETURNerror;
   }
-  unlock_ue_contexts(ue_mm_context_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -1276,10 +1230,6 @@ int emm_cn_send(const emm_cn_t *msg)
 
     case _EMMCN_AUTHENTICATION_PARAM_FAIL:
       rc = _emm_cn_authentication_fail(msg->u.auth_fail);
-      break;
-
-    case EMMCN_DEREGISTER_UE:
-      rc = _emm_cn_deregister_ue(msg->u.deregister.ue_id);
       break;
 
     case EMMCN_ULA_SUCCESS:

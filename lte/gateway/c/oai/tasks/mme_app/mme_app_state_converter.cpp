@@ -102,7 +102,6 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
         state_htbl->name->data,
         hashtable_rc_code2string(ht_rc));
     }
-    unlock_ue_contexts(ue_context_p);
     OAILOG_INFO(LOG_MME_APP, "Written one key into hashtable_ts");
   }
 }
