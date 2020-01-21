@@ -13,6 +13,7 @@ import type {
   ImageEntity,
 } from '../mutations/__generated__/DeleteImageMutation.graphql';
 import type {EntityDocumentsTable_files} from './__generated__/EntityDocumentsTable_files.graphql';
+import type {EntityDocumentsTable_hyperlinks} from './__generated__/EntityDocumentsTable_hyperlinks.graphql';
 import type {MutationCallbacks} from '../mutations/MutationCallbacks.js';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
@@ -31,6 +32,7 @@ type Props = {
   entityType: ImageEntity,
   entityId: string,
   files: EntityDocumentsTable_files,
+  hyperlinks: EntityDocumentsTable_hyperlinks,
   className?: string,
 } & WithAlert &
   WithSnackbarProps;
@@ -41,11 +43,12 @@ class EntityDocumentsTable extends React.Component<Props> {
   }
 
   render() {
-    const {files, className} = this.props;
+    const {files, hyperlinks, className} = this.props;
     return (
       <div className={className}>
         <DocumentTable
           files={files}
+          hyperlinks={hyperlinks}
           onDocumentDeleted={this.onDocumentDeleted}
         />
       </div>
@@ -107,6 +110,12 @@ export default withAlert(
       files: graphql`
         fragment EntityDocumentsTable_files on File @relay(plural: true) {
           ...DocumentTable_files
+        }
+      `,
+      hyperlinks: graphql`
+        fragment EntityDocumentsTable_hyperlinks on Hyperlink
+          @relay(plural: true) {
+          ...DocumentTable_hyperlinks
         }
       `,
     }),

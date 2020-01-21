@@ -54,6 +54,9 @@ const LocationDocumentsCard = (props: Props) => {
         files {
           ...EntityDocumentsTable_files
         }
+        hyperlinks {
+          ...EntityDocumentsTable_hyperlinks
+        }
       }
     `,
     location,
@@ -82,6 +85,7 @@ const LocationDocumentsCard = (props: Props) => {
         entityType="LOCATION"
         entityId={data.id}
         files={documents}
+        hyperlinks={data.hyperlinks}
       />
     </Card>
   );
